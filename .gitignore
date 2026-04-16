@@ -1,0 +1,40 @@
+# Unreal Engine generated output
+/Binaries/
+/DerivedDataCache/
+/Intermediate/
+/Saved/
+/ProjectFiles/
+/Plugins/**/Binaries/
+/Plugins/**/Intermediate/
+/Plugins/**/Temp/
+
+# Generated build/package artifacts
+/Build/**/FileOpenOrder/
+/Build/WindowsNoEditor/
+
+# IDE and editor local state
+/.vs/
+/.vscode/
+/.idea/
+/Content/
+/Platforms/
+*.VC.db
+*.VC.opendb
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.user
+*.userprefs
+*.code-workspace
+.vsconfig
+
+# Platform/editor noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Xcode project files
+*.xcodeproj
+*.xcworkspace
