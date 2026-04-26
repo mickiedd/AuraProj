@@ -16,6 +16,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/GameStateBase.h"
+#include "Engine/NetConnection.h"
 
 void AAuraGameModeBase::SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex)
 {
@@ -216,10 +217,11 @@ FString AAuraGameModeBase::InitNewPlayer(APlayerController* NewPlayerController,
 		RequestedName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
 	}
 
-	const FString UniqueName = BuildUniquePlayerName(RequestedName, NewPlayerController->PlayerState);
+	const FString DisambiguationToken = BuildConnectionDisambiguationToken(NewPlayerController, UniqueId);
+	const FString UniqueName = BuildUniquePlayerName(RequestedName, DisambiguationToken, NewPlayerController->PlayerState);
 	ChangeName(NewPlayerController, UniqueName, false);
 
-	UE_LOG(LogTemp, Display, TEXT("Assigned player name '%s' (requested: '%s')"), *UniqueName, *RequestedName);
+	UE_LOG(LogTemp, Display, TEXT("Assigned player name '%s' (requested: '%s', token: '%s')"), *UniqueName, *RequestedName, *DisambiguationToken);
 
 	return Result;
 }
@@ -234,7 +236,7 @@ void AAuraGameModeBase::PostLogin(APlayerController* NewPlayer)
 	}
 
 	const FString CurrentName = NewPlayer->PlayerState->GetPlayerName();
-	const FString UniqueName = BuildUniquePlayerName(CurrentName, NewPlayer->PlayerState);
+	const FString UniqueName = BuildUniquePlayerName(CurrentName, FString(), NewPlayer->PlayerState);
 	if (!CurrentName.Equals(UniqueName, ESearchCase::CaseSensitive))
 	{
 		ChangeName(NewPlayer, UniqueName, false);
@@ -242,19 +244,69 @@ void AAuraGameModeBase::PostLogin(APlayerController* NewPlayer)
 	}
 }
 
-FString AAuraGameModeBase::BuildUniquePlayerName(const FString& RequestedName, const APlayerState* ExcludedPlayerState) const
+FString AAuraGameModeBase::BuildUniquePlayerName(const FString& RequestedName, const FString& DisambiguationToken, const APlayerState* ExcludedPlayerState) const
 {
 	const FString BaseName = SanitizePlayerName(RequestedName);
 	FString CandidateName = BaseName;
+	const FString SanitizedToken = SanitizePlayerName(DisambiguationToken);
+
+	if (!IsPlayerNameInUse(CandidateName, ExcludedPlayerState))
+	{
+		return CandidateName;
+	}
+
+	if (!SanitizedToken.IsEmpty() && !SanitizedToken.Equals(TEXT("Player"), ESearchCase::CaseSensitive))
+	{
+		const FString TokenCandidate = FString::Printf(TEXT("%s_%s"), *BaseName, *SanitizedToken);
+		if (!IsPlayerNameInUse(TokenCandidate, ExcludedPlayerState))
+		{
+			return TokenCandidate;
+		}
+	}
+
 	int32 Counter = 2;
 
 	while (IsPlayerNameInUse(CandidateName, ExcludedPlayerState))
 	{
-		CandidateName = FString::Printf(TEXT("%s_%d"), *BaseName, Counter);
+		if (!SanitizedToken.IsEmpty() && !SanitizedToken.Equals(TEXT("Player"), ESearchCase::CaseSensitive))
+		{
+			CandidateName = FString::Printf(TEXT("%s_%s_%d"), *BaseName, *SanitizedToken, Counter);
+		}
+		else
+		{
+			CandidateName = FString::Printf(TEXT("%s_%d"), *BaseName, Counter);
+		}
 		++Counter;
 	}
 
 	return CandidateName;
+}
+
+FString AAuraGameModeBase::BuildConnectionDisambiguationToken(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId) const
+{
+	(void)UniqueId;
+
+	if (IsValid(NewPlayerController) && IsValid(NewPlayerController->PlayerState))
+	{
+		const int32 PlayerId = NewPlayerController->PlayerState->GetPlayerId();
+		if (PlayerId >= 0)
+		{
+			return FString::Printf(TEXT("P%d"), PlayerId);
+		}
+	}
+
+	if (IsValid(NewPlayerController) && NewPlayerController->GetNetConnection())
+	{
+		const FString RemoteAddress = NewPlayerController->GetNetConnection()->LowLevelGetRemoteAddress(false);
+		FString HostPart;
+		FString PortPart;
+		if (RemoteAddress.Split(TEXT(":"), &HostPart, &PortPart, ESearchCase::IgnoreCase, ESearchDir::FromEnd) && !PortPart.IsEmpty())
+		{
+			return PortPart;
+		}
+	}
+
+	return FString();
 }
 
 bool AAuraGameModeBase::IsPlayerNameInUse(const FString& CandidateName, const APlayerState* ExcludedPlayerState) const

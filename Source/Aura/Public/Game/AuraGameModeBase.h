@@ -70,7 +70,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	FString BuildUniquePlayerName(const FString& RequestedName, const APlayerState* ExcludedPlayerState = nullptr) const;
+	FString BuildUniquePlayerName(const FString& RequestedName, const FString& DisambiguationToken = FString(), const APlayerState* ExcludedPlayerState = nullptr) const;
+	FString BuildConnectionDisambiguationToken(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId) const;
 	bool IsPlayerNameInUse(const FString& CandidateName, const APlayerState* ExcludedPlayerState = nullptr) const;
 	static FString SanitizePlayerName(const FString& RawName);
 	
