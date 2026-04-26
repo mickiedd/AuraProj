@@ -16,7 +16,8 @@
 /.vs/
 /.vscode/
 /.idea/
-/Content/
+/Content/*
+!/Content/Blueprints/
 /Platforms/
 *.VC.db
 *.VC.opendb
