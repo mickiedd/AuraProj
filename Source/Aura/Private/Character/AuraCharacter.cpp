@@ -16,8 +16,10 @@
 #include "AbilitySystem/Data/AbilityInfo.h"
 #include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "Game/AuraGameModeBase.h"
 #include "Game/LoadScreenSaveGame.h"
+#include "Camera/PlayerCameraManager.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/HUD/AuraHUD.h"
@@ -36,6 +38,16 @@ AAuraCharacter::AAuraCharacter()
 	LevelUpNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>("LevelUpNiagaraComponent");
 	LevelUpNiagaraComponent->SetupAttachment(GetRootComponent());
 	LevelUpNiagaraComponent->bAutoActivate = false;
+
+	OverheadNameText = CreateDefaultSubobject<UTextRenderComponent>("OverheadNameText");
+	OverheadNameText->SetupAttachment(GetRootComponent());
+	OverheadNameText->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	OverheadNameText->SetUsingAbsoluteRotation(true);
+	OverheadNameText->SetHorizontalAlignment(EHorizTextAligment::EHTA_Center);
+	OverheadNameText->SetVerticalAlignment(EVerticalTextAligment::EVRTA_TextCenter);
+	OverheadNameText->SetWorldSize(28.f);
+	OverheadNameText->SetTextRenderColor(FColor::White);
+	OverheadNameText->SetText(FText::FromString(TEXT("Player")));
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
@@ -49,9 +61,17 @@ AAuraCharacter::AAuraCharacter()
 	CharacterClass = ECharacterClass::Elementalist;
 }
 
+void AAuraCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	UpdateOverheadNameFacingCamera();
+}
+
 void AAuraCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+	BindPlayerNameDelegate();
+	UpdateOverheadPlayerName();
 
 	// Init ability actor info for the Server
 	InitAbilityActorInfo();
@@ -99,9 +119,21 @@ void AAuraCharacter::LoadProgress()
 void AAuraCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
+	BindPlayerNameDelegate();
+	UpdateOverheadPlayerName();
 
 	// Init ability actor info for the Client
 	InitAbilityActorInfo();
+}
+
+void AAuraCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (IsValid(BoundPlayerState))
+	{
+		BoundPlayerState->OnPlayerNameChangedDelegate.RemoveAll(this);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AAuraCharacter::AddToXP_Implementation(int32 InXP)
@@ -323,6 +355,74 @@ void AAuraCharacter::OnRep_Burned()
 	{
 		BurnDebuffComponent->Deactivate();
 	}
+}
+
+void AAuraCharacter::BindPlayerNameDelegate()
+{
+	AAuraPlayerState* CurrentPlayerState = GetPlayerState<AAuraPlayerState>();
+	if (CurrentPlayerState == BoundPlayerState)
+	{
+		return;
+	}
+
+	if (IsValid(BoundPlayerState))
+	{
+		BoundPlayerState->OnPlayerNameChangedDelegate.RemoveAll(this);
+	}
+
+	BoundPlayerState = CurrentPlayerState;
+	if (IsValid(BoundPlayerState))
+	{
+		BoundPlayerState->OnPlayerNameChangedDelegate.AddUObject(this, &AAuraCharacter::HandlePlayerNameChanged);
+	}
+}
+
+void AAuraCharacter::UpdateOverheadPlayerName()
+{
+	if (!IsValid(OverheadNameText))
+	{
+		return;
+	}
+
+	FString PlayerName = TEXT("Player");
+	if (const AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>())
+	{
+		if (!AuraPlayerState->GetPlayerName().IsEmpty())
+		{
+			PlayerName = AuraPlayerState->GetPlayerName();
+		}
+	}
+
+	OverheadNameText->SetText(FText::FromString(PlayerName));
+}
+
+void AAuraCharacter::UpdateOverheadNameFacingCamera()
+{
+	if (!IsValid(OverheadNameText) || !GetWorld() || GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	if (const APlayerCameraManager* CameraManager = UGameplayStatics::GetPlayerCameraManager(this, 0))
+	{
+		const FVector ToCamera = CameraManager->GetCameraLocation() - OverheadNameText->GetComponentLocation();
+		if (!ToCamera.IsNearlyZero())
+		{
+			const FRotator LookAtRotation = ToCamera.Rotation();
+			OverheadNameText->SetWorldRotation(FRotator(0.f, LookAtRotation.Yaw, 0.f));
+		}
+	}
+}
+
+void AAuraCharacter::HandlePlayerNameChanged(const FString& NewName)
+{
+	if (!IsValid(OverheadNameText))
+	{
+		return;
+	}
+
+	const FString SafeName = NewName.IsEmpty() ? TEXT("Player") : NewName;
+	OverheadNameText->SetText(FText::FromString(SafeName));
 }
 
 void AAuraCharacter::InitAbilityActorInfo()

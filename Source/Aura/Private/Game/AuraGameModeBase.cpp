@@ -13,6 +13,9 @@
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
+#include "GameFramework/GameStateBase.h"
 
 void AAuraGameModeBase::SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex)
 {
@@ -196,6 +199,110 @@ FString AAuraGameModeBase::GetMapNameFromMapAssetName(const FString& MapAssetNam
 		}
 	}
 	return FString();
+}
+
+FString AAuraGameModeBase::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
+{
+	const FString Result = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+
+	if (!IsValid(NewPlayerController))
+	{
+		return Result;
+	}
+
+	FString RequestedName = UGameplayStatics::ParseOption(Options, TEXT("PlayerName"));
+	if (RequestedName.IsEmpty())
+	{
+		RequestedName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
+	}
+
+	const FString UniqueName = BuildUniquePlayerName(RequestedName, NewPlayerController->PlayerState);
+	ChangeName(NewPlayerController, UniqueName, false);
+
+	UE_LOG(LogTemp, Display, TEXT("Assigned player name '%s' (requested: '%s')"), *UniqueName, *RequestedName);
+
+	return Result;
+}
+
+void AAuraGameModeBase::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	if (!IsValid(NewPlayer) || !IsValid(NewPlayer->PlayerState))
+	{
+		return;
+	}
+
+	const FString CurrentName = NewPlayer->PlayerState->GetPlayerName();
+	const FString UniqueName = BuildUniquePlayerName(CurrentName, NewPlayer->PlayerState);
+	if (!CurrentName.Equals(UniqueName, ESearchCase::CaseSensitive))
+	{
+		ChangeName(NewPlayer, UniqueName, false);
+		UE_LOG(LogTemp, Display, TEXT("Adjusted duplicate player name '%s' -> '%s'"), *CurrentName, *UniqueName);
+	}
+}
+
+FString AAuraGameModeBase::BuildUniquePlayerName(const FString& RequestedName, const APlayerState* ExcludedPlayerState) const
+{
+	const FString BaseName = SanitizePlayerName(RequestedName);
+	FString CandidateName = BaseName;
+	int32 Counter = 2;
+
+	while (IsPlayerNameInUse(CandidateName, ExcludedPlayerState))
+	{
+		CandidateName = FString::Printf(TEXT("%s_%d"), *BaseName, Counter);
+		++Counter;
+	}
+
+	return CandidateName;
+}
+
+bool AAuraGameModeBase::IsPlayerNameInUse(const FString& CandidateName, const APlayerState* ExcludedPlayerState) const
+{
+	if (!IsValid(GameState))
+	{
+		return false;
+	}
+
+	for (const APlayerState* ExistingPlayerState : GameState->PlayerArray)
+	{
+		if (!IsValid(ExistingPlayerState) || ExistingPlayerState == ExcludedPlayerState)
+		{
+			continue;
+		}
+
+		if (ExistingPlayerState->GetPlayerName().Equals(CandidateName, ESearchCase::IgnoreCase))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+FString AAuraGameModeBase::SanitizePlayerName(const FString& RawName)
+{
+	FString Result = RawName;
+	Result.TrimStartAndEndInline();
+
+	Result.ReplaceInline(TEXT("?"), TEXT("_"));
+	Result.ReplaceInline(TEXT("&"), TEXT("_"));
+	Result.ReplaceInline(TEXT("="), TEXT("_"));
+	Result.ReplaceInline(TEXT("#"), TEXT("_"));
+	Result.ReplaceInline(TEXT(" "), TEXT("_"));
+
+	if (Result.IsEmpty())
+	{
+		Result = TEXT("Player");
+	}
+
+	constexpr int32 MaxNameLength = 24;
+	if (Result.Len() > MaxNameLength)
+	{
+		Result.LeftInline(MaxNameLength);
+	}
+
+	return Result;
 }
 
 AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)

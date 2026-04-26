@@ -14,6 +14,7 @@ class ULevelUpInfo;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChanged, int32 /*StatValue*/)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLevelChanged, int32 /*StatValue*/, bool /*bLevelUp*/)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerNameChanged, const FString& /*PlayerName*/)
 
 /**
  * 
@@ -26,6 +27,8 @@ public:
 	AAuraPlayerState();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual void SetPlayerName(const FString& S) override;
+	virtual void OnRep_PlayerName() override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 	UPROPERTY(EditDefaultsOnly)
@@ -35,6 +38,7 @@ public:
 	FOnLevelChanged OnLevelChangedDelegate;
 	FOnPlayerStatChanged OnAttributePointsChangedDelegate;
 	FOnPlayerStatChanged OnSpellPointsChangedDelegate;
+	FOnPlayerNameChanged OnPlayerNameChangedDelegate;
 
 	FORCEINLINE int32 GetPlayerLevel() const { return Level; }
 	FORCEINLINE int32 GetXP() const { return XP; }

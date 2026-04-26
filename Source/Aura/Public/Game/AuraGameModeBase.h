@@ -12,6 +12,9 @@ class USaveGame;
 class UMVVM_LoadSlot;
 class UAbilityInfo;
 class UCharacterClassInfo;
+class APlayerController;
+class APlayerState;
+struct FUniqueNetIdRepl;
 /**
  * 
  */
@@ -57,10 +60,18 @@ public:
 
 	FString GetMapNameFromMapAssetName(const FString& MapAssetName) const;
 
+	virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 	void PlayerDied(ACharacter* DeadCharacter);
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	FString BuildUniquePlayerName(const FString& RequestedName, const APlayerState* ExcludedPlayerState = nullptr) const;
+	bool IsPlayerNameInUse(const FString& CandidateName, const APlayerState* ExcludedPlayerState = nullptr) const;
+	static FString SanitizePlayerName(const FString& RawName);
 	
 };

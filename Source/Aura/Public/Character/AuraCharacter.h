@@ -10,6 +10,8 @@
 class UNiagaraComponent;
 class UCameraComponent;
 class USpringArmComponent;
+class UTextRenderComponent;
+class AAuraPlayerState;
 /**
  * 
  */
@@ -19,6 +21,7 @@ class AURA_API AAuraCharacter : public AAuraCharacterBase, public IPlayerInterfa
 	GENERATED_BODY()
 public:
 	AAuraCharacter();
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
@@ -56,12 +59,27 @@ public:
 	virtual void OnRep_Burned() override;
 
 	void LoadProgress();
+
+protected:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 private:
+	void BindPlayerNameDelegate();
+	void UpdateOverheadPlayerName();
+	void UpdateOverheadNameFacingCamera();
+	void HandlePlayerNameChanged(const FString& NewName);
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCameraComponent> TopDownCameraComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	TObjectPtr<UTextRenderComponent> OverheadNameText;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AAuraPlayerState> BoundPlayerState;
 	
 	virtual void InitAbilityActorInfo() override;
 

@@ -3,6 +3,9 @@
 #include "Game/LoginPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "HAL/PlatformProcess.h"
+#include "Game/AuraGameInstance.h"
+#include "Game/LoadScreenSaveGame.h"
 #include "Game/LoginGameMode.h"
 #include "UI/Widget/LoginConnectingWidget.h"
 
@@ -102,8 +105,41 @@ void ALoginPlayerController::ExecuteClientConnect()
 		}
 
 		// Execute the travel command to connect to the dedicated server
-		// Format: open 127.0.0.1
-		const FString Command = FString::Printf(TEXT("open %s"), *ServerAddress);
+		// Format: open 127.0.0.1?PlayerName=Some_Name
+		FString RequestedPlayerName;
+		if (UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance()))
+		{
+			if (!AuraGameInstance->LoadSlotName.IsEmpty() &&
+				UGameplayStatics::DoesSaveGameExist(AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex))
+			{
+				if (USaveGame* SaveObject = UGameplayStatics::LoadGameFromSlot(AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex))
+				{
+					if (const ULoadScreenSaveGame* LoadScreenSaveGame = Cast<ULoadScreenSaveGame>(SaveObject))
+					{
+						RequestedPlayerName = LoadScreenSaveGame->PlayerName;
+					}
+				}
+			}
+		}
+
+		if (RequestedPlayerName.IsEmpty())
+		{
+			RequestedPlayerName = FPlatformProcess::UserName(false);
+		}
+
+		if (RequestedPlayerName.IsEmpty())
+		{
+			RequestedPlayerName = TEXT("Player");
+		}
+
+		RequestedPlayerName.TrimStartAndEndInline();
+		RequestedPlayerName.ReplaceInline(TEXT("?"), TEXT("_"));
+		RequestedPlayerName.ReplaceInline(TEXT("&"), TEXT("_"));
+		RequestedPlayerName.ReplaceInline(TEXT("="), TEXT("_"));
+		RequestedPlayerName.ReplaceInline(TEXT("#"), TEXT("_"));
+		RequestedPlayerName.ReplaceInline(TEXT(" "), TEXT("_"));
+
+		const FString Command = FString::Printf(TEXT("open %s?PlayerName=%s"), *ServerAddress, *RequestedPlayerName);
 
 		UE_LOG(LogTemp, Display, TEXT("LoginPlayerController executing connect command: %s"), *Command);
 

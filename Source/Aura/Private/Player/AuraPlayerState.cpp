@@ -15,7 +15,7 @@ AAuraPlayerState::AAuraPlayerState()
 
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
 	
-	NetUpdateFrequency = 100.f;
+	SetNetUpdateFrequency(100.f);
 }
 
 void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -31,6 +31,18 @@ void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void AAuraPlayerState::SetPlayerName(const FString& S)
+{
+	Super::SetPlayerName(S);
+	OnPlayerNameChangedDelegate.Broadcast(GetPlayerName());
+}
+
+void AAuraPlayerState::OnRep_PlayerName()
+{
+	Super::OnRep_PlayerName();
+	OnPlayerNameChangedDelegate.Broadcast(GetPlayerName());
 }
 
 void AAuraPlayerState::AddToXP(int32 InXP)
