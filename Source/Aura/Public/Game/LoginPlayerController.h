@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/EngineBaseTypes.h"
 #include "GameFramework/PlayerController.h"
 #include "LoginPlayerController.generated.h"
 
@@ -13,6 +14,8 @@
 
 class ALoginGameMode;
 class ULoginConnectingWidget;
+class UWorld;
+class UNetDriver;
 
 /**
  * Player controller for the Login map.
@@ -27,6 +30,9 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	void HandleTravelFailure(UWorld* InWorld, ETravelFailure::Type FailureType, const FString& ErrorString);
+	void HandleNetworkFailure(UWorld* InWorld, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 
 protected:
 	/**
@@ -48,10 +54,31 @@ protected:
 	UFUNCTION()
 	void ExecuteClientConnect();
 
+	UFUNCTION()
+	void HandleConnectionResponseWarning();
+
+	UFUNCTION()
+	void HandleConnectionTimeout();
+
+	void UpdateConnectingStatus(const FString& InMessage) const;
+
+	void BindConnectionFailureDelegates();
+	void UnbindConnectionFailureDelegates();
+
 	/**
 	 * Flag to ensure we only attempt connection once.
 	 */
 	bool bConnectionAttempted = false;
+
+	/**
+	 * True while waiting for a successful map travel or a failure callback.
+	 */
+	bool bWaitingForConnectionResponse = false;
+
+	/**
+	 * Tracks whether global engine delegates were bound by this controller.
+	 */
+	bool bFailureDelegatesBound = false;
 
 	/**
 	 * Widget class to display connection status.
@@ -71,7 +98,24 @@ protected:
 	FTimerHandle ConnectionTimerHandle;
 
 	/**
-	 * Timer handle for hiding the connection widget after travel starts.
+	 * Timer handle used to show a "still connecting" hint.
 	 */
-	FTimerHandle HideConnectingWidgetTimerHandle;
+	FTimerHandle ConnectionResponseWarningTimerHandle;
+
+	/**
+	 * Timer handle used for connection timeout messaging.
+	 */
+	FTimerHandle ConnectionTimeoutTimerHandle;
+
+	/**
+	 * Seconds before showing an additional connecting hint.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection", meta=(ClampMin="1.0"))
+	float ConnectionResponseWarningDelay = 5.0f;
+
+	/**
+	 * Seconds before showing timeout text if no connection response arrives.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection", meta=(ClampMin="2.0"))
+	float ConnectionTimeoutDelay = 12.0f;
 };

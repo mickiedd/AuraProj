@@ -43,7 +43,7 @@ protected:
 	/**
 	 * Text widget to display the connection status message.
 	 */
-	UPROPERTY()
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> StatusTextBlock;
 
 	/**
