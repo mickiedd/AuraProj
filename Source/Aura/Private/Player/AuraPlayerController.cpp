@@ -23,6 +23,7 @@
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "UI/WidgetController/SpellMenuWidgetController.h"
 #include "UI/Widget/DamageTextComponent.h"
+#include "InputCoreTypes.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -348,6 +349,8 @@ void AAuraPlayerController::SetupInputComponent()
 	AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
 	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &AAuraPlayerController::ShiftPressed);
 	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
+	InputComponent->BindKey(EKeys::SpaceBar, EInputEvent::IE_Pressed, this, &AAuraPlayerController::JumpPressed);
+	InputComponent->BindKey(EKeys::SpaceBar, EInputEvent::IE_Released, this, &AAuraPlayerController::JumpReleased);
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
@@ -368,5 +371,33 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 	{
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+	}
+}
+
+void AAuraPlayerController::JumpPressed()
+{
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	{
+		return;
+	}
+
+	bAutoRunning = false;
+
+	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
+	{
+		ControlledCharacter->Jump();
+	}
+}
+
+void AAuraPlayerController::JumpReleased()
+{
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
+	{
+		return;
+	}
+
+	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
+	{
+		ControlledCharacter->StopJumping();
 	}
 }

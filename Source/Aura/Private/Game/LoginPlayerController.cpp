@@ -6,6 +6,11 @@
 #include "Engine/NetDriver.h"
 #include "Engine/World.h"
 #include "HAL/PlatformProcess.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonObject.h"
 #include "Game/AuraGameInstance.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "Game/LoginGameMode.h"
@@ -14,6 +19,8 @@
 void ALoginPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	LoadServerConnectionFromJson();
+
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: PC=%s Local=%d AutoConnect=%d Attempted=%d WidgetClass=%s World=%s"),
 		*GetNameSafe(this),
 		IsLocalPlayerController() ? 1 : 0,
@@ -40,7 +47,7 @@ void ALoginPlayerController::BeginPlay()
 			if (ConnectingWidget)
 			{
 				ConnectingWidget->AddToViewport(1);
-				ConnectingWidget->ShowConnecting(TEXT("Connecting to server..."));
+				ConnectingWidget->ShowConnecting(BuildConnectingStatusMessage());
 				UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: connecting widget created and shown: %s"), *GetNameSafe(ConnectingWidget));
 			}
 			else
@@ -101,7 +108,7 @@ void ALoginPlayerController::OnPossess(APawn* InPawn)
 			if (ConnectingWidget)
 			{
 				ConnectingWidget->AddToViewport(1);
-				ConnectingWidget->ShowConnecting(TEXT("Connecting to server..."));
+				ConnectingWidget->ShowConnecting(BuildConnectingStatusMessage());
 				UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: connecting widget created and shown: %s"), *GetNameSafe(ConnectingWidget));
 			}
 			else
@@ -168,13 +175,22 @@ void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ALoginPlayerController::ExecuteClientConnect()
 {
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] ExecuteClientConnect: Local=%d ServerAddress=%s"),
+	const FString ServerEndpoint = BuildServerEndpoint();
+
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] ExecuteClientConnect: Local=%d ServerEndpoint=%s"),
 		IsLocalPlayerController() ? 1 : 0,
-		*ServerAddress);
+		*ServerEndpoint);
 
 	if (IsLocalPlayerController())
 	{
-		UpdateConnectingStatus(TEXT("Connecting to server..."));
+		if (ServerEndpoint.IsEmpty())
+		{
+			UpdateConnectingStatus(TEXT("Server configuration is invalid. Please check ServerConnection.json."));
+			UE_LOG(LogTemp, Error, TEXT("[LoginConn] ExecuteClientConnect: server endpoint is empty, aborting connection"));
+			return;
+		}
+
+		UpdateConnectingStatus(BuildConnectingStatusMessage());
 
 		// Execute the travel command to connect to the dedicated server
 		// Format: open 127.0.0.1?PlayerName=Some_Name
@@ -211,7 +227,7 @@ void ALoginPlayerController::ExecuteClientConnect()
 		RequestedPlayerName.ReplaceInline(TEXT("#"), TEXT("_"));
 		RequestedPlayerName.ReplaceInline(TEXT(" "), TEXT("_"));
 
-		const FString Command = FString::Printf(TEXT("open %s?PlayerName=%s"), *ServerAddress, *RequestedPlayerName);
+		const FString Command = FString::Printf(TEXT("open %s?PlayerName=%s"), *ServerEndpoint, *RequestedPlayerName);
 
 		UE_LOG(LogTemp, Display, TEXT("[LoginConn] ExecuteClientConnect: command=%s"), *Command);
 
@@ -256,6 +272,115 @@ void ALoginPlayerController::ExecuteClientConnect()
 	}
 }
 
+bool ALoginPlayerController::LoadServerConnectionFromJson()
+{
+	TArray<FString> CandidatePaths;
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), ConnectionConfigFileName));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), ConnectionConfigFileName));
+
+	FString JsonContent;
+	FString LoadedFromPath;
+
+	for (const FString& CandidatePath : CandidatePaths)
+	{
+		if (FPaths::FileExists(CandidatePath) && FFileHelper::LoadFileToString(JsonContent, *CandidatePath))
+		{
+			LoadedFromPath = CandidatePath;
+			break;
+		}
+	}
+
+	if (LoadedFromPath.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] No connection config file found (%s). Using defaults Address=%s Port=%d"),
+			*ConnectionConfigFileName,
+			*ServerAddress,
+			ServerPort);
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> RootObject;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to parse connection config JSON at %s. Using defaults Address=%s Port=%d"),
+			*LoadedFromPath,
+			*ServerAddress,
+			ServerPort);
+		return false;
+	}
+
+	FString ConfigAddress;
+	if (RootObject->TryGetStringField(TEXT("serverAddress"), ConfigAddress) || RootObject->TryGetStringField(TEXT("address"), ConfigAddress))
+	{
+		ConfigAddress.TrimStartAndEndInline();
+		if (!ConfigAddress.IsEmpty())
+		{
+			ServerAddress = ConfigAddress;
+		}
+	}
+
+	int32 ConfigPort = 0;
+	double ConfigPortNumber = 0.0;
+	if (RootObject->TryGetNumberField(TEXT("serverPort"), ConfigPortNumber) || RootObject->TryGetNumberField(TEXT("port"), ConfigPortNumber))
+	{
+		ConfigPort = static_cast<int32>(ConfigPortNumber);
+	}
+	else
+	{
+		FString PortString;
+		if (RootObject->TryGetStringField(TEXT("serverPort"), PortString) || RootObject->TryGetStringField(TEXT("port"), PortString))
+		{
+			LexTryParseString(ConfigPort, *PortString);
+		}
+	}
+
+	if (ConfigPort >= 1 && ConfigPort <= 65535)
+	{
+		ServerPort = ConfigPort;
+	}
+	else if (ConfigPort != 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Ignoring invalid port value %d in %s"), ConfigPort, *LoadedFromPath);
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Loaded server connection config from %s -> Address=%s Port=%d"),
+		*LoadedFromPath,
+		*ServerAddress,
+		ServerPort);
+
+	return true;
+}
+
+FString ALoginPlayerController::BuildServerEndpoint() const
+{
+	FString TrimmedAddress = ServerAddress;
+	TrimmedAddress.TrimStartAndEndInline();
+
+	if (TrimmedAddress.IsEmpty())
+	{
+		return FString();
+	}
+
+	if (TrimmedAddress.Contains(TEXT(":")) || ServerPort <= 0)
+	{
+		return TrimmedAddress;
+	}
+
+	return FString::Printf(TEXT("%s:%d"), *TrimmedAddress, ServerPort);
+}
+
+FString ALoginPlayerController::BuildConnectingStatusMessage() const
+{
+	const FString ServerEndpoint = BuildServerEndpoint();
+	if (ServerEndpoint.IsEmpty())
+	{
+		return TEXT("Connecting to server...");
+	}
+
+	return FString::Printf(TEXT("Connecting to %s..."), *ServerEndpoint);
+}
+
 void ALoginPlayerController::HandleConnectionResponseWarning()
 {
 	if (!IsLocalPlayerController() || !bWaitingForConnectionResponse)
@@ -263,7 +388,15 @@ void ALoginPlayerController::HandleConnectionResponseWarning()
 		return;
 	}
 
-	UpdateConnectingStatus(TEXT("Still connecting... This is taking longer than usual."));
+	const FString ServerEndpoint = BuildServerEndpoint();
+	if (ServerEndpoint.IsEmpty())
+	{
+		UpdateConnectingStatus(TEXT("Still connecting... This is taking longer than usual."));
+	}
+	else
+	{
+		UpdateConnectingStatus(FString::Printf(TEXT("Still connecting to %s... This is taking longer than usual."), *ServerEndpoint));
+	}
 	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] warning threshold reached after %.2f seconds"), ConnectionResponseWarningDelay);
 }
 

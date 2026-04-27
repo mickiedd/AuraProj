@@ -36,11 +36,23 @@ public:
 
 protected:
 	/**
-	 * Server address to connect to.
-	 * Format: 127.0.0.1:7777 or 127.0.0.1
+	 * Server host or IP to connect to.
+	 * Example: 127.0.0.1
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection")
 	FString ServerAddress = TEXT("127.0.0.1");
+
+	/**
+	 * Server port to connect to.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection", meta=(ClampMin="1", ClampMax="65535"))
+	int32 ServerPort = 7777;
+
+	/**
+	 * JSON file name searched under Saved/Config first, then Config.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection")
+	FString ConnectionConfigFileName = TEXT("ServerConnection.json");
 
 	/**
 	 * Whether to auto-connect on this controller.
@@ -64,6 +76,10 @@ protected:
 
 	void BindConnectionFailureDelegates();
 	void UnbindConnectionFailureDelegates();
+
+	bool LoadServerConnectionFromJson();
+	FString BuildServerEndpoint() const;
+	FString BuildConnectingStatusMessage() const;
 
 	/**
 	 * Flag to ensure we only attempt connection once.

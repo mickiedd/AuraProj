@@ -51,8 +51,10 @@ AAuraCharacter::AAuraCharacter()
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
-	GetCharacterMovement()->bConstrainToPlane = true;
-	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	GetCharacterMovement()->bConstrainToPlane = false;
+	GetCharacterMovement()->bSnapToPlaneAtStart = false;
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->AirControl = 0.35f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;

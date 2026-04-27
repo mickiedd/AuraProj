@@ -76,6 +76,8 @@ private:
 	bool bShiftKeyDown = false;
 
 	void Move(const FInputActionValue& InputActionValue);
+	void JumpPressed();
+	void JumpReleased();
 
 	void CursorTrace();
 	TObjectPtr<AActor> LastActor;
