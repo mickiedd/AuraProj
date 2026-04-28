@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "GameFramework/GameModeBase.h"
 #include "AuraGameModeBase.generated.h"
 
@@ -12,9 +13,52 @@ class USaveGame;
 class UMVVM_LoadSlot;
 class UAbilityInfo;
 class UCharacterClassInfo;
+class AAuraEnemy;
 class APlayerController;
 class APlayerState;
 struct FUniqueNetIdRepl;
+
+USTRUCT(BlueprintType)
+struct FMonsterSpawnTransformData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	FVector Location = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	FRotator Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	FVector Scale = FVector(1.f, 1.f, 1.f);
+};
+
+USTRUCT(BlueprintType)
+struct FMonsterSpawnTableRow
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	FString Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	FString MapName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	FString MonsterClassPath;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	int32 Level = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	ECharacterClass CharacterClass = ECharacterClass::Warrior;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	FMonsterSpawnTransformData Transform;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	bool bSpawnOnLoad = true;
+};
 /**
  * 
  */
@@ -31,6 +75,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Loot Tiers")
 	TObjectPtr<ULootTiers> LootTiers;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Monster Spawn")
+	bool bEnableMonsterTableAutoSpawn = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Monster Spawn")
+	FString MonsterSpawnTableFileName = TEXT("MonsterSpawnTable.json");
 
 	void SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex);
 	ULoadScreenSaveGame* GetSaveSlotData(const FString& SlotName, int32 SlotIndex) const;
@@ -69,10 +119,28 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable, Category = "Monster Spawn")
+	bool LoadMonsterSpawnTable();
+
+	UFUNCTION(BlueprintCallable, Category = "Monster Spawn")
+	int32 SpawnMonstersFromLoadedTable();
+
+	UFUNCTION(BlueprintPure, Category = "Monster Spawn")
+	const TArray<FMonsterSpawnTableRow>& GetLoadedMonsterSpawnRows() const { return LoadedMonsterSpawnRows; }
+
 private:
 	FString BuildUniquePlayerName(const FString& RequestedName, const FString& DisambiguationToken = FString(), const APlayerState* ExcludedPlayerState = nullptr) const;
 	FString BuildConnectionDisambiguationToken(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId) const;
 	bool IsPlayerNameInUse(const FString& CandidateName, const APlayerState* ExcludedPlayerState = nullptr) const;
 	static FString SanitizePlayerName(const FString& RawName);
+	bool ShouldSpawnRowForCurrentMap(const FMonsterSpawnTableRow& Row, const FString& CurrentMapName) const;
+	static bool TryParseCharacterClass(const FString& InValue, ECharacterClass& OutCharacterClass);
+	TSubclassOf<AAuraEnemy> ResolveMonsterClassFromPath(const FString& ClassPath) const;
+	TArray<FString> BuildCandidateMonsterSpawnTablePaths() const;
+
+	UPROPERTY(VisibleAnywhere, Category = "Monster Spawn")
+	TArray<FMonsterSpawnTableRow> LoadedMonsterSpawnRows;
+
+	bool bMonsterSpawnTableLoaded = false;
 	
 };

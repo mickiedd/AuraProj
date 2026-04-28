@@ -40,6 +40,9 @@ public:
 	UFUNCTION(Exec)
 	void FullAbilities();
 
+	UFUNCTION(Exec)
+	void ShowLocation();
+
 	UFUNCTION(Client, Reliable)
 	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit);
 

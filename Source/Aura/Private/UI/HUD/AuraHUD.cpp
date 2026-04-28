@@ -3,6 +3,7 @@
 
 #include "UI/HUD/AuraHUD.h"
 
+#include "Engine/Canvas.h"
 #include "UI/Widget/AuraUserWidget.h"
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
@@ -55,5 +56,30 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 	OverlayWidget->SetWidgetController(WidgetController);
 	WidgetController->BroadcastInitialValues();
 	Widget->AddToViewport();
+}
+
+void AAuraHUD::ToggleLocationDisplay()
+{
+	bShowLocation = !bShowLocation;
+}
+
+void AAuraHUD::DrawHUD()
+{
+	Super::DrawHUD();
+
+	if (!bShowLocation) return;
+
+	APlayerController* PC = GetOwningPlayerController();
+	if (!PC) return;
+
+	APawn* Pawn = PC->GetPawn();
+	if (!Pawn) return;
+
+	const FVector Loc = Pawn->GetActorLocation();
+	const FString LocText = FString::Printf(TEXT("Location: X=%.1f  Y=%.1f  Z=%.1f"), Loc.X, Loc.Y, Loc.Z);
+
+	const float PosX = Canvas ? Canvas->SizeX * 0.01f : 20.f;
+	const float PosY = Canvas ? Canvas->SizeY * 0.5f : 40.f;
+	DrawText(LocText, FColor::Yellow, PosX, PosY, GEngine->GetLargeFont(), 1.f);
 }
 

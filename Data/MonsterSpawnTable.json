@@ -1,0 +1,82 @@
+{
+  "spawns": [
+    {
+      "id": "Dungeon1_DemonWarrior_01",
+      "mapName": "map_dungeon_level_1_dungeon",
+      "monsterClassPath": "/Game/Blueprints/Character/Demon/BP_Demon_Warrior",
+      "level": 1,
+      "characterClass": "Warrior",
+      "spawnOnLoad": true,
+      "transform": {
+        "location": { "x": -754.0, "y": 3145.0, "z": 1409.0 },
+        "rotation": { "pitch": 0.0, "yaw": 90.0, "roll": 0.0 },
+        "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+      }
+    },
+    {
+      "id": "Dungeon1_DemonRanger_01",
+      "mapName": "map_dungeon_level_1_dungeon",
+      "monsterClassPath": "/Game/Blueprints/Character/Demon/BP_Demon_Ranger",
+      "level": 2,
+      "characterClass": "Ranger",
+      "spawnOnLoad": true,
+      "transform": {
+        "location": { "x": 425.0, "y": -530.0, "z": 1390.0 },
+        "rotation": { "pitch": 0.0, "yaw": -60.0, "roll": 0.0 },
+        "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+      }
+    },
+    {
+      "id": "Dungeon1_Ghoul_01",
+      "mapName": "map_dungeon_level_1_dungeon",
+      "monsterClassPath": "/Game/Blueprints/Character/Ghoul/BP_Ghoul",
+      "level": 1,
+      "characterClass": "Warrior",
+      "spawnOnLoad": true,
+      "transform": {
+        "location": { "x": -1148.0, "y": 295.0, "z": 1790.0 },
+        "rotation": { "pitch": 0.0, "yaw": 180.0, "roll": 0.0 },
+        "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+      }
+    },
+    {
+      "id": "Dungeon1_GoblinSpear_01",
+      "mapName": "map_dungeon_level_1_dungeon",
+      "monsterClassPath": "/Game/Blueprints/Character/Goblin_Spear/BP_GoblinSpear",
+      "level": 1,
+      "characterClass": "Warrior",
+      "spawnOnLoad": true,
+      "transform": {
+        "location": { "x": -613.0, "y": -704.0, "z": 1990.0 },
+        "rotation": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 },
+        "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+      }
+    },
+    {
+      "id": "Dungeon1_GoblinSlingshot_01",
+      "mapName": "map_dungeon_level_1_dungeon",
+      "monsterClassPath": "/Game/Blueprints/Character/Goblin_Slingshot/BP_Goblin_Slingshot",
+      "level": 2,
+      "characterClass": "Ranger",
+      "spawnOnLoad": true,
+      "transform": {
+        "location": { "x": -1508.0, "y": 2630.0, "z": 1390.0 },
+        "rotation": { "pitch": 0.0, "yaw": 135.0, "roll": 0.0 },
+        "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+      }
+    },
+    {
+      "id": "Dungeon1_Shaman_01",
+      "mapName": "map_dungeon_level_1_dungeon",
+      "monsterClassPath": "/Game/Blueprints/Character/Shaman/BP_Shaman",
+      "level": 3,
+      "characterClass": "Elementalist",
+      "spawnOnLoad": true,
+      "transform": {
+        "location": { "x": 2376.0, "y": 1892.0, "z": 990.0 },
+        "rotation": { "pitch": 0.0, "yaw": -90.0, "roll": 0.0 },
+        "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+      }
+    }
+  ]
+}

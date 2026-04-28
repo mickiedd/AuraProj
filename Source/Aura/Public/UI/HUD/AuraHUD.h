@@ -28,7 +28,13 @@ public:
 
 	void InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
 
+	void ToggleLocationDisplay();
+
 protected:
+	virtual void DrawHUD() override;
+
+private:
+	bool bShowLocation = false;
 
 
 private:

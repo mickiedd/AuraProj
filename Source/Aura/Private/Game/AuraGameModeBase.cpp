@@ -17,6 +17,13 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "Engine/NetConnection.h"
+#include "Character/AuraEnemy.h"
+#include "Dom/JsonObject.h"
+#include "Misc/FileHelper.h"
+#include "Misc/PackageName.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 void AAuraGameModeBase::SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex)
 {
@@ -394,4 +401,286 @@ void AAuraGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	Maps.Add(DefaultMapName, DefaultMap);
+
+	if (!bEnableMonsterTableAutoSpawn)
+	{
+		return;
+	}
+
+	if (LoadMonsterSpawnTable())
+	{
+		const int32 SpawnedCount = SpawnMonstersFromLoadedTable();
+		UE_LOG(LogAura, Display, TEXT("Monster auto-spawn completed. Spawned %d monsters."), SpawnedCount);
+	}
+}
+
+bool AAuraGameModeBase::LoadMonsterSpawnTable()
+{
+	LoadedMonsterSpawnRows.Reset();
+	bMonsterSpawnTableLoaded = false;
+
+	const TArray<FString> CandidatePaths = BuildCandidateMonsterSpawnTablePaths();
+	FString JsonContent;
+	FString LoadedFromPath;
+
+	for (const FString& CandidatePath : CandidatePaths)
+	{
+		if (FPaths::FileExists(CandidatePath) && FFileHelper::LoadFileToString(JsonContent, *CandidatePath))
+		{
+			LoadedFromPath = CandidatePath;
+			break;
+		}
+	}
+
+	if (LoadedFromPath.IsEmpty())
+	{
+		UE_LOG(LogAura, Warning, TEXT("Monster spawn table not found. Expected file '%s' in Config, Data, or Saved/Config."), *MonsterSpawnTableFileName);
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> RootObject;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+	{
+		UE_LOG(LogAura, Error, TEXT("Failed to parse monster spawn table JSON from %s"), *LoadedFromPath);
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* SpawnRowsJson = nullptr;
+	if (!RootObject->TryGetArrayField(TEXT("spawns"), SpawnRowsJson) && !RootObject->TryGetArrayField(TEXT("rows"), SpawnRowsJson))
+	{
+		UE_LOG(LogAura, Warning, TEXT("Monster spawn table at %s does not contain a 'spawns' array."), *LoadedFromPath);
+		return false;
+	}
+
+	int32 ValidRows = 0;
+	for (int32 RowIndex = 0; RowIndex < SpawnRowsJson->Num(); ++RowIndex)
+	{
+		const TSharedPtr<FJsonObject> RowObject = (*SpawnRowsJson)[RowIndex].IsValid() ? (*SpawnRowsJson)[RowIndex]->AsObject() : nullptr;
+		if (!RowObject.IsValid())
+		{
+			UE_LOG(LogAura, Warning, TEXT("Monster spawn row %d is invalid (not an object)."), RowIndex);
+			continue;
+		}
+
+		FMonsterSpawnTableRow Row;
+		RowObject->TryGetStringField(TEXT("id"), Row.Id);
+		RowObject->TryGetStringField(TEXT("mapName"), Row.MapName);
+		if (Row.MapName.IsEmpty())
+		{
+			RowObject->TryGetStringField(TEXT("map"), Row.MapName);
+		}
+
+		if (!RowObject->TryGetStringField(TEXT("monsterClassPath"), Row.MonsterClassPath))
+		{
+			RowObject->TryGetStringField(TEXT("classPath"), Row.MonsterClassPath);
+		}
+
+		double RowLevel = static_cast<double>(Row.Level);
+		if (RowObject->TryGetNumberField(TEXT("level"), RowLevel))
+		{
+			Row.Level = FMath::Max(1, static_cast<int32>(RowLevel));
+		}
+
+		FString CharacterClassString;
+		if (RowObject->TryGetStringField(TEXT("characterClass"), CharacterClassString))
+		{
+			if (!TryParseCharacterClass(CharacterClassString, Row.CharacterClass))
+			{
+				UE_LOG(LogAura, Warning, TEXT("Monster spawn row %d has invalid characterClass '%s'. Defaulting to Warrior."), RowIndex, *CharacterClassString);
+				Row.CharacterClass = ECharacterClass::Warrior;
+			}
+		}
+
+		RowObject->TryGetBoolField(TEXT("spawnOnLoad"), Row.bSpawnOnLoad);
+
+		const TSharedPtr<FJsonObject>* TransformObject = nullptr;
+		if (RowObject->TryGetObjectField(TEXT("transform"), TransformObject) && TransformObject != nullptr && TransformObject->IsValid())
+		{
+			const TSharedPtr<FJsonObject>& Transform = *TransformObject;
+
+			const TSharedPtr<FJsonObject>* LocationObject = nullptr;
+			if (Transform->TryGetObjectField(TEXT("location"), LocationObject) && LocationObject != nullptr && LocationObject->IsValid())
+			{
+				double X = 0.0;
+				double Y = 0.0;
+				double Z = 0.0;
+				(*LocationObject)->TryGetNumberField(TEXT("x"), X);
+				(*LocationObject)->TryGetNumberField(TEXT("y"), Y);
+				(*LocationObject)->TryGetNumberField(TEXT("z"), Z);
+				Row.Transform.Location = FVector(static_cast<float>(X), static_cast<float>(Y), static_cast<float>(Z));
+			}
+
+			const TSharedPtr<FJsonObject>* RotationObject = nullptr;
+			if (Transform->TryGetObjectField(TEXT("rotation"), RotationObject) && RotationObject != nullptr && RotationObject->IsValid())
+			{
+				double Pitch = 0.0;
+				double Yaw = 0.0;
+				double Roll = 0.0;
+				(*RotationObject)->TryGetNumberField(TEXT("pitch"), Pitch);
+				(*RotationObject)->TryGetNumberField(TEXT("yaw"), Yaw);
+				(*RotationObject)->TryGetNumberField(TEXT("roll"), Roll);
+				Row.Transform.Rotation = FRotator(static_cast<float>(Pitch), static_cast<float>(Yaw), static_cast<float>(Roll));
+			}
+
+			const TSharedPtr<FJsonObject>* ScaleObject = nullptr;
+			if (Transform->TryGetObjectField(TEXT("scale"), ScaleObject) && ScaleObject != nullptr && ScaleObject->IsValid())
+			{
+				double X = 1.0;
+				double Y = 1.0;
+				double Z = 1.0;
+				(*ScaleObject)->TryGetNumberField(TEXT("x"), X);
+				(*ScaleObject)->TryGetNumberField(TEXT("y"), Y);
+				(*ScaleObject)->TryGetNumberField(TEXT("z"), Z);
+				Row.Transform.Scale = FVector(static_cast<float>(X), static_cast<float>(Y), static_cast<float>(Z));
+			}
+		}
+
+		if (Row.MonsterClassPath.IsEmpty())
+		{
+			UE_LOG(LogAura, Warning, TEXT("Monster spawn row %d is missing monsterClassPath. Skipping."), RowIndex);
+			continue;
+		}
+
+		LoadedMonsterSpawnRows.Add(Row);
+		++ValidRows;
+	}
+
+	bMonsterSpawnTableLoaded = ValidRows > 0;
+	UE_LOG(LogAura, Display, TEXT("Loaded monster spawn table from %s with %d valid rows."), *LoadedFromPath, ValidRows);
+	return bMonsterSpawnTableLoaded;
+}
+
+int32 AAuraGameModeBase::SpawnMonstersFromLoadedTable()
+{
+	if (!bMonsterSpawnTableLoaded)
+	{
+		UE_LOG(LogAura, Warning, TEXT("SpawnMonstersFromLoadedTable called before table was loaded."));
+		return 0;
+	}
+
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		UE_LOG(LogAura, Error, TEXT("SpawnMonstersFromLoadedTable failed because world is invalid."));
+		return 0;
+	}
+
+	FString CurrentMapName = World->GetMapName();
+	CurrentMapName.RemoveFromStart(World->StreamingLevelsPrefix);
+
+	int32 SpawnedCount = 0;
+	for (const FMonsterSpawnTableRow& Row : LoadedMonsterSpawnRows)
+	{
+		if (!Row.bSpawnOnLoad)
+		{
+			continue;
+		}
+
+		if (!ShouldSpawnRowForCurrentMap(Row, CurrentMapName))
+		{
+			continue;
+		}
+
+		const TSubclassOf<AAuraEnemy> EnemyClass = ResolveMonsterClassFromPath(Row.MonsterClassPath);
+		if (!EnemyClass)
+		{
+			UE_LOG(LogAura, Warning, TEXT("Failed to load monster class '%s' for row '%s'."), *Row.MonsterClassPath, *Row.Id);
+			continue;
+		}
+
+		FTransform SpawnTransform(Row.Transform.Rotation, Row.Transform.Location, Row.Transform.Scale);
+
+		AAuraEnemy* Enemy = World->SpawnActorDeferred<AAuraEnemy>(EnemyClass, SpawnTransform, nullptr, nullptr,
+			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+
+		if (!IsValid(Enemy))
+		{
+			UE_LOG(LogAura, Warning, TEXT("Failed to spawn enemy for row '%s'."), *Row.Id);
+			continue;
+		}
+
+		Enemy->SetLevel(Row.Level);
+		Enemy->SetCharacterClass(Row.CharacterClass);
+		Enemy->FinishSpawning(SpawnTransform);
+		Enemy->SpawnDefaultController();
+		++SpawnedCount;
+	}
+
+	return SpawnedCount;
+}
+
+bool AAuraGameModeBase::ShouldSpawnRowForCurrentMap(const FMonsterSpawnTableRow& Row, const FString& CurrentMapName) const
+{
+	if (Row.MapName.IsEmpty())
+	{
+		return true;
+	}
+
+	return Row.MapName.Equals(CurrentMapName, ESearchCase::IgnoreCase);
+}
+
+bool AAuraGameModeBase::TryParseCharacterClass(const FString& InValue, ECharacterClass& OutCharacterClass)
+{
+	const FString Trimmed = InValue.TrimStartAndEnd();
+	if (Trimmed.Equals(TEXT("Elementalist"), ESearchCase::IgnoreCase))
+	{
+		OutCharacterClass = ECharacterClass::Elementalist;
+		return true;
+	}
+
+	if (Trimmed.Equals(TEXT("Warrior"), ESearchCase::IgnoreCase))
+	{
+		OutCharacterClass = ECharacterClass::Warrior;
+		return true;
+	}
+
+	if (Trimmed.Equals(TEXT("Ranger"), ESearchCase::IgnoreCase))
+	{
+		OutCharacterClass = ECharacterClass::Ranger;
+		return true;
+	}
+
+	return false;
+}
+
+TSubclassOf<AAuraEnemy> AAuraGameModeBase::ResolveMonsterClassFromPath(const FString& ClassPath) const
+{
+	if (ClassPath.IsEmpty())
+	{
+		return nullptr;
+	}
+
+	FString NormalizedPath = ClassPath;
+	if (ClassPath.StartsWith(TEXT("/Game/")) && !ClassPath.EndsWith(TEXT("_C")))
+	{
+		const FString AssetName = FPackageName::GetShortName(ClassPath);
+		NormalizedPath = FString::Printf(TEXT("%s.%s_C"), *ClassPath, *AssetName);
+	}
+
+	TSoftClassPtr<AAuraEnemy> SoftClass{FSoftObjectPath(NormalizedPath)};
+	UClass* LoadedClass = SoftClass.LoadSynchronous();
+	if (!LoadedClass)
+	{
+		LoadedClass = StaticLoadClass(AAuraEnemy::StaticClass(), nullptr, *NormalizedPath);
+	}
+
+	if (LoadedClass && LoadedClass->IsChildOf(AAuraEnemy::StaticClass()))
+	{
+		return LoadedClass;
+	}
+
+	return nullptr;
+}
+
+TArray<FString> AAuraGameModeBase::BuildCandidateMonsterSpawnTablePaths() const
+{
+	TArray<FString> CandidatePaths;
+	CandidatePaths.Reserve(3);
+
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), MonsterSpawnTableFileName));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), MonsterSpawnTableFileName));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectDir(), TEXT("Data"), MonsterSpawnTableFileName));
+
+	return CandidatePaths;
 }

@@ -2,6 +2,7 @@
 
 
 #include "Player/AuraPlayerController.h"
+#include "UI/HUD/AuraHUD.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
@@ -45,6 +46,14 @@ void AAuraPlayerController::FullAbilities()
 	}
 
 	ServerFullAbilities();
+}
+
+void AAuraPlayerController::ShowLocation()
+{
+	if (AAuraHUD* AuraHUD = GetHUD<AAuraHUD>())
+	{
+		AuraHUD->ToggleLocationDisplay();
+	}
 }
 
 void AAuraPlayerController::PlayerTick(float DeltaTime)
