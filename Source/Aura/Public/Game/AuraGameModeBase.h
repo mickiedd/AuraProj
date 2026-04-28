@@ -105,6 +105,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	FName DefaultPlayerStartTag;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Respawn")
+	bool bEnablePlayerRespawn = true;
+
 	UPROPERTY(EditDefaultsOnly)
 	TMap<FString, TSoftObjectPtr<UWorld>> Maps;
 
@@ -115,7 +118,7 @@ public:
 
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
-	void PlayerDied(ACharacter* DeadCharacter);
+	void PlayerDied(ACharacter* DeadCharacter, float RespawnDelay);
 protected:
 	virtual void BeginPlay() override;
 
@@ -133,6 +136,9 @@ private:
 	FString BuildConnectionDisambiguationToken(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId) const;
 	bool IsPlayerNameInUse(const FString& CandidateName, const APlayerState* ExcludedPlayerState = nullptr) const;
 	static FString SanitizePlayerName(const FString& RawName);
+	FName GetActivePlayerStartTag() const;
+	void RespawnPlayer(AController* DeadController);
+	void ReloadMapAfterPlayerDeath();
 	bool ShouldSpawnRowForCurrentMap(const FMonsterSpawnTableRow& Row, const FString& CurrentMapName) const;
 	static bool TryParseCharacterClass(const FString& InValue, ECharacterClass& OutCharacterClass);
 	TSubclassOf<AAuraEnemy> ResolveMonsterClassFromPath(const FString& ClassPath) const;

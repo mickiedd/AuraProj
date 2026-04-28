@@ -364,9 +364,22 @@ FString AAuraGameModeBase::SanitizePlayerName(const FString& RawName)
 	return Result;
 }
 
+FName AAuraGameModeBase::GetActivePlayerStartTag() const
+{
+	if (const UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance()))
+	{
+		if (!AuraGameInstance->PlayerStartTag.IsNone())
+		{
+			return AuraGameInstance->PlayerStartTag;
+		}
+	}
+
+	return DefaultPlayerStartTag;
+}
+
 AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 {
-	UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance());
+	const FName DesiredPlayerStartTag = GetActivePlayerStartTag();
 	
 	TArray<AActor*> Actors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), Actors);
@@ -377,7 +390,7 @@ AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 		{
 			if (APlayerStart* PlayerStart = Cast<APlayerStart>(Actor))
 			{
-				if (PlayerStart->PlayerStartTag == AuraGameInstance->PlayerStartTag)
+				if (PlayerStart->PlayerStartTag == DesiredPlayerStartTag)
 				{
 					SelectedActor = PlayerStart;
 					break;
@@ -389,12 +402,75 @@ AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 	return nullptr;
 }
 
-void AAuraGameModeBase::PlayerDied(ACharacter* DeadCharacter)
+void AAuraGameModeBase::PlayerDied(ACharacter* DeadCharacter, float RespawnDelay)
+{
+	if (!HasAuthority() || !IsValid(DeadCharacter))
+	{
+		return;
+	}
+
+	const float Delay = FMath::Max(0.f, RespawnDelay);
+	FTimerHandle RespawnTimerHandle;
+
+	if (bEnablePlayerRespawn)
+	{
+		TWeakObjectPtr<AController> DeadController = DeadCharacter->GetController();
+		if (!DeadController.IsValid())
+		{
+			return;
+		}
+
+		FTimerDelegate RespawnDelegate;
+		RespawnDelegate.BindLambda([this, DeadController]()
+		{
+			if (DeadController.IsValid())
+			{
+				RespawnPlayer(DeadController.Get());
+			}
+		});
+
+		GetWorldTimerManager().SetTimer(RespawnTimerHandle, RespawnDelegate, Delay, false);
+		return;
+	}
+
+	FTimerDelegate ReloadDelegate;
+	ReloadDelegate.BindLambda([this]()
+	{
+		ReloadMapAfterPlayerDeath();
+	});
+	GetWorldTimerManager().SetTimer(RespawnTimerHandle, ReloadDelegate, Delay, false);
+}
+
+void AAuraGameModeBase::RespawnPlayer(AController* DeadController)
+{
+	if (!IsValid(DeadController))
+	{
+		return;
+	}
+
+	if (UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance()))
+	{
+		AuraGameInstance->PlayerStartTag = GetActivePlayerStartTag();
+	}
+
+	if (APawn* DeadPawn = DeadController->GetPawn())
+	{
+		DeadController->UnPossess();
+		DeadPawn->Destroy();
+	}
+
+	RestartPlayer(DeadController);
+}
+
+void AAuraGameModeBase::ReloadMapAfterPlayerDeath()
 {
 	ULoadScreenSaveGame* SaveGame = RetrieveInGameSaveData();
-	if (!IsValid(SaveGame)) return;
+	if (!IsValid(SaveGame))
+	{
+		return;
+	}
 
-	UGameplayStatics::OpenLevel(DeadCharacter, FName(SaveGame->MapAssetName));
+	UGameplayStatics::OpenLevel(this, FName(SaveGame->MapAssetName));
 }
 
 void AAuraGameModeBase::BeginPlay()
