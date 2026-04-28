@@ -351,6 +351,8 @@ void AAuraPlayerController::SetupInputComponent()
 	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
 	InputComponent->BindKey(EKeys::SpaceBar, EInputEvent::IE_Pressed, this, &AAuraPlayerController::JumpPressed);
 	InputComponent->BindKey(EKeys::SpaceBar, EInputEvent::IE_Released, this, &AAuraPlayerController::JumpReleased);
+	InputComponent->BindKey(EKeys::LeftControl, EInputEvent::IE_Pressed, this, &AAuraPlayerController::CrouchPressed);
+	InputComponent->BindKey(EKeys::LeftControl, EInputEvent::IE_Released, this, &AAuraPlayerController::CrouchReleased);
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
@@ -399,5 +401,33 @@ void AAuraPlayerController::JumpReleased()
 	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
 	{
 		ControlledCharacter->StopJumping();
+	}
+}
+
+void AAuraPlayerController::CrouchPressed()
+{
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	{
+		return;
+	}
+
+	bAutoRunning = false;
+
+	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
+	{
+		ControlledCharacter->Crouch();
+	}
+}
+
+void AAuraPlayerController::CrouchReleased()
+{
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
+	{
+		return;
+	}
+
+	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
+	{
+		ControlledCharacter->UnCrouch();
 	}
 }

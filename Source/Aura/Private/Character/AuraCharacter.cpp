@@ -53,6 +53,7 @@ AAuraCharacter::AAuraCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = false;
 	GetCharacterMovement()->bSnapToPlaneAtStart = false;
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 

@@ -78,6 +78,8 @@ private:
 	void Move(const FInputActionValue& InputActionValue);
 	void JumpPressed();
 	void JumpReleased();
+	void CrouchPressed();
+	void CrouchReleased();
 
 	void CursorTrace();
 	TObjectPtr<AActor> LastActor;
