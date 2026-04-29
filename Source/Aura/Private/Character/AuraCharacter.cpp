@@ -23,6 +23,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/HUD/AuraHUD.h"
+#include "Aura/AuraLogChannels.h"
 
 AAuraCharacter::AAuraCharacter()
 {
@@ -76,6 +77,9 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 	BindPlayerNameDelegate();
 	UpdateOverheadPlayerName();
 
+	UE_LOG(LogAura, Log, TEXT("[Character][Server] PossessedBy called: Character=%s Controller=%s HasAuthority=%s"),
+		*GetNameSafe(this), *GetNameSafe(NewController), HasAuthority() ? TEXT("true") : TEXT("false"));
+
 	// Init ability actor info for the Server
 	InitAbilityActorInfo();
 	LoadProgress();
@@ -88,16 +92,45 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 
 void AAuraCharacter::LoadProgress()
 {
+	UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress enter: Character=%s HasAuthority=%s"),
+		*GetNameSafe(this), HasAuthority() ? TEXT("true") : TEXT("false"));
+
+	auto InitializeFallbackDefaults = [this]()
+	{
+		InitializeDefaultAttributes();
+		AddCharacterAbilities();
+
+		if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Character][Server] Fallback defaults applied: Health=%.1f/%.1f Mana=%.1f/%.1f"),
+				AuraAS->GetHealth(), AuraAS->GetMaxHealth(), AuraAS->GetMana(), AuraAS->GetMaxMana());
+		}
+	};
+
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (AuraGameMode)
 	{
 		ULoadScreenSaveGame* SaveData = AuraGameMode->RetrieveInGameSaveData();
-		if (SaveData == nullptr) return;
+		if (SaveData == nullptr)
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Character][Server] LoadProgress: SaveData is null for Character=%s. Applying fallback defaults."), *GetNameSafe(this));
+			InitializeFallbackDefaults();
+			return;
+		}
+
+		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: SaveData found FirstTime=%s Level=%d"),
+			SaveData->bFirstTimeLoadIn ? TEXT("true") : TEXT("false"), SaveData->PlayerLevel);
 
 		if (SaveData->bFirstTimeLoadIn)
 		{
 			InitializeDefaultAttributes();
 			AddCharacterAbilities();
+
+			if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
+			{
+				UE_LOG(LogAura, Log, TEXT("[Character][Server] FirstLoad attributes initialized: Health=%.1f/%.1f Mana=%.1f/%.1f"),
+					AuraAS->GetHealth(), AuraAS->GetMaxHealth(), AuraAS->GetMana(), AuraAS->GetMaxMana());
+			}
 		}
 		else
 		{
@@ -115,7 +148,18 @@ void AAuraCharacter::LoadProgress()
 			}
 			
 			UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(this, AbilitySystemComponent, SaveData);
+
+			if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
+			{
+				UE_LOG(LogAura, Log, TEXT("[Character][Server] SaveData attributes initialized: Health=%.1f/%.1f Mana=%.1f/%.1f Level=%d"),
+					AuraAS->GetHealth(), AuraAS->GetMaxHealth(), AuraAS->GetMana(), AuraAS->GetMaxMana(), SaveData->PlayerLevel);
+			}
 		}
+	}
+	else
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Character][Server] LoadProgress: AuraGameMode is null for Character=%s. Applying fallback defaults."), *GetNameSafe(this));
+		InitializeFallbackDefaults();
 	}
 }
 
@@ -127,6 +171,12 @@ void AAuraCharacter::OnRep_PlayerState()
 
 	// Init ability actor info for the Client
 	InitAbilityActorInfo();
+
+	if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
+	{
+		UE_LOG(LogAura, Log, TEXT("[Character][Client] OnRep_PlayerState after InitAbilityActorInfo: Health=%.1f/%.1f Mana=%.1f/%.1f"),
+			AuraAS->GetHealth(), AuraAS->GetMaxHealth(), AuraAS->GetMana(), AuraAS->GetMaxMana());
+	}
 }
 
 void AAuraCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)

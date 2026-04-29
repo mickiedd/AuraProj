@@ -16,6 +16,7 @@ class UInputAction;
 struct FInputActionValue;
 class UAuraInputConfig;
 class UAuraAbilitySystemComponent;
+class UAuraAttributeSet;
 class USplineComponent;
 class AMagicCircle;
 
@@ -101,7 +102,12 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
 
+	UPROPERTY()
+	TObjectPtr<const UAuraAttributeSet> AuraAttributeSet;
+
 	UAuraAbilitySystemComponent* GetASC();
+	const UAuraAttributeSet* GetAuraAS() const;
+	bool IsAbilityInputReady() const;
 
 	
 	FVector CachedDestination = FVector::ZeroVector;

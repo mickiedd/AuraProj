@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 #include "Aura/AuraLogChannels.h"
@@ -103,11 +104,18 @@ void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(const TArray<TSub
 void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid()) return;
+	UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagPressed: Tag=%s"), *InputTag.ToString());
 	FScopedAbilityListLock ActiveScopeLoc(*this);
+	int32 MatchCount = 0;
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
+			++MatchCount;
+			const FGameplayTag AbilityTag = GetAbilityTagFromSpec(AbilitySpec);
+			const FGameplayTag StatusTag = GetStatusFromSpec(AbilitySpec);
+			UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagPressed: Found ability Ability=%s Status=%s IsActive=%s"),
+				*AbilityTag.ToString(), *StatusTag.ToString(), AbilitySpec.IsActive() ? TEXT("true") : TEXT("false"));
 			AbilitySpecInputPressed(AbilitySpec);
 			if (AbilitySpec.IsActive())
 			{
@@ -115,20 +123,112 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 			}
 		}
 	}
+	if (MatchCount == 0)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[ASC] AbilityInputTagPressed: No ability found with InputTag=%s (total activatable: %d)"),
+			*InputTag.ToString(), GetActivatableAbilities().Num());
+	}
 }
 
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid()) return;
+	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
 	FScopedAbilityListLock ActiveScopeLoc(*this);
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
+			const FGameplayTag AbilityTag = GetAbilityTagFromSpec(AbilitySpec);
 			AbilitySpecInputPressed(AbilitySpec);
 			if (!AbilitySpec.IsActive())
 			{
-				TryActivateAbility(AbilitySpec.Handle);
+				const float NextAllowed = NextAllowedInputTagTryTime.FindRef(InputTag);
+				if (Now < NextAllowed)
+				{
+					continue;
+				}
+
+				// Log CanActivateAbility failure reason before attempting activation
+				if (AbilitySpec.Ability && AbilityActorInfo.IsValid())
+				{
+					UAbilitySystemComponent* AbilityASC = AbilityActorInfo->AbilitySystemComponent.Get();
+					AActor* LogOwnerActor = AbilityASC ? AbilityASC->GetOwnerActor() : nullptr;
+					
+					FGameplayTagContainer CooldownTags;
+					const bool bCooldownOk = AbilitySpec.Ability->CheckCooldown(AbilitySpec.Handle, AbilityActorInfo.Get(), &CooldownTags);
+					FGameplayTagContainer CostTags;
+					const bool bCostOk = AbilitySpec.Ability->CheckCost(AbilitySpec.Handle, AbilityActorInfo.Get(), &CostTags);
+
+					// Log actual mana to diagnose cost failures
+					float CurrentMana = 0.f;
+					float MaxMana = 0.f;
+					bool bAttributeSetFound = false;
+					if (AbilityASC)
+					{
+						if (const UAuraAttributeSet* AuraAS = AbilityASC->GetSet<UAuraAttributeSet>())
+						{
+							bAttributeSetFound = true;
+							CurrentMana = AuraAS->GetMana();
+							MaxMana = AuraAS->GetMaxMana();
+						}
+					}
+					UE_LOG(LogAura, Log, TEXT("[ASC] AttributeSetFound=%s Mana=%.1f/%.1f"),
+						bAttributeSetFound ? TEXT("true") : TEXT("false"), CurrentMana, MaxMana);
+					
+					FGameplayTagContainer FailureTags;
+					const bool bCanActivate = AbilitySpec.Ability->CanActivateAbility(AbilitySpec.Handle, AbilityActorInfo.Get(), nullptr, nullptr, &FailureTags);
+					const EGameplayAbilityNetExecutionPolicy::Type NetPolicy = AbilitySpec.Ability->GetNetExecutionPolicy();
+					UE_LOG(LogAura, Log, TEXT("[ASC] CanActivate=%s Ability=%s Tag=%s NetPolicy=%d AvatarActor=%s OwnerActor=%s IsNetAuth=%s Mana=%.1f/%.1f CooldownOk=%s CostOk=%s FailureTags=[%s]"),
+						bCanActivate ? TEXT("true") : TEXT("false"),
+						*AbilityTag.ToString(), *InputTag.ToString(),
+						(int32)NetPolicy,
+						*GetNameSafe(AbilityActorInfo->AvatarActor.Get()),
+						*GetNameSafe(LogOwnerActor),
+						AbilityActorInfo->IsNetAuthority() ? TEXT("true") : TEXT("false"),
+						CurrentMana, MaxMana,
+						bCooldownOk ? TEXT("true") : TEXT("false"),
+						bCostOk ? TEXT("true") : TEXT("false"),
+						*FailureTags.ToString());
+
+					if (!bCanActivate)
+					{
+						float RetryDelay = HeldRetryDelay;
+						if (!bCostOk)
+						{
+							RetryDelay = HeldCostRetryDelay;
+						}
+						else if (!bCooldownOk)
+						{
+							RetryDelay = HeldCooldownRetryDelay;
+						}
+						NextAllowedInputTagTryTime.FindOrAdd(InputTag) = Now + RetryDelay;
+						continue;
+					}
+				}
+				else
+				{
+					UE_LOG(LogAura, Warning, TEXT("[ASC] AbilityInputTagHeld: AbilityActorInfo invalid! Ability=%s AbilityActorInfoValid=%s"),
+						*AbilityTag.ToString(), AbilityActorInfo.IsValid() ? TEXT("true") : TEXT("false"));
+					NextAllowedInputTagTryTime.FindOrAdd(InputTag) = Now + HeldRetryDelay;
+					continue;
+				}
+
+				UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagHeld: TryActivateAbility Ability=%s Tag=%s"),
+					*AbilityTag.ToString(), *InputTag.ToString());
+				const bool bActivated = TryActivateAbility(AbilitySpec.Handle);
+				if (bActivated)
+				{
+					NextAllowedInputTagTryTime.FindOrAdd(InputTag) = Now + HeldSuccessRetryDelay;
+				}
+				else
+				{
+					NextAllowedInputTagTryTime.FindOrAdd(InputTag) = Now + HeldRetryDelay;
+				}
+				if (!bActivated)
+				{
+					UE_LOG(LogAura, Warning, TEXT("[ASC] AbilityInputTagHeld: TryActivateAbility FAILED for Ability=%s"), *AbilityTag.ToString());
+				}
 			}
 		}
 	}
@@ -137,13 +237,21 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid()) return;
+	NextAllowedInputTagTryTime.Remove(InputTag);
+	UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagReleased: Tag=%s"), *InputTag.ToString());
 	FScopedAbilityListLock ActiveScopeLoc(*this);
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag) && AbilitySpec.IsActive())
+		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
-			AbilitySpecInputReleased(AbilitySpec);
-			InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+			const FGameplayTag AbilityTag = GetAbilityTagFromSpec(AbilitySpec);
+			UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagReleased: Ability=%s IsActive=%s"),
+				*AbilityTag.ToString(), AbilitySpec.IsActive() ? TEXT("true") : TEXT("false"));
+			if (AbilitySpec.IsActive())
+			{
+				AbilitySpecInputReleased(AbilitySpec);
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+			}
 		}
 	}
 }

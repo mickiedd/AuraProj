@@ -109,6 +109,22 @@ void UOverlayWidgetController::OnXPChanged(int32 NewXP)
 	}
 }
 
+void UOverlayWidgetController::AbilityButtonPressed(const FGameplayTag& InputTag)
+{
+	if (GetAuraASC())
+	{
+		GetAuraASC()->AbilityInputTagPressed(InputTag);
+	}
+}
+
+void UOverlayWidgetController::AbilityButtonReleased(const FGameplayTag& InputTag)
+{
+	if (GetAuraASC())
+	{
+		GetAuraASC()->AbilityInputTagReleased(InputTag);
+	}
+}
+
 void UOverlayWidgetController::OnAbilityEquipped(const FGameplayTag& AbilityTag, const FGameplayTag& Status, const FGameplayTag& Slot, const FGameplayTag& PreviousSlot) const
 {
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();

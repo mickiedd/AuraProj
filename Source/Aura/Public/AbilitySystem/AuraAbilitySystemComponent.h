@@ -96,4 +96,11 @@ private:
 	void SetAbilityStatus(FGameplayAbilitySpec& AbilitySpec, const FGameplayTag& StatusTag);
 	bool EquipAbilityToSlot(FGameplayAbilitySpec& AbilitySpec, const FGameplayTag& Slot, FGameplayTag& OutPreviousSlot);
 	FGameplayTag FindSlotForAbility(const FAuraAbilityInfo& AbilityInfo, const FGameplayAbilitySpec& AbilitySpec, const TSet<FGameplayTag>& ReservedSlots) const;
+
+	// Prevents TryActivateAbility spam while an input is held and activation is blocked by cost/cooldown.
+	TMap<FGameplayTag, float> NextAllowedInputTagTryTime;
+	float HeldRetryDelay = 0.10f;
+	float HeldCooldownRetryDelay = 0.12f;
+	float HeldCostRetryDelay = 0.20f;
+	float HeldSuccessRetryDelay = 0.03f;
 };

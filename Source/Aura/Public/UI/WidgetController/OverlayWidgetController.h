@@ -44,6 +44,13 @@ public:
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
 
+	/** Called by spell bar icon widgets when the player clicks a skill button in the HUD */
+	UFUNCTION(BlueprintCallable, Category="GAS|Abilities")
+	void AbilityButtonPressed(const FGameplayTag& InputTag);
+
+	UFUNCTION(BlueprintCallable, Category="GAS|Abilities")
+	void AbilityButtonReleased(const FGameplayTag& InputTag);
+
 	UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
 	FOnAttributeChangedSignature OnHealthChanged;
 

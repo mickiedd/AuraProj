@@ -22,6 +22,12 @@ public:
 	virtual FString GetNextLevelDescription(int32 Level);
 	static FString GetLockedDescription(int32 Level);
 
+	/**
+	 * Skip the cost check on non-authoritative clients — attributes (e.g. Mana) may not
+	 * have replicated yet. The server always performs the authoritative check on activation.
+	 */
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+
 protected:
 
 	float GetManaCost(float InLevel = 1.f) const;

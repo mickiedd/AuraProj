@@ -11,6 +11,7 @@
 #include "NavigationSystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Actor/MagicCircle.h"
 #include "Aura/Aura.h"
@@ -172,10 +173,17 @@ void AAuraPlayerController::CursorTrace()
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	if (!IsAbilityInputReady())
 	{
+		UE_LOG(LogAura, Warning, TEXT("[PC] AbilityInputTagPressed BLOCKED: Attributes not ready. Tag=%s"), *InputTag.ToString());
 		return;
 	}
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	{
+		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagPressed BLOCKED by Player_Block_InputPressed: Tag=%s"), *InputTag.ToString());
+		return;
+	}
+	UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagPressed: Tag=%s ASC=%s"), *InputTag.ToString(), GetASC() ? TEXT("valid") : TEXT("null"));
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (IsValid(ThisActor))
@@ -186,6 +194,8 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 		{
 			TargetingStatus = ETargetingStatus::NotTargeting;
 		}
+		UE_LOG(LogAura, Log, TEXT("[PC] LMB Pressed: TargetingStatus=%d ThisActor=%s"),
+			(int32)TargetingStatus, *GetNameSafe(ThisActor));
 		bAutoRunning = false;
 	}
 	if (GetASC()) GetASC()->AbilityInputTagPressed(InputTag);
@@ -193,10 +203,18 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
+	if (!IsAbilityInputReady())
 	{
+		UE_LOG(LogAura, Warning, TEXT("[PC] AbilityInputTagReleased BLOCKED: Attributes not ready. Tag=%s"), *InputTag.ToString());
 		return;
 	}
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
+	{
+		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagReleased BLOCKED: Tag=%s"), *InputTag.ToString());
+		return;
+	}
+	UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagReleased: Tag=%s TargetingStatus=%d FollowTime=%.3f"),
+		*InputTag.ToString(), (int32)TargetingStatus, FollowTime);
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
@@ -239,8 +257,13 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
+	if (!IsAbilityInputReady())
+	{
+		return;
+	}
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
 	{
+		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagHeld BLOCKED: Tag=%s"), *InputTag.ToString());
 		return;
 	}
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
@@ -249,19 +272,35 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		return;
 	}
 
+	// LMB: if targeting an enemy or holding Shift, always try to activate the ability.
+	// If not targeting an enemy, also try the ability first — if there is an equipped LMB ability
+	// it should still fire (e.g. projectile spells toward cursor).
 	if (TargetingStatus == ETargetingStatus::TargetingEnemy || bShiftKeyDown)
 	{
+		UE_LOG(LogAura, Log, TEXT("[PC] LMB Held: TargetingEnemy or Shift — routing to ASC. TargetingStatus=%d Shift=%s"),
+			(int32)TargetingStatus, bShiftKeyDown ? TEXT("true") : TEXT("false"));
 		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
 	}
 	else
 	{
-		FollowTime += GetWorld()->GetDeltaSeconds();
-		if (CursorHit.bBlockingHit) CachedDestination = CursorHit.ImpactPoint;
-
-		if (APawn* ControlledPawn = GetPawn())
+		// Check if there is an ability equipped to the LMB slot; if so, activate it.
+		const bool bHasLMBAbility = GetASC() && GetASC()->GetSpecWithSlot(FAuraGameplayTags::Get().InputTag_LMB) != nullptr;
+		if (bHasLMBAbility)
 		{
-			const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
-			ControlledPawn->AddMovementInput(WorldDirection);
+			UE_LOG(LogAura, Log, TEXT("[PC] LMB Held: LMB ability equipped and not targeting enemy — routing to ASC"));
+			GetASC()->AbilityInputTagHeld(InputTag);
+		}
+		else
+		{
+			// No ability assigned to LMB — do movement
+			FollowTime += GetWorld()->GetDeltaSeconds();
+			if (CursorHit.bBlockingHit) CachedDestination = CursorHit.ImpactPoint;
+
+			if (APawn* ControlledPawn = GetPawn())
+			{
+				const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+				ControlledPawn->AddMovementInput(WorldDirection);
+			}
 		}
 	}
 }
@@ -273,6 +312,32 @@ UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
 		AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
 	}
 	return AuraAbilitySystemComponent;
+}
+
+const UAuraAttributeSet* AAuraPlayerController::GetAuraAS() const
+{
+	if (AuraAttributeSet == nullptr)
+	{
+		if (UAuraAbilitySystemComponent* ASC = const_cast<AAuraPlayerController*>(this)->GetASC())
+		{
+			const_cast<AAuraPlayerController*>(this)->AuraAttributeSet = ASC->GetSet<UAuraAttributeSet>();
+		}
+	}
+	return AuraAttributeSet;
+}
+
+bool AAuraPlayerController::IsAbilityInputReady() const
+{
+	const UAuraAttributeSet* LocalAS = GetAuraAS();
+	if (LocalAS == nullptr)
+	{
+		return false;
+	}
+
+	// Temporary safety gate: if replicated attributes are still zero on client, block skill input.
+	// This avoids noisy failed prediction attempts until initial attribute replication finishes.
+	const float MaxMana = LocalAS->GetMaxMana();
+	return MaxMana > 0.f;
 }
 
 void AAuraPlayerController::ServerFullAbilities_Implementation()

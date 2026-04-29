@@ -4,6 +4,18 @@
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "Aura/AuraLogChannels.h"
+
+bool UAuraGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	// On non-authoritative clients, attributes (e.g. Mana) may not have replicated yet.
+	// Allow the prediction to proceed locally; the server performs the authoritative check.
+	if (ActorInfo && !ActorInfo->IsNetAuthority())
+	{
+		return true;
+	}
+	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags);
+}
 
 FString UAuraGameplayAbility::GetDescription(int32 Level)
 {
