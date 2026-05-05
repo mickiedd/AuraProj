@@ -45,23 +45,52 @@ void AAuraProjectile::BeginPlay()
 
 void AAuraProjectile::OnHit()
 {
-	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-	if (LoopingSoundComponent)
+	if (bHit)
 	{
-		LoopingSoundComponent->Stop();
-		LoopingSoundComponent->DestroyComponent();
+		return;
 	}
+
+	if (HasAuthority())
+	{
+		MulticastPlayImpactEffects(GetActorLocation());
+		return;
+	}
+
+	PlayImpactEffects(GetActorLocation());
 	bHit = true;
 }
 
-void AAuraProjectile::Destroyed()
+void AAuraProjectile::MulticastPlayImpactEffects_Implementation(const FVector_NetQuantize& ImpactLocation)
+{
+	if (bHit)
+	{
+		return;
+	}
+
+	PlayImpactEffects(ImpactLocation);
+	bHit = true;
+}
+
+void AAuraProjectile::PlayImpactEffects(const FVector& ImpactLocation)
+{
+	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, ImpactLocation, FRotator::ZeroRotator);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, ImpactLocation);
+	StopLoopingSound();
+}
+
+void AAuraProjectile::StopLoopingSound()
 {
 	if (LoopingSoundComponent)
 	{
 		LoopingSoundComponent->Stop();
 		LoopingSoundComponent->DestroyComponent();
+		LoopingSoundComponent = nullptr;
 	}
+}
+
+void AAuraProjectile::Destroyed()
+{
+	StopLoopingSound();
 	if (!bHit && !HasAuthority()) OnHit();
 	Super::Destroyed();
 }

@@ -47,20 +47,19 @@ void AAuraFireBall::OnHit()
 {
 	UE_LOG(LogAura, Log, TEXT("[FireBall] OnHit: Actor=%s Location=%s Owner=%s"),
 		*GetNameSafe(this), *GetActorLocation().ToCompactString(), *GetNameSafe(GetOwner()));
+	Super::OnHit();
+}
 
+void AAuraFireBall::PlayImpactEffects(const FVector& ImpactLocation)
+{
 	if (GetOwner())
 	{
 		FGameplayCueParameters CueParams;
-		CueParams.Location = GetActorLocation();
+		CueParams.Location = ImpactLocation;
 		UGameplayCueManager::ExecuteGameplayCue_NonReplicated(GetOwner(), FAuraGameplayTags::Get().GameplayCue_FireBlast, CueParams);
 	}
-	
-	if (LoopingSoundComponent)
-	{
-		LoopingSoundComponent->Stop();
-		LoopingSoundComponent->DestroyComponent();
-	}
-	bHit = true;
+
+	StopLoopingSound();
 }
 
 void AAuraFireBall::OnRep_ReturnToActor()

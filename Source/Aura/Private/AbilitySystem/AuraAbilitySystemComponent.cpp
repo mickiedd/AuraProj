@@ -149,17 +149,6 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 					continue;
 				}
 
-				// Server-authority rule: clients never activate locally. Route activation request to server
-				// so the server validates and replicates the authoritative result.
-				if (AbilityActorInfo.IsValid() && !AbilityActorInfo->IsNetAuthority())
-				{
-					UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagHeld: Client requesting server activation Ability=%s Tag=%s"),
-						*AbilityTag.ToString(), *InputTag.ToString());
-					ServerRequestActivateAbility(AbilitySpec.Handle);
-					NextAllowedInputTagTryTime.FindOrAdd(InputTag) = Now + HeldSuccessRetryDelay;
-					continue;
-				}
-
 				// Log CanActivateAbility failure reason before attempting activation
 				if (AbilitySpec.Ability && AbilityActorInfo.IsValid())
 				{

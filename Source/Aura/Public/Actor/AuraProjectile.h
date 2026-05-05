@@ -33,6 +33,11 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnHit();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayImpactEffects(const FVector_NetQuantize& ImpactLocation);
+
+	virtual void PlayImpactEffects(const FVector& ImpactLocation);
 	virtual void Destroyed() override;
 
 	UFUNCTION()
@@ -46,6 +51,8 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UAudioComponent> LoopingSoundComponent;
+
+	void StopLoopingSound();
 private:
 
 	UPROPERTY(EditDefaultsOnly)
