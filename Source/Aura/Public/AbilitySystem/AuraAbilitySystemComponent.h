@@ -74,6 +74,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipAbility(const FGameplayTag& AbilityTag, const FGameplayTag& Slot);
 
+	/** Server-authoritative activation request. Clients must call this instead of TryActivateAbility directly. */
+	UFUNCTION(Server, Reliable)
+	void ServerRequestActivateAbility(FGameplayAbilitySpecHandle AbilityHandle);
+
 	UFUNCTION(Client, Reliable)
 	void ClientEquipAbility(const FGameplayTag& AbilityTag, const FGameplayTag& Status, const FGameplayTag& Slot, const FGameplayTag& PreviousSlot);
 

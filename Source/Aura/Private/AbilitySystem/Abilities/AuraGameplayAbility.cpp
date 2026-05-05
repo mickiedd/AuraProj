@@ -8,12 +8,7 @@
 
 bool UAuraGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	// On non-authoritative clients, attributes (e.g. Mana) may not have replicated yet.
-	// Allow the prediction to proceed locally; the server performs the authoritative check.
-	if (ActorInfo && !ActorInfo->IsNetAuthority())
-	{
-		return true;
-	}
+	// Server performs the authoritative cost check; no client-side bypass.
 	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags);
 }
 
