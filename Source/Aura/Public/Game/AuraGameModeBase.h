@@ -58,6 +58,9 @@ struct FMonsterSpawnTableRow
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
 	bool bSpawnOnLoad = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
+	float RespawnTime = 0.f;
 };
 /**
  * 
@@ -140,12 +143,19 @@ private:
 	void RespawnPlayer(AController* DeadController);
 	void ReloadMapAfterPlayerDeath();
 	bool ShouldSpawnRowForCurrentMap(const FMonsterSpawnTableRow& Row, const FString& CurrentMapName) const;
+	AAuraEnemy* SpawnMonsterFromRow(const FMonsterSpawnTableRow& Row);
+
+	UFUNCTION()
+	void OnSpawnedMonsterDestroyed(AActor* DestroyedActor);
+
 	static bool TryParseCharacterClass(const FString& InValue, ECharacterClass& OutCharacterClass);
 	TSubclassOf<AAuraEnemy> ResolveMonsterClassFromPath(const FString& ClassPath) const;
 	TArray<FString> BuildCandidateMonsterSpawnTablePaths() const;
 
 	UPROPERTY(VisibleAnywhere, Category = "Monster Spawn")
 	TArray<FMonsterSpawnTableRow> LoadedMonsterSpawnRows;
+
+	TMap<TWeakObjectPtr<AActor>, FMonsterSpawnTableRow> SpawnedMonsterRows;
 
 	bool bMonsterSpawnTableLoaded = false;
 	

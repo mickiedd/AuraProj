@@ -498,6 +498,7 @@ void AAuraGameModeBase::BeginPlay()
 bool AAuraGameModeBase::LoadMonsterSpawnTable()
 {
 	LoadedMonsterSpawnRows.Reset();
+	SpawnedMonsterRows.Reset();
 	bMonsterSpawnTableLoaded = false;
 
 	const TArray<FString> CandidatePaths = BuildCandidateMonsterSpawnTablePaths();
@@ -574,6 +575,12 @@ bool AAuraGameModeBase::LoadMonsterSpawnTable()
 		}
 
 		RowObject->TryGetBoolField(TEXT("spawnOnLoad"), Row.bSpawnOnLoad);
+
+		double RespawnTime = static_cast<double>(Row.RespawnTime);
+		if (RowObject->TryGetNumberField(TEXT("respawnTime"), RespawnTime))
+		{
+			Row.RespawnTime = FMath::Max(0.f, static_cast<float>(RespawnTime));
+		}
 
 		const TSharedPtr<FJsonObject>* TransformObject = nullptr;
 		if (RowObject->TryGetObjectField(TEXT("transform"), TransformObject) && TransformObject != nullptr && TransformObject->IsValid())
@@ -663,29 +670,10 @@ int32 AAuraGameModeBase::SpawnMonstersFromLoadedTable()
 			continue;
 		}
 
-		const TSubclassOf<AAuraEnemy> EnemyClass = ResolveMonsterClassFromPath(Row.MonsterClassPath);
-		if (!EnemyClass)
+		if (SpawnMonsterFromRow(Row) != nullptr)
 		{
-			UE_LOG(LogAura, Warning, TEXT("Failed to load monster class '%s' for row '%s'."), *Row.MonsterClassPath, *Row.Id);
-			continue;
+			++SpawnedCount;
 		}
-
-		FTransform SpawnTransform(Row.Transform.Rotation, Row.Transform.Location, Row.Transform.Scale);
-
-		AAuraEnemy* Enemy = World->SpawnActorDeferred<AAuraEnemy>(EnemyClass, SpawnTransform, nullptr, nullptr,
-			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
-
-		if (!IsValid(Enemy))
-		{
-			UE_LOG(LogAura, Warning, TEXT("Failed to spawn enemy for row '%s'."), *Row.Id);
-			continue;
-		}
-
-		Enemy->SetLevel(Row.Level);
-		Enemy->SetCharacterClass(Row.CharacterClass);
-		Enemy->FinishSpawning(SpawnTransform);
-		Enemy->SpawnDefaultController();
-		++SpawnedCount;
 	}
 
 	return SpawnedCount;
@@ -699,6 +687,91 @@ bool AAuraGameModeBase::ShouldSpawnRowForCurrentMap(const FMonsterSpawnTableRow&
 	}
 
 	return Row.MapName.Equals(CurrentMapName, ESearchCase::IgnoreCase);
+}
+
+AAuraEnemy* AAuraGameModeBase::SpawnMonsterFromRow(const FMonsterSpawnTableRow& Row)
+{
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		return nullptr;
+	}
+
+	const TSubclassOf<AAuraEnemy> EnemyClass = ResolveMonsterClassFromPath(Row.MonsterClassPath);
+	if (!EnemyClass)
+	{
+		UE_LOG(LogAura, Warning, TEXT("Failed to load monster class '%s' for row '%s'."), *Row.MonsterClassPath, *Row.Id);
+		return nullptr;
+	}
+
+	const FTransform SpawnTransform(Row.Transform.Rotation, Row.Transform.Location, Row.Transform.Scale);
+	AAuraEnemy* Enemy = World->SpawnActorDeferred<AAuraEnemy>(EnemyClass, SpawnTransform, nullptr, nullptr,
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+
+	if (!IsValid(Enemy))
+	{
+		UE_LOG(LogAura, Warning, TEXT("Failed to spawn enemy for row '%s'."), *Row.Id);
+		return nullptr;
+	}
+
+	Enemy->SetLevel(Row.Level);
+	Enemy->SetCharacterClass(Row.CharacterClass);
+	Enemy->FinishSpawning(SpawnTransform);
+	Enemy->SpawnDefaultController();
+
+	if (Row.RespawnTime > 0.f)
+	{
+		SpawnedMonsterRows.Add(TWeakObjectPtr<AActor>(Enemy), Row);
+		Enemy->OnDestroyed.AddDynamic(this, &AAuraGameModeBase::OnSpawnedMonsterDestroyed);
+	}
+
+	return Enemy;
+}
+
+void AAuraGameModeBase::OnSpawnedMonsterDestroyed(AActor* DestroyedActor)
+{
+	if (!HasAuthority() || !IsValid(DestroyedActor))
+	{
+		return;
+	}
+
+	FMonsterSpawnTableRow SpawnRow;
+	if (!SpawnedMonsterRows.RemoveAndCopyValue(TWeakObjectPtr<AActor>(DestroyedActor), SpawnRow))
+	{
+		return;
+	}
+
+	if (SpawnRow.RespawnTime <= 0.f)
+	{
+		return;
+	}
+
+	FTimerDelegate RespawnDelegate;
+	RespawnDelegate.BindLambda([this, SpawnRow]()
+	{
+		if (!HasAuthority())
+		{
+			return;
+		}
+
+		UWorld* World = GetWorld();
+		if (!IsValid(World) || World->bIsTearingDown)
+		{
+			return;
+		}
+
+		FString CurrentMapName = World->GetMapName();
+		CurrentMapName.RemoveFromStart(World->StreamingLevelsPrefix);
+		if (!ShouldSpawnRowForCurrentMap(SpawnRow, CurrentMapName))
+		{
+			return;
+		}
+
+		SpawnMonsterFromRow(SpawnRow);
+	});
+
+	FTimerHandle RespawnTimerHandle;
+	GetWorldTimerManager().SetTimer(RespawnTimerHandle, RespawnDelegate, SpawnRow.RespawnTime, false);
 }
 
 bool AAuraGameModeBase::TryParseCharacterClass(const FString& InValue, ECharacterClass& OutCharacterClass)
