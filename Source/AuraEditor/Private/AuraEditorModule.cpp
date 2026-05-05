@@ -99,18 +99,54 @@ private:
 		FMenuBuilder MenuBuilder(true, nullptr);
 
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("StartDedicatedServerLabel", "Launch StartDedicatedServer"),
-			LOCTEXT("StartDedicatedServerTooltip", "Launch StartDedicatedServer.bat from the project root."),
+			GetDedicatedServerMenuLabel(),
+			GetDedicatedServerMenuTooltip(),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStartDedicatedServerClicked)));
 
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("BuildWindowsClientLabel", "Build Windows Client"),
-			LOCTEXT("BuildWindowsClientTooltip", "Build and package the Windows Shipping game client with cooked content in a visible console window."),
+			GetBuildClientMenuLabel(),
+			GetBuildClientMenuTooltip(),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "MainFrame.PackageProject"),
-			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnBuildWindowsClientClicked)));
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnBuildClientClicked)));
 
 		return MenuBuilder.MakeWidget();
+	}
+
+	FText GetDedicatedServerMenuLabel() const
+	{
+#if PLATFORM_MAC
+		return LOCTEXT("StartDedicatedServerLabel", "Launch Dedicated Server");
+#else
+		return LOCTEXT("StartDedicatedServerLabel", "Launch StartDedicatedServer");
+#endif
+	}
+
+	FText GetDedicatedServerMenuTooltip() const
+	{
+#if PLATFORM_MAC
+		return LOCTEXT("StartDedicatedServerTooltip", "Launch StartDedicatedServer.command from the project root in Terminal.");
+#else
+		return LOCTEXT("StartDedicatedServerTooltip", "Launch StartDedicatedServer.bat from the project root.");
+#endif
+	}
+
+	FText GetBuildClientMenuLabel() const
+	{
+#if PLATFORM_MAC
+		return LOCTEXT("BuildClientLabel", "Build Mac Client");
+#else
+		return LOCTEXT("BuildClientLabel", "Build Windows Client");
+#endif
+	}
+
+	FText GetBuildClientMenuTooltip() const
+	{
+#if PLATFORM_MAC
+		return LOCTEXT("BuildClientTooltip", "Build and package the Mac Shipping game client with cooked content in Terminal.");
+#else
+		return LOCTEXT("BuildClientTooltip", "Build and package the Windows Shipping game client with cooked content in a visible console window.");
+#endif
 	}
 
 	bool RegisterOnMenuPath(const TCHAR* MenuPath)
@@ -125,7 +161,7 @@ private:
 				"StartDedicatedServer",
 				FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStartDedicatedServerClicked)),
 				LOCTEXT("StartDedicatedServerLabel", "Dedicated Server"),
-				LOCTEXT("StartDedicatedServerTooltip", "Launch StartDedicatedServer.bat from the project root."),
+				GetDedicatedServerMenuTooltip(),
 				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"));
 
 			Section.AddEntry(Entry);
@@ -152,6 +188,24 @@ private:
 		{
 			UE_LOG(LogAuraEditor, Error, TEXT("RegisterMenus failed: no known ToolMenus path accepted the button."));
 		}
+	}
+
+	bool LaunchProjectScript(const FString& RelativeScriptPath, const FText& MissingScriptDialogText, const FString& FailureDialogText, const FString& SuccessLogLabel) const
+	{
+		const FString ScriptPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / RelativeScriptPath);
+		UE_LOG(LogAuraEditor, Display, TEXT("Resolved project script path | Label='%s' | Path='%s'"), *SuccessLogLabel, *ScriptPath);
+
+		if (!FPaths::FileExists(ScriptPath))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Launch aborted: script file does not exist | Label='%s'"), *SuccessLogLabel);
+			FMessageDialog::Open(EAppMsgType::Ok, MissingScriptDialogText);
+			return false;
+		}
+
+		return LaunchInVisibleConsole(
+			FString::Printf(TEXT("\"%s\""), *ScriptPath),
+			FailureDialogText,
+			SuccessLogLabel);
 	}
 
 	bool LaunchInVisibleConsole(const FString& CommandToRun, const FString& FailureDialogText, const FString& SuccessLogLabel) const
@@ -196,9 +250,48 @@ private:
 		FPlatformProcess::CloseProc(ProcHandle);
 		UE_LOG(LogAuraEditor, Display, TEXT("Process handle closed after successful launch | Label='%s'"), *SuccessLogLabel);
 		return true;
+#elif PLATFORM_MAC
+		const FString Executable = TEXT("/usr/bin/open");
+		const FString Params = FString::Printf(TEXT("-a Terminal %s"), *CommandToRun);
+		const bool bLaunchDetached = true;
+		const bool bLaunchHidden = false;
+		const bool bLaunchReallyHidden = false;
+		uint32 ProcessId = 0;
+
+		UE_LOG(LogAuraEditor, Display, TEXT("Launching process | Label='%s' | Executable='%s' | Params='%s' | WorkingDir='%s' | Detached=%s | Hidden=%s | ReallyHidden=%s"),
+			*SuccessLogLabel,
+			*Executable,
+			*Params,
+			*FPaths::ProjectDir(),
+			bLaunchDetached ? TEXT("true") : TEXT("false"),
+			bLaunchHidden ? TEXT("true") : TEXT("false"),
+			bLaunchReallyHidden ? TEXT("true") : TEXT("false"));
+
+		FProcHandle ProcHandle = FPlatformProcess::CreateProc(
+			*Executable,
+			*Params,
+			bLaunchDetached,
+			bLaunchHidden,
+			bLaunchReallyHidden,
+			&ProcessId,
+			0,
+			*FPaths::ProjectDir(),
+			nullptr);
+
+		if (!ProcHandle.IsValid())
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("CreateProc failed | Label='%s'"), *SuccessLogLabel);
+			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(FailureDialogText));
+			return false;
+		}
+
+		UE_LOG(LogAuraEditor, Display, TEXT("CreateProc succeeded | Label='%s' | PID=%u"), *SuccessLogLabel, ProcessId);
+		FPlatformProcess::CloseProc(ProcHandle);
+		UE_LOG(LogAuraEditor, Display, TEXT("Process handle closed after successful launch | Label='%s'"), *SuccessLogLabel);
+		return true;
 #else
 		UE_LOG(LogAuraEditor, Warning, TEXT("Launch blocked: non-Windows platform | Label='%s'"), *SuccessLogLabel);
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("WindowsOnlyLaunchAction", "This action is only supported on Windows."));
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("UnsupportedLaunchAction", "This action is not supported on this platform."));
 		return false;
 #endif
 	}
@@ -208,35 +301,30 @@ private:
 		UE_LOG(LogAuraEditor, Display, TEXT("Dedicated server toolbar button clicked"));
 
 #if PLATFORM_WINDOWS
-		const FString BatPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.bat"));
-		UE_LOG(LogAuraEditor, Display, TEXT("Resolved bat path: '%s'"), *BatPath);
-
-		if (!FPaths::FileExists(BatPath))
-		{
-			UE_LOG(LogAuraEditor, Error, TEXT("Launch aborted: bat file does not exist"));
-			FMessageDialog::Open(
-				EAppMsgType::Ok,
-				FText::Format(
-					LOCTEXT("StartDedicatedServerMissing", "Could not find StartDedicatedServer.bat at:\n{0}"),
-					FText::FromString(BatPath)));
-			return;
-		}
-
-		LaunchInVisibleConsole(
-			FString::Printf(TEXT("\"%s\""), *BatPath),
+		LaunchProjectScript(
+			TEXT("StartDedicatedServer.bat"),
+			FText::Format(
+				LOCTEXT("StartDedicatedServerMissingWindows", "Could not find StartDedicatedServer.bat at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.bat")))),
 			TEXT("Failed to launch StartDedicatedServer.bat."),
 			TEXT("StartDedicatedServer"));
+#elif PLATFORM_MAC
+		LaunchProjectScript(
+			TEXT("StartDedicatedServer.command"),
+			FText::Format(
+				LOCTEXT("StartDedicatedServerMissingMac", "Could not find StartDedicatedServer.command at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.command")))),
+			TEXT("Failed to launch StartDedicatedServer.command."),
+			TEXT("StartDedicatedServer"));
 #else
-		UE_LOG(LogAuraEditor, Warning, TEXT("Launch blocked: non-Windows platform"));
-		FMessageDialog::Open(
-			EAppMsgType::Ok,
-			LOCTEXT("StartDedicatedServerWindowsOnly", "StartDedicatedServer.bat launch is only supported on Windows."));
+		UE_LOG(LogAuraEditor, Warning, TEXT("Launch blocked: unsupported platform"));
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartDedicatedServerUnsupported", "Dedicated server launch is not supported on this platform."));
 #endif
 	}
 
-	void OnBuildWindowsClientClicked() const
+	void OnBuildClientClicked() const
 	{
-		UE_LOG(LogAuraEditor, Display, TEXT("Build Windows Client menu option clicked"));
+		UE_LOG(LogAuraEditor, Display, TEXT("Build client menu option clicked"));
 
 #if PLATFORM_WINDOWS
 		const FString RunUATBatPath = FPaths::ConvertRelativePathToFull(FPaths::EngineDir() / TEXT("Build/BatchFiles/RunUAT.bat"));
@@ -279,11 +367,17 @@ private:
 			BuildCommand,
 			TEXT("Failed to launch the Windows Shipping client package build."),
 			TEXT("BuildWindowsClient"));
+#elif PLATFORM_MAC
+		LaunchProjectScript(
+			TEXT("BuildMacClient.command"),
+			FText::Format(
+				LOCTEXT("BuildMacClientMissingScript", "Could not find BuildMacClient.command at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("BuildMacClient.command")))),
+			TEXT("Failed to launch the Mac Shipping client package build."),
+			TEXT("BuildMacClient"));
 #else
-		UE_LOG(LogAuraEditor, Warning, TEXT("Build Windows Client blocked: non-Windows platform"));
-		FMessageDialog::Open(
-			EAppMsgType::Ok,
-			LOCTEXT("BuildWindowsClientWindowsOnly", "Building the Windows client from this menu is only supported on Windows."));
+		UE_LOG(LogAuraEditor, Warning, TEXT("Build client blocked: unsupported platform"));
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BuildClientUnsupported", "Building the client from this menu is not supported on this platform."));
 #endif
 	}
 
