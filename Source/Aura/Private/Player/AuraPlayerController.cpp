@@ -18,6 +18,7 @@
 #include "Aura/AuraLogChannels.h"
 #include "Components/DecalComponent.h"
 #include "Components/SplineComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
 #include "GameFramework/Character.h"
@@ -231,37 +232,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		TargetingStatus = ETargetingStatus::NotTargeting;
 		return;
 	}
-	
-	if (TargetingStatus != ETargetingStatus::TargetingEnemy && !bShiftKeyDown)
-	{
-		const APawn* ControlledPawn = GetPawn();
-		if (FollowTime <= ShortPressThreshold && ControlledPawn)
-		{
-			if (IsValid(ThisActor) && ThisActor->Implements<UHighlightInterface>())
-			{
-				IHighlightInterface::Execute_SetMoveToLocation(ThisActor, CachedDestination);
-			}
-			else if (GetASC() && !GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
-			{
-				UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
-			}
-			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CachedDestination))
-			{
-				Spline->ClearSplinePoints();
-				for (const FVector& PointLoc : NavPath->PathPoints)
-				{
-					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-				}
-				if (NavPath->PathPoints.Num() > 0)
-				{
-					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
-					bAutoRunning = true;
-				}
-			}
-		}
-		FollowTime = 0.f;
-		TargetingStatus = ETargetingStatus::NotTargeting;
-	}
+
+	// Click-to-move is disabled. LMB without an equipped ability no longer moves the character.
+	FollowTime = 0.f;
+	TargetingStatus = ETargetingStatus::NotTargeting;
 }
 
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
@@ -301,15 +275,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		}
 		else
 		{
-			// No ability assigned to LMB — do movement
-			FollowTime += GetWorld()->GetDeltaSeconds();
-			if (CursorHit.bBlockingHit) CachedDestination = CursorHit.ImpactPoint;
-
-			if (APawn* ControlledPawn = GetPawn())
-			{
-				const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
-				ControlledPawn->AddMovementInput(WorldDirection);
-			}
+			// Click-to-move is disabled. LMB without an equipped ability is a no-op for movement.
 		}
 	}
 }
@@ -465,6 +431,17 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 
 	if (APawn* ControlledPawn = GetPawn<APawn>())
 	{
+		if (ACharacter* ControlledCharacter = Cast<ACharacter>(ControlledPawn))
+		{
+			if (UCharacterMovementComponent* CharacterMovement = ControlledCharacter->GetCharacterMovement())
+			{
+				if (CharacterMovement->IsFalling())
+				{
+					return;
+				}
+			}
+		}
+
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 	}

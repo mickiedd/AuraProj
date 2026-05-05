@@ -56,7 +56,8 @@ AAuraCharacter::AAuraCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = false;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->AirControl = 0.35f;
+	// Keep jump motion momentum-driven: no lateral steering while airborne.
+	GetCharacterMovement()->AirControl = 0.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
