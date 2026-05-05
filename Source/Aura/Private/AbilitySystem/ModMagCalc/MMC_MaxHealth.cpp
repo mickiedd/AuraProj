@@ -30,9 +30,10 @@ float UMMC_MaxHealth::CalculateBaseMagnitude_Implementation(const FGameplayEffec
 	Vigor = FMath::Max<float>(Vigor, 0.f);
 
 	int32 PlayerLevel = 1;
-	if (Spec.GetContext().GetSourceObject()->Implements<UCombatInterface>())
+	UObject* SourceObject = Spec.GetContext().GetSourceObject();
+	if (IsValid(SourceObject) && SourceObject->Implements<UCombatInterface>())
 	{
-		PlayerLevel = ICombatInterface::Execute_GetPlayerLevel(Spec.GetContext().GetSourceObject());
+		PlayerLevel = ICombatInterface::Execute_GetPlayerLevel(SourceObject);
 	}
 
 	return 80.f + 2.5f * Vigor + 10.f * PlayerLevel;

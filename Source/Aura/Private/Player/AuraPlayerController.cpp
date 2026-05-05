@@ -186,6 +186,7 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 	UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagPressed: Tag=%s ASC=%s"), *InputTag.ToString(), GetASC() ? TEXT("valid") : TEXT("null"));
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
+		FollowTime = 0.f;
 		if (IsValid(ThisActor))
 		{
 			TargetingStatus = ThisActor->Implements<UEnemyInterface>() ? ETargetingStatus::TargetingEnemy : ETargetingStatus::TargetingNonEnemy;
@@ -221,7 +222,15 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		return;
 	}
 
+	const bool bHasLMBAbility = HasEquippedAbilityForInputTag(InputTag);
 	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+	if (bHasLMBAbility)
+	{
+		UE_LOG(LogAura, Log, TEXT("[PC] LMB Released: ability equipped, skipping click-to-move release behavior"));
+		FollowTime = 0.f;
+		TargetingStatus = ETargetingStatus::NotTargeting;
+		return;
+	}
 	
 	if (TargetingStatus != ETargetingStatus::TargetingEnemy && !bShiftKeyDown)
 	{
@@ -284,7 +293,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 	else
 	{
 		// Check if there is an ability equipped to the LMB slot; if so, activate it.
-		const bool bHasLMBAbility = GetASC() && GetASC()->GetSpecWithSlot(FAuraGameplayTags::Get().InputTag_LMB) != nullptr;
+		const bool bHasLMBAbility = HasEquippedAbilityForInputTag(InputTag);
 		if (bHasLMBAbility)
 		{
 			UE_LOG(LogAura, Log, TEXT("[PC] LMB Held: LMB ability equipped and not targeting enemy — routing to ASC"));
@@ -303,6 +312,17 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 			}
 		}
 	}
+}
+
+bool AAuraPlayerController::HasEquippedAbilityForInputTag(const FGameplayTag& InputTag)
+{
+	if (!InputTag.IsValid())
+	{
+		return false;
+	}
+
+	UAuraAbilitySystemComponent* ASC = GetASC();
+	return ASC && ASC->GetSpecWithSlot(InputTag) != nullptr;
 }
 
 UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()

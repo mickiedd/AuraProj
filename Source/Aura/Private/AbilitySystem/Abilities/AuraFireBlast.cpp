@@ -5,6 +5,7 @@
 
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Actor/AuraFireBall.h"
+#include "Aura/AuraLogChannels.h"
 
 FString UAuraFireBlast::GetDescription(int32 Level)
 {
@@ -75,9 +76,33 @@ FString UAuraFireBlast::GetNextLevelDescription(int32 Level)
 TArray<AAuraFireBall*> UAuraFireBlast::SpawnFireBalls()
 {
 	TArray<AAuraFireBall*> FireBalls;
-	const FVector Forward = GetAvatarActorFromActorInfo()->GetActorForwardVector();
-	const FVector Location = GetAvatarActorFromActorInfo()->GetActorLocation();
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	if (!IsValid(AvatarActor))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[FireBlast] SpawnFireBalls aborted: AvatarActor invalid"));
+		return FireBalls;
+	}
+
+	if (!AvatarActor->HasAuthority())
+	{
+		UE_LOG(LogAura, Verbose, TEXT("[FireBlast] SpawnFireBalls skipped on non-authority Avatar=%s"), *GetNameSafe(AvatarActor));
+		return FireBalls;
+	}
+
+	if (!FireBallClass)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[FireBlast] SpawnFireBalls aborted: FireBallClass is null Ability=%s"), *GetNameSafe(this));
+		return FireBalls;
+	}
+
+	const FVector Forward = AvatarActor->GetActorForwardVector();
+	const FVector Location = AvatarActor->GetActorLocation();
 	TArray<FRotator> Rotators = UAuraAbilitySystemLibrary::EvenlySpacedRotators(Forward, FVector::UpVector, 360.f, NumFireBalls);
+
+	UE_LOG(LogAura, Log, TEXT("[FireBlast] Spawning fireballs: Ability=%s Avatar=%s Num=%d Location=%s"),
+		*GetNameSafe(this), *GetNameSafe(AvatarActor), NumFireBalls, *Location.ToCompactString());
+
+	APawn* InstigatorPawn = Cast<APawn>(AvatarActor);
 
 	for (const FRotator& Rotator : Rotators)
 	{
@@ -89,19 +114,27 @@ TArray<AAuraFireBall*> UAuraFireBlast::SpawnFireBalls()
 			FireBallClass,
 			SpawnTransform,
 			GetOwningActorFromActorInfo(),
-			CurrentActorInfo->PlayerController->GetPawn(),
+			InstigatorPawn,
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+		if (!IsValid(FireBall))
+		{
+			UE_LOG(LogAura, Warning, TEXT("[FireBlast] SpawnActorDeferred failed for one fireball. Transform=%s"), *SpawnTransform.GetLocation().ToCompactString());
+			continue;
+		}
 		
 		FireBall->DamageEffectParams = MakeDamageEffectParamsFromClassDefaults();
-		FireBall->ReturnToActor = GetAvatarActorFromActorInfo();
-		FireBall->SetOwner(GetAvatarActorFromActorInfo());
+		FireBall->ReturnToActor = AvatarActor;
+		FireBall->SetOwner(AvatarActor);
 
 		FireBall->ExplosionDamageParams = MakeDamageEffectParamsFromClassDefaults();
-		FireBall->SetOwner(GetAvatarActorFromActorInfo());
+		FireBall->SetOwner(AvatarActor);
 
 		FireBalls.Add(FireBall);
 
 		FireBall->FinishSpawning(SpawnTransform);
+		UE_LOG(LogAura, Verbose, TEXT("[FireBlast] FireBall spawned: Actor=%s ReturnToActor=%s"),
+			*GetNameSafe(FireBall), *GetNameSafe(FireBall->ReturnToActor));
 	}
 	
 	return FireBalls;

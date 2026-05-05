@@ -108,6 +108,7 @@ private:
 	UAuraAbilitySystemComponent* GetASC();
 	const UAuraAttributeSet* GetAuraAS() const;
 	bool IsAbilityInputReady() const;
+	bool HasEquippedAbilityForInputTag(const FGameplayTag& InputTag);
 
 	
 	FVector CachedDestination = FVector::ZeroVector;

@@ -68,7 +68,20 @@ AAuraCharacter::AAuraCharacter()
 void AAuraCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	UpdateFatalFallState(DeltaSeconds);
 	UpdateOverheadNameFacingCamera();
+}
+
+void AAuraCharacter::Landed(const FHitResult& Hit)
+{
+	if (HasAuthority() && CurrentFallDuration > 0.f)
+	{
+		UE_LOG(LogAura, Log, TEXT("[Character][Server] Fatal fall canceled by landing: Character=%s FallDuration=%.2fs Location=%s"),
+			*GetNameSafe(this), CurrentFallDuration, *GetActorLocation().ToCompactString());
+	}
+
+	Super::Landed(Hit);
+	ResetFatalFallState();
 }
 
 void AAuraCharacter::PossessedBy(AController* NewController)
@@ -360,6 +373,12 @@ int32 AAuraCharacter::GetPlayerLevel_Implementation()
 
 void AAuraCharacter::Die(const FVector& DeathImpulse)
 {
+	if (bDead)
+	{
+		return;
+	}
+
+	ResetFatalFallState();
 	Super::Die(DeathImpulse);
 
 	if (AAuraGameModeBase* AuraGM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this)))
@@ -368,6 +387,49 @@ void AAuraCharacter::Die(const FVector& DeathImpulse)
 	}
 
 	TopDownCameraComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+}
+
+void AAuraCharacter::UpdateFatalFallState(float DeltaSeconds)
+{
+	if (!HasAuthority() || bDead || !bEnableFallDeath)
+	{
+		return;
+	}
+
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	if (!IsValid(MovementComponent))
+	{
+		return;
+	}
+
+	const bool bIsInFatalFallWindow = MovementComponent->IsFalling() && GetVelocity().Z < 0.f;
+	if (!bIsInFatalFallWindow)
+	{
+		ResetFatalFallState();
+		return;
+	}
+
+	CurrentFallDuration += DeltaSeconds;
+	if (!bWasInFatalFallWindow)
+	{
+		bWasInFatalFallWindow = true;
+		UE_LOG(LogAura, Log, TEXT("[Character][Server] Fatal fall tracking started: Character=%s Threshold=%.2fs Location=%s Velocity=%s"),
+			*GetNameSafe(this), FatalFallDelay, *GetActorLocation().ToCompactString(), *GetVelocity().ToCompactString());
+	}
+
+	if (CurrentFallDuration >= FatalFallDelay)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Character][Server] Fatal fall threshold reached: Character=%s FallDuration=%.2fs Location=%s Velocity=%s"),
+			*GetNameSafe(this), CurrentFallDuration, *GetActorLocation().ToCompactString(), *GetVelocity().ToCompactString());
+		ResetFatalFallState();
+		Die(FVector::ZeroVector);
+	}
+}
+
+void AAuraCharacter::ResetFatalFallState()
+{
+	CurrentFallDuration = 0.f;
+	bWasInFatalFallWindow = false;
 }
 
 void AAuraCharacter::OnRep_Stunned()

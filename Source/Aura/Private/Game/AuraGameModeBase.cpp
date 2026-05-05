@@ -411,6 +411,8 @@ void AAuraGameModeBase::PlayerDied(ACharacter* DeadCharacter, float RespawnDelay
 
 	const float Delay = FMath::Max(0.f, RespawnDelay);
 	FTimerHandle RespawnTimerHandle;
+	UE_LOG(LogAura, Log, TEXT("[Respawn][Server] PlayerDied received: Character=%s Controller=%s Delay=%.2fs RespawnEnabled=%s"),
+		*GetNameSafe(DeadCharacter), *GetNameSafe(DeadCharacter->GetController()), Delay, bEnablePlayerRespawn ? TEXT("true") : TEXT("false"));
 
 	if (bEnablePlayerRespawn)
 	{
@@ -447,6 +449,9 @@ void AAuraGameModeBase::RespawnPlayer(AController* DeadController)
 	{
 		return;
 	}
+
+	UE_LOG(LogAura, Log, TEXT("[Respawn][Server] Respawning controller=%s Pawn=%s StartTag=%s"),
+		*GetNameSafe(DeadController), *GetNameSafe(DeadController->GetPawn()), *GetActivePlayerStartTag().ToString());
 
 	if (UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance()))
 	{

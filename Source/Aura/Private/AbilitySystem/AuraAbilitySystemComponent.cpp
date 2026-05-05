@@ -149,6 +149,21 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 					continue;
 				}
 
+				// For locally predicted abilities on clients, local cooldown state may be stale.
+				// Rely on server acceptance/rejection pacing and avoid repeated local re-activation bursts.
+				if (AbilityActorInfo.IsValid() && !AbilityActorInfo->IsNetAuthority())
+				{
+					UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagHeld: Client TryActivateAbility Ability=%s Tag=%s"),
+						*AbilityTag.ToString(), *InputTag.ToString());
+					const bool bActivatedClient = TryActivateAbility(AbilitySpec.Handle);
+					NextAllowedInputTagTryTime.FindOrAdd(InputTag) = Now + (bActivatedClient ? HeldSuccessRetryDelay : HeldCooldownRetryDelay);
+					if (!bActivatedClient)
+					{
+						UE_LOG(LogAura, Verbose, TEXT("[ASC] AbilityInputTagHeld: Client TryActivateAbility FAILED Ability=%s"), *AbilityTag.ToString());
+					}
+					continue;
+				}
+
 				// Log CanActivateAbility failure reason before attempting activation
 				if (AbilitySpec.Ability && AbilityActorInfo.IsValid())
 				{

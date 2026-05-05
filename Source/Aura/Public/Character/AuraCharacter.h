@@ -12,6 +12,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class UTextRenderComponent;
 class AAuraPlayerState;
+struct FHitResult;
 /**
  * 
  */
@@ -22,6 +23,7 @@ class AURA_API AAuraCharacter : public AAuraCharacterBase, public IPlayerInterfa
 public:
 	AAuraCharacter();
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void Landed(const FHitResult& Hit) override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
@@ -50,6 +52,12 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	float DeathTime = 5.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Death|Fall")
+	bool bEnableFallDeath = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Death|Fall", meta = (ClampMin = "0.1"))
+	float FatalFallDelay = 2.5f;
+
 	FTimerHandle DeathTimer;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -64,10 +72,16 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
+	void UpdateFatalFallState(float DeltaSeconds);
+	void ResetFatalFallState();
+
 	void BindPlayerNameDelegate();
 	void UpdateOverheadPlayerName();
 	void UpdateOverheadNameFacingCamera();
 	void HandlePlayerNameChanged(const FString& NewName);
+
+	float CurrentFallDuration = 0.f;
+	bool bWasInFatalFallWindow = false;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCameraComponent> TopDownCameraComponent;
