@@ -717,7 +717,17 @@ AAuraEnemy* AAuraGameModeBase::SpawnMonsterFromRow(const FMonsterSpawnTableRow& 
 	Enemy->SetLevel(Row.Level);
 	Enemy->SetCharacterClass(Row.CharacterClass);
 	Enemy->FinishSpawning(SpawnTransform);
+	UE_LOG(LogAura, Log, TEXT("[EnemyAI][Spawn] Spawned row=%s enemy=%s class=%s location=%s"),
+		*Row.Id,
+		*GetNameSafe(Enemy),
+		*GetNameSafe(EnemyClass),
+		*SpawnTransform.GetLocation().ToCompactString());
+
 	Enemy->SpawnDefaultController();
+	UE_LOG(LogAura, Log, TEXT("[EnemyAI][Spawn] Controller after SpawnDefaultController: row=%s enemy=%s controller=%s"),
+		*Row.Id,
+		*GetNameSafe(Enemy),
+		*GetNameSafe(Enemy->GetController()));
 
 	if (Row.RespawnTime > 0.f)
 	{

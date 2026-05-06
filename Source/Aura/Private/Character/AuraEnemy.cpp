@@ -14,6 +14,8 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
+#include "Aura/AuraLogChannels.h"
 
 AAuraEnemy::AAuraEnemy()
 {
@@ -39,18 +41,43 @@ AAuraEnemy::AAuraEnemy()
 	Weapon->MarkRenderStateDirty();
 	
 	BaseWalkSpeed = 250.f;
+	Tags.AddUnique(FName("Enemy"));
+	AIControllerClass = AAuraAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void AAuraEnemy::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+	UE_LOG(LogAura, Log, TEXT("[EnemyAI] PossessedBy: Enemy=%s Controller=%s HasAuthority=%s BT=%s"),
+		*GetNameSafe(this),
+		*GetNameSafe(NewController),
+		HasAuthority() ? TEXT("true") : TEXT("false"),
+		*GetNameSafe(BehaviorTree));
 
 	if (!HasAuthority()) return;
+	if (!IsValid(BehaviorTree) || !IsValid(BehaviorTree->BlackboardAsset))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[EnemyAI] Missing BehaviorTree or BlackboardAsset on %s. AI will remain idle."), *GetNameSafe(this));
+		return;
+	}
+
 	AuraAIController = Cast<AAuraAIController>(NewController);
+	if (!IsValid(AuraAIController) || !IsValid(AuraAIController->GetBlackboardComponent()))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[EnemyAI] Invalid AI controller for %s. Controller=%s"), *GetNameSafe(this), *GetNameSafe(NewController));
+		return;
+	}
+
 	AuraAIController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
 	AuraAIController->RunBehaviorTree(BehaviorTree);
 	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), false);
 	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangedAttacker"), CharacterClass != ECharacterClass::Warrior);
+	UE_LOG(LogAura, Log, TEXT("[EnemyAI] BT initialized: Enemy=%s Controller=%s Blackboard=%s RangedAttacker=%s"),
+		*GetNameSafe(this),
+		*GetNameSafe(AuraAIController),
+		*GetNameSafe(BehaviorTree->BlackboardAsset),
+		(CharacterClass != ECharacterClass::Warrior) ? TEXT("true") : TEXT("false"));
 }
 
 void AAuraEnemy::HighlightActor_Implementation()
@@ -96,6 +123,22 @@ AActor* AAuraEnemy::GetCombatTarget_Implementation() const
 void AAuraEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	UE_LOG(LogAura, Log, TEXT("[EnemyAI] BeginPlay: Enemy=%s HasAuthority=%s Controller=%s AIControllerClass=%s BT=%s"),
+		*GetNameSafe(this),
+		HasAuthority() ? TEXT("true") : TEXT("false"),
+		*GetNameSafe(GetController()),
+		*GetNameSafe(AIControllerClass),
+		*GetNameSafe(BehaviorTree));
+
+	if (HasAuthority() && !IsValid(GetController()))
+	{
+		// Table/deferred spawns can occasionally miss auto possession; enforce on server.
+		UE_LOG(LogAura, Warning, TEXT("[EnemyAI] BeginPlay missing controller, calling SpawnDefaultController: Enemy=%s"), *GetNameSafe(this));
+		SpawnDefaultController();
+		UE_LOG(LogAura, Log, TEXT("[EnemyAI] SpawnDefaultController result: Enemy=%s ControllerNow=%s"),
+			*GetNameSafe(this), *GetNameSafe(GetController()));
+	}
+
 	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 	InitAbilityActorInfo();
 	if (HasAuthority())

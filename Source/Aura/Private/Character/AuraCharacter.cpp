@@ -62,6 +62,7 @@ AAuraCharacter::AAuraCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
+	Tags.AddUnique(FName("Player"));
 
 	CharacterClass = ECharacterClass::Elementalist;
 }

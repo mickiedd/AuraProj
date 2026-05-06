@@ -22,4 +22,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	FBlackboardKeySelector DistanceToTargetSelector;
+
+	float LastDebugLogTime = -1000.f;
 };
