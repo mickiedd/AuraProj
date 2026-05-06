@@ -314,16 +314,14 @@ const UAuraAttributeSet* AAuraPlayerController::GetAuraAS() const
 
 bool AAuraPlayerController::IsAbilityInputReady() const
 {
-	const UAuraAttributeSet* LocalAS = GetAuraAS();
-	if (LocalAS == nullptr)
+	const UAuraAbilitySystemComponent* ASC = const_cast<AAuraPlayerController*>(this)->GetASC();
+	if (ASC == nullptr)
 	{
 		return false;
 	}
 
-	// Temporary safety gate: if replicated attributes are still zero on client, block skill input.
-	// This avoids noisy failed prediction attempts until initial attribute replication finishes.
-	const float MaxMana = LocalAS->GetMaxMana();
-	return MaxMana > 0.f;
+	// Let GAS handle cooldown/cost validity. Do not hard-block startup input on attribute replication.
+	return IsValid(GetPawn());
 }
 
 void AAuraPlayerController::ServerFullAbilities_Implementation()

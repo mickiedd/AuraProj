@@ -34,7 +34,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void OnHit();
 
-	UFUNCTION(NetMulticast, Unreliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayImpactEffects(const FVector_NetQuantize& ImpactLocation);
 
 	virtual void PlayImpactEffects(const FVector& ImpactLocation);

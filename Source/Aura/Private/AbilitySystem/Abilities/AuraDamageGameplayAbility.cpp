@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Aura/AuraLogChannels.h"
 
 void UAuraDamageGameplayAbility::CauseDamage(AActor* TargetActor)
 {
@@ -97,6 +98,13 @@ FTaggedMontage UAuraDamageGameplayAbility::GetRandomTaggedMontageFromArray(const
 	if (TaggedMontages.Num() > 0)
 	{
 		const int32 Selection = FMath::RandRange(0, TaggedMontages.Num() - 1);
+		const bool bIsServer = CurrentActorInfo && CurrentActorInfo->IsNetAuthority();
+		UE_LOG(LogAura, Warning, TEXT("[MontageSelect] Ability=%s IsNetAuth=%d Selection=%d Count=%d Tag=%s"),
+			*GetNameSafe(this),
+			bIsServer,
+			Selection,
+			TaggedMontages.Num(),
+			*TaggedMontages[Selection].MontageTag.ToString());
 		return TaggedMontages[Selection];
 	}
 

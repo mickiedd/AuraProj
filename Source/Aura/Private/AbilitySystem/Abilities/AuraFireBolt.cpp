@@ -2,6 +2,8 @@
 
 
 #include "AbilitySystem/Abilities/AuraFireBolt.h"
+#include "Aura/Aura.h"
+#include "Aura/AuraLogChannels.h"
 
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Actor/AuraProjectile.h"
@@ -103,6 +105,8 @@ FString UAuraFireBolt::GetNextLevelDescription(int32 Level)
 void UAuraFireBolt::SpawnProjectiles(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag, bool bOverridePitch, float PitchOverride, AActor* HomingTarget)
 {
 	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();
+	UE_LOG(LogAura, Warning, TEXT("[SpawnProjectiles] Called: bIsServer=%d NumProjectiles=%d Level=%d"),
+		bIsServer, NumProjectiles, GetAbilityLevel());
 	if (!bIsServer) return;
 
 	const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(

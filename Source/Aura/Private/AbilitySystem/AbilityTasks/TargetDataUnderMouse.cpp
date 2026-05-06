@@ -4,6 +4,7 @@
 #include "AbilitySystem/AbilityTasks/TargetDataUnderMouse.h"
 #include "AbilitySystemComponent.h"
 #include "Aura/Aura.h"
+#include "Aura/AuraLogChannels.h"
 
 UTargetDataUnderMouse* UTargetDataUnderMouse::CreateTargetDataUnderMouse(UGameplayAbility* OwningAbility)
 {
@@ -14,6 +15,11 @@ UTargetDataUnderMouse* UTargetDataUnderMouse::CreateTargetDataUnderMouse(UGamepl
 void UTargetDataUnderMouse::Activate()
 {
 	const bool bIsLocallyControlled = Ability->GetCurrentActorInfo()->IsLocallyControlled();
+	UE_LOG(LogAura, Warning, TEXT("[TargetData] Activate: LocallyControlled=%d IsNetAuth=%d PredKey=%s Handle=%s"),
+		bIsLocallyControlled,
+		(int32)Ability->GetCurrentActorInfo()->IsNetAuthority(),
+		*GetActivationPredictionKey().ToString(),
+		*GetAbilitySpecHandle().ToString());
 	if (bIsLocallyControlled)
 	{
 		SendMouseCursorData();
@@ -24,6 +30,8 @@ void UTargetDataUnderMouse::Activate()
 		const FPredictionKey ActivationPredictionKey = GetActivationPredictionKey();
 		AbilitySystemComponent.Get()->AbilityTargetDataSetDelegate(SpecHandle, ActivationPredictionKey).AddUObject(this, &UTargetDataUnderMouse::OnTargetDataReplicatedCallback);
 		const bool bCalledDelegate = AbilitySystemComponent.Get()->CallReplicatedTargetDataDelegatesIfSet(SpecHandle, ActivationPredictionKey);
+		UE_LOG(LogAura, Warning, TEXT("[TargetData] Server path: PredKey=%s Handle=%s CalledDelegateImmediately=%d"),
+			*ActivationPredictionKey.ToString(), *SpecHandle.ToString(), bCalledDelegate);
 		if (!bCalledDelegate)
 		{
 			SetWaitingOnRemotePlayerData();
@@ -60,7 +68,10 @@ void UTargetDataUnderMouse::SendMouseCursorData()
 void UTargetDataUnderMouse::OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
 {
 	AbilitySystemComponent->ConsumeClientReplicatedTargetData(GetAbilitySpecHandle(), GetActivationPredictionKey());
-	if (ShouldBroadcastAbilityTaskDelegates())
+	const bool bShouldBroadcast = ShouldBroadcastAbilityTaskDelegates();
+	UE_LOG(LogAura, Warning, TEXT("[TargetData] OnTargetDataReplicatedCallback: ShouldBroadcast=%d DataNum=%d"),
+		bShouldBroadcast, DataHandle.Num());
+	if (bShouldBroadcast)
 	{
 		ValidData.Broadcast(DataHandle);
 	}
