@@ -3,13 +3,26 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+#include "ContentBrowserModule.h"
+#include "IContentBrowserSingleton.h"
+#include "DesktopPlatformModule.h"
+#include "EdGraph/EdGraph.h"
+#include "EdGraph/EdGraphNode.h"
+#include "EdGraph/EdGraphPin.h"
+#include "Engine/Blueprint.h"
 #include "HAL/PlatformMisc.h"
 #include "HAL/PlatformProcess.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Framework/Commands/UIAction.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Json.h"
 #include "LevelEditor.h"
+#include "Misc/Base64.h"
+#include "Misc/FileHelper.h"
 #include "Misc/MessageDialog.h"
 #include "Misc/Paths.h"
+#include "Misc/PackageName.h"
+#include "PackageTools.h"
 #include "Styling/AppStyle.h"
 #include "ToolMenus.h"
 
@@ -98,6 +111,7 @@ private:
 	{
 		FMenuBuilder MenuBuilder(true, nullptr);
 
+		MenuBuilder.BeginSection("AuraLaunchSection", LOCTEXT("AuraLaunchSectionLabel", "Launch"));
 		MenuBuilder.AddMenuEntry(
 			GetDedicatedServerMenuLabel(),
 			GetDedicatedServerMenuTooltip(),
@@ -109,8 +123,528 @@ private:
 			GetBuildClientMenuTooltip(),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "MainFrame.PackageProject"),
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnBuildClientClicked)));
+		MenuBuilder.EndSection();
+
+		MenuBuilder.BeginSection("AuraBlueprintToolsSection", LOCTEXT("AuraBlueprintToolsSectionLabel", "Blueprint Snapshot"));
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ExportBlueprintSnapshotLabel", "Export Selected Blueprint to JSON"),
+			LOCTEXT("ExportBlueprintSnapshotTooltip", "Export the selected Blueprint into an LLM-readable JSON snapshot that also embeds the exact package bytes for full recovery."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Save"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnExportSelectedBlueprintToJsonClicked)));
+
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ImportBlueprintSnapshotLabel", "Import Blueprint from JSON Snapshot"),
+			LOCTEXT("ImportBlueprintSnapshotTooltip", "Restore a Blueprint package from a previously exported JSON snapshot."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Import"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnImportBlueprintFromJsonClicked)));
+		MenuBuilder.EndSection();
 
 		return MenuBuilder.MakeWidget();
+	}
+
+	bool TryGetDesktopPlatform(IDesktopPlatform*& OutDesktopPlatform) const
+	{
+		OutDesktopPlatform = FDesktopPlatformModule::Get();
+
+		if (OutDesktopPlatform != nullptr)
+		{
+			return true;
+		}
+
+		UE_LOG(LogAuraEditor, Error, TEXT("DesktopPlatform module is unavailable"));
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("DesktopPlatformUnavailable", "Desktop platform dialogs are unavailable in this editor session."));
+		return false;
+	}
+
+	bool TryGetSingleSelectedBlueprint(FAssetData& OutBlueprintAsset, UBlueprint*& OutBlueprint, FText& OutFailureReason) const
+	{
+		FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+		TArray<FAssetData> SelectedAssets;
+		ContentBrowserModule.Get().GetSelectedAssets(SelectedAssets);
+
+		if (SelectedAssets.Num() != 1)
+		{
+			OutFailureReason = LOCTEXT("BlueprintSelectionCountError", "Select exactly one Blueprint asset in the Content Browser before exporting.");
+			return false;
+		}
+
+		UBlueprint* SelectedBlueprint = Cast<UBlueprint>(SelectedAssets[0].GetAsset());
+
+		if (SelectedBlueprint == nullptr)
+		{
+			OutFailureReason = LOCTEXT("BlueprintSelectionTypeError", "The selected asset is not a Blueprint.");
+			return false;
+		}
+
+		OutBlueprintAsset = SelectedAssets[0];
+		OutBlueprint = SelectedBlueprint;
+		return true;
+	}
+
+	FString GetPinDirectionString(const UEdGraphPin* Pin) const
+	{
+		if (Pin == nullptr)
+		{
+			return TEXT("Unknown");
+		}
+
+		if (const UEnum* PinDirectionEnum = StaticEnum<EEdGraphPinDirection>())
+		{
+			return PinDirectionEnum->GetNameStringByValue(static_cast<int64>(Pin->Direction));
+		}
+
+		return TEXT("Unknown");
+	}
+
+	FString GetPinContainerTypeString(const FEdGraphPinType& PinType) const
+	{
+		if (const UEnum* PinContainerEnum = StaticEnum<EPinContainerType>())
+		{
+			return PinContainerEnum->GetNameStringByValue(static_cast<int64>(PinType.ContainerType));
+		}
+
+		return TEXT("None");
+	}
+
+	TSharedPtr<FJsonObject> SerializePinType(const FEdGraphPinType& PinType) const
+	{
+		TSharedPtr<FJsonObject> PinTypeObject = MakeShared<FJsonObject>();
+		PinTypeObject->SetStringField(TEXT("category"), PinType.PinCategory.ToString());
+		PinTypeObject->SetStringField(TEXT("subcategory"), PinType.PinSubCategory.ToString());
+		PinTypeObject->SetStringField(TEXT("subcategoryObjectPath"), GetPathNameSafe(PinType.PinSubCategoryObject.Get()));
+		PinTypeObject->SetStringField(TEXT("memberParentClassPath"), GetPathNameSafe(PinType.PinSubCategoryMemberReference.GetMemberParentClass()));
+		PinTypeObject->SetStringField(TEXT("memberName"), PinType.PinSubCategoryMemberReference.MemberName.ToString());
+		PinTypeObject->SetStringField(TEXT("memberGuid"), PinType.PinSubCategoryMemberReference.MemberGuid.ToString());
+		PinTypeObject->SetStringField(TEXT("containerType"), GetPinContainerTypeString(PinType));
+		PinTypeObject->SetBoolField(TEXT("isReference"), PinType.bIsReference);
+		PinTypeObject->SetBoolField(TEXT("isConst"), PinType.bIsConst);
+		PinTypeObject->SetBoolField(TEXT("isWeakPointer"), PinType.bIsWeakPointer);
+		PinTypeObject->SetBoolField(TEXT("isUObjectWrapper"), PinType.bIsUObjectWrapper);
+
+		TSharedPtr<FJsonObject> TerminalTypeObject = MakeShared<FJsonObject>();
+		TerminalTypeObject->SetStringField(TEXT("category"), PinType.PinValueType.TerminalCategory.ToString());
+		TerminalTypeObject->SetStringField(TEXT("subcategory"), PinType.PinValueType.TerminalSubCategory.ToString());
+		TerminalTypeObject->SetStringField(TEXT("subcategoryObjectPath"), GetPathNameSafe(PinType.PinValueType.TerminalSubCategoryObject.Get()));
+		TerminalTypeObject->SetBoolField(TEXT("isConst"), PinType.PinValueType.bTerminalIsConst);
+		TerminalTypeObject->SetBoolField(TEXT("isWeakPointer"), PinType.PinValueType.bTerminalIsWeakPointer);
+		TerminalTypeObject->SetBoolField(TEXT("isUObjectWrapper"), PinType.PinValueType.bTerminalIsUObjectWrapper);
+		PinTypeObject->SetObjectField(TEXT("terminalType"), TerminalTypeObject);
+
+		return PinTypeObject;
+	}
+
+	TSharedPtr<FJsonObject> SerializePin(const UEdGraphPin* Pin) const
+	{
+		TSharedPtr<FJsonObject> PinObject = MakeShared<FJsonObject>();
+		PinObject->SetStringField(TEXT("name"), Pin != nullptr ? Pin->PinName.ToString() : TEXT(""));
+		PinObject->SetStringField(TEXT("pinId"), Pin != nullptr ? Pin->PersistentGuid.ToString() : TEXT(""));
+		PinObject->SetStringField(TEXT("direction"), GetPinDirectionString(Pin));
+		PinObject->SetStringField(TEXT("defaultValue"), Pin != nullptr ? Pin->DefaultValue : TEXT(""));
+		PinObject->SetStringField(TEXT("defaultObjectPath"), Pin != nullptr ? GetPathNameSafe(Pin->DefaultObject) : TEXT(""));
+		PinObject->SetStringField(TEXT("defaultTextValue"), Pin != nullptr ? Pin->DefaultTextValue.ToString() : TEXT(""));
+		PinObject->SetBoolField(TEXT("isOrphaned"), Pin != nullptr ? Pin->bOrphanedPin : false);
+		PinObject->SetBoolField(TEXT("isHidden"), Pin != nullptr ? Pin->bHidden : false);
+		PinObject->SetBoolField(TEXT("isNotConnectable"), Pin != nullptr ? Pin->bNotConnectable : false);
+		PinObject->SetBoolField(TEXT("isDefaultValueReadOnly"), Pin != nullptr ? Pin->bDefaultValueIsReadOnly : false);
+		PinObject->SetBoolField(TEXT("isDefaultValueIgnored"), Pin != nullptr ? Pin->bDefaultValueIsIgnored : false);
+
+		if (Pin != nullptr)
+		{
+			PinObject->SetObjectField(TEXT("pinType"), SerializePinType(Pin->PinType));
+
+			TArray<TSharedPtr<FJsonValue>> LinkedPins;
+			for (const UEdGraphPin* LinkedPin : Pin->LinkedTo)
+			{
+				if (LinkedPin == nullptr || LinkedPin->GetOwningNodeUnchecked() == nullptr)
+				{
+					continue;
+				}
+
+				TSharedPtr<FJsonObject> LinkedPinObject = MakeShared<FJsonObject>();
+				LinkedPinObject->SetStringField(TEXT("nodeGuid"), LinkedPin->GetOwningNodeUnchecked()->NodeGuid.ToString());
+				LinkedPinObject->SetStringField(TEXT("pinName"), LinkedPin->PinName.ToString());
+				LinkedPinObject->SetStringField(TEXT("pinId"), LinkedPin->PersistentGuid.ToString());
+				LinkedPins.Add(MakeShared<FJsonValueObject>(LinkedPinObject));
+			}
+
+			PinObject->SetArrayField(TEXT("linkedTo"), LinkedPins);
+		}
+
+		return PinObject;
+	}
+
+	TSharedPtr<FJsonObject> SerializeNode(const UEdGraphNode* Node) const
+	{
+		TSharedPtr<FJsonObject> NodeObject = MakeShared<FJsonObject>();
+		NodeObject->SetStringField(TEXT("guid"), Node != nullptr ? Node->NodeGuid.ToString() : TEXT(""));
+		NodeObject->SetStringField(TEXT("name"), Node != nullptr ? Node->GetName() : TEXT(""));
+		NodeObject->SetStringField(TEXT("classPath"), Node != nullptr ? Node->GetClass()->GetPathName() : TEXT(""));
+		NodeObject->SetStringField(TEXT("title"), Node != nullptr ? Node->GetNodeTitle(ENodeTitleType::ListView).ToString() : TEXT(""));
+		NodeObject->SetStringField(TEXT("comment"), Node != nullptr ? Node->NodeComment : TEXT(""));
+		NodeObject->SetNumberField(TEXT("positionX"), Node != nullptr ? Node->NodePosX : 0);
+		NodeObject->SetNumberField(TEXT("positionY"), Node != nullptr ? Node->NodePosY : 0);
+		NodeObject->SetBoolField(TEXT("enabled"), Node != nullptr ? Node->IsNodeEnabled() : false);
+		NodeObject->SetStringField(TEXT("errorMessage"), Node != nullptr ? Node->ErrorMsg : TEXT(""));
+
+		TArray<TSharedPtr<FJsonValue>> PinArray;
+		if (Node != nullptr)
+		{
+			for (const UEdGraphPin* Pin : Node->Pins)
+			{
+				PinArray.Add(MakeShared<FJsonValueObject>(SerializePin(Pin)));
+			}
+		}
+
+		NodeObject->SetArrayField(TEXT("pins"), PinArray);
+		return NodeObject;
+	}
+
+	TSharedPtr<FJsonObject> SerializeGraph(const UEdGraph* Graph) const
+	{
+		TSharedPtr<FJsonObject> GraphObject = MakeShared<FJsonObject>();
+		GraphObject->SetStringField(TEXT("name"), Graph != nullptr ? Graph->GetName() : TEXT(""));
+		GraphObject->SetStringField(TEXT("displayName"), Graph != nullptr ? Graph->GetFName().ToString() : TEXT(""));
+		GraphObject->SetStringField(TEXT("classPath"), Graph != nullptr ? Graph->GetClass()->GetPathName() : TEXT(""));
+		GraphObject->SetStringField(TEXT("schemaPath"), Graph != nullptr && Graph->GetSchema() != nullptr ? Graph->GetSchema()->GetPathName() : TEXT(""));
+
+		TArray<TSharedPtr<FJsonValue>> NodeArray;
+		if (Graph != nullptr)
+		{
+			for (const UEdGraphNode* Node : Graph->Nodes)
+			{
+				NodeArray.Add(MakeShared<FJsonValueObject>(SerializeNode(Node)));
+			}
+		}
+
+		GraphObject->SetArrayField(TEXT("nodes"), NodeArray);
+		return GraphObject;
+	}
+
+	void AddGraphsToArray(const TArray<UEdGraph*>& Graphs, TArray<TSharedPtr<FJsonValue>>& OutGraphs) const
+	{
+		for (const UEdGraph* Graph : Graphs)
+		{
+			OutGraphs.Add(MakeShared<FJsonValueObject>(SerializeGraph(Graph)));
+		}
+	}
+
+	TSharedPtr<FJsonObject> SerializeBlueprintForAnalysis(const UBlueprint* Blueprint) const
+	{
+		TSharedPtr<FJsonObject> BlueprintObject = MakeShared<FJsonObject>();
+		BlueprintObject->SetStringField(TEXT("assetName"), Blueprint != nullptr ? Blueprint->GetName() : TEXT(""));
+		BlueprintObject->SetStringField(TEXT("classPath"), Blueprint != nullptr ? Blueprint->GetClass()->GetPathName() : TEXT(""));
+		BlueprintObject->SetStringField(TEXT("parentClassPath"), Blueprint != nullptr ? GetPathNameSafe(Blueprint->ParentClass) : TEXT(""));
+		BlueprintObject->SetStringField(TEXT("generatedClassPath"), Blueprint != nullptr ? GetPathNameSafe(Blueprint->GeneratedClass) : TEXT(""));
+		BlueprintObject->SetStringField(TEXT("skeletonClassPath"), Blueprint != nullptr ? GetPathNameSafe(Blueprint->SkeletonGeneratedClass) : TEXT(""));
+
+		TArray<TSharedPtr<FJsonValue>> Graphs;
+		if (Blueprint != nullptr)
+		{
+			AddGraphsToArray(Blueprint->UbergraphPages, Graphs);
+			AddGraphsToArray(Blueprint->FunctionGraphs, Graphs);
+			AddGraphsToArray(Blueprint->MacroGraphs, Graphs);
+			AddGraphsToArray(Blueprint->DelegateSignatureGraphs, Graphs);
+		}
+
+		BlueprintObject->SetArrayField(TEXT("graphs"), Graphs);
+		return BlueprintObject;
+	}
+
+	bool BuildPackageSnapshot(const FString& PackageName, TArray<TSharedPtr<FJsonValue>>& OutPackageFiles, FText& OutFailureReason) const
+	{
+		const FString PackageBaseFilename = FPackageName::LongPackageNameToFilename(PackageName);
+		const FString PackageDirectory = FPaths::GetPath(PackageBaseFilename);
+		const FString PackageFileStem = FPaths::GetBaseFilename(PackageBaseFilename);
+		TArray<FString> PackageFilenames;
+		IFileManager::Get().FindFiles(PackageFilenames, *(PackageDirectory / (PackageFileStem + TEXT(".*"))), true, false);
+
+		if (PackageFilenames.IsEmpty())
+		{
+			OutFailureReason = FText::Format(
+				LOCTEXT("BlueprintSnapshotNoPackageFiles", "Could not locate package files for {0}."),
+				FText::FromString(PackageName));
+			return false;
+		}
+
+		for (const FString& PackageFilename : PackageFilenames)
+		{
+			const FString FullPackagePath = PackageDirectory / PackageFilename;
+			TArray<uint8> FileBytes;
+
+			if (!FFileHelper::LoadFileToArray(FileBytes, *FullPackagePath))
+			{
+				OutFailureReason = FText::Format(
+					LOCTEXT("BlueprintSnapshotReadFailure", "Failed to read package file {0}."),
+					FText::FromString(FullPackagePath));
+				return false;
+			}
+
+			FString RelativePackagePath = FullPackagePath;
+			FPaths::MakePathRelativeTo(RelativePackagePath, *FPaths::ProjectDir());
+
+			TSharedPtr<FJsonObject> PackageFileObject = MakeShared<FJsonObject>();
+			PackageFileObject->SetStringField(TEXT("projectRelativePath"), RelativePackagePath);
+			PackageFileObject->SetStringField(TEXT("fileName"), PackageFilename);
+			PackageFileObject->SetNumberField(TEXT("byteCount"), FileBytes.Num());
+			PackageFileObject->SetStringField(TEXT("contentBase64"), FBase64::Encode(FileBytes));
+			OutPackageFiles.Add(MakeShared<FJsonValueObject>(PackageFileObject));
+		}
+
+		return true;
+	}
+
+	bool PromptForSaveFile(const FString& DefaultFilename, FString& OutFilename) const
+	{
+		IDesktopPlatform* DesktopPlatform = nullptr;
+		if (!TryGetDesktopPlatform(DesktopPlatform))
+		{
+			return false;
+		}
+
+		const FString ExportDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Saved/BlueprintSnapshots"));
+		IFileManager::Get().MakeDirectory(*ExportDirectory, true);
+
+		TArray<FString> SaveFilenames;
+		const bool bPickedFile = DesktopPlatform->SaveFileDialog(
+			FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
+			TEXT("Export Blueprint JSON Snapshot"),
+			ExportDirectory,
+			DefaultFilename,
+			TEXT("JSON Files (*.json)|*.json"),
+			EFileDialogFlags::None,
+			SaveFilenames);
+
+		if (!bPickedFile || SaveFilenames.IsEmpty())
+		{
+			return false;
+		}
+
+		OutFilename = SaveFilenames[0];
+		return true;
+	}
+
+	bool PromptForOpenFile(FString& OutFilename) const
+	{
+		IDesktopPlatform* DesktopPlatform = nullptr;
+		if (!TryGetDesktopPlatform(DesktopPlatform))
+		{
+			return false;
+		}
+
+		const FString SnapshotDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Saved/BlueprintSnapshots"));
+		TArray<FString> OpenFilenames;
+		const bool bPickedFile = DesktopPlatform->OpenFileDialog(
+			FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
+			TEXT("Import Blueprint JSON Snapshot"),
+			SnapshotDirectory,
+			TEXT(""),
+			TEXT("JSON Files (*.json)|*.json"),
+			EFileDialogFlags::None,
+			OpenFilenames);
+
+		if (!bPickedFile || OpenFilenames.IsEmpty())
+		{
+			return false;
+		}
+
+		OutFilename = OpenFilenames[0];
+		return true;
+	}
+
+	void OnExportSelectedBlueprintToJsonClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Export selected blueprint to JSON clicked"));
+
+		FAssetData BlueprintAsset;
+		UBlueprint* Blueprint = nullptr;
+		FText FailureReason;
+
+		if (!TryGetSingleSelectedBlueprint(BlueprintAsset, Blueprint, FailureReason))
+		{
+			UE_LOG(LogAuraEditor, Warning, TEXT("Blueprint export aborted: %s"), *FailureReason.ToString());
+			FMessageDialog::Open(EAppMsgType::Ok, FailureReason);
+			return;
+		}
+
+		TArray<TSharedPtr<FJsonValue>> PackageFiles;
+		if (!BuildPackageSnapshot(BlueprintAsset.PackageName.ToString(), PackageFiles, FailureReason))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint export aborted: %s"), *FailureReason.ToString());
+			FMessageDialog::Open(EAppMsgType::Ok, FailureReason);
+			return;
+		}
+
+		FString OutputFilename;
+		if (!PromptForSaveFile(BlueprintAsset.AssetName.ToString() + TEXT(".snapshot.json"), OutputFilename))
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Blueprint export canceled by user"));
+			return;
+		}
+
+		TSharedPtr<FJsonObject> RootObject = MakeShared<FJsonObject>();
+		RootObject->SetStringField(TEXT("snapshotType"), TEXT("AuraBlueprintSnapshot"));
+		RootObject->SetStringField(TEXT("schemaVersion"), TEXT("1"));
+		RootObject->SetStringField(TEXT("assetName"), BlueprintAsset.AssetName.ToString());
+		RootObject->SetStringField(TEXT("packageName"), BlueprintAsset.PackageName.ToString());
+		RootObject->SetStringField(TEXT("objectPath"), BlueprintAsset.GetObjectPathString());
+		RootObject->SetStringField(TEXT("generatedAtUtc"), FDateTime::UtcNow().ToIso8601());
+		RootObject->SetObjectField(TEXT("analysis"), SerializeBlueprintForAnalysis(Blueprint));
+		RootObject->SetArrayField(TEXT("packageFiles"), PackageFiles);
+
+		FString JsonOutput;
+		const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> Writer = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&JsonOutput);
+		if (!FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer) || !FFileHelper::SaveStringToFile(JsonOutput, *OutputFilename))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint export failed while writing JSON | File='%s'"), *OutputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotWriteFailure", "Failed to write the Blueprint JSON snapshot file."));
+			return;
+		}
+
+		UE_LOG(LogAuraEditor, Display, TEXT("Blueprint JSON snapshot exported successfully | Asset='%s' | File='%s'"), *BlueprintAsset.AssetName.ToString(), *OutputFilename);
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			FText::Format(
+				LOCTEXT("BlueprintSnapshotExportSuccess", "Exported Blueprint snapshot to:\n{0}\n\nThe JSON contains both a readable graph summary for LLM analysis and the exact package bytes needed for recovery."),
+				FText::FromString(OutputFilename)));
+	}
+
+	void OnImportBlueprintFromJsonClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Import blueprint from JSON snapshot clicked"));
+
+		FString InputFilename;
+		if (!PromptForOpenFile(InputFilename))
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Blueprint import canceled by user"));
+			return;
+		}
+
+		FString JsonInput;
+		if (!FFileHelper::LoadFileToString(JsonInput, *InputFilename))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint import failed: could not read file | File='%s'"), *InputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotReadJsonFailure", "Failed to read the selected Blueprint snapshot JSON file."));
+			return;
+		}
+
+		TSharedPtr<FJsonObject> RootObject;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonInput);
+		if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint import failed: invalid JSON | File='%s'"), *InputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotInvalidJson", "The selected file is not a valid Blueprint snapshot JSON file."));
+			return;
+		}
+
+		FString SnapshotType;
+		if (!RootObject->TryGetStringField(TEXT("snapshotType"), SnapshotType) || SnapshotType != TEXT("AuraBlueprintSnapshot"))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint import failed: unsupported snapshot type | File='%s'"), *InputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotUnsupportedType", "The selected JSON file is not an Aura Blueprint snapshot export."));
+			return;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* PackageFiles = nullptr;
+		if (!RootObject->TryGetArrayField(TEXT("packageFiles"), PackageFiles) || PackageFiles == nullptr || PackageFiles->IsEmpty())
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint import failed: packageFiles array is missing | File='%s'"), *InputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotMissingPackageFiles", "The snapshot JSON does not contain any embedded package files."));
+			return;
+		}
+
+		TArray<UPackage*> LoadedPackagesToReload;
+
+		for (const TSharedPtr<FJsonValue>& PackageFileValue : *PackageFiles)
+		{
+			const TSharedPtr<FJsonObject>* PackageFileObject = nullptr;
+			if (!PackageFileValue.IsValid() || !PackageFileValue->TryGetObject(PackageFileObject) || PackageFileObject == nullptr || !PackageFileObject->IsValid())
+			{
+				UE_LOG(LogAuraEditor, Error, TEXT("Blueprint import failed: malformed package file entry | File='%s'"), *InputFilename);
+				FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotMalformedPackageEntry", "A package file entry in the snapshot JSON is malformed."));
+				return;
+			}
+
+			FString RelativePath;
+			FString ContentBase64;
+			if (!(*PackageFileObject)->TryGetStringField(TEXT("projectRelativePath"), RelativePath) || !(*PackageFileObject)->TryGetStringField(TEXT("contentBase64"), ContentBase64))
+			{
+				UE_LOG(LogAuraEditor, Error, TEXT("Blueprint import failed: incomplete package file entry | File='%s'"), *InputFilename);
+				FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotIncompletePackageEntry", "A package file entry in the snapshot JSON is incomplete."));
+				return;
+			}
+
+			TArray<uint8> FileBytes;
+			if (!FBase64::Decode(ContentBase64, FileBytes))
+			{
+				UE_LOG(LogAuraEditor, Error, TEXT("Blueprint import failed: base64 decode error | File='%s' | Target='%s'"), *InputFilename, *RelativePath);
+				FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotDecodeFailure", "Failed to decode embedded package data from the snapshot JSON."));
+				return;
+			}
+
+			const FString TargetPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / RelativePath);
+			IFileManager& FileManager = IFileManager::Get();
+			FileManager.MakeDirectory(*FPaths::GetPath(TargetPath), true);
+
+			if (FileManager.FileExists(*TargetPath) && FileManager.IsReadOnly(*TargetPath))
+			{
+				const bool bClearedReadOnly = FileManager.Delete(*TargetPath, false, true, true);
+				UE_LOG(LogAuraEditor, Display, TEXT("Target package was read-only; attempted delete before restore | Target='%s' | Deleted=%s"),
+					*TargetPath,
+					bClearedReadOnly ? TEXT("true") : TEXT("false"));
+			}
+
+			if (!FFileHelper::SaveArrayToFile(FileBytes, *TargetPath, &FileManager, FILEWRITE_EvenIfReadOnly))
+			{
+				const bool bTargetExists = FileManager.FileExists(*TargetPath);
+				const bool bTargetReadOnly = bTargetExists && FileManager.IsReadOnly(*TargetPath);
+
+				UE_LOG(LogAuraEditor, Error, TEXT("Blueprint import failed: could not write package file | Target='%s' | Exists=%s | ReadOnly=%s"),
+					*TargetPath,
+					bTargetExists ? TEXT("true") : TEXT("false"),
+					bTargetReadOnly ? TEXT("true") : TEXT("false"));
+
+				FMessageDialog::Open(
+					EAppMsgType::Ok,
+					FText::Format(
+						LOCTEXT("BlueprintSnapshotWritePackageFailure", "Failed to write restored package file:\n{0}\n\nIf this asset is source-controlled, check it out or make it writable, then retry. If the asset is open in another process, close that process and retry."),
+						FText::FromString(TargetPath)));
+				return;
+			}
+
+			FString LongPackageName;
+			if (FPackageName::TryConvertFilenameToLongPackageName(TargetPath, LongPackageName))
+			{
+				if (UPackage* LoadedPackage = FindPackage(nullptr, *LongPackageName))
+				{
+					LoadedPackagesToReload.AddUnique(LoadedPackage);
+				}
+			}
+		}
+
+		if (!LoadedPackagesToReload.IsEmpty())
+		{
+			FText ReloadErrorMessage;
+			const bool bReloadedAnyPackages = UPackageTools::ReloadPackages(
+				LoadedPackagesToReload,
+				ReloadErrorMessage,
+				EReloadPackagesInteractionMode::AssumePositive);
+
+			if (!bReloadedAnyPackages)
+			{
+				UE_LOG(LogAuraEditor, Warning, TEXT("Blueprint snapshot imported, but package reload did not complete | Error='%s'"), *ReloadErrorMessage.ToString());
+				FMessageDialog::Open(
+					EAppMsgType::Ok,
+					FText::Format(
+						LOCTEXT("BlueprintSnapshotImportReloadWarning", "Blueprint package files were restored from JSON, but reload did not complete:\n{0}\n\nUse Asset Actions -> Reload on the restored asset, or restart the editor."),
+						ReloadErrorMessage));
+				return;
+			}
+		}
+
+		UE_LOG(LogAuraEditor, Display, TEXT("Blueprint snapshot imported successfully | File='%s'"), *InputFilename);
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			LOCTEXT("BlueprintSnapshotImportSuccess", "Blueprint package files were restored from the JSON snapshot and any loaded packages were reloaded from disk."));
 	}
 
 	FText GetDedicatedServerMenuLabel() const

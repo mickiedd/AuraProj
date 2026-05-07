@@ -15,12 +15,16 @@ public class AuraEditor : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
+			"ContentBrowser",
 			"CoreUObject",
+			"DesktopPlatform",
 			"Engine",
+			"Json",
 			"Slate",
 			"SlateCore",
 			"ToolMenus",
-			"LevelEditor"
+			"LevelEditor",
+			"UnrealEd"
 		});
 	}
 }
