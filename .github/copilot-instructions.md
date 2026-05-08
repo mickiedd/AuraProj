@@ -9,6 +9,7 @@
 - Do not apply authoritative gameplay state on clients first.
 - Client-side prediction is allowed only for cosmetic responsiveness and must reconcile to server state.
 - In this project, each Blueprint may have a sibling `.snapshot.json` export next to its package file; use this JSON to analyze Blueprint logic with LLM agents.
+- Each Behavior Tree may also have a sibling `.snapshot.json` next to its `.uasset`; LLM agents should look for `snapshotType: AuraBehaviorTreeSnapshot` and read `analysis.rootNode`, `analysis.blackboardAssetPath`, and `packageFiles`.
 
 ## Server-First Gameplay Scope
 
