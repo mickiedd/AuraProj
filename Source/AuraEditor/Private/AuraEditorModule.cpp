@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
 #include "DesktopPlatformModule.h"
@@ -22,6 +23,7 @@
 #include "Misc/MessageDialog.h"
 #include "Misc/Paths.h"
 #include "Misc/PackageName.h"
+#include "Misc/ScopedSlowTask.h"
 #include "PackageTools.h"
 #include "Styling/AppStyle.h"
 #include "ToolMenus.h"
@@ -131,6 +133,12 @@ private:
 			LOCTEXT("ExportBlueprintSnapshotTooltip", "Export the selected Blueprint into an LLM-readable JSON snapshot that also embeds the exact package bytes for full recovery."),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Save"),
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnExportSelectedBlueprintToJsonClicked)));
+
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ExportAllBlueprintSnapshotsLabel", "Export All Project Blueprints to JSON"),
+			LOCTEXT("ExportAllBlueprintSnapshotsTooltip", "Iterate through all Blueprint assets in this project and export one JSON snapshot next to each Blueprint package file."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Save"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnExportAllBlueprintsToJsonClicked)));
 
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("ImportBlueprintSnapshotLabel", "Import Blueprint from JSON Snapshot"),
@@ -451,6 +459,155 @@ private:
 		return true;
 	}
 
+	bool BuildBlueprintSnapshotJson(const FAssetData& BlueprintAsset, const UBlueprint* Blueprint, FString& OutJson, FText& OutFailureReason) const
+	{
+		TArray<TSharedPtr<FJsonValue>> PackageFiles;
+		if (!BuildPackageSnapshot(BlueprintAsset.PackageName.ToString(), PackageFiles, OutFailureReason))
+		{
+			return false;
+		}
+
+		TSharedPtr<FJsonObject> RootObject = MakeShared<FJsonObject>();
+		RootObject->SetStringField(TEXT("snapshotType"), TEXT("AuraBlueprintSnapshot"));
+		RootObject->SetStringField(TEXT("schemaVersion"), TEXT("1"));
+		RootObject->SetStringField(TEXT("assetName"), BlueprintAsset.AssetName.ToString());
+		RootObject->SetStringField(TEXT("packageName"), BlueprintAsset.PackageName.ToString());
+		RootObject->SetStringField(TEXT("objectPath"), BlueprintAsset.GetObjectPathString());
+		RootObject->SetStringField(TEXT("generatedAtUtc"), FDateTime::UtcNow().ToIso8601());
+		RootObject->SetObjectField(TEXT("analysis"), SerializeBlueprintForAnalysis(Blueprint));
+		RootObject->SetArrayField(TEXT("packageFiles"), PackageFiles);
+
+		const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> Writer = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&OutJson);
+		if (!FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer))
+		{
+			OutFailureReason = LOCTEXT("BlueprintSnapshotSerializeFailure", "Failed to serialize Blueprint snapshot JSON.");
+			return false;
+		}
+
+		return true;
+	}
+
+	bool SaveBlueprintSnapshotJson(const FAssetData& BlueprintAsset, const UBlueprint* Blueprint, const FString& OutputFilename, FText& OutFailureReason) const
+	{
+		FString JsonOutput;
+		if (!BuildBlueprintSnapshotJson(BlueprintAsset, Blueprint, JsonOutput, OutFailureReason))
+		{
+			return false;
+		}
+
+		if (!FFileHelper::SaveStringToFile(JsonOutput, *OutputFilename))
+		{
+			OutFailureReason = FText::Format(
+				LOCTEXT("BlueprintSnapshotWriteFailureWithPath", "Failed to write Blueprint snapshot JSON file:\n{0}"),
+				FText::FromString(OutputFilename));
+			return false;
+		}
+
+		return true;
+	}
+
+	void OnExportAllBlueprintsToJsonClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Export all project blueprints to JSON clicked"));
+
+		if (FMessageDialog::Open(
+			EAppMsgType::YesNo,
+			LOCTEXT("ConfirmExportAllBlueprintSnapshots", "Export JSON snapshots for all Blueprint assets in this project?\n\nA progress dialog with Cancel will be shown.")) != EAppReturnType::Yes)
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Export all project blueprints canceled at confirmation prompt"));
+			return;
+		}
+
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+		FARFilter Filter;
+		Filter.ClassPaths.Add(UBlueprint::StaticClass()->GetClassPathName());
+		Filter.bRecursiveClasses = true;
+
+		TArray<FAssetData> CandidateBlueprintAssets;
+		AssetRegistryModule.Get().GetAssets(Filter, CandidateBlueprintAssets);
+
+		TArray<FAssetData> ProjectBlueprintAssets;
+		const FString ProjectDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+		for (const FAssetData& AssetData : CandidateBlueprintAssets)
+		{
+			const FString PackageFilename = FPaths::ConvertRelativePathToFull(FPackageName::LongPackageNameToFilename(AssetData.PackageName.ToString(), TEXT(".uasset")));
+
+			if (PackageFilename.StartsWith(ProjectDir))
+			{
+				ProjectBlueprintAssets.Add(AssetData);
+			}
+		}
+
+		if (ProjectBlueprintAssets.IsEmpty())
+		{
+			UE_LOG(LogAuraEditor, Warning, TEXT("No project blueprint assets found for bulk export"));
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("NoProjectBlueprintsFound", "No Blueprint assets were found under this project directory."));
+			return;
+		}
+
+		ProjectBlueprintAssets.Sort([](const FAssetData& A, const FAssetData& B)
+		{
+			return A.GetObjectPathString() < B.GetObjectPathString();
+		});
+
+		FScopedSlowTask SlowTask(
+			static_cast<float>(ProjectBlueprintAssets.Num()),
+			LOCTEXT("ExportAllBlueprintSnapshotsProgress", "Exporting Blueprint snapshots to JSON..."));
+		SlowTask.MakeDialog(true);
+
+		int32 SucceededCount = 0;
+		int32 FailedCount = 0;
+		int32 CanceledCount = 0;
+
+		for (const FAssetData& AssetData : ProjectBlueprintAssets)
+		{
+			if (SlowTask.ShouldCancel())
+			{
+				CanceledCount = ProjectBlueprintAssets.Num() - SucceededCount - FailedCount;
+				UE_LOG(LogAuraEditor, Warning, TEXT("Bulk blueprint snapshot export canceled by user | Succeeded=%d | Failed=%d | Remaining=%d"),
+					SucceededCount,
+					FailedCount,
+					CanceledCount);
+				break;
+			}
+
+			SlowTask.EnterProgressFrame(
+				1.0f,
+				FText::Format(
+					LOCTEXT("ExportBlueprintSnapshotProgressItem", "Exporting {0}"),
+					FText::FromName(AssetData.AssetName)));
+
+			UBlueprint* Blueprint = Cast<UBlueprint>(AssetData.GetAsset());
+			if (Blueprint == nullptr)
+			{
+				++FailedCount;
+				UE_LOG(LogAuraEditor, Error, TEXT("Bulk export failed: asset is not a loaded blueprint | ObjectPath='%s'"), *AssetData.GetObjectPathString());
+				continue;
+			}
+
+			const FString OutputFilename = FPaths::ConvertRelativePathToFull(
+				FPackageName::LongPackageNameToFilename(AssetData.PackageName.ToString(), TEXT(".snapshot.json")));
+
+			FText FailureReason;
+			if (!SaveBlueprintSnapshotJson(AssetData, Blueprint, OutputFilename, FailureReason))
+			{
+				++FailedCount;
+				UE_LOG(LogAuraEditor, Error, TEXT("Bulk export failed | Asset='%s' | Reason='%s'"), *AssetData.GetObjectPathString(), *FailureReason.ToString());
+				continue;
+			}
+
+			++SucceededCount;
+		}
+
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			FText::Format(
+				LOCTEXT("ExportAllBlueprintSnapshotsSummary", "Blueprint snapshot export complete.\n\nSucceeded: {0}\nFailed: {1}\nCanceled/Remaining: {2}\n\nEach JSON was saved next to its Blueprint package file."),
+				SucceededCount,
+				FailedCount,
+				CanceledCount));
+	}
+
 	void OnExportSelectedBlueprintToJsonClicked() const
 	{
 		UE_LOG(LogAuraEditor, Display, TEXT("Export selected blueprint to JSON clicked"));
@@ -466,14 +623,6 @@ private:
 			return;
 		}
 
-		TArray<TSharedPtr<FJsonValue>> PackageFiles;
-		if (!BuildPackageSnapshot(BlueprintAsset.PackageName.ToString(), PackageFiles, FailureReason))
-		{
-			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint export aborted: %s"), *FailureReason.ToString());
-			FMessageDialog::Open(EAppMsgType::Ok, FailureReason);
-			return;
-		}
-
 		FString OutputFilename;
 		if (!PromptForSaveFile(BlueprintAsset.AssetName.ToString() + TEXT(".snapshot.json"), OutputFilename))
 		{
@@ -481,22 +630,10 @@ private:
 			return;
 		}
 
-		TSharedPtr<FJsonObject> RootObject = MakeShared<FJsonObject>();
-		RootObject->SetStringField(TEXT("snapshotType"), TEXT("AuraBlueprintSnapshot"));
-		RootObject->SetStringField(TEXT("schemaVersion"), TEXT("1"));
-		RootObject->SetStringField(TEXT("assetName"), BlueprintAsset.AssetName.ToString());
-		RootObject->SetStringField(TEXT("packageName"), BlueprintAsset.PackageName.ToString());
-		RootObject->SetStringField(TEXT("objectPath"), BlueprintAsset.GetObjectPathString());
-		RootObject->SetStringField(TEXT("generatedAtUtc"), FDateTime::UtcNow().ToIso8601());
-		RootObject->SetObjectField(TEXT("analysis"), SerializeBlueprintForAnalysis(Blueprint));
-		RootObject->SetArrayField(TEXT("packageFiles"), PackageFiles);
-
-		FString JsonOutput;
-		const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> Writer = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&JsonOutput);
-		if (!FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer) || !FFileHelper::SaveStringToFile(JsonOutput, *OutputFilename))
+		if (!SaveBlueprintSnapshotJson(BlueprintAsset, Blueprint, OutputFilename, FailureReason))
 		{
-			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint export failed while writing JSON | File='%s'"), *OutputFilename);
-			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BlueprintSnapshotWriteFailure", "Failed to write the Blueprint JSON snapshot file."));
+			UE_LOG(LogAuraEditor, Error, TEXT("Blueprint export failed | Asset='%s' | Reason='%s'"), *BlueprintAsset.GetObjectPathString(), *FailureReason.ToString());
+			FMessageDialog::Open(EAppMsgType::Ok, FailureReason);
 			return;
 		}
 

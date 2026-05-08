@@ -1,0 +1,1035 @@
+{
+	"snapshotType": "AuraBlueprintSnapshot",
+	"schemaVersion": "1",
+	"assetName": "GA_HaloOfProtection",
+	"packageName": "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_HaloOfProtection",
+	"objectPath": "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_HaloOfProtection.GA_HaloOfProtection",
+	"generatedAtUtc": "2026-05-08T14:01:59.500Z",
+	"analysis":
+	{
+		"assetName": "GA_HaloOfProtection",
+		"classPath": "/Script/Engine.Blueprint",
+		"parentClassPath": "/Script/Aura.AuraPassiveAbility",
+		"generatedClassPath": "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_HaloOfProtection.GA_HaloOfProtection_C",
+		"skeletonClassPath": "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_HaloOfProtection.SKEL_GA_HaloOfProtection_C",
+		"graphs": [
+			{
+				"name": "EventGraph",
+				"displayName": "EventGraph",
+				"classPath": "/Script/Engine.EdGraph",
+				"schemaPath": "/Script/BlueprintGraph.Default__EdGraphSchema_K2",
+				"nodes": [
+					{
+						"guid": "1758D7224309601A8E34B4B2135C0666",
+						"name": "K2Node_Event_0",
+						"classPath": "/Script/BlueprintGraph.K2Node_Event",
+						"title": "Event ActivateAbility",
+						"comment": "",
+						"positionX": 0,
+						"positionY": 0,
+						"enabled": true,
+						"errorMessage": "",
+						"pins": [
+							{
+								"name": "OutputDelegate",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Output",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "delegate",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "/Script/GameplayAbilities.GameplayAbility",
+									"memberName": "K2_ActivateAbility",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "then",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Output",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "exec",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": [
+									{
+										"nodeGuid": "0B8D03DA4D5FA5C5318459A300F4D10A",
+										"pinName": "execute",
+										"pinId": "00000000000000000000000000000000"
+									}
+								]
+							}
+						]
+					},
+					{
+						"guid": "3CDE981B4B49A4D4259AB5B1880EEFE0",
+						"name": "K2Node_Event_1",
+						"classPath": "/Script/BlueprintGraph.K2Node_Event",
+						"title": "Event OnEndAbility",
+						"comment": "",
+						"positionX": 0,
+						"positionY": 208,
+						"enabled": true,
+						"errorMessage": "",
+						"pins": [
+							{
+								"name": "OutputDelegate",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Output",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "delegate",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "/Script/GameplayAbilities.GameplayAbility",
+									"memberName": "K2_OnEndAbility",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "then",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Output",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "exec",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": [
+									{
+										"nodeGuid": "D9BA25224D82E79E875C449B1C31FD2D",
+										"pinName": "execute",
+										"pinId": "00000000000000000000000000000000"
+									}
+								]
+							},
+							{
+								"name": "bWasCancelled",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Output",
+								"defaultValue": "false",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "bool",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							}
+						]
+					},
+					{
+						"guid": "0B8D03DA4D5FA5C5318459A300F4D10A",
+						"name": "K2Node_CallFunction_1",
+						"classPath": "/Script/BlueprintGraph.K2Node_CallFunction",
+						"title": "Print String",
+						"comment": "",
+						"positionX": 448,
+						"positionY": 0,
+						"enabled": true,
+						"errorMessage": "",
+						"pins": [
+							{
+								"name": "execute",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "exec",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": [
+									{
+										"nodeGuid": "1758D7224309601A8E34B4B2135C0666",
+										"pinName": "then",
+										"pinId": "00000000000000000000000000000000"
+									}
+								]
+							},
+							{
+								"name": "then",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Output",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "exec",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "self",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "",
+								"defaultObjectPath": "/Script/Engine.Default__KismetSystemLibrary",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": true,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "object",
+									"subcategory": "None",
+									"subcategoryObjectPath": "/Script/Engine.KismetSystemLibrary",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "WorldContextObject",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": true,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "object",
+									"subcategory": "None",
+									"subcategoryObjectPath": "/Script/CoreUObject.Object",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": true,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "InString",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "Halo of Protection Activated",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "string",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "bPrintToScreen",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "true",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "bool",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "bPrintToLog",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "true",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "bool",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "TextColor",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "(R=0.154232,G=1.000000,B=0.000000,A=1.000000)",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "struct",
+									"subcategory": "None",
+									"subcategoryObjectPath": "/Script/CoreUObject.LinearColor",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "Duration",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "4.000000",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "real",
+									"subcategory": "float",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "Key",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "None",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "name",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": true,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							}
+						]
+					},
+					{
+						"guid": "D9BA25224D82E79E875C449B1C31FD2D",
+						"name": "K2Node_CallFunction_0",
+						"classPath": "/Script/BlueprintGraph.K2Node_CallFunction",
+						"title": "Print String",
+						"comment": "",
+						"positionX": 496,
+						"positionY": 224,
+						"enabled": true,
+						"errorMessage": "",
+						"pins": [
+							{
+								"name": "execute",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "exec",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": [
+									{
+										"nodeGuid": "3CDE981B4B49A4D4259AB5B1880EEFE0",
+										"pinName": "then",
+										"pinId": "00000000000000000000000000000000"
+									}
+								]
+							},
+							{
+								"name": "then",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Output",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "exec",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "self",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "",
+								"defaultObjectPath": "/Script/Engine.Default__KismetSystemLibrary",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": true,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "object",
+									"subcategory": "None",
+									"subcategoryObjectPath": "/Script/Engine.KismetSystemLibrary",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "WorldContextObject",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": true,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "object",
+									"subcategory": "None",
+									"subcategoryObjectPath": "/Script/CoreUObject.Object",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": true,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "InString",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "Halo of Protection Ended",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "string",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "bPrintToScreen",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "true",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "bool",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "bPrintToLog",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "true",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "bool",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "TextColor",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "(R=1.000000,G=0.006241,B=0.000000,A=1.000000)",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "struct",
+									"subcategory": "None",
+									"subcategoryObjectPath": "/Script/CoreUObject.LinearColor",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "Duration",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "4.000000",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "real",
+									"subcategory": "float",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": false,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							},
+							{
+								"name": "Key",
+								"pinId": "00000000000000000000000000000000",
+								"direction": "EGPD_Input",
+								"defaultValue": "None",
+								"defaultObjectPath": "None",
+								"defaultTextValue": "",
+								"isOrphaned": false,
+								"isHidden": false,
+								"isNotConnectable": false,
+								"isDefaultValueReadOnly": false,
+								"isDefaultValueIgnored": false,
+								"pinType":
+								{
+									"category": "name",
+									"subcategory": "None",
+									"subcategoryObjectPath": "None",
+									"memberParentClassPath": "None",
+									"memberName": "None",
+									"memberGuid": "00000000000000000000000000000000",
+									"containerType": "None",
+									"isReference": false,
+									"isConst": true,
+									"isWeakPointer": false,
+									"isUObjectWrapper": false,
+									"terminalType":
+									{
+										"category": "None",
+										"subcategory": "None",
+										"subcategoryObjectPath": "None",
+										"isConst": false,
+										"isWeakPointer": false,
+										"isUObjectWrapper": false
+									}
+								},
+								"linkedTo": []
+							}
+						]
+					}
+				]
+			}
+		]
+	},
+	"packageFiles": [
+		{
+			"projectRelativePath": "Content/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_HaloOfProtection.uasset",
+			"fileName": "GA_HaloOfProtection.uasset",
+			"byteCount": 29977,
+			"contentBase64": "wYMqnvj///9gAwAACgIAAPEDAAAAAAAACAAAADzBXjf7SOQG8IQAtX5xKiYEAAAAhhgdYIRPZKze0xaq1sfqDVMAAACB1X1pq0FP5uxRSqootre+aAAAACLVVJy+TyaoRgchlNCCtGEsAAAA5DLYsA1PiR+3fs+sokr9NgoAAAA/dPzPgESwQ98UkZNzIB0XJQAAAEJem9hGTb0kqKwShHkXZN8pAAAA7Wiw5OlClPQL2jGiQbtGLigAAABWQQAAUAAAAC9HYW1lL0JsdWVwcmludHMvQWJpbGl0eVN5c3RlbS9BdXJhL0FiaWxpdGllcy9QYXNzaXZlU3BlbGxzL0dBX0hhbG9PZlByb3RlY3Rpb24AAAAEAHwAAAAhAgAAAQAAAJMNAAAhAAAARjI4OURERjRBN0NCODIzQThGMDQ4ODYzNkQxRTU3RTMAAAAAAAAAAAAMAAAAwhEAABoAAACyDQAAQhYAAAEAAADeFgAA5hYAABIXAABHd2UvoveOT502we46x1TkKoupaDoYsEKoqPyptEk0zwEAAAAMAAAAfAAAAAUAAgAAACjAewESAAAAKytVRTUrUmVsZWFzZS01LjIABQACAAAAKMB7ARIAAAArK1VFNStSZWxlYXNlLTUuMgAAAAAAAAAAAHbh4N4AAAAAehcAAOV0AAAAAAAAAAAAAAAAAAD/////VkEAAF8AAADpdAAAAAAAAAAAAABQAAAAL0dhbWUvQmx1ZXByaW50cy9BYmlsaXR5U3lzdGVtL0F1cmEvQWJpbGl0aWVzL1Bhc3NpdmVTcGVsbHMvR0FfSGFsb09mUHJvdGVjdGlvbgDQfNm6IwAAAEFiaWxpdGllcy5QYXNzaXZlLkhhbG9PZlByb3RlY3Rpb24ABpZlFQgAAABBYmlsaXR5AGaWN2AMAAAAQWJpbGl0eVRhZ3MAy6XgixMAAABBZHZhbmNlZFBpbkRpc3BsYXkAfhfvBw4AAABBcnJheVByb3BlcnR5AEmw42kPAAAAYkFsbG93RGVsZXRpb24A//EO6xUAAABiQ29tbWVudEJ1YmJsZVBpbm5lZABxLiVMGwAAAGJMZWdhY3lOZWVkVG9QdXJnZVNrZWxSZWZzAI+tXDsOAAAAQmx1ZXByaW50R3VpZADPBxpVFwAAAEJsdWVwcmludFN5c3RlbVZlcnNpb24AgXQJKw4AAABCbHVlcHJpbnRUeXBlAAwRkt8FAAAAYm9vbAAuC2TqDQAAAEJvb2xQcm9wZXJ0eQAQBLCKEgAAAGJPdmVycmlkZUZ1bmN0aW9uABD2kFsMAAAAYlByaW50VG9Mb2cAiYaBgQ8AAABiUHJpbnRUb1NjcmVlbgBiSiNgDgAAAGJXYXNDYW5jZWxsZWQABTiveA0AAABCeXRlUHJvcGVydHkA5k4twAkAAABDYXRlZ29yeQD3fpTFEAAAAENhdGVnb3J5U29ydGluZwAUER7OCAAAAENvbW1lbnQAyhm8nxEAAABEZWZhdWx0R3JhcGhOb2RlALTi5nYJAAAAZGVsZWdhdGUA9/uajwwAAABEaXNwbGF5TmFtZQB6leZCCQAAAER1cmF0aW9uANPg/C8TAAAARWRpdGVkRG9jdW1lbnRJbmZvALtfEPsRAAAARWRpdGVkT2JqZWN0UGF0aADOQZ+AIwAAAEVHYW1lcGxheUFiaWxpdHlOZXRFeGVjdXRpb25Qb2xpY3kAMD/YRTQAAABFR2FtZXBsYXlBYmlsaXR5TmV0RXhlY3V0aW9uUG9saWN5OjpTZXJ2ZXJJbml0aWF0ZWQA3HPFvA0AAABFbmFibGVkU3RhdGUAwSVO3QcAAABFbmdpbmUAtwFE5hIAAABFTm9kZUFkdmFuY2VkUGlucwBlgQwhGgAAAEVOb2RlQWR2YW5jZWRQaW5zOjpIaWRkZW4A17RnwhIAAABFTm9kZUVuYWJsZWRTdGF0ZQCGQNvzIwAAAEVOb2RlRW5hYmxlZFN0YXRlOjpEZXZlbG9wbWVudE9ubHkAN2bT6AsAAABFbnRyeVBvaW50AK9YCyMNAAAARW51bVByb3BlcnR5AFHXnUAMAAAARXZlbnQgR3JhcGgA5vkfrw8AAABFdmVudFJlZmVyZW5jZQCnouGrBQAAAGV4ZWMAfOr8GggAAABleGVjdXRlAGmX5KolAAAARXhlY3V0ZVViZXJncmFwaF9HQV9IYWxvT2ZQcm90ZWN0aW9uAFdru48GAAAAZmxvYXQAFHmdzA4AAABGbG9hdFByb3BlcnR5APun3v0SAAAARnVuY3Rpb25SZWZlcmVuY2UApVr8FRQAAABHQV9IYWxvT2ZQcm90ZWN0aW9uAODUvFYVAAAAR2FtZXBsYXlUYWdDb250YWluZXIAk5PTkw8AAABHZW5lcmF0ZWRDbGFzcwCGCFhUCgAAAEdyYXBoR3VpZACigst2BQAAAEd1aWQAQ1D6aAkAAABJblN0cmluZwASI6D8DAAAAEludFByb3BlcnR5AKXTNkoTAAAASzJfQWN0aXZhdGVBYmlsaXR5ALXG6YAQAAAASzJfT25FbmRBYmlsaXR5AH0SbMsbAAAASzJOb2RlX0V2ZW50X2JXYXNDYW5jZWxsZWQAW6gcJAQAAABLZXkAtD1YlBQAAABMYXN0RWRpdGVkRG9jdW1lbnRzAAweAtALAAAATWVtYmVyTmFtZQCMH7O2DQAAAE1lbWJlclBhcmVudAB+6X08EAAAAE1lbWJlclJlZmVyZW5jZQB+trk/EwAAAE1vZHVsZVJlbGF0aXZlUGF0aABwIothBQAAAG5hbWUAOR1Fog0AAABOYW1lUHJvcGVydHkAgvIIShMAAABOZXRFeGVjdXRpb25Qb2xpY3kAsdkTywkAAABOb2RlR3VpZADRrASrCQAAAE5vZGVQb3NYAMVbiAIJAAAATm9kZVBvc1kAckbtZQYAAABOb2RlcwC5/ptsBQAAAE5vbmUA9APFDQcAAABvYmplY3QAZUuX/w8AAABPYmplY3RQcm9wZXJ0eQBB27PqDwAAAE91dHB1dERlbGVnYXRlAAxtkk0dAAAAUGFja2FnZUxvY2FsaXphdGlvbk5hbWVzcGFjZQASdHmIDAAAAFBhcmVudENsYXNzABjdpVsYAAAAUG9pbnRlclRvVWJlckdyYXBoRnJhbWUAVKI8mgwAAABQcmludFN0cmluZwDa0f9xBQAAAHJlYWwAVsmpLhAAAABTYXZlZFZpZXdPZmZzZXQAfMjsRBAAAABTYXZlZFpvb21BbW91bnQAXxaNyQcAAABTY2hlbWEA/7uLdwsAAABTY3JpcHROYW1lABKAKRwFAAAAc2VsZgBfoo1KDwAAAFNvZnRPYmplY3RQYXRoAH+h26EHAAAAc3RyaW5nACatSxUHAAAAc3RydWN0AJQhllgPAAAAU3RydWN0UHJvcGVydHkAMACc/AoAAABUZXh0Q29sb3IABzaHsAUAAAB0aGVuAIGx0oAIAAAAVG9vbFRpcAC16ge+DwAAAFViZXJHcmFwaEZyYW1lAB5plTgSAAAAVWJlckdyYXBoRnVuY3Rpb24AOf/i5Q8AAABVYmVyZ3JhcGhQYWdlcwAaI6IzCQAAAFZlY3RvcjJEAFUwbAkTAAAAV29ybGRDb250ZXh0T2JqZWN0ALRSswENAAAAL1NjcmlwdC9BdXJhABglpyQXAAAAL1NjcmlwdC9CbHVlcHJpbnRHcmFwaADp23xEFAAAAC9TY3JpcHQvQ29yZVVPYmplY3QA+EktPg8AAAAvU2NyaXB0L0VuZ2luZQCGQIVJGgAAAC9TY3JpcHQvR2FtZXBsYXlBYmlsaXRpZXMAkt1baBUAAAAvU2NyaXB0L0dhbWVwbGF5VGFncwD3VcttEwAAAEF1cmFQYXNzaXZlQWJpbGl0eQCyL52cCgAAAEJsdWVwcmludAAUOTMNGAAAAEJsdWVwcmludEdlbmVyYXRlZENsYXNzACmbcC0GAAAAQ2xhc3MAdHd4kRwAAABEZWZhdWx0X19BdXJhUGFzc2l2ZUFiaWxpdHkA8+6loR8AAABEZWZhdWx0X19HQV9IYWxvT2ZQcm90ZWN0aW9uX0MAyEdvdh0AAABEZWZhdWx0X19LaXNtZXRTeXN0ZW1MaWJyYXJ5ALYoDDAIAAAARWRHcmFwaAAEb7RdEQAAAEVkR3JhcGhTY2hlbWFfSzIAuMGYDQsAAABFdmVudEdyYXBoAF2lAV0JAAAARnVuY3Rpb24AcvK5iRYAAABHQV9IYWxvT2ZQcm90ZWN0aW9uX0MARIB7PRAAAABHYW1lcGxheUFiaWxpdHkADybaywwAAABHYW1lcGxheVRhZwCT3QOIFAAAAEsyTm9kZV9DYWxsRnVuY3Rpb24A95ekzA0AAABLMk5vZGVfRXZlbnQAc4VaGxQAAABLaXNtZXRTeXN0ZW1MaWJyYXJ5ALdkSZQMAAAATGluZWFyQ29sb3IAFENzRgkAAABNZXRhRGF0YQDkgLSTBwAAAE9iamVjdABlS+0BCAAAAFBhY2thZ2UAc0eIFRAAAABQYWNrYWdlTWV0YURhdGEAnSykZQ0AAABTY3JpcHRTdHJ1Y3QASxWEiAAAAAAAAAAALgAAAAAAAAALAAAARXZlbnRHcmFwaABfAAAAAAAAAGUAAAAAAAAA7v///2kAAAAAAAAARQAAAAAAAAAAAAAAYQAAAAAAAABoAAAAAAAAAO7///9lAAAAAAAAAEUAAAAAAAAAAAAAAGEAAAAAAAAAaAAAAAAA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AEUAagB0AHEAbQBiAHoATwBiAG4AZgBgAEYAdwBmAG8AdQBIAHMAYgBxAGkAAQAMAAEAAQABAEYAdwBmAG8AdQBIAHMAYgBxAGkAAQAFAAEAAQABAAkAAQABAAEAAQAYAAEAAQABAEcAagBvAGUASgBvAEMAbQB2AGYAcQBzAGoAbwB1AE4AYgBvAGIAaABmAHMAAQANAAEAAQABAEUAZgB0AGQAcwBqAHEAdQBqAHAAbwABAA0AAQABAAEARQBmAHQAZABzAGoAcQB1AGoAcABvAAEABgABAAEAAQAJAAEAAQABAAEACwABAAEAAQBDAG0AdgBmAHEAcwBqAG8AdQABABAAAQABAAEATwBwAEgAcwBiAHEAaQBVAHAAcABtAHUAagBxAAEACAABAAEAAQApAE8AcABvAGYAKgABAAcAAQABAAEACQABAAEAAQABABgAAQABAAEARwBqAG8AZQBKAG8AQwBtAHYAZgBxAHMAagBvAHUATgBiAG8AYgBoAGYAcwABAAcAAQABAAEATwBwAGUAZgB0AAEABwABAAEAAQBPAHAAZQBmAHQAAQAIAAEAAQABAAEAAQABAAEAAgAJAAEAAQABAAEACAABAAEAAQBMADMATwBwAGUAZgABAAwAAQABAAEARgB3AGYAbwB1AGAATwBiAG4AZgABABYAAQABAAEARgB3AGYAbwB1ACEAfABHAHYAbwBkAHUAagBwAG8ATwBiAG4AZgB+AAEAAgABAAEAAQAOAAEAAQABAEcAdgBvAGQAdQBqAHAAbwBPAGIAbgBmAAEABQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQARAAEAAQABAEIAZAB1AGoAdwBiAHUAZgBCAGMAagBtAGoAdQB6AAEACQABAAEAAQAJAAEAAQABAAEAGAABAAEAAQBHAGoAbwBlAEoAbwBDAG0AdgBmAHEAcwBqAG8AdQBOAGIAbwBiAGgAZgBzAAEACwABAAEAAQBEAG0AYgB0AHQATwBiAG4AZgABAAsAAQABAAEARABtAGIAdAB0AE8AYgBuAGYAAQAKAAEAAQABABEAAQABAAEAAQACAAEAAQABAAEAAgABAAEAAQABAA4AAQABAAEATAAzAE8AcABlAGYAYABGAHcAZgBvAHUAAQALAAEAAQABAAkAAQABAAEAAQAYAAEAAQABAEcAagBvAGUASgBvAEMAbQB2AGYAcQBzAGoAbwB1AE4AYgBvAGIAaABmAHMAAQAKAAEAAQABAE8AcABlAGYASAB2AGoAZQABAAoAAQABAAEATwBwAGUAZgBIAHYAagBlAAEADAABAAEAAQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQAiAAEAAQABADIAOAA2ADkARQA4ADMAMwA1ADQAMQA6ADcAMQAyAEIAOQBGADQANQBDADUAQwAzADIANAA2AEQAMQA3ADcANwABAA0AAQABAAEACQABAAEAAQABABgAAQABAAEARwBqAG8AZQBKAG8AQwBtAHYAZgBxAHMAagBvAHUATgBiAG8AYgBoAGYAcwABAAwAAQABAAEAVABkAGkAZgBuAGIATwBiAG4AZgABAAwAAQABAAEAVABkAGkAZgBuAGIATwBiAG4AZgABAA4AAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEAEgABAAEAAQBGAGUASABzAGIAcQBpAFQAZABpAGYAbgBiAGAATAAzAAEADwABAAEAAQAJAAEAAQABAAEAGAABAAEAAQBHAGoAbwBlAEoAbwBDAG0AdgBmAHEAcwBqAG8AdQBOAGIAbwBiAGgAZgBzAAEABwABAAEAAQBIAG0AegBxAGkAAQAHAAEAAQABAEgAbQB6AHEAaQABABAAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEAFwABAAEAAQBIAHMAYgBxAGkARgBlAGoAdQBwAHMALwBGAHcAZgBvAHUAYAAyADcAeQABABEAAQABAAEACQABAAEAAQABABgAAQABAAEARwBqAG8AZQBKAG8AQwBtAHYAZgBxAHMAagBvAHUATgBiAG8AYgBoAGYAcwABAA8AAQABAAEASABtAHoAcQBpAFQAdQB6AG0AZgBUAGYAdQABAA8AAQABAAEASABtAHoAcQBpAFQAdQB6AG0AZgBUAGYAdQABABIAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEADQABAAEAAQBGAGUAagB1AHAAcwBUAHUAegBtAGYAAQATAAEAAQABAAkAAQABAAEAAQAYAAEAAQABAEcAagBvAGUASgBvAEMAbQB2AGYAcQBzAGoAbwB1AE4AYgBv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AGYAdQBUAHoAdAB1AGYAbgBNAGoAYwBzAGIAcwB6ADsAUQBzAGoAbwB1AFQAdQBzAGoAbwBoAAEADgABAAEAAQBRAHMAagBvAHUAIQBUAHUAcwBqAG8AaAABACUAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEAFQABAAEAAQBMADMATwBwAGUAZgBgAEQAYgBtAG0ARwB2AG8AZAB1AGoAcABvAAEAJgABAAEAAQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQAiAAEAAQABADEAQwA5AEUAMQA0AEUAQgA1AEUANgBHAEIANgBEADYANAAyADkANQA2ADoAQgA0ADEAMQBHADUARQAyADEAQgABACcAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEAIAABAAEAAQBMAGoAdABuAGYAdQAvAEIAbQBtAEQAbQBiAHQAdABmAHQALwBHAHYAbwBkAHUAagBwAG8ASgBkAHAAbwABACgAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEALwABAAEAAQApAFMAPgAxAC8AMgA6ADEANgAzADYALQBIAD4AMQAvADYAOQA0ADkAOgA5AC0AQwA+ADIALwAxADEAMQAxADEAMQAtAEIAPgAyAC8AMQAxADEAMQAxADEAKgABACkAAQABAAEACQABAAEAAQABABgAAQABAAEARwBqAG8AZQBKAG8AQwBtAHYAZgBxAHMAagBvAHUATgBiAG8AYgBoAGYAcwABAAwAAQABAAEATwBiAHUAagB3AGYATwBiAG4AZgABAA0AAQABAAEATwBiAHUAagB3AGYAIQBPAGIAbgBmAAEAKgABAAEAAQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQANAAEAAQABAFEAcwBqAG8AdQBUAHUAcwBqAG8AaAABACsAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEACwABAAEAAQBKAG8AIQBUAHUAcwBqAG8AaAABACwAAQABAAEAAwABAAEAAQAAAQIAAQABAAEAHgABAAEAAQBJAGIAbQBwACEAcABnACEAUQBzAHAAdQBmAGQAdQBqAHAAbwAhAEIAZAB1AGoAdwBiAHUAZgBlAAEALQABAAEAAQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQAIAAEAAQABAHQAdQBzAGoAbwBoAAEALgABAAEAAQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQARAAEAAQABAFEAcwBqAG8AdQAhAHUAcAAhAFQAZABzAGYAZgBvAAEALwABAAEAAQADAAEAAQABAAABAgABAAEAAQAGAAEAAQABAHUAcwB2AGYAAQAwAAEAAQABABEAAQABAAEAAQACAAEAAQABAAEAAgABAAEAAQABAA4AAQABAAEAUQBzAGoAbwB1ACEAdQBwACEATQBwAGgAAQAxAAEAAQABABEAAQABAAEAAQACAAEAAQABAAEAAgABAAEAAQABAAwAAQABAAEAVQBmAHkAdQAhAEQAcABtAHAAcwABADIAAQABAAEAAwABAAEAAQAAAQIAAQABAAEALwABAAEAAQApAFMAPgAxAC8AMgA2ADUAMwA0ADMALQBIAD4AMgAvADEAMQAxADEAMQAxAC0AQwA+ADEALwAxADEAMQAxADEAMQAtAEIAPgAyAC8AMQAxADEAMQAxADEAKgABADMAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEACAABAAEAAQB0AHUAcwB2AGQAdQABADQAAQABAAEACQABAAEAAQABABgAAQABAAEARwBqAG8AZQBKAG8AQwBtAHYAZgBxAHMAagBvAHUATgBiAG8AYgBoAGYAcwABAA0AAQABAAEAUABjAGsAZgBkAHUARABtAGIAdAB0AAEADQABAAEAAQBQAGMAawBmAGQAdQBEAG0AYgB0AHQAAQA1AAEAAQABABEAAQABAAEAAQACAAEAAQABAAEAAgABAAEAAQABACEAAQABAAEAMABUAGQAcwBqAHEAdQAwAEQAcABzAGYAVgBQAGMAawBmAGQAdQAvAE0AagBvAGYAYgBzAEQAcABtAHAAcwABADYAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEACgABAAEAAQBFAHYAcwBiAHUAagBwAG8AAQA3AAEAAQABAAMAAQABAAEAAAECAAEAAQABAAoAAQABAAEANQAvADEAMQAxADEAMQAxAAEAOAABAAEAAQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQAGAAEAAQABAHMAZgBiAG0AAQA5AAEAAQABAAkAAQABAAEAAQAYAAEAAQABAEcAagBvAGUASgBvAEMAbQB2AGYAcQBzAGoAbwB1AE4AYgBvAGIAaABmAHMAAQANAAEAAQABAFQAdgBjAEQAYgB1AGYAaABwAHMAegABAA0AAQABAAEAVAB2AGMARABiAHUAZgBoAHAAcwB6AAEAOgABAAEAAQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQAHAAEAAQABAGcAbQBwAGIAdQABADsAAQABAAEAEQABAAEAAQABAAIAAQABAAEAAQACAAEAAQABAAEABQABAAEAAQBMAGYAegABADwAAQABAAEAAwABAAEAAQAAAQIAAQABAAEABgABAAEAAQBPAHAAbwBmAAEAPQABAAEAAQARAAEAAQABAAEAAgABAAEAAQABAAIAAQABAAEAAQAGAAEAAQABAG8AYgBuAGYAAQA+AAEAAQABABEAAQABAAEAAQACAAEAAQABAAEAAgABAAEAAQABACIAAQABAAEARQA6AEMAQgAzADYAMwAzADUARQA5ADMARgA4ADoARgA5ADgANgBEADUANQA6AEMAMgBEADQAMgBHAEUAMwBFAAEAPwABAAEAAQADAAEAAQABAAABAgABAAEAAQAaAAEAAQABAEkAYgBtAHAAIQBwAGcAIQBRAHMAcAB1AGYAZAB1AGoAcABvACEARgBvAGUAZgBlAAEAQAABAAEAAQADAAEAAQABAAABAgABAAEAAQAvAAEAAQABACkAUwA+ADIALwAxADEAMQAxADEAMQAtAEgAPgAxAC8AMQAxADcAMwA1ADIALQBDAD4AMQAvADEAMQAxADEAMQAxAC0AQgA+ADIALwAxADEAMQAxADEAMQAqAAEAewAiADAAIgA6AFsAXQAsACIAMQAiADoAWwB7ACIAMgAiADoAIgAzACIALAAiADQAIgA6ACIANQAiACwAIgA2ACIAOgBbAHsAIgAyACIAOgAiADcAIgAsACIAOAAiADoAIgA5ACIALAAiADEAMAAiADoAIgAxADEAIgAsACIAMQAyACIAOgAiADEAMwAiACwAIgAxADQAIgA6ACIAMQA1ACIALAAiADEANgAiADoAIgAxADcAIgAsACIAMQA4ACIAOgAiADEAOQAiACwAIgAyADAAIgA6ACIAMgAxACIALAAiADIAMgAiADoAWwB7ACIAMgAiADoAIgAyADMAIgAsACIAMgA0ACIAOgAiADIAMQAiACwAIgAyADUAIgA6ACIAMgA2ACIALAAiADIANwAiADoAZgBhAGwAcwBlACwAIgAyADgAIgA6ADAAfQAsAHsAIgAyACIAOgAiADIAMQAiACwAIgAyADQAIgA6ACIAMgAxACIALAAiADIANQAiADoAIgAyADkAIgAsACIAMgA3ACIAOgBmAGEAbABzAGUALAAiADIAOAAiADoAMAB9AF0AfQAsAHsAIgAyACIAOgAiADMAMAAiACwAIgA4ACIAOgAiADkAIgAsACIAMQAwACIAOgAiADMAMQAiACwAIgAxADIAIgA6ACIAMQAzACIALAAiADEANAAiADoAIgAxADUAIgAsACIAMQA2ACIAOgAiADEANwAiACwAIgAxADgAIgA6ACIAMQA5ACIALAAiADIAMAAiADoAIgAyADEAIgAsACIAMgAyACIAOgBbAHsAIgAyACIAOgAiADIAMwAiACwAIgAyADQAIgA6ACIAMgAxACIALAAiADIANQAiADoAIgAyADYAIgAsACIAMgA3ACIAOgBmAGEAbABzAGUALAAiADIAOAAiADoAMAB9ACwAewAiADIAIgA6ACIAMgAxACIALAAiADIANAAiADoAIgAyADEAIgAsACIAMgA1ACIAOgAiADIAOQAiACwAIgAyADcAIgA6AGYAYQBsAHMAZQAsACIAMgA4ACIAOgAwAH0ALAB7ACIAMgAiADoAIgAzADIAIgAsACIAMgA0ACIAOgAiADMAMwAiACwAIgAyADUAIgA6ACIAMwA0ACIALAAiADIANwAiADoAZgBhAGwAcwBlACwAIgAyADgAIgA6ADAAfQBdAH0ALAB7ACIAMgAiADoAIgAzADUAIgAsACIAOAAiADoAIgAzADYAIgAsACIAMQAwACIAOgAiADMANwAiACwAIgAxADIAIgA6ACIAMQAzACIALAAiADEANAAiADoAIgAzADgAIgAsACIAMQA2ACIAOgAiADEANwAiACwAIgAxADgAIgA6ACIAMwA5ACIALAAiADIAMAAiADoAIgAyADEAIgAsACIANAAwACIAOgAiADQAMQAiACwAIgAyADIAIgA6AFsAewAiADIAIgA6ACIAMgAxACIALAAiADIANAAiADoAIgAyADEAIgAsACIAMgA1ACIAOgAiADIAOQAiACwAIgAyADcAIgA6AGYAYQBsAHMAZQAsACIAMgA4ACIAOgAwAH0ALAB7ACIAMgAiADoAIgAyADEAIgAsACIAMgA0ACIAOgAiADIAMQAiACwAIgAyADUAIgA6ACIAMgA5ACIALAAiADIANwAiADoAZgBhAGwAcwBlACwAIgAyADgAIgA6ADAAfQAsAHsAIgAyACIAOgAiADQAMgAiACwAIgAyADQAIgA6ACIANAAzACIALAAiADIANQAiADoAIgA0ADQAIgAsACIAMgA3ACIAOgBmAGEAbABzAGUALAAiADIAOAAiADoAMAB9ACwAewAiADIAIgA6ACIANAA1ACIALAAiADIANAAiADoAIgA0ADYAIgAsACIAMgA1ACIAOgAiADMANAAiACwAIgAyADcAIgA6AGYAYQBsAHMAZQAsACIAMgA4ACIAOgAwAH0ALAB7ACIAMgAiADoAIgA0ADcAIgAsACIAMgA0ACIAOgAiADQANgAiACwAIgAyADUAIgA6ACIAMwA0ACIALAAiADIANwAiADoAZgBhAGwAcwBlACwAIgAyADgAIgA6ADAAfQAsAHsAIgAyACIAOgAiADQAOAAiACwAIgAyADQAIgA6ACIANAA5ACIALAAiADIANQAiADoAIgA1ADAAIgAsACIANQAxACIAOgAiADUAMgAiACwAIgAyADcAIgA6AGYAYQBsAHMAZQAsACIAMgA4ACIAOgAwAH0ALAB7ACIAMgAiADoAIgA1ADMAIgAsACIAMgA0ACIAOgAiADUANAAiACwAIgAyADUAIgA6ACIANQA1ACIALAAiADUANgAiADoAIgA1ADcAIgAsACIAMgA3ACIAOgBmAGEAbABzAGUALAAiADIAOAAiADoAMAB9ACwAewAiADIAIgA6ACIANQA4ACIALAAiADIANAAiADoAIgA1ADkAIgAsACIAMgA1ACIAOgAiADYAMAAiACwAIgAyADcAIgA6AGYAYQBsAHMAZQAsACIAMgA4ACIAOgAwAH0AXQB9ACwAewAiADIAIgA6ACIAMwA1ACIALAAiADgAIgA6ACIAMwA2ACIALAAiADEAMAAiADoAIgA2ADEAIgAsACIAMQAyACIAOgAiADEAMwAiACwAIgAxADQAIgA6ACIAMwA4ACIALAAiADEANgAiADoAIgAxADcAIgAsACIAMQA4ACIAOgAiADMAOQAiACwAIgAyADAAIgA6ACIAMgAxACIALAAiADQAMAAiADoAIgA0ADEAIgAsACIAMgAyACIAOgBbAHsAIgAyACIAOgAiADIAMQAiACwAIgAyADQAIgA6ACIAMgAxACIALAAiADIANQAiADoAIgAyADkAIgAsACIAMgA3ACIAOgBmAGEAbABzAGUALAAiADIAOAAiADoAMAB9ACwAewAiADIAIgA6ACIAMgAxACIALAAiADIANAAiADoAIgAyADEAIgAsACIAMgA1ACIAOgAiADIAOQAiACwAIgAyADcAIgA6AGYAYQBsAHMAZQAsACIAMgA4ACIAOgAwAH0ALAB7ACIAMgAiADoAIgA0ADIAIgAsACIAMgA0ACIAOgAiADYAMgAiACwAIgAyADUAIgA6ACIANAA0ACIALAAiADIANwAiADoAZgBhAGwAcwBlACwAIgAyADgAIgA6ADAAfQAsAHsAIgAyACIAOgAiADQANQAiACwAIgAyADQAIgA6ACIANAA2ACIALAAiADIANQAiADoAIgAzADQAIgAsACIAMgA3ACIAOgBmAGEAbABzAGUALAAiADIAOAAiADoAMAB9ACwAewAiADIAIgA6ACIANAA3ACIALAAiADIANAAiADoAIgA0ADYAIgAsACIAMgA1ACIAOgAiADMANAAiACwAIgAyADcAIgA6AGYAYQBsAHMAZQAsACIAMgA4ACIAOgAwAH0ALAB7ACIAMgAiADoAIgA0ADgAIgAsACIAMgA0ACIAOgAiADYAMwAiACwAIgAyADUAIgA6ACIANQAwACIALAAiADUAMQAiADoAIgA1ADIAIgAsACIAMgA3ACIAOgBmAGEAbABzAGUALAAiADIAOAAiADoAMAB9ACwAewAiADIAIgA6ACIANQAzACIALAAiADIANAAiADoAIgA1ADQAIgAsACIAMgA1ACIAOgAiADUANQAiACwAIgA1ADYAIgA6ACIANQA3ACIALAAiADIANwAiADoAZgBhAGwAcwBlACwAIgAyADgAIgA6ADAAfQAsAHsAIgAyACIAOgAiADUAOAAiACwAIgAyADQAIgA6ACIANQA5ACIALAAiADIANQAiADoAIgA2ADAAIgAsACIAMgA3ACIAOgBmAGEAbABzAGUALAAiADIAOAAiADoAMAB9AF0AfQBdACwAIgAwACIAOgBbAF0AfQBdAH0AAAARAAAATmF0aXZlQ29tcG9uZW50cwACAAAAMAAUAAAAQmx1ZXByaW50Q29tcG9uZW50cwACAAAAMAAWAAAAR0FfSGFsb09mUHJvdGVjdGlvbl9DACcAAAAvU2NyaXB0L0VuZ2luZS5CbHVlcHJpbnRHZW5lcmF0ZWRDbGFzcwAHAAAAGAAAAE51bVJlcGxpY2F0ZWRQcm9wZXJ0aWVzAAIAAAAwAAwAAABQYXJlbnRDbGFzcwA7AAAAL1NjcmlwdC9Db3JlVU9iamVjdC5DbGFzcycvU2NyaXB0L0F1cmEuQXVyYVBhc3NpdmVBYmlsaXR5JwALAAAATW9kdWxlTmFtZQAUAAAAR0FfSGFsb09mUHJvdGVjdGlvbgATAAAATW9kdWxlUmVsYXRpdmVQYXRoAAAAAAASAAAATmF0aXZlUGFyZW50Q2xhc3MAOwAAAC9TY3JpcHQvQ29yZVVPYmplY3QuQ2xhc3MnL1NjcmlwdC9BdXJhLkF1cmFQYXNzaXZlQWJpbGl0eScACwAAAENsYXNzRmxhZ3MACAAAADQ0NTg0OTYADgAAAEJsdWVwcmludFR5cGUADgAAAEJQVFlQRV9Ob3JtYWwAGgAAAP///wMBAAAAAAAAAEoAAAAAAAAARwAAAAAAAAAEAAAAAAAAAAD+////CgAAAAAAAAA0AAAAAAAAAAQAAAAAAAAAAAIAAABcAAAAAAAAAAUAAAAAAAAACAAAAAAAAABHAAAAAAAAAAABAAAAAwAAABQAAAAAAAAABQAAAAAAAAAUAAAAAAAAAD8AAAAAAAAAAAIAAAACAAAAAAAAACYAAAAAAAAAOQAAAAAAAAAFAAAAAAAAANAAAAAAAAAAVgAAAAAAAAAAAQAAADkAAAAAAAAAVgAAAAAAAACbAAAAAAAAABoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbAAAAAAAAAFYAAAAAAAAABAAAAAAAAABTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE4AAAAAAAAAVgAAAAAAAAAQAAAAAAAAAF0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2EwrwAAAAAAfbVjATwAAAAAAAAAsAAAAAAAAAAQAAAAAAAAAAAAAgD9FAAAAAAAAADAAAAAAAAAARwAAAAAAAAAEAAAAAAAAAAACAAAACAAAAAAAAAANAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAFYAAAAAAAAAEAAAAAAAAAAyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAu4tASbd9lkWOoAcXSjaC5UUAAAAAAAAAAAAAAFsAAAAAAAAARwAAAAAAAAAEAAAAAAAAAAAEAAAARQAAAAAAAAAAAAAA/v///wMAAAAFAAAABgAAAAQAAAABAAAAVgAAAAAAAABaAAAAAAAAAAEAIAAAAAAAAQAAABAAAAAAICAAAAAAAAAARQAAAAAAAAAA5////wAAAAAAAAAAAwAAACoAAAAAAAAABAAAADYAAAAAAAAABgAAADUAAAAAAAAABQAAAAAIBAD4////HwAAAAAAAAABAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAHAAAAUAAAAAAAAABHAAAAAAAAAAQAAAAAAAAAAP3///9EAAAAAAAAAAUAAAAAAAAAFAAAAAAAAABHAAAAAAAAAAAEAAAACgAAAAsAAAAJAAAACAAAAAYAAAAAAAAADQAAAAAAAAAAAAAAAAAAAAAAMQAAAAAAAABWAAAAAAAAABAAAAAAAAAAMgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACvuoRT3hZ5GrZtO3nnscapFAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAA0AAAAAAAAACQAAAAAAAAAAQAAAAAAAAABAAAABAAAAJQAAAAAAAAAAABFAAAAAAAAAAANAAAAAAAAADcAAAAAAAAAAQAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAABFAAAAAAAAAAABAAH/AQHeAAAAzgAAAE4AAQAAACQAAAAAAAAABAAAAF5o8v///xcfSGFsbyBvZiBQcm90ZWN0aW9uIEVuZGVkACcnL+j///8QAAAAHgAAgD8eTYHMOx4AAAAAHgAAgD8wHgAAgEAhRQAAAAAAAAAWWgbbAAAAXlpeaPL///8XH0hhbG8gb2YgUHJvdGVjdGlvbiBBY3RpdmF0ZWQAJycv6P///xAAAAAe/u4dPh4AAIA/HgAAAAAeAACAPzAeAACAQCFFAAAAAAAAABZaBtsAAABeWgYKAAAABAtTAYAAAAAAAAAAAAAARQAAAAAAAAAAAAAA8f///wAAAAAAAAAAFgAAABIAAABeWl5GBAAAAB1sAAAAFloEC1MACAgIAAAAAAAAAABFAAAAAAAAAAAAAADw////AAAAAAEAAAANAAAAAAAAABEAAAAAAAAAAQAAAAAAAAABAAAAAQAAAJQAAAAAAAAAAABFAAAAAAAAAAABAAH/AQEqAAAANgAAAF5aXmQBAAAANwAAAAAAAAAEAAAAAAEAAAARAAAAAAAAAAYAAABaXkYEAAAAHdQAAAAWWgQLUwAICAgAAAAAAAAAAFoAAAAAAAAAVgAAAAAAAAAIAAAAAAAAAEsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAAMAAAAAAAAAVgAAAAAAAAAMAAAAAAAAAC8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAAAAABAAAAAAAAAABIAAAAAAAAACAAAAAAAAAAcAAAAAAAAAAAdAAAAAAAAAEUAAAAAAAAAAAAAAC0AAAAAAAAAVgAAAAAAAABGAAAAAAAAADwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7AAAAAAAAAEcAAAAAAAAABAAAAAAAAAAA9P///zoAAAAAAAAAPwAAAAAAAAAIAAAAAAAAAABMAAAAAAAAAEUAAAAAAAAAQgAAAAAAAAA0AAAAAAAAAAQAAAAAAAAAAPABAABDAAAAAAAAADQAAAAAAAAABAAAAAAAAAAA4AAAAAQAAAAAAAAAEgAAAAAAAAAIAAAAAAAAACAAAAAAAAAAACEAAAAAAAAAHgAAAAAAAAAlAAAAAAAAAAgAAAAAAAAAIgAAAAAAAAAAIwAAAAAAAABBAAAAAAAAAFYAAAAAAAAAEAAAAAAAAAAyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIiW62Z7ngk2bRFyHLf0xHEUAAAAAAAAAAAAAAAoAAAAAAAAACAAAAINtMdfI8rJHgewg61YwKQIIAAAAg20x18jyskeB7CDrVjApAikAAAAAAAAAAAAAAP8AAAAA/////wYAAAAKRXhlYwAAKAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAQAAAAAAAAALAAAAwWxRtq6wOUaxHL5PvAH+VgAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAADKnxE8B5jKRrGv7eBi6OPaCAAAAMqfETwHmMpGsa/t4GLo49pYAAAAAAAAAAAAAAD/AAAAAP////8GAAAACkV4ZWMAASgAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAyDrVdyVzU0WWdrWM91IoVggAAADIOtV3JXNTRZZ2tYz3UihWUgAAAAAAAAAIAAAAAAcAAABLMk5vZGUABwAAAFRhcmdldAAHAAAAVGFyZ2V0AP////8uAAAAVGFyZ2V0Cktpc21ldCBTeXN0ZW0gTGlicmFyeSBPYmplY3QgUmVmZXJlbmNlAABGAAAAAAAAAEUAAAAAAAAA9P///wAAAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO////8AAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAACAAAAJjzFbt407tDhMvBv5v9xlYIAAAAmPMVu3jTu0OEy8G/m/3GVl4AAAAAAAAAAAAAAP8AAAAA/////yYAAABXb3JsZCBDb250ZXh0IE9iamVjdApPYmplY3QgUmVmZXJlbmNlAABGAAAAAAAAAEUAAAAAAAAA+P///wAAAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAACAAAACoRZLyTgb9OlqvwOvhYStsIAAAAKhFkvJOBv06Wq/A6+FhK2zMAAAAAAAAAAAAAAP8AAAAA/////ygAAABJbiBTdHJpbmcKU3RyaW5nCgpUaGUgc3RyaW5nIHRvIGxvZyBvdXQAAFQAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABkAAABIYWxvIG9mIFByb3RlY3Rpb24gRW5kZWQABgAAAEhlbGxvAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAABt6YuVgGpJLhb/CYZj+1CAIAAAAG3pi5WAakkuFv8JhmP7UIBAAAAAAAAAAAAAAAP8AAAAA/////0oAAABQcmludCB0byBTY3JlZW4KQm9vbGVhbgoKV2hldGhlciBvciBub3QgdG8gcHJpbnQgdGhlIG91dHB1dCB0byB0aGUgc2NyZWVuAAAMAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAdHJ1ZQAFAAAAdHJ1ZQAAAAAAAAAAAP8AAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAgAAADhMOjmYyVHTbkrT93Fm4ehCAAAAOEw6OZjJUdNuStP3cWbh6EPAAAAAAAAAAAAAAD/AAAAAP////9EAAAAUHJpbnQgdG8gTG9nCkJvb2xlYW4KCldoZXRoZXIgb3Igbm90IHRvIHByaW50IHRoZSBvdXRwdXQgdG8gdGhlIGxvZwAADAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAHRydWUABQAAAHRydWUAAAAAAAAAAAD/AAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAIAAAAFuQO3CO9Gk2EpWWaAOIxXggAAAAW5A7cI70aTYSlZZoA4jFeVwAAAAAAAAAAAAAA/wAAAAD/////RAAAAFRleHQgQ29sb3IKTGluZWFyIENvbG9yIFN0cnVjdHVyZQoKVGhlIGNvbG9yIG9mIHRoZSB0ZXh0IHRvIGRpc3BsYXkAAFUAAAAAAAAARQAAAAAAAADo////AAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC4AAAAoUj0xLjAwMDAwMCxHPTAuMDA2MjQxLEI9MC4wMDAwMDAsQT0xLjAwMDAwMCkALgAAAChSPTAuMDAwMDAwLEc9MC42NjAwMDAsQj0xLjAwMDAwMCxBPTEuMDAwMDAwKQAAAAAAAAAAAP8AAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAgAAAC44zxemUudTY+8tDVjdKUPCAAAALjjPF6ZS51Nj7y0NWN0pQ8ZAAAAAAAAAAAAAAD/AAAAAP////+mAAAARHVyYXRpb24KRmxvYXQgKHNpbmdsZS1wcmVjaXNpb24pCgpUaGUgZGlzcGxheSBkdXJhdGlvbiAoaWYgUHJpbnQgdG8gU2NyZWVuIGlzIFRydWUpLiBVc2luZyBuZWdhdGl2ZSBudW1iZXIgd2lsbCByZXN1bHQgaW4gbG9hZGluZyB0aGUgZHVyYXRpb24gdGltZSBmcm9tIHRoZSBjb25maWcuAABNAAAAAAAAACsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAANC4wMDAwMDAACQAAADIuMDAwMDAwAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAACAAAAHTPnwH8UGZCsqXUFuTtJrsIAAAAdM+fAfxQZkKypdQW5O0muzgAAAAAAAAAAAAAAP8AAAAA/////3YAAABLZXkKTmFtZQoKSWYgYSBub24tZW1wdHkga2V5IGlzIHByb3ZpZGVkLCB0aGUgbWVzc2FnZSB3aWxsIHJlcGxhY2UgYW55IGV4aXN0aW5nIG9uLXNjcmVlbiBtZXNzYWdlcyB3aXRoIHRoZSBzYW1lIGtleS4AAD4AAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAUAAABOb25lAAUAAABOb25lAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAtAAAAAAAAAFYAAAAAAAAARgAAAAAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOwAAAAAAAABHAAAAAAAAAAQAAAAAAAAAAPT///86AAAAAAAAAD8AAAAAAAAACAAAAAAAAAAATAAAAAAAAABFAAAAAAAAAEIAAAAAAAAANAAAAAAAAAAEAAAAAAAAAADAAQAABAAAAAAAAAASAAAAAAAAAAgAAAAAAAAAIAAAAAAAAAAAIQAAAAAAAAAeAAAAAAAAACUAAAAAAAAACAAAAAAAAAAiAAAAAAAAAAAjAAAAAAAAAEEAAAAAAAAAVgAAAAAAAAAQAAAAAAAAADIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADaA40LxaVfTaNZhDEK0fQARQAAAAAAAAAAAAAACgAAAAAAAAAJAAAAg20x18jyskeB7CDrVjApAgkAAACDbTHXyPKyR4HsIOtWMCkCKQAAAAAAAAAAAAAA/wAAAAD/////BgAAAApFeGVjAAAoAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAAAAABAAAAAAAAAAoAAADR7fMf9dyIQra3bYQeO63vAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAAMqfETwHmMpGsa/t4GLo49oJAAAAyp8RPAeYykaxr+3gYujj2lgAAAAAAAAAAAAAAP8AAAAA/////wYAAAAKRXhlYwABKAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAADIOtV3JXNTRZZ2tYz3UihWCQAAAMg61Xclc1NFlna1jPdSKFZSAAAAAAAAAAgAAAAABwAAAEsyTm9kZQAHAAAAVGFyZ2V0AAcAAABUYXJnZXQA/////y4AAABUYXJnZXQKS2lzbWV0IFN5c3RlbSBMaWJyYXJ5IE9iamVjdCBSZWZlcmVuY2UAAEYAAAAAAAAARQAAAAAAAAD0////AAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA7////wAAAAD/AAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAmPMVu3jTu0OEy8G/m/3GVgkAAACY8xW7eNO7Q4TLwb+b/cZWXgAAAAAAAAAAAAAA/wAAAAD/////JgAAAFdvcmxkIENvbnRleHQgT2JqZWN0Ck9iamVjdCBSZWZlcmVuY2UAAEYAAAAAAAAARQAAAAAAAAD4////AAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAJAAAAKhFkvJOBv06Wq/A6+FhK2wkAAAAqEWS8k4G/Tpar8Dr4WErbMwAAAAAAAAAAAAAA/wAAAAD/////KAAAAEluIFN0cmluZwpTdHJpbmcKClRoZSBzdHJpbmcgdG8gbG9nIG91dAAAVAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHQAAAEhhbG8gb2YgUHJvdGVjdGlvbiBBY3RpdmF0ZWQABgAAAEhlbGxvAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAABt6YuVgGpJLhb/CYZj+1CAJAAAAG3pi5WAakkuFv8JhmP7UIBAAAAAAAAAAAAAAAP8AAAAA/////0oAAABQcmludCB0byBTY3JlZW4KQm9vbGVhbgoKV2hldGhlciBvciBub3QgdG8gcHJpbnQgdGhlIG91dHB1dCB0byB0aGUgc2NyZWVuAAAMAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAdHJ1ZQAFAAAAdHJ1ZQAAAAAAAAAAAP8AAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAkAAADhMOjmYyVHTbkrT93Fm4ehCQAAAOEw6OZjJUdNuStP3cWbh6EPAAAAAAAAAAAAAAD/AAAAAP////9EAAAAUHJpbnQgdG8gTG9nCkJvb2xlYW4KCldoZXRoZXIgb3Igbm90IHRvIHByaW50IHRoZSBvdXRwdXQgdG8gdGhlIGxvZwAADAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAHRydWUABQAAAHRydWUAAAAAAAAAAAD/AAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAJAAAAFuQO3CO9Gk2EpWWaAOIxXgkAAAAW5A7cI70aTYSlZZoA4jFeVwAAAAAAAAAAAAAA/wAAAAD/////RAAAAFRleHQgQ29sb3IKTGluZWFyIENvbG9yIFN0cnVjdHVyZQoKVGhlIGNvbG9yIG9mIHRoZSB0ZXh0IHRvIGRpc3BsYXkAAFUAAAAAAAAARQAAAAAAAADo////AAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC4AAAAoUj0wLjE1NDIzMixHPTEuMDAwMDAwLEI9MC4wMDAwMDAsQT0xLjAwMDAwMCkALgAAAChSPTAuMDAwMDAwLEc9MC42NjAwMDAsQj0xLjAwMDAwMCxBPTEuMDAwMDAwKQAAAAAAAAAAAP8AAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAkAAAC44zxemUudTY+8tDVjdKUPCQAAALjjPF6ZS51Nj7y0NWN0pQ8ZAAAAAAAAAAAAAAD/AAAAAP////+mAAAARHVyYXRpb24KRmxvYXQgKHNpbmdsZS1wcmVjaXNpb24pCgpUaGUgZGlzcGxheSBkdXJhdGlvbiAoaWYgUHJpbnQgdG8gU2NyZWVuIGlzIFRydWUpLiBVc2luZyBuZWdhdGl2ZSBudW1iZXIgd2lsbCByZXN1bHQgaW4gbG9hZGluZyB0aGUgZHVyYXRpb24gdGltZSBmcm9tIHRoZSBjb25maWcuAABNAAAAAAAAACsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAANC4wMDAwMDAACQAAADIuMDAwMDAwAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAACQAAAHTPnwH8UGZCsqXUFuTtJrsJAAAAdM+fAfxQZkKypdQW5O0muzgAAAAAAAAAAAAAAP8AAAAA/////3YAAABLZXkKTmFtZQoKSWYgYSBub24tZW1wdHkga2V5IGlzIHByb3ZpZGVkLCB0aGUgbWVzc2FnZSB3aWxsIHJlcGxhY2UgYW55IGV4aXN0aW5nIG9uLXNjcmVlbiBtZXNzYWdlcyB3aXRoIHRoZSBzYW1lIGtleS4AAD4AAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAUAAABOb25lAAUAAABOb25lAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAnAAAAAAAAAFYAAAAAAAAARgAAAAAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOwAAAAAAAABHAAAAAAAAAAQAAAAAAAAAAPP///86AAAAAAAAAD8AAAAAAAAACAAAAAAAAAAANQAAAAAAAABFAAAAAAAAAA4AAAAAAAAADQAAAAAAAAAAAAAAAAAAAAEABwAAAAAAAAANAAAAAAAAAAAAAAAAAAAAAQBBAAAAAAAAAFYAAAAAAAAAEAAAAAAAAAAyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAItdYFxpgCUOytDSOZgZcE0UAAAAAAAAAAAAAAAIAAAAAAAAACgAAALz0cAcb0WpApW5S4ByZmuYKAAAAvPRwBxvRakClblLgHJma5kgAAAAAAAAAAAAAAP8AAAAA/////wAAAAABFwAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAADz////NQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAADR7fMf9dyIQra3bYQeO63vCgAAANHt8x/13IhCtrdthB47re9YAAAAAAAAAAAAAAD/AAAAAP////8AAAAAASgAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AAAAAAEAAAAAAAAACQAAAINtMdfI8rJHgewg61YwKQIAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAnAAAAAAAAAFYAAAAAAAAARgAAAAAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOwAAAAAAAABHAAAAAAAAAAQAAAAAAAAAAPP///86AAAAAAAAAD8AAAAAAAAACAAAAAAAAAAANgAAAAAAAABFAAAAAAAAAA4AAAAAAAAADQAAAAAAAAAAAAAAAAAAAAEAQwAAAAAAAAA0AAAAAAAAAAQAAAAAAAAAANAAAAAHAAAAAAAAAA0AAAAAAAAAAAAAAAAAAAABAEEAAAAAAAAAVgAAAAAAAAAQAAAAAAAAADIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbmN481KRJS7G1miXg7w6IRQAAAAAAAAAAAAAAAwAAAAAAAAALAAAAFcWOwV3ivUi4VnSilRJf+QsAAAAVxY7BXeK9SLhWdKKVEl/5SAAAAAAAAAAAAAAA/wAAAAD/////AAAAAAEXAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAPP///82AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAMFsUbausDlGsRy+T7wB/lYLAAAAwWxRtq6wOUaxHL5PvAH+VlgAAAAAAAAAAAAAAP8AAAAA/////wAAAAABKAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAQAAAAAAAAAIAAAAg20x18jyskeB7CDrVjApAgAAAAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAsAAABq4OvPXAqKQ4H4kKqAZj8uCwAAAGrg689cCopDgfiQqoBmPy4RAAAAAAAAAAAAAAD/AAAAAP////8WAAAAV2FzIENhbmNlbGxlZApCb29sZWFuAAEMAAAAAAAAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAAAAZmFsc2UABgAAAGZhbHNlAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAAAAAAAAACAAAAAIAAAABAAAACwAAAAAAAAAFAAAAdHJ1ZQAKAAAAAQAAABYAAAAAAAAABQAAAHRydWUACwAAAAEAAAAWAAAAAAAAAAUAAAB0cnVlAAAAAAABAAAACwAAAAAAAAAFAAAAdHJ1ZQAAAAAABgAAABMAAAAAAAAACAAAAEFiaWxpdHkAFQAAAAAAAACZAgAALyoqCgkgKiBUaGUgbWFpbiBmdW5jdGlvbiB0aGF0IGRlZmluZXMgd2hhdCBhbiBhYmlsaXR5IGRvZXMuCgkgKiAgLUNoaWxkIGNsYXNzZXMgd2lsbCB3YW50IHRvIG92ZXJyaWRlIHRoaXMKCSAqICAtVGhpcyBmdW5jdGlvbiBncmFwaCBzaG91bGQgY2FsbCBDb21taXRBYmlsaXR5CgkgKiAgLVRoaXMgZnVuY3Rpb24gZ3JhcGggc2hvdWxkIGNhbGwgRW5kQWJpbGl0eQoJICogIAoJICogIExhdGVudC9hc3luYyBhY3Rpb25zIGFyZSBvayBpbiB0aGlzIGdyYXBoLiBOb3RlIHRoYXQgQ29tbWl0IGFuZCBFbmRBYmlsaXR5IGNhbGxpbmcgcmVxdWlyZW1lbnRzIHNwZWFrIHRvIHRoZSBLMl9BY3RpdmF0ZUFiaWxpdHkgZ3JhcGguIAoJICogIEluIEMrKywgdGhlIGNhbGwgdG8gSzJfQWN0aXZhdGVBYmlsaXR5KCkgbWF5IHJldHVybiB3aXRob3V0IENvbW1pdEFiaWxpdHkgb3IgRW5kQWJpbGl0eSBoYXZpbmcgYmVlbiBjYWxsZWQuIEJ1dCBpdCBpcyBleHBlY3RlZCB0aGF0IHRoaXMKCSAqICB3aWxsIG9ubHkgb2NjdXIgd2hlbiBsYXRlbnQvYXN5bmMgYWN0aW9ucyBhcmUgcGVuZGluZy4gV2hlbiBLMl9BY3RpdmF0ZUFiaWxpdHkgbG9naWNhbGx5IGZpbmlzaGVzLCB0aGVuIHdlIHdpbGwgZXhwZWN0IENvbW1pdC9FbmQgdG8gaGF2ZSBiZWVuIGNhbGxlZC4KCSAqICAKCSAqLwAYAAAAAAAAABAAAABBY3RpdmF0ZUFiaWxpdHkAPQAAAAAAAAAjAAAAUHVibGljL0FiaWxpdGllcy9HYW1lcGxheUFiaWxpdHkuaABRAAAAAAAAABAAAABBY3RpdmF0ZUFiaWxpdHkAWQAAAAAAAABoAgAAVGhlIG1haW4gZnVuY3Rpb24gdGhhdCBkZWZpbmVzIHdoYXQgYW4gYWJpbGl0eSBkb2VzLgogLUNoaWxkIGNsYXNzZXMgd2lsbCB3YW50IHRvIG92ZXJyaWRlIHRoaXMKIC1UaGlzIGZ1bmN0aW9uIGdyYXBoIHNob3VsZCBjYWxsIENvbW1pdEFiaWxpdHkKIC1UaGlzIGZ1bmN0aW9uIGdyYXBoIHNob3VsZCBjYWxsIEVuZEFiaWxpdHkKCiBMYXRlbnQvYXN5bmMgYWN0aW9ucyBhcmUgb2sgaW4gdGhpcyBncmFwaC4gTm90ZSB0aGF0IENvbW1pdCBhbmQgRW5kQWJpbGl0eSBjYWxsaW5nIHJlcXVpcmVtZW50cyBzcGVhayB0byB0aGUgSzJfQWN0aXZhdGVBYmlsaXR5IGdyYXBoLgogSW4gQysrLCB0aGUgY2FsbCB0byBLMl9BY3RpdmF0ZUFiaWxpdHkoKSBtYXkgcmV0dXJuIHdpdGhvdXQgQ29tbWl0QWJpbGl0eSBvciBFbmRBYmlsaXR5IGhhdmluZyBiZWVuIGNhbGxlZC4gQnV0IGl0IGlzIGV4cGVjdGVkIHRoYXQgdGhpcwogd2lsbCBvbmx5IG9jY3VyIHdoZW4gbGF0ZW50L2FzeW5jIGFjdGlvbnMgYXJlIHBlbmRpbmcuIFdoZW4gSzJfQWN0aXZhdGVBYmlsaXR5IGxvZ2ljYWxseSBmaW5pc2hlcywgdGhlbiB3ZSB3aWxsIGV4cGVjdCBDb21taXQvRW5kIHRvIGhhdmUgYmVlbiBjYWxsZWQuAAAAAAAGAAAAEwAAAAAAAAAIAAAAQWJpbGl0eQAVAAAAAAAAAFEAAAAvKiogQmx1ZXByaW50IGV2ZW50LCB3aWxsIGJlIGNhbGxlZCBpZiBhbiBhYmlsaXR5IGVuZHMgbm9ybWFsbHkgb3IgYWJub3JtYWxseSAqLwAYAAAAAAAAAA0AAABPbkVuZEFiaWxpdHkAPQAAAAAAAAAjAAAAUHVibGljL0FiaWxpdGllcy9HYW1lcGxheUFiaWxpdHkuaABRAAAAAAAAAA0AAABPbkVuZEFiaWxpdHkAWQAAAAAAAABKAAAAQmx1ZXByaW50IGV2ZW50LCB3aWxsIGJlIGNhbGxlZCBpZiBhbiBhYmlsaXR5IGVuZHMgbm9ybWFsbHkgb3IgYWJub3JtYWxseQAGAAAABgAAABMAAAAAAAAACAAAAEFiaWxpdHkAFQAAAAAAAABRAAAALyoqIEJsdWVwcmludCBldmVudCwgd2lsbCBiZSBjYWxsZWQgaWYgYW4gYWJpbGl0eSBlbmRzIG5vcm1hbGx5IG9yIGFibm9ybWFsbHkgKi8AGAAAAAAAAAANAAAAT25FbmRBYmlsaXR5AD0AAAAAAAAAIwAAAFB1YmxpYy9BYmlsaXRpZXMvR2FtZXBsYXlBYmlsaXR5LmgAUQAAAAAAAAANAAAAT25FbmRBYmlsaXR5AFkAAAAAAAAASgAAAEJsdWVwcmludCBldmVudCwgd2lsbCBiZSBjYWxsZWQgaWYgYW4gYWJpbGl0eSBlbmRzIG5vcm1hbGx5IG9yIGFibm9ybWFsbHkABQAAAAYAAAATAAAAAAAAAAgAAABBYmlsaXR5ABUAAAAAAAAAmQIAAC8qKgoJICogVGhlIG1haW4gZnVuY3Rpb24gdGhhdCBkZWZpbmVzIHdoYXQgYW4gYWJpbGl0eSBkb2VzLgoJICogIC1DaGlsZCBjbGFzc2VzIHdpbGwgd2FudCB0byBvdmVycmlkZSB0aGlzCgkgKiAgLVRoaXMgZnVuY3Rpb24gZ3JhcGggc2hvdWxkIGNhbGwgQ29tbWl0QWJpbGl0eQoJICogIC1UaGlzIGZ1bmN0aW9uIGdyYXBoIHNob3VsZCBjYWxsIEVuZEFiaWxpdHkKCSAqICAKCSAqICBMYXRlbnQvYXN5bmMgYWN0aW9ucyBhcmUgb2sgaW4gdGhpcyBncmFwaC4gTm90ZSB0aGF0IENvbW1pdCBhbmQgRW5kQWJpbGl0eSBjYWxsaW5nIHJlcXVpcmVtZW50cyBzcGVhayB0byB0aGUgSzJfQWN0aXZhdGVBYmlsaXR5IGdyYXBoLiAKCSAqICBJbiBDKyssIHRoZSBjYWxsIHRvIEsyX0FjdGl2YXRlQWJpbGl0eSgpIG1heSByZXR1cm4gd2l0aG91dCBDb21taXRBYmlsaXR5IG9yIEVuZEFiaWxpdHkgaGF2aW5nIGJlZW4gY2FsbGVkLiBCdXQgaXQgaXMgZXhwZWN0ZWQgdGhhdCB0aGlzCgkgKiAgd2lsbCBvbmx5IG9jY3VyIHdoZW4gbGF0ZW50L2FzeW5jIGFjdGlvbnMgYXJlIHBlbmRpbmcuIFdoZW4gSzJfQWN0aXZhdGVBYmlsaXR5IGxvZ2ljYWxseSBmaW5pc2hlcywgdGhlbiB3ZSB3aWxsIGV4cGVjdCBDb21taXQvRW5kIHRvIGhhdmUgYmVlbiBjYWxsZWQuCgkgKiAgCgkgKi8AGAAAAAAAAAAQAAAAQWN0aXZhdGVBYmlsaXR5AD0AAAAAAAAAIwAAAFB1YmxpYy9BYmlsaXRpZXMvR2FtZXBsYXlBYmlsaXR5LmgAUQAAAAAAAAAQAAAAQWN0aXZhdGVBYmlsaXR5AFkAAAAAAAAAaAIAAFRoZSBtYWluIGZ1bmN0aW9uIHRoYXQgZGVmaW5lcyB3aGF0IGFuIGFiaWxpdHkgZG9lcy4KIC1DaGlsZCBjbGFzc2VzIHdpbGwgd2FudCB0byBvdmVycmlkZSB0aGlzCiAtVGhpcyBmdW5jdGlvbiBncmFwaCBzaG91bGQgY2FsbCBDb21taXRBYmlsaXR5CiAtVGhpcyBmdW5jdGlvbiBncmFwaCBzaG91bGQgY2FsbCBFbmRBYmlsaXR5CgogTGF0ZW50L2FzeW5jIGFjdGlvbnMgYXJlIG9rIGluIHRoaXMgZ3JhcGguIE5vdGUgdGhhdCBDb21taXQgYW5kIEVuZEFiaWxpdHkgY2FsbGluZyByZXF1aXJlbWVudHMgc3BlYWsgdG8gdGhlIEsyX0FjdGl2YXRlQWJpbGl0eSBncmFwaC4KIEluIEMrKywgdGhlIGNhbGwgdG8gSzJfQWN0aXZhdGVBYmlsaXR5KCkgbWF5IHJldHVybiB3aXRob3V0IENvbW1pdEFiaWxpdHkgb3IgRW5kQWJpbGl0eSBoYXZpbmcgYmVlbiBjYWxsZWQuIEJ1dCBpdCBpcyBleHBlY3RlZCB0aGF0IHRoaXMKIHdpbGwgb25seSBvY2N1ciB3aGVuIGxhdGVudC9hc3luYyBhY3Rpb25zIGFyZSBwZW5kaW5nLiBXaGVuIEsyX0FjdGl2YXRlQWJpbGl0eSBsb2dpY2FsbHkgZmluaXNoZXMsIHRoZW4gd2Ugd2lsbCBleHBlY3QgQ29tbWl0L0VuZCB0byBoYXZlIGJlZW4gY2FsbGVkLgABAAAASQAAAAAAAAAhAAAARjI4OURERjRBN0NCODIzQThGMDQ4ODYzNkQxRTU3RTMAwYMqnpf2pYAuO8TRAgAAABwAAAAAAAAAAAAAAAAAAAB23jhRBMq/KTAAAAAAAAAAwYMqng=="
+		}
+	]
+}

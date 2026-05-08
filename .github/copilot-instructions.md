@@ -8,6 +8,7 @@
 - Required flow for gameplay actions: client request -> server validate/apply -> server replicate to relevant clients.
 - Do not apply authoritative gameplay state on clients first.
 - Client-side prediction is allowed only for cosmetic responsiveness and must reconcile to server state.
+- In this project, each Blueprint may have a sibling `.snapshot.json` export next to its package file; use this JSON to analyze Blueprint logic with LLM agents.
 
 ## Server-First Gameplay Scope
 
