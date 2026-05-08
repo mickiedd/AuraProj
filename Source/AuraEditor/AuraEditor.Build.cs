@@ -15,6 +15,7 @@ public class AuraEditor : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
+			"AIModule",
 			"AssetRegistry",
 			"ContentBrowser",
 			"CoreUObject",

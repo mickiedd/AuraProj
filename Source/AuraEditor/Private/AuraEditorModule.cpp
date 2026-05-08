@@ -4,6 +4,12 @@
 #include "Modules/ModuleManager.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardData.h"
+#include "BehaviorTree/BTCompositeNode.h"
+#include "BehaviorTree/BTDecorator.h"
+#include "BehaviorTree/BTService.h"
+#include "BehaviorTree/BTTaskNode.h"
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
 #include "DesktopPlatformModule.h"
@@ -141,10 +147,22 @@ private:
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnExportAllBlueprintsToJsonClicked)));
 
 		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ExportAllBehaviorTreeSnapshotsLabel", "Export All Project Behavior Trees to JSON"),
+			LOCTEXT("ExportAllBehaviorTreeSnapshotsTooltip", "Iterate through all Behavior Tree assets in this project and export one JSON snapshot next to each Behavior Tree package file."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Save"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnExportAllBehaviorTreesToJsonClicked)));
+
+		MenuBuilder.AddMenuEntry(
 			LOCTEXT("ImportBlueprintSnapshotLabel", "Import Blueprint from JSON Snapshot"),
 			LOCTEXT("ImportBlueprintSnapshotTooltip", "Restore a Blueprint package from a previously exported JSON snapshot."),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Import"),
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnImportBlueprintFromJsonClicked)));
+
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ExportBehaviorTreeSnapshotLabel", "Export Selected Behavior Tree to JSON"),
+			LOCTEXT("ExportBehaviorTreeSnapshotTooltip", "Export the selected Behavior Tree into an LLM-readable JSON snapshot that also embeds the exact package bytes for full recovery."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Save"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnExportSelectedBehaviorTreeToJsonClicked)));
 		MenuBuilder.EndSection();
 
 		return MenuBuilder.MakeWidget();
@@ -186,6 +204,31 @@ private:
 
 		OutBlueprintAsset = SelectedAssets[0];
 		OutBlueprint = SelectedBlueprint;
+		return true;
+	}
+
+	bool TryGetSingleSelectedBehaviorTree(FAssetData& OutBehaviorTreeAsset, UBehaviorTree*& OutBehaviorTree, FText& OutFailureReason) const
+	{
+		FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+		TArray<FAssetData> SelectedAssets;
+		ContentBrowserModule.Get().GetSelectedAssets(SelectedAssets);
+
+		if (SelectedAssets.Num() != 1)
+		{
+			OutFailureReason = LOCTEXT("BehaviorTreeSelectionCountError", "Select exactly one Behavior Tree asset in the Content Browser before exporting.");
+			return false;
+		}
+
+		UBehaviorTree* SelectedBehaviorTree = Cast<UBehaviorTree>(SelectedAssets[0].GetAsset());
+
+		if (SelectedBehaviorTree == nullptr)
+		{
+			OutFailureReason = LOCTEXT("BehaviorTreeSelectionTypeError", "The selected asset is not a Behavior Tree.");
+			return false;
+		}
+
+		OutBehaviorTreeAsset = SelectedAssets[0];
+		OutBehaviorTree = SelectedBehaviorTree;
 		return true;
 	}
 
@@ -358,6 +401,161 @@ private:
 		return BlueprintObject;
 	}
 
+	TSharedPtr<FJsonObject> SerializeBehaviorTreeDecorator(const UBTDecorator* Decorator) const
+	{
+		TSharedPtr<FJsonObject> DecoratorObject = MakeShared<FJsonObject>();
+		DecoratorObject->SetStringField(TEXT("name"), Decorator != nullptr ? Decorator->GetName() : TEXT(""));
+		DecoratorObject->SetStringField(TEXT("classPath"), Decorator != nullptr ? Decorator->GetClass()->GetPathName() : TEXT(""));
+		DecoratorObject->SetStringField(TEXT("nodeName"), Decorator != nullptr ? Decorator->GetNodeName() : TEXT(""));
+		DecoratorObject->SetStringField(TEXT("path"), GetPathNameSafe(Decorator));
+		return DecoratorObject;
+	}
+
+	TSharedPtr<FJsonObject> SerializeBehaviorTreeService(const UBTService* Service) const
+	{
+		TSharedPtr<FJsonObject> ServiceObject = MakeShared<FJsonObject>();
+		ServiceObject->SetStringField(TEXT("name"), Service != nullptr ? Service->GetName() : TEXT(""));
+		ServiceObject->SetStringField(TEXT("classPath"), Service != nullptr ? Service->GetClass()->GetPathName() : TEXT(""));
+		ServiceObject->SetStringField(TEXT("nodeName"), Service != nullptr ? Service->GetNodeName() : TEXT(""));
+		ServiceObject->SetStringField(TEXT("path"), GetPathNameSafe(Service));
+		return ServiceObject;
+	}
+
+	template <typename TDecoratorArrayType>
+	TArray<TSharedPtr<FJsonValue>> SerializeBehaviorTreeDecorators(const TDecoratorArrayType& Decorators) const
+	{
+		TArray<TSharedPtr<FJsonValue>> DecoratorArray;
+		for (const UBTDecorator* Decorator : Decorators)
+		{
+			DecoratorArray.Add(MakeShared<FJsonValueObject>(SerializeBehaviorTreeDecorator(Decorator)));
+		}
+
+		return DecoratorArray;
+	}
+
+	template <typename TServiceArrayType>
+	TArray<TSharedPtr<FJsonValue>> SerializeBehaviorTreeServices(const TServiceArrayType& Services) const
+	{
+		TArray<TSharedPtr<FJsonValue>> ServiceArray;
+		for (const UBTService* Service : Services)
+		{
+			ServiceArray.Add(MakeShared<FJsonValueObject>(SerializeBehaviorTreeService(Service)));
+		}
+
+		return ServiceArray;
+	}
+
+	TSharedPtr<FJsonObject> SerializeBehaviorTreeNodeRecursive(const UBTNode* Node, TSet<const UBTNode*>& InOutVisitedNodes) const
+	{
+		TSharedPtr<FJsonObject> NodeObject = MakeShared<FJsonObject>();
+
+		if (Node == nullptr)
+		{
+			NodeObject->SetStringField(TEXT("nodeType"), TEXT("None"));
+			return NodeObject;
+		}
+
+		NodeObject->SetStringField(TEXT("name"), Node->GetName());
+		NodeObject->SetStringField(TEXT("classPath"), Node->GetClass()->GetPathName());
+		NodeObject->SetStringField(TEXT("nodeName"), Node->GetNodeName());
+		NodeObject->SetStringField(TEXT("staticDescription"), Node->GetStaticDescription());
+		NodeObject->SetStringField(TEXT("path"), GetPathNameSafe(Node));
+
+		if (InOutVisitedNodes.Contains(Node))
+		{
+			NodeObject->SetBoolField(TEXT("isReferenceOnly"), true);
+			return NodeObject;
+		}
+
+		InOutVisitedNodes.Add(Node);
+		NodeObject->SetBoolField(TEXT("isReferenceOnly"), false);
+
+		if (const UBTCompositeNode* CompositeNode = Cast<UBTCompositeNode>(Node))
+		{
+			NodeObject->SetStringField(TEXT("nodeType"), TEXT("Composite"));
+			NodeObject->SetArrayField(TEXT("services"), SerializeBehaviorTreeServices(CompositeNode->Services));
+
+			TArray<TSharedPtr<FJsonValue>> Children;
+			for (const FBTCompositeChild& Child : CompositeNode->Children)
+			{
+				TSharedPtr<FJsonObject> ChildObject = MakeShared<FJsonObject>();
+				ChildObject->SetArrayField(TEXT("decorators"), SerializeBehaviorTreeDecorators(Child.Decorators));
+
+				TArray<TSharedPtr<FJsonValue>> DecoratorOps;
+				for (const FBTDecoratorLogic& DecoratorOp : Child.DecoratorOps)
+				{
+					TSharedPtr<FJsonObject> DecoratorOpObject = MakeShared<FJsonObject>();
+					DecoratorOpObject->SetNumberField(TEXT("operation"), static_cast<int32>(DecoratorOp.Operation));
+					DecoratorOpObject->SetNumberField(TEXT("number"), DecoratorOp.Number);
+					DecoratorOps.Add(MakeShared<FJsonValueObject>(DecoratorOpObject));
+				}
+
+				ChildObject->SetArrayField(TEXT("decoratorOps"), DecoratorOps);
+
+				if (Child.ChildComposite != nullptr)
+				{
+					ChildObject->SetStringField(TEXT("childType"), TEXT("Composite"));
+					ChildObject->SetObjectField(TEXT("childNode"), SerializeBehaviorTreeNodeRecursive(Child.ChildComposite, InOutVisitedNodes));
+				}
+				else if (Child.ChildTask != nullptr)
+				{
+					ChildObject->SetStringField(TEXT("childType"), TEXT("Task"));
+					ChildObject->SetObjectField(TEXT("childNode"), SerializeBehaviorTreeNodeRecursive(Child.ChildTask, InOutVisitedNodes));
+				}
+				else
+				{
+					ChildObject->SetStringField(TEXT("childType"), TEXT("None"));
+				}
+
+				Children.Add(MakeShared<FJsonValueObject>(ChildObject));
+			}
+
+			NodeObject->SetArrayField(TEXT("children"), Children);
+		}
+		else if (const UBTTaskNode* TaskNode = Cast<UBTTaskNode>(Node))
+		{
+			NodeObject->SetStringField(TEXT("nodeType"), TEXT("Task"));
+			NodeObject->SetStringField(TEXT("taskClassPath"), TaskNode->GetClass()->GetPathName());
+		}
+		else if (Cast<UBTDecorator>(Node) != nullptr)
+		{
+			NodeObject->SetStringField(TEXT("nodeType"), TEXT("Decorator"));
+		}
+		else if (Cast<UBTService>(Node) != nullptr)
+		{
+			NodeObject->SetStringField(TEXT("nodeType"), TEXT("Service"));
+		}
+		else
+		{
+			NodeObject->SetStringField(TEXT("nodeType"), TEXT("Unknown"));
+		}
+
+		return NodeObject;
+	}
+
+	TSharedPtr<FJsonObject> SerializeBehaviorTreeForAnalysis(const UBehaviorTree* BehaviorTree) const
+	{
+		TSharedPtr<FJsonObject> BehaviorTreeObject = MakeShared<FJsonObject>();
+		BehaviorTreeObject->SetStringField(TEXT("assetName"), BehaviorTree != nullptr ? BehaviorTree->GetName() : TEXT(""));
+		BehaviorTreeObject->SetStringField(TEXT("classPath"), BehaviorTree != nullptr ? BehaviorTree->GetClass()->GetPathName() : TEXT(""));
+		BehaviorTreeObject->SetStringField(TEXT("path"), GetPathNameSafe(BehaviorTree));
+		BehaviorTreeObject->SetStringField(TEXT("blackboardAssetPath"), BehaviorTree != nullptr ? GetPathNameSafe(BehaviorTree->BlackboardAsset.Get()) : TEXT(""));
+
+		if (BehaviorTree != nullptr)
+		{
+			TSet<const UBTNode*> VisitedNodes;
+			BehaviorTreeObject->SetObjectField(TEXT("rootNode"), SerializeBehaviorTreeNodeRecursive(BehaviorTree->RootNode, VisitedNodes));
+			BehaviorTreeObject->SetNumberField(TEXT("uniqueNodeCount"), VisitedNodes.Num());
+		}
+		else
+		{
+			BehaviorTreeObject->SetObjectField(TEXT("rootNode"), MakeShared<FJsonObject>());
+			BehaviorTreeObject->SetNumberField(TEXT("uniqueNodeCount"), 0);
+		}
+
+		return BehaviorTreeObject;
+	}
+
 	bool BuildPackageSnapshot(const FString& PackageName, TArray<TSharedPtr<FJsonValue>>& OutPackageFiles, FText& OutFailureReason) const
 	{
 		const FString PackageBaseFilename = FPackageName::LongPackageNameToFilename(PackageName);
@@ -403,19 +601,28 @@ private:
 
 	bool PromptForSaveFile(const FString& DefaultFilename, FString& OutFilename) const
 	{
+		return PromptForSaveFileWithSettings(
+			DefaultFilename,
+			TEXT("Export Blueprint JSON Snapshot"),
+			TEXT("Saved/BlueprintSnapshots"),
+			OutFilename);
+	}
+
+	bool PromptForSaveFileWithSettings(const FString& DefaultFilename, const FString& DialogTitle, const FString& RelativeOutputDirectory, FString& OutFilename) const
+	{
 		IDesktopPlatform* DesktopPlatform = nullptr;
 		if (!TryGetDesktopPlatform(DesktopPlatform))
 		{
 			return false;
 		}
 
-		const FString ExportDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Saved/BlueprintSnapshots"));
+		const FString ExportDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / RelativeOutputDirectory);
 		IFileManager::Get().MakeDirectory(*ExportDirectory, true);
 
 		TArray<FString> SaveFilenames;
 		const bool bPickedFile = DesktopPlatform->SaveFileDialog(
 			FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
-			TEXT("Export Blueprint JSON Snapshot"),
+			DialogTitle,
 			ExportDirectory,
 			DefaultFilename,
 			TEXT("JSON Files (*.json)|*.json"),
@@ -499,6 +706,53 @@ private:
 		{
 			OutFailureReason = FText::Format(
 				LOCTEXT("BlueprintSnapshotWriteFailureWithPath", "Failed to write Blueprint snapshot JSON file:\n{0}"),
+				FText::FromString(OutputFilename));
+			return false;
+		}
+
+		return true;
+	}
+
+	bool BuildBehaviorTreeSnapshotJson(const FAssetData& BehaviorTreeAsset, const UBehaviorTree* BehaviorTree, FString& OutJson, FText& OutFailureReason) const
+	{
+		TArray<TSharedPtr<FJsonValue>> PackageFiles;
+		if (!BuildPackageSnapshot(BehaviorTreeAsset.PackageName.ToString(), PackageFiles, OutFailureReason))
+		{
+			return false;
+		}
+
+		TSharedPtr<FJsonObject> RootObject = MakeShared<FJsonObject>();
+		RootObject->SetStringField(TEXT("snapshotType"), TEXT("AuraBehaviorTreeSnapshot"));
+		RootObject->SetStringField(TEXT("schemaVersion"), TEXT("1"));
+		RootObject->SetStringField(TEXT("assetName"), BehaviorTreeAsset.AssetName.ToString());
+		RootObject->SetStringField(TEXT("packageName"), BehaviorTreeAsset.PackageName.ToString());
+		RootObject->SetStringField(TEXT("objectPath"), BehaviorTreeAsset.GetObjectPathString());
+		RootObject->SetStringField(TEXT("generatedAtUtc"), FDateTime::UtcNow().ToIso8601());
+		RootObject->SetObjectField(TEXT("analysis"), SerializeBehaviorTreeForAnalysis(BehaviorTree));
+		RootObject->SetArrayField(TEXT("packageFiles"), PackageFiles);
+
+		const TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> Writer = TJsonWriterFactory<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>::Create(&OutJson);
+		if (!FJsonSerializer::Serialize(RootObject.ToSharedRef(), Writer))
+		{
+			OutFailureReason = LOCTEXT("BehaviorTreeSnapshotSerializeFailure", "Failed to serialize Behavior Tree snapshot JSON.");
+			return false;
+		}
+
+		return true;
+	}
+
+	bool SaveBehaviorTreeSnapshotJson(const FAssetData& BehaviorTreeAsset, const UBehaviorTree* BehaviorTree, const FString& OutputFilename, FText& OutFailureReason) const
+	{
+		FString JsonOutput;
+		if (!BuildBehaviorTreeSnapshotJson(BehaviorTreeAsset, BehaviorTree, JsonOutput, OutFailureReason))
+		{
+			return false;
+		}
+
+		if (!FFileHelper::SaveStringToFile(JsonOutput, *OutputFilename))
+		{
+			OutFailureReason = FText::Format(
+				LOCTEXT("BehaviorTreeSnapshotWriteFailureWithPath", "Failed to write Behavior Tree snapshot JSON file:\n{0}"),
 				FText::FromString(OutputFilename));
 			return false;
 		}
@@ -608,6 +862,108 @@ private:
 				CanceledCount));
 	}
 
+	void OnExportAllBehaviorTreesToJsonClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Export all project behavior trees to JSON clicked"));
+
+		if (FMessageDialog::Open(
+			EAppMsgType::YesNo,
+			LOCTEXT("ConfirmExportAllBehaviorTreeSnapshots", "Export JSON snapshots for all Behavior Tree assets in this project?\n\nA progress dialog with Cancel will be shown.")) != EAppReturnType::Yes)
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Export all project behavior trees canceled at confirmation prompt"));
+			return;
+		}
+
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+		FARFilter Filter;
+		Filter.ClassPaths.Add(UBehaviorTree::StaticClass()->GetClassPathName());
+		Filter.bRecursiveClasses = true;
+
+		TArray<FAssetData> CandidateBehaviorTreeAssets;
+		AssetRegistryModule.Get().GetAssets(Filter, CandidateBehaviorTreeAssets);
+
+		TArray<FAssetData> ProjectBehaviorTreeAssets;
+		const FString ProjectDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+		for (const FAssetData& AssetData : CandidateBehaviorTreeAssets)
+		{
+			const FString PackageFilename = FPaths::ConvertRelativePathToFull(FPackageName::LongPackageNameToFilename(AssetData.PackageName.ToString(), TEXT(".uasset")));
+
+			if (PackageFilename.StartsWith(ProjectDir))
+			{
+				ProjectBehaviorTreeAssets.Add(AssetData);
+			}
+		}
+
+		if (ProjectBehaviorTreeAssets.IsEmpty())
+		{
+			UE_LOG(LogAuraEditor, Warning, TEXT("No project behavior tree assets found for bulk export"));
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("NoProjectBehaviorTreesFound", "No Behavior Tree assets were found under this project directory."));
+			return;
+		}
+
+		ProjectBehaviorTreeAssets.Sort([](const FAssetData& A, const FAssetData& B)
+		{
+			return A.GetObjectPathString() < B.GetObjectPathString();
+		});
+
+		FScopedSlowTask SlowTask(
+			static_cast<float>(ProjectBehaviorTreeAssets.Num()),
+			LOCTEXT("ExportAllBehaviorTreeSnapshotsProgress", "Exporting Behavior Tree snapshots to JSON..."));
+		SlowTask.MakeDialog(true);
+
+		int32 SucceededCount = 0;
+		int32 FailedCount = 0;
+		int32 CanceledCount = 0;
+
+		for (const FAssetData& AssetData : ProjectBehaviorTreeAssets)
+		{
+			if (SlowTask.ShouldCancel())
+			{
+				CanceledCount = ProjectBehaviorTreeAssets.Num() - SucceededCount - FailedCount;
+				UE_LOG(LogAuraEditor, Warning, TEXT("Bulk behavior tree snapshot export canceled by user | Succeeded=%d | Failed=%d | Remaining=%d"),
+					SucceededCount,
+					FailedCount,
+					CanceledCount);
+				break;
+			}
+
+			SlowTask.EnterProgressFrame(
+				1.0f,
+				FText::Format(
+					LOCTEXT("ExportBehaviorTreeSnapshotProgressItem", "Exporting {0}"),
+					FText::FromName(AssetData.AssetName)));
+
+			UBehaviorTree* BehaviorTree = Cast<UBehaviorTree>(AssetData.GetAsset());
+			if (BehaviorTree == nullptr)
+			{
+				++FailedCount;
+				UE_LOG(LogAuraEditor, Error, TEXT("Bulk export failed: asset is not a loaded behavior tree | ObjectPath='%s'"), *AssetData.GetObjectPathString());
+				continue;
+			}
+
+			const FString OutputFilename = FPaths::ConvertRelativePathToFull(
+				FPackageName::LongPackageNameToFilename(AssetData.PackageName.ToString(), TEXT(".snapshot.json")));
+
+			FText FailureReason;
+			if (!SaveBehaviorTreeSnapshotJson(AssetData, BehaviorTree, OutputFilename, FailureReason))
+			{
+				++FailedCount;
+				UE_LOG(LogAuraEditor, Error, TEXT("Bulk behavior tree export failed | Asset='%s' | Reason='%s'"), *AssetData.GetObjectPathString(), *FailureReason.ToString());
+				continue;
+			}
+
+			++SucceededCount;
+		}
+
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			FText::Format(
+				LOCTEXT("ExportAllBehaviorTreeSnapshotsSummary", "Behavior Tree snapshot export complete.\n\nSucceeded: {0}\nFailed: {1}\nCanceled/Remaining: {2}\n\nEach JSON was saved next to its Behavior Tree package file."),
+				SucceededCount,
+				FailedCount,
+				CanceledCount));
+	}
+
 	void OnExportSelectedBlueprintToJsonClicked() const
 	{
 		UE_LOG(LogAuraEditor, Display, TEXT("Export selected blueprint to JSON clicked"));
@@ -642,6 +998,47 @@ private:
 			EAppMsgType::Ok,
 			FText::Format(
 				LOCTEXT("BlueprintSnapshotExportSuccess", "Exported Blueprint snapshot to:\n{0}\n\nThe JSON contains both a readable graph summary for LLM analysis and the exact package bytes needed for recovery."),
+				FText::FromString(OutputFilename)));
+	}
+
+	void OnExportSelectedBehaviorTreeToJsonClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Export selected behavior tree to JSON clicked"));
+
+		FAssetData BehaviorTreeAsset;
+		UBehaviorTree* BehaviorTree = nullptr;
+		FText FailureReason;
+
+		if (!TryGetSingleSelectedBehaviorTree(BehaviorTreeAsset, BehaviorTree, FailureReason))
+		{
+			UE_LOG(LogAuraEditor, Warning, TEXT("Behavior Tree export aborted: %s"), *FailureReason.ToString());
+			FMessageDialog::Open(EAppMsgType::Ok, FailureReason);
+			return;
+		}
+
+		FString OutputFilename;
+		if (!PromptForSaveFileWithSettings(
+			BehaviorTreeAsset.AssetName.ToString() + TEXT(".snapshot.json"),
+			TEXT("Export Behavior Tree JSON Snapshot"),
+			TEXT("Saved/BehaviorTreeSnapshots"),
+			OutputFilename))
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Behavior Tree export canceled by user"));
+			return;
+		}
+
+		if (!SaveBehaviorTreeSnapshotJson(BehaviorTreeAsset, BehaviorTree, OutputFilename, FailureReason))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree export failed | Asset='%s' | Reason='%s'"), *BehaviorTreeAsset.GetObjectPathString(), *FailureReason.ToString());
+			FMessageDialog::Open(EAppMsgType::Ok, FailureReason);
+			return;
+		}
+
+		UE_LOG(LogAuraEditor, Display, TEXT("Behavior Tree JSON snapshot exported successfully | Asset='%s' | File='%s'"), *BehaviorTreeAsset.AssetName.ToString(), *OutputFilename);
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			FText::Format(
+				LOCTEXT("BehaviorTreeSnapshotExportSuccess", "Exported Behavior Tree snapshot to:\n{0}\n\nThe JSON contains a readable behavior tree summary for LLM analysis and the exact package bytes needed for recovery."),
 				FText::FromString(OutputFilename)));
 	}
 
