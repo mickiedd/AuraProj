@@ -159,6 +159,12 @@ private:
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnImportBlueprintFromJsonClicked)));
 
 		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ImportBehaviorTreeSnapshotLabel", "Import Behavior Tree from JSON Snapshot"),
+			LOCTEXT("ImportBehaviorTreeSnapshotTooltip", "Restore a Behavior Tree package from a previously exported JSON snapshot."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Import"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnImportBehaviorTreeFromJsonClicked)));
+
+		MenuBuilder.AddMenuEntry(
 			LOCTEXT("ExportBehaviorTreeSnapshotLabel", "Export Selected Behavior Tree to JSON"),
 			LOCTEXT("ExportBehaviorTreeSnapshotTooltip", "Export the selected Behavior Tree into an LLM-readable JSON snapshot that also embeds the exact package bytes for full recovery."),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Save"),
@@ -640,17 +646,25 @@ private:
 
 	bool PromptForOpenFile(FString& OutFilename) const
 	{
+		return PromptForOpenFileWithSettings(
+			TEXT("Import Blueprint JSON Snapshot"),
+			TEXT("Saved/BlueprintSnapshots"),
+			OutFilename);
+	}
+
+	bool PromptForOpenFileWithSettings(const FString& DialogTitle, const FString& RelativeInputDirectory, FString& OutFilename) const
+	{
 		IDesktopPlatform* DesktopPlatform = nullptr;
 		if (!TryGetDesktopPlatform(DesktopPlatform))
 		{
 			return false;
 		}
 
-		const FString SnapshotDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Saved/BlueprintSnapshots"));
+		const FString SnapshotDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / RelativeInputDirectory);
 		TArray<FString> OpenFilenames;
 		const bool bPickedFile = DesktopPlatform->OpenFileDialog(
 			FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
-			TEXT("Import Blueprint JSON Snapshot"),
+			DialogTitle,
 			SnapshotDirectory,
 			TEXT(""),
 			TEXT("JSON Files (*.json)|*.json"),
@@ -1179,6 +1193,148 @@ private:
 		FMessageDialog::Open(
 			EAppMsgType::Ok,
 			LOCTEXT("BlueprintSnapshotImportSuccess", "Blueprint package files were restored from the JSON snapshot and any loaded packages were reloaded from disk."));
+	}
+
+	void OnImportBehaviorTreeFromJsonClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Import behavior tree from JSON snapshot clicked"));
+
+		FString InputFilename;
+		if (!PromptForOpenFileWithSettings(
+			TEXT("Import Behavior Tree JSON Snapshot"),
+			TEXT("Saved/BehaviorTreeSnapshots"),
+			InputFilename))
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Behavior Tree import canceled by user"));
+			return;
+		}
+
+		FString JsonInput;
+		if (!FFileHelper::LoadFileToString(JsonInput, *InputFilename))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree import failed: could not read file | File='%s'"), *InputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BehaviorTreeSnapshotReadJsonFailure", "Failed to read the selected Behavior Tree snapshot JSON file."));
+			return;
+		}
+
+		TSharedPtr<FJsonObject> RootObject;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonInput);
+		if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree import failed: invalid JSON | File='%s'"), *InputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BehaviorTreeSnapshotInvalidJson", "The selected file is not a valid Behavior Tree snapshot JSON file."));
+			return;
+		}
+
+		FString SnapshotType;
+		if (!RootObject->TryGetStringField(TEXT("snapshotType"), SnapshotType) || SnapshotType != TEXT("AuraBehaviorTreeSnapshot"))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree import failed: unsupported snapshot type | File='%s'"), *InputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BehaviorTreeSnapshotUnsupportedType", "The selected JSON file is not an Aura Behavior Tree snapshot export."));
+			return;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* PackageFiles = nullptr;
+		if (!RootObject->TryGetArrayField(TEXT("packageFiles"), PackageFiles) || PackageFiles == nullptr || PackageFiles->IsEmpty())
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree import failed: packageFiles array is missing | File='%s'"), *InputFilename);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BehaviorTreeSnapshotMissingPackageFiles", "The snapshot JSON does not contain any embedded package files."));
+			return;
+		}
+
+		TArray<UPackage*> LoadedPackagesToReload;
+
+		for (const TSharedPtr<FJsonValue>& PackageFileValue : *PackageFiles)
+		{
+			const TSharedPtr<FJsonObject>* PackageFileObject = nullptr;
+			if (!PackageFileValue.IsValid() || !PackageFileValue->TryGetObject(PackageFileObject) || PackageFileObject == nullptr || !PackageFileObject->IsValid())
+			{
+				UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree import failed: malformed package file entry | File='%s'"), *InputFilename);
+				FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BehaviorTreeSnapshotMalformedPackageEntry", "A package file entry in the snapshot JSON is malformed."));
+				return;
+			}
+
+			FString RelativePath;
+			FString ContentBase64;
+			if (!(*PackageFileObject)->TryGetStringField(TEXT("projectRelativePath"), RelativePath) || !(*PackageFileObject)->TryGetStringField(TEXT("contentBase64"), ContentBase64))
+			{
+				UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree import failed: incomplete package file entry | File='%s'"), *InputFilename);
+				FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BehaviorTreeSnapshotIncompletePackageEntry", "A package file entry in the snapshot JSON is incomplete."));
+				return;
+			}
+
+			TArray<uint8> FileBytes;
+			if (!FBase64::Decode(ContentBase64, FileBytes))
+			{
+				UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree import failed: base64 decode error | File='%s' | Target='%s'"), *InputFilename, *RelativePath);
+				FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BehaviorTreeSnapshotDecodeFailure", "Failed to decode embedded package data from the snapshot JSON."));
+				return;
+			}
+
+			const FString TargetPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / RelativePath);
+			IFileManager& FileManager = IFileManager::Get();
+			FileManager.MakeDirectory(*FPaths::GetPath(TargetPath), true);
+
+			if (FileManager.FileExists(*TargetPath) && FileManager.IsReadOnly(*TargetPath))
+			{
+				const bool bClearedReadOnly = FileManager.Delete(*TargetPath, false, true, true);
+				UE_LOG(LogAuraEditor, Display, TEXT("Target package was read-only; attempted delete before restore | Target='%s' | Deleted=%s"),
+					*TargetPath,
+					bClearedReadOnly ? TEXT("true") : TEXT("false"));
+			}
+
+			if (!FFileHelper::SaveArrayToFile(FileBytes, *TargetPath, &FileManager, FILEWRITE_EvenIfReadOnly))
+			{
+				const bool bTargetExists = FileManager.FileExists(*TargetPath);
+				const bool bTargetReadOnly = bTargetExists && FileManager.IsReadOnly(*TargetPath);
+
+				UE_LOG(LogAuraEditor, Error, TEXT("Behavior Tree import failed: could not write package file | Target='%s' | Exists=%s | ReadOnly=%s"),
+					*TargetPath,
+					bTargetExists ? TEXT("true") : TEXT("false"),
+					bTargetReadOnly ? TEXT("true") : TEXT("false"));
+
+				FMessageDialog::Open(
+					EAppMsgType::Ok,
+					FText::Format(
+						LOCTEXT("BehaviorTreeSnapshotWritePackageFailure", "Failed to write restored package file:\n{0}\n\nIf this asset is source-controlled, check it out or make it writable, then retry. If the asset is open in another process, close that process and retry."),
+						FText::FromString(TargetPath)));
+				return;
+			}
+
+			FString LongPackageName;
+			if (FPackageName::TryConvertFilenameToLongPackageName(TargetPath, LongPackageName))
+			{
+				if (UPackage* LoadedPackage = FindPackage(nullptr, *LongPackageName))
+				{
+					LoadedPackagesToReload.AddUnique(LoadedPackage);
+				}
+			}
+		}
+
+		if (!LoadedPackagesToReload.IsEmpty())
+		{
+			FText ReloadErrorMessage;
+			const bool bReloadedAnyPackages = UPackageTools::ReloadPackages(
+				LoadedPackagesToReload,
+				ReloadErrorMessage,
+				EReloadPackagesInteractionMode::AssumePositive);
+
+			if (!bReloadedAnyPackages)
+			{
+				UE_LOG(LogAuraEditor, Warning, TEXT("Behavior Tree snapshot imported, but package reload did not complete | Error='%s'"), *ReloadErrorMessage.ToString());
+				FMessageDialog::Open(
+					EAppMsgType::Ok,
+					FText::Format(
+						LOCTEXT("BehaviorTreeSnapshotImportReloadWarning", "Behavior Tree package files were restored from JSON, but reload did not complete:\n{0}\n\nUse Asset Actions -> Reload on the restored asset, or restart the editor."),
+						ReloadErrorMessage));
+				return;
+			}
+		}
+
+		UE_LOG(LogAuraEditor, Display, TEXT("Behavior Tree snapshot imported successfully | File='%s'"), *InputFilename);
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			LOCTEXT("BehaviorTreeSnapshotImportSuccess", "Behavior Tree package files were restored from the JSON snapshot and any loaded packages were reloaded from disk."));
 	}
 
 	FText GetDedicatedServerMenuLabel() const
