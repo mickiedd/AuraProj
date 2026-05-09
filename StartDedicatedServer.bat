@@ -3,11 +3,35 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 set "ROOT_DIR=%~dp0"
 set "UPROJECT=%ROOT_DIR%Aura.uproject"
-@REM set "MAP=/Game/Maps/StartupMap"
-set "MAP=/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_1_dungeon"
+set "DEFAULT_MAP=/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_1_dungeon"
+set "MAP=%DEFAULT_MAP%"
+set "EXTRA_ARGS="
 set "UE_EDITOR_EXE=%UE_EDITOR_EXE%"
 set "ENGINE_ASSOC="
 set "ENGINE_DIR="
+
+if /i "%~1"=="/?" goto :usage
+if /i "%~1"=="-h" goto :usage
+if /i "%~1"=="--help" goto :usage
+
+if not "%~1"=="" (
+    set "MAP=%~1"
+    shift
+
+    :collect_extra_args
+    if "%~1"=="" goto :after_collect_extra_args
+
+    if defined EXTRA_ARGS (
+        set "EXTRA_ARGS=%EXTRA_ARGS% %~1"
+    ) else (
+        set "EXTRA_ARGS=%~1"
+    )
+
+    shift
+    goto :collect_extra_args
+)
+
+:after_collect_extra_args
 
 if not exist "%UPROJECT%" (
     echo Could not find project file:
@@ -61,7 +85,24 @@ echo Launching dedicated server:
 echo   %UE_EDITOR_EXE%
 echo   Project: %UPROJECT%
 echo   Map: %MAP%
+if defined EXTRA_ARGS echo   Extra args: %EXTRA_ARGS%
 echo.
-start "Aura Dedicated Server" "%UE_EDITOR_EXE%" "%UPROJECT%" "%MAP%" -game -server -log -unattended -NoLiveCoding
+start "Aura Dedicated Server" "%UE_EDITOR_EXE%" "%UPROJECT%" "%MAP%" %EXTRA_ARGS%
 
 endlocal
+exit /b 0
+
+:usage
+echo Usage:
+echo   %~nx0 [MapPath] [AdditionalArgs...]
+echo.
+echo Examples:
+echo   %~nx0
+echo   %~nx0 /Game/Maps/StartupMap -port=7777
+echo   %~nx0 /Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_1_dungeon -port=7778 -QueryPort=27016
+echo.
+echo When no MapPath is provided, the script uses:
+echo   %DEFAULT_MAP%
+echo.
+endlocal
+exit /b 0

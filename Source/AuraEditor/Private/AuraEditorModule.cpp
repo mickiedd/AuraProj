@@ -16,6 +16,7 @@
 #include "EdGraph/EdGraph.h"
 #include "EdGraph/EdGraphNode.h"
 #include "EdGraph/EdGraphPin.h"
+#include "Editor.h"
 #include "Engine/Blueprint.h"
 #include "HAL/PlatformMisc.h"
 #include "HAL/PlatformProcess.h"
@@ -118,13 +119,32 @@ private:
 	TSharedRef<SWidget> GenerateLaunchMenuContent()
 	{
 		FMenuBuilder MenuBuilder(true, nullptr);
+		TArray<FDedicatedServerLaunchLevel> DedicatedServerLaunchLevels;
+		FText DedicatedServerLaunchError;
+		const bool bLoadedDedicatedServerLaunchLevels = LoadDedicatedServerLaunchLevels(DedicatedServerLaunchLevels, DedicatedServerLaunchError);
 
 		MenuBuilder.BeginSection("AuraLaunchSection", LOCTEXT("AuraLaunchSectionLabel", "Launch"));
-		MenuBuilder.AddMenuEntry(
+		MenuBuilder.AddSubMenu(
 			GetDedicatedServerMenuLabel(),
-			GetDedicatedServerMenuTooltip(),
-			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
-			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStartDedicatedServerClicked)));
+			bLoadedDedicatedServerLaunchLevels ? GetDedicatedServerMenuTooltip() : FText::Format(
+				LOCTEXT("StartDedicatedServerConfigFailureTooltip", "Could not load the configured dedicated server levels.\n\n{0}"),
+				DedicatedServerLaunchError),
+			FNewMenuDelegate::CreateLambda([this, DedicatedServerLaunchLevels = MoveTemp(DedicatedServerLaunchLevels), bLoadedDedicatedServerLaunchLevels, DedicatedServerLaunchError](FMenuBuilder& SubMenuBuilder)
+			{
+				if (bLoadedDedicatedServerLaunchLevels && !DedicatedServerLaunchLevels.IsEmpty())
+				{
+					BuildDedicatedServerLevelMenu(SubMenuBuilder, DedicatedServerLaunchLevels);
+					return;
+				}
+
+				const FText Label = LOCTEXT("StartDedicatedServerNoLevelsLabel", "No dedicated server levels available");
+				const FText Tooltip = bLoadedDedicatedServerLaunchLevels
+					? LOCTEXT("StartDedicatedServerNoLevelsTooltip", "Add level entries to Config/LevelConfig.json and reopen the menu.")
+					: DedicatedServerLaunchError;
+				AddDisabledMenuEntry(SubMenuBuilder, Label, Tooltip);
+			}),
+			false,
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"));
 
 		MenuBuilder.AddMenuEntry(
 			GetBuildClientMenuLabel(),
@@ -172,6 +192,255 @@ private:
 		MenuBuilder.EndSection();
 
 		return MenuBuilder.MakeWidget();
+	}
+
+	struct FDedicatedServerLaunchLevel
+	{
+		FString DisplayName;
+		FString MapPath;
+		TArray<FString> LaunchArgs;
+		int32 ServerPort = 0;
+		int32 QueryPort = 0;
+	};
+
+	FString GetDedicatedServerLevelConfigPath() const
+	{
+		return FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Config/LevelConfig.json"));
+	}
+
+	void AddDisabledMenuEntry(FMenuBuilder& MenuBuilder, const FText& Label, const FText& Tooltip) const
+	{
+		MenuBuilder.AddMenuEntry(
+			Label,
+			Tooltip,
+			FSlateIcon(),
+			FUIAction(
+				FExecuteAction::CreateLambda([]() {}),
+				FCanExecuteAction::CreateLambda([]() { return false; })));
+	}
+
+	void BuildDedicatedServerLevelMenu(FMenuBuilder& MenuBuilder, const TArray<FDedicatedServerLaunchLevel>& LaunchLevels) const
+	{
+		for (const FDedicatedServerLaunchLevel& LaunchLevel : LaunchLevels)
+		{
+			const FText LevelTooltip = FText::Format(
+				LOCTEXT("DedicatedServerLevelTooltip", "Launch the dedicated server on {0}.\nMap: {1}"),
+				FText::FromString(LaunchLevel.DisplayName),
+				FText::FromString(LaunchLevel.MapPath));
+
+			MenuBuilder.AddMenuEntry(
+				FText::FromString(LaunchLevel.DisplayName),
+				LevelTooltip,
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
+				FUIAction(FExecuteAction::CreateLambda([this, LaunchLevel]()
+				{
+					LaunchDedicatedServerLevel(LaunchLevel);
+				})));
+		}
+	}
+
+	bool LoadDedicatedServerLaunchLevels(TArray<FDedicatedServerLaunchLevel>& OutLaunchLevels, FText& OutFailureReason) const
+	{
+		const FString ConfigPath = GetDedicatedServerLevelConfigPath();
+		FString JsonInput;
+		if (!FFileHelper::LoadFileToString(JsonInput, *ConfigPath))
+		{
+			OutFailureReason = FText::Format(
+				LOCTEXT("DedicatedServerLevelConfigReadFailure", "Could not read the dedicated server level config file:\n{0}"),
+				FText::FromString(ConfigPath));
+			return false;
+		}
+
+		TSharedPtr<FJsonObject> RootObject;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonInput);
+		if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+		{
+			OutFailureReason = FText::Format(
+				LOCTEXT("DedicatedServerLevelConfigInvalidJson", "The dedicated server level config file is not valid JSON:\n{0}"),
+				FText::FromString(ConfigPath));
+			return false;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* LevelsArray = nullptr;
+		if (!RootObject->TryGetArrayField(TEXT("levels"), LevelsArray) || LevelsArray == nullptr || LevelsArray->IsEmpty())
+		{
+			OutFailureReason = FText::Format(
+				LOCTEXT("DedicatedServerLevelConfigMissingLevels", "The dedicated server level config file does not contain any level entries:\n{0}"),
+				FText::FromString(ConfigPath));
+			return false;
+		}
+
+		for (const TSharedPtr<FJsonValue>& LevelValue : *LevelsArray)
+		{
+			const TSharedPtr<FJsonObject>* LevelObject = nullptr;
+			if (!LevelValue.IsValid() || !LevelValue->TryGetObject(LevelObject) || LevelObject == nullptr || !LevelObject->IsValid())
+			{
+				OutFailureReason = FText::Format(
+					LOCTEXT("DedicatedServerLevelConfigMalformedEntry", "A dedicated server level entry in the config is malformed:\n{0}"),
+					FText::FromString(ConfigPath));
+				return false;
+			}
+
+			FDedicatedServerLaunchLevel LaunchLevel;
+			if (!(*LevelObject)->TryGetStringField(TEXT("displayName"), LaunchLevel.DisplayName) || LaunchLevel.DisplayName.IsEmpty())
+			{
+				OutFailureReason = FText::Format(
+					LOCTEXT("DedicatedServerLevelConfigMissingDisplayName", "A dedicated server level entry is missing its displayName field:\n{0}"),
+					FText::FromString(ConfigPath));
+				return false;
+			}
+
+			if (!(*LevelObject)->TryGetStringField(TEXT("mapPath"), LaunchLevel.MapPath) || LaunchLevel.MapPath.IsEmpty())
+			{
+				OutFailureReason = FText::Format(
+					LOCTEXT("DedicatedServerLevelConfigMissingMapPath", "A dedicated server level entry is missing its mapPath field:\n{0}"),
+					FText::FromString(ConfigPath));
+				return false;
+			}
+
+			if (!FPackageName::IsValidLongPackageName(LaunchLevel.MapPath))
+			{
+				OutFailureReason = FText::Format(
+					LOCTEXT("DedicatedServerLevelConfigInvalidMapPath", "A dedicated server level entry contains an invalid mapPath value:\n{0}\n\nEntry: {1}"),
+					FText::FromString(LaunchLevel.MapPath),
+					FText::FromString(ConfigPath));
+				return false;
+			}
+
+			if ((*LevelObject)->HasTypedField<EJson::Array>(TEXT("launchArgs")))
+			{
+				if (!(*LevelObject)->TryGetStringArrayField(TEXT("launchArgs"), LaunchLevel.LaunchArgs))
+				{
+					OutFailureReason = FText::Format(
+						LOCTEXT("DedicatedServerLevelConfigInvalidLaunchArgs", "A dedicated server level entry contains an invalid launchArgs array:\n{0}"),
+						FText::FromString(ConfigPath));
+					return false;
+				}
+			}
+
+			auto TryReadPortField = [](const TSharedPtr<FJsonObject>& JsonObject, const TCHAR* FieldName, int32& OutPort) -> bool
+			{
+				double PortNumber = 0.0;
+				if (JsonObject->TryGetNumberField(FieldName, PortNumber))
+				{
+					OutPort = static_cast<int32>(PortNumber);
+					return true;
+				}
+
+				FString PortString;
+				if (JsonObject->TryGetStringField(FieldName, PortString) && !PortString.IsEmpty())
+				{
+					return LexTryParseString(OutPort, *PortString);
+				}
+
+				return false;
+			};
+
+			int32 ConfigPort = 0;
+			if (TryReadPortField(*LevelObject, TEXT("port"), ConfigPort) || TryReadPortField(*LevelObject, TEXT("serverPort"), ConfigPort))
+			{
+				if (ConfigPort < 1 || ConfigPort > 65535)
+				{
+					OutFailureReason = FText::Format(
+						LOCTEXT("DedicatedServerLevelConfigInvalidPort", "A dedicated server level entry has an invalid port value ({0}) in:\n{1}"),
+						ConfigPort,
+						FText::FromString(ConfigPath));
+					return false;
+				}
+
+				LaunchLevel.ServerPort = ConfigPort;
+			}
+
+			int32 ConfigQueryPort = 0;
+			if (TryReadPortField(*LevelObject, TEXT("queryPort"), ConfigQueryPort) || TryReadPortField(*LevelObject, TEXT("QueryPort"), ConfigQueryPort))
+			{
+				if (ConfigQueryPort < 1 || ConfigQueryPort > 65535)
+				{
+					OutFailureReason = FText::Format(
+						LOCTEXT("DedicatedServerLevelConfigInvalidQueryPort", "A dedicated server level entry has an invalid queryPort value ({0}) in:\n{1}"),
+						ConfigQueryPort,
+						FText::FromString(ConfigPath));
+					return false;
+				}
+
+				LaunchLevel.QueryPort = ConfigQueryPort;
+			}
+
+			OutLaunchLevels.Add(MoveTemp(LaunchLevel));
+		}
+
+		return true;
+	}
+
+	FString BuildDedicatedServerScriptArguments(const FDedicatedServerLaunchLevel& LaunchLevel) const
+	{
+		auto IsPortArgument = [](const FString& Argument) -> bool
+		{
+			return Argument.StartsWith(TEXT("-port="), ESearchCase::IgnoreCase)
+				|| Argument.StartsWith(TEXT("-port"), ESearchCase::IgnoreCase)
+				|| Argument.StartsWith(TEXT("-queryport="), ESearchCase::IgnoreCase)
+				|| Argument.StartsWith(TEXT("-queryport"), ESearchCase::IgnoreCase);
+		};
+
+		TArray<FString> CommandArguments;
+
+		FString MapArgument = LaunchLevel.MapPath;
+		if (LaunchLevel.ServerPort > 0)
+		{
+			MapArgument += FString::Printf(TEXT("?Port=%d"), LaunchLevel.ServerPort);
+		}
+
+		CommandArguments.Add(FString::Printf(TEXT("\"%s\""), *MapArgument));
+
+		for (const FString& LaunchArg : LaunchLevel.LaunchArgs)
+		{
+			if (!LaunchArg.IsEmpty() && !IsPortArgument(LaunchArg))
+			{
+				CommandArguments.Add(LaunchArg);
+			}
+		}
+
+		if (LaunchLevel.ServerPort > 0)
+		{
+			CommandArguments.Add(FString::Printf(TEXT("-Port=%d"), LaunchLevel.ServerPort));
+		}
+
+		if (LaunchLevel.QueryPort > 0)
+		{
+			CommandArguments.Add(FString::Printf(TEXT("-QueryPort=%d"), LaunchLevel.QueryPort));
+		}
+
+		return FString::Join(CommandArguments, TEXT(" "));
+	}
+
+	bool LaunchDedicatedServerLevel(const FDedicatedServerLaunchLevel& LaunchLevel) const
+	{
+		const FString ScriptArguments = BuildDedicatedServerScriptArguments(LaunchLevel);
+		const FString SuccessLabel = FString::Printf(TEXT("StartDedicatedServer:%s"), *LaunchLevel.DisplayName);
+
+#if PLATFORM_WINDOWS
+		return LaunchProjectScript(
+			TEXT("StartDedicatedServer.bat"),
+			ScriptArguments,
+			FText::Format(
+				LOCTEXT("StartDedicatedServerMissingWindows", "Could not find StartDedicatedServer.bat at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.bat")))),
+			TEXT("Failed to launch StartDedicatedServer.bat."),
+			SuccessLabel);
+#elif PLATFORM_MAC
+		return LaunchProjectScript(
+			TEXT("StartDedicatedServer.command"),
+			ScriptArguments,
+			FText::Format(
+				LOCTEXT("StartDedicatedServerMissingMac", "Could not find StartDedicatedServer.command at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.command")))),
+			TEXT("Failed to launch StartDedicatedServer.command."),
+			SuccessLabel);
+#else
+		UE_LOG(LogAuraEditor, Warning, TEXT("Launch blocked: unsupported platform | Level='%s'"), *LaunchLevel.DisplayName);
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartDedicatedServerUnsupported", "Dedicated server launch is not supported on this platform."));
+		return false;
+#endif
 	}
 
 	bool TryGetDesktopPlatform(IDesktopPlatform*& OutDesktopPlatform) const
@@ -1270,7 +1539,7 @@ private:
 #if PLATFORM_MAC
 		return LOCTEXT("StartDedicatedServerTooltip", "Launch StartDedicatedServer.command from the project root in Terminal.");
 #else
-		return LOCTEXT("StartDedicatedServerTooltip", "Launch StartDedicatedServer.bat from the project root.");
+		return LOCTEXT("StartDedicatedServerTooltip", "Open a configured level list from Config/LevelConfig.json and launch the dedicated server with the selected map and launch arguments.");
 #endif
 	}
 
@@ -1333,7 +1602,7 @@ private:
 		}
 	}
 
-	bool LaunchProjectScript(const FString& RelativeScriptPath, const FText& MissingScriptDialogText, const FString& FailureDialogText, const FString& SuccessLogLabel) const
+	bool LaunchProjectScript(const FString& RelativeScriptPath, const FString& ScriptArguments = FString(), const FText& MissingScriptDialogText = FText(), const FString& FailureDialogText = FString(), const FString& SuccessLogLabel = FString()) const
 	{
 		const FString ScriptPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / RelativeScriptPath);
 		UE_LOG(LogAuraEditor, Display, TEXT("Resolved project script path | Label='%s' | Path='%s'"), *SuccessLogLabel, *ScriptPath);
@@ -1345,8 +1614,12 @@ private:
 			return false;
 		}
 
+		const FString CommandToRun = ScriptArguments.IsEmpty()
+			? FString::Printf(TEXT("\"%s\""), *ScriptPath)
+			: FString::Printf(TEXT("\"%s\" %s"), *ScriptPath, *ScriptArguments);
+
 		return LaunchInVisibleConsole(
-			FString::Printf(TEXT("\"%s\""), *ScriptPath),
+			CommandToRun,
 			FailureDialogText,
 			SuccessLogLabel);
 	}
@@ -1443,26 +1716,18 @@ private:
 	{
 		UE_LOG(LogAuraEditor, Display, TEXT("Dedicated server toolbar button clicked"));
 
-#if PLATFORM_WINDOWS
-		LaunchProjectScript(
-			TEXT("StartDedicatedServer.bat"),
-			FText::Format(
-				LOCTEXT("StartDedicatedServerMissingWindows", "Could not find StartDedicatedServer.bat at:\n{0}"),
-				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.bat")))),
-			TEXT("Failed to launch StartDedicatedServer.bat."),
-			TEXT("StartDedicatedServer"));
-#elif PLATFORM_MAC
-		LaunchProjectScript(
-			TEXT("StartDedicatedServer.command"),
-			FText::Format(
-				LOCTEXT("StartDedicatedServerMissingMac", "Could not find StartDedicatedServer.command at:\n{0}"),
-				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.command")))),
-			TEXT("Failed to launch StartDedicatedServer.command."),
-			TEXT("StartDedicatedServer"));
-#else
-		UE_LOG(LogAuraEditor, Warning, TEXT("Launch blocked: unsupported platform"));
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartDedicatedServerUnsupported", "Dedicated server launch is not supported on this platform."));
-#endif
+		TArray<FDedicatedServerLaunchLevel> DedicatedServerLaunchLevels;
+		FText DedicatedServerLaunchError;
+		if (!LoadDedicatedServerLaunchLevels(DedicatedServerLaunchLevels, DedicatedServerLaunchError) || DedicatedServerLaunchLevels.IsEmpty())
+		{
+			UE_LOG(LogAuraEditor, Warning, TEXT("Dedicated server launch aborted: no configured levels available"));
+			FMessageDialog::Open(EAppMsgType::Ok, DedicatedServerLaunchError.IsEmpty()
+				? LOCTEXT("StartDedicatedServerNoLevelsAvailable", "No dedicated server levels are configured in Config/LevelConfig.json.")
+				: DedicatedServerLaunchError);
+			return;
+		}
+
+		LaunchDedicatedServerLevel(DedicatedServerLaunchLevels[0]);
 	}
 
 	void OnBuildClientClicked() const
@@ -1513,6 +1778,7 @@ private:
 #elif PLATFORM_MAC
 		LaunchProjectScript(
 			TEXT("BuildMacClient.command"),
+			FString(),
 			FText::Format(
 				LOCTEXT("BuildMacClientMissingScript", "Could not find BuildMacClient.command at:\n{0}"),
 				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("BuildMacClient.command")))),
