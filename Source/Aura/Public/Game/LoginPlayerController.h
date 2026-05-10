@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/EngineBaseTypes.h"
 #include "GameFramework/PlayerController.h"
-#include "Types/SlateEnums.h"
 #include "LoginPlayerController.generated.h"
 
 /**
@@ -13,21 +12,10 @@
  * Handles client-side auto-connection to dedicated server.
  */
 
-class ALoginGameMode;
-class UButton;
-class UComboBoxString;
 class ULoginConnectingWidget;
-class UUserWidget;
+class ULoginMenuWidget;
 class UWorld;
 class UNetDriver;
-
-struct FLoginServerTarget
-{
-	FString DisplayName;
-	FString MapPath;
-	int32 ServerPort = 0;
-	int32 QueryPort = 0;
-};
 
 /**
  * Player controller for the Login map.
@@ -47,6 +35,10 @@ public:
 
 	void HandleTravelFailure(UWorld* InWorld, ETravelFailure::Type FailureType, const FString& ErrorString);
 	void HandleNetworkFailure(UWorld* InWorld, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
+
+	void ShowLoginMenuStatusMessage(const FString& InMessage);
+	void HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, int32 SelectedServerPort);
+	void RequestLoginMenuConnect(const FString& SelectedDisplayName, int32 SelectedServerPort);
 
 protected:
 	/**
@@ -83,12 +75,6 @@ protected:
 	void ExecuteClientConnect();
 
 	UFUNCTION()
-	void HandleConnectButtonClicked();
-
-	UFUNCTION()
-	void HandleLevelSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
-
-	UFUNCTION()
 	void HandleConnectionResponseWarning();
 
 	UFUNCTION()
@@ -100,9 +86,6 @@ protected:
 	void UnbindConnectionFailureDelegates();
 	void EnsureConnectingWidget();
 	void EnsureLoginScreenWidget();
-	bool InitializeLoginMenuBindings();
-	bool LoadServerTargetsFromLevelConfig();
-	void ApplySelectedServerTarget(const FString& SelectedDisplayName);
 
 	bool LoadServerConnectionFromJson();
 	FString BuildServerEndpoint() const;
@@ -122,7 +105,6 @@ protected:
 	 * Tracks whether global engine delegates were bound by this controller.
 	 */
 	bool bFailureDelegatesBound = false;
-	bool bUseLoginMenuManualConnect = false;
 
 	/**
 	 * Widget class to display connection status.
@@ -134,19 +116,13 @@ protected:
 	 * Widget class shown for the Login level (for example WBP_MainMenu).
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|UI")
-	TSubclassOf<UUserWidget> LoginScreenWidgetClass;
+	TSubclassOf<ULoginMenuWidget> LoginScreenWidgetClass;
 
 	/**
 	 * Runtime instance of the Login screen widget.
 	 */
 	UPROPERTY()
-	TObjectPtr<UUserWidget> LoginScreenWidget;
-
-	UPROPERTY()
-	TObjectPtr<UComboBoxString> LoginLevelComboBox;
-
-	UPROPERTY()
-	TObjectPtr<UButton> LoginConnectButton;
+	TObjectPtr<ULoginMenuWidget> LoginScreenWidget;
 
 	/**
 	 * Instance of the connecting widget.
@@ -180,6 +156,4 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection", meta=(ClampMin="2.0"))
 	float ConnectionTimeoutDelay = 12.0f;
-
-	TArray<FLoginServerTarget> AvailableServerTargets;
 };

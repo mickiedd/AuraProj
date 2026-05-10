@@ -1,11 +1,6 @@
 // Copyright Druid Mechanics
 
 #include "Game/LoginPlayerController.h"
-#include "Blueprint/UserWidget.h"
-#include "Blueprint/WidgetTree.h"
-#include "Components/Button.h"
-#include "Components/ComboBoxString.h"
-#include "Components/Widget.h"
 #include "UObject/SoftObjectPath.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
@@ -14,15 +9,13 @@
 #include "HAL/PlatformProcess.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "Misc/ScopeExit.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Dom/JsonObject.h"
-#include "Containers/Array.h"
 #include "Game/AuraGameInstance.h"
 #include "Game/LoadScreenSaveGame.h"
-#include "Game/LoginGameMode.h"
 #include "UI/Widget/LoginConnectingWidget.h"
+#include "UI/Widget/LoginMenuWidget.h"
 
 ALoginPlayerController::ALoginPlayerController()
 {
@@ -31,9 +24,13 @@ ALoginPlayerController::ALoginPlayerController()
 
 	// Prefer the dedicated login menu widget on the Login map unless overridden in BP.
 	const FSoftClassPath DefaultLoginScreenPath(TEXT("/Game/Blueprints/UI/LoginMenu/WBP_LoginMenu.WBP_LoginMenu_C"));
-	if (UClass* DefaultLoginScreenClass = DefaultLoginScreenPath.TryLoadClass<UUserWidget>())
+	if (UClass* DefaultLoginScreenClass = DefaultLoginScreenPath.TryLoadClass<ULoginMenuWidget>())
 	{
 		LoginScreenWidgetClass = DefaultLoginScreenClass;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Default WBP_LoginMenu must inherit ULoginMenuWidget to be used as LoginScreenWidgetClass"));
 	}
 }
 
@@ -56,9 +53,8 @@ void ALoginPlayerController::BeginPlay()
 		EnsureLoginScreenWidget();
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: manual connect mode ready (Local=%d Manual=%d)"),
-		IsLocalPlayerController() ? 1 : 0,
-		bUseLoginMenuManualConnect ? 1 : 0);
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: manual connect mode ready (Local=%d)"),
+		IsLocalPlayerController() ? 1 : 0);
 }
 
 void ALoginPlayerController::OnPossess(APawn* InPawn)
@@ -75,9 +71,8 @@ void ALoginPlayerController::OnPossess(APawn* InPawn)
 		EnsureLoginScreenWidget();
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: manual connect mode ready (Local=%d Manual=%d)"),
-		IsLocalPlayerController() ? 1 : 0,
-		bUseLoginMenuManualConnect ? 1 : 0);
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: manual connect mode ready (Local=%d)"),
+		IsLocalPlayerController() ? 1 : 0);
 }
 
 void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -110,11 +105,6 @@ void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		LoginScreenWidget = nullptr;
 	}
 
-	LoginLevelComboBox = nullptr;
-	LoginConnectButton = nullptr;
-	AvailableServerTargets.Reset();
-	bUseLoginMenuManualConnect = false;
-
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -136,7 +126,7 @@ void ALoginPlayerController::EnsureLoginScreenWidget()
 		return;
 	}
 
-	LoginScreenWidget = CreateWidget<UUserWidget>(this, LoginScreenWidgetClass);
+	LoginScreenWidget = CreateWidget<ULoginMenuWidget>(this, LoginScreenWidgetClass);
 	if (!LoginScreenWidget)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Failed to create Login screen widget from class %s"), *GetNameSafe(LoginScreenWidgetClass));
@@ -144,8 +134,51 @@ void ALoginPlayerController::EnsureLoginScreenWidget()
 	}
 
 	LoginScreenWidget->AddToViewport(0);
-	bUseLoginMenuManualConnect = InitializeLoginMenuBindings();
+
+	if (!LoginScreenWidget->InitializeForPlayerController(this))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Login menu widget initialization did not fully bind required UI controls"));
+	}
+
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Login screen widget created and shown: %s"), *GetNameSafe(LoginScreenWidget));
+}
+
+void ALoginPlayerController::ShowLoginMenuStatusMessage(const FString& InMessage)
+{
+	UpdateConnectingStatus(InMessage);
+}
+
+void ALoginPlayerController::HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, int32 SelectedServerPort)
+{
+	if (SelectedDisplayName.IsEmpty() || SelectedServerPort < 1 || SelectedServerPort > 65535)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Login menu selection is invalid: name=%s port=%d"), *SelectedDisplayName, SelectedServerPort);
+		return;
+	}
+
+	ServerPort = SelectedServerPort;
+	UpdateConnectingStatus(FString::Printf(TEXT("Selected server: %s (%s)"), *SelectedDisplayName, *BuildServerEndpoint()));
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Selected server target: %s -> %s"), *SelectedDisplayName, *BuildServerEndpoint());
+}
+
+void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisplayName, int32 SelectedServerPort)
+{
+	if (!IsLocalPlayerController())
+	{
+		return;
+	}
+
+	if (SelectedDisplayName.IsEmpty() || SelectedServerPort < 1 || SelectedServerPort > 65535)
+	{
+		EnsureConnectingWidget();
+		UpdateConnectingStatus(TEXT("Select a level before connecting."));
+		return;
+	}
+
+	HandleLoginMenuSelectionChanged(SelectedDisplayName, SelectedServerPort);
+	bConnectionAttempted = true;
+	EnsureConnectingWidget();
+	ExecuteClientConnect();
 }
 
 void ALoginPlayerController::EnsureConnectingWidget()
@@ -171,157 +204,6 @@ void ALoginPlayerController::EnsureConnectingWidget()
 	ConnectingWidget->AddToViewport(1);
 	ConnectingWidget->ShowConnecting(BuildConnectingStatusMessage());
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] connecting widget created and shown: %s"), *GetNameSafe(ConnectingWidget));
-}
-
-bool ALoginPlayerController::InitializeLoginMenuBindings()
-{
-	LoginLevelComboBox = nullptr;
-	LoginConnectButton = nullptr;
-
-	if (!LoginScreenWidget || !LoginScreenWidget->WidgetTree)
-	{
-		return false;
-	}
-
-	LoginLevelComboBox = Cast<UComboBoxString>(LoginScreenWidget->WidgetTree->FindWidget(TEXT("ComboBoxList")));
-	LoginConnectButton = Cast<UButton>(LoginScreenWidget->WidgetTree->FindWidget(TEXT("ConnectBtn")));
-
-	if (!LoginLevelComboBox || !LoginConnectButton)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Login screen widget must contain ComboBoxList and ConnectBtn widgets to enable manual connect"));
-		return false;
-	}
-
-	if (!LoadServerTargetsFromLevelConfig())
-	{
-		UpdateConnectingStatus(TEXT("No dedicated server levels are configured in LevelConfig.json."));
-		return true;
-	}
-
-	LoginLevelComboBox->ClearOptions();
-	for (const FLoginServerTarget& ServerTarget : AvailableServerTargets)
-	{
-		LoginLevelComboBox->AddOption(ServerTarget.DisplayName);
-	}
-
-	LoginLevelComboBox->OnSelectionChanged.RemoveAll(this);
-	LoginLevelComboBox->OnSelectionChanged.AddDynamic(this, &ALoginPlayerController::HandleLevelSelectionChanged);
-
-	LoginConnectButton->OnClicked.RemoveAll(this);
-	LoginConnectButton->OnClicked.AddDynamic(this, &ALoginPlayerController::HandleConnectButtonClicked);
-
-	if (!AvailableServerTargets.IsEmpty())
-	{
-		LoginLevelComboBox->SetSelectedOption(AvailableServerTargets[0].DisplayName);
-		ApplySelectedServerTarget(AvailableServerTargets[0].DisplayName);
-	}
-
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Login menu bound for manual connect with %d configured levels"), AvailableServerTargets.Num());
-	return true;
-}
-
-bool ALoginPlayerController::LoadServerTargetsFromLevelConfig()
-{
-	AvailableServerTargets.Reset();
-
-	const FString ConfigPath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("LevelConfig.json"));
-	FString JsonContent;
-	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to read level config file: %s"), *ConfigPath);
-		return false;
-	}
-
-	TSharedPtr<FJsonObject> RootObject;
-	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
-	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to parse level config JSON: %s"), *ConfigPath);
-		return false;
-	}
-
-	const TArray<TSharedPtr<FJsonValue>>* LevelsArray = nullptr;
-	if (!RootObject->TryGetArrayField(TEXT("levels"), LevelsArray) || LevelsArray == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Level config JSON does not contain a levels array: %s"), *ConfigPath);
-		return false;
-	}
-
-	for (const TSharedPtr<FJsonValue>& LevelValue : *LevelsArray)
-	{
-		const TSharedPtr<FJsonObject>* LevelObject = nullptr;
-		if (!LevelValue.IsValid() || !LevelValue->TryGetObject(LevelObject) || LevelObject == nullptr || !LevelObject->IsValid())
-		{
-			continue;
-		}
-
-		FLoginServerTarget ServerTarget;
-		if (!(*LevelObject)->TryGetStringField(TEXT("displayName"), ServerTarget.DisplayName) || ServerTarget.DisplayName.IsEmpty())
-		{
-			continue;
-		}
-
-		(*LevelObject)->TryGetStringField(TEXT("mapPath"), ServerTarget.MapPath);
-
-		double PortValue = 0.0;
-		if ((*LevelObject)->TryGetNumberField(TEXT("port"), PortValue))
-		{
-			ServerTarget.ServerPort = static_cast<int32>(PortValue);
-		}
-
-		double QueryPortValue = 0.0;
-		if ((*LevelObject)->TryGetNumberField(TEXT("queryPort"), QueryPortValue))
-		{
-			ServerTarget.QueryPort = static_cast<int32>(QueryPortValue);
-		}
-
-		if (ServerTarget.ServerPort >= 1 && ServerTarget.ServerPort <= 65535)
-		{
-			AvailableServerTargets.Add(ServerTarget);
-		}
-	}
-
-	return !AvailableServerTargets.IsEmpty();
-}
-
-void ALoginPlayerController::ApplySelectedServerTarget(const FString& SelectedDisplayName)
-{
-	for (const FLoginServerTarget& ServerTarget : AvailableServerTargets)
-	{
-		if (ServerTarget.DisplayName.Equals(SelectedDisplayName, ESearchCase::CaseSensitive))
-		{
-			ServerPort = ServerTarget.ServerPort;
-			UpdateConnectingStatus(FString::Printf(TEXT("Selected server: %s (%s)"), *ServerTarget.DisplayName, *BuildServerEndpoint()));
-			UE_LOG(LogTemp, Display, TEXT("[LoginConn] Selected server target: %s -> %s"), *ServerTarget.DisplayName, *BuildServerEndpoint());
-			return;
-		}
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Selected server target not found: %s"), *SelectedDisplayName);
-}
-
-void ALoginPlayerController::HandleConnectButtonClicked()
-{
-	if (!IsLocalPlayerController())
-	{
-		return;
-	}
-
-	if (!LoginLevelComboBox || LoginLevelComboBox->GetSelectedOption().IsEmpty())
-	{
-		EnsureConnectingWidget();
-		UpdateConnectingStatus(TEXT("Select a level before connecting."));
-		return;
-	}
-
-	bConnectionAttempted = true;
-	EnsureConnectingWidget();
-	ExecuteClientConnect();
-}
-
-void ALoginPlayerController::HandleLevelSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
-{
-	ApplySelectedServerTarget(SelectedItem);
 }
 
 void ALoginPlayerController::ExecuteClientConnect()
