@@ -1,6 +1,12 @@
 // Copyright Druid Mechanics
 
 #include "Game/LoginPlayerController.h"
+#include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetTree.h"
+#include "Components/Button.h"
+#include "Components/ComboBoxString.h"
+#include "Components/Widget.h"
+#include "UObject/SoftObjectPath.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "Engine/NetDriver.h"
@@ -8,13 +14,28 @@
 #include "HAL/PlatformProcess.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/ScopeExit.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Dom/JsonObject.h"
+#include "Containers/Array.h"
 #include "Game/AuraGameInstance.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "Game/LoginGameMode.h"
 #include "UI/Widget/LoginConnectingWidget.h"
+
+ALoginPlayerController::ALoginPlayerController()
+{
+	// Use a native fallback so connection status can always render.
+	ConnectingWidgetClass = ULoginConnectingWidget::StaticClass();
+
+	// Prefer the dedicated login menu widget on the Login map unless overridden in BP.
+	const FSoftClassPath DefaultLoginScreenPath(TEXT("/Game/Blueprints/UI/LoginMenu/WBP_LoginMenu.WBP_LoginMenu_C"));
+	if (UClass* DefaultLoginScreenClass = DefaultLoginScreenPath.TryLoadClass<UUserWidget>())
+	{
+		LoginScreenWidgetClass = DefaultLoginScreenClass;
+	}
+}
 
 void ALoginPlayerController::BeginPlay()
 {
@@ -32,58 +53,12 @@ void ALoginPlayerController::BeginPlay()
 	if (IsLocalPlayerController())
 	{
 		BindConnectionFailureDelegates();
+		EnsureLoginScreenWidget();
 	}
 
-	// Only execute on client (IsLocalPlayerController returns true only for local clients)
-	if (IsLocalPlayerController() && bAutoConnectToServer && !bConnectionAttempted)
-	{
-		bConnectionAttempted = true;
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: auto-connect flow entered"));
-
-		// Create the connecting widget if class is set
-		if (ConnectingWidgetClass)
-		{
-			ConnectingWidget = CreateWidget<ULoginConnectingWidget>(this, ConnectingWidgetClass);
-			if (ConnectingWidget)
-			{
-				ConnectingWidget->AddToViewport(1);
-				ConnectingWidget->ShowConnecting(BuildConnectingStatusMessage());
-				UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: connecting widget created and shown: %s"), *GetNameSafe(ConnectingWidget));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("[LoginConn] BeginPlay: failed to create connecting widget from class %s"), *GetNameSafe(ConnectingWidgetClass));
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[LoginConn] BeginPlay: ConnectingWidgetClass is null, no UI status will be shown"));
-		}
-
-		// Add a small delay to ensure UI and networking are fully initialized
-		if (UWorld* World = GetWorld())
-		{
-			UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: scheduling ExecuteClientConnect in 0.50s"));
-			World->GetTimerManager().SetTimer(
-				ConnectionTimerHandle,
-				this,
-				&ALoginPlayerController::ExecuteClientConnect,
-				0.5f,
-				false
-			);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("[LoginConn] BeginPlay: world is null, cannot schedule connection"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: auto-connect skipped (Local=%d Auto=%d Attempted=%d)"),
-			IsLocalPlayerController() ? 1 : 0,
-			bAutoConnectToServer ? 1 : 0,
-			bConnectionAttempted ? 1 : 0);
-	}
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: manual connect mode ready (Local=%d Manual=%d)"),
+		IsLocalPlayerController() ? 1 : 0,
+		bUseLoginMenuManualConnect ? 1 : 0);
 }
 
 void ALoginPlayerController::OnPossess(APawn* InPawn)
@@ -95,55 +70,14 @@ void ALoginPlayerController::OnPossess(APawn* InPawn)
 		bAutoConnectToServer ? 1 : 0,
 		bConnectionAttempted ? 1 : 0);
 
-	// Attempt connection when possessed (in case BeginPlay didn't trigger)
-	if (IsLocalPlayerController() && bAutoConnectToServer && !bConnectionAttempted)
+	if (IsLocalPlayerController())
 	{
-		bConnectionAttempted = true;
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: auto-connect flow entered"));
-
-		// Create the connecting widget if class is set
-		if (ConnectingWidgetClass)
-		{
-			ConnectingWidget = CreateWidget<ULoginConnectingWidget>(this, ConnectingWidgetClass);
-			if (ConnectingWidget)
-			{
-				ConnectingWidget->AddToViewport(1);
-				ConnectingWidget->ShowConnecting(BuildConnectingStatusMessage());
-				UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: connecting widget created and shown: %s"), *GetNameSafe(ConnectingWidget));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("[LoginConn] OnPossess: failed to create connecting widget from class %s"), *GetNameSafe(ConnectingWidgetClass));
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[LoginConn] OnPossess: ConnectingWidgetClass is null, no UI status will be shown"));
-		}
-
-		if (UWorld* World = GetWorld())
-		{
-			UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: scheduling ExecuteClientConnect in 0.50s"));
-			World->GetTimerManager().SetTimer(
-				ConnectionTimerHandle,
-				this,
-				&ALoginPlayerController::ExecuteClientConnect,
-				0.5f,
-				false
-			);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("[LoginConn] OnPossess: world is null, cannot schedule connection"));
-		}
+		EnsureLoginScreenWidget();
 	}
-	else
-	{
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: auto-connect skipped (Local=%d Auto=%d Attempted=%d)"),
-			IsLocalPlayerController() ? 1 : 0,
-			bAutoConnectToServer ? 1 : 0,
-			bConnectionAttempted ? 1 : 0);
-	}
+
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: manual connect mode ready (Local=%d Manual=%d)"),
+		IsLocalPlayerController() ? 1 : 0,
+		bUseLoginMenuManualConnect ? 1 : 0);
 }
 
 void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -170,7 +104,224 @@ void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		ConnectingWidget = nullptr;
 	}
 
+	if (LoginScreenWidget && IsValid(LoginScreenWidget))
+	{
+		LoginScreenWidget->RemoveFromParent();
+		LoginScreenWidget = nullptr;
+	}
+
+	LoginLevelComboBox = nullptr;
+	LoginConnectButton = nullptr;
+	AvailableServerTargets.Reset();
+	bUseLoginMenuManualConnect = false;
+
 	Super::EndPlay(EndPlayReason);
+}
+
+void ALoginPlayerController::EnsureLoginScreenWidget()
+{
+	if (!IsLocalPlayerController())
+	{
+		return;
+	}
+
+	if (LoginScreenWidget && IsValid(LoginScreenWidget))
+	{
+		return;
+	}
+
+	if (!LoginScreenWidgetClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] LoginScreenWidgetClass is null, Login level UI will not be shown"));
+		return;
+	}
+
+	LoginScreenWidget = CreateWidget<UUserWidget>(this, LoginScreenWidgetClass);
+	if (!LoginScreenWidget)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Failed to create Login screen widget from class %s"), *GetNameSafe(LoginScreenWidgetClass));
+		return;
+	}
+
+	LoginScreenWidget->AddToViewport(0);
+	bUseLoginMenuManualConnect = InitializeLoginMenuBindings();
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Login screen widget created and shown: %s"), *GetNameSafe(LoginScreenWidget));
+}
+
+void ALoginPlayerController::EnsureConnectingWidget()
+{
+	if (ConnectingWidget && IsValid(ConnectingWidget))
+	{
+		return;
+	}
+
+	if (!ConnectingWidgetClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] ConnectingWidgetClass is null, no UI status will be shown"));
+		return;
+	}
+
+	ConnectingWidget = CreateWidget<ULoginConnectingWidget>(this, ConnectingWidgetClass);
+	if (!ConnectingWidget)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Failed to create connecting widget from class %s"), *GetNameSafe(ConnectingWidgetClass));
+		return;
+	}
+
+	ConnectingWidget->AddToViewport(1);
+	ConnectingWidget->ShowConnecting(BuildConnectingStatusMessage());
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] connecting widget created and shown: %s"), *GetNameSafe(ConnectingWidget));
+}
+
+bool ALoginPlayerController::InitializeLoginMenuBindings()
+{
+	LoginLevelComboBox = nullptr;
+	LoginConnectButton = nullptr;
+
+	if (!LoginScreenWidget || !LoginScreenWidget->WidgetTree)
+	{
+		return false;
+	}
+
+	LoginLevelComboBox = Cast<UComboBoxString>(LoginScreenWidget->WidgetTree->FindWidget(TEXT("ComboBoxList")));
+	LoginConnectButton = Cast<UButton>(LoginScreenWidget->WidgetTree->FindWidget(TEXT("ConnectBtn")));
+
+	if (!LoginLevelComboBox || !LoginConnectButton)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Login screen widget must contain ComboBoxList and ConnectBtn widgets to enable manual connect"));
+		return false;
+	}
+
+	if (!LoadServerTargetsFromLevelConfig())
+	{
+		UpdateConnectingStatus(TEXT("No dedicated server levels are configured in LevelConfig.json."));
+		return true;
+	}
+
+	LoginLevelComboBox->ClearOptions();
+	for (const FLoginServerTarget& ServerTarget : AvailableServerTargets)
+	{
+		LoginLevelComboBox->AddOption(ServerTarget.DisplayName);
+	}
+
+	LoginLevelComboBox->OnSelectionChanged.RemoveAll(this);
+	LoginLevelComboBox->OnSelectionChanged.AddDynamic(this, &ALoginPlayerController::HandleLevelSelectionChanged);
+
+	LoginConnectButton->OnClicked.RemoveAll(this);
+	LoginConnectButton->OnClicked.AddDynamic(this, &ALoginPlayerController::HandleConnectButtonClicked);
+
+	if (!AvailableServerTargets.IsEmpty())
+	{
+		LoginLevelComboBox->SetSelectedOption(AvailableServerTargets[0].DisplayName);
+		ApplySelectedServerTarget(AvailableServerTargets[0].DisplayName);
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Login menu bound for manual connect with %d configured levels"), AvailableServerTargets.Num());
+	return true;
+}
+
+bool ALoginPlayerController::LoadServerTargetsFromLevelConfig()
+{
+	AvailableServerTargets.Reset();
+
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("LevelConfig.json"));
+	FString JsonContent;
+	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to read level config file: %s"), *ConfigPath);
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> RootObject;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to parse level config JSON: %s"), *ConfigPath);
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* LevelsArray = nullptr;
+	if (!RootObject->TryGetArrayField(TEXT("levels"), LevelsArray) || LevelsArray == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Level config JSON does not contain a levels array: %s"), *ConfigPath);
+		return false;
+	}
+
+	for (const TSharedPtr<FJsonValue>& LevelValue : *LevelsArray)
+	{
+		const TSharedPtr<FJsonObject>* LevelObject = nullptr;
+		if (!LevelValue.IsValid() || !LevelValue->TryGetObject(LevelObject) || LevelObject == nullptr || !LevelObject->IsValid())
+		{
+			continue;
+		}
+
+		FLoginServerTarget ServerTarget;
+		if (!(*LevelObject)->TryGetStringField(TEXT("displayName"), ServerTarget.DisplayName) || ServerTarget.DisplayName.IsEmpty())
+		{
+			continue;
+		}
+
+		(*LevelObject)->TryGetStringField(TEXT("mapPath"), ServerTarget.MapPath);
+
+		double PortValue = 0.0;
+		if ((*LevelObject)->TryGetNumberField(TEXT("port"), PortValue))
+		{
+			ServerTarget.ServerPort = static_cast<int32>(PortValue);
+		}
+
+		double QueryPortValue = 0.0;
+		if ((*LevelObject)->TryGetNumberField(TEXT("queryPort"), QueryPortValue))
+		{
+			ServerTarget.QueryPort = static_cast<int32>(QueryPortValue);
+		}
+
+		if (ServerTarget.ServerPort >= 1 && ServerTarget.ServerPort <= 65535)
+		{
+			AvailableServerTargets.Add(ServerTarget);
+		}
+	}
+
+	return !AvailableServerTargets.IsEmpty();
+}
+
+void ALoginPlayerController::ApplySelectedServerTarget(const FString& SelectedDisplayName)
+{
+	for (const FLoginServerTarget& ServerTarget : AvailableServerTargets)
+	{
+		if (ServerTarget.DisplayName.Equals(SelectedDisplayName, ESearchCase::CaseSensitive))
+		{
+			ServerPort = ServerTarget.ServerPort;
+			UpdateConnectingStatus(FString::Printf(TEXT("Selected server: %s (%s)"), *ServerTarget.DisplayName, *BuildServerEndpoint()));
+			UE_LOG(LogTemp, Display, TEXT("[LoginConn] Selected server target: %s -> %s"), *ServerTarget.DisplayName, *BuildServerEndpoint());
+			return;
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Selected server target not found: %s"), *SelectedDisplayName);
+}
+
+void ALoginPlayerController::HandleConnectButtonClicked()
+{
+	if (!IsLocalPlayerController())
+	{
+		return;
+	}
+
+	if (!LoginLevelComboBox || LoginLevelComboBox->GetSelectedOption().IsEmpty())
+	{
+		EnsureConnectingWidget();
+		UpdateConnectingStatus(TEXT("Select a level before connecting."));
+		return;
+	}
+
+	bConnectionAttempted = true;
+	EnsureConnectingWidget();
+	ExecuteClientConnect();
+}
+
+void ALoginPlayerController::HandleLevelSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+	ApplySelectedServerTarget(SelectedItem);
 }
 
 void ALoginPlayerController::ExecuteClientConnect()
@@ -190,6 +341,7 @@ void ALoginPlayerController::ExecuteClientConnect()
 			return;
 		}
 
+		EnsureConnectingWidget();
 		UpdateConnectingStatus(BuildConnectingStatusMessage());
 
 		// Execute the travel command to connect to the dedicated server
@@ -292,10 +444,9 @@ bool ALoginPlayerController::LoadServerConnectionFromJson()
 
 	if (LoadedFromPath.IsEmpty())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] No connection config file found (%s). Using defaults Address=%s Port=%d"),
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] No connection config file found (%s). Using default address=%s and selected LevelConfig port at connect time"),
 			*ConnectionConfigFileName,
-			*ServerAddress,
-			ServerPort);
+			*ServerAddress);
 		return false;
 	}
 
@@ -303,10 +454,9 @@ bool ALoginPlayerController::LoadServerConnectionFromJson()
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
 	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to parse connection config JSON at %s. Using defaults Address=%s Port=%d"),
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to parse connection config JSON at %s. Using default address=%s and selected LevelConfig port at connect time"),
 			*LoadedFromPath,
-			*ServerAddress,
-			ServerPort);
+			*ServerAddress);
 		return false;
 	}
 
@@ -316,38 +466,30 @@ bool ALoginPlayerController::LoadServerConnectionFromJson()
 		ConfigAddress.TrimStartAndEndInline();
 		if (!ConfigAddress.IsEmpty())
 		{
+			int32 ParsedLastColonIndex = INDEX_NONE;
+			if (ConfigAddress.FindLastChar(TEXT(':'), ParsedLastColonIndex) && ParsedLastColonIndex > 0)
+			{
+				const FString PotentialPort = ConfigAddress.Mid(ParsedLastColonIndex + 1);
+				int32 IgnoredPort = 0;
+				if (LexTryParseString(IgnoredPort, *PotentialPort) && IgnoredPort >= 1 && IgnoredPort <= 65535)
+				{
+					UE_LOG(LogTemp, Display, TEXT("[LoginConn] Ignoring embedded port %d in serverAddress from %s; port is selected from LevelConfig."), IgnoredPort, *LoadedFromPath);
+					ConfigAddress = ConfigAddress.Left(ParsedLastColonIndex);
+				}
+			}
+
 			ServerAddress = ConfigAddress;
 		}
 	}
 
-	int32 ConfigPort = 0;
-	double ConfigPortNumber = 0.0;
-	if (RootObject->TryGetNumberField(TEXT("serverPort"), ConfigPortNumber) || RootObject->TryGetNumberField(TEXT("port"), ConfigPortNumber))
+	if (RootObject->HasField(TEXT("serverPort")) || RootObject->HasField(TEXT("port")))
 	{
-		ConfigPort = static_cast<int32>(ConfigPortNumber);
-	}
-	else
-	{
-		FString PortString;
-		if (RootObject->TryGetStringField(TEXT("serverPort"), PortString) || RootObject->TryGetStringField(TEXT("port"), PortString))
-		{
-			LexTryParseString(ConfigPort, *PortString);
-		}
+		UE_LOG(LogTemp, Display, TEXT("[LoginConn] Ignoring serverPort/port in %s; LevelConfig selection controls the port."), *LoadedFromPath);
 	}
 
-	if (ConfigPort >= 1 && ConfigPort <= 65535)
-	{
-		ServerPort = ConfigPort;
-	}
-	else if (ConfigPort != 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Ignoring invalid port value %d in %s"), ConfigPort, *LoadedFromPath);
-	}
-
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Loaded server connection config from %s -> Address=%s Port=%d"),
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Loaded server connection config from %s -> Address=%s (port from LevelConfig selection)"),
 		*LoadedFromPath,
-		*ServerAddress,
-		ServerPort);
+		*ServerAddress);
 
 	return true;
 }

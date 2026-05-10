@@ -1,19 +1,6 @@
 {
   "levels": [
     {
-      "displayName": "Startup Map",
-      "mapPath": "/Game/Maps/StartupMap",
-      "port": 7777,
-      "queryPort": 27016,
-      "launchArgs": [
-        "-game",
-        "-server",
-        "-log",
-        "-unattended",
-        "-NoLiveCoding"
-      ]
-    },
-    {
       "displayName": "Dungeon Level 1",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_1_dungeon",
       "port": 7778,
@@ -70,32 +57,6 @@
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_5_bossroom",
       "port": 7782,
       "queryPort": 27021,
-      "launchArgs": [
-        "-game",
-        "-server",
-        "-log",
-        "-unattended",
-        "-NoLiveCoding"
-      ]
-    },
-    {
-      "displayName": "Dungeon Overview Modular",
-      "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_overview_modular",
-      "port": 7783,
-      "queryPort": 27022,
-      "launchArgs": [
-        "-game",
-        "-server",
-        "-log",
-        "-unattended",
-        "-NoLiveCoding"
-      ]
-    },
-    {
-      "displayName": "Dungeon Overview Props",
-      "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_overview_props",
-      "port": 7784,
-      "queryPort": 27023,
       "launchArgs": [
         "-game",
         "-server",

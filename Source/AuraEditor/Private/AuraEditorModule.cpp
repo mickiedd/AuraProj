@@ -32,6 +32,7 @@
 #include "Misc/PackageName.h"
 #include "Misc/ScopedSlowTask.h"
 #include "PackageTools.h"
+#include "Subsystems/AssetEditorSubsystem.h"
 #include "Styling/AppStyle.h"
 #include "ToolMenus.h"
 
@@ -1375,6 +1376,57 @@ private:
 			UE_LOG(LogAuraEditor, Error, TEXT("%s import failed: packageFiles array is missing | File='%s'"), *LogLabel, *InputFilename);
 			FMessageDialog::Open(EAppMsgType::Ok, MissingPackageFilesFailureMessage);
 			return false;
+		}
+
+		FString SnapshotObjectPath;
+		RootObject->TryGetStringField(TEXT("objectPath"), SnapshotObjectPath);
+
+		FString SnapshotPackageName;
+		RootObject->TryGetStringField(TEXT("packageName"), SnapshotPackageName);
+
+		if (GEditor != nullptr && !SnapshotObjectPath.IsEmpty())
+		{
+			if (UObject* ExistingAsset = StaticFindObject(UObject::StaticClass(), nullptr, *SnapshotObjectPath))
+			{
+				if (UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
+				{
+					const int32 ClosedEditorCount = AssetEditorSubsystem->CloseAllEditorsForAsset(ExistingAsset);
+					UE_LOG(LogAuraEditor, Display, TEXT("%s import preflight: closed open editors for asset | Asset='%s' | ClosedCount=%d"),
+						*LogLabel,
+						*SnapshotObjectPath,
+						ClosedEditorCount);
+				}
+			}
+		}
+
+		if (!SnapshotPackageName.IsEmpty())
+		{
+			if (UPackage* ExistingPackage = FindPackage(nullptr, *SnapshotPackageName))
+			{
+				TArray<UPackage*> PackagesToUnload;
+				PackagesToUnload.Add(ExistingPackage);
+
+				UPackageTools::FlushAsyncCompilation(PackagesToUnload);
+
+				FText UnloadErrorMessage;
+				const bool bUnloadedPackage = UPackageTools::UnloadPackages(PackagesToUnload, UnloadErrorMessage, true);
+				UE_LOG(LogAuraEditor, Display, TEXT("%s import preflight: unload package attempted | Package='%s' | Unloaded=%s | Error='%s'"),
+					*LogLabel,
+					*SnapshotPackageName,
+					bUnloadedPackage ? TEXT("true") : TEXT("false"),
+					*UnloadErrorMessage.ToString());
+
+				if (!bUnloadedPackage)
+				{
+					FMessageDialog::Open(
+						EAppMsgType::Ok,
+						FText::Format(
+							LOCTEXT("SnapshotImportUnloadPackageFailure", "Could not unload the currently loaded asset package before import:\n{0}\n\n{1}"),
+							FText::FromString(SnapshotPackageName),
+							UnloadErrorMessage.IsEmpty() ? LOCTEXT("SnapshotImportUnloadPackageFailureUnknown", "The package is still loaded by the editor.") : UnloadErrorMessage));
+					return false;
+				}
+			}
 		}
 
 		TArray<UPackage*> LoadedPackagesToReload;
