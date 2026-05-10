@@ -130,7 +130,7 @@ private:
 			bLoadedDedicatedServerLaunchLevels ? GetDedicatedServerMenuTooltip() : FText::Format(
 				LOCTEXT("StartDedicatedServerConfigFailureTooltip", "Could not load the configured dedicated server levels.\n\n{0}"),
 				DedicatedServerLaunchError),
-			FNewMenuDelegate::CreateLambda([this, DedicatedServerLaunchLevels = MoveTemp(DedicatedServerLaunchLevels), bLoadedDedicatedServerLaunchLevels, DedicatedServerLaunchError](FMenuBuilder& SubMenuBuilder)
+			FNewMenuDelegate::CreateLambda([this, DedicatedServerLaunchLevels = DedicatedServerLaunchLevels, bLoadedDedicatedServerLaunchLevels, DedicatedServerLaunchError](FMenuBuilder& SubMenuBuilder)
 			{
 				if (bLoadedDedicatedServerLaunchLevels && !DedicatedServerLaunchLevels.IsEmpty())
 				{
@@ -146,6 +146,34 @@ private:
 			}),
 			false,
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"));
+
+		if (bLoadedDedicatedServerLaunchLevels && !DedicatedServerLaunchLevels.IsEmpty())
+		{
+			MenuBuilder.AddMenuEntry(
+				LOCTEXT("LaunchAllDedicatedServersLabel", "Launch All Dedicated Servers"),
+				LOCTEXT("LaunchAllDedicatedServersTooltip", "Launch every dedicated server level listed in Config/LevelConfig.json."),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
+				FUIAction(FExecuteAction::CreateLambda([this, DedicatedServerLaunchLevels]()
+				{
+					OnLaunchAllDedicatedServersClicked(DedicatedServerLaunchLevels);
+				})));
+		}
+		else
+		{
+			const FText DisabledTooltip = bLoadedDedicatedServerLaunchLevels
+				? LOCTEXT("LaunchAllDedicatedServersNoLevelsTooltip", "Add level entries to Config/LevelConfig.json and reopen the menu.")
+				: DedicatedServerLaunchError;
+			AddDisabledMenuEntry(
+				MenuBuilder,
+				LOCTEXT("LaunchAllDedicatedServersLabel", "Launch All Dedicated Servers"),
+				DisabledTooltip);
+		}
+
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("StopAllDedicatedServersLabel", "Stop All Dedicated Servers"),
+			LOCTEXT("StopAllDedicatedServersTooltip", "Stop every launched dedicated server process for this project."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Delete"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStopAllDedicatedServersClicked)));
 
 		MenuBuilder.AddMenuEntry(
 			GetBuildClientMenuLabel(),
@@ -414,7 +442,7 @@ private:
 		return FString::Join(CommandArguments, TEXT(" "));
 	}
 
-	bool LaunchDedicatedServerLevel(const FDedicatedServerLaunchLevel& LaunchLevel) const
+	bool LaunchDedicatedServerLevel(const FDedicatedServerLaunchLevel& LaunchLevel, bool bShowDialogs = true) const
 	{
 		const FString ScriptArguments = BuildDedicatedServerScriptArguments(LaunchLevel);
 		const FString SuccessLabel = FString::Printf(TEXT("StartDedicatedServer:%s"), *LaunchLevel.DisplayName);
@@ -423,23 +451,30 @@ private:
 		return LaunchProjectScript(
 			TEXT("StartDedicatedServer.bat"),
 			ScriptArguments,
-			FText::Format(
-				LOCTEXT("StartDedicatedServerMissingWindows", "Could not find StartDedicatedServer.bat at:\n{0}"),
-				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.bat")))),
-			TEXT("Failed to launch StartDedicatedServer.bat."),
+			bShowDialogs
+				? FText::Format(
+					LOCTEXT("StartDedicatedServerMissingWindows", "Could not find StartDedicatedServer.bat at:\n{0}"),
+					FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.bat"))))
+				: FText(),
+			bShowDialogs ? FString(TEXT("Failed to launch the dedicated server.")) : FString(),
 			SuccessLabel);
 #elif PLATFORM_MAC
 		return LaunchProjectScript(
 			TEXT("StartDedicatedServer.command"),
 			ScriptArguments,
-			FText::Format(
-				LOCTEXT("StartDedicatedServerMissingMac", "Could not find StartDedicatedServer.command at:\n{0}"),
-				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.command")))),
-			TEXT("Failed to launch StartDedicatedServer.command."),
+			bShowDialogs
+				? FText::Format(
+					LOCTEXT("StartDedicatedServerMissingMac", "Could not find StartDedicatedServer.command at:\n{0}"),
+					FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.command"))))
+				: FText(),
+			bShowDialogs ? FString(TEXT("Failed to launch the dedicated server.")) : FString(),
 			SuccessLabel);
 #else
 		UE_LOG(LogAuraEditor, Warning, TEXT("Launch blocked: unsupported platform | Level='%s'"), *LaunchLevel.DisplayName);
-		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartDedicatedServerUnsupported", "Dedicated server launch is not supported on this platform."));
+		if (bShowDialogs)
+		{
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartDedicatedServerUnsupported", "Dedicated server launch is not supported on this platform."));
+		}
 		return false;
 #endif
 	}
@@ -1662,7 +1697,10 @@ private:
 		if (!FPaths::FileExists(ScriptPath))
 		{
 			UE_LOG(LogAuraEditor, Error, TEXT("Launch aborted: script file does not exist | Label='%s'"), *SuccessLogLabel);
-			FMessageDialog::Open(EAppMsgType::Ok, MissingScriptDialogText);
+			if (!MissingScriptDialogText.IsEmpty())
+			{
+				FMessageDialog::Open(EAppMsgType::Ok, MissingScriptDialogText);
+			}
 			return false;
 		}
 
@@ -1681,7 +1719,7 @@ private:
 #if PLATFORM_WINDOWS
 		const FString CmdExe = FPlatformMisc::GetEnvironmentVariable(TEXT("ComSpec"));
 		const FString Executable = CmdExe.IsEmpty() ? TEXT("cmd.exe") : CmdExe;
-		const FString Params = FString::Printf(TEXT("/k \"%s\""), *CommandToRun);
+		const FString Params = FString::Printf(TEXT("/c \"%s\""), *CommandToRun);
 		const bool bLaunchDetached = false;
 		const bool bLaunchHidden = false;
 		const bool bLaunchReallyHidden = false;
@@ -1710,7 +1748,10 @@ private:
 		if (!ProcHandle.IsValid())
 		{
 			UE_LOG(LogAuraEditor, Error, TEXT("CreateProc failed | Label='%s'"), *SuccessLogLabel);
-			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(FailureDialogText));
+			if (!FailureDialogText.IsEmpty())
+			{
+				FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(FailureDialogText));
+			}
 			return false;
 		}
 
@@ -1749,7 +1790,10 @@ private:
 		if (!ProcHandle.IsValid())
 		{
 			UE_LOG(LogAuraEditor, Error, TEXT("CreateProc failed | Label='%s'"), *SuccessLogLabel);
-			FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(FailureDialogText));
+			if (!FailureDialogText.IsEmpty())
+			{
+				FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(FailureDialogText));
+			}
 			return false;
 		}
 
@@ -1780,6 +1824,88 @@ private:
 		}
 
 		LaunchDedicatedServerLevel(DedicatedServerLaunchLevels[0]);
+	}
+
+	void OnLaunchAllDedicatedServersClicked(const TArray<FDedicatedServerLaunchLevel>& DedicatedServerLaunchLevels) const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Launch all dedicated servers clicked"));
+
+		if (FMessageDialog::Open(
+			EAppMsgType::YesNo,
+			FText::Format(
+				LOCTEXT("ConfirmLaunchAllDedicatedServers", "Launch all dedicated server levels in Config/LevelConfig.json?\n\nCount: {0}"),
+				DedicatedServerLaunchLevels.Num())) != EAppReturnType::Yes)
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Launch all dedicated servers canceled at confirmation prompt"));
+			return;
+		}
+
+		int32 SucceededCount = 0;
+		int32 FailedCount = 0;
+
+		for (const FDedicatedServerLaunchLevel& LaunchLevel : DedicatedServerLaunchLevels)
+		{
+			if (LaunchDedicatedServerLevel(LaunchLevel, false))
+			{
+				++SucceededCount;
+			}
+			else
+			{
+				++FailedCount;
+				UE_LOG(LogAuraEditor, Error, TEXT("Bulk dedicated server launch failed | Level='%s'"), *LaunchLevel.DisplayName);
+			}
+		}
+
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			FText::Format(
+				LOCTEXT("LaunchAllDedicatedServersSummary", "Dedicated server launch complete.\n\nSucceeded: {0}\nFailed: {1}"),
+				SucceededCount,
+				FailedCount));
+	}
+
+	void OnStopAllDedicatedServersClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Stop all dedicated servers clicked"));
+
+		if (FMessageDialog::Open(
+			EAppMsgType::YesNo,
+			LOCTEXT("ConfirmStopAllDedicatedServers", "Stop all launched dedicated server processes for this project?")) != EAppReturnType::Yes)
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Stop all dedicated servers canceled at confirmation prompt"));
+			return;
+		}
+
+		#if PLATFORM_WINDOWS
+		const bool bStopped = LaunchProjectScript(
+			TEXT("StopDedicatedServer.bat"),
+			FString(),
+			FText::Format(
+				LOCTEXT("StopDedicatedServerMissingWindows", "Could not find StopDedicatedServer.bat at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StopDedicatedServer.bat")))),
+			TEXT("Failed to stop the dedicated servers."),
+			TEXT("StopDedicatedServers"));
+		#elif PLATFORM_MAC
+		const bool bStopped = LaunchProjectScript(
+			TEXT("StopDedicatedServer.command"),
+			FString(),
+			FText::Format(
+				LOCTEXT("StopDedicatedServerMissingMac", "Could not find StopDedicatedServer.command at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StopDedicatedServer.command")))),
+			TEXT("Failed to stop the dedicated servers."),
+			TEXT("StopDedicatedServers"));
+		#else
+		UE_LOG(LogAuraEditor, Warning, TEXT("Stop blocked: unsupported platform"));
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StopDedicatedServersUnsupported", "Stopping dedicated servers is not supported on this platform."));
+		return;
+		#endif
+
+		if (!bStopped)
+		{
+			return;
+		}
+
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StopAllDedicatedServersComplete", "Stop request sent for all launched dedicated server processes."));
 	}
 
 	void OnBuildClientClicked() const
