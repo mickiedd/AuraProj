@@ -62,6 +62,51 @@ struct FMonsterSpawnTableRow
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
 	float RespawnTime = 0.f;
 };
+
+USTRUCT(BlueprintType)
+struct FItemSpawnTransformData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FVector Location = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FRotator Rotation = FRotator::ZeroRotator;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FVector Scale = FVector(1.f, 1.f, 1.f);
+};
+
+USTRUCT(BlueprintType)
+struct FItemSpawnTableRow
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FString Id;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FString ItemKind;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FString MapName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FString ItemClassPath;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FString DestinationServer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	FItemSpawnTransformData Transform;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	bool bSpawnOnLoad = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
+	float RespawnTime = 0.f;
+};
 /**
  * 
  */
@@ -84,6 +129,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster Spawn")
 	FString MonsterSpawnTableFileName = TEXT("MonsterSpawnTable.json");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Item Spawn")
+	bool bEnableItemTableAutoSpawn = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Item Spawn")
+	FString ItemSpawnTableFileName = TEXT("ItemSpawnTable.json");
 
 	void SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex);
 	ULoadScreenSaveGame* GetSaveSlotData(const FString& SlotName, int32 SlotIndex) const;
@@ -134,6 +185,15 @@ protected:
 	UFUNCTION(BlueprintPure, Category = "Monster Spawn")
 	const TArray<FMonsterSpawnTableRow>& GetLoadedMonsterSpawnRows() const { return LoadedMonsterSpawnRows; }
 
+	UFUNCTION(BlueprintCallable, Category = "Item Spawn")
+	bool LoadItemSpawnTable();
+
+	UFUNCTION(BlueprintCallable, Category = "Item Spawn")
+	int32 SpawnItemsFromLoadedTable();
+
+	UFUNCTION(BlueprintPure, Category = "Item Spawn")
+	const TArray<FItemSpawnTableRow>& GetLoadedItemSpawnRows() const { return LoadedItemSpawnRows; }
+
 private:
 	FString BuildUniquePlayerName(const FString& RequestedName, const FString& DisambiguationToken = FString(), const APlayerState* ExcludedPlayerState = nullptr) const;
 	FString BuildConnectionDisambiguationToken(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId) const;
@@ -147,16 +207,28 @@ private:
 
 	UFUNCTION()
 	void OnSpawnedMonsterDestroyed(AActor* DestroyedActor);
+	bool ShouldSpawnItemRowForCurrentMap(const FItemSpawnTableRow& Row, const FString& CurrentMapName) const;
+	AActor* SpawnItemFromRow(const FItemSpawnTableRow& Row);
+
+	UFUNCTION()
+	void OnSpawnedItemDestroyed(AActor* DestroyedActor);
 
 	static bool TryParseCharacterClass(const FString& InValue, ECharacterClass& OutCharacterClass);
 	TSubclassOf<AAuraEnemy> ResolveMonsterClassFromPath(const FString& ClassPath) const;
+	TSubclassOf<AActor> ResolveItemClassFromPath(const FString& ClassPath) const;
 	TArray<FString> BuildCandidateMonsterSpawnTablePaths() const;
+	TArray<FString> BuildCandidateItemSpawnTablePaths() const;
 
 	UPROPERTY(VisibleAnywhere, Category = "Monster Spawn")
 	TArray<FMonsterSpawnTableRow> LoadedMonsterSpawnRows;
 
+	UPROPERTY(VisibleAnywhere, Category = "Item Spawn")
+	TArray<FItemSpawnTableRow> LoadedItemSpawnRows;
+
 	TMap<TWeakObjectPtr<AActor>, FMonsterSpawnTableRow> SpawnedMonsterRows;
+	TMap<TWeakObjectPtr<AActor>, FItemSpawnTableRow> SpawnedItemRows;
 
 	bool bMonsterSpawnTableLoaded = false;
+	bool bItemSpawnTableLoaded = false;
 	
 };

@@ -17,6 +17,7 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "Engine/NetConnection.h"
+#include "Actor/LevelJumpPortrail.h"
 #include "Character/AuraEnemy.h"
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
@@ -483,15 +484,16 @@ void AAuraGameModeBase::BeginPlay()
 	Super::BeginPlay();
 	Maps.Add(DefaultMapName, DefaultMap);
 
-	if (!bEnableMonsterTableAutoSpawn)
-	{
-		return;
-	}
-
-	if (LoadMonsterSpawnTable())
+	if (bEnableMonsterTableAutoSpawn && LoadMonsterSpawnTable())
 	{
 		const int32 SpawnedCount = SpawnMonstersFromLoadedTable();
 		UE_LOG(LogAura, Display, TEXT("Monster auto-spawn completed. Spawned %d monsters."), SpawnedCount);
+	}
+
+	if (bEnableItemTableAutoSpawn && LoadItemSpawnTable())
+	{
+		const int32 SpawnedItemCount = SpawnItemsFromLoadedTable();
+		UE_LOG(LogAura, Display, TEXT("Item auto-spawn completed. Spawned %d items."), SpawnedItemCount);
 	}
 }
 
@@ -845,6 +847,375 @@ TArray<FString> AAuraGameModeBase::BuildCandidateMonsterSpawnTablePaths() const
 	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), MonsterSpawnTableFileName));
 	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), MonsterSpawnTableFileName));
 	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectDir(), TEXT("Data"), MonsterSpawnTableFileName));
+
+	return CandidatePaths;
+}
+
+bool AAuraGameModeBase::LoadItemSpawnTable()
+{
+	LoadedItemSpawnRows.Reset();
+	SpawnedItemRows.Reset();
+	bItemSpawnTableLoaded = false;
+
+	const TArray<FString> CandidatePaths = BuildCandidateItemSpawnTablePaths();
+	FString JsonContent;
+	FString LoadedFromPath;
+
+	for (const FString& CandidatePath : CandidatePaths)
+	{
+		if (FPaths::FileExists(CandidatePath) && FFileHelper::LoadFileToString(JsonContent, *CandidatePath))
+		{
+			LoadedFromPath = CandidatePath;
+			break;
+		}
+	}
+
+	if (LoadedFromPath.IsEmpty())
+	{
+		UE_LOG(LogAura, Warning, TEXT("Item spawn table not found. Expected file '%s' in Config, Data, or Saved/Config."), *ItemSpawnTableFileName);
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> RootObject;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+	{
+		UE_LOG(LogAura, Error, TEXT("Failed to parse item spawn table JSON from %s"), *LoadedFromPath);
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* SpawnRowsJson = nullptr;
+	if (!RootObject->TryGetArrayField(TEXT("spawns"), SpawnRowsJson) && !RootObject->TryGetArrayField(TEXT("rows"), SpawnRowsJson))
+	{
+		UE_LOG(LogAura, Warning, TEXT("Item spawn table at %s does not contain a 'spawns' array."), *LoadedFromPath);
+		return false;
+	}
+
+	int32 ValidRows = 0;
+	for (int32 RowIndex = 0; RowIndex < SpawnRowsJson->Num(); ++RowIndex)
+	{
+		const TSharedPtr<FJsonObject> RowObject = (*SpawnRowsJson)[RowIndex].IsValid() ? (*SpawnRowsJson)[RowIndex]->AsObject() : nullptr;
+		if (!RowObject.IsValid())
+		{
+			UE_LOG(LogAura, Warning, TEXT("Item spawn row %d is invalid (not an object)."), RowIndex);
+			continue;
+		}
+
+		FItemSpawnTableRow Row;
+		RowObject->TryGetStringField(TEXT("id"), Row.Id);
+		RowObject->TryGetStringField(TEXT("itemKind"), Row.ItemKind);
+		if (Row.ItemKind.IsEmpty())
+		{
+			if (!RowObject->TryGetStringField(TEXT("itemType"), Row.ItemKind))
+			{
+				RowObject->TryGetStringField(TEXT("type"), Row.ItemKind);
+			}
+		}
+
+		RowObject->TryGetStringField(TEXT("mapName"), Row.MapName);
+		if (Row.MapName.IsEmpty())
+		{
+			RowObject->TryGetStringField(TEXT("map"), Row.MapName);
+		}
+
+		if (!RowObject->TryGetStringField(TEXT("itemClassPath"), Row.ItemClassPath))
+		{
+			RowObject->TryGetStringField(TEXT("classPath"), Row.ItemClassPath);
+		}
+
+		RowObject->TryGetStringField(TEXT("destinationServer"), Row.DestinationServer);
+
+		RowObject->TryGetBoolField(TEXT("spawnOnLoad"), Row.bSpawnOnLoad);
+
+		double RespawnTime = static_cast<double>(Row.RespawnTime);
+		if (RowObject->TryGetNumberField(TEXT("respawnTime"), RespawnTime))
+		{
+			Row.RespawnTime = FMath::Max(0.f, static_cast<float>(RespawnTime));
+		}
+
+		const TSharedPtr<FJsonObject>* TransformObject = nullptr;
+		if (RowObject->TryGetObjectField(TEXT("transform"), TransformObject) && TransformObject != nullptr && TransformObject->IsValid())
+		{
+			const TSharedPtr<FJsonObject>& Transform = *TransformObject;
+
+			const TSharedPtr<FJsonObject>* LocationObject = nullptr;
+			if (Transform->TryGetObjectField(TEXT("location"), LocationObject) && LocationObject != nullptr && LocationObject->IsValid())
+			{
+				double X = 0.0;
+				double Y = 0.0;
+				double Z = 0.0;
+				(*LocationObject)->TryGetNumberField(TEXT("x"), X);
+				(*LocationObject)->TryGetNumberField(TEXT("y"), Y);
+				(*LocationObject)->TryGetNumberField(TEXT("z"), Z);
+				Row.Transform.Location = FVector(static_cast<float>(X), static_cast<float>(Y), static_cast<float>(Z));
+			}
+
+			const TSharedPtr<FJsonObject>* RotationObject = nullptr;
+			if (Transform->TryGetObjectField(TEXT("rotation"), RotationObject) && RotationObject != nullptr && RotationObject->IsValid())
+			{
+				double Pitch = 0.0;
+				double Yaw = 0.0;
+				double Roll = 0.0;
+				(*RotationObject)->TryGetNumberField(TEXT("pitch"), Pitch);
+				(*RotationObject)->TryGetNumberField(TEXT("yaw"), Yaw);
+				(*RotationObject)->TryGetNumberField(TEXT("roll"), Roll);
+				Row.Transform.Rotation = FRotator(static_cast<float>(Pitch), static_cast<float>(Yaw), static_cast<float>(Roll));
+			}
+
+			const TSharedPtr<FJsonObject>* ScaleObject = nullptr;
+			if (Transform->TryGetObjectField(TEXT("scale"), ScaleObject) && ScaleObject != nullptr && ScaleObject->IsValid())
+			{
+				double X = 1.0;
+				double Y = 1.0;
+				double Z = 1.0;
+				(*ScaleObject)->TryGetNumberField(TEXT("x"), X);
+				(*ScaleObject)->TryGetNumberField(TEXT("y"), Y);
+				(*ScaleObject)->TryGetNumberField(TEXT("z"), Z);
+				Row.Transform.Scale = FVector(static_cast<float>(X), static_cast<float>(Y), static_cast<float>(Z));
+			}
+		}
+
+		if (Row.ItemClassPath.IsEmpty())
+		{
+			UE_LOG(LogAura, Warning, TEXT("Item spawn row %d is missing itemClassPath. Skipping."), RowIndex);
+			continue;
+		}
+
+		LoadedItemSpawnRows.Add(Row);
+		++ValidRows;
+	}
+
+	bItemSpawnTableLoaded = ValidRows > 0;
+	UE_LOG(LogAura, Display, TEXT("Loaded item spawn table from %s with %d valid rows."), *LoadedFromPath, ValidRows);
+	return bItemSpawnTableLoaded;
+}
+
+int32 AAuraGameModeBase::SpawnItemsFromLoadedTable()
+{
+	if (!HasAuthority())
+	{
+		UE_LOG(LogAura, Warning, TEXT("SpawnItemsFromLoadedTable called without authority. Ignoring."));
+		return 0;
+	}
+
+	if (!bItemSpawnTableLoaded)
+	{
+		UE_LOG(LogAura, Warning, TEXT("SpawnItemsFromLoadedTable called before table was loaded."));
+		return 0;
+	}
+
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		UE_LOG(LogAura, Error, TEXT("SpawnItemsFromLoadedTable failed because world is invalid."));
+		return 0;
+	}
+
+	FString CurrentMapName = World->GetMapName();
+	CurrentMapName.RemoveFromStart(World->StreamingLevelsPrefix);
+
+	int32 SpawnedCount = 0;
+	for (const FItemSpawnTableRow& Row : LoadedItemSpawnRows)
+	{
+		if (!Row.bSpawnOnLoad)
+		{
+			UE_LOG(LogAura, Verbose, TEXT("[ItemSpawn] Skipping row=%s because spawnOnLoad=false"), *Row.Id);
+			continue;
+		}
+
+		if (!ShouldSpawnItemRowForCurrentMap(Row, CurrentMapName))
+		{
+			UE_LOG(LogAura, Verbose, TEXT("[ItemSpawn] Skipping row=%s because map mismatch (row=%s current=%s)"),
+				*Row.Id,
+				*Row.MapName,
+				*CurrentMapName);
+			continue;
+		}
+
+		if (SpawnItemFromRow(Row) != nullptr)
+		{
+			++SpawnedCount;
+		}
+	}
+
+	UE_LOG(LogAura, Display, TEXT("[ItemSpawn] SpawnItemsFromLoadedTable completed. Spawned=%d Considered=%d Map=%s"),
+		SpawnedCount,
+		LoadedItemSpawnRows.Num(),
+		*CurrentMapName);
+
+	return SpawnedCount;
+}
+
+bool AAuraGameModeBase::ShouldSpawnItemRowForCurrentMap(const FItemSpawnTableRow& Row, const FString& CurrentMapName) const
+{
+	if (Row.MapName.IsEmpty())
+	{
+		return true;
+	}
+
+	return Row.MapName.Equals(CurrentMapName, ESearchCase::IgnoreCase);
+}
+
+AActor* AAuraGameModeBase::SpawnItemFromRow(const FItemSpawnTableRow& Row)
+{
+	if (!HasAuthority())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[ItemSpawn] SpawnItemFromRow called without authority for row=%s"), *Row.Id);
+		return nullptr;
+	}
+
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		UE_LOG(LogAura, Error, TEXT("[ItemSpawn] World invalid when spawning row=%s"), *Row.Id);
+		return nullptr;
+	}
+
+	const TSubclassOf<AActor> ItemClass = ResolveItemClassFromPath(Row.ItemClassPath);
+	if (!ItemClass)
+	{
+		UE_LOG(LogAura, Warning, TEXT("Failed to load item class '%s' for row '%s'."), *Row.ItemClassPath, *Row.Id);
+		return nullptr;
+	}
+
+	const AActor* ItemClassCDO = ItemClass->GetDefaultObject<AActor>();
+	const bool bClassReplicates = IsValid(ItemClassCDO) ? ItemClassCDO->GetIsReplicated() : false;
+	const bool bClassReplicateMovement = IsValid(ItemClassCDO) ? ItemClassCDO->IsReplicatingMovement() : false;
+
+	const FTransform SpawnTransform(Row.Transform.Rotation, Row.Transform.Location, Row.Transform.Scale);
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	AActor* SpawnedItem = World->SpawnActor<AActor>(ItemClass, SpawnTransform, SpawnParams);
+
+	if (!IsValid(SpawnedItem))
+	{
+		UE_LOG(LogAura, Warning, TEXT("Failed to spawn item for row '%s'."), *Row.Id);
+		return nullptr;
+	}
+
+	if (!SpawnedItem->GetIsReplicated())
+	{
+		SpawnedItem->SetReplicates(true);
+		UE_LOG(LogAura, Warning, TEXT("[ItemSpawn] row=%s class=%s was non-replicated at spawn; forcing SetReplicates(true). Check BP class defaults."),
+			*Row.Id,
+			*GetNameSafe(ItemClass));
+	}
+
+	if (bClassReplicateMovement)
+	{
+		SpawnedItem->SetReplicateMovement(true);
+	}
+
+	if (ALevelJumpPortrail* JumpPortrail = Cast<ALevelJumpPortrail>(SpawnedItem))
+	{
+		JumpPortrail->DestinationServer = Row.DestinationServer;
+	}
+
+	UE_LOG(LogAura, Display, TEXT("[ItemSpawn] Spawned row=%s kind=%s actor=%s class=%s location=%s destinationServer=%s classReplicates=%s classRepMove=%s actorReplicates=%s actorRepMove=%s role=%d"),
+		*Row.Id,
+		*Row.ItemKind,
+		*GetNameSafe(SpawnedItem),
+		*GetNameSafe(ItemClass),
+		*SpawnTransform.GetLocation().ToCompactString(),
+		*Row.DestinationServer,
+		bClassReplicates ? TEXT("true") : TEXT("false"),
+		bClassReplicateMovement ? TEXT("true") : TEXT("false"),
+		SpawnedItem->GetIsReplicated() ? TEXT("true") : TEXT("false"),
+		SpawnedItem->IsReplicatingMovement() ? TEXT("true") : TEXT("false"),
+		(int32)SpawnedItem->GetLocalRole());
+
+	if (Row.RespawnTime > 0.f)
+	{
+		SpawnedItemRows.Add(TWeakObjectPtr<AActor>(SpawnedItem), Row);
+		SpawnedItem->OnDestroyed.AddDynamic(this, &AAuraGameModeBase::OnSpawnedItemDestroyed);
+	}
+
+	return SpawnedItem;
+}
+
+void AAuraGameModeBase::OnSpawnedItemDestroyed(AActor* DestroyedActor)
+{
+	if (!HasAuthority() || !IsValid(DestroyedActor))
+	{
+		return;
+	}
+
+	FItemSpawnTableRow SpawnRow;
+	if (!SpawnedItemRows.RemoveAndCopyValue(TWeakObjectPtr<AActor>(DestroyedActor), SpawnRow))
+	{
+		return;
+	}
+
+	if (SpawnRow.RespawnTime <= 0.f)
+	{
+		return;
+	}
+
+	FTimerDelegate RespawnDelegate;
+	RespawnDelegate.BindLambda([this, SpawnRow]()
+	{
+		if (!HasAuthority())
+		{
+			return;
+		}
+
+		UWorld* World = GetWorld();
+		if (!IsValid(World) || World->bIsTearingDown)
+		{
+			return;
+		}
+
+		FString CurrentMapName = World->GetMapName();
+		CurrentMapName.RemoveFromStart(World->StreamingLevelsPrefix);
+		if (!ShouldSpawnItemRowForCurrentMap(SpawnRow, CurrentMapName))
+		{
+			return;
+		}
+
+		SpawnItemFromRow(SpawnRow);
+	});
+
+	FTimerHandle RespawnTimerHandle;
+	GetWorldTimerManager().SetTimer(RespawnTimerHandle, RespawnDelegate, SpawnRow.RespawnTime, false);
+}
+
+TSubclassOf<AActor> AAuraGameModeBase::ResolveItemClassFromPath(const FString& ClassPath) const
+{
+	if (ClassPath.IsEmpty())
+	{
+		return nullptr;
+	}
+
+	FString NormalizedPath = ClassPath;
+	if (ClassPath.StartsWith(TEXT("/Game/")) && !ClassPath.EndsWith(TEXT("_C")))
+	{
+		const FString AssetName = FPackageName::GetShortName(ClassPath);
+		NormalizedPath = FString::Printf(TEXT("%s.%s_C"), *ClassPath, *AssetName);
+	}
+
+	TSoftClassPtr<AActor> SoftClass{FSoftObjectPath(NormalizedPath)};
+	UClass* LoadedClass = SoftClass.LoadSynchronous();
+	if (!LoadedClass)
+	{
+		LoadedClass = StaticLoadClass(AActor::StaticClass(), nullptr, *NormalizedPath);
+	}
+
+	if (LoadedClass && LoadedClass->IsChildOf(AActor::StaticClass()))
+	{
+		return LoadedClass;
+	}
+
+	return nullptr;
+}
+
+TArray<FString> AAuraGameModeBase::BuildCandidateItemSpawnTablePaths() const
+{
+	TArray<FString> CandidatePaths;
+	CandidatePaths.Reserve(3);
+
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), ItemSpawnTableFileName));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), ItemSpawnTableFileName));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectDir(), TEXT("Data"), ItemSpawnTableFileName));
 
 	return CandidatePaths;
 }

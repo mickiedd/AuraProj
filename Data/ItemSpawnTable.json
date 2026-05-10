@@ -1,0 +1,18 @@
+{
+  "spawns": [
+    {
+      "id": "Dungeon1_JumpPortrail_01",
+      "itemKind": "JumpPortrail",
+      "mapName": "map_dungeon_level_1_dungeon",
+      "itemClassPath": "/Game/Blueprints/Items/BP_LevelJumpPortrail",
+      "destinationServer": "192.168.1.6:7779",
+      "spawnOnLoad": true,
+      "respawnTime": 0.0,
+      "transform": {
+        "location": { "x": -809.8, "y": 1581.0, "z": 1312.0 },
+        "rotation": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 },
+        "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
+      }
+    }
+  ]
+}
