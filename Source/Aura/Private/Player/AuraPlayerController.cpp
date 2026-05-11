@@ -35,6 +35,63 @@ AAuraPlayerController::AAuraPlayerController()
 	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
 }
 
+void AAuraPlayerController::ShiftPressed()
+{
+	bShiftKeyDown = true;
+}
+
+void AAuraPlayerController::ShiftReleased()
+{
+	bShiftKeyDown = false;
+
+	if (bIsSprinting)
+	{
+		bIsSprinting = false;
+		ApplySprintState(false);
+		if (!HasAuthority())
+		{
+			ServerSetSprinting(false);
+		}
+	}
+}
+
+void AAuraPlayerController::ServerSetSprinting_Implementation(bool bShouldSprint)
+{
+	bIsSprinting = bShouldSprint;
+	ApplySprintState(bShouldSprint);
+}
+
+void AAuraPlayerController::ApplySprintState(bool bShouldSprint)
+{
+	UCharacterMovementComponent* CharacterMovement = GetControlledCharacterMovement();
+	if (!IsValid(CharacterMovement))
+	{
+		return;
+	}
+
+	if (CachedWalkSpeed <= 0.f)
+	{
+		CachedWalkSpeed = CharacterMovement->MaxWalkSpeed;
+	}
+
+	const float SprintMultiplier = FMath::Max(1.f, SprintSpeedMultiplier);
+	const float TargetSpeed = bShouldSprint ? CachedWalkSpeed * SprintMultiplier : CachedWalkSpeed;
+	if (!FMath::IsNearlyEqual(CharacterMovement->MaxWalkSpeed, TargetSpeed))
+	{
+		CharacterMovement->MaxWalkSpeed = TargetSpeed;
+	}
+}
+
+UCharacterMovementComponent* AAuraPlayerController::GetControlledCharacterMovement() const
+{
+	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
+	{
+		return ControlledCharacter->GetCharacterMovement();
+	}
+
+	return nullptr;
+}
+
 void AAuraPlayerController::FullAbilities()
 {
 	UE_LOG(LogAura, Log, TEXT("FullAbilities command invoked on %s. HasAuthority=%s Pawn=%s"),
@@ -385,6 +442,11 @@ void AAuraPlayerController::BeginPlay()
 	Super::BeginPlay();
 	check(AuraContext);
 
+	if (UCharacterMovementComponent* CharacterMovement = GetControlledCharacterMovement())
+	{
+		CachedWalkSpeed = CharacterMovement->MaxWalkSpeed;
+	}
+
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
 	if (Subsystem)
 	{
@@ -428,6 +490,17 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 		return;
 	}
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
+	const bool bShouldSprint = bShiftKeyDown && !InputAxisVector.IsNearlyZero();
+	if (bShouldSprint != bIsSprinting)
+	{
+		bIsSprinting = bShouldSprint;
+		ApplySprintState(bIsSprinting);
+		if (!HasAuthority())
+		{
+			ServerSetSprinting(bIsSprinting);
+		}
+	}
+
 	const FRotator Rotation = GetControlRotation();
 	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 

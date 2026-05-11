@@ -19,6 +19,7 @@ class UAuraAbilitySystemComponent;
 class UAuraAttributeSet;
 class USplineComponent;
 class AMagicCircle;
+class UCharacterMovementComponent;
 
 enum class ETargetingStatus : uint8
 {
@@ -75,8 +76,20 @@ private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> ShiftAction;
 
-	void ShiftPressed() { bShiftKeyDown = true; };
-	void ShiftReleased() { bShiftKeyDown = false; };
+	void ShiftPressed();
+	void ShiftReleased();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetSprinting(bool bShouldSprint);
+
+	void ApplySprintState(bool bShouldSprint);
+	UCharacterMovementComponent* GetControlledCharacterMovement() const;
+
+	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	float SprintSpeedMultiplier = 1.5f;
+
+	float CachedWalkSpeed = 0.f;
+	bool bIsSprinting = false;
 	bool bShiftKeyDown = false;
 
 	void Move(const FInputActionValue& InputActionValue);
