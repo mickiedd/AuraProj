@@ -1,6 +1,8 @@
 {
+  "gameServerPort": 9000,
   "levels": [
     {
+      "id": "dungeon_level_1",
       "displayName": "Dungeon Level 1",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_1_dungeon",
       "port": 7778,
@@ -14,6 +16,7 @@
       ]
     },
     {
+      "id": "dungeon_level_2",
       "displayName": "Dungeon Level 2",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_2_entrance",
       "port": 7779,
@@ -27,6 +30,7 @@
       ]
     },
     {
+      "id": "dungeon_level_3",
       "displayName": "Dungeon Level 3",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_3_hall",
       "port": 7780,
@@ -40,6 +44,7 @@
       ]
     },
     {
+      "id": "dungeon_level_4",
       "displayName": "Dungeon Level 4",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_4_temple",
       "port": 7781,
@@ -53,6 +58,7 @@
       ]
     },
     {
+      "id": "dungeon_level_5",
       "displayName": "Dungeon Level 5",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_5_bossroom",
       "port": 7782,

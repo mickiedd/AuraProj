@@ -12,10 +12,12 @@
  * Handles client-side auto-connection to dedicated server.
  */
 
+class UGameServerClient;
 class ULoginConnectingWidget;
 class ULoginMenuWidget;
 class UWorld;
 class UNetDriver;
+struct FGameServerResponse;
 
 /**
  * Player controller for the Login map.
@@ -37,27 +39,62 @@ public:
 	void HandleNetworkFailure(UWorld* InWorld, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 
 	void ShowLoginMenuStatusMessage(const FString& InMessage);
-	void HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, int32 SelectedServerPort);
-	void RequestLoginMenuConnect(const FString& SelectedDisplayName, int32 SelectedServerPort);
+
+	/**
+	 * Called when the user selects a level in the login menu.
+	 * @param SelectedDisplayName  Human-readable level name.
+	 * @param SelectedLevelId      Level id string (from LevelConfig.json "id" field).
+	 * @param FallbackPort         Port from LevelConfig used if the game server is unreachable.
+	 */
+	void HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, const FString& SelectedLevelId, int32 FallbackPort);
+
+	/**
+	 * Called when the user clicks Connect.
+	 * Queries the Game Server Manager for the dedicated server endpoint, then connects.
+	 * Falls back to the fixed port from LevelConfig if the game server is unreachable.
+	 */
+	void RequestLoginMenuConnect(const FString& SelectedDisplayName, const FString& SelectedLevelId, int32 FallbackPort);
 
 protected:
 	/**
-	 * Server host or IP to connect to.
-	 * Example: 127.0.0.1
+	 * Dedicated server host or IP to connect to.
+	 * Set from ServerConnection.json at runtime; defaults to 127.0.0.1.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection")
 	FString ServerAddress = TEXT("127.0.0.1");
 
 	/**
-	 * Server port to connect to.
-	 * This is set from the selected LevelConfig entry at runtime.
+	 * Dedicated server port.
+	 * Overwritten at runtime with the port returned by the Game Server Manager
+	 * (or the LevelConfig fallback port when the game server is unreachable).
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection", meta=(ClampMin="1", ClampMax="65535"))
 	int32 ServerPort = 7777;
 
 	/**
+	 * Hostname or IP of the Game Server Manager.
+	 * Defaults to the same address as ServerAddress; can be overridden in
+	 * ServerConnection.json via "gameServerAddress".
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Game Server Manager")
+	FString GameServerAddress = TEXT("127.0.0.1");
+
+	/**
+	 * TCP port the Game Server Manager listens on.
+	 * Read from ServerConnection.json "gameServerPort"; defaults to 9000.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Game Server Manager", meta=(ClampMin="1", ClampMax="65535"))
+	int32 GameServerPort = 9000;
+
+	/**
+	 * Timeout (seconds) for the TCP query to the Game Server Manager.
+	 * Should be long enough to cover dedicated server startup grace time.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Game Server Manager", meta=(ClampMin="5.0", ClampMax="120.0"))
+	float GameServerQueryTimeout = 35.0f;
+
+	/**
 	 * JSON file name searched under Saved/Config first, then Config.
-	 * Only server address is read from this file.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Server Connection")
 	FString ConnectionConfigFileName = TEXT("ServerConnection.json");
@@ -87,6 +124,9 @@ protected:
 	void EnsureConnectingWidget();
 	void EnsureLoginScreenWidget();
 
+	/** Callback from UGameServerClient fired on the game thread. */
+	void OnGameServerResponse(const FGameServerResponse& Response);
+
 	bool LoadServerConnectionFromJson();
 	FString BuildServerEndpoint() const;
 	FString BuildConnectingStatusMessage() const;
@@ -95,6 +135,15 @@ protected:
 	 * Flag to ensure we only attempt connection once.
 	 */
 	bool bConnectionAttempted = false;
+
+	/** True while a Game Server Manager TCP query is in flight. */
+	bool bQueryingGameServer = false;
+
+	/** Level id selected by the user; sent to the Game Server Manager. */
+	FString SelectedLevelId;
+
+	/** Fallback port from LevelConfig, used if the game server is unreachable. */
+	int32 SelectedFallbackPort = 0;
 
 	/**
 	 * True while waiting for a successful map travel or a failure callback.
@@ -129,6 +178,10 @@ protected:
 	 */
 	UPROPERTY()
 	TObjectPtr<ULoginConnectingWidget> ConnectingWidget;
+
+	/** Active game server TCP query client. Replaced on each connect attempt. */
+	UPROPERTY()
+	TObjectPtr<UGameServerClient> GameServerClient;
 
 	/**
 	 * Timer handle for the connection delay.

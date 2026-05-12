@@ -36,6 +36,7 @@ private:
 	struct FLoginMenuServerTarget
 	{
 		FString DisplayName;
+		FString LevelId;
 		FString MapPath;
 		int32 ServerPort = 0;
 		int32 QueryPort = 0;

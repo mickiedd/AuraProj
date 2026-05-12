@@ -96,7 +96,7 @@ struct FItemSpawnTableRow
 	FString ItemClassPath;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
-	FString DestinationServer;
+	FString DestinationServerId;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Spawn")
 	FItemSpawnTransformData Transform;
@@ -176,6 +176,21 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	/**
+	 * On dedicated server, notify GSM that this map is fully loaded and accepting clients.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Dedicated Server|GSM")
+	bool bNotifyGameServerManagerWhenReady = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dedicated Server|GSM", meta = (ClampMin = "0.1", ClampMax = "30.0"))
+	float GameServerReadyNotifyInitialDelaySeconds = 1.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dedicated Server|GSM", meta = (ClampMin = "0.5", ClampMax = "30.0"))
+	float GameServerReadyNotifyRetryIntervalSeconds = 2.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dedicated Server|GSM", meta = (ClampMin = "1", ClampMax = "60"))
+	int32 GameServerReadyNotifyMaxAttempts = 10;
+
 	UFUNCTION(BlueprintCallable, Category = "Monster Spawn")
 	bool LoadMonsterSpawnTable();
 
@@ -213,6 +228,10 @@ private:
 	UFUNCTION()
 	void OnSpawnedItemDestroyed(AActor* DestroyedActor);
 
+	void HandleDedicatedServerReadyNotify();
+	bool TryBuildDedicatedServerReadyContext(FString& OutLevelId, int32& OutServerPort, FString& OutGameServerAddress, int32& OutGameServerPort) const;
+	bool SendDedicatedServerReadyToGameServer(const FString& GameServerAddress, int32 GameServerPort, const FString& LevelId, int32 ServerPort) const;
+
 	static bool TryParseCharacterClass(const FString& InValue, ECharacterClass& OutCharacterClass);
 	TSubclassOf<AAuraEnemy> ResolveMonsterClassFromPath(const FString& ClassPath) const;
 	TSubclassOf<AActor> ResolveItemClassFromPath(const FString& ClassPath) const;
@@ -230,5 +249,7 @@ private:
 
 	bool bMonsterSpawnTableLoaded = false;
 	bool bItemSpawnTableLoaded = false;
+	int32 DedicatedServerReadyNotifyAttempts = 0;
+	FTimerHandle DedicatedServerReadyNotifyTimerHandle;
 	
 };

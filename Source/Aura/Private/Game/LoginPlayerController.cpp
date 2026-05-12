@@ -1,6 +1,7 @@
 // Copyright Druid Mechanics
 
 #include "Game/LoginPlayerController.h"
+#include "Game/GameServerClient.h"
 #include "UObject/SoftObjectPath.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
@@ -91,6 +92,7 @@ void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 
 	bWaitingForConnectionResponse = false;
+	bQueryingGameServer = false;
 	UnbindConnectionFailureDelegates();
 
 	if (ConnectingWidget && IsValid(ConnectingWidget))
@@ -148,37 +150,71 @@ void ALoginPlayerController::ShowLoginMenuStatusMessage(const FString& InMessage
 	UpdateConnectingStatus(InMessage);
 }
 
-void ALoginPlayerController::HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, int32 SelectedServerPort)
+void ALoginPlayerController::HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, const FString& InSelectedLevelId, int32 FallbackPort)
 {
-	if (SelectedDisplayName.IsEmpty() || SelectedServerPort < 1 || SelectedServerPort > 65535)
+	if (SelectedDisplayName.IsEmpty() || InSelectedLevelId.IsEmpty() || FallbackPort < 1 || FallbackPort > 65535)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Login menu selection is invalid: name=%s port=%d"), *SelectedDisplayName, SelectedServerPort);
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Login menu selection is invalid: name=%s levelId=%s fallbackPort=%d"),
+			*SelectedDisplayName, *InSelectedLevelId, FallbackPort);
 		return;
 	}
 
-	ServerPort = SelectedServerPort;
+	this->SelectedLevelId = InSelectedLevelId;
+	SelectedFallbackPort = FallbackPort;
+	ServerPort = FallbackPort;
 	UpdateConnectingStatus(FString::Printf(TEXT("Selected server: %s (%s)"), *SelectedDisplayName, *BuildServerEndpoint()));
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Selected server target: %s -> %s"), *SelectedDisplayName, *BuildServerEndpoint());
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Selected server target: %s -> levelId=%s fallbackPort=%d"),
+		*SelectedDisplayName, *InSelectedLevelId, FallbackPort);
 }
 
-void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisplayName, int32 SelectedServerPort)
+void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisplayName, const FString& InSelectedLevelId, int32 FallbackPort)
 {
 	if (!IsLocalPlayerController())
 	{
 		return;
 	}
 
-	if (SelectedDisplayName.IsEmpty() || SelectedServerPort < 1 || SelectedServerPort > 65535)
+	if (SelectedDisplayName.IsEmpty() || InSelectedLevelId.IsEmpty() || FallbackPort < 1 || FallbackPort > 65535)
 	{
 		EnsureConnectingWidget();
 		UpdateConnectingStatus(TEXT("Select a level before connecting."));
 		return;
 	}
 
-	HandleLoginMenuSelectionChanged(SelectedDisplayName, SelectedServerPort);
+	if (bQueryingGameServer)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] RequestLoginMenuConnect: already querying game server, ignoring duplicate request"));
+		return;
+	}
+
+	HandleLoginMenuSelectionChanged(SelectedDisplayName, InSelectedLevelId, FallbackPort);
 	bConnectionAttempted = true;
 	EnsureConnectingWidget();
-	ExecuteClientConnect();
+	UpdateConnectingStatus(FString::Printf(TEXT("Contacting game server for '%s'..."), *SelectedDisplayName));
+
+	const FString GSAddress = GameServerAddress.IsEmpty() ? ServerAddress : GameServerAddress;
+
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Querying Game Server Manager at %s:%d for levelId='%s'"),
+		*GSAddress, GameServerPort, *InSelectedLevelId);
+
+	bQueryingGameServer = true;
+
+	// Create a fresh client object for this attempt.
+	GameServerClient = NewObject<UGameServerClient>(this);
+
+	TWeakObjectPtr<ALoginPlayerController> WeakThis(this);
+	GameServerClient->RequestServer(
+		GSAddress,
+		GameServerPort,
+		InSelectedLevelId,
+		GameServerQueryTimeout,
+		FOnGameServerResponse::CreateLambda([WeakThis](const FGameServerResponse& Response)
+		{
+			if (ALoginPlayerController* PC = WeakThis.Get())
+			{
+				PC->OnGameServerResponse(Response);
+			}
+		}));
 }
 
 void ALoginPlayerController::EnsureConnectingWidget()
@@ -306,6 +342,58 @@ void ALoginPlayerController::ExecuteClientConnect()
 	}
 }
 
+void ALoginPlayerController::OnGameServerResponse(const FGameServerResponse& Response)
+{
+	bQueryingGameServer = false;
+
+	if (!IsLocalPlayerController())
+	{
+		return;
+	}
+
+	if (Response.bSuccess)
+	{
+		// Use the host:port returned by the Game Server Manager.
+		ServerAddress = Response.Host;
+		ServerPort = Response.Port;
+
+		UE_LOG(LogTemp, Display, TEXT("[LoginConn] Game server assigned DS at %s:%d for levelId='%s'"),
+			*ServerAddress, ServerPort, *SelectedLevelId);
+
+		EnsureConnectingWidget();
+		ExecuteClientConnect();
+	}
+	else
+	{
+		// Fall back to the fixed port from LevelConfig.
+		if (SelectedFallbackPort >= 1 && SelectedFallbackPort <= 65535)
+		{
+			ServerPort = SelectedFallbackPort;
+
+			UE_LOG(LogTemp, Warning,
+				TEXT("[LoginConn] Game server query failed (%s); falling back to fixed port %d"),
+				*Response.ErrorMessage, SelectedFallbackPort);
+
+			const FString FallbackMsg = FString::Printf(
+				TEXT("Game server unavailable (%s). Connecting with fixed port %d..."),
+				*Response.ErrorMessage, SelectedFallbackPort);
+
+			EnsureConnectingWidget();
+			UpdateConnectingStatus(FallbackMsg);
+			ExecuteClientConnect();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error,
+				TEXT("[LoginConn] Game server query failed and no valid fallback port: %s"), *Response.ErrorMessage);
+
+			EnsureConnectingWidget();
+			UpdateConnectingStatus(FString::Printf(
+				TEXT("Could not reach game server: %s"), *Response.ErrorMessage));
+		}
+	}
+}
+
 bool ALoginPlayerController::LoadServerConnectionFromJson()
 {
 	TArray<FString> CandidatePaths;
@@ -369,9 +457,41 @@ bool ALoginPlayerController::LoadServerConnectionFromJson()
 		UE_LOG(LogTemp, Display, TEXT("[LoginConn] Ignoring serverPort/port in %s; LevelConfig selection controls the port."), *LoadedFromPath);
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Loaded server connection config from %s -> Address=%s (port from LevelConfig selection)"),
-		*LoadedFromPath,
-		*ServerAddress);
+	// Read Game Server Manager address (optional; defaults to serverAddress).
+	FString ConfigGSAddress;
+	if (RootObject->TryGetStringField(TEXT("gameServerAddress"), ConfigGSAddress))
+	{
+		ConfigGSAddress.TrimStartAndEndInline();
+		if (!ConfigGSAddress.IsEmpty())
+		{
+			GameServerAddress = ConfigGSAddress;
+		}
+	}
+	else
+	{
+		// Default game server address to the same host as the dedicated servers.
+		GameServerAddress = ServerAddress;
+	}
+
+	// Read Game Server Manager port.
+	double ConfigGSPort = 0.0;
+	if (RootObject->TryGetNumberField(TEXT("gameServerPort"), ConfigGSPort))
+	{
+		const int32 ParsedGSPort = static_cast<int32>(ConfigGSPort);
+		if (ParsedGSPort >= 1 && ParsedGSPort <= 65535)
+		{
+			GameServerPort = ParsedGSPort;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[LoginConn] gameServerPort %d out of range in %s; using default %d"),
+				ParsedGSPort, *LoadedFromPath, GameServerPort);
+		}
+	}
+
+	UE_LOG(LogTemp, Display,
+		TEXT("[LoginConn] Loaded server connection config from %s -> ServerAddress=%s  GameServer=%s:%d"),
+		*LoadedFromPath, *ServerAddress, *GameServerAddress, GameServerPort);
 
 	return true;
 }

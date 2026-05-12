@@ -17,14 +17,21 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "Engine/NetConnection.h"
+#include "Engine/Level.h"
+#include "Engine/World.h"
 #include "Actor/LevelJumpPortrail.h"
 #include "Character/AuraEnemy.h"
 #include "Dom/JsonObject.h"
+#include "IPAddress.h"
 #include "Misc/FileHelper.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Misc/PackageName.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "SocketSubsystem.h"
+#include "Sockets.h"
 
 void AAuraGameModeBase::SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex)
 {
@@ -495,6 +502,312 @@ void AAuraGameModeBase::BeginPlay()
 		const int32 SpawnedItemCount = SpawnItemsFromLoadedTable();
 		UE_LOG(LogAura, Display, TEXT("Item auto-spawn completed. Spawned %d items."), SpawnedItemCount);
 	}
+
+	if (bNotifyGameServerManagerWhenReady && GetNetMode() == NM_DedicatedServer)
+	{
+		DedicatedServerReadyNotifyAttempts = 0;
+		GetWorldTimerManager().SetTimer(
+			DedicatedServerReadyNotifyTimerHandle,
+			this,
+			&AAuraGameModeBase::HandleDedicatedServerReadyNotify,
+			FMath::Max(0.1f, GameServerReadyNotifyInitialDelaySeconds),
+			false);
+
+		UE_LOG(LogAura, Display, TEXT("[GSM-Ready] Dedicated server ready notification scheduled (initialDelay=%.2fs)."),
+			GameServerReadyNotifyInitialDelaySeconds);
+	}
+}
+
+void AAuraGameModeBase::HandleDedicatedServerReadyNotify()
+{
+	if (GetNetMode() != NM_DedicatedServer)
+	{
+		return;
+	}
+
+	++DedicatedServerReadyNotifyAttempts;
+
+	FString LevelId;
+	FString GameServerAddress;
+	int32 ServerPort = 0;
+	int32 GameServerPort = 0;
+
+	if (!TryBuildDedicatedServerReadyContext(LevelId, ServerPort, GameServerAddress, GameServerPort))
+	{
+		UE_LOG(LogAura, Warning,
+			TEXT("[GSM-Ready] Attempt %d/%d: failed to build ready context."),
+			DedicatedServerReadyNotifyAttempts,
+			GameServerReadyNotifyMaxAttempts);
+	}
+	else if (SendDedicatedServerReadyToGameServer(GameServerAddress, GameServerPort, LevelId, ServerPort))
+	{
+		UE_LOG(LogAura, Display,
+			TEXT("[GSM-Ready] Notification succeeded on attempt %d/%d (levelId=%s serverPort=%d gsm=%s:%d)."),
+			DedicatedServerReadyNotifyAttempts,
+			GameServerReadyNotifyMaxAttempts,
+			*LevelId,
+			ServerPort,
+			*GameServerAddress,
+			GameServerPort);
+		return;
+	}
+
+	if (DedicatedServerReadyNotifyAttempts < FMath::Max(1, GameServerReadyNotifyMaxAttempts))
+	{
+		GetWorldTimerManager().SetTimer(
+			DedicatedServerReadyNotifyTimerHandle,
+			this,
+			&AAuraGameModeBase::HandleDedicatedServerReadyNotify,
+			FMath::Max(0.5f, GameServerReadyNotifyRetryIntervalSeconds),
+			false);
+
+		UE_LOG(LogAura, Warning,
+			TEXT("[GSM-Ready] Scheduling retry in %.2fs (attempt %d/%d)."),
+			GameServerReadyNotifyRetryIntervalSeconds,
+			DedicatedServerReadyNotifyAttempts + 1,
+			GameServerReadyNotifyMaxAttempts);
+	}
+	else
+	{
+		UE_LOG(LogAura, Error,
+			TEXT("[GSM-Ready] Exhausted ready-notify retries (%d attempts)."),
+			DedicatedServerReadyNotifyAttempts);
+	}
+}
+
+bool AAuraGameModeBase::TryBuildDedicatedServerReadyContext(FString& OutLevelId, int32& OutServerPort, FString& OutGameServerAddress, int32& OutGameServerPort) const
+{
+	OutLevelId.Empty();
+	OutServerPort = 0;
+	OutGameServerAddress = TEXT("127.0.0.1");
+	OutGameServerPort = 9000;
+
+	if (!GetWorld() || !GetWorld()->PersistentLevel || !GetWorld()->PersistentLevel->GetOutermost())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[GSM-Ready] World or level package is invalid."));
+		return false;
+	}
+
+	const FString CurrentMapPath = GetWorld()->PersistentLevel->GetOutermost()->GetName();
+	if (CurrentMapPath.IsEmpty())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[GSM-Ready] Current map path is empty."));
+		return false;
+	}
+
+	if (!FParse::Value(FCommandLine::Get(), TEXT("port="), OutServerPort) || OutServerPort < 1 || OutServerPort > 65535)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[GSM-Ready] Could not parse valid -port from command line: %s"), FCommandLine::Get());
+		return false;
+	}
+
+	const FString LevelConfigPath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("LevelConfig.json"));
+	FString LevelConfigJson;
+	if (!FFileHelper::LoadFileToString(LevelConfigJson, *LevelConfigPath))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[GSM-Ready] Failed to read LevelConfig: %s"), *LevelConfigPath);
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> LevelConfigRoot;
+	if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(LevelConfigJson), LevelConfigRoot) || !LevelConfigRoot.IsValid())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[GSM-Ready] Failed to parse LevelConfig JSON: %s"), *LevelConfigPath);
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* LevelsArray = nullptr;
+	if (!LevelConfigRoot->TryGetArrayField(TEXT("levels"), LevelsArray) || LevelsArray == nullptr)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[GSM-Ready] LevelConfig has no levels array: %s"), *LevelConfigPath);
+		return false;
+	}
+
+	for (const TSharedPtr<FJsonValue>& LevelValue : *LevelsArray)
+	{
+		const TSharedPtr<FJsonObject> LevelObject = LevelValue.IsValid() ? LevelValue->AsObject() : nullptr;
+		if (!LevelObject.IsValid())
+		{
+			continue;
+		}
+
+		FString MapPath;
+		FString LevelId;
+		if (!LevelObject->TryGetStringField(TEXT("mapPath"), MapPath) || !LevelObject->TryGetStringField(TEXT("id"), LevelId))
+		{
+			continue;
+		}
+
+		if (MapPath.Equals(CurrentMapPath, ESearchCase::IgnoreCase))
+		{
+			OutLevelId = LevelId;
+			break;
+		}
+	}
+
+	if (OutLevelId.IsEmpty())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[GSM-Ready] Could not resolve levelId for map '%s' from LevelConfig."), *CurrentMapPath);
+		return false;
+	}
+
+	const FString ConnectionConfigPath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("ServerConnection.json"));
+	FString ConnectionJson;
+	if (FFileHelper::LoadFileToString(ConnectionJson, *ConnectionConfigPath))
+	{
+		TSharedPtr<FJsonObject> ConnectionRoot;
+		if (FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(ConnectionJson), ConnectionRoot) && ConnectionRoot.IsValid())
+		{
+			FString ParsedAddress;
+			if (ConnectionRoot->TryGetStringField(TEXT("gameServerAddress"), ParsedAddress) ||
+				ConnectionRoot->TryGetStringField(TEXT("serverAddress"), ParsedAddress))
+			{
+				ParsedAddress.TrimStartAndEndInline();
+				if (!ParsedAddress.IsEmpty())
+				{
+					OutGameServerAddress = ParsedAddress;
+				}
+			}
+
+			double ParsedGameServerPort = 0.0;
+			if (ConnectionRoot->TryGetNumberField(TEXT("gameServerPort"), ParsedGameServerPort))
+			{
+				const int32 PortValue = static_cast<int32>(ParsedGameServerPort);
+				if (PortValue >= 1 && PortValue <= 65535)
+				{
+					OutGameServerPort = PortValue;
+				}
+			}
+		}
+	}
+
+	UE_LOG(LogAura, Display,
+		TEXT("[GSM-Ready] Built context levelId=%s map=%s serverPort=%d gsm=%s:%d"),
+		*OutLevelId,
+		*CurrentMapPath,
+		OutServerPort,
+		*OutGameServerAddress,
+		OutGameServerPort);
+
+	return true;
+}
+
+bool AAuraGameModeBase::SendDedicatedServerReadyToGameServer(const FString& GameServerAddress, int32 GameServerPort, const FString& LevelId, int32 ServerPort) const
+{
+	ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
+	if (!SocketSubsystem)
+	{
+		UE_LOG(LogAura, Error, TEXT("[GSM-Ready] Socket subsystem unavailable."));
+		return false;
+	}
+
+	bool bIsValidIp = false;
+	TSharedRef<FInternetAddr> Address = SocketSubsystem->CreateInternetAddr();
+	Address->SetIp(*GameServerAddress, bIsValidIp);
+	if (!bIsValidIp)
+	{
+		const FAddressInfoResult AddressInfo = SocketSubsystem->GetAddressInfo(*GameServerAddress, nullptr, EAddressInfoFlags::Default, NAME_None);
+		if (AddressInfo.ReturnCode != SE_NO_ERROR || AddressInfo.Results.IsEmpty())
+		{
+			UE_LOG(LogAura, Error, TEXT("[GSM-Ready] DNS resolve failed for GSM host '%s' (code=%d)."), *GameServerAddress, AddressInfo.ReturnCode);
+			return false;
+		}
+		Address = AddressInfo.Results[0].Address->Clone();
+	}
+
+	Address->SetPort(GameServerPort);
+
+	FSocket* Socket = SocketSubsystem->CreateSocket(NAME_Stream, TEXT("AuraDedicatedServerReadyNotify"), Address->GetProtocolType());
+	if (!Socket)
+	{
+		UE_LOG(LogAura, Error, TEXT("[GSM-Ready] Failed to create socket."));
+		return false;
+	}
+
+	auto DestroySocket = [&]()
+	{
+		SocketSubsystem->DestroySocket(Socket);
+		Socket = nullptr;
+	};
+
+	Socket->SetNonBlocking(false);
+	Socket->SetReuseAddr(true);
+
+	if (!Socket->Connect(*Address))
+	{
+		UE_LOG(LogAura, Error, TEXT("[GSM-Ready] Connect to GSM failed (%s:%d)."), *GameServerAddress, GameServerPort);
+		DestroySocket();
+		return false;
+	}
+
+	const FString Payload = FString::Printf(
+		TEXT("{\"action\":\"server_ready\",\"levelId\":\"%s\",\"port\":%d}\n"),
+		*LevelId,
+		ServerPort);
+
+	FTCHARToUTF8 PayloadUtf8(*Payload);
+	int32 BytesSent = 0;
+	if (!Socket->Send(reinterpret_cast<const uint8*>(PayloadUtf8.Get()), PayloadUtf8.Length(), BytesSent) || BytesSent != PayloadUtf8.Length())
+	{
+		UE_LOG(LogAura, Error, TEXT("[GSM-Ready] Failed sending ready payload to GSM."));
+		DestroySocket();
+		return false;
+	}
+
+	FString ResponseLine;
+	uint8 Byte = 0;
+	int32 BytesRead = 0;
+	const FTimespan WaitTimeout = FTimespan::FromSeconds(3.0);
+
+	while (ResponseLine.Len() < 4096)
+	{
+		if (!Socket->Wait(ESocketWaitConditions::WaitForRead, WaitTimeout))
+		{
+			UE_LOG(LogAura, Error, TEXT("[GSM-Ready] Timed out waiting for GSM ack."));
+			DestroySocket();
+			return false;
+		}
+
+		if (!Socket->Recv(&Byte, 1, BytesRead, ESocketReceiveFlags::None) || BytesRead == 0)
+		{
+			break;
+		}
+
+		if (Byte == '\n')
+		{
+			break;
+		}
+
+		ResponseLine.AppendChar(static_cast<TCHAR>(Byte));
+	}
+
+	DestroySocket();
+
+	if (ResponseLine.IsEmpty())
+	{
+		UE_LOG(LogAura, Error, TEXT("[GSM-Ready] Empty ack response from GSM."));
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> AckObject;
+	if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(ResponseLine), AckObject) || !AckObject.IsValid())
+	{
+		UE_LOG(LogAura, Error, TEXT("[GSM-Ready] Invalid ack JSON from GSM: %s"), *ResponseLine);
+		return false;
+	}
+
+	FString Status;
+	AckObject->TryGetStringField(TEXT("status"), Status);
+	if (!Status.Equals(TEXT("ok"), ESearchCase::IgnoreCase))
+	{
+		FString Message;
+		AckObject->TryGetStringField(TEXT("message"), Message);
+		UE_LOG(LogAura, Error, TEXT("[GSM-Ready] GSM rejected ready notify: status=%s message=%s"), *Status, *Message);
+		return false;
+	}
+
+	UE_LOG(LogAura, Display, TEXT("[GSM-Ready] GSM acknowledged server readiness. levelId=%s port=%d"), *LevelId, ServerPort);
+	return true;
 }
 
 bool AAuraGameModeBase::LoadMonsterSpawnTable()
@@ -923,7 +1236,10 @@ bool AAuraGameModeBase::LoadItemSpawnTable()
 			RowObject->TryGetStringField(TEXT("classPath"), Row.ItemClassPath);
 		}
 
-		RowObject->TryGetStringField(TEXT("destinationServer"), Row.DestinationServer);
+		if (!RowObject->TryGetStringField(TEXT("destinationServerId"), Row.DestinationServerId))
+		{
+			RowObject->TryGetStringField(TEXT("destinationServer"), Row.DestinationServerId);
+		}
 
 		RowObject->TryGetBoolField(TEXT("spawnOnLoad"), Row.bSpawnOnLoad);
 
@@ -1108,16 +1424,16 @@ AActor* AAuraGameModeBase::SpawnItemFromRow(const FItemSpawnTableRow& Row)
 
 	if (ALevelJumpPortrail* JumpPortrail = Cast<ALevelJumpPortrail>(SpawnedItem))
 	{
-		JumpPortrail->DestinationServer = Row.DestinationServer;
+		JumpPortrail->DestinationServerId = Row.DestinationServerId;
 	}
 
-	UE_LOG(LogAura, Display, TEXT("[ItemSpawn] Spawned row=%s kind=%s actor=%s class=%s location=%s destinationServer=%s classReplicates=%s classRepMove=%s actorReplicates=%s actorRepMove=%s role=%d"),
+	UE_LOG(LogAura, Display, TEXT("[ItemSpawn] Spawned row=%s kind=%s actor=%s class=%s location=%s destinationServerId=%s classReplicates=%s classRepMove=%s actorReplicates=%s actorRepMove=%s role=%d"),
 		*Row.Id,
 		*Row.ItemKind,
 		*GetNameSafe(SpawnedItem),
 		*GetNameSafe(ItemClass),
 		*SpawnTransform.GetLocation().ToCompactString(),
-		*Row.DestinationServer,
+		*Row.DestinationServerId,
 		bClassReplicates ? TEXT("true") : TEXT("false"),
 		bClassReplicateMovement ? TEXT("true") : TEXT("false"),
 		SpawnedItem->GetIsReplicated() ? TEXT("true") : TEXT("false"),

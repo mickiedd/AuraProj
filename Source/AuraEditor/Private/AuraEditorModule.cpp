@@ -176,6 +176,12 @@ private:
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStopAllDedicatedServersClicked)));
 
 		MenuBuilder.AddMenuEntry(
+			LOCTEXT("StartGameServerManagerLabel", "Start Game Server Manager"),
+			LOCTEXT("StartGameServerManagerTooltip", "Launch the game server manager bridge that allocates dedicated servers and returns host:port to clients."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStartGameServerManagerClicked)));
+
+		MenuBuilder.AddMenuEntry(
 			GetBuildClientMenuLabel(),
 			GetBuildClientMenuTooltip(),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "MainFrame.PackageProject"),
@@ -1906,6 +1912,42 @@ private:
 		}
 
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StopAllDedicatedServersComplete", "Stop request sent for all launched dedicated server processes."));
+	}
+
+	void OnStartGameServerManagerClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Start game server manager menu option clicked"));
+
+		#if PLATFORM_WINDOWS
+		const bool bStarted = LaunchProjectScript(
+			TEXT("StartGameServer.bat"),
+			FString(),
+			FText::Format(
+				LOCTEXT("StartGameServerManagerMissingWindows", "Could not find StartGameServer.bat at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartGameServer.bat")))),
+			TEXT("Failed to launch the game server manager."),
+			TEXT("StartGameServerManager"));
+		#elif PLATFORM_MAC
+		const bool bStarted = LaunchProjectScript(
+			TEXT("StartGameServer.command"),
+			FString(),
+			FText::Format(
+				LOCTEXT("StartGameServerManagerMissingMac", "Could not find StartGameServer.command at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartGameServer.command")))),
+			TEXT("Failed to launch the game server manager."),
+			TEXT("StartGameServerManager"));
+		#else
+		UE_LOG(LogAuraEditor, Warning, TEXT("Start game server manager blocked: unsupported platform"));
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartGameServerManagerUnsupported", "Starting the game server manager is not supported on this platform."));
+		return;
+		#endif
+
+		if (!bStarted)
+		{
+			return;
+		}
+
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartGameServerManagerComplete", "Game server manager launch request sent."));
 	}
 
 	void OnBuildClientClicked() const

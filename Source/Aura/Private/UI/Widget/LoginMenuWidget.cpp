@@ -47,7 +47,10 @@ bool ULoginMenuWidget::InitializeForPlayerController(ALoginPlayerController* InO
 		ComboBoxList->SetSelectedOption(AvailableServerTargets[0].DisplayName);
 		if (ALoginPlayerController* OwnerController = OwnerLoginPlayerController.Get())
 		{
-			OwnerController->HandleLoginMenuSelectionChanged(AvailableServerTargets[0].DisplayName, AvailableServerTargets[0].ServerPort);
+			OwnerController->HandleLoginMenuSelectionChanged(
+				AvailableServerTargets[0].DisplayName,
+				AvailableServerTargets[0].LevelId,
+				AvailableServerTargets[0].ServerPort);
 		}
 	}
 
@@ -84,13 +87,17 @@ void ULoginMenuWidget::HandleLevelSelectionChanged(FString SelectedItem, ESelect
 
 	if (ALoginPlayerController* OwnerController = OwnerLoginPlayerController.Get())
 	{
-		OwnerController->HandleLoginMenuSelectionChanged(SelectedTarget->DisplayName, SelectedTarget->ServerPort);
+		OwnerController->HandleLoginMenuSelectionChanged(
+			SelectedTarget->DisplayName,
+			SelectedTarget->LevelId,
+			SelectedTarget->ServerPort);
 	}
 }
 
 void ULoginMenuWidget::HandleConnectButtonClicked()
 {
 	FString SelectedDisplayName;
+	FString SelectedLevelId;
 	int32 SelectedPort = 0;
 
 	if (ComboBoxList)
@@ -102,13 +109,14 @@ void ULoginMenuWidget::HandleConnectButtonClicked()
 	{
 		if (const FLoginMenuServerTarget* SelectedTarget = FindServerTargetByDisplayName(SelectedDisplayName))
 		{
+			SelectedLevelId = SelectedTarget->LevelId;
 			SelectedPort = SelectedTarget->ServerPort;
 		}
 	}
 
 	if (ALoginPlayerController* OwnerController = OwnerLoginPlayerController.Get())
 	{
-		OwnerController->RequestLoginMenuConnect(SelectedDisplayName, SelectedPort);
+		OwnerController->RequestLoginMenuConnect(SelectedDisplayName, SelectedLevelId, SelectedPort);
 	}
 }
 
@@ -154,6 +162,12 @@ bool ULoginMenuWidget::LoadServerTargetsFromLevelConfig()
 		}
 
 		(*LevelObject)->TryGetStringField(TEXT("mapPath"), ServerTarget.MapPath);
+
+		if (!(*LevelObject)->TryGetStringField(TEXT("id"), ServerTarget.LevelId) || ServerTarget.LevelId.IsEmpty())
+		{
+			// Fall back to display name as a degraded level id so the entry still works.
+			ServerTarget.LevelId = ServerTarget.DisplayName;
+		}
 
 		double PortValue = 0.0;
 		if ((*LevelObject)->TryGetNumberField(TEXT("port"), PortValue))

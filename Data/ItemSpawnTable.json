@@ -5,7 +5,7 @@
       "itemKind": "JumpPortrail",
       "mapName": "map_dungeon_level_1_dungeon",
       "itemClassPath": "/Game/Blueprints/Items/BP_LevelJumpPortrail",
-      "destinationServer": "192.168.1.6:7779",
+      "destinationServerId": "dungeon_level_2",
       "spawnOnLoad": true,
       "respawnTime": 0.0,
       "transform": {
@@ -19,7 +19,7 @@
       "itemKind": "JumpPortrail",
       "mapName": "map_dungeon_level_2_entrance",
       "itemClassPath": "/Game/Blueprints/Items/BP_LevelJumpPortrail",
-      "destinationServer": "192.168.1.6:7780",
+      "destinationServerId": "dungeon_level_3",
       "spawnOnLoad": true,
       "respawnTime": 0.0,
       "transform": {
@@ -33,7 +33,7 @@
       "itemKind": "JumpPortrail",
       "mapName": "map_dungeon_level_3_hall",
       "itemClassPath": "/Game/Blueprints/Items/BP_LevelJumpPortrail",
-      "destinationServer": "192.168.1.6:7781",
+      "destinationServerId": "dungeon_level_4",
       "spawnOnLoad": true,
       "respawnTime": 0.0,
       "transform": {
@@ -47,7 +47,7 @@
       "itemKind": "JumpPortrail",
       "mapName": "map_dungeon_level_5_bossroom",
       "itemClassPath": "/Game/Blueprints/Items/BP_LevelJumpPortrail",
-      "destinationServer": "192.168.1.6:7778",
+      "destinationServerId": "dungeon_level_1",
       "spawnOnLoad": true,
       "respawnTime": 0.0,
       "transform": {

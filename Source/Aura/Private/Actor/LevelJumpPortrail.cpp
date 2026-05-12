@@ -5,11 +5,17 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Aura/AuraLogChannels.h"
+#include "Game/GameServerClient.h"
 #include "Game/AuraGameModeBase.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Interaction/PlayerInterface.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonObject.h"
 
 ALevelJumpPortrail::ALevelJumpPortrail()
 {
@@ -60,6 +66,10 @@ void ALevelJumpPortrail::BeginPlay()
 	{
 		UE_LOG(LogAura, Display, TEXT("[JumpPortrail] DestinationServer=%s"), *DestinationServer);
 	}
+	if (!DestinationServerId.IsEmpty())
+	{
+		UE_LOG(LogAura, Display, TEXT("[JumpPortrail] DestinationServerId=%s"), *DestinationServerId);
+	}
 }
 
 void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -96,6 +106,33 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 	UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Triggered actor=%s by=%s"), *GetNameSafe(this), *GetNameSafe(OtherActor));
 	OnJumpPortrailTriggered(OtherActor);
 
+	if (!DestinationServerId.IsEmpty())
+	{
+		APlayerController* PlayerController = nullptr;
+		if (const APawn* Pawn = Cast<APawn>(OtherActor))
+		{
+			PlayerController = Cast<APlayerController>(Pawn->GetController());
+		}
+		if (PlayerController == nullptr)
+		{
+			PlayerController = Cast<APlayerController>(OtherActor);
+		}
+
+		if (IsValid(PlayerController))
+		{
+			UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Querying GSM for destination server id: actor=%s playerController=%s destinationServerId=%s"),
+				*GetNameSafe(this),
+				*GetNameSafe(PlayerController),
+				*DestinationServerId);
+			QueryDestinationServerViaGSM(PlayerController);
+			return;
+		}
+
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] DestinationServerId is set but no PlayerController resolved from overlap actor=%s"),
+			*GetNameSafe(OtherActor));
+		return;
+	}
+
 	if (!DestinationServer.IsEmpty())
 	{
 		APlayerController* PlayerController = nullptr;
@@ -110,15 +147,12 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 
 		if (IsValid(PlayerController))
 		{
-			UE_LOG(LogAura, Display, TEXT("[JumpPortrail] ClientTravel to destination server: actor=%s playerController=%s destination=%s"),
-				*GetNameSafe(this),
-				*GetNameSafe(PlayerController),
-				*DestinationServer);
+			UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Using legacy DestinationServer fallback: %s"), *DestinationServer);
 			PlayerController->ClientTravel(DestinationServer, TRAVEL_Absolute);
 			return;
 		}
 
-		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] DestinationServer is set but no PlayerController resolved from overlap actor=%s"),
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Legacy DestinationServer is set but no PlayerController resolved from overlap actor=%s"),
 			*GetNameSafe(OtherActor));
 		return;
 	}
@@ -153,4 +187,134 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 	}
 
 	UE_LOG(LogAura, Error, TEXT("[JumpPortrail] No destination configured on actor=%s"), *GetNameSafe(this));
+}
+
+bool ALevelJumpPortrail::LoadGameServerManagerConfig(FString& OutAddress, int32& OutPort) const
+{
+	OutAddress = TEXT("127.0.0.1");
+	OutPort = 9000;
+
+	TArray<FString> CandidatePaths;
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), TEXT("ServerConnection.json")));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("ServerConnection.json")));
+
+	FString JsonContent;
+	for (const FString& Path : CandidatePaths)
+	{
+		if (!FPaths::FileExists(Path))
+		{
+			continue;
+		}
+
+		if (FFileHelper::LoadFileToString(JsonContent, *Path))
+		{
+			TSharedPtr<FJsonObject> RootObject;
+			if (FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(JsonContent), RootObject) && RootObject.IsValid())
+			{
+				FString ParsedAddress;
+				if (RootObject->TryGetStringField(TEXT("gameServerAddress"), ParsedAddress) || RootObject->TryGetStringField(TEXT("serverAddress"), ParsedAddress))
+				{
+					ParsedAddress.TrimStartAndEndInline();
+					if (!ParsedAddress.IsEmpty())
+					{
+						OutAddress = ParsedAddress;
+					}
+				}
+
+				double ParsedPort = 0.0;
+				if (RootObject->TryGetNumberField(TEXT("gameServerPort"), ParsedPort))
+				{
+					const int32 PortInt = static_cast<int32>(ParsedPort);
+					if (PortInt >= 1 && PortInt <= 65535)
+					{
+						OutPort = PortInt;
+					}
+				}
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerController)
+{
+	if (!IsValid(PlayerController))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] QueryDestinationServerViaGSM skipped due to invalid PlayerController."));
+		return;
+	}
+
+	if (DestinationServerId.IsEmpty())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] QueryDestinationServerViaGSM skipped because DestinationServerId is empty."));
+		return;
+	}
+
+	if (bDestinationServerQueryInFlight)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] GSM query already in flight for actor=%s"), *GetNameSafe(this));
+		return;
+	}
+
+	FString GameServerAddress;
+	int32 GameServerPort = 0;
+	LoadGameServerManagerConfig(GameServerAddress, GameServerPort);
+
+	DestinationGameServerClient = NewObject<UGameServerClient>(this);
+	if (!IsValid(DestinationGameServerClient))
+	{
+		UE_LOG(LogAura, Error, TEXT("[JumpPortrail] Failed to allocate UGameServerClient for GSM query."));
+		return;
+	}
+
+	bDestinationServerQueryInFlight = true;
+	TWeakObjectPtr<ALevelJumpPortrail> WeakThis(this);
+	TWeakObjectPtr<APlayerController> WeakPlayerController(PlayerController);
+
+	DestinationGameServerClient->RequestServer(
+		GameServerAddress,
+		GameServerPort,
+		DestinationServerId,
+		DestinationServerQueryTimeoutSeconds,
+		FOnGameServerResponse::CreateLambda([WeakThis, WeakPlayerController](const FGameServerResponse& Response)
+		{
+			if (!WeakThis.IsValid())
+			{
+				return;
+			}
+
+			ALevelJumpPortrail* Self = WeakThis.Get();
+			Self->bDestinationServerQueryInFlight = false;
+			Self->DestinationGameServerClient = nullptr;
+
+			if (!WeakPlayerController.IsValid())
+			{
+				UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] GSM response arrived but PlayerController is invalid."));
+				return;
+			}
+
+			APlayerController* TargetPC = WeakPlayerController.Get();
+			if (Response.bSuccess)
+			{
+				const FString DestinationEndpoint = FString::Printf(TEXT("%s:%d"), *Response.Host, Response.Port);
+				UE_LOG(LogAura, Display, TEXT("[JumpPortrail] GSM resolved server id '%s' -> %s. Performing ClientTravel."),
+					*Self->DestinationServerId,
+					*DestinationEndpoint);
+				TargetPC->ClientTravel(DestinationEndpoint, TRAVEL_Absolute);
+				return;
+			}
+
+			UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] GSM query failed for server id '%s': %s"),
+				*Self->DestinationServerId,
+				*Response.ErrorMessage);
+
+			if (!Self->DestinationServer.IsEmpty())
+			{
+				UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Falling back to legacy DestinationServer=%s"), *Self->DestinationServer);
+				TargetPC->ClientTravel(Self->DestinationServer, TRAVEL_Absolute);
+			}
+		}));
 }

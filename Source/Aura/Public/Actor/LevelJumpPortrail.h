@@ -9,6 +9,8 @@
 class USphereComponent;
 class UStaticMeshComponent;
 class UWorld;
+class UGameServerClient;
+class APlayerController;
 
 UCLASS()
 class AURA_API ALevelJumpPortrail : public AActor
@@ -29,6 +31,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
 	FString DestinationServer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
+	FString DestinationServerId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail|GSM", meta = (ClampMin = "5.0", ClampMax = "120.0"))
+	float DestinationServerQueryTimeoutSeconds = 35.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
 	bool bOneShot = false;
@@ -60,5 +68,13 @@ protected:
 	TObjectPtr<USphereComponent> TriggerSphere;
 
 private:
+	void QueryDestinationServerViaGSM(APlayerController* PlayerController);
+	bool LoadGameServerManagerConfig(FString& OutAddress, int32& OutPort) const;
+
+	UPROPERTY()
+	TObjectPtr<UGameServerClient> DestinationGameServerClient;
+
+	bool bDestinationServerQueryInFlight = false;
+
 	bool bTriggered = false;
 };
