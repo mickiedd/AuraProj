@@ -2,11 +2,10 @@
 
 #include "Game/LoginPlayerController.h"
 #include "Game/GameServerClient.h"
+#include "Game/ServerTravelComponent.h"
 #include "UObject/SoftObjectPath.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
-#include "Engine/NetDriver.h"
-#include "Engine/World.h"
 #include "HAL/PlatformProcess.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -20,6 +19,8 @@
 
 ALoginPlayerController::ALoginPlayerController()
 {
+	ServerTravelComponent = CreateDefaultSubobject<UServerTravelComponent>(TEXT("ServerTravelComponent"));
+
 	// Use a native fallback so connection status can always render.
 	ConnectingWidgetClass = ULoginConnectingWidget::StaticClass();
 
@@ -50,7 +51,12 @@ void ALoginPlayerController::BeginPlay()
 
 	if (IsLocalPlayerController())
 	{
-		BindConnectionFailureDelegates();
+		if (IsValid(ServerTravelComponent))
+		{
+			ServerTravelComponent->ConfigureLocalTravelMonitoring(ConnectionResponseWarningDelay, ConnectionTimeoutDelay);
+			ServerTravelComponent->OnStatusMessage.RemoveAll(this);
+			ServerTravelComponent->OnStatusMessage.AddUObject(this, &ALoginPlayerController::HandleServerTravelStatusMessage);
+		}
 		EnsureLoginScreenWidget();
 	}
 
@@ -80,20 +86,14 @@ void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] EndPlay: reason=%d waiting=%d widget=%s"),
 		static_cast<int32>(EndPlayReason),
-		bWaitingForConnectionResponse ? 1 : 0,
+		0,
 		*GetNameSafe(ConnectingWidget));
 
-	if (UWorld* World = GetWorld())
-	{
-		FTimerManager& TimerManager = World->GetTimerManager();
-		TimerManager.ClearTimer(ConnectionTimerHandle);
-		TimerManager.ClearTimer(ConnectionResponseWarningTimerHandle);
-		TimerManager.ClearTimer(ConnectionTimeoutTimerHandle);
-	}
-
-	bWaitingForConnectionResponse = false;
 	bQueryingGameServer = false;
-	UnbindConnectionFailureDelegates();
+	if (IsValid(ServerTravelComponent))
+	{
+		ServerTravelComponent->OnStatusMessage.RemoveAll(this);
+	}
 
 	if (ConnectingWidget && IsValid(ConnectingWidget))
 	{
@@ -146,6 +146,11 @@ void ALoginPlayerController::EnsureLoginScreenWidget()
 }
 
 void ALoginPlayerController::ShowLoginMenuStatusMessage(const FString& InMessage)
+{
+	UpdateConnectingStatus(InMessage);
+}
+
+void ALoginPlayerController::HandleServerTravelStatusMessage(const FString& InMessage)
 {
 	UpdateConnectingStatus(InMessage);
 }
@@ -297,43 +302,10 @@ void ALoginPlayerController::ExecuteClientConnect()
 		RequestedPlayerName.ReplaceInline(TEXT("#"), TEXT("_"));
 		RequestedPlayerName.ReplaceInline(TEXT(" "), TEXT("_"));
 
-		const FString Command = FString::Printf(TEXT("open %s?PlayerName=%s"), *ServerEndpoint, *RequestedPlayerName);
-
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] ExecuteClientConnect: command=%s"), *Command);
-
-		bWaitingForConnectionResponse = true;
-
-		ConsoleCommand(*Command);
-
-		if (UWorld* World = GetWorld())
+		if (!IsValid(ServerTravelComponent) || !ServerTravelComponent->TravelToServer(ServerEndpoint, RequestedPlayerName))
 		{
-			FTimerManager& TimerManager = World->GetTimerManager();
-			TimerManager.ClearTimer(ConnectionResponseWarningTimerHandle);
-			TimerManager.ClearTimer(ConnectionTimeoutTimerHandle);
-
-			TimerManager.SetTimer(
-				ConnectionResponseWarningTimerHandle,
-				this,
-				&ALoginPlayerController::HandleConnectionResponseWarning,
-				ConnectionResponseWarningDelay,
-				false
-			);
-
-			TimerManager.SetTimer(
-				ConnectionTimeoutTimerHandle,
-				this,
-				&ALoginPlayerController::HandleConnectionTimeout,
-				ConnectionTimeoutDelay,
-				false
-			);
-
-			UE_LOG(LogTemp, Display, TEXT("[LoginConn] ExecuteClientConnect: timers set (warning=%.2fs timeout=%.2fs)"),
-				ConnectionResponseWarningDelay,
-				ConnectionTimeoutDelay);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("[LoginConn] ExecuteClientConnect: world is null, timeout/warning timers not set"));
+			UpdateConnectingStatus(TEXT("Could not start connection travel. Please try again."));
+			UE_LOG(LogTemp, Error, TEXT("[LoginConn] ExecuteClientConnect: ServerTravelComponent travel request failed"));
 		}
 	}
 	else
@@ -525,37 +497,6 @@ FString ALoginPlayerController::BuildConnectingStatusMessage() const
 	return FString::Printf(TEXT("Connecting to %s..."), *ServerEndpoint);
 }
 
-void ALoginPlayerController::HandleConnectionResponseWarning()
-{
-	if (!IsLocalPlayerController() || !bWaitingForConnectionResponse)
-	{
-		return;
-	}
-
-	const FString ServerEndpoint = BuildServerEndpoint();
-	if (ServerEndpoint.IsEmpty())
-	{
-		UpdateConnectingStatus(TEXT("Still connecting... This is taking longer than usual."));
-	}
-	else
-	{
-		UpdateConnectingStatus(FString::Printf(TEXT("Still connecting to %s... This is taking longer than usual."), *ServerEndpoint));
-	}
-	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] warning threshold reached after %.2f seconds"), ConnectionResponseWarningDelay);
-}
-
-void ALoginPlayerController::HandleConnectionTimeout()
-{
-	if (!IsLocalPlayerController() || !bWaitingForConnectionResponse)
-	{
-		return;
-	}
-
-	bWaitingForConnectionResponse = false;
-	UpdateConnectingStatus(TEXT("Could not connect to server. Please check server status and try again."));
-	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] timeout reached after %.2f seconds"), ConnectionTimeoutDelay);
-}
-
 void ALoginPlayerController::UpdateConnectingStatus(const FString& InMessage) const
 {
 	if (ConnectingWidget && IsValid(ConnectingWidget))
@@ -573,99 +514,4 @@ void ALoginPlayerController::UpdateConnectingStatus(const FString& InMessage) co
 			GEngine->AddOnScreenDebugMessage(MessageKey, 6.0f, FColor::Yellow, InMessage);
 		}
 	}
-}
-
-void ALoginPlayerController::BindConnectionFailureDelegates()
-{
-	if (bFailureDelegatesBound || !GEngine)
-	{
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] BindConnectionFailureDelegates skipped (AlreadyBound=%d GEngine=%d)"), bFailureDelegatesBound ? 1 : 0, GEngine ? 1 : 0);
-		return;
-	}
-
-	GEngine->OnTravelFailure().AddUObject(this, &ALoginPlayerController::HandleTravelFailure);
-	GEngine->OnNetworkFailure().AddUObject(this, &ALoginPlayerController::HandleNetworkFailure);
-	bFailureDelegatesBound = true;
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] failure delegates bound"));
-}
-
-void ALoginPlayerController::UnbindConnectionFailureDelegates()
-{
-	if (!bFailureDelegatesBound || !GEngine)
-	{
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] UnbindConnectionFailureDelegates skipped (WasBound=%d GEngine=%d)"), bFailureDelegatesBound ? 1 : 0, GEngine ? 1 : 0);
-		return;
-	}
-
-	GEngine->OnTravelFailure().RemoveAll(this);
-	GEngine->OnNetworkFailure().RemoveAll(this);
-	bFailureDelegatesBound = false;
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] failure delegates unbound"));
-}
-
-void ALoginPlayerController::HandleTravelFailure(UWorld* InWorld, ETravelFailure::Type FailureType, const FString& ErrorString)
-{
-	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] HandleTravelFailure fired: code=%d waiting=%d world=%s error=%s"),
-		static_cast<int32>(FailureType),
-		bWaitingForConnectionResponse ? 1 : 0,
-		*GetNameSafe(InWorld),
-		*ErrorString);
-
-	if (!IsLocalPlayerController() || !bWaitingForConnectionResponse)
-	{
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] HandleTravelFailure ignored (Local=%d waiting=%d)"), IsLocalPlayerController() ? 1 : 0, bWaitingForConnectionResponse ? 1 : 0);
-		return;
-	}
-
-	bWaitingForConnectionResponse = false;
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(ConnectionResponseWarningTimerHandle);
-		World->GetTimerManager().ClearTimer(ConnectionTimeoutTimerHandle);
-	}
-
-	const FString FailureCode = FString::FromInt(static_cast<int32>(FailureType));
-
-	const FString Message = FString::Printf(
-		TEXT("Connection failed (code %s). %s"),
-		*FailureCode,
-		ErrorString.IsEmpty() ? TEXT("Please try again.") : *ErrorString);
-
-	UpdateConnectingStatus(Message);
-	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] travel failure handled: code=%s | %s"), *FailureCode, *ErrorString);
-}
-
-void ALoginPlayerController::HandleNetworkFailure(UWorld* InWorld, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
-{
-	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] HandleNetworkFailure fired: code=%d waiting=%d world=%s netDriver=%s error=%s"),
-		static_cast<int32>(FailureType),
-		bWaitingForConnectionResponse ? 1 : 0,
-		*GetNameSafe(InWorld),
-		*GetNameSafe(NetDriver),
-		*ErrorString);
-
-	if (!IsLocalPlayerController() || !bWaitingForConnectionResponse)
-	{
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] HandleNetworkFailure ignored (Local=%d waiting=%d)"), IsLocalPlayerController() ? 1 : 0, bWaitingForConnectionResponse ? 1 : 0);
-		return;
-	}
-
-	bWaitingForConnectionResponse = false;
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(ConnectionResponseWarningTimerHandle);
-		World->GetTimerManager().ClearTimer(ConnectionTimeoutTimerHandle);
-	}
-
-	const FString FailureCode = FString::FromInt(static_cast<int32>(FailureType));
-
-	const FString Message = FString::Printf(
-		TEXT("Network error (code %s). %s"),
-		*FailureCode,
-		ErrorString.IsEmpty() ? TEXT("Please check your network and try again.") : *ErrorString);
-
-	UpdateConnectingStatus(Message);
-	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] network failure handled: code=%s | %s"), *FailureCode, *ErrorString);
 }

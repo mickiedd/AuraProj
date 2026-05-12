@@ -20,6 +20,7 @@ class UAuraAttributeSet;
 class USplineComponent;
 class AMagicCircle;
 class UCharacterMovementComponent;
+class UServerTravelComponent;
 
 enum class ETargetingStatus : uint8
 {
@@ -143,6 +144,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
+
+	UPROPERTY(VisibleAnywhere, Category = "Network")
+	TObjectPtr<UServerTravelComponent> ServerTravelComponent;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AMagicCircle> MagicCircleClass;

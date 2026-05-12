@@ -7,6 +7,7 @@
 #include "Aura/AuraLogChannels.h"
 #include "Game/GameServerClient.h"
 #include "Game/AuraGameModeBase.h"
+#include "Game/ServerTravelComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Interaction/PlayerInterface.h"
@@ -148,7 +149,10 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 		if (IsValid(PlayerController))
 		{
 			UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Using legacy DestinationServer fallback: %s"), *DestinationServer);
-			PlayerController->ClientTravel(DestinationServer, TRAVEL_Absolute);
+			if (UServerTravelComponent* ServerTravelComponent = UServerTravelComponent::GetOrCreateFor(PlayerController))
+			{
+				ServerTravelComponent->TravelToServer(DestinationServer);
+			}
 			return;
 		}
 
@@ -303,7 +307,10 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 				UE_LOG(LogAura, Display, TEXT("[JumpPortrail] GSM resolved server id '%s' -> %s. Performing ClientTravel."),
 					*Self->DestinationServerId,
 					*DestinationEndpoint);
-				TargetPC->ClientTravel(DestinationEndpoint, TRAVEL_Absolute);
+				if (UServerTravelComponent* ServerTravelComponent = UServerTravelComponent::GetOrCreateFor(TargetPC))
+				{
+					ServerTravelComponent->TravelToServer(DestinationEndpoint);
+				}
 				return;
 			}
 
@@ -314,7 +321,10 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 			if (!Self->DestinationServer.IsEmpty())
 			{
 				UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Falling back to legacy DestinationServer=%s"), *Self->DestinationServer);
-				TargetPC->ClientTravel(Self->DestinationServer, TRAVEL_Absolute);
+				if (UServerTravelComponent* ServerTravelComponent = UServerTravelComponent::GetOrCreateFor(TargetPC))
+				{
+					ServerTravelComponent->TravelToServer(Self->DestinationServer);
+				}
 			}
 		}));
 }

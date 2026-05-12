@@ -28,11 +28,13 @@
 #include "UI/WidgetController/SpellMenuWidgetController.h"
 #include "UI/Widget/DamageTextComponent.h"
 #include "InputCoreTypes.h"
+#include "Game/ServerTravelComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
 	bReplicates = true;
 	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
+	ServerTravelComponent = CreateDefaultSubobject<UServerTravelComponent>(TEXT("ServerTravelComponent"));
 }
 
 void AAuraPlayerController::ShiftPressed()

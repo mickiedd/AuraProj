@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/EngineBaseTypes.h"
 #include "GameFramework/PlayerController.h"
 #include "LoginPlayerController.generated.h"
 
@@ -15,8 +14,7 @@
 class UGameServerClient;
 class ULoginConnectingWidget;
 class ULoginMenuWidget;
-class UWorld;
-class UNetDriver;
+class UServerTravelComponent;
 struct FGameServerResponse;
 
 /**
@@ -34,9 +32,6 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	void HandleTravelFailure(UWorld* InWorld, ETravelFailure::Type FailureType, const FString& ErrorString);
-	void HandleNetworkFailure(UWorld* InWorld, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 
 	void ShowLoginMenuStatusMessage(const FString& InMessage);
 
@@ -111,16 +106,8 @@ protected:
 	UFUNCTION()
 	void ExecuteClientConnect();
 
-	UFUNCTION()
-	void HandleConnectionResponseWarning();
-
-	UFUNCTION()
-	void HandleConnectionTimeout();
-
 	void UpdateConnectingStatus(const FString& InMessage) const;
-
-	void BindConnectionFailureDelegates();
-	void UnbindConnectionFailureDelegates();
+	void HandleServerTravelStatusMessage(const FString& InMessage);
 	void EnsureConnectingWidget();
 	void EnsureLoginScreenWidget();
 
@@ -144,16 +131,6 @@ protected:
 
 	/** Fallback port from LevelConfig, used if the game server is unreachable. */
 	int32 SelectedFallbackPort = 0;
-
-	/**
-	 * True while waiting for a successful map travel or a failure callback.
-	 */
-	bool bWaitingForConnectionResponse = false;
-
-	/**
-	 * Tracks whether global engine delegates were bound by this controller.
-	 */
-	bool bFailureDelegatesBound = false;
 
 	/**
 	 * Widget class to display connection status.
@@ -183,20 +160,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UGameServerClient> GameServerClient;
 
-	/**
-	 * Timer handle for the connection delay.
-	 */
-	FTimerHandle ConnectionTimerHandle;
-
-	/**
-	 * Timer handle used to show a "still connecting" hint.
-	 */
-	FTimerHandle ConnectionResponseWarningTimerHandle;
-
-	/**
-	 * Timer handle used for connection timeout messaging.
-	 */
-	FTimerHandle ConnectionTimeoutTimerHandle;
+	/** Shared component used by all endpoint server travel operations. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Login|Server Connection")
+	TObjectPtr<UServerTravelComponent> ServerTravelComponent;
 
 	/**
 	 * Seconds before showing an additional connecting hint.
