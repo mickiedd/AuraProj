@@ -135,9 +135,12 @@ class DedicatedServerEntry:
         logger.info("Starting DS '%s' via %s launcher: %s", self.level_id, launch_mode, " ".join(args))
         logger.info("DS '%s' log file: %s", self.level_id, log_file)
         try:
-            self._process = subprocess.Popen(
-                args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
+            popen_kwargs = {}
+            if os.name == "nt":
+                # Ensure Unreal's -log output is visible in its own console window.
+                popen_kwargs["creationflags"] = subprocess.CREATE_NEW_CONSOLE
+
+            self._process = subprocess.Popen(args, **popen_kwargs)
         except Exception as exc:
             logger.error("Failed to launch DS '%s': %s", self.level_id, exc)
             self._process = None

@@ -114,6 +114,10 @@ protected:
 	/** Callback from UGameServerClient fired on the game thread. */
 	void OnGameServerResponse(const FGameServerResponse& Response);
 
+	/** Resolves the player name from save data, OS username, or a default.
+	 *  Safe to call before traveling to the Loading level. */
+	FString ResolvePlayerName() const;
+
 	bool LoadServerConnectionFromJson();
 	FString BuildServerEndpoint() const;
 	FString BuildConnectingStatusMessage() const;

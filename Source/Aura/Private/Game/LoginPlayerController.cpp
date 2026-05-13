@@ -192,33 +192,87 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 		return;
 	}
 
+	// Update SelectedLevelId, SelectedFallbackPort, and ServerPort before we capture anything.
 	HandleLoginMenuSelectionChanged(SelectedDisplayName, InSelectedLevelId, FallbackPort);
 	bConnectionAttempted = true;
-	EnsureConnectingWidget();
-	UpdateConnectingStatus(FString::Printf(TEXT("Contacting game server for '%s'..."), *SelectedDisplayName));
 
-	const FString GSAddress = GameServerAddress.IsEmpty() ? ServerAddress : GameServerAddress;
+	// Capture all values needed in the GSM callback BY VALUE before any level transition.
+	// 'this' (LoginPlayerController) is destroyed when the Loading level finishes loading,
+	// so it must NOT be captured in the lambda.
+	const FString ResolvedPlayerName = ResolvePlayerName();
+	const FString FallbackEndpoint   = BuildServerEndpoint(); // ServerAddress:FallbackPort
+	const FString GSMAddress         = GameServerAddress.IsEmpty() ? ServerAddress : GameServerAddress;
+	const int32   GSMPort            = GameServerPort;
+	const float   QueryTimeout       = GameServerQueryTimeout;
 
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Querying Game Server Manager at %s:%d for levelId='%s'"),
-		*GSAddress, GameServerPort, *InSelectedLevelId);
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] RequestLoginMenuConnect: levelId='%s' gsm=%s:%d fallback='%s' player='%s'"),
+		*InSelectedLevelId, *GSMAddress, GSMPort, *FallbackEndpoint, *ResolvedPlayerName);
 
+	UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>();
+	if (!IsValid(GI))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[LoginConn] RequestLoginMenuConnect: GameInstance is invalid, aborting"));
+		return;
+	}
+
+	// Store player name in GI so ALoadingPlayerController can pick it up after
+	// this controller is destroyed.
+	GI->PendingCrossServerPlayerName = ResolvedPlayerName;
+
+	// Create the GSM client on GI (as its outer) so the GC does not collect it
+	// while the level transition to Loading is in progress.
 	bQueryingGameServer = true;
+	GameServerClient = NewObject<UGameServerClient>(GI);
+	GI->PendingGameServerClient = GameServerClient;
 
-	// Create a fresh client object for this attempt.
-	GameServerClient = NewObject<UGameServerClient>(this);
+	// Travel to the Loading level immediately — the player sees the loading screen
+	// while the GSM query runs in the background.  ClientTravel is deferred one frame
+	// so the RequestServer call below still fires before this PC tears down.
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] RequestLoginMenuConnect: traveling to Loading level now (GSM query in flight)"));
+	ClientTravel(UServerTravelComponent::LoadingLevelPath, TRAVEL_Absolute);
 
-	TWeakObjectPtr<ALoginPlayerController> WeakThis(this);
+	// Start the async GSM query.  Only captures GI (weak) and value types.
+	TWeakObjectPtr<UAuraGameInstance> WeakGI(GI);
 	GameServerClient->RequestServer(
-		GSAddress,
-		GameServerPort,
+		GSMAddress,
+		GSMPort,
 		InSelectedLevelId,
-		GameServerQueryTimeout,
-		FOnGameServerResponse::CreateLambda([WeakThis](const FGameServerResponse& Response)
+		QueryTimeout,
+		FOnGameServerResponse::CreateLambda([WeakGI, FallbackEndpoint, ResolvedPlayerName](const FGameServerResponse& Response)
 		{
-			if (ALoginPlayerController* PC = WeakThis.Get())
+			UAuraGameInstance* ResolvedGI = WeakGI.Get();
+			if (!IsValid(ResolvedGI))
 			{
-				PC->OnGameServerResponse(Response);
+				UE_LOG(LogTemp, Warning, TEXT("[LoginConn] GSM callback: GameInstance is gone, cannot dispatch travel"));
+				return;
 			}
+
+			// Release the GSM client so it can be GC'd.
+			ResolvedGI->PendingGameServerClient = nullptr;
+
+			FString Endpoint;
+			if (Response.bSuccess)
+			{
+				Endpoint = FString::Printf(TEXT("%s:%d"), *Response.Host, Response.Port);
+				UE_LOG(LogTemp, Display, TEXT("[LoginConn] GSM callback: success -> endpoint=%s player='%s'"),
+					*Endpoint, *ResolvedPlayerName);
+			}
+			else if (!FallbackEndpoint.IsEmpty())
+			{
+				Endpoint = FallbackEndpoint;
+				UE_LOG(LogTemp, Warning, TEXT("[LoginConn] GSM callback: failed (%s), using fallback endpoint=%s"),
+					*Response.ErrorMessage, *Endpoint);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("[LoginConn] GSM callback: failed with no fallback — %s"), *Response.ErrorMessage);
+				ResolvedGI->ClearPendingCrossServerTravel();
+				ResolvedGI->OnCrossServerTravelFailed.Broadcast(Response.ErrorMessage);
+				return;
+			}
+
+			ResolvedGI->PendingCrossServerPlayerName.Empty(); // mark as consumed before broadcast
+			ResolvedGI->OnCrossServerTravelReady.Broadcast(Endpoint, ResolvedPlayerName);
 		}));
 }
 
@@ -269,43 +323,12 @@ void ALoginPlayerController::ExecuteClientConnect()
 
 		// Execute the travel command to connect to the dedicated server
 		// Format: open 127.0.0.1?PlayerName=Some_Name
-		FString RequestedPlayerName;
-		if (UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance()))
-		{
-			if (!AuraGameInstance->LoadSlotName.IsEmpty() &&
-				UGameplayStatics::DoesSaveGameExist(AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex))
-			{
-				if (USaveGame* SaveObject = UGameplayStatics::LoadGameFromSlot(AuraGameInstance->LoadSlotName, AuraGameInstance->LoadSlotIndex))
-				{
-					if (const ULoadScreenSaveGame* LoadScreenSaveGame = Cast<ULoadScreenSaveGame>(SaveObject))
-					{
-						RequestedPlayerName = LoadScreenSaveGame->PlayerName;
-					}
-				}
-			}
-		}
+		const FString RequestedPlayerName = ResolvePlayerName();
 
-		if (RequestedPlayerName.IsEmpty())
-		{
-			RequestedPlayerName = FPlatformProcess::UserName(false);
-		}
-
-		if (RequestedPlayerName.IsEmpty())
-		{
-			RequestedPlayerName = TEXT("Player");
-		}
-
-		RequestedPlayerName.TrimStartAndEndInline();
-		RequestedPlayerName.ReplaceInline(TEXT("?"), TEXT("_"));
-		RequestedPlayerName.ReplaceInline(TEXT("&"), TEXT("_"));
-		RequestedPlayerName.ReplaceInline(TEXT("="), TEXT("_"));
-		RequestedPlayerName.ReplaceInline(TEXT("#"), TEXT("_"));
-		RequestedPlayerName.ReplaceInline(TEXT(" "), TEXT("_"));
-
-		if (!IsValid(ServerTravelComponent) || !ServerTravelComponent->TravelToServer(ServerEndpoint, RequestedPlayerName))
+		if (!IsValid(ServerTravelComponent) || !ServerTravelComponent->TravelToServerViaLoadingLevel(ServerEndpoint, RequestedPlayerName))
 		{
 			UpdateConnectingStatus(TEXT("Could not start connection travel. Please try again."));
-			UE_LOG(LogTemp, Error, TEXT("[LoginConn] ExecuteClientConnect: ServerTravelComponent travel request failed"));
+			UE_LOG(LogTemp, Error, TEXT("[LoginConn] ExecuteClientConnect: ServerTravelComponent via-loading-level travel request failed"));
 		}
 	}
 	else
@@ -465,7 +488,45 @@ bool ALoginPlayerController::LoadServerConnectionFromJson()
 		TEXT("[LoginConn] Loaded server connection config from %s -> ServerAddress=%s  GameServer=%s:%d"),
 		*LoadedFromPath, *ServerAddress, *GameServerAddress, GameServerPort);
 
+	if (UAuraGameInstance* GI = Cast<UAuraGameInstance>(GetGameInstance()))
+	{
+		GI->GameServerAddress = GameServerAddress;
+		GI->GameServerPort = GameServerPort;
+		UE_LOG(LogTemp, Display, TEXT("[LoginConn] Stored GSM config in GameInstance: %s:%d"), *GI->GameServerAddress, GI->GameServerPort);
+	}
+
 	return true;
+}
+
+FString ALoginPlayerController::ResolvePlayerName() const
+{
+	FString PlayerName;
+	if (const UAuraGameInstance* GI = Cast<UAuraGameInstance>(GetGameInstance()))
+	{
+		if (!GI->LoadSlotName.IsEmpty() &&
+			UGameplayStatics::DoesSaveGameExist(GI->LoadSlotName, GI->LoadSlotIndex))
+		{
+			if (USaveGame* SaveObject = UGameplayStatics::LoadGameFromSlot(GI->LoadSlotName, GI->LoadSlotIndex))
+			{
+				if (const ULoadScreenSaveGame* LoadScreenSaveGame = Cast<ULoadScreenSaveGame>(SaveObject))
+				{
+					PlayerName = LoadScreenSaveGame->PlayerName;
+				}
+			}
+		}
+	}
+
+	if (PlayerName.IsEmpty()) PlayerName = FPlatformProcess::UserName(false);
+	if (PlayerName.IsEmpty()) PlayerName = TEXT("Player");
+
+	PlayerName.TrimStartAndEndInline();
+	PlayerName.ReplaceInline(TEXT("?"), TEXT("_"));
+	PlayerName.ReplaceInline(TEXT("&"), TEXT("_"));
+	PlayerName.ReplaceInline(TEXT("="), TEXT("_"));
+	PlayerName.ReplaceInline(TEXT("#"), TEXT("_"));
+	PlayerName.ReplaceInline(TEXT(" "), TEXT("_"));
+
+	return PlayerName;
 }
 
 FString ALoginPlayerController::BuildServerEndpoint() const

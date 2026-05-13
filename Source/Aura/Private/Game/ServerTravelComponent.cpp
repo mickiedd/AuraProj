@@ -6,7 +6,12 @@
 #include "Engine/NetDriver.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "Game/AuraGameInstance.h"
+
+const FString UServerTravelComponent::LoadingLevelPath = TEXT("/Game/Maps/Loading");
+const FString UServerTravelComponent::LoginLevelPath   = TEXT("/Game/Maps/Login");
 
 UServerTravelComponent::UServerTravelComponent()
 {
@@ -235,4 +240,92 @@ FString UServerTravelComponent::SanitizePlayerName(FString PlayerName)
 APlayerController* UServerTravelComponent::GetOwningPlayerController() const
 {
 	return Cast<APlayerController>(GetOwner());
+}
+
+bool UServerTravelComponent::TravelToServerViaLoadingLevel(const FString& ServerEndpoint, const FString& RequestedPlayerName)
+{
+	RouteToServerViaLoadingLevel(GetOwningPlayerController(), ServerEndpoint, RequestedPlayerName);
+	return IsValid(GetOwningPlayerController());
+}
+
+void UServerTravelComponent::RouteToServerViaLoadingLevel(APlayerController* InPC, const FString& ServerEndpoint, const FString& RequestedPlayerName)
+{
+	if (!IsValid(InPC))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ServerTravelComponent] RouteToServerViaLoadingLevel: PlayerController is invalid"));
+		return;
+	}
+
+	FString TrimmedEndpoint = ServerEndpoint;
+	TrimmedEndpoint.TrimStartAndEndInline();
+	if (TrimmedEndpoint.IsEmpty())
+	{
+		UE_LOG(LogTemp, Error, TEXT("[ServerTravelComponent] RouteToServerViaLoadingLevel: endpoint is empty"));
+		return;
+	}
+
+	const FString SafePlayerName = SanitizePlayerName(RequestedPlayerName);
+
+	// Encode destination into Loading level URL options.
+	// ':' is safe inside Unreal URL options (it is not a URL separator).
+	FString LoadingUrl = FString::Printf(TEXT("%s?Dest=%s"), *LoadingLevelPath, *TrimmedEndpoint);
+	if (!SafePlayerName.IsEmpty())
+	{
+		LoadingUrl += FString::Printf(TEXT("?PName=%s"), *SafePlayerName);
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("[ServerTravelComponent] Routing PC=%s to loading level -> final dest=%s"),
+		*GetNameSafe(InPC), *TrimmedEndpoint);
+
+	InPC->ClientTravel(LoadingUrl, TRAVEL_Absolute);
+}
+
+void UServerTravelComponent::RouteToMapViaLoadingLevel(UObject* WorldContextObject, const FString& MapAssetName)
+{
+	if (!IsValid(WorldContextObject) || MapAssetName.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ServerTravelComponent] RouteToMapViaLoadingLevel: invalid context or empty map name"));
+		return;
+	}
+
+	UWorld* World = GEngine->GetWorldFromContextObjectChecked(WorldContextObject);
+	if (!IsValid(World)) return;
+
+	if (UAuraGameInstance* GI = World->GetGameInstance<UAuraGameInstance>())
+	{
+		GI->PendingMapAssetName = MapAssetName;
+		GI->PendingMapSoftPtr.Reset();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ServerTravelComponent] RouteToMapViaLoadingLevel: UAuraGameInstance not found; will travel to Loading but destination may be lost"));
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("[ServerTravelComponent] RouteToMapViaLoadingLevel: map=%s via loading level"), *MapAssetName);
+	UGameplayStatics::OpenLevel(WorldContextObject, FName(*LoadingLevelPath));
+}
+
+void UServerTravelComponent::RouteToMapBySoftPtrViaLoadingLevel(UObject* WorldContextObject, const TSoftObjectPtr<UWorld>& SoftMapPtr)
+{
+	if (!IsValid(WorldContextObject) || SoftMapPtr.IsNull())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ServerTravelComponent] RouteToMapBySoftPtrViaLoadingLevel: invalid context or null soft map"));
+		return;
+	}
+
+	UWorld* World = GEngine->GetWorldFromContextObjectChecked(WorldContextObject);
+	if (!IsValid(World)) return;
+
+	if (UAuraGameInstance* GI = World->GetGameInstance<UAuraGameInstance>())
+	{
+		GI->PendingMapSoftPtr = SoftMapPtr;
+		GI->PendingMapAssetName.Empty();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ServerTravelComponent] RouteToMapBySoftPtrViaLoadingLevel: UAuraGameInstance not found; will travel to Loading but destination may be lost"));
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("[ServerTravelComponent] RouteToMapBySoftPtrViaLoadingLevel: map=%s via loading level"), *SoftMapPtr.ToString());
+	UGameplayStatics::OpenLevel(WorldContextObject, FName(*LoadingLevelPath));
 }

@@ -10,6 +10,7 @@
 #include "Game/ServerTravelComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
 #include "Interaction/PlayerInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/FileHelper.h"
@@ -121,11 +122,23 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 
 		if (IsValid(PlayerController))
 		{
-			UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Querying GSM for destination server id: actor=%s playerController=%s destinationServerId=%s"),
+			UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Routing to Loading level for portal GSM query: actor=%s playerController=%s destinationServerId=%s"),
 				*GetNameSafe(this),
 				*GetNameSafe(PlayerController),
 				*DestinationServerId);
-			QueryDestinationServerViaGSM(PlayerController);
+			APlayerState* PlayerState = PlayerController->PlayerState.Get();
+			const FString SafePlayerName = IsValid(PlayerState) ? PlayerState->GetPlayerName() : FString();
+			FString LoadingUrl = FString::Printf(TEXT("%s?PortalServerId=%s"), *UServerTravelComponent::LoadingLevelPath, *DestinationServerId);
+			if (!DestinationServer.IsEmpty())
+			{
+				LoadingUrl += FString::Printf(TEXT("?PortalFallback=%s"), *DestinationServer);
+			}
+			if (!SafePlayerName.IsEmpty())
+			{
+				LoadingUrl += FString::Printf(TEXT("?PName=%s"), *SafePlayerName);
+			}
+			UE_LOG(LogAura, Display, TEXT("[JumpPortrail] ClientTravel to Loading URL=%s"), *LoadingUrl);
+			PlayerController->ClientTravel(LoadingUrl, TRAVEL_Absolute);
 			return;
 		}
 
@@ -149,10 +162,7 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 		if (IsValid(PlayerController))
 		{
 			UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Using legacy DestinationServer fallback: %s"), *DestinationServer);
-			if (UServerTravelComponent* ServerTravelComponent = UServerTravelComponent::GetOrCreateFor(PlayerController))
-			{
-				ServerTravelComponent->TravelToServer(DestinationServer);
-			}
+			UServerTravelComponent::RouteToServerViaLoadingLevel(PlayerController, DestinationServer);
 			return;
 		}
 
@@ -179,14 +189,14 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 	if (!DestinationMap.IsNull())
 	{
 		UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Traveling via DestinationMap=%s"), *DestinationMap.ToString());
-		UGameplayStatics::OpenLevelBySoftObjectPtr(this, DestinationMap);
+		UServerTravelComponent::RouteToMapBySoftPtrViaLoadingLevel(this, DestinationMap);
 		return;
 	}
 
 	if (!DestinationMapAssetName.IsEmpty())
 	{
 		UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Traveling via DestinationMapAssetName=%s"), *DestinationMapAssetName);
-		UGameplayStatics::OpenLevel(this, FName(DestinationMapAssetName));
+		UServerTravelComponent::RouteToMapViaLoadingLevel(this, DestinationMapAssetName);
 		return;
 	}
 
@@ -278,6 +288,13 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 	TWeakObjectPtr<ALevelJumpPortrail> WeakThis(this);
 	TWeakObjectPtr<APlayerController> WeakPlayerController(PlayerController);
 
+	// Show the Loading level immediately so the player is not stuck in the game
+	// level for the duration of the GSM query (~10–30 s).
+	// The server-side PlayerController remains connected while the client is on
+	// the Loading level, so we can push the final ClientTravel from the callback.
+	UE_LOG(LogAura, Display, TEXT("[JumpPortrail] GSM query started — pushing client to Loading level: PC=%s"), *GetNameSafe(PlayerController));
+	PlayerController->ClientTravel(UServerTravelComponent::LoadingLevelPath, TRAVEL_Absolute);
+
 	DestinationGameServerClient->RequestServer(
 		GameServerAddress,
 		GameServerPort,
@@ -304,12 +321,17 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 			if (Response.bSuccess)
 			{
 				const FString DestinationEndpoint = FString::Printf(TEXT("%s:%d"), *Response.Host, Response.Port);
-				UE_LOG(LogAura, Display, TEXT("[JumpPortrail] GSM resolved server id '%s' -> %s. Performing ClientTravel."),
+				UE_LOG(LogAura, Display, TEXT("[JumpPortrail] GSM resolved server id '%s' -> %s. Pushing ClientTravel to client on Loading level."),
 					*Self->DestinationServerId,
 					*DestinationEndpoint);
-				if (UServerTravelComponent* ServerTravelComponent = UServerTravelComponent::GetOrCreateFor(TargetPC))
+				// Client is already on the Loading level; server PC is still connected.
+				// Call TravelToServer directly (no second trip through Loading).
+				APlayerState* PlayerState = IsValid(TargetPC) ? TargetPC->PlayerState.Get() : nullptr;
+				const FString PlayerName = IsValid(PlayerState)
+					? PlayerState->GetPlayerName() : FString();
+				if (UServerTravelComponent* TravelComp = UServerTravelComponent::GetOrCreateFor(TargetPC))
 				{
-					ServerTravelComponent->TravelToServer(DestinationEndpoint);
+					TravelComp->TravelToServer(DestinationEndpoint, PlayerName);
 				}
 				return;
 			}
@@ -321,9 +343,12 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 			if (!Self->DestinationServer.IsEmpty())
 			{
 				UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Falling back to legacy DestinationServer=%s"), *Self->DestinationServer);
-				if (UServerTravelComponent* ServerTravelComponent = UServerTravelComponent::GetOrCreateFor(TargetPC))
+				APlayerState* PlayerState = IsValid(TargetPC) ? TargetPC->PlayerState.Get() : nullptr;
+				const FString PlayerName = IsValid(PlayerState)
+					? PlayerState->GetPlayerName() : FString();
+				if (UServerTravelComponent* TravelComp = UServerTravelComponent::GetOrCreateFor(TargetPC))
 				{
-					ServerTravelComponent->TravelToServer(Self->DestinationServer);
+					TravelComp->TravelToServer(Self->DestinationServer, PlayerName);
 				}
 			}
 		}));

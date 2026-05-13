@@ -10,6 +10,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Interaction/SaveInterface.h"
 #include "Kismet/GameplayStatics.h"
+#include "Game/ServerTravelComponent.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
 #include "GameFramework/Character.h"
@@ -202,7 +203,7 @@ void AAuraGameModeBase::TravelToMap(UMVVM_LoadSlot* Slot)
 	const FString SlotName = Slot->GetLoadSlotName();
 	const int32 SlotIndex = Slot->SlotIndex;
 
-	UGameplayStatics::OpenLevelBySoftObjectPtr(Slot, Maps.FindChecked(Slot->GetMapName()));
+	UServerTravelComponent::RouteToMapBySoftPtrViaLoadingLevel(this, Maps.FindChecked(Slot->GetMapName()));
 }
 
 FString AAuraGameModeBase::GetMapNameFromMapAssetName(const FString& MapAssetName) const
@@ -483,7 +484,7 @@ void AAuraGameModeBase::ReloadMapAfterPlayerDeath()
 		return;
 	}
 
-	UGameplayStatics::OpenLevel(this, FName(SaveGame->MapAssetName));
+	UServerTravelComponent::RouteToMapViaLoadingLevel(this, SaveGame->MapAssetName);
 }
 
 void AAuraGameModeBase::BeginPlay()

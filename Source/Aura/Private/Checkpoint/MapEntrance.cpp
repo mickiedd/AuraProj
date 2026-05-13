@@ -5,6 +5,7 @@
 
 #include "Components/SphereComponent.h"
 #include "Game/AuraGameModeBase.h"
+#include "Game/ServerTravelComponent.h"
 #include "Interaction/PlayerInterface.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -38,6 +39,6 @@ void AMapEntrance::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		
 		IPlayerInterface::Execute_SaveProgress(OtherActor, DestinationPlayerStartTag);
 
-		UGameplayStatics::OpenLevelBySoftObjectPtr(this, DestinationMap);
+		UServerTravelComponent::RouteToMapBySoftPtrViaLoadingLevel(this, DestinationMap);
 	}
 }
