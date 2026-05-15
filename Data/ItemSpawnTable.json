@@ -9,7 +9,7 @@
       "spawnOnLoad": true,
       "respawnTime": 0.0,
       "transform": {
-        "location": { "x": -809.8, "y": 1581.0, "z": 1312.0 },
+        "location": { "x": 1044.2, "y": 2704.3, "z": 647.0 },
         "rotation": { "pitch": 0.0, "yaw": 0.0, "roll": 0.0 },
         "scale": { "x": 1.0, "y": 1.0, "z": 1.0 }
       }
