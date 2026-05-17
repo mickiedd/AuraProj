@@ -70,6 +70,20 @@
         "-unattended",
         "-NoLiveCoding"
       ]
+    },
+    {
+      "id": "openworld_level_1",
+      "displayName": "Open World Level 1",
+      "mapPath": "/Game/Cartoon_City_Free/Maps/Demonstration",
+      "port": 7783,
+      "queryPort": 27022,
+      "launchArgs": [
+        "-game",
+        "-server",
+        "-log",
+        "-unattended",
+        "-NoLiveCoding"
+      ]
     }
   ]
 }

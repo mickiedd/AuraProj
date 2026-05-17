@@ -124,6 +124,7 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	Super::PlayerTick(DeltaTime);
 	CursorTrace();
 	RotateCameraFromMouseDelta();
+	RotateCameraFromScreenEdge(DeltaTime);
 	AutoRun();
 	UpdateMagicCircleLocation();
 }
@@ -558,6 +559,80 @@ void AAuraPlayerController::RotateCameraFromMouseDelta()
 			FRotator BoomRotation = CameraBoom->GetComponentRotation();
 			BoomRotation.Yaw = FRotator::NormalizeAxis(BoomRotation.Yaw + MouseDeltaX * RightMouseYawSpeed);
 			BoomRotation.Pitch = FMath::Clamp(BoomRotation.Pitch - MouseDeltaY * RightMousePitchSpeed, CameraPitchMin, CameraPitchMax);
+			CameraBoom->SetWorldRotation(BoomRotation);
+			SetControlRotation(FRotator(0.f, BoomRotation.Yaw, 0.f));
+		}
+	}
+}
+
+void AAuraPlayerController::RotateCameraFromScreenEdge(float DeltaTime)
+{
+	if (!bEnableEdgeScreenCameraRotation || bRightMouseDown)
+	{
+		return;
+	}
+
+	if (EdgeScreenBorderSize <= 0.f || DeltaTime <= 0.f)
+	{
+		return;
+	}
+
+	int32 ViewportSizeX = 0;
+	int32 ViewportSizeY = 0;
+	GetViewportSize(ViewportSizeX, ViewportSizeY);
+	if (ViewportSizeX <= 0 || ViewportSizeY <= 0)
+	{
+		return;
+	}
+
+	float MouseX = 0.f;
+	float MouseY = 0.f;
+	if (!GetMousePosition(MouseX, MouseY))
+	{
+		return;
+	}
+
+	const float BorderX = FMath::Min(EdgeScreenBorderSize, ViewportSizeX * 0.5f);
+	const float BorderY = FMath::Min(EdgeScreenBorderSize, ViewportSizeY * 0.5f);
+
+	float YawAlpha = 0.f;
+	if (MouseX <= BorderX)
+	{
+		YawAlpha = -(1.f - FMath::Clamp(MouseX / BorderX, 0.f, 1.f));
+	}
+	else if (MouseX >= ViewportSizeX - BorderX)
+	{
+		const float DistanceFromRight = FMath::Clamp((ViewportSizeX - MouseX) / BorderX, 0.f, 1.f);
+		YawAlpha = 1.f - DistanceFromRight;
+	}
+
+	float PitchAlpha = 0.f;
+	if (MouseY <= BorderY)
+	{
+		PitchAlpha = 1.f - FMath::Clamp(MouseY / BorderY, 0.f, 1.f);
+	}
+	else if (MouseY >= ViewportSizeY - BorderY)
+	{
+		const float DistanceFromBottom = FMath::Clamp((ViewportSizeY - MouseY) / BorderY, 0.f, 1.f);
+		PitchAlpha = -(1.f - DistanceFromBottom);
+	}
+
+	if (FMath::IsNearlyZero(YawAlpha) && FMath::IsNearlyZero(PitchAlpha))
+	{
+		return;
+	}
+
+	if (APawn* ControlledPawn = GetPawn<APawn>())
+	{
+		if (USpringArmComponent* CameraBoom = ControlledPawn->FindComponentByClass<USpringArmComponent>())
+		{
+			FRotator BoomRotation = CameraBoom->GetComponentRotation();
+			BoomRotation.Yaw = FRotator::NormalizeAxis(BoomRotation.Yaw + YawAlpha * EdgeScreenYawDegreesPerSecond * DeltaTime);
+			BoomRotation.Pitch = FMath::Clamp(
+				BoomRotation.Pitch + PitchAlpha * EdgeScreenPitchDegreesPerSecond * DeltaTime,
+				CameraPitchMin,
+				CameraPitchMax
+			);
 			CameraBoom->SetWorldRotation(BoomRotation);
 			SetControlRotation(FRotator(0.f, BoomRotation.Yaw, 0.f));
 		}

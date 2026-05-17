@@ -97,6 +97,7 @@ private:
 	void RightMousePressed();
 	void RightMouseReleased();
 	void RotateCameraFromMouseDelta();
+	void RotateCameraFromScreenEdge(float DeltaTime);
 	void ApplyGameAndUIInputMode();
 	void JumpPressed();
 	void JumpReleased();
@@ -114,6 +115,18 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category="Camera")
 	float CameraPitchMax = -15.f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	bool bEnableEdgeScreenCameraRotation = true;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	float EdgeScreenBorderSize = 24.f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	float EdgeScreenYawDegreesPerSecond = 120.f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	float EdgeScreenPitchDegreesPerSecond = 90.f;
 
 	bool bRightMouseDown = false;
 	bool bCachedShowMouseCursor = true;
