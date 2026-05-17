@@ -592,8 +592,10 @@ void AAuraPlayerController::RotateCameraFromScreenEdge(float DeltaTime)
 		return;
 	}
 
-	const float BorderX = FMath::Min(EdgeScreenBorderSize, ViewportSizeX * 0.5f);
-	const float BorderY = FMath::Min(EdgeScreenBorderSize, ViewportSizeY * 0.5f);
+	const float MinimumBorderX = ViewportSizeX / 6.f;
+	const float MinimumBorderY = ViewportSizeY / 6.f;
+	const float BorderX = FMath::Min(FMath::Max(EdgeScreenBorderSize, MinimumBorderX), ViewportSizeX * 0.5f);
+	const float BorderY = FMath::Min(FMath::Max(EdgeScreenBorderSize, MinimumBorderY), ViewportSizeY * 0.5f);
 
 	float YawAlpha = 0.f;
 	if (MouseX <= BorderX)
