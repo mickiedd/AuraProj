@@ -17,6 +17,7 @@
 /.idea/
 /Content/*
 !/Content/Blueprints/
+!/Content/Assets/
 /Platforms/
 *.VC.db
 *.VC.opendb
