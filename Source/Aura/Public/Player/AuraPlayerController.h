@@ -94,10 +94,29 @@ private:
 	bool bShiftKeyDown = false;
 
 	void Move(const FInputActionValue& InputActionValue);
+	void RightMousePressed();
+	void RightMouseReleased();
+	void RotateCameraFromMouseDelta();
+	void ApplyGameAndUIInputMode();
 	void JumpPressed();
 	void JumpReleased();
 	void CrouchPressed();
 	void CrouchReleased();
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	float RightMouseYawSpeed = 0.30f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	float RightMousePitchSpeed = 0.24f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	float CameraPitchMin = -80.f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	float CameraPitchMax = -15.f;
+
+	bool bRightMouseDown = false;
+	bool bCachedShowMouseCursor = true;
 
 	void CursorTrace();
 	TObjectPtr<AActor> LastActor;

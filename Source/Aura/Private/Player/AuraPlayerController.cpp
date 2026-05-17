@@ -29,6 +29,7 @@
 #include "UI/Widget/DamageTextComponent.h"
 #include "InputCoreTypes.h"
 #include "Game/ServerTravelComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -122,6 +123,7 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
 	CursorTrace();
+	RotateCameraFromMouseDelta();
 	AutoRun();
 	UpdateMagicCircleLocation();
 }
@@ -245,6 +247,10 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 		return;
 	}
 	UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagPressed: Tag=%s ASC=%s"), *InputTag.ToString(), GetASC() ? TEXT("valid") : TEXT("null"));
+	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_RMB))
+	{
+		return;
+	}
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		FollowTime = 0.f;
@@ -277,6 +283,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	}
 	UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagReleased: Tag=%s TargetingStatus=%d FollowTime=%.3f"),
 		*InputTag.ToString(), (int32)TargetingStatus, FollowTime);
+	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_RMB))
+	{
+		return;
+	}
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
@@ -307,6 +317,10 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
 	{
 		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagHeld BLOCKED: Tag=%s"), *InputTag.ToString());
+		return;
+	}
+	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_RMB))
+	{
 		return;
 	}
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
@@ -457,11 +471,15 @@ void AAuraPlayerController::BeginPlay()
 
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
+	ApplyGameAndUIInputMode();
 
-	FInputModeGameAndUI InputModeData;
-	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	InputModeData.SetHideCursorDuringCapture(false);
-	SetInputMode(InputModeData);
+	if (APawn* ControlledPawn = GetPawn<APawn>())
+	{
+		if (USpringArmComponent* CameraBoom = ControlledPawn->FindComponentByClass<USpringArmComponent>())
+		{
+			SetControlRotation(FRotator(0.f, CameraBoom->GetComponentRotation().Yaw, 0.f));
+		}
+	}
 
 	// Ensure keyboard focus is on the game viewport immediately so WASD works on spawn.
 	if (FSlateApplication::IsInitialized())
@@ -478,11 +496,72 @@ void AAuraPlayerController::SetupInputComponent()
 	AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
 	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &AAuraPlayerController::ShiftPressed);
 	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
+	InputComponent->BindKey(EKeys::RightMouseButton, EInputEvent::IE_Pressed, this, &AAuraPlayerController::RightMousePressed);
+	InputComponent->BindKey(EKeys::RightMouseButton, EInputEvent::IE_Released, this, &AAuraPlayerController::RightMouseReleased);
 	InputComponent->BindKey(EKeys::SpaceBar, EInputEvent::IE_Pressed, this, &AAuraPlayerController::JumpPressed);
 	InputComponent->BindKey(EKeys::SpaceBar, EInputEvent::IE_Released, this, &AAuraPlayerController::JumpReleased);
 	InputComponent->BindKey(EKeys::LeftControl, EInputEvent::IE_Pressed, this, &AAuraPlayerController::CrouchPressed);
 	InputComponent->BindKey(EKeys::LeftControl, EInputEvent::IE_Released, this, &AAuraPlayerController::CrouchReleased);
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
+}
+
+void AAuraPlayerController::ApplyGameAndUIInputMode()
+{
+	FInputModeGameAndUI InputModeData;
+	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputModeData.SetHideCursorDuringCapture(false);
+	SetInputMode(InputModeData);
+}
+
+void AAuraPlayerController::RightMousePressed()
+{
+	bRightMouseDown = true;
+	bCachedShowMouseCursor = bShowMouseCursor;
+	bShowMouseCursor = false;
+	bAutoRunning = false;
+
+	FInputModeGameOnly InputModeData;
+	SetInputMode(InputModeData);
+}
+
+void AAuraPlayerController::RightMouseReleased()
+{
+	bRightMouseDown = false;
+	bShowMouseCursor = bCachedShowMouseCursor;
+	ApplyGameAndUIInputMode();
+
+	if (FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().SetAllUserFocusToGameViewport(EFocusCause::SetDirectly);
+	}
+}
+
+void AAuraPlayerController::RotateCameraFromMouseDelta()
+{
+	if (!bRightMouseDown)
+	{
+		return;
+	}
+
+	float MouseDeltaX = 0.f;
+	float MouseDeltaY = 0.f;
+	GetInputMouseDelta(MouseDeltaX, MouseDeltaY);
+	if (FMath::IsNearlyZero(MouseDeltaX) && FMath::IsNearlyZero(MouseDeltaY))
+	{
+		return;
+	}
+
+	if (APawn* ControlledPawn = GetPawn<APawn>())
+	{
+		if (USpringArmComponent* CameraBoom = ControlledPawn->FindComponentByClass<USpringArmComponent>())
+		{
+			FRotator BoomRotation = CameraBoom->GetComponentRotation();
+			BoomRotation.Yaw = FRotator::NormalizeAxis(BoomRotation.Yaw + MouseDeltaX * RightMouseYawSpeed);
+			BoomRotation.Pitch = FMath::Clamp(BoomRotation.Pitch - MouseDeltaY * RightMousePitchSpeed, CameraPitchMin, CameraPitchMax);
+			CameraBoom->SetWorldRotation(BoomRotation);
+			SetControlRotation(FRotator(0.f, BoomRotation.Yaw, 0.f));
+		}
+	}
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
