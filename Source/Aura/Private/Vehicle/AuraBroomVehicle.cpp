@@ -14,7 +14,7 @@
 
 AAuraBroomVehicle::AAuraBroomVehicle()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	SetReplicateMovement(true);
 
@@ -40,6 +40,21 @@ AAuraBroomVehicle::AAuraBroomVehicle()
 
 	AutoPossessAI = EAutoPossessAI::Disabled;
 	AutoPossessPlayer = EAutoReceiveInput::Disabled;
+}
+
+void AAuraBroomVehicle::BeginPlay()
+{
+	Super::BeginPlay();
+
+	IdleHoverBaseLocation = GetActorLocation();
+	IdleHoverBaseRotation = GetActorRotation();
+}
+
+void AAuraBroomVehicle::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	UpdateIdleHover(DeltaSeconds);
 }
 
 void AAuraBroomVehicle::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -185,4 +200,57 @@ void AAuraBroomVehicle::ApplyMountedState(ACharacter* Character, bool bIsMounted
 			CharacterMovement->SetMovementMode(EMovementMode::MOVE_Walking);
 		}
 	}
+}
+
+void AAuraBroomVehicle::UpdateIdleHover(float DeltaSeconds)
+{
+	if (!HasAuthority() || !bEnableIdleHover)
+	{
+		return;
+	}
+
+	const bool bShouldHover = !IsValid(MountedCharacter);
+	if (!bShouldHover)
+	{
+		bWasHoveringLastTick = false;
+		IdleHoverCurrentOffset = FVector::ZeroVector;
+		IdleHoverCurrentRotationOffset = FRotator::ZeroRotator;
+		IdleHoverBaseLocation = GetActorLocation();
+		IdleHoverBaseRotation = GetActorRotation();
+		return;
+	}
+
+	if (!bWasHoveringLastTick)
+	{
+		IdleHoverBaseLocation = GetActorLocation();
+		IdleHoverBaseRotation = GetActorRotation();
+		IdleHoverCurrentOffset = FVector::ZeroVector;
+		IdleHoverCurrentRotationOffset = FRotator::ZeroRotator;
+		IdleHoverTimeSeconds = 0.f;
+	}
+
+	IdleHoverTimeSeconds += DeltaSeconds;
+
+	const float BobPhase = IdleHoverTimeSeconds * HoverBobFrequency * 2.f * PI;
+	const float SwayPhase = IdleHoverTimeSeconds * HoverSwayFrequency * 2.f * PI;
+	const float TiltPhase = IdleHoverTimeSeconds * HoverTiltFrequency * 2.f * PI;
+
+	const FVector TargetOffset(
+		FMath::Sin(SwayPhase + 1.3f) * HoverSwayAmplitude,
+		FMath::Cos((SwayPhase * 0.73f) + 0.6f) * HoverSwayAmplitude * 0.55f,
+		FMath::Sin(BobPhase) * HoverBobAmplitude);
+
+	const FRotator TargetRotationOffset(
+		FMath::Sin(TiltPhase + 0.4f) * HoverPitchAmplitude,
+		0.f,
+		FMath::Cos((TiltPhase * 1.17f) + 0.2f) * HoverRollAmplitude);
+
+	IdleHoverCurrentOffset = FMath::VInterpTo(IdleHoverCurrentOffset, TargetOffset, DeltaSeconds, HoverSmoothingSpeed);
+	IdleHoverCurrentRotationOffset = FMath::RInterpTo(IdleHoverCurrentRotationOffset, TargetRotationOffset, DeltaSeconds, HoverSmoothingSpeed);
+
+	const FVector NewLocation = IdleHoverBaseLocation + IdleHoverCurrentOffset;
+	const FRotator NewRotation = IdleHoverBaseRotation + IdleHoverCurrentRotationOffset;
+	SetActorLocationAndRotation(NewLocation, NewRotation);
+
+	bWasHoveringLastTick = true;
 }

@@ -18,6 +18,8 @@ class AURA_API AAuraBroomVehicle : public APawn
 
 public:
 	AAuraBroomVehicle();
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -68,7 +70,43 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Mount")
 	bool bRestoreCharacterControlOnDismount = true;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover")
+	bool bEnableIdleHover = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.0"))
+	float HoverBobAmplitude = 6.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.0"))
+	float HoverBobFrequency = 0.9f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.0"))
+	float HoverSwayAmplitude = 4.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.0"))
+	float HoverSwayFrequency = 0.45f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.0"))
+	float HoverRollAmplitude = 2.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.0"))
+	float HoverPitchAmplitude = 1.2f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.0"))
+	float HoverTiltFrequency = 0.35f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.1"))
+	float HoverSmoothingSpeed = 2.5f;
+
 private:
+	void UpdateIdleHover(float DeltaSeconds);
+
 	UPROPERTY(Transient)
 	TObjectPtr<ACharacter> LastMountedCharacter;
+
+	FVector IdleHoverBaseLocation = FVector::ZeroVector;
+	FRotator IdleHoverBaseRotation = FRotator::ZeroRotator;
+	FVector IdleHoverCurrentOffset = FVector::ZeroVector;
+	FRotator IdleHoverCurrentRotationOffset = FRotator::ZeroRotator;
+	float IdleHoverTimeSeconds = 0.f;
+	bool bWasHoveringLastTick = false;
 };
