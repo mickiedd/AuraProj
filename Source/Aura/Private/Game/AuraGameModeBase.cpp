@@ -596,7 +596,62 @@ bool AAuraGameModeBase::TryBuildDedicatedServerReadyContext(FString& OutLevelId,
 		return false;
 	}
 
-	if (!FParse::Value(FCommandLine::Get(), TEXT("port="), OutServerPort) || OutServerPort < 1 || OutServerPort > 65535)
+	auto TryParseServerPort = [](const TCHAR* CmdLine, int32& ParsedPort) -> bool
+	{
+		ParsedPort = 0;
+
+		if (FParse::Value(CmdLine, TEXT("port="), ParsedPort) && ParsedPort >= 1 && ParsedPort <= 65535)
+		{
+			return true;
+		}
+
+		// Accept both "-Port=7783" and "-Port 7783" token forms.
+		TArray<FString> Tokens;
+		FString(CmdLine).ParseIntoArrayWS(Tokens);
+
+		for (int32 Index = 0; Index < Tokens.Num(); ++Index)
+		{
+			const FString& Token = Tokens[Index];
+			if (Token.IsEmpty())
+			{
+				continue;
+			}
+
+			FString ValueText;
+			if (Token.StartsWith(TEXT("-port="), ESearchCase::IgnoreCase) || Token.StartsWith(TEXT("port="), ESearchCase::IgnoreCase))
+			{
+				int32 EqualsIndex = INDEX_NONE;
+				if (Token.FindChar(TEXT('='), EqualsIndex) && EqualsIndex + 1 < Token.Len())
+				{
+					ValueText = Token.Mid(EqualsIndex + 1);
+				}
+			}
+			else if ((Token.Equals(TEXT("-port"), ESearchCase::IgnoreCase) || Token.Equals(TEXT("port"), ESearchCase::IgnoreCase))
+				&& Tokens.IsValidIndex(Index + 1))
+			{
+				ValueText = Tokens[Index + 1];
+			}
+
+			if (ValueText.IsEmpty())
+			{
+				continue;
+			}
+
+			if (ValueText.IsNumeric())
+			{
+				const int32 CandidatePort = FCString::Atoi(*ValueText);
+				if (CandidatePort >= 1 && CandidatePort <= 65535)
+				{
+					ParsedPort = CandidatePort;
+					return true;
+				}
+			}
+		}
+
+		return false;
+	};
+
+	if (!TryParseServerPort(FCommandLine::Get(), OutServerPort))
 	{
 		UE_LOG(LogAura, Warning, TEXT("[GSM-Ready] Could not parse valid -port from command line: %s"), FCommandLine::Get());
 		return false;

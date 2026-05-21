@@ -603,14 +603,13 @@ class GameServerManager:
     # ------------------------------------------------------------------
     async def run(self) -> None:
         self.load_levels()
-        if os.name == "nt":
-            self.server_exe = self.locate_editor_exe() or self.locate_server_exe()
-        else:
-            self.server_exe = self.locate_editor_exe() or self.locate_server_exe()
+        # Always prefer packaged dedicated server binaries (e.g. AuraServer.exe)
+        # rather than launching via UnrealEditor + .uproject.
+        self.server_exe = self.locate_server_exe()
 
         if self.server_exe is None:
             logger.warning(
-                "No launcher executable resolved. Set AURA_SERVER_EXE or UE_EDITOR_EXE to enable DS startup."
+                "No dedicated server executable resolved. Set AURA_SERVER_EXE or build AuraServer."
             )
 
         server = await asyncio.start_server(

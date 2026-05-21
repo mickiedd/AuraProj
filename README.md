@@ -1,5 +1,31 @@
 # AuraProj
 
+## Windows
+
+Important prerequisite for dedicated server:
+
+- Dedicated server targets on Windows require a source-built Unreal Engine installation.
+- If packaging/building logs show "Server targets are not currently supported from this engine distribution", switch from Epic Launcher engine to source-built UE and set UE_ENGINE_ROOT accordingly.
+
+Build dedicated server target:
+
+```bat
+BuildDedicatedServer.bat
+```
+
+Build and run dedicated server executable (not UnrealEditor server mode):
+
+```bat
+BuildAndRunDedicatedServer.bat
+BuildAndRunDedicatedServer.bat /Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_1_dungeon -Port=7778 -QueryPort=27016
+```
+
+Stop dedicated server processes launched from either UnrealEditor server mode or built server executable:
+
+```bat
+StopDedicatedServer.bat
+```
+
 ## macOS
 
 This project was originally set up on Windows. On macOS, use the root-level scripts below after Unreal Engine 5.5 is installed.

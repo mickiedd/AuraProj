@@ -9,7 +9,9 @@
 class UFloatingPawnMovement;
 class UStaticMeshComponent;
 class USceneComponent;
+class UPrimitiveComponent;
 class ACharacter;
+struct FHitResult;
 
 UCLASS(Blueprintable)
 class AURA_API AAuraBroomVehicle : public APawn
@@ -45,6 +47,9 @@ protected:
 	UFUNCTION()
 	void OnRep_MountedCharacter();
 
+	UFUNCTION()
+	void OnBroomMeshHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 	void MountCharacterInternal(ACharacter* CharacterToMount);
 	void DismountCharacterInternal();
 	void ApplyMountedState(ACharacter* Character, bool bIsMounted);
@@ -65,10 +70,10 @@ protected:
 	FName RiderSocketName = FName("RiderSocket");
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Mount")
-	bool bPossessOnMount = true;
+	FName DismountSocketName = FName("DismountSocket");
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Mount")
-	bool bRestoreCharacterControlOnDismount = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Mount", meta = (ClampMin = "0.0"))
+	float RemountGracePeriodSeconds = 0.75f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover")
 	bool bEnableIdleHover = true;
@@ -99,6 +104,7 @@ protected:
 
 private:
 	void UpdateIdleHover(float DeltaSeconds);
+	bool IsWithinRemountGraceWindow(const ACharacter* Character) const;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACharacter> LastMountedCharacter;
@@ -109,4 +115,15 @@ private:
 	FRotator IdleHoverCurrentRotationOffset = FRotator::ZeroRotator;
 	float IdleHoverTimeSeconds = 0.f;
 	bool bWasHoveringLastTick = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Debug|Movement", meta = (ClampMin = "0.1"))
+	float FlightInputLogInterval = 0.25f;
+
+	float LastFlightInputLogTime = -1000.f;
+	float LastFlightBlockedLogTime = -1000.f;
+
+	UPROPERTY(Transient)
+	TObjectPtr<ACharacter> LastDismountedCharacter;
+
+	float LastDismountServerTime = -1000.f;
 };

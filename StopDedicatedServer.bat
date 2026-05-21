@@ -12,7 +12,7 @@ if not exist "%UPROJECT%" (
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$projectPath = [System.IO.Path]::GetFullPath('%UPROJECT%')" ^
-    "; $processes = Get-CimInstance Win32_Process | Where-Object { $_.Name -ieq 'UnrealEditor.exe' -and $_.CommandLine -and $_.CommandLine -like ('*' + $projectPath + '*') -and $_.CommandLine -like '*-server*' }" ^
+    "; $processes = Get-CimInstance Win32_Process | Where-Object { (($_.Name -ieq 'UnrealEditor.exe' -and $_.CommandLine -and $_.CommandLine -like ('*' + $projectPath + '*') -and $_.CommandLine -like '*-server*') -or ($_.Name -like 'AuraServer*.exe' -and $_.CommandLine -and $_.CommandLine -like ('*' + $projectPath + '*'))) }" ^
     "; if (-not $processes) { Write-Host 'No dedicated server processes found.'; exit 0 }" ^
     "; foreach ($process in $processes) { Write-Host ('Stopping PID ' + $process.ProcessId + ': ' + $process.CommandLine); Stop-Process -Id $process.ProcessId -Force }"
 

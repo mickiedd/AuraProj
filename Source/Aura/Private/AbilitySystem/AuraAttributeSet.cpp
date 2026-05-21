@@ -13,6 +13,7 @@
 #include "Interaction/CombatInterface.h"
 #include "Interaction/PlayerInterface.h"
 #include "Player/AuraPlayerController.h"
+#include "GameplayEffectComponents/TargetTagsGameplayEffectComponent.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
@@ -222,14 +223,16 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
 	Effect->DurationMagnitude = FScalableFloat(DebuffDuration);
 
 	const FGameplayTag DebuffTag = GameplayTags.DamageTypesToDebuffs[DamageType];
-	Effect->InheritableOwnedTagsContainer.AddTag(DebuffTag);
+	FInheritedTagContainer TargetTagChanges;
+	TargetTagChanges.Added.AddTag(DebuffTag);
 	if (DebuffTag.MatchesTagExact(GameplayTags.Debuff_Stun))
 	{
-		Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_CursorTrace);
-		Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputHeld);
-		Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputPressed);
-		Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputReleased);
+		TargetTagChanges.Added.AddTag(GameplayTags.Player_Block_CursorTrace);
+		TargetTagChanges.Added.AddTag(GameplayTags.Player_Block_InputHeld);
+		TargetTagChanges.Added.AddTag(GameplayTags.Player_Block_InputPressed);
+		TargetTagChanges.Added.AddTag(GameplayTags.Player_Block_InputReleased);
 	}
+	Effect->FindOrAddComponent<UTargetTagsGameplayEffectComponent>().SetAndApplyTargetTagChanges(TargetTagChanges);
 
 	Effect->StackingType = EGameplayEffectStackingType::AggregateBySource;
 	Effect->StackLimitCount = 1;

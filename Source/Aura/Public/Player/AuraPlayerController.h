@@ -19,6 +19,7 @@ class UAuraAbilitySystemComponent;
 class UAuraAttributeSet;
 class USplineComponent;
 class AMagicCircle;
+class AAuraBroomVehicle;
 class UCharacterMovementComponent;
 class UServerTravelComponent;
 
@@ -55,6 +56,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HideMagicCircle();
 
+	void RequestBroomMount(AAuraBroomVehicle* BroomToMount);
+
 	
 protected:
 	virtual void BeginPlay() override;
@@ -83,6 +86,15 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerSetSprinting(bool bShouldSprint);
 
+	UFUNCTION(Server, Reliable)
+	void ServerRequestBroomDismount(AAuraBroomVehicle* BroomToDismount);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRequestBroomMount(AAuraBroomVehicle* BroomToMount);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerApplyBroomFlightInput(AAuraBroomVehicle* Broom, const FVector& WorldDirection, float ScaleValue);
+
 	void ApplySprintState(bool bShouldSprint);
 	UCharacterMovementComponent* GetControlledCharacterMovement() const;
 
@@ -92,6 +104,11 @@ private:
 	float CachedWalkSpeed = 0.f;
 	bool bIsSprinting = false;
 	bool bShiftKeyDown = false;
+	float LastMoveInputLogTime = -1000.f;
+	float LastMoveBlockedLogTime = -1000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category="Debug|Movement", meta = (ClampMin = "0.1"))
+	float MoveInputLogInterval = 0.25f;
 
 	void Move(const FInputActionValue& InputActionValue);
 	void RightMousePressed();

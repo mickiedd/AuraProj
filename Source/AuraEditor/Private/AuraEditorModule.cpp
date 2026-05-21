@@ -451,16 +451,16 @@ private:
 	bool LaunchDedicatedServerLevel(const FDedicatedServerLaunchLevel& LaunchLevel, bool bShowDialogs = true) const
 	{
 		const FString ScriptArguments = BuildDedicatedServerScriptArguments(LaunchLevel);
-		const FString SuccessLabel = FString::Printf(TEXT("StartDedicatedServer:%s"), *LaunchLevel.DisplayName);
+		const FString SuccessLabel = FString::Printf(TEXT("BuildAndRunDedicatedServer:%s"), *LaunchLevel.DisplayName);
 
 #if PLATFORM_WINDOWS
 		return LaunchProjectScript(
-			TEXT("StartDedicatedServer.bat"),
+			TEXT("BuildAndRunDedicatedServer.bat"),
 			ScriptArguments,
 			bShowDialogs
 				? FText::Format(
-					LOCTEXT("StartDedicatedServerMissingWindows", "Could not find StartDedicatedServer.bat at:\n{0}"),
-					FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartDedicatedServer.bat"))))
+					LOCTEXT("BuildAndRunDedicatedServerMissingWindows", "Could not find BuildAndRunDedicatedServer.bat at:\n{0}"),
+					FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("BuildAndRunDedicatedServer.bat"))))
 				: FText(),
 			bShowDialogs ? FString(TEXT("Failed to launch the dedicated server.")) : FString(),
 			SuccessLabel);

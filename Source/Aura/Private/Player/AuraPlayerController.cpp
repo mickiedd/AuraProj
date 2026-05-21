@@ -30,12 +30,34 @@
 #include "InputCoreTypes.h"
 #include "Game/ServerTravelComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Vehicle/AuraBroomVehicle.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
 	bReplicates = true;
 	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
 	ServerTravelComponent = CreateDefaultSubobject<UServerTravelComponent>(TEXT("ServerTravelComponent"));
+}
+
+void AAuraPlayerController::RequestBroomMount(AAuraBroomVehicle* BroomToMount)
+{
+	if (!IsValid(BroomToMount))
+	{
+		UE_LOG(LogAura, Warning, TEXT("RequestBroomMount ignored: invalid broom. Controller=%s"), *GetNameSafe(this));
+		return;
+	}
+
+	if (HasAuthority())
+	{
+		ACharacter* ControlledCharacter = GetPawn<ACharacter>();
+		if (IsValid(ControlledCharacter))
+		{
+			BroomToMount->RequestMount(ControlledCharacter);
+		}
+		return;
+	}
+
+	ServerRequestBroomMount(BroomToMount);
 }
 
 void AAuraPlayerController::ShiftPressed()
@@ -62,6 +84,56 @@ void AAuraPlayerController::ServerSetSprinting_Implementation(bool bShouldSprint
 {
 	bIsSprinting = bShouldSprint;
 	ApplySprintState(bShouldSprint);
+}
+
+void AAuraPlayerController::ServerRequestBroomDismount_Implementation(AAuraBroomVehicle* BroomToDismount)
+{
+	if (!IsValid(BroomToDismount))
+	{
+		UE_LOG(LogAura, Warning, TEXT("ServerRequestBroomDismount ignored: invalid broom. Controller=%s"), *GetNameSafe(this));
+		return;
+	}
+
+	UE_LOG(LogAura, Log, TEXT("ServerRequestBroomDismount processing. Controller=%s Broom=%s"),
+		*GetNameSafe(this),
+		*GetNameSafe(BroomToDismount));
+
+	BroomToDismount->RequestDismount();
+}
+
+void AAuraPlayerController::ServerRequestBroomMount_Implementation(AAuraBroomVehicle* BroomToMount)
+{
+	if (!IsValid(BroomToMount))
+	{
+		UE_LOG(LogAura, Warning, TEXT("ServerRequestBroomMount ignored: invalid broom. Controller=%s"), *GetNameSafe(this));
+		return;
+	}
+
+	ACharacter* ControlledCharacter = GetPawn<ACharacter>();
+	if (!IsValid(ControlledCharacter))
+	{
+		UE_LOG(LogAura, Warning, TEXT("ServerRequestBroomMount ignored: no character pawn. Controller=%s Broom=%s"),
+			*GetNameSafe(this),
+			*GetNameSafe(BroomToMount));
+		return;
+	}
+
+	UE_LOG(LogAura, Log, TEXT("ServerRequestBroomMount processing. Controller=%s Character=%s Broom=%s"),
+		*GetNameSafe(this),
+		*GetNameSafe(ControlledCharacter),
+		*GetNameSafe(BroomToMount));
+
+	BroomToMount->RequestMount(ControlledCharacter);
+}
+
+void AAuraPlayerController::ServerApplyBroomFlightInput_Implementation(AAuraBroomVehicle* Broom, const FVector& WorldDirection, float ScaleValue)
+{
+	if (!IsValid(Broom))
+	{
+		return;
+	}
+
+	Broom->AddFlightInput(WorldDirection, ScaleValue);
 }
 
 void AAuraPlayerController::ApplySprintState(bool bShouldSprint)
@@ -643,14 +715,67 @@ void AAuraPlayerController::RotateCameraFromScreenEdge(float DeltaTime)
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 {
+	const float CurrentTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	const bool bCanLogMove = CurrentTime - LastMoveInputLogTime >= MoveInputLogInterval;
+	const bool bCanLogMoveBlocked = CurrentTime - LastMoveBlockedLogTime >= MoveInputLogInterval;
+
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
 	{
+		if (bCanLogMoveBlocked)
+		{
+			UE_LOG(LogAura, Warning, TEXT("Move blocked by gameplay tag. Controller=%s Pawn=%s"), *GetNameSafe(this), *GetNameSafe(GetPawn()));
+			LastMoveBlockedLogTime = CurrentTime;
+		}
 		return;
 	}
+
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
+	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
+	{
+		if (AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor()))
+		{
+			const FRotator Rotation = GetControlRotation();
+			const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+			const FVector FlightInput = (ForwardDirection * InputAxisVector.Y) + (RightDirection * InputAxisVector.X);
+			const float FlightScale = FMath::Clamp(FlightInput.Size(), 0.f, 1.f);
+			if (FlightScale > KINDA_SMALL_NUMBER)
+			{
+				const FVector FlightDirection = FlightInput / FlightScale;
+				if (HasAuthority())
+				{
+					MountedBroom->AddFlightInput(FlightDirection, FlightScale);
+				}
+				else
+				{
+					ServerApplyBroomFlightInput(MountedBroom, FlightDirection, FlightScale);
+				}
+
+				if (bCanLogMove)
+				{
+					UE_LOG(LogAura, Verbose, TEXT("Move redirected to broom flight. Character=%s Broom=%s Input=%s FlightDirection=%s FlightScale=%.2f"),
+						*GetNameSafe(ControlledCharacter),
+						*GetNameSafe(MountedBroom),
+						*InputAxisVector.ToString(),
+						*FlightDirection.ToCompactString(),
+						FlightScale);
+					LastMoveInputLogTime = CurrentTime;
+				}
+			}
+			return;
+		}
+	}
+
 	const bool bShouldSprint = bShiftKeyDown && !InputAxisVector.IsNearlyZero();
 	if (bShouldSprint != bIsSprinting)
 	{
+		UE_LOG(LogAura, Log, TEXT("Move sprint state changed. Controller=%s NewSprinting=%s Input=%s"),
+			*GetNameSafe(this),
+			bShouldSprint ? TEXT("true") : TEXT("false"),
+			*InputAxisVector.ToString());
+
 		bIsSprinting = bShouldSprint;
 		ApplySprintState(bIsSprinting);
 		if (!HasAuthority())
@@ -673,6 +798,13 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 			{
 				if (CharacterMovement->IsFalling())
 				{
+					if (bCanLogMoveBlocked)
+					{
+						UE_LOG(LogAura, Warning, TEXT("Move ignored while falling. Character=%s Velocity=%s"),
+							*GetNameSafe(ControlledCharacter),
+							*ControlledCharacter->GetVelocity().ToCompactString());
+						LastMoveBlockedLogTime = CurrentTime;
+					}
 					return;
 				}
 			}
@@ -680,6 +812,26 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+
+		if (bCanLogMove)
+		{
+			UE_LOG(LogAura, Verbose, TEXT("Move applied. Pawn=%s Input=%s Forward=%s Right=%s Velocity=%s Location=%s HasAuthority=%s"),
+				*GetNameSafe(ControlledPawn),
+				*InputAxisVector.ToString(),
+				*ForwardDirection.ToCompactString(),
+				*RightDirection.ToCompactString(),
+				*ControlledPawn->GetVelocity().ToCompactString(),
+				*ControlledPawn->GetActorLocation().ToCompactString(),
+				HasAuthority() ? TEXT("true") : TEXT("false"));
+			LastMoveInputLogTime = CurrentTime;
+		}
+	}
+	else if (bCanLogMoveBlocked)
+	{
+		UE_LOG(LogAura, Warning, TEXT("Move ignored: no controlled pawn. Controller=%s Input=%s"),
+			*GetNameSafe(this),
+			*InputAxisVector.ToString());
+		LastMoveBlockedLogTime = CurrentTime;
 	}
 }
 
@@ -694,6 +846,19 @@ void AAuraPlayerController::JumpPressed()
 
 	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
 	{
+		if (AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor()))
+		{
+			if (HasAuthority())
+			{
+				MountedBroom->RequestDismount();
+			}
+			else
+			{
+				ServerRequestBroomDismount(MountedBroom);
+			}
+			return;
+		}
+
 		ControlledCharacter->Jump();
 	}
 }
