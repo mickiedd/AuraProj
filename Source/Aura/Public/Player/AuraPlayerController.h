@@ -95,6 +95,19 @@ private:
 	UFUNCTION(Server, Unreliable)
 	void ServerApplyBroomFlightInput(AAuraBroomVehicle* Broom, const FVector& WorldDirection, float ScaleValue);
 
+	/**
+	 * Rotates the broom's yaw on the server to match the camera forward direction.
+	 * Unreliable: dropped packets are acceptable since each call carries the absolute yaw.
+	 */
+	UFUNCTION(Server, Unreliable)
+	void ServerSetBroomYaw(AAuraBroomVehicle* Broom, float WorldYaw);
+
+	/**
+	 * Called on the owning client whenever the camera yaw changes (screen-edge or
+	 * right-mouse drag). Routes the broom yaw update through the correct authority path.
+	 */
+	void UpdateMountedBroomYaw(float WorldYaw);
+
 	void ApplySprintState(bool bShouldSprint);
 	UCharacterMovementComponent* GetControlledCharacterMovement() const;
 

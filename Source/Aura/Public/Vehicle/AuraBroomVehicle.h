@@ -43,6 +43,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Broom|Movement")
 	void AddFlightInput(const FVector& WorldDirection, float ScaleValue = 1.f);
 
+	/**
+	 * Sets the yaw the broom will smoothly rotate toward during flight.
+	 * Called by movement input (A/D/S) and by the camera-rotation path to keep both
+	 * systems in sync and prevent them from fighting each other.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Broom|Movement")
+	void SetFlightTargetYaw(float WorldYaw);
+
 	UFUNCTION(BlueprintCallable, Category = "Broom|Mount")
 	void RequestMount(ACharacter* CharacterToMount);
 
@@ -117,8 +125,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Broom|Idle Hover", meta = (ClampMin = "0.1"))
 	float HoverSmoothingSpeed = 2.5f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Broom|Movement", meta = (ClampMin = "0.1", ToolTip = "Degrees/second interp speed used to rotate the broom toward the movement or camera direction."))
+	float YawInterpSpeed = 8.f;
+
 private:
 	void UpdateIdleHover(float DeltaSeconds);
+	void UpdateFlightYaw(float DeltaSeconds);
 	bool IsWithinRemountGraceWindow(const ACharacter* Character) const;
 
 	UPROPERTY(Transient)
@@ -136,6 +148,10 @@ private:
 
 	float LastFlightInputLogTime = -1000.f;
 	float LastFlightBlockedLogTime = -1000.f;
+
+	// Target yaw the broom interpolates toward while the player is mounted and flying.
+	float FlightTargetYaw = 0.f;
+	bool bHasFlightTargetYaw = false;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACharacter> LastDismountedCharacter;

@@ -126,6 +126,51 @@ void AAuraPlayerController::ServerRequestBroomMount_Implementation(AAuraBroomVeh
 	BroomToMount->RequestMount(ControlledCharacter);
 }
 
+void AAuraPlayerController::ServerSetBroomYaw_Implementation(AAuraBroomVehicle* Broom, float WorldYaw)
+{
+	if (!IsValid(Broom))
+	{
+		return;
+	}
+
+	// Apply the camera yaw immediately so screen-edge / right-mouse rotation feels instant.
+	FRotator NewRotation = Broom->GetActorRotation();
+	NewRotation.Yaw = WorldYaw;
+	Broom->SetActorRotation(NewRotation);
+
+	// Sync the interpolation target so the movement-driven smooth-turn system
+	// does not fight against the camera-set rotation.
+	Broom->SetFlightTargetYaw(WorldYaw);
+}
+
+void AAuraPlayerController::UpdateMountedBroomYaw(float WorldYaw)
+{
+	ACharacter* ControlledCharacter = GetPawn<ACharacter>();
+	if (!IsValid(ControlledCharacter))
+	{
+		return;
+	}
+
+	AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor());
+	if (!IsValid(MountedBroom))
+	{
+		return;
+	}
+
+	if (HasAuthority())
+	{
+		// Listen-server or standalone: apply directly.
+		FRotator NewRotation = MountedBroom->GetActorRotation();
+		NewRotation.Yaw = WorldYaw;
+		MountedBroom->SetActorRotation(NewRotation);
+	}
+	else
+	{
+		// Dedicated-server client: forward to server via unreliable RPC.
+		ServerSetBroomYaw(MountedBroom, WorldYaw);
+	}
+}
+
 void AAuraPlayerController::ServerApplyBroomFlightInput_Implementation(AAuraBroomVehicle* Broom, const FVector& WorldDirection, float ScaleValue)
 {
 	UE_LOG(LogAura, Warning, TEXT("[BroomFlight] ServerApplyBroomFlightInput received. Controller=%s Broom=%s BroomValid=%s Dir=%s Scale=%.3f"),
@@ -640,6 +685,9 @@ void AAuraPlayerController::RotateCameraFromMouseDelta()
 			BoomRotation.Pitch = FMath::Clamp(BoomRotation.Pitch - MouseDeltaY * RightMousePitchSpeed, CameraPitchMin, CameraPitchMax);
 			CameraBoom->SetWorldRotation(BoomRotation);
 			SetControlRotation(FRotator(0.f, BoomRotation.Yaw, 0.f));
+
+			// Keep the broom facing the camera's forward direction while mounted.
+			UpdateMountedBroomYaw(BoomRotation.Yaw);
 		}
 	}
 }
@@ -716,6 +764,9 @@ void AAuraPlayerController::RotateCameraFromScreenEdge(float DeltaTime)
 			);
 			CameraBoom->SetWorldRotation(BoomRotation);
 			SetControlRotation(FRotator(0.f, BoomRotation.Yaw, 0.f));
+
+			// Keep the broom facing the camera's forward direction while mounted.
+			UpdateMountedBroomYaw(BoomRotation.Yaw);
 		}
 	}
 }

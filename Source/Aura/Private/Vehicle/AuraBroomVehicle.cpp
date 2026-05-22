@@ -136,6 +136,7 @@ void AAuraBroomVehicle::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	UpdateIdleHover(DeltaSeconds);
+	UpdateFlightYaw(DeltaSeconds);
 }
 
 void AAuraBroomVehicle::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -172,6 +173,13 @@ void AAuraBroomVehicle::AddFlightInput(const FVector& WorldDirection, float Scal
 	}
 
 	AddMovementInput(WorldDirection, ScaleValue);
+
+	// Derive the facing target from the movement direction so the broom smoothly
+	// turns to face wherever the player steers (forward, strafe, or backward).
+	if (HasAuthority() && !WorldDirection.IsNearlyZero())
+	{
+		SetFlightTargetYaw(FRotationMatrix::MakeFromX(WorldDirection).Rotator().Yaw);
+	}
 
 	UE_LOG(LogAura, Warning, TEXT("[BroomFlight] AddMovementInput sent. PendingInputVector=%s"),
 		*GetPendingMovementInputVector().ToCompactString());
@@ -405,15 +413,32 @@ void AAuraBroomVehicle::ApplyMountedState(ACharacter* Character, bool bIsMounted
 	{
 		Character->AttachToComponent(BroomMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, RiderSocketName);
 		Character->SetActorEnableCollision(false);
+
+		// Stop the character from independently replicating its world position via
+		// AActor::ReplicatedMovement. While attached, the character's world position is
+		// fully derived each frame from the broom's replicated transform + the socket
+		// offset, so a separate ReplicatedMovement packet arriving out-of-sync with the
+		// broom's position packet would cause visible desync (OnRep_ReplicatedMovement
+		// snapping the character to a stale world position). Disabling it here makes the
+		// attachment hierarchy the single source of truth on every client.
+		Character->SetReplicateMovement(false);
+
 		if (UCharacterMovementComponent* CharacterMovement = Character->GetCharacterMovement())
 		{
 			CharacterMovement->DisableMovement();
+			// Clear any residual velocity so the CMC does not carry momentum into the
+			// mounted state or confuse the network prediction pipeline.
+			CharacterMovement->StopMovementImmediately();
 		}
 	}
 	else
 	{
 		Character->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		Character->SetActorEnableCollision(true);
+
+		// Re-enable independent position replication now that the character moves freely.
+		Character->SetReplicateMovement(true);
+
 		if (UCharacterMovementComponent* CharacterMovement = Character->GetCharacterMovement())
 		{
 			CharacterMovement->SetMovementMode(EMovementMode::MOVE_Falling);
@@ -428,6 +453,28 @@ void AAuraBroomVehicle::ApplyMountedState(ACharacter* Character, bool bIsMounted
 				*GetNameSafe(Character));
 		}
 	}
+}
+
+void AAuraBroomVehicle::SetFlightTargetYaw(float WorldYaw)
+{
+	FlightTargetYaw = WorldYaw;
+	bHasFlightTargetYaw = true;
+}
+
+void AAuraBroomVehicle::UpdateFlightYaw(float DeltaSeconds)
+{
+	// Only the server drives broom rotation; movement replication carries it to clients.
+	if (!HasAuthority() || !bHasFlightTargetYaw || !IsValid(MountedCharacter))
+	{
+		return;
+	}
+
+	const FRotator CurrentRot = GetActorRotation();
+	const FRotator TargetRot(0.f, FlightTargetYaw, 0.f);
+
+	// RInterpTo handles the shortest-path wrap at the ±180° boundary.
+	const FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetRot, DeltaSeconds, YawInterpSpeed);
+	SetActorRotation(NewRot);
 }
 
 void AAuraBroomVehicle::UpdateIdleHover(float DeltaSeconds)
