@@ -3,15 +3,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameFramework/FloatingPawnMovement.h"
 #include "GameFramework/Pawn.h"
 #include "AuraBroomVehicle.generated.h"
 
-class UFloatingPawnMovement;
 class UStaticMeshComponent;
 class USceneComponent;
 class UPrimitiveComponent;
 class ACharacter;
 struct FHitResult;
+
+/**
+ * Server-authoritative movement component for the broom.
+ * UFloatingPawnMovement normally gates movement on Controller->IsLocalController(),
+ * which prevents movement when the broom has no possessing controller.
+ * This subclass skips that check and drives movement from server authority instead.
+ */
+UCLASS()
+class AURA_API UAuraBroomMovement : public UFloatingPawnMovement
+{
+	GENERATED_BODY()
+
+public:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+};
 
 UCLASS(Blueprintable)
 class AURA_API AAuraBroomVehicle : public APawn
@@ -61,7 +76,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> BroomMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Broom|Components")
-	TObjectPtr<UFloatingPawnMovement> FlightMovement;
+	TObjectPtr<UAuraBroomMovement> FlightMovement;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MountedCharacter, BlueprintReadOnly, Category = "Broom|Mount")
 	TObjectPtr<ACharacter> MountedCharacter;

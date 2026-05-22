@@ -393,6 +393,142 @@ class GameServerManager:
         return None
 
     # ------------------------------------------------------------------
+    def _locate_build_bat(self) -> Optional[Path]:
+        """
+        Locate UBT Build.bat using UE_ENGINE_ROOT env var first, then registry
+        via the project's EngineAssociation — mirrors the logic in BuildDedicatedServer.bat.
+        """
+        env_root = os.environ.get("UE_ENGINE_ROOT")
+        if env_root:
+            candidate = Path(env_root) / "Engine" / "Build" / "BatchFiles" / "Build.bat"
+            if candidate.exists():
+                logger.info("Found Build.bat via UE_ENGINE_ROOT: %s", candidate)
+                return candidate
+            logger.warning("UE_ENGINE_ROOT set but Build.bat not found at: %s", candidate)
+
+        # Read EngineAssociation from the .uproject file.
+        engine_assoc = ""
+        try:
+            if PROJECT_FILE.exists():
+                project_json = json.loads(PROJECT_FILE.read_text(encoding="utf-8"))
+                engine_assoc = str(project_json.get("EngineAssociation", "")).strip()
+        except Exception as exc:
+            logger.warning("Failed reading EngineAssociation from %s: %s", PROJECT_FILE, exc)
+
+        if not engine_assoc:
+            logger.warning(
+                "Cannot locate Build.bat: EngineAssociation is empty and UE_ENGINE_ROOT is not set."
+            )
+            return None
+
+        def _query_reg(key: str, value_name: str) -> Optional[str]:
+            try:
+                result = subprocess.run(
+                    ["reg", "query", key, "/v", value_name],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+            except Exception:
+                return None
+            if result.returncode != 0 or not result.stdout:
+                return None
+            for line in result.stdout.splitlines():
+                line = line.strip()
+                if value_name.lower() not in line.lower():
+                    continue
+                parts = line.split()
+                if len(parts) >= 3:
+                    return " ".join(parts[2:]).strip()
+            return None
+
+        candidate_engine_dirs = [
+            _query_reg(
+                rf"HKLM\SOFTWARE\EpicGames\Unreal Engine\{engine_assoc}",
+                "InstalledDirectory",
+            ),
+            _query_reg(
+                rf"HKLM\SOFTWARE\WOW6432Node\EpicGames\Unreal Engine\{engine_assoc}",
+                "InstalledDirectory",
+            ),
+            _query_reg(
+                r"HKCU\SOFTWARE\Epic Games\Unreal Engine\Builds",
+                engine_assoc,
+            ),
+        ]
+        for engine_dir in candidate_engine_dirs:
+            if not engine_dir:
+                continue
+            candidate = Path(engine_dir) / "Engine" / "Build" / "BatchFiles" / "Build.bat"
+            if candidate.exists():
+                logger.info("Found Build.bat via registry (assoc=%s): %s", engine_assoc, candidate)
+                return candidate
+
+        logger.warning(
+            "Could not find Build.bat for EngineAssociation '%s'. "
+            "Set UE_ENGINE_ROOT to your engine root directory.",
+            engine_assoc,
+        )
+        return None
+
+    # ------------------------------------------------------------------
+    async def _build_server_binary(self, request_id: str) -> bool:
+        """
+        Run UBT to build AuraServer Win64 Development.
+        Streams build output to the logger line by line.
+        Returns True on success, False on any failure.
+        """
+        build_bat = self._locate_build_bat()
+        if build_bat is None:
+            logger.error(
+                "[%s] Cannot build AuraServer: Build.bat not found. "
+                "Set UE_ENGINE_ROOT or ensure EngineAssociation is valid.",
+                request_id,
+            )
+            return False
+
+        cmd = [
+            "cmd", "/c", str(build_bat),
+            "AuraServer", "Win64", "Development",
+            str(PROJECT_FILE),
+            "-waitmutex",
+        ]
+        logger.info("[%s] Building AuraServer binary: %s", request_id, " ".join(cmd))
+        build_start = time.monotonic()
+
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
+            )
+        except Exception as exc:
+            logger.error("[%s] Failed to launch build process: %s", request_id, exc)
+            return False
+
+        # Stream UBT output line-by-line so progress is visible in the GSM log.
+        assert proc.stdout is not None
+        while True:
+            line = await proc.stdout.readline()
+            if not line:
+                break
+            logger.info("[%s] [BUILD] %s", request_id, line.decode("utf-8", errors="replace").rstrip())
+
+        rc = await proc.wait()
+        elapsed = time.monotonic() - build_start
+        if rc == 0:
+            logger.info("[%s] AuraServer build succeeded (elapsed=%.1fs)", request_id, elapsed)
+            return True
+
+        logger.error(
+            "[%s] AuraServer build FAILED (returncode=%d, elapsed=%.1fs). "
+            "If the error says 'Server targets are not currently supported', you need a "
+            "source-built Unreal Engine and must set UE_ENGINE_ROOT.",
+            request_id, rc, elapsed,
+        )
+        return False
+
+    # ------------------------------------------------------------------
     async def handle_client(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
@@ -530,6 +666,31 @@ class GameServerManager:
             if not was_running_before:
                 self._clear_ready_state(level_id)
                 logger.info("[%s] Cleared stale ready state for levelId='%s' before launch", request_id, level_id)
+
+                # Build the dedicated server binary before launching.
+                # Skipped when running through UnrealEditor (editor-server mode).
+                is_editor_mode = (
+                    self.server_exe is not None
+                    and self.server_exe.name.lower() == "unrealeditor.exe"
+                )
+                if not is_editor_mode:
+                    logger.info(
+                        "[%s] Server not running — building AuraServer binary before launch (levelId='%s')",
+                        request_id, level_id,
+                    )
+                    build_ok = await self._build_server_binary(request_id)
+                    if not build_ok:
+                        await self._send_error(
+                            writer,
+                            request_id,
+                            f"Dedicated server binary build failed for '{level_id}'. "
+                            "Check the GSM log for UBT output.",
+                        )
+                        return
+                    # Re-locate the executable in case the build just produced it
+                    # (e.g. the binary was absent at GSM startup).
+                    if self.server_exe is None:
+                        self.server_exe = self.locate_server_exe()
 
             ok = await entry.ensure_running(self.server_exe)
             if not ok:

@@ -46,11 +46,11 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 	const FVector PendingInput = GetPendingInputVector();
 
-	/* UE_LOG(LogAura, Warning, TEXT("[BroomMovement] TickComponent (server). Broom=%s PendingInput=%s CurrentVelocity=%s DT=%.4f"),
+	UE_LOG(LogAura, Warning, TEXT("[BroomMovement] TickComponent (server). Broom=%s PendingInput=%s CurrentVelocity=%s DT=%.4f"),
 		*GetNameSafe(GetOwner()),
 		*PendingInput.ToCompactString(),
 		*Velocity.ToCompactString(),
-		DeltaTime); */
+		DeltaTime);
 
 	ApplyControlInputToVelocity(DeltaTime);
 	LimitWorldBounds();
@@ -58,7 +58,8 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 	const FVector Delta = Velocity * DeltaTime;
 
-	// UE_LOG(LogAura, Warning, TEXT("[BroomMovement] After ApplyControlInput. NewVelocity=%s Delta=%s"), *Velocity.ToCompactString(), *Delta.ToCompactString());
+	UE_LOG(LogAura, Warning, TEXT("[BroomMovement] After ApplyControlInput. NewVelocity=%s Delta=%s"),
+		*Velocity.ToCompactString(), *Delta.ToCompactString());
 
 	if (!Delta.IsNearlyZero(1e-6f))
 	{

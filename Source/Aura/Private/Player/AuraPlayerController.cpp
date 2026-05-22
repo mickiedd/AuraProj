@@ -128,6 +128,13 @@ void AAuraPlayerController::ServerRequestBroomMount_Implementation(AAuraBroomVeh
 
 void AAuraPlayerController::ServerApplyBroomFlightInput_Implementation(AAuraBroomVehicle* Broom, const FVector& WorldDirection, float ScaleValue)
 {
+	UE_LOG(LogAura, Warning, TEXT("[BroomFlight] ServerApplyBroomFlightInput received. Controller=%s Broom=%s BroomValid=%s Dir=%s Scale=%.3f"),
+		*GetNameSafe(this),
+		*GetNameSafe(Broom),
+		IsValid(Broom) ? TEXT("yes") : TEXT("NULL"),
+		*WorldDirection.ToCompactString(),
+		ScaleValue);
+
 	if (!IsValid(Broom))
 	{
 		return;
@@ -719,6 +726,67 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 	const bool bCanLogMove = CurrentTime - LastMoveInputLogTime >= MoveInputLogInterval;
 	const bool bCanLogMoveBlocked = CurrentTime - LastMoveBlockedLogTime >= MoveInputLogInterval;
 
+	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
+
+	// ── Broom flight ───────────────────────────────────────────────────────────
+	// Checked BEFORE the Player_Block_InputPressed gate so that broom locomotion
+	// is never silenced by ability-system input blocks applied during mounting.
+	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
+	{
+		AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor());
+
+		if (bCanLogMove)
+		{
+			UE_LOG(LogAura, Warning, TEXT("[BroomFlight] Move called. Controller=%s Pawn=%s AttachParent=%s MountedBroom=%s Input=%s"),
+				*GetNameSafe(this),
+				*GetNameSafe(ControlledCharacter),
+				*GetNameSafe(ControlledCharacter->GetAttachParentActor()),
+				*GetNameSafe(MountedBroom),
+				*InputAxisVector.ToString());
+		}
+
+		if (MountedBroom)
+		{
+			const bool bTagBlocked = GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed);
+			UE_LOG(LogAura, Warning, TEXT("[BroomFlight] On broom. TagBlock=%s Input=%s HasAuthority=%s"),
+				bTagBlocked ? TEXT("YES") : TEXT("no"),
+				*InputAxisVector.ToString(),
+				HasAuthority() ? TEXT("true") : TEXT("false"));
+
+			const FRotator Rotation = GetControlRotation();
+			const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+			const FVector FlightInput = (ForwardDirection * InputAxisVector.Y) + (RightDirection * InputAxisVector.X);
+			const float FlightScale = FMath::Clamp(FlightInput.Size(), 0.f, 1.f);
+
+			UE_LOG(LogAura, Warning, TEXT("[BroomFlight] FlightInput=%s FlightScale=%.3f"),
+				*FlightInput.ToCompactString(), FlightScale);
+
+			if (FlightScale > KINDA_SMALL_NUMBER)
+			{
+				const FVector FlightDirection = FlightInput / FlightScale;
+				if (HasAuthority())
+				{
+					UE_LOG(LogAura, Warning, TEXT("[BroomFlight] Authority — calling AddFlightInput directly. Dir=%s Scale=%.3f"),
+						*FlightDirection.ToCompactString(), FlightScale);
+					MountedBroom->AddFlightInput(FlightDirection, FlightScale);
+				}
+				else
+				{
+					UE_LOG(LogAura, Warning, TEXT("[BroomFlight] Client — sending ServerApplyBroomFlightInput RPC. Dir=%s Scale=%.3f"),
+						*FlightDirection.ToCompactString(), FlightScale);
+					ServerApplyBroomFlightInput(MountedBroom, FlightDirection, FlightScale);
+				}
+
+				LastMoveInputLogTime = CurrentTime;
+			}
+			return;
+		}
+	}
+
+	// ── Ground movement ────────────────────────────────────────────────────────
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
 	{
 		if (bCanLogMoveBlocked)
@@ -727,45 +795,6 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 			LastMoveBlockedLogTime = CurrentTime;
 		}
 		return;
-	}
-
-	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
-	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
-	{
-		if (AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor()))
-		{
-			const FRotator Rotation = GetControlRotation();
-			const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-			const FVector FlightInput = (ForwardDirection * InputAxisVector.Y) + (RightDirection * InputAxisVector.X);
-			const float FlightScale = FMath::Clamp(FlightInput.Size(), 0.f, 1.f);
-			if (FlightScale > KINDA_SMALL_NUMBER)
-			{
-				const FVector FlightDirection = FlightInput / FlightScale;
-				if (HasAuthority())
-				{
-					MountedBroom->AddFlightInput(FlightDirection, FlightScale);
-				}
-				else
-				{
-					ServerApplyBroomFlightInput(MountedBroom, FlightDirection, FlightScale);
-				}
-
-				if (bCanLogMove)
-				{
-					UE_LOG(LogAura, Verbose, TEXT("Move redirected to broom flight. Character=%s Broom=%s Input=%s FlightDirection=%s FlightScale=%.2f"),
-						*GetNameSafe(ControlledCharacter),
-						*GetNameSafe(MountedBroom),
-						*InputAxisVector.ToString(),
-						*FlightDirection.ToCompactString(),
-						FlightScale);
-					LastMoveInputLogTime = CurrentTime;
-				}
-			}
-			return;
-		}
 	}
 
 	const bool bShouldSprint = bShiftKeyDown && !InputAxisVector.IsNearlyZero();
