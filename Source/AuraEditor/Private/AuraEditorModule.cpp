@@ -1725,7 +1725,7 @@ private:
 #if PLATFORM_WINDOWS
 		const FString CmdExe = FPlatformMisc::GetEnvironmentVariable(TEXT("ComSpec"));
 		const FString Executable = CmdExe.IsEmpty() ? TEXT("cmd.exe") : CmdExe;
-		const FString Params = FString::Printf(TEXT("/c \"%s\""), *CommandToRun);
+		const FString Params = FString::Printf(TEXT("/k \"%s\""), *CommandToRun);
 		const bool bLaunchDetached = false;
 		const bool bLaunchHidden = false;
 		const bool bLaunchReallyHidden = false;
@@ -1986,7 +1986,7 @@ private:
 		}
 
 		const FString BuildCommand = FString::Printf(
-			TEXT("\"%s\" BuildCookRun -project=\"%s\" -noP4 -platform=Win64 -clientconfig=Shipping -build -cook -stage -package -archive -archivedirectory=\"%s\" -pak -iostore -prereqs -target=Aura"),
+			TEXT("\"%s\" BuildCookRun -project=\"%s\" -noP4 -platform=Win64 -clientconfig=DebugGame -build -cook -stage -package -archive -archivedirectory=\"%s\" -pak -iostore -prereqs -target=Aura -nocompileeditor -skipbuildeditor"),
 			*RunUATBatPath,
 			*ProjectFilePath,
 			*ArchiveDirectory);
