@@ -209,8 +209,7 @@ bool ALevelJumpPortrail::LoadGameServerManagerConfig(FString& OutAddress, int32&
 	OutPort = 9000;
 
 	TArray<FString> CandidatePaths;
-	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), TEXT("ServerConnection.json")));
-	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("ServerConnection.json")));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("ServerConnection.json")));
 
 	FString JsonContent;
 	for (const FString& Path : CandidatePaths)

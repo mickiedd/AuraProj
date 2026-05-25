@@ -124,7 +124,7 @@ bool ULoginMenuWidget::LoadServerTargetsFromLevelConfig()
 {
 	AvailableServerTargets.Reset();
 
-	const FString ConfigPath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("LevelConfig.json"));
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("LevelConfig.json"));
 	FString JsonContent;
 	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
 	{

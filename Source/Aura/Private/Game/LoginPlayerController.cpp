@@ -137,6 +137,12 @@ void ALoginPlayerController::EnsureLoginScreenWidget()
 
 	LoginScreenWidget->AddToViewport(0);
 
+	bShowMouseCursor = true;
+	FInputModeUIOnly InputMode;
+	InputMode.SetWidgetToFocus(LoginScreenWidget->TakeWidget());
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(InputMode);
+
 	if (!LoginScreenWidget->InitializeForPlayerController(this))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Login menu widget initialization did not fully bind required UI controls"));
@@ -392,8 +398,7 @@ void ALoginPlayerController::OnGameServerResponse(const FGameServerResponse& Res
 bool ALoginPlayerController::LoadServerConnectionFromJson()
 {
 	TArray<FString> CandidatePaths;
-	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), ConnectionConfigFileName));
-	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), ConnectionConfigFileName));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), ConnectionConfigFileName));
 
 	FString JsonContent;
 	FString LoadedFromPath;

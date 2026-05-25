@@ -18,6 +18,7 @@
 /Content/*
 !/Content/Blueprints/
 !/Content/Assets/
+!/Content/Config/
 /Platforms/
 *.VC.db
 *.VC.opendb

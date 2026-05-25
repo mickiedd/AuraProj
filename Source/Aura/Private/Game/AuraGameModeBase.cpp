@@ -657,7 +657,7 @@ bool AAuraGameModeBase::TryBuildDedicatedServerReadyContext(FString& OutLevelId,
 		return false;
 	}
 
-	const FString LevelConfigPath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("LevelConfig.json"));
+	const FString LevelConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("LevelConfig.json"));
 	FString LevelConfigJson;
 	if (!FFileHelper::LoadFileToString(LevelConfigJson, *LevelConfigPath))
 	{
@@ -707,7 +707,7 @@ bool AAuraGameModeBase::TryBuildDedicatedServerReadyContext(FString& OutLevelId,
 		return false;
 	}
 
-	const FString ConnectionConfigPath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("ServerConnection.json"));
+	const FString ConnectionConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("ServerConnection.json"));
 	FString ConnectionJson;
 	if (FFileHelper::LoadFileToString(ConnectionJson, *ConnectionConfigPath))
 	{

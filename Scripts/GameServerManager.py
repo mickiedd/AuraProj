@@ -44,7 +44,7 @@ logger = logging.getLogger("AuraGSM")
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SCRIPT_DIR.parent
 PROJECT_FILE = PROJECT_DIR / "Aura.uproject"
-LEVEL_CONFIG_PATH = PROJECT_DIR / "Config" / "LevelConfig.json"
+LEVEL_CONFIG_PATH = PROJECT_DIR / "Content" / "Config" / "LevelConfig.json"
 GSM_LOG_DIR = PROJECT_DIR / "Saved" / "Logs" / "GameServerManager"
 
 # Maximum bytes accepted in a single client request line (prevents abuse).

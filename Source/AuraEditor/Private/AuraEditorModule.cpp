@@ -240,7 +240,7 @@ private:
 
 	FString GetDedicatedServerLevelConfigPath() const
 	{
-		return FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Config/LevelConfig.json"));
+		return FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() / TEXT("Config") / TEXT("Config/LevelConfig.json"));
 	}
 
 	void AddDisabledMenuEntry(FMenuBuilder& MenuBuilder, const FText& Label, const FText& Tooltip) const
@@ -1986,7 +1986,7 @@ private:
 		}
 
 		const FString BuildCommand = FString::Printf(
-			TEXT("\"%s\" BuildCookRun -project=\"%s\" -noP4 -platform=Win64 -clientconfig=DebugGame -build -cook -stage -package -archive -archivedirectory=\"%s\" -pak -iostore -prereqs -target=Aura -nocompileeditor -skipbuildeditor"),
+			TEXT("\"%s\" -nocompileuat BuildCookRun -project=\"%s\" -noP4 -platform=Win64 -clientconfig=DebugGame -build -cook -stage -package -archive -archivedirectory=\"%s\" -pak -iostore -prereqs -target=Aura -nocompileeditor -skipbuildeditor -iterativecooking -FastCook -nodebuginfo"),
 			*RunUATBatPath,
 			*ProjectFilePath,
 			*ArchiveDirectory);
