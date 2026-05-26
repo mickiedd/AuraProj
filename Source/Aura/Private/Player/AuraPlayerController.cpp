@@ -173,7 +173,7 @@ void AAuraPlayerController::UpdateMountedBroomYaw(float WorldYaw)
 
 void AAuraPlayerController::ServerApplyBroomFlightInput_Implementation(AAuraBroomVehicle* Broom, const FVector& WorldDirection, float ScaleValue)
 {
-	UE_LOG(LogAura, Warning, TEXT("[BroomFlight] ServerApplyBroomFlightInput received. Controller=%s Broom=%s BroomValid=%s Dir=%s Scale=%.3f"),
+	UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] ServerApplyBroomFlightInput received. Controller=%s Broom=%s BroomValid=%s Dir=%s Scale=%.3f"),
 		*GetNameSafe(this),
 		*GetNameSafe(Broom),
 		IsValid(Broom) ? TEXT("yes") : TEXT("NULL"),
@@ -788,7 +788,7 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 
 		if (bCanLogMove)
 		{
-			UE_LOG(LogAura, Warning, TEXT("[BroomFlight] Move called. Controller=%s Pawn=%s AttachParent=%s MountedBroom=%s Input=%s"),
+			UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] Move called. Controller=%s Pawn=%s AttachParent=%s MountedBroom=%s Input=%s"),
 				*GetNameSafe(this),
 				*GetNameSafe(ControlledCharacter),
 				*GetNameSafe(ControlledCharacter->GetAttachParentActor()),
@@ -799,7 +799,7 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 		if (MountedBroom)
 		{
 			const bool bTagBlocked = GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed);
-			UE_LOG(LogAura, Warning, TEXT("[BroomFlight] On broom. TagBlock=%s Input=%s HasAuthority=%s"),
+			UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] On broom. TagBlock=%s Input=%s HasAuthority=%s"),
 				bTagBlocked ? TEXT("YES") : TEXT("no"),
 				*InputAxisVector.ToString(),
 				HasAuthority() ? TEXT("true") : TEXT("false"));
@@ -812,7 +812,7 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 			const FVector FlightInput = (ForwardDirection * InputAxisVector.Y) + (RightDirection * InputAxisVector.X);
 			const float FlightScale = FMath::Clamp(FlightInput.Size(), 0.f, 1.f);
 
-			UE_LOG(LogAura, Warning, TEXT("[BroomFlight] FlightInput=%s FlightScale=%.3f"),
+			UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] FlightInput=%s FlightScale=%.3f"),
 				*FlightInput.ToCompactString(), FlightScale);
 
 			if (FlightScale > KINDA_SMALL_NUMBER)
@@ -820,13 +820,13 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 				const FVector FlightDirection = FlightInput / FlightScale;
 				if (HasAuthority())
 				{
-					UE_LOG(LogAura, Warning, TEXT("[BroomFlight] Authority — calling AddFlightInput directly. Dir=%s Scale=%.3f"),
+					UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] Authority — calling AddFlightInput directly. Dir=%s Scale=%.3f"),
 						*FlightDirection.ToCompactString(), FlightScale);
 					MountedBroom->AddFlightInput(FlightDirection, FlightScale);
 				}
 				else
 				{
-					UE_LOG(LogAura, Warning, TEXT("[BroomFlight] Client — sending ServerApplyBroomFlightInput RPC. Dir=%s Scale=%.3f"),
+					UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] Client — sending ServerApplyBroomFlightInput RPC. Dir=%s Scale=%.3f"),
 						*FlightDirection.ToCompactString(), FlightScale);
 					ServerApplyBroomFlightInput(MountedBroom, FlightDirection, FlightScale);
 				}

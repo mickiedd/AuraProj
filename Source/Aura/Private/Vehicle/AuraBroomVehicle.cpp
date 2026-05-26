@@ -23,7 +23,7 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	if (ShouldSkipUpdate(DeltaTime))
 	{
-		UE_LOG(LogAura, Warning, TEXT("[BroomMovement] TickComponent skipped (ShouldSkipUpdate). Broom=%s"), *GetNameSafe(GetOwner()));
+		UE_LOG(LogAura, Verbose, TEXT("[BroomMovement] TickComponent skipped (ShouldSkipUpdate). Broom=%s"), *GetNameSafe(GetOwner()));
 		return;
 	}
 
@@ -33,7 +33,7 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 	if (!PawnOwner || !UpdatedComponent)
 	{
-		UE_LOG(LogAura, Warning, TEXT("[BroomMovement] TickComponent aborted -- PawnOwner=%s UpdatedComponent=%s"),
+		UE_LOG(LogAura, Verbose, TEXT("[BroomMovement] TickComponent aborted -- PawnOwner=%s UpdatedComponent=%s"),
 			*GetNameSafe(PawnOwner), *GetNameSafe(UpdatedComponent));
 		return;
 	}
@@ -80,7 +80,7 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			Velocity = (NewLocation - OldLocation) / DeltaTime;
 		}
 
-		UE_LOG(LogAura, Warning, TEXT("[BroomMovement] Moved. OldLoc=%s NewLoc=%s BlockingHit=%s"),
+		UE_LOG(LogAura, Verbose, TEXT("[BroomMovement] Moved. OldLoc=%s NewLoc=%s BlockingHit=%s"),
 			*OldLocation.ToCompactString(),
 			*UpdatedComponent->GetComponentLocation().ToCompactString(),
 			Hit.IsValidBlockingHit() ? TEXT("YES") : TEXT("no"));
@@ -96,6 +96,9 @@ AAuraBroomVehicle::AAuraBroomVehicle()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	SetReplicateMovement(true);
+	SetNetUpdateFrequency(100.f);
+	SetMinNetUpdateFrequency(30.f);
+	NetPriority = 3.f;
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
@@ -152,7 +155,7 @@ void AAuraBroomVehicle::AddFlightInput(const FVector& WorldDirection, float Scal
 	const bool bCanLogFlight = CurrentTime - LastFlightInputLogTime >= FlightInputLogInterval;
 	const bool bCanLogFlightBlocked = CurrentTime - LastFlightBlockedLogTime >= FlightInputLogInterval;
 
-	UE_LOG(LogAura, Warning, TEXT("[BroomFlight] AddFlightInput called. Broom=%s HasAuthority=%s Rider=%s Dir=%s Scale=%.3f FlightMovement=%s"),
+	UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] AddFlightInput called. Broom=%s HasAuthority=%s Rider=%s Dir=%s Scale=%.3f FlightMovement=%s"),
 		*GetNameSafe(this),
 		HasAuthority() ? TEXT("true") : TEXT("false"),
 		*GetNameSafe(MountedCharacter),
@@ -162,7 +165,7 @@ void AAuraBroomVehicle::AddFlightInput(const FVector& WorldDirection, float Scal
 
 	if (!IsValid(MountedCharacter) && bCanLogFlightBlocked)
 	{
-		UE_LOG(LogAura, Warning, TEXT("[BroomFlight] WARNING: Flight input with no mounted rider. Broom=%s"), *GetNameSafe(this));
+		UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] Flight input ignored: no mounted rider. Broom=%s"), *GetNameSafe(this));
 		LastFlightBlockedLogTime = CurrentTime;
 	}
 
@@ -181,7 +184,7 @@ void AAuraBroomVehicle::AddFlightInput(const FVector& WorldDirection, float Scal
 		SetFlightTargetYaw(FRotationMatrix::MakeFromX(WorldDirection).Rotator().Yaw);
 	}
 
-	UE_LOG(LogAura, Warning, TEXT("[BroomFlight] AddMovementInput sent. PendingInputVector=%s"),
+	UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] AddMovementInput sent. PendingInputVector=%s"),
 		*GetPendingMovementInputVector().ToCompactString());
 
 	if (bCanLogFlight)
