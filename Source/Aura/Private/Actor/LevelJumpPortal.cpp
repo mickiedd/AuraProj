@@ -1,6 +1,6 @@
 // Copyright Druid Mechanics
 
-#include "Actor/LevelJumpPortrail.h"
+#include "Actor/LevelJumpPortal.h"
 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -19,7 +19,7 @@
 #include "Serialization/JsonSerializer.h"
 #include "Dom/JsonObject.h"
 
-ALevelJumpPortrail::ALevelJumpPortrail()
+ALevelJumpPortal::ALevelJumpPortal()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
@@ -41,20 +41,20 @@ ALevelJumpPortrail::ALevelJumpPortrail()
 	TriggerSphere->SetGenerateOverlapEvents(true);
 }
 
-void ALevelJumpPortrail::BeginPlay()
+void ALevelJumpPortal::BeginPlay()
 {
 	Super::BeginPlay();
 
 	const float EffectiveMinRadius = FMath::Max(50.f, MinTriggerSphereRadius);
 	if (TriggerSphereRadius < EffectiveMinRadius)
 	{
-		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] TriggerSphereRadius %.1f below min %.1f, clamping."), TriggerSphereRadius, EffectiveMinRadius);
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortal] TriggerSphereRadius %.1f below min %.1f, clamping."), TriggerSphereRadius, EffectiveMinRadius);
 		TriggerSphereRadius = EffectiveMinRadius;
 	}
 	TriggerSphere->SetSphereRadius(TriggerSphereRadius);
 
-	TriggerSphere->OnComponentBeginOverlap.AddDynamic(this, &ALevelJumpPortrail::OnTriggerOverlap);
-	UE_LOG(LogAura, Display, TEXT("[JumpPortrail] BeginPlay actor=%s role=%d remoteRole=%d replicates=%s repMove=%s triggerRadius=%.1f destinationMap=%s destinationMapAssetName=%s startTag=%s"),
+	TriggerSphere->OnComponentBeginOverlap.AddDynamic(this, &ALevelJumpPortal::OnTriggerOverlap);
+	UE_LOG(LogAura, Display, TEXT("[JumpPortal] BeginPlay actor=%s role=%d remoteRole=%d replicates=%s repMove=%s triggerRadius=%.1f destinationMap=%s destinationMapAssetName=%s startTag=%s"),
 		*GetNameSafe(this),
 		(int32)GetLocalRole(),
 		(int32)GetRemoteRole(),
@@ -66,15 +66,15 @@ void ALevelJumpPortrail::BeginPlay()
 		*DestinationPlayerStartTag.ToString());
 	if (!DestinationServer.IsEmpty())
 	{
-		UE_LOG(LogAura, Display, TEXT("[JumpPortrail] DestinationServer=%s"), *DestinationServer);
+		UE_LOG(LogAura, Display, TEXT("[JumpPortal] DestinationServer=%s"), *DestinationServer);
 	}
 	if (!DestinationServerId.IsEmpty())
 	{
-		UE_LOG(LogAura, Display, TEXT("[JumpPortrail] DestinationServerId=%s"), *DestinationServerId);
+		UE_LOG(LogAura, Display, TEXT("[JumpPortal] DestinationServerId=%s"), *DestinationServerId);
 	}
 }
 
-void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void ALevelJumpPortal::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	(void)OverlappedComponent;
@@ -85,7 +85,7 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 
 	if (!HasAuthority() || !IsValid(OtherActor))
 	{
-		UE_LOG(LogAura, Verbose, TEXT("[JumpPortrail] Overlap ignored actor=%s hasAuthority=%s other=%s"),
+		UE_LOG(LogAura, Verbose, TEXT("[JumpPortal] Overlap ignored actor=%s hasAuthority=%s other=%s"),
 			*GetNameSafe(this),
 			HasAuthority() ? TEXT("true") : TEXT("false"),
 			*GetNameSafe(OtherActor));
@@ -94,19 +94,19 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 
 	if (!OtherActor->Implements<UPlayerInterface>())
 	{
-		UE_LOG(LogAura, Verbose, TEXT("[JumpPortrail] Overlap ignored because other actor is not player: %s"), *GetNameSafe(OtherActor));
+		UE_LOG(LogAura, Verbose, TEXT("[JumpPortal] Overlap ignored because other actor is not player: %s"), *GetNameSafe(OtherActor));
 		return;
 	}
 
 	if (bOneShot && bTriggered)
 	{
-		UE_LOG(LogAura, Log, TEXT("[JumpPortrail] One-shot trigger already used. actor=%s"), *GetNameSafe(this));
+		UE_LOG(LogAura, Log, TEXT("[JumpPortal] One-shot trigger already used. actor=%s"), *GetNameSafe(this));
 		return;
 	}
 
 	bTriggered = true;
-	UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Triggered actor=%s by=%s"), *GetNameSafe(this), *GetNameSafe(OtherActor));
-	OnJumpPortrailTriggered(OtherActor);
+	UE_LOG(LogAura, Display, TEXT("[JumpPortal] Triggered actor=%s by=%s"), *GetNameSafe(this), *GetNameSafe(OtherActor));
+	OnJumpPortalTriggered(OtherActor);
 
 	if (!DestinationServerId.IsEmpty())
 	{
@@ -122,7 +122,7 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 
 		if (IsValid(PlayerController))
 		{
-			UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Routing to Loading level for portal GSM query: actor=%s playerController=%s destinationServerId=%s"),
+			UE_LOG(LogAura, Display, TEXT("[JumpPortal] Routing to Loading level for portal GSM query: actor=%s playerController=%s destinationServerId=%s"),
 				*GetNameSafe(this),
 				*GetNameSafe(PlayerController),
 				*DestinationServerId);
@@ -137,12 +137,12 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 			{
 				LoadingUrl += FString::Printf(TEXT("?PName=%s"), *SafePlayerName);
 			}
-			UE_LOG(LogAura, Display, TEXT("[JumpPortrail] ClientTravel to Loading URL=%s"), *LoadingUrl);
+			UE_LOG(LogAura, Display, TEXT("[JumpPortal] ClientTravel to Loading URL=%s"), *LoadingUrl);
 			PlayerController->ClientTravel(LoadingUrl, TRAVEL_Absolute);
 			return;
 		}
 
-		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] DestinationServerId is set but no PlayerController resolved from overlap actor=%s"),
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortal] DestinationServerId is set but no PlayerController resolved from overlap actor=%s"),
 			*GetNameSafe(OtherActor));
 		return;
 	}
@@ -161,12 +161,12 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 
 		if (IsValid(PlayerController))
 		{
-			UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Using legacy DestinationServer fallback: %s"), *DestinationServer);
+			UE_LOG(LogAura, Warning, TEXT("[JumpPortal] Using legacy DestinationServer fallback: %s"), *DestinationServer);
 			UServerTravelComponent::RouteToServerViaLoadingLevel(PlayerController, DestinationServer);
 			return;
 		}
 
-		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Legacy DestinationServer is set but no PlayerController resolved from overlap actor=%s"),
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortal] Legacy DestinationServer is set but no PlayerController resolved from overlap actor=%s"),
 			*GetNameSafe(OtherActor));
 		return;
 	}
@@ -181,29 +181,29 @@ void ALevelJumpPortrail::OnTriggerOverlap(UPrimitiveComponent* OverlappedCompone
 	}
 	else
 	{
-		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] GameMode missing while attempting save/travel. actor=%s"), *GetNameSafe(this));
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortal] GameMode missing while attempting save/travel. actor=%s"), *GetNameSafe(this));
 	}
 
 	IPlayerInterface::Execute_SaveProgress(OtherActor, DestinationPlayerStartTag);
 
 	if (!DestinationMap.IsNull())
 	{
-		UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Traveling via DestinationMap=%s"), *DestinationMap.ToString());
+		UE_LOG(LogAura, Display, TEXT("[JumpPortal] Traveling via DestinationMap=%s"), *DestinationMap.ToString());
 		UServerTravelComponent::RouteToMapBySoftPtrViaLoadingLevel(this, DestinationMap);
 		return;
 	}
 
 	if (!DestinationMapAssetName.IsEmpty())
 	{
-		UE_LOG(LogAura, Display, TEXT("[JumpPortrail] Traveling via DestinationMapAssetName=%s"), *DestinationMapAssetName);
+		UE_LOG(LogAura, Display, TEXT("[JumpPortal] Traveling via DestinationMapAssetName=%s"), *DestinationMapAssetName);
 		UServerTravelComponent::RouteToMapViaLoadingLevel(this, DestinationMapAssetName);
 		return;
 	}
 
-	UE_LOG(LogAura, Error, TEXT("[JumpPortrail] No destination configured on actor=%s"), *GetNameSafe(this));
+	UE_LOG(LogAura, Error, TEXT("[JumpPortal] No destination configured on actor=%s"), *GetNameSafe(this));
 }
 
-bool ALevelJumpPortrail::LoadGameServerManagerConfig(FString& OutAddress, int32& OutPort) const
+bool ALevelJumpPortal::LoadGameServerManagerConfig(FString& OutAddress, int32& OutPort) const
 {
 	OutAddress = TEXT("127.0.0.1");
 	OutPort = 9000;
@@ -252,23 +252,23 @@ bool ALevelJumpPortrail::LoadGameServerManagerConfig(FString& OutAddress, int32&
 	return false;
 }
 
-void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerController)
+void ALevelJumpPortal::QueryDestinationServerViaGSM(APlayerController* PlayerController)
 {
 	if (!IsValid(PlayerController))
 	{
-		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] QueryDestinationServerViaGSM skipped due to invalid PlayerController."));
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortal] QueryDestinationServerViaGSM skipped due to invalid PlayerController."));
 		return;
 	}
 
 	if (DestinationServerId.IsEmpty())
 	{
-		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] QueryDestinationServerViaGSM skipped because DestinationServerId is empty."));
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortal] QueryDestinationServerViaGSM skipped because DestinationServerId is empty."));
 		return;
 	}
 
 	if (bDestinationServerQueryInFlight)
 	{
-		UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] GSM query already in flight for actor=%s"), *GetNameSafe(this));
+		UE_LOG(LogAura, Warning, TEXT("[JumpPortal] GSM query already in flight for actor=%s"), *GetNameSafe(this));
 		return;
 	}
 
@@ -279,19 +279,19 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 	DestinationGameServerClient = NewObject<UGameServerClient>(this);
 	if (!IsValid(DestinationGameServerClient))
 	{
-		UE_LOG(LogAura, Error, TEXT("[JumpPortrail] Failed to allocate UGameServerClient for GSM query."));
+		UE_LOG(LogAura, Error, TEXT("[JumpPortal] Failed to allocate UGameServerClient for GSM query."));
 		return;
 	}
 
 	bDestinationServerQueryInFlight = true;
-	TWeakObjectPtr<ALevelJumpPortrail> WeakThis(this);
+	TWeakObjectPtr<ALevelJumpPortal> WeakThis(this);
 	TWeakObjectPtr<APlayerController> WeakPlayerController(PlayerController);
 
 	// Show the Loading level immediately so the player is not stuck in the game
 	// level for the duration of the GSM query (~10–30 s).
 	// The server-side PlayerController remains connected while the client is on
 	// the Loading level, so we can push the final ClientTravel from the callback.
-	UE_LOG(LogAura, Display, TEXT("[JumpPortrail] GSM query started — pushing client to Loading level: PC=%s"), *GetNameSafe(PlayerController));
+	UE_LOG(LogAura, Display, TEXT("[JumpPortal] GSM query started — pushing client to Loading level: PC=%s"), *GetNameSafe(PlayerController));
 	PlayerController->ClientTravel(UServerTravelComponent::LoadingLevelPath, TRAVEL_Absolute);
 
 	DestinationGameServerClient->RequestServer(
@@ -306,13 +306,13 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 				return;
 			}
 
-			ALevelJumpPortrail* Self = WeakThis.Get();
+			ALevelJumpPortal* Self = WeakThis.Get();
 			Self->bDestinationServerQueryInFlight = false;
 			Self->DestinationGameServerClient = nullptr;
 
 			if (!WeakPlayerController.IsValid())
 			{
-				UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] GSM response arrived but PlayerController is invalid."));
+				UE_LOG(LogAura, Warning, TEXT("[JumpPortal] GSM response arrived but PlayerController is invalid."));
 				return;
 			}
 
@@ -320,7 +320,7 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 			if (Response.bSuccess)
 			{
 				const FString DestinationEndpoint = FString::Printf(TEXT("%s:%d"), *Response.Host, Response.Port);
-				UE_LOG(LogAura, Display, TEXT("[JumpPortrail] GSM resolved server id '%s' -> %s. Pushing ClientTravel to client on Loading level."),
+				UE_LOG(LogAura, Display, TEXT("[JumpPortal] GSM resolved server id '%s' -> %s. Pushing ClientTravel to client on Loading level."),
 					*Self->DestinationServerId,
 					*DestinationEndpoint);
 				// Client is already on the Loading level; server PC is still connected.
@@ -335,13 +335,13 @@ void ALevelJumpPortrail::QueryDestinationServerViaGSM(APlayerController* PlayerC
 				return;
 			}
 
-			UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] GSM query failed for server id '%s': %s"),
+			UE_LOG(LogAura, Warning, TEXT("[JumpPortal] GSM query failed for server id '%s': %s"),
 				*Self->DestinationServerId,
 				*Response.ErrorMessage);
 
 			if (!Self->DestinationServer.IsEmpty())
 			{
-				UE_LOG(LogAura, Warning, TEXT("[JumpPortrail] Falling back to legacy DestinationServer=%s"), *Self->DestinationServer);
+				UE_LOG(LogAura, Warning, TEXT("[JumpPortal] Falling back to legacy DestinationServer=%s"), *Self->DestinationServer);
 				APlayerState* PlayerState = IsValid(TargetPC) ? TargetPC->PlayerState.Get() : nullptr;
 				const FString PlayerName = IsValid(PlayerState)
 					? PlayerState->GetPlayerName() : FString();

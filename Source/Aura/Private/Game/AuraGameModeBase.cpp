@@ -20,7 +20,7 @@
 #include "Engine/NetConnection.h"
 #include "Engine/Level.h"
 #include "Engine/World.h"
-#include "Actor/LevelJumpPortrail.h"
+#include "Actor/LevelJumpPortal.h"
 #include "Character/AuraEnemy.h"
 #include "Dom/JsonObject.h"
 #include "IPAddress.h"
@@ -1478,9 +1478,9 @@ AActor* AAuraGameModeBase::SpawnItemFromRow(const FItemSpawnTableRow& Row)
 		SpawnedItem->SetReplicateMovement(true);
 	}
 
-	if (ALevelJumpPortrail* JumpPortrail = Cast<ALevelJumpPortrail>(SpawnedItem))
+	if (ALevelJumpPortal* JumpPortal = Cast<ALevelJumpPortal>(SpawnedItem))
 	{
-		JumpPortrail->DestinationServerId = Row.DestinationServerId;
+		JumpPortal->DestinationServerId = Row.DestinationServerId;
 	}
 
 	UE_LOG(LogAura, Display, TEXT("[ItemSpawn] Spawned row=%s kind=%s actor=%s class=%s location=%s destinationServerId=%s classReplicates=%s classRepMove=%s actorReplicates=%s actorRepMove=%s role=%d"),

@@ -1,6 +1,20 @@
 {
   "gameServerPort": 9000,
-  "levels": [
+  "levels": [    
+    {
+      "id": "openworld_level_1",
+      "displayName": "Open World Level 1",
+      "mapPath": "/Game/Cartoon_City_Free/Maps/Demonstration",
+      "port": 7783,
+      "queryPort": 27022,
+      "launchArgs": [
+        "-game",
+        "-server",
+        "-log",
+        "-unattended",
+        "-NoLiveCoding"
+      ]
+    },
     {
       "id": "dungeon_level_1",
       "displayName": "Dungeon Level 1",
@@ -63,20 +77,6 @@
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_5_bossroom",
       "port": 7782,
       "queryPort": 27021,
-      "launchArgs": [
-        "-game",
-        "-server",
-        "-log",
-        "-unattended",
-        "-NoLiveCoding"
-      ]
-    },
-    {
-      "id": "openworld_level_1",
-      "displayName": "Open World Level 1",
-      "mapPath": "/Game/Cartoon_City_Free/Maps/Demonstration",
-      "port": 7783,
-      "queryPort": 27022,
       "launchArgs": [
         "-game",
         "-server",

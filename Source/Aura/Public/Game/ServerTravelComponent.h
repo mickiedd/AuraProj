@@ -65,7 +65,7 @@ public:
 
 	/**
 	 * Routes a specific client controller through the Loading level to a server endpoint.
-	 * Safe to call from server authority (e.g. LevelJumpPortrail GSM callback) where
+	 * Safe to call from server authority (e.g. LevelJumpPortal GSM callback) where
 	 * the controller is a remote player controller.
 	 */
 	static void RouteToServerViaLoadingLevel(APlayerController* InPC, const FString& ServerEndpoint, const FString& RequestedPlayerName = FString());

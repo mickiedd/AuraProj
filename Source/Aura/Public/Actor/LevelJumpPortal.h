@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "LevelJumpPortrail.generated.h"
+#include "LevelJumpPortal.generated.h"
 
 class USphereComponent;
 class UStaticMeshComponent;
@@ -13,38 +13,38 @@ class UGameServerClient;
 class APlayerController;
 
 UCLASS()
-class AURA_API ALevelJumpPortrail : public AActor
+class AURA_API ALevelJumpPortal : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	ALevelJumpPortrail();
+	ALevelJumpPortal();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal")
 	FName DestinationPlayerStartTag = FName();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal")
 	FString DestinationMapAssetName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal")
 	TSoftObjectPtr<UWorld> DestinationMap;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal")
 	FString DestinationServer;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal")
 	FString DestinationServerId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail|GSM", meta = (ClampMin = "5.0", ClampMax = "120.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal|GSM", meta = (ClampMin = "5.0", ClampMax = "120.0"))
 	float DestinationServerQueryTimeoutSeconds = 35.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal")
 	bool bOneShot = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail|Trigger", meta = (ClampMin = "50.0", UIMin = "50.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal|Trigger", meta = (ClampMin = "50.0", UIMin = "50.0"))
 	float TriggerSphereRadius = 220.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortrail|Trigger", meta = (ClampMin = "50.0", UIMin = "50.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal|Trigger", meta = (ClampMin = "50.0", UIMin = "50.0"))
 	float MinTriggerSphereRadius = 120.f;
 
 protected:
@@ -55,16 +55,16 @@ protected:
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 		const FHitResult& SweepResult);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "JumpPortrail")
-	void OnJumpPortrailTriggered(AActor* TriggeringActor);
+	UFUNCTION(BlueprintImplementableEvent, Category = "JumpPortal")
+	void OnJumpPortalTriggered(AActor* TriggeringActor);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "JumpPortrail")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "JumpPortal")
 	TObjectPtr<USceneComponent> Root;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "JumpPortrail")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "JumpPortal")
 	TObjectPtr<UStaticMeshComponent> PortalMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "JumpPortrail")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "JumpPortal")
 	TObjectPtr<USphereComponent> TriggerSphere;
 
 private:
