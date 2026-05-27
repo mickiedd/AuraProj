@@ -7,6 +7,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Character/AuraCharacterBase.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
@@ -410,6 +411,13 @@ void AAuraBroomVehicle::ApplyMountedState(ACharacter* Character, bool bIsMounted
 	if (!IsValid(Character))
 	{
 		return;
+	}
+
+	// Propagate the mount state to the character so the AnimInstance and any
+	// Blueprint logic can read it without polling the attachment hierarchy.
+	if (AAuraCharacterBase* AuraCharacter = Cast<AAuraCharacterBase>(Character))
+	{
+		AuraCharacter->bIsMounted = bIsMounted;
 	}
 
 	if (bIsMounted)

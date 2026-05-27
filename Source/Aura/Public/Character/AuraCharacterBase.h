@@ -71,6 +71,10 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	bool bIsBeingShocked = false;
 
+	/** True while this character is mounted on the broom vehicle. Replicated to all clients. */
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bIsMounted = false;
+
 	UFUNCTION()
 	virtual void OnRep_Stunned();
 
