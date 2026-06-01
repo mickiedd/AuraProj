@@ -371,6 +371,11 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagPressed BLOCKED by Player_Block_InputPressed: Tag=%s"), *InputTag.ToString());
 		return;
 	}
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Mounted_Broom))
+	{
+		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagPressed BLOCKED: Player is mounted on broom. Tag=%s"), *InputTag.ToString());
+		return;
+	}
 	UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagPressed: Tag=%s ASC=%s"), *InputTag.ToString(), GetASC() ? TEXT("valid") : TEXT("null"));
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_RMB))
 	{
@@ -404,6 +409,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
 	{
 		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagReleased BLOCKED: Tag=%s"), *InputTag.ToString());
+		return;
+	}
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Mounted_Broom))
+	{
+		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagReleased BLOCKED: Player is mounted on broom. Tag=%s"), *InputTag.ToString());
 		return;
 	}
 	UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagReleased: Tag=%s TargetingStatus=%d FollowTime=%.3f"),
@@ -442,6 +452,11 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
 	{
 		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagHeld BLOCKED: Tag=%s"), *InputTag.ToString());
+		return;
+	}
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Mounted_Broom))
+	{
+		UE_LOG(LogAura, Log, TEXT("[PC] AbilityInputTagHeld BLOCKED: Player is mounted on broom. Tag=%s"), *InputTag.ToString());
 		return;
 	}
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_RMB))

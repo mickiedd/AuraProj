@@ -3,7 +3,10 @@
 
 #include "Vehicle/AuraBroomVehicle.h"
 
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Aura/AuraLogChannels.h"
+#include "AuraGameplayTags.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -418,6 +421,21 @@ void AAuraBroomVehicle::ApplyMountedState(ACharacter* Character, bool bIsMounted
 	if (AAuraCharacterBase* AuraCharacter = Cast<AAuraCharacterBase>(Character))
 	{
 		AuraCharacter->bIsMounted = bIsMounted;
+	}
+
+	// Add or remove the gameplay tag to block ability input when mounted
+	if (UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Character)))
+	{
+		if (bIsMounted)
+		{
+			ASC->AddLooseGameplayTag(FAuraGameplayTags::Get().Player_Mounted_Broom);
+			UE_LOG(LogAura, Log, TEXT("Broom[%s] Applied Player_Mounted_Broom tag to %s"), *GetNameSafe(this), *GetNameSafe(Character));
+		}
+		else
+		{
+			ASC->RemoveLooseGameplayTag(FAuraGameplayTags::Get().Player_Mounted_Broom);
+			UE_LOG(LogAura, Log, TEXT("Broom[%s] Removed Player_Mounted_Broom tag from %s"), *GetNameSafe(this), *GetNameSafe(Character));
+		}
 	}
 
 	if (bIsMounted)

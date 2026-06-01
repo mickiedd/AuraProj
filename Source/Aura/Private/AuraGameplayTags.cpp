@@ -430,6 +430,11 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FString("Block Input Released callback for input")
 		);
 
+	GameplayTags.Player_Mounted_Broom = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Player.Mounted.Broom"),
+		FString("Player is mounted on a broom")
+		);
+
 	/*
 	 * GameplayCues
 	 */
