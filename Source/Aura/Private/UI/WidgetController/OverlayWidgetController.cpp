@@ -10,6 +10,11 @@
 #include "AbilitySystem/Data/LevelUpInfo.h"
 #include "Player/AuraPlayerState.h"
 
+void UOverlayWidgetController::OnMountedTagChanged(const FGameplayTag MountedTag, int32 NewCount)
+{
+	OnMountedChangedDelegate.Broadcast(NewCount > 0);
+}
+
 void UOverlayWidgetController::BroadcastInitialValues()
 {
 
@@ -66,6 +71,10 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 		{
 			BroadcastAbilityInfo();
 		}
+
+		// Listen for mount state changes
+		AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Player_Mounted_Broom, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &UOverlayWidgetController::OnMountedTagChanged);
 
 		GetAuraASC()->EffectAssetTags.AddLambda(
 			[this](const FGameplayTagContainer& AssetTags)

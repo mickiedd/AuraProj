@@ -72,7 +72,7 @@ public:
 	bool bIsBeingShocked = false;
 
 	/** True while this character is mounted on the broom vehicle. Replicated to all clients. */
-	UPROPERTY(Replicated, BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly, VisibleAnywhere)
 	bool bIsMounted = false;
 
 	UFUNCTION()

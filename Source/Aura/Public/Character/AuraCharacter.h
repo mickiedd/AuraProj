@@ -49,6 +49,10 @@ public:
 	virtual void Die(const FVector& DeathImpulse) override;
 	/** end Combat Interface */
 
+	/** Mount Status Interface */
+	virtual bool IsMounted_Implementation() const override { return bIsMounted; }
+	/** end Mount Status Interface */
+
 	UPROPERTY(EditDefaultsOnly)
 	float DeathTime = 5.f;
 

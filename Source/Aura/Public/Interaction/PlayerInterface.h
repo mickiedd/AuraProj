@@ -7,7 +7,7 @@
 #include "PlayerInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, Blueprintable)
 class UPlayerInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -64,4 +64,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SaveProgress(const FName& CheckpointTag);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool IsMounted() const;
 };
