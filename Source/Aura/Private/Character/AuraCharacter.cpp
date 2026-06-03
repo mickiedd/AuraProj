@@ -24,6 +24,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/HUD/AuraHUD.h"
 #include "Aura/AuraLogChannels.h"
+#include "Building/AuraBuildingComponent.h"
 
 AAuraCharacter::AAuraCharacter()
 {
@@ -39,6 +40,8 @@ AAuraCharacter::AAuraCharacter()
 	LevelUpNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>("LevelUpNiagaraComponent");
 	LevelUpNiagaraComponent->SetupAttachment(GetRootComponent());
 	LevelUpNiagaraComponent->bAutoActivate = false;
+
+	BuildingComponent = CreateDefaultSubobject<UAuraBuildingComponent>(TEXT("BuildingComponent"));
 
 	OverheadNameText = CreateDefaultSubobject<UTextRenderComponent>("OverheadNameText");
 	OverheadNameText->SetupAttachment(GetRootComponent());

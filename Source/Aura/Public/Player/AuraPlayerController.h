@@ -22,6 +22,7 @@ class AMagicCircle;
 class AAuraBroomVehicle;
 class UCharacterMovementComponent;
 class UServerTravelComponent;
+class UAuraBuildingComponent;
 
 enum class ETargetingStatus : uint8
 {
@@ -46,6 +47,27 @@ public:
 
 	UFUNCTION(Exec)
 	void ShowLocation();
+
+	// ---- UGC Building Exec Commands ----------------------------------------
+
+	/**
+	 * Enter placement mode for the mesh at the given asset path.
+	 * Example: StartPlacement /Game/Cartoon_City_Free/Meshes/Roads/SM_road_001.SM_road_001
+	 */
+	UFUNCTION(Exec)
+	void StartPlacement(const FString& MeshPath);
+
+	/** Confirm and submit the current pending placement to the server. */
+	UFUNCTION(Exec)
+	void ConfirmPlacement();
+
+	/** Cancel the current placement and destroy the preview ghost. */
+	UFUNCTION(Exec)
+	void CancelPlacement();
+
+	/** Rotate the pending placement preview by DeltaYaw degrees. */
+	UFUNCTION(Exec)
+	void RotatePlacement(float DeltaYaw);
 
 	UFUNCTION(Client, Reliable)
 	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit);

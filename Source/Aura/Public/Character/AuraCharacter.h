@@ -12,6 +12,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class UTextRenderComponent;
 class AAuraPlayerState;
+class UAuraBuildingComponent;
 struct FHitResult;
 /**
  * 
@@ -66,6 +67,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UNiagaraComponent> LevelUpNiagaraComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
+	TObjectPtr<UAuraBuildingComponent> BuildingComponent;
 
 	virtual void OnRep_Stunned() override;
 	virtual void OnRep_Burned() override;

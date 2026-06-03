@@ -31,6 +31,7 @@
 #include "Game/ServerTravelComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Vehicle/AuraBroomVehicle.h"
+#include "Building/AuraBuildingComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -240,6 +241,64 @@ void AAuraPlayerController::ShowLocation()
 	if (AAuraHUD* AuraHUD = GetHUD<AAuraHUD>())
 	{
 		AuraHUD->ToggleLocationDisplay();
+	}
+}
+
+// ---- UGC Building Exec Commands -------------------------------------------
+
+void AAuraPlayerController::StartPlacement(const FString& MeshPath)
+{
+	APawn* ControlledPawn = GetPawn();
+	if (!ControlledPawn) return;
+
+	UAuraBuildingComponent* BuildComp = ControlledPawn->FindComponentByClass<UAuraBuildingComponent>();
+	if (!BuildComp)
+	{
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("StartPlacement: no BuildingComponent on pawn"));
+		return;
+	}
+
+	UStaticMesh* Mesh = LoadObject<UStaticMesh>(nullptr, *MeshPath);
+	if (!Mesh)
+	{
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,
+			FString::Printf(TEXT("StartPlacement: cannot load mesh '%s'"), *MeshPath));
+		return;
+	}
+
+	BuildComp->EnterPlacementMode(Mesh);
+}
+
+void AAuraPlayerController::ConfirmPlacement()
+{
+	if (APawn* ControlledPawn = GetPawn())
+	{
+		if (UAuraBuildingComponent* BuildComp = ControlledPawn->FindComponentByClass<UAuraBuildingComponent>())
+		{
+			BuildComp->ConfirmPlacement();
+		}
+	}
+}
+
+void AAuraPlayerController::CancelPlacement()
+{
+	if (APawn* ControlledPawn = GetPawn())
+	{
+		if (UAuraBuildingComponent* BuildComp = ControlledPawn->FindComponentByClass<UAuraBuildingComponent>())
+		{
+			BuildComp->CancelPlacement();
+		}
+	}
+}
+
+void AAuraPlayerController::RotatePlacement(float DeltaYaw)
+{
+	if (APawn* ControlledPawn = GetPawn())
+	{
+		if (UAuraBuildingComponent* BuildComp = ControlledPawn->FindComponentByClass<UAuraBuildingComponent>())
+		{
+			BuildComp->RotatePlacement(DeltaYaw);
+		}
 	}
 }
 
