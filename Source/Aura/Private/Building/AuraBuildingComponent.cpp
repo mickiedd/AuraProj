@@ -3,9 +3,14 @@
 #include "Building/AuraBuildingComponent.h"
 #include "Building/AuraPlacementPreviewActor.h"
 #include "Building/AuraPlacedBuildingActor.h"
+#include "Dom/JsonObject.h"
 #include "Engine/StaticMesh.h"
 #include "Interaction/PlayerInterface.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "NavigationSystem.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 namespace
 {
@@ -15,12 +20,53 @@ bool IsOwnerMounted(const AActor* Owner)
 	if (!Owner->GetClass()->ImplementsInterface(UPlayerInterface::StaticClass())) return false;
 	return IPlayerInterface::Execute_IsMounted(const_cast<AActor*>(Owner));
 }
+
+FString NormalizeMapPathForConfigCompare(const FString& InMapPath)
+{
+	if (InMapPath.IsEmpty())
+	{
+		return InMapPath;
+	}
+
+	FString Normalized = InMapPath;
+	int32 LastSlashIndex = INDEX_NONE;
+	if (!Normalized.FindLastChar(TEXT('/'), LastSlashIndex) || LastSlashIndex + 1 >= Normalized.Len())
+	{
+		return Normalized;
+	}
+
+	const FString PathPrefix = Normalized.Left(LastSlashIndex + 1);
+	FString MapName = Normalized.Mid(LastSlashIndex + 1);
+
+	// PIE worlds rename map packages like UEDPIE_0_Demonstration.
+	if (MapName.StartsWith(TEXT("UEDPIE_")))
+	{
+		int32 Index = 7; // strlen("UEDPIE_")
+		while (Index < MapName.Len() && FChar::IsDigit(MapName[Index]))
+		{
+			++Index;
+		}
+
+		if (Index < MapName.Len() && MapName[Index] == TEXT('_'))
+		{
+			MapName = MapName.Mid(Index + 1);
+		}
+	}
+
+	return PathPrefix + MapName;
+}
 }
 
 UAuraBuildingComponent::UAuraBuildingComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
+
+void UAuraBuildingComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	CacheGroundAltitudeFromLevelConfig();
 }
 
 // ---- Tick -----------------------------------------------------------------
@@ -187,10 +233,86 @@ FTransform UAuraBuildingComponent::CalculatePlacementTransform() const
 		GroundPos.Z = CharLoc.Z;
 	}
 
+	if (bHasGroundAltitudeOverride)
+	{
+		GroundPos.Z = CachedGroundAltitude;
+	}
+
 	GroundPos = SnapToGrid(GroundPos);
 
 	const FRotator PlacementRot(0.f, Owner->GetActorRotation().Yaw + PendingYaw, 0.f);
 	return FTransform(PlacementRot, GroundPos);
+}
+
+void UAuraBuildingComponent::CacheGroundAltitudeFromLevelConfig()
+{
+	bHasGroundAltitudeOverride = false;
+	CachedGroundAltitude = 0.f;
+
+	UWorld* World = GetWorld();
+	if (!World || !World->PersistentLevel)
+	{
+		return;
+	}
+
+	const FString CurrentMapPath = World->PersistentLevel->GetOutermost()->GetName();
+	if (CurrentMapPath.IsEmpty())
+	{
+		return;
+	}
+	const FString NormalizedCurrentMapPath = NormalizeMapPathForConfigCompare(CurrentMapPath);
+
+	const FString LevelConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("LevelConfig.json"));
+	FString LevelConfigJson;
+	if (!FFileHelper::LoadFileToString(LevelConfigJson, *LevelConfigPath))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Building] Failed to read LevelConfig: %s"), *LevelConfigPath);
+		return;
+	}
+
+	TSharedPtr<FJsonObject> LevelConfigRoot;
+	if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(LevelConfigJson), LevelConfigRoot) || !LevelConfigRoot.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Building] Failed to parse LevelConfig JSON: %s"), *LevelConfigPath);
+		return;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* LevelsArray = nullptr;
+	if (!LevelConfigRoot->TryGetArrayField(TEXT("levels"), LevelsArray) || LevelsArray == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Building] LevelConfig has no levels array: %s"), *LevelConfigPath);
+		return;
+	}
+
+	for (const TSharedPtr<FJsonValue>& LevelValue : *LevelsArray)
+	{
+		const TSharedPtr<FJsonObject> LevelObject = LevelValue.IsValid() ? LevelValue->AsObject() : nullptr;
+		if (!LevelObject.IsValid())
+		{
+			continue;
+		}
+
+		FString MapPath;
+		if (!LevelObject->TryGetStringField(TEXT("mapPath"), MapPath))
+		{
+			continue;
+		}
+
+		const FString NormalizedConfigMapPath = NormalizeMapPathForConfigCompare(MapPath);
+		if (!NormalizedConfigMapPath.Equals(NormalizedCurrentMapPath, ESearchCase::IgnoreCase))
+		{
+			continue;
+		}
+
+		double GroundAltitudeValue = 0.0;
+		if (LevelObject->TryGetNumberField(TEXT("groundAltitude"), GroundAltitudeValue))
+		{
+			bHasGroundAltitudeOverride = true;
+			CachedGroundAltitude = static_cast<float>(GroundAltitudeValue);
+			UE_LOG(LogTemp, Log, TEXT("[Building] Loaded groundAltitude %.2f for map %s"), CachedGroundAltitude, *NormalizedCurrentMapPath);
+		}
+		break;
+	}
 }
 
 bool UAuraBuildingComponent::IsPlacementValid(const FTransform& PlacementTransform) const
@@ -244,6 +366,13 @@ FVector UAuraBuildingComponent::SnapToGrid(const FVector& Location) const
 void UAuraBuildingComponent::ServerRequestPlacement_Implementation(UStaticMesh* Mesh, FTransform Transform)
 {
 	if (!Mesh || !GetWorld()) return;
+
+	if (bHasGroundAltitudeOverride)
+	{
+		FVector SpawnLocation = Transform.GetLocation();
+		SpawnLocation.Z = CachedGroundAltitude;
+		Transform.SetLocation(SpawnLocation);
+	}
 
 	// Re-validate on the server before spawning.
 	FVector BoxExtent(80.f, 80.f, 40.f);

@@ -5,6 +5,7 @@
       "id": "openworld_level_1",
       "displayName": "Open World Level 1",
       "mapPath": "/Game/Cartoon_City_Free/Maps/Demonstration",
+      "groundAltitude": 0.0,
       "port": 7783,
       "queryPort": 27022,
       "launchArgs": [
@@ -19,6 +20,7 @@
       "id": "dungeon_level_1",
       "displayName": "Dungeon Level 1",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_1_dungeon",
+      "groundAltitude": 0.0,
       "port": 7778,
       "queryPort": 27017,
       "launchArgs": [
@@ -33,6 +35,7 @@
       "id": "dungeon_level_2",
       "displayName": "Dungeon Level 2",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_2_entrance",
+      "groundAltitude": 0.0,
       "port": 7779,
       "queryPort": 27018,
       "launchArgs": [
@@ -47,6 +50,7 @@
       "id": "dungeon_level_3",
       "displayName": "Dungeon Level 3",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_3_hall",
+      "groundAltitude": 0.0,
       "port": 7780,
       "queryPort": 27019,
       "launchArgs": [
@@ -61,6 +65,7 @@
       "id": "dungeon_level_4",
       "displayName": "Dungeon Level 4",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_4_temple",
+      "groundAltitude": 0.0,
       "port": 7781,
       "queryPort": 27020,
       "launchArgs": [
@@ -75,6 +80,7 @@
       "id": "dungeon_level_5",
       "displayName": "Dungeon Level 5",
       "mapPath": "/Game/Fantastic_Dungeon_Pack/maps/map_dungeon_level_5_bossroom",
+      "groundAltitude": 0.0,
       "port": 7782,
       "queryPort": 27021,
       "launchArgs": [

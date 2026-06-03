@@ -39,6 +39,7 @@ class AURA_API UAuraBuildingComponent : public UActorComponent
 
 public:
 	UAuraBuildingComponent();
+	virtual void BeginPlay() override;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -92,8 +93,13 @@ private:
 
 	float PendingYaw = 0.f;
 	bool bLastValidState = false;
+	bool bHasGroundAltitudeOverride = false;
+	float CachedGroundAltitude = 0.f;
 
 	// ---- Helpers ----------------------------------------------------------
+
+	/** Load level-specific placement altitude from Content/Config/LevelConfig.json. */
+	void CacheGroundAltitudeFromLevelConfig();
 
 	/** World-space transform for the current placement position. */
 	FTransform CalculatePlacementTransform() const;
