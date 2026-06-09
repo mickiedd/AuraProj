@@ -7,7 +7,7 @@
 #include "CollisionQueryParams.h"
 #include "AuraBuildingComponent.generated.h"
 
-class AAuraPlacementPreviewActor;
+class APreviewMeshBase;
 class AAuraPlacedBuildingActor;
 class UStaticMesh;
 
@@ -69,11 +69,11 @@ public:
 	float PlacementDistance = 400.f;
 
 	/**
-	 * Blueprint subclass of AAuraPlacementPreviewActor to spawn.
-	 * Leave empty to use the base C++ class.
+	 * Blueprint subclass of APreviewMeshBase to spawn as the placement ghost.
+	 * Defaults to BP_PreviewMesh. Leave empty to fall back to the bare C++ class.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Building")
-	TSubclassOf<AAuraPlacementPreviewActor> PlacementPreviewClass;
+	TSubclassOf<APreviewMeshBase> PlacementPreviewClass;
 
 	/**
 	 * Blueprint subclass of AAuraPlacedBuildingActor to spawn on the server.
@@ -86,7 +86,7 @@ private:
 	EBuildingState BuildingState = EBuildingState::Idle;
 
 	UPROPERTY()
-	TObjectPtr<AAuraPlacementPreviewActor> PreviewActor;
+	TObjectPtr<APreviewMeshBase> PreviewActor;
 
 	UPROPERTY()
 	TObjectPtr<UStaticMesh> PendingMesh;

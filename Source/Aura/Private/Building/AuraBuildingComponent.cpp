@@ -1,7 +1,7 @@
 // Copyright Druid Mechanics
 
 #include "Building/AuraBuildingComponent.h"
-#include "Building/AuraPlacementPreviewActor.h"
+#include "Actor/PreviewMeshBase.h"
 #include "Building/AuraPlacedBuildingActor.h"
 #include "Dom/JsonObject.h"
 #include "Engine/StaticMesh.h"
@@ -150,14 +150,20 @@ void UAuraBuildingComponent::EnterPlacementMode(UStaticMesh* Mesh)
 	bHasLastValidState = false;
 	BuildingState = EBuildingState::Placing;
 
-	TSubclassOf<AAuraPlacementPreviewActor> SpawnClass = PlacementPreviewClass;
-	if (!SpawnClass) SpawnClass = AAuraPlacementPreviewActor::StaticClass();
+	TSubclassOf<APreviewMeshBase> SpawnClass = PlacementPreviewClass;
+	if (!SpawnClass)
+	{
+		// Default to BP_PreviewMesh when no class is explicitly configured.
+		SpawnClass = LoadClass<APreviewMeshBase>(nullptr,
+			TEXT("/Game/Blueprints/Actor/BP_PreviewMesh.BP_PreviewMesh_C"));
+	}
+	if (!SpawnClass) SpawnClass = APreviewMeshBase::StaticClass();
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetOwner();
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	PreviewActor = GetWorld()->SpawnActor<AAuraPlacementPreviewActor>(
+	PreviewActor = GetWorld()->SpawnActor<APreviewMeshBase>(
 		SpawnClass,
 		GetOwner() ? GetOwner()->GetActorTransform() : FTransform::Identity,
 		SpawnParams);
@@ -237,31 +243,73 @@ FTransform UAuraBuildingComponent::CalculatePlacementTransform() const
 	const FVector CharLoc = Owner->GetActorLocation();
 	const FVector Forward = Owner->GetActorForwardVector();
 
-	// Line-trace downward from above the target point to find the ground surface.
-	const FVector TraceStart = CharLoc + Forward * PlacementDistance + FVector(0.f, 0.f, 500.f);
-	const FVector TraceEnd   = TraceStart - FVector(0.f, 0.f, 1200.f);
+	// Grid-snap the XY placement center first so all terrain samples are taken
+	// at positions that exactly match the final placed footprint.
+	FVector SampleCenter = CharLoc + Forward * PlacementDistance;
+	SampleCenter = SnapToGrid(SampleCenter);
 
-	FHitResult Hit;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(Owner);
 	if (PreviewActor) Params.AddIgnoredActor(PreviewActor);
 
-	FVector GroundPos = CharLoc + Forward * PlacementDistance;
-	if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, Params))
+	// Determine the mesh footprint half-extents from its bounds.
+	// These are rotated by PendingYaw so corner samples align with the tile.
+	float HalfX = 80.f, HalfY = 80.f;
+	if (PendingMesh)
 	{
-		GroundPos = Hit.ImpactPoint;
+		const FVector MeshExtent = PendingMesh->GetBounds().BoxExtent;
+		if (!MeshExtent.IsNearlyZero())
+		{
+			HalfX = MeshExtent.X * 0.9f;
+			HalfY = MeshExtent.Y * 0.9f;
+		}
 	}
-	else
+
+	// 9-point sample grid: center + 4 corners + 4 edge midpoints.
+	// All offsets are in local tile space then rotated by PendingYaw.
+	const FQuat TileRot = FRotator(0.f, PendingYaw, 0.f).Quaternion();
+	const FVector2D LocalOffsets[] = {
+		{ 0.f,     0.f     },   // center
+		{ HalfX,   HalfY   },   // corner ++
+		{ -HalfX,  HalfY   },   // corner -+
+		{ HalfX,  -HalfY   },   // corner +-
+		{ -HalfX, -HalfY   },   // corner --
+		{ HalfX,   0.f     },   // mid +X
+		{ -HalfX,  0.f     },   // mid -X
+		{ 0.f,     HalfY   },   // mid +Y
+		{ 0.f,    -HalfY   }    // mid -Y
+	};
+
+	// Trace from well above the character down far below to cover any flight altitude.
+	const float TraceAbove = 2000.f;
+	const float TraceBelow = 3000.f;
+
+	float MaxZ = -BIG_NUMBER;
+	bool bAnyHit = false;
+
+	for (const FVector2D& LocalOff : LocalOffsets)
 	{
-		GroundPos.Z = CharLoc.Z;
+		const FVector WorldOff = TileRot.RotateVector(FVector(LocalOff.X, LocalOff.Y, 0.f));
+		const FVector SampleXY = SampleCenter + WorldOff;
+
+		const FVector TraceStart = FVector(SampleXY.X, SampleXY.Y, CharLoc.Z + TraceAbove);
+		const FVector TraceEnd   = FVector(SampleXY.X, SampleXY.Y, CharLoc.Z - TraceBelow);
+
+		FHitResult Hit;
+		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, Params))
+		{
+			MaxZ = FMath::Max(MaxZ, Hit.ImpactPoint.Z);
+			bAnyHit = true;
+		}
 	}
+
+	FVector GroundPos = SampleCenter;
+	GroundPos.Z = bAnyHit ? MaxZ : CharLoc.Z;
 
 	if (bHasGroundAltitudeOverride)
 	{
 		GroundPos.Z = CachedGroundAltitude;
 	}
-
-	GroundPos = SnapToGrid(GroundPos);
 
 	const FRotator PlacementRot(0.f, PendingYaw, 0.f);
 	return FTransform(PlacementRot, GroundPos);
