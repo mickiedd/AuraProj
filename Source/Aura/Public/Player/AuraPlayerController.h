@@ -65,7 +65,7 @@ public:
 	UFUNCTION(Exec)
 	void CancelPlacement();
 
-	/** Rotate the pending placement preview by DeltaYaw degrees. */
+	/** Rotate the pending placement preview by 90 degrees per command invocation. */
 	UFUNCTION(Exec)
 	void RotatePlacement(float DeltaYaw);
 

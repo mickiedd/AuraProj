@@ -55,6 +55,23 @@ FString NormalizeMapPathForConfigCompare(const FString& InMapPath)
 
 	return PathPrefix + MapName;
 }
+
+FVector GetPlacementCollisionBoxExtent(const UStaticMesh* Mesh)
+{
+	// Fall back to a conservative box if mesh bounds are unavailable.
+	if (!Mesh)
+	{
+		return FVector(80.f, 80.f, 40.f);
+	}
+
+	const FVector MeshExtent = Mesh->GetBounds().BoxExtent;
+	if (MeshExtent.IsNearlyZero())
+	{
+		return FVector(80.f, 80.f, 40.f);
+	}
+
+	return MeshExtent * 0.85f;
+}
 }
 
 UAuraBuildingComponent::UAuraBuildingComponent()
@@ -93,9 +110,10 @@ void UAuraBuildingComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	const FTransform PlacementTransform = CalculatePlacementTransform();
 	PreviewActor->SetActorTransform(PlacementTransform);
 
-	const bool bValid = IsPlacementValid(PlacementTransform) && IsLocationReachable(PlacementTransform.GetLocation());
-	if (bValid != bLastValidState)
+	const bool bValid = IsPlacementValid(PlacementTransform); // && IsLocationReachable(PlacementTransform.GetLocation());
+	if (!bHasLastValidState || bValid != bLastValidState)
 	{
+		bHasLastValidState = true;
 		bLastValidState = bValid;
 		PreviewActor->SetPlacementValid(bValid);
 	}
@@ -127,8 +145,9 @@ void UAuraBuildingComponent::EnterPlacementMode(UStaticMesh* Mesh)
 	CancelPlacement();
 
 	PendingMesh = Mesh;
-	PendingYaw = 0.f;
+	PendingYaw = PersistentPlacementYaw;
 	bLastValidState = false;
+	bHasLastValidState = false;
 	BuildingState = EBuildingState::Placing;
 
 	TSubclassOf<AAuraPlacementPreviewActor> SpawnClass = PlacementPreviewClass;
@@ -163,7 +182,8 @@ void UAuraBuildingComponent::CancelPlacement()
 	}
 
 	PendingMesh = nullptr;
-	PendingYaw = 0.f;
+	PendingYaw = PersistentPlacementYaw;
+	bHasLastValidState = false;
 	BuildingState = EBuildingState::Idle;
 	PrimaryComponentTick.SetTickFunctionEnable(false);
 }
@@ -201,7 +221,10 @@ void UAuraBuildingComponent::ConfirmPlacement()
 
 void UAuraBuildingComponent::RotatePlacement(float DeltaYaw)
 {
-	PendingYaw += DeltaYaw;
+	const float RotationStepDegrees = 90.f;
+	const float AppliedStep = DeltaYaw < 0.f ? -RotationStepDegrees : RotationStepDegrees;
+	PersistentPlacementYaw = FMath::UnwindDegrees(PersistentPlacementYaw + AppliedStep);
+	PendingYaw = PersistentPlacementYaw;
 }
 
 // ---- Helpers --------------------------------------------------------------
@@ -240,7 +263,7 @@ FTransform UAuraBuildingComponent::CalculatePlacementTransform() const
 
 	GroundPos = SnapToGrid(GroundPos);
 
-	const FRotator PlacementRot(0.f, Owner->GetActorRotation().Yaw + PendingYaw, 0.f);
+	const FRotator PlacementRot(0.f, PendingYaw, 0.f);
 	return FTransform(PlacementRot, GroundPos);
 }
 
@@ -320,21 +343,20 @@ bool UAuraBuildingComponent::IsPlacementValid(const FTransform& PlacementTransfo
 	UWorld* World = GetWorld();
 	if (!World) return false;
 
-	// Use the preview mesh bounds for the overlap test; fall back to a conservative box.
-	FVector BoxExtent(80.f, 80.f, 40.f);
-	if (PreviewActor && PreviewActor->MeshComponent)
-	{
-		BoxExtent = PreviewActor->MeshComponent->Bounds.BoxExtent * 0.85f;
-	}
+	const FVector BoxExtent = GetPlacementCollisionBoxExtent(PendingMesh);
 
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(GetOwner());
 	if (PreviewActor) Params.AddIgnoredActor(PreviewActor);
 
-	const bool bOverlap = World->OverlapAnyTestByChannel(
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+
+	const bool bOverlap = World->OverlapAnyTestByObjectType(
 		PlacementTransform.GetLocation(),
 		PlacementTransform.GetRotation(),
-		ECC_WorldStatic,
+		ObjectParams,
 		FCollisionShape::MakeBox(BoxExtent),
 		Params);
 
@@ -375,14 +397,18 @@ void UAuraBuildingComponent::ServerRequestPlacement_Implementation(UStaticMesh* 
 	}
 
 	// Re-validate on the server before spawning.
-	FVector BoxExtent(80.f, 80.f, 40.f);
+	const FVector BoxExtent = GetPlacementCollisionBoxExtent(Mesh);
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(GetOwner());
 
-	const bool bOverlap = GetWorld()->OverlapAnyTestByChannel(
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+
+	const bool bOverlap = GetWorld()->OverlapAnyTestByObjectType(
 		Transform.GetLocation(),
 		Transform.GetRotation(),
-		ECC_WorldStatic,
+		ObjectParams,
 		FCollisionShape::MakeBox(BoxExtent),
 		Params);
 

@@ -35,6 +35,9 @@ void AAuraPlacementPreviewActor::SetPlacementValid(bool bValid)
 	if (bCurrentlyValid == bValid) return;
 	bCurrentlyValid = bValid;
 
+	// Hide invalid placements entirely so blocked tiles do not show a ghost mesh.
+	MeshComponent->SetVisibility(bValid, true);
+
 	UMaterialInterface* Override = bValid ? ValidMaterial.Get() : InvalidMaterial.Get();
 	const int32 NumMats = MeshComponent->GetNumMaterials();
 	for (int32 i = 0; i < NumMats; ++i)

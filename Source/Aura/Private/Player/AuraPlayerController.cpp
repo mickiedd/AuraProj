@@ -293,11 +293,13 @@ void AAuraPlayerController::CancelPlacement()
 
 void AAuraPlayerController::RotatePlacement(float DeltaYaw)
 {
+	(void)DeltaYaw;
+
 	if (APawn* ControlledPawn = GetPawn())
 	{
 		if (UAuraBuildingComponent* BuildComp = ControlledPawn->FindComponentByClass<UAuraBuildingComponent>())
 		{
-			BuildComp->RotatePlacement(DeltaYaw);
+			BuildComp->RotatePlacement(90.f);
 		}
 	}
 }

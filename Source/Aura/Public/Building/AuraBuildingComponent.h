@@ -92,7 +92,9 @@ private:
 	TObjectPtr<UStaticMesh> PendingMesh;
 
 	float PendingYaw = 0.f;
+	float PersistentPlacementYaw = 0.f;
 	bool bLastValidState = false;
+	bool bHasLastValidState = false;
 	bool bHasGroundAltitudeOverride = false;
 	float CachedGroundAltitude = 0.f;
 
