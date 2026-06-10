@@ -212,7 +212,7 @@ void UAuraBuildingComponent::ConfirmPlacement()
 
 	const FTransform PlacementTransform = CalculatePlacementTransform();
 
-	if (!IsPlacementValid(PlacementTransform) || !IsLocationReachable(PlacementTransform.GetLocation()))
+	if (!IsPlacementValid(PlacementTransform))// || !IsLocationReachable(PlacementTransform.GetLocation()))
 	{
 		if (GEngine)
 		{
