@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BehaviorU — Behavior Tree Editor</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Toolbar ─────────────────────────────────────── -->
+  <div id="toolbar">
+    <span style="font-weight:700;font-size:13px;color:#fff;margin-right:4px;">🌲 BehaviorU</span>
+    <div class="sep"></div>
+    <input id="tree-name-input" type="text" value="BT_Unnamed" title="Behavior Tree Name"/>
+    <div class="sep"></div>
+    <button class="btn" id="btn-add-root" title="Add Root node">+ Root</button>
+    <button class="btn" id="btn-auto-layout" title="Auto-layout (BFS top-down)">
+      <svg viewBox="0 0 16 16"><path d="M8 1v14M1 8h14"/></svg> Layout
+    </button>
+    <button class="btn" id="btn-fit" title="Fit view (F)">⊡ Fit</button>
+    <div class="sep"></div>
+    <button class="btn" id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
+    <button class="btn" id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
+    <div class="sep"></div>
+    <button class="btn primary" id="btn-export" title="Save XML (Ctrl+S)">
+      <svg viewBox="0 0 16 16"><path d="M2 12v2h12v-2M8 2v9M4 8l4 4 4-4"/></svg> Save
+    </button>
+    <button class="btn" id="btn-open-project" title="Open from Project">
+      <svg viewBox="0 0 16 16"><path d="M2 3v10h12V3zM1 2h14v12H1z"/></svg> Open from Project
+    </button>
+    <div class="sep"></div>
+    <button class="btn danger" id="btn-clear" title="Clear canvas">✕ Clear</button>
+    <div style="margin-left:auto;font-size:11px;color:var(--text-muted);">
+      Del=delete · Ctrl+Z=undo · Ctrl+A=select all · Ctrl+D=dupe · F=fit · Space+drag=pan
+    </div>
+    <div class="sep"></div>
+    <!-- WebSocket 连接控件 -->
+    <span id="ws-dot" class="ws-dot status-disconnected" title="未连接"></span>
+    <input id="ws-host-input" type="text" value="localhost:17654" placeholder="host:port" title="WebSocket 地址"/>
+    <button class="btn" id="btn-ws-connect" title="连接 / 断开运行时调试">连接</button>
+    <span id="ws-status-label" style="font-size:11px;color:var(--text-muted);">未连接</span>
+  </div>
+
+  <!-- ── Main area ────────────────────────────────────── -->
+  <div id="main-area">
+
+    <!-- Palette -->
+    <div id="palette">
+      <div id="palette-header">Node Palette</div>
+      <input id="palette-search" type="text" placeholder="Search nodes…"/>
+      <div id="palette-list"></div>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas-wrap">
+      <canvas id="main-canvas"></canvas>
+      <div id="sel-box"></div>
+      <!-- Minimap -->
+      <div id="minimap"><canvas width="160" height="100"></canvas></div>
+    </div>
+
+    <!-- Properties -->
+    <div id="props-panel">
+      <div id="props-header">Properties</div>
+      <div id="props-content">
+        <div id="props-empty">Select a node to edit its properties.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Runtime Blackboard Debug Panel ──────────────── -->
+  <div id="debug-panel">
+    <!-- 拖拽调整高度的把手 -->
+    <div id="debug-resize-handle"></div>
+
+    <!-- 面板标题栏：点击折叠/展开 -->
+    <div id="debug-panel-header">
+      <span class="debug-chevron">▲</span>
+      <span>Runtime Blackboard</span>
+      <select id="debug-agent-select" title="选择 Agent"></select>
+      <span id="debug-tree-badge" class="debug-tree-badge"></span>
+      <span style="margin-left:auto"></span>
+    </div>
+
+    <div id="debug-content">
+      <table id="debug-bb-table">
+        <colgroup>
+          <col class="col-key"/>
+          <col class="col-val"/>
+          <col class="col-type"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>属性名</th>
+            <th>值</th>
+            <th>类型</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Status bar ───────────────────────────────────── -->
+  <div id="statusbar">
+    <span id="sb-nodes">Nodes: 0</span>
+    <span id="sb-edges">Edges: 0</span>
+    <span id="sb-zoom">Zoom: 100%</span>
+    <span style="margin-left:auto;opacity:.6;">BehaviorU Editor · BSD 3-Clause</span>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ── Context menu ─────────────────────────────────────── -->
+<div id="ctx-menu"></div>
+
+<!-- ── Tooltip ──────────────────────────────────────────── -->
+<div id="tooltip"></div>
+
+
+<!-- ── Project Files Modal ──────────────────────────────── -->
+<div id="project-files-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg);border:1px solid var(--border);border-radius:4px;width:600px;max-height:80vh;display:flex;flex-direction:column;">
+    <h3 style="margin:12px;font-size:14px;">Open XML from Project</h3>
+    <div id="project-loading" style="display:none;margin:0 12px 8px;padding:8px;background:var(--hover);border-radius:4px;font-size:11px;">
+      <div style="margin-bottom:4px;font-weight:600;">🔍 Searching XML files...</div>
+      <div style="margin-bottom:6px;color:var(--text-muted);line-height:1.4;">
+        • Scanning: Content folder<br>
+        • Skipping: Collections, Developers, Movies, Audio, Textures, Materials, Meshes, Models<br>
+        • Depth: Max 8 levels
+      </div>
+      <div style="background:var(--bg);height:4px;border-radius:2px;overflow:hidden;">
+        <div id="project-progress-bar" style="background:var(--primary);height:100%;width:0%;transition:width 0.5s ease-out;"></div>
+      </div>
+    </div>
+    <div id="project-files-list" style="flex:1;overflow-y:auto;margin:0 12px 12px;border:1px solid var(--border);max-height:400px;"></div>
+    <div style="margin:12px;text-align:right;">
+      <button class="btn" id="project-files-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ──────────────────────────────────────────── -->
+<script src="js/nodes.js?v=2026041301"></script>
+<script src="js/undo.js?v=2026041301"></script>
+<script src="js/graph.js?v=2026041301"></script>
+<script src="js/xml-export.js?v=2026041301"></script>
+<script src="js/xml-import.js?v=2026041301"></script>
+<script src="js/properties.js?v=2026041301"></script>
+<script src="js/app.js?v=2026041301"></script>
+<script>
+(function() {
+  const input = document.getElementById('ws-host-input');
+  console.log('[BehaviacEditor][WSInputPrefill] location.href =', window.location.href);
+  console.log('[BehaviacEditor][WSInputPrefill] location.search =', window.location.search);
+  if (!input) {
+    console.warn('[BehaviacEditor][WSInputPrefill] ws-host-input not found');
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const host = (params.get('host') || '').trim();
+  const port = (params.get('port') || '').trim();
+  console.log('[BehaviacEditor][WSInputPrefill] parsed params =', { host, port });
+  console.log('[BehaviacEditor][WSInputPrefill] initial input value =', input.value);
+  if (!host && !port) {
+    console.warn('[BehaviacEditor][WSInputPrefill] no host/port query params found');
+    return;
+  }
+
+  const current = input.value.trim() || 'localhost:17654';
+  const idx = current.lastIndexOf(':');
+  const currentHost = idx > 0 ? current.slice(0, idx) : current;
+  const currentPort = idx > 0 ? current.slice(idx + 1) : '17654';
+
+  input.value = `${host || currentHost}:${port || currentPort}`;
+  console.log('[BehaviacEditor][WSInputPrefill] updated input value =', input.value);
+})();
+</script>
+<script src="js/runtime-debug.js?v=2026040201"></script>
+
+<script>
+// ── Project Files Modal ──────────────────────────────────
+(function() {
+  console.log('[BehaviacEditor] Initializing Project Files Modal');
+  const projectOverlay = document.getElementById('project-files-overlay');
+  const projectList = document.getElementById('project-files-list');
+  const projectClose = document.getElementById('project-files-close');
+  const openBtn = document.getElementById('btn-open-project');
+
+  if (!openBtn) {
+    console.error('[BehaviacEditor] btn-open-project not found!');
+    return;
+  }
+  console.log('[BehaviacEditor] btn-open-project found, attaching listener');
+
+  let allFiles = [];
+
+  openBtn.addEventListener('click', async () => {
+    console.log('[BehaviacEditor] Open from Project clicked');
+    const loadingDiv = document.getElementById('project-loading');
+    const progressBar = document.getElementById('project-progress-bar');
+
+    projectOverlay.style.display = '';
+    loadingDiv.style.display = '';
+    progressBar.style.width = '30%';
+
+    try {
+      console.log('[BehaviacEditor] Fetching /list-xml...');
+      const resp = await fetch('/list-xml');
+      progressBar.style.width = '70%';
+      console.log('[BehaviacEditor] Response status:', resp.status);
+      const data = await resp.json();
+      progressBar.style.width = '100%';
+      console.log('[BehaviacEditor] Received files:', data.files?.length || 0);
+      allFiles = data.files || [];
+      renderFileList(allFiles);
+      setTimeout(() => { loadingDiv.style.display = 'none'; }, 300);
+      console.log('[BehaviacEditor] Modal displayed');
+    } catch (e) {
+      console.error('[BehaviacEditor] Error loading files:', e);
+      loadingDiv.style.display = 'none';
+      alert('Backend not available. Please start the server.');
+    }
+  });
+
+  projectClose.addEventListener('click', () => projectOverlay.style.display = 'none');
+  projectOverlay.addEventListener('click', e => {
+    if (e.target === projectOverlay) projectOverlay.style.display = 'none';
+  });
+
+  function renderFileList(files) {
+    console.log('[BehaviacEditor] Rendering', files.length, 'files');
+    projectList.innerHTML = '';
+    files.forEach(f => {
+      const item = document.createElement('div');
+      item.style.cssText = 'padding:8px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;';
+      item.textContent = f.name;
+      item.title = f.path;
+      item.addEventListener('click', () => loadFile(f.path));
+      item.addEventListener('mouseenter', () => item.style.background = 'var(--hover)');
+      item.addEventListener('mouseleave', () => item.style.background = '');
+      projectList.appendChild(item);
+    });
+  }
+
+  async function loadFile(path) {
+    console.log('[BehaviacEditor] Loading file:', path);
+    try {
+      const resp = await fetch('/load', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path })
+      });
+      const data = await resp.json();
+      console.log('[BehaviacEditor] File loaded, importing XML...');
+      const g = activeGraph();
+      importFromXML(data.content, g);
+      g.sourcePath = data.path;
+      document.getElementById('tree-name-input').value = g.treeName;
+      if (window.updateTreeNameTooltip) window.updateTreeNameTooltip();
+      renderer.fitAll(g.nodes, document.getElementById('canvas-wrap').clientWidth, document.getElementById('canvas-wrap').clientHeight);
+      undoStack.push(snapshot());
+      updateStatus();
+      projectOverlay.style.display = 'none';
+      console.log('[BehaviacEditor] Successfully loaded XML from:', data.path);
+    } catch (e) {
+      console.error('[BehaviacEditor] Failed to load file:', e);
+      alert('Failed to load file');
+    }
+  }
+})();
+
+// ── Tooltip wiring ───────────────────────────────────────
+(function() {
+  const tip = document.getElementById('tooltip');
+  let _hoveredItem = null;
+
+  document.getElementById('palette-list').addEventListener('mouseover', e => {
+    const item = e.target.closest('.palette-item');
+    if (!item) { tip.classList.remove('visible'); return; }
+    const type = item.dataset.type;
+    const info = NODE_TYPE_MAP[type];
+    if (!info?.tooltip) return;
+    tip.textContent = `${type}\n${info.tooltip}`;
+    tip.classList.add('visible');
+    _hoveredItem = item;
+  });
+  document.getElementById('palette-list').addEventListener('mousemove', e => {
+    tip.style.left = (e.clientX + 16) + 'px';
+    tip.style.top  = (e.clientY +  8) + 'px';
+  });
+  document.getElementById('palette-list').addEventListener('mouseleave', () => {
+    tip.classList.remove('visible');
+    _hoveredItem = null;
+  });
+})();
+</script>
+
+</body>
+</html>

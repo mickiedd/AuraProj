@@ -1,0 +1,40 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "Behaviac",
+	"Description": "A comprehensive game AI framework supporting Behavior Trees, Finite State Machines, and Hierarchical Task Networks.",
+	"Category": "AI",
+	"CreatedBy": "Behaviac Contributors",
+	"CreatedByURL": "https://github.com/mickiedd/BehaviaU",
+	"DocsURL": "http://www.behaviac.com/",
+	"MarketplaceURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "BehaviacRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Linux",
+				"Mac",
+				"Android",
+				"IOS"
+			]
+		},
+		{
+			"Name": "BehaviacEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64",
+				"Linux",
+				"Mac"
+			]
+		}
+	]
+}

@@ -44,6 +44,10 @@
 		{
 			"Name": "ModelViewViewModel",
 			"Enabled": true
+		},
+		{
+			"Name": "BehaviacPlugin",
+			"Enabled": false
 		}
 	]
 }
