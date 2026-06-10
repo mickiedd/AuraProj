@@ -69,6 +69,13 @@ public:
 	float PlacementDistance = 400.f;
 
 	/**
+	 * When true, place the preview center on the owner's XY position (snapped to grid).
+	 * This keeps the character centered over the tile while moving.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
+	bool bCenterPlacementOnOwner = true;
+
+	/**
 	 * Blueprint subclass of APreviewMeshBase to spawn as the placement ghost.
 	 * Defaults to BP_PreviewMesh. Leave empty to fall back to the bare C++ class.
 	 */

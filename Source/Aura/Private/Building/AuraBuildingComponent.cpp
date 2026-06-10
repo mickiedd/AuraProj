@@ -245,7 +245,11 @@ FTransform UAuraBuildingComponent::CalculatePlacementTransform() const
 
 	// Grid-snap the XY placement center first so all terrain samples are taken
 	// at positions that exactly match the final placed footprint.
-	FVector SampleCenter = CharLoc + Forward * PlacementDistance;
+	FVector SampleCenter = CharLoc;
+	if (!bCenterPlacementOnOwner)
+	{
+		SampleCenter = CharLoc + Forward * PlacementDistance;
+	}
 	SampleCenter = SnapToGrid(SampleCenter);
 
 	FCollisionQueryParams Params;
