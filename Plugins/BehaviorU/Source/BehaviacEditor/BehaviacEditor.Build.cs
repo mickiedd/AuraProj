@@ -21,6 +21,8 @@ public class BehaviacEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Slate",
 			"SlateCore",
+			"Sockets",
+			"Networking",
 			"UnrealEd",
 			"AssetTools",
 			"ContentBrowser",

@@ -46,8 +46,16 @@
 			"Enabled": true
 		},
 		{
-			"Name": "BehaviacPlugin",
+			"Name": "Fab",
 			"Enabled": false
+		},
+		{
+			"Name": "PlasticSourceControl",
+			"Enabled": false
+		},
+		{
+			"Name": "BehaviacPlugin",
+			"Enabled": true
 		}
 	]
 }

@@ -29,6 +29,8 @@ public class BehaviacRuntime : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Slate",
 			"SlateCore",
+			"Sockets",
+			"Networking",
 		});
 
 		// Enable RTTI for dynamic casting if needed
