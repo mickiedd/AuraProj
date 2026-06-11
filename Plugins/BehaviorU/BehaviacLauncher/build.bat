@@ -32,14 +32,14 @@ exit /b 1
 :dotnet_restore
 echo [2/3] Restoring Microsoft.Web.WebView2 via dotnet ...
 if not exist "%TEMP%\WV2Restore" mkdir "%TEMP%\WV2Restore"
-echo ^<Project Sdk="Microsoft.NET.Sdk"^>^<PropertyGroup^>^<TargetFramework^>net9.0^</TargetFramework^>^</PropertyGroup^>^<ItemGroup^>^<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2651.64"/^>^</ItemGroup^>^</Project^> > "%TEMP%\WV2Restore\WV2Restore.csproj"
-dotnet restore "%TEMP%\WV2Restore\WV2Restore.csproj" --packages "%SCRIPT_DIR%packages" --source "http://192.168.8.152:8081/repository/nuget.org-proxy/index.json" --no-dependencies
+echo ^<Project Sdk="Microsoft.NET.Sdk"^>^<PropertyGroup^>^<TargetFramework^>net8.0^</TargetFramework^>^</PropertyGroup^>^<ItemGroup^>^<PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2651.64"/^>^</ItemGroup^>^</Project^> > "%TEMP%\WV2Restore\WV2Restore.csproj"
+dotnet restore "%TEMP%\WV2Restore\WV2Restore.csproj" --packages "%SCRIPT_DIR%packages" --no-dependencies
 if errorlevel 1 ( echo ERROR: dotnet restore failed. & pause & exit /b 1 )
 goto :find_ver
 
 :nuget_restore
 echo [2/3] Restoring Microsoft.Web.WebView2 via nuget ...
-"!NUGET!" install Microsoft.Web.WebView2 -OutputDirectory "%SCRIPT_DIR%packages" -Source "http://192.168.8.152:8081/repository/nuget.org-proxy/index.json" -NonInteractive
+"!NUGET!" install Microsoft.Web.WebView2 -OutputDirectory "%SCRIPT_DIR%packages" -NonInteractive
 if errorlevel 1 ( echo ERROR: NuGet restore failed. & pause & exit /b 1 )
 goto :find_ver_nuget
 
