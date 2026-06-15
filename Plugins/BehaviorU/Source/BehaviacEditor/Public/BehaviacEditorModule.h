@@ -17,7 +17,6 @@ public:
 
 private:
 	void RegisterMenus();
-	void FillToolbar(FToolBarBuilder& ToolbarBuilder);
 
 	// ── Behaviac 各功能实现 ───────────────────────────────────────────────────
 	void OnOpenBTEditor();

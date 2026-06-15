@@ -104,34 +104,28 @@ void FBehaviacEditorModule::RegisterMenus()
 {
 	FToolMenuOwnerScoped OwnerScoped(this);
 
-	FLevelEditorModule& LevelEditorModule =
-		FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
-
-	TSharedPtr<FExtender> ToolbarExtender = MakeShareable(new FExtender);
-	ToolbarExtender->AddToolBarExtension(
-		"Settings",
-		EExtensionHook::After,
-		PluginCommands,
-		FToolBarExtensionDelegate::CreateRaw(this, &FBehaviacEditorModule::FillToolbar));
-
-	LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
-}
-
-void FBehaviacEditorModule::FillToolbar(FToolBarBuilder& ToolbarBuilder)
-{
-	// ── Behaviac 行为树工具 Combo ─────────────────────────────────────────────
-	ToolbarBuilder.BeginSection(TEXT("BehaviacEditor"));
+	// UE5 的 Level Editor 工具栏已迁移到 UToolMenus，旧的 "Settings" extender hook
+	// 不再存在（会被静默忽略，按钮不显示）。这里直接扩展 PlayToolBar（Platforms 所在那一行）。
+	UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu(
+		"LevelEditor.LevelEditorToolBar.PlayToolBar");
+	if (!ToolbarMenu)
 	{
-		ToolbarBuilder.AddComboButton(
-			FUIAction(),
-			FOnGetContent::CreateRaw(this, &FBehaviacEditorModule::BuildBehaviacMenuWidget),
-			LOCTEXT("BehaviacComboLabel",   "Behaviac"),
-			LOCTEXT("BehaviacComboTooltip", "Behaviac 行为树工具"),
-			FSlateIcon(FBehaviacEditorStyle::GetStyleSetName(), "BehaviacEditor.BehaviacCombo"),
-			/*bInSimpleComboBox=*/false);
+		UE_LOG(LogTemp, Error, TEXT("[BehaviacEditor] Failed to extend LevelEditor PlayToolBar menu."));
+		return;
 	}
-	ToolbarBuilder.EndSection();
 
+	FToolMenuSection& Section = ToolbarMenu->FindOrAddSection(TEXT("BehaviacEditor"));
+
+	FToolMenuEntry ComboEntry = FToolMenuEntry::InitComboButton(
+		"BehaviacCombo",
+		FUIAction(),
+		FOnGetContent::CreateRaw(this, &FBehaviacEditorModule::BuildBehaviacMenuWidget),
+		LOCTEXT("BehaviacComboLabel",   "Behaviac"),
+		LOCTEXT("BehaviacComboTooltip", "Behaviac 行为树工具"),
+		FSlateIcon(FBehaviacEditorStyle::GetStyleSetName(), "BehaviacEditor.BehaviacCombo"),
+		/*bInSimpleComboBox=*/false);
+
+	Section.AddEntry(ComboEntry);
 }
 
 void FBehaviacEditorModule::OnOpenBTEditor()
@@ -139,7 +133,7 @@ void FBehaviacEditorModule::OnOpenBTEditor()
 	DisableOtherDebuggerModes(/*bKeepClientDebugMode=*/false, /*bKeepServerDebugMode=*/false);
 
 	const FString LauncherPath = FPaths::ConvertRelativePathToFull(
-		FPaths::ProjectDir() / TEXT("Plugins/BehaviacPlugin/BehaviacLauncher/BehaviacLauncher.exe"));
+		FPaths::ProjectDir() / TEXT("Plugins/BehaviorU/BehaviacLauncher/BehaviacLauncher.exe"));
 
 	if (!FPaths::FileExists(LauncherPath))
 	{
