@@ -269,9 +269,24 @@ static void NavigateEditor(const std::wstring& url)
 // WebView2 initialisation  (called once after the window is shown)
 // -----------------------------------------------------------------------------
 #ifdef WEBVIEW2_ENABLED
-static void InitWebView2(HWND hwnd)
+static void InitWebView2(HWND hwnd, const std::wstring& exeDir)
 {
-    std::wstring userDataFolder = g_editorDir + L"\\..\\..\\Plugins\\BehaviacPlugin\\BehaviacLauncher\\WebView2UserData";
+    // Use a deterministic folder next to the launcher exe so the WebView2 user
+    // data (cookies, cache, profile) lives with the binary regardless of the
+    // editor folder layout. The relative path from g_editorDir was fragile and
+    // depended on the binary living in a specific subfolder.
+    const std::wstring userDataFolder = exeDir + L"\\WebView2UserData";
+
+    // WebView2 requires the folder to exist; ignore "already exists" errors.
+    if (!CreateDirectoryW(userDataFolder.c_str(), nullptr))
+    {
+        const DWORD err = GetLastError();
+        if (err != ERROR_ALREADY_EXISTS)
+        {
+            PostMessageW(hwnd, WM_WEBVIEW2_FAIL, 0, 0);
+            return;
+        }
+    }
 
     CreateCoreWebView2EnvironmentWithOptions(
         nullptr, userDataFolder.c_str(), nullptr,
@@ -524,7 +539,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, LPWSTR, int)
     UpdateWindow(g_hwnd);
 
 #ifdef WEBVIEW2_ENABLED
-    InitWebView2(g_hwnd);
+    InitWebView2(g_hwnd, exeDir);
 #endif
 
     // -- Python server (started on background thread to keep UI responsive) ----

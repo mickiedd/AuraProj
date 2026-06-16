@@ -65,9 +65,9 @@ if "!WV2_VERSION!"=="" ( echo ERROR: WebView2 version not found. & pause & exit 
 echo     Found WebView2 version: !WV2_VERSION!
 echo     Package base: !WV2_PKG_BASE!
 
-:: -- Step 3: Build
+:: -- Step 3: Build (with embedded WebView2)
 echo [3/3] Building BehaviacLauncher (Release x64) ...
-"!MSBUILD!" "%SCRIPT_DIR%BehaviacLauncher.vcxproj" /p:Configuration=Release /p:Platform=x64 /p:WebView2Version=!WV2_VERSION! /p:WebView2PkgBase=!WV2_PKG_BASE! /v:minimal /nologo
+"!MSBUILD!" "%SCRIPT_DIR%BehaviacLauncher.vcxproj" /p:Configuration=Release /p:Platform=x64 /p:WebView2Version=!WV2_VERSION! /p:WebView2PkgBase=!WV2_PKG_BASE! /p:UseWebView2=true /v:minimal /nologo
 
 if errorlevel 1 (
     echo.
@@ -76,6 +76,16 @@ if errorlevel 1 (
     echo ===================================================
     pause
     exit /b 1
+)
+
+:: -- Step 4: Ship WebView2Loader.dll next to the produced exe
+:: The .vcxproj links WebView2LoaderStatic.lib, but the runtime DLL is still
+:: required at load time and must live beside BehaviacLauncher.exe.
+echo [4/4] Copying WebView2Loader.dll next to BehaviacLauncher.exe ...
+copy /Y "!WV2_PKG_BASE!\build\native\x64\WebView2Loader.dll" "%SCRIPT_DIR%BehaviacLauncher.WebView2Loader.dll" >nul
+if errorlevel 1 (
+    echo WARNING: Could not copy WebView2Loader.dll. The launcher will fall back
+    echo          to opening the editor in the system browser.
 )
 
 echo.
