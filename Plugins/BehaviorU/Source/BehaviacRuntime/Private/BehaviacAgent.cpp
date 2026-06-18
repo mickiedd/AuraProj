@@ -331,16 +331,57 @@ UObject* UBehaviacAgentComponent::GetObjectProperty(const FString& PropertyName)
 
 // --- Method System ---
 
+/**
+ * Normalize a method name so that handler lookups and TypeScript broadcasts are
+ * convention-independent. Native behaviac editor exports use the form
+ * "Self::Agent::PickWanderTarget()" or "Self.PickWanderTarget()"; hand-authored
+ * trees (and the documented TypeScript bridge) use the bare "PickWanderTarget".
+ *
+ * Strips a leading "Self." / "Self::" prefix and a trailing "()"/"(...)" so that
+ * all three forms resolve to the same handler key and the same OnMethodNameCalled
+ * payload. Without this, a tree exported by the behaviac editor would silently fail
+ * to match a bare-name C++/TS handler (ExecuteMethod would fall through to
+ * EBehaviacStatus::Invalid and the Action would never produce its real result).
+ */
+static FString NormalizeBehaviacMethodName(const FString& InMethodName)
+{
+	FString Normalized = InMethodName;
+
+	// Strip leading "Self." or "Self::" prefix.
+	if (Normalized.StartsWith(TEXT("Self::")))
+	{
+		Normalized = Normalized.Mid(6);
+	}
+	else if (Normalized.StartsWith(TEXT("Self.")))
+	{
+		Normalized = Normalized.Mid(5);
+	}
+
+	// Strip a trailing "()" (with optional whitespace), e.g. "PickWanderTarget()" -> "PickWanderTarget".
+	Normalized.TrimEndInline();
+	if (Normalized.EndsWith(TEXT("()")))
+	{
+		Normalized = Normalized.LeftChop(2);
+	}
+
+	return Normalized;
+}
+
 EBehaviacStatus UBehaviacAgentComponent::ExecuteMethod(const FString& MethodName)
 {
 	SCOPE_CYCLE_COUNTER(STAT_Behaviac_ExecuteMethod);
 
-	BEHAVIAC_VLOG(TEXT("[Behaviac] ExecuteMethod called for: '%s'"), *MethodName);
+	// Work with the normalized (bare) name everywhere downstream so that handler
+	// registration, the TypeScript bridge, and result storage all agree on a key
+	// regardless of how the tree author wrote the method reference.
+	const FString NormalizedName = NormalizeBehaviacMethodName(MethodName);
+
+	BEHAVIAC_VLOG(TEXT("[Behaviac] ExecuteMethod called for: '%s' (normalized: '%s')"), *MethodName, *NormalizedName);
 
 #if STATS
 	// Dynamic stat ID.
 	static TMap<FString, TStatId> FunctionStatIds;
-	FString StatName = FString::Printf(TEXT("BehaviacMethodCall_%s"), *MethodName);
+	FString StatName = FString::Printf(TEXT("BehaviacMethodCall_%s"), *NormalizedName);
 	TStatId& StatId = FunctionStatIds.FindOrAdd(StatName);
 	if (!StatId.IsValidStat())
 	{
@@ -354,26 +395,26 @@ EBehaviacStatus UBehaviacAgentComponent::ExecuteMethod(const FString& MethodName
 	// that TS deposited via SetTSMethodResult() during the broadcast.
 	if (OnMethodNameCalled.IsBound())
 	{
-		MethodNameResults.Remove(MethodName);
-		OnMethodNameCalled.Broadcast(MethodName);
-		if (EBehaviacStatus* TSResult = MethodNameResults.Find(MethodName))
+		MethodNameResults.Remove(NormalizedName);
+		OnMethodNameCalled.Broadcast(NormalizedName);
+		if (EBehaviacStatus* TSResult = MethodNameResults.Find(NormalizedName))
 		{
 			EBehaviacStatus Result = *TSResult;
-			MethodNameResults.Remove(MethodName);
+			MethodNameResults.Remove(NormalizedName);
 			return Result;
 		}
 	}
 
 	// Then check registered C++ handlers
-	if (TFunction<EBehaviacStatus()>* Handler = MethodHandlers.Find(MethodName))
+	if (TFunction<EBehaviacStatus()>* Handler = MethodHandlers.Find(NormalizedName))
 	{
-		BEHAVIAC_VLOG(TEXT("[Behaviac] Found C++ handler for '%s', calling it..."), *MethodName);
+		BEHAVIAC_VLOG(TEXT("[Behaviac] Found C++ handler for '%s', calling it..."), *NormalizedName);
 		return (*Handler)();
 	}
 	else
 	{
-		BEHAVIAC_VLOG(TEXT("[Behaviac] No C++ handler found for '%s' (have %d handlers registered)"), *MethodName, MethodHandlers.Num());
-		
+		BEHAVIAC_VLOG(TEXT("[Behaviac] No C++ handler found for '%s' (have %d handlers registered)"), *NormalizedName, MethodHandlers.Num());
+
 		// Debug: List all registered handlers
 		for (const auto& Pair : MethodHandlers)
 		{
@@ -385,7 +426,7 @@ EBehaviacStatus UBehaviacAgentComponent::ExecuteMethod(const FString& MethodName
 	if (OnMethodCalled.IsBound())
 	{
 		EBehaviacStatus Result = EBehaviacStatus::Invalid;
-		OnMethodCalled.Broadcast(MethodName, Result);
+		OnMethodCalled.Broadcast(NormalizedName, Result);
 		if (Result != EBehaviacStatus::Invalid)
 		{
 			return Result;
@@ -393,13 +434,13 @@ EBehaviacStatus UBehaviacAgentComponent::ExecuteMethod(const FString& MethodName
 	}
 
 	// Fall back to Blueprint implementable event
-	EBehaviacStatus BlueprintResult = OnExecuteMethod(MethodName);
+	EBehaviacStatus BlueprintResult = OnExecuteMethod(NormalizedName);
 	if (BlueprintResult != EBehaviacStatus::Invalid)
 	{
 		return BlueprintResult;
 	}
 
-	UE_LOG(LogBehaviac, Verbose, TEXT("[Behaviac] No handler for method: %s"), *MethodName);
+	UE_LOG(LogBehaviac, Verbose, TEXT("[Behaviac] No handler for method: %s"), *NormalizedName);
 	return EBehaviacStatus::Invalid;
 }
 

@@ -94,6 +94,7 @@ class BEHAVIACRUNTIME_API UBehaviacEffector : public UBehaviacAttachment
 public:
 	UBehaviacEffector();
 
+	virtual void LoadFromProperties(int32 Version, const FString& AgentType, const TArray<FBehaviacProperty>& Properties) override;
 	virtual void Apply(UBehaviacAgentComponent* Agent, bool bSuccess) const override;
 
 	/** The action expression to execute */

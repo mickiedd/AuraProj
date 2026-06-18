@@ -39,6 +39,8 @@
 
   // ── UI binding ───────────────────────────────────────────
   let hostInput, connectBtn, dot, statusLabel, agentSelect, treeBadge, tableBody;
+  let panel, panelHeader, resizeHandle;
+  let autoExpandedOnce = false;
 
   function bindEls() {
     hostInput    = $('ws-host-input');
@@ -49,6 +51,53 @@
     treeBadge    = $('debug-tree-badge');
     const table  = $('debug-bb-table');
     tableBody    = table ? table.querySelector('tbody') : null;
+    panel        = $('debug-panel');
+    panelHeader  = $('debug-panel-header');
+    resizeHandle = $('debug-resize-handle');
+  }
+
+  // ── Panel expand / collapse / resize ─────────────────────
+  function expandPanel() {
+    if (panel) panel.classList.add('expanded');
+  }
+
+  function togglePanel() {
+    if (panel) panel.classList.toggle('expanded');
+  }
+
+  function wirePanelControls() {
+    // Click the header bar to expand/collapse the blackboard panel.
+    // Ignore clicks that originate from the agent <select> so choosing an
+    // agent doesn't collapse the panel.
+    if (panelHeader && panel) {
+      panelHeader.addEventListener('click', (e) => {
+        if (e.target && e.target.closest('#debug-agent-select')) return;
+        togglePanel();
+      });
+    }
+
+    // Drag the top resize handle to set an explicit height.
+    if (resizeHandle && panel) {
+      resizeHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation(); // don't let it also toggle the header
+        const startY  = e.clientY;
+        const startH  = panel.getBoundingClientRect().height;
+        const onMove  = (ev) => {
+          const dy = startY - ev.clientY;   // drag up → taller
+          let h = Math.round(startH + dy);
+          h = Math.max(60, Math.min(600, h));
+          panel.style.height = h + 'px';
+          panel.classList.add('expanded');
+        };
+        const onUp = () => {
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseup', onUp);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      });
+    }
   }
 
   // ── Visual state ────────────────────────────────────────
@@ -181,6 +230,14 @@
       selectedAgentId = id;
       if (agentSelect) agentSelect.value = id;
       renderAgent(agent);
+    }
+
+    // Auto-expand the panel the first time a snapshot with real blackboard
+    // data arrives, so the user sees the table without having to click.
+    if (!autoExpandedOnce && agent.properties &&
+        Object.keys(agent.properties).length > 0) {
+      expandPanel();
+      autoExpandedOnce = true;
     }
   }
 
@@ -320,6 +377,7 @@
         renderAgent(selectedAgentId ? agents.get(selectedAgentId) : null);
       });
     }
+    wirePanelControls();
     resetUI();
     console.log(TAG, 'ready (target', parseHostPort().host + ':' + parseHostPort().port + ')');
   }

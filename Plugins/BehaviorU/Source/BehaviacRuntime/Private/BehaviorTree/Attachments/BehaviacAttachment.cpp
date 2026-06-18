@@ -178,6 +178,36 @@ UBehaviacEffector::UBehaviacEffector()
 {
 }
 
+void UBehaviacEffector::LoadFromProperties(int32 Version, const FString& AgentType, const TArray<FBehaviacProperty>& Properties)
+{
+	// Load base attachment properties (Phase, Negate).
+	Super::LoadFromProperties(Version, AgentType, Properties);
+
+	// Default to "apply on any completion" if no phase is specified.
+	EffectorPhase = EBehaviacEffectorPhase::Both;
+
+	for (const FBehaviacProperty& Prop : Properties)
+	{
+		// Accept both "PropertyName"/"Opl" and "PropertyValue"/"Opr" naming conventions
+		// so effectors exported by the behaviac editor (Opl/Opr) and hand-authored ones
+		// (PropertyName/PropertyValue) both work.
+		if (Prop.Name == TEXT("PropertyName") || Prop.Name == TEXT("Opl"))
+		{
+			PropertyName = Prop.Value;
+		}
+		else if (Prop.Name == TEXT("PropertyValue") || Prop.Name == TEXT("Opr"))
+		{
+			PropertyValue = Prop.Value;
+		}
+		else if (Prop.Name == TEXT("Phase"))
+		{
+			if (Prop.Value == TEXT("Success"))			EffectorPhase = EBehaviacEffectorPhase::Success;
+			else if (Prop.Value == TEXT("Failure"))	EffectorPhase = EBehaviacEffectorPhase::Failure;
+			else										EffectorPhase = EBehaviacEffectorPhase::Both;
+		}
+	}
+}
+
 void UBehaviacEffector::Apply(UBehaviacAgentComponent* Agent, bool bSuccess) const
 {
 	if (!Agent)

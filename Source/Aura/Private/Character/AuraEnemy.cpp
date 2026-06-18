@@ -11,6 +11,7 @@
 #include "UI/Widget/AuraUserWidget.h"
 #include "AuraGameplayTags.h"
 #include "AI/AuraAIController.h"
+#include "AI/AuraBehaviacAgentComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -44,6 +45,11 @@ AAuraEnemy::AAuraEnemy()
 	Tags.AddUnique(FName("Enemy"));
 	AIControllerClass = AAuraAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	// Bind the BehaviorU test behavior tree (BT_TestEnemy.xml). The component's
+	// constructor defaults AutoLoadXMLFilePath to the test tree, so simply
+	// instantiating it is enough — no per-enemy Blueprint wiring required.
+	BehaviacAgentComponent = CreateDefaultSubobject<UAuraBehaviacAgentComponent>(TEXT("BehaviacAgentComponent"));
 }
 
 void AAuraEnemy::PossessedBy(AController* NewController)

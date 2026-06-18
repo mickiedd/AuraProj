@@ -12,6 +12,7 @@
 class UWidgetComponent;
 class UBehaviorTree;
 class AAuraAIController;
+class UAuraBehaviacAgentComponent;
 /**
  * 
  */
@@ -68,6 +69,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UBehaviorTree> BehaviorTree;
+
+	/** BehaviorU (Behaviac) agent driving the test behavior tree (BT_TestEnemy.xml). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Behaviac")
+	TObjectPtr<UAuraBehaviacAgentComponent> BehaviacAgentComponent;
 
 	UPROPERTY()
 	TObjectPtr<AAuraAIController> AuraAIController;
