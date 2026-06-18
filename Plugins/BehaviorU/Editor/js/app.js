@@ -2,14 +2,13 @@
 
 // ── State ────────────────────────────────────────────────
 let _nextId  = 1;
-let _tabs    = [];       // [{id, name, graph}]
-let _activeTab = null;  // tab id
+let graph    = null;   // single active behavior tree (no tabs)
 
 function newGraph(name) {
-  return { treeName: name || 'BT_Unnamed', nodes: [], edges: [], selectedIds: new Set(), selectedEdge: null, dragEdge: null };
+  return { treeName: name || 'BT_Unnamed', nodes: [], edges: [], selectedIds: new Set(), selectedEdge: null, dragEdge: null, sourcePath: '' };
 }
 
-function activeGraph() { return _tabs.find(t => t.id === _activeTab)?.graph || newGraph(); }
+function activeGraph() { return graph; }
 
 // ── Renderer + subsystems ────────────────────────────────
 let renderer, propsPanel, undoStack;
@@ -41,8 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   undoStack  = new UndoStack(50);
 
-  // First tab
-  addTab('BT_Unnamed');
+  // First (and only) tree
+  graph = newGraph('BT_Unnamed');
+  document.getElementById('tree-name-input').value = graph.treeName;
 
   // Resize observer
   const ro = new ResizeObserver(() => {
@@ -62,52 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
   buildMinimap();
   updateStatus();
 });
-
-// ── Tab management ───────────────────────────────────────
-function addTab(name) {
-  const id = 'tab_' + (++_nextId);
-  const graph = newGraph(name || 'BT_Unnamed');
-  _tabs.push({ id, name: graph.treeName, graph });
-  setActiveTab(id);
-  renderTabs();
-}
-
-function setActiveTab(id) {
-  _activeTab = id;
-  const tab = _tabs.find(t => t.id === id);
-  if (tab) {
-    document.getElementById('tree-name-input').value = tab.graph.treeName;
-    propsPanel.clear();
-    renderer.markDirty();
-    renderMinimap();
-    updateStatus();
-  }
-  renderTabs();
-}
-
-function closeTab(id) {
-  if (_tabs.length <= 1) return;
-  const idx = _tabs.findIndex(t => t.id === id);
-  _tabs.splice(idx, 1);
-  if (_activeTab === id) setActiveTab(_tabs[Math.min(idx, _tabs.length-1)].id);
-  renderTabs();
-}
-
-function renderTabs() {
-  const bar = document.getElementById('tab-bar');
-  const addBtn = document.getElementById('tab-add');
-  // clear existing tabs (keep addBtn)
-  [...bar.querySelectorAll('.tab')].forEach(el => el.remove());
-  for (const t of _tabs) {
-    const el = document.createElement('div');
-    el.className = 'tab' + (t.id === _activeTab ? ' active' : '');
-    el.dataset.id = t.id;
-    el.innerHTML = `<span class="tab-label">${escHtml(t.name)}</span><span class="tab-close">✕</span>`;
-    el.querySelector('.tab-close').addEventListener('click', e => { e.stopPropagation(); closeTab(t.id); });
-    el.addEventListener('click', () => setActiveTab(t.id));
-    bar.insertBefore(el, addBtn);
-  }
-}
 
 // ── Palette ──────────────────────────────────────────────
 function buildPalette() {
@@ -552,21 +506,8 @@ function setAsRoot(node) {
 
 // ── Toolbar ───────────────────────────────────────────────
 function bindToolbar() {
-  document.getElementById('btn-new-tab').addEventListener('click', () => {
-    const name = prompt('Tree name:', 'BT_New');
-    if (name) addTab(name);
-  });
-  document.getElementById('tab-add').addEventListener('click', () => {
-    const name = prompt('Tree name:', 'BT_New');
-    if (name !== null) addTab(name || 'BT_New');
-  });
   document.getElementById('tree-name-input').addEventListener('input', e => {
-    const tab = _tabs.find(t => t.id === _activeTab);
-    if (tab) {
-      tab.name = e.target.value;
-      tab.graph.treeName = e.target.value;
-      renderTabs();
-    }
+    graph.treeName = e.target.value;
   });
   document.getElementById('btn-add-root').addEventListener('click', () => {
     const g = activeGraph();
@@ -587,8 +528,7 @@ function bindToolbar() {
     const w = document.getElementById('canvas-wrap');
     renderer.fitAll(activeGraph().nodes, w.clientWidth, w.clientHeight);
   });
-  document.getElementById('btn-export').addEventListener('click', () => showExportModal());
-  document.getElementById('btn-import').addEventListener('click', () => showImportModal());
+  document.getElementById('btn-export').addEventListener('click', () => saveTree());
   document.getElementById('btn-undo').addEventListener('click', undo);
   document.getElementById('btn-redo').addEventListener('click', redo);
   document.getElementById('btn-clear').addEventListener('click', () => {
@@ -617,7 +557,7 @@ function bindKeyboard() {
     if (mod && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); }
     if (mod && e.key === 'a') { e.preventDefault(); g.selectedIds = new Set(g.nodes.map(n=>n.id)); renderer.markDirty(); }
     if (mod && e.key === 'd') { e.preventDefault(); duplicateNodes(); }
-    if (mod && e.key === 's') { e.preventDefault(); showExportModal(); }
+    if (mod && e.key === 's') { e.preventDefault(); saveTree(); }
     if (e.key === 'Escape') {
       g.selectedIds = new Set(); g.selectedEdge = null;
       propsPanel.clear(); renderer.markDirty();
@@ -641,23 +581,22 @@ function snapshot() {
     edges: [...g.edges],
     selectedIds: [],
     selectedEdge: null,
+    sourcePath: g.sourcePath || '',
   });
 }
 
 function restore(json) {
   if (!json) return;
   const data = JSON.parse(json);
-  const tab  = _tabs.find(t => t.id === _activeTab);
-  if (!tab) return;
-  tab.graph.treeName   = data.treeName;
-  tab.graph.nodes      = data.nodes;
-  tab.graph.edges      = data.edges;
-  tab.graph.selectedIds = new Set();
-  tab.graph.selectedEdge = null;
-  tab.name = data.treeName;
+  if (!graph) return;
+  graph.treeName      = data.treeName;
+  graph.nodes         = data.nodes;
+  graph.edges         = data.edges;
+  graph.selectedIds   = new Set();
+  graph.selectedEdge  = null;
+  graph.sourcePath    = data.sourcePath || '';
   document.getElementById('tree-name-input').value = data.treeName;
   propsPanel.clear();
-  renderTabs();
   renderer.markDirty();
   renderMinimap();
   updateStatus();
@@ -774,20 +713,51 @@ function updateStatus() {
   document.getElementById('sb-zoom').textContent  = `Zoom: ${Math.round(renderer?.camera.zoom*100||100)}%`;
 }
 
-// ── Export modal ──────────────────────────────────────────
-function showExportModal() {
-  const xml = exportToXML(activeGraph());
-  document.getElementById('modal-xml').value = xml;
-  document.getElementById('modal-overlay').classList.add('visible');
-  document.getElementById('modal-title').textContent = 'Export XML';
-  document.getElementById('modal-xml').readOnly = false;
+// Briefly flash a message in the status bar (used by Save feedback).
+let _statusFlashTimer = 0;
+function setStatusFlash(msg) {
+  const bar = document.getElementById('statusbar');
+  if (!bar) { console.log('[BehaviacEditor]', msg); return; }
+  // stash the transient line next to the existing status spans
+  let flash = document.getElementById('sb-flash');
+  if (!flash) {
+    flash = document.createElement('span');
+    flash.id = 'sb-flash';
+    flash.style.cssText = 'margin-left:auto;opacity:.9;color:var(--primary);';
+    bar.appendChild(flash);
+  }
+  flash.textContent = msg;
+  if (_statusFlashTimer) clearTimeout(_statusFlashTimer);
+  _statusFlashTimer = setTimeout(() => { flash.textContent = ''; _statusFlashTimer = 0; }, 4000);
 }
 
-function showImportModal() {
-  document.getElementById('modal-xml').value = '';
-  document.getElementById('modal-overlay').classList.add('visible');
-  document.getElementById('modal-title').textContent = 'Import XML — paste or load XML below';
-  document.getElementById('modal-xml').readOnly = false;
+// ── Save ─────────────────────────────────────────────────
+// Serializes the active tree to XML and POSTs it to the local server's /save
+// endpoint. When the tree was opened from a project file (graph.sourcePath set),
+// the server writes back to that exact path; otherwise it lands in saved_trees/.
+async function saveTree() {
+  const g = activeGraph();
+  const xml = exportToXML(g);
+  const filename = (g.treeName || 'BT_Unnamed').replace(/[^\w\-. ]/g, '_') + '.xml';
+  setStatusFlash('Saving…');
+  try {
+    const resp = await fetch('/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, xml, source_path: g.sourcePath || '' }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (resp.ok && data.ok) {
+      if (data.path) g.sourcePath = data.path;   // remember for the next save
+      setStatusFlash('Saved → ' + (data.path || filename));
+    } else {
+      setStatusFlash('Save failed');
+      alert('Save failed: ' + (data.error || resp.statusText || 'unknown error'));
+    }
+  } catch (e) {
+    setStatusFlash('Save failed');
+    alert('Save failed — backend not reachable. Start the launcher/server.\n' + e);
+  }
 }
 
 // ── Utility ───────────────────────────────────────────────

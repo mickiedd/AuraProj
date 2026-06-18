@@ -47,3 +47,10 @@ Desktop.ini
 /Plugins/BehaviorU/BehaviacLauncher/build
 /Plugins/BehaviorU/BehaviacLauncher/packages
 *.log
+/Plugins/BehaviorU/BehaviacLauncher/WebView2UserData
+/Plugins/BehaviorU/BehaviacLauncher/WebView2UserData/EBWebView/Default/Sync Data
+/Plugins/BehaviorU/BehaviacLauncher/WebView2UserData/EBWebView/GrShaderCache
+/Plugins/BehaviorU/BehaviacLauncher/WebView2UserData
+/Plugins/BehaviorU/BehaviacLauncher/WebView2UserData
+*.old
+*.dat
