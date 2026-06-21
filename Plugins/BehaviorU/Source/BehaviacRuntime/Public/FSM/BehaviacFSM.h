@@ -158,6 +158,14 @@ UCLASS()
 class BEHAVIACRUNTIME_API UBehaviacFSMStateTask : public UBehaviacSingleChildTask
 {
 	GENERATED_BODY()
+public:
+	/** Fire ExitAction via OnExit. Public so UBehaviacFSMTask can trigger it
+	 *  on state transitions (OnExit is protected on the base class). */
+	void ExitState(UBehaviacAgentComponent* Agent, EBehaviacStatus InStatus)
+	{
+		OnExit(Agent, InStatus);
+	}
+
 protected:
 	virtual bool OnEnter(UBehaviacAgentComponent* Agent) override;
 	virtual void OnExit(UBehaviacAgentComponent* Agent, EBehaviacStatus InStatus) override;

@@ -352,9 +352,14 @@ bool UBehaviacFSMTask::OnEnter(UBehaviacAgentComponent* Agent)
 
 void UBehaviacFSMTask::OnExit(UBehaviacAgentComponent* Agent, EBehaviacStatus InStatus)
 {
-	// Exit current state
+	// Exit current state — fire ExitAction via ExitState BEFORE Reset,
+	// same fix as the transition path above.
 	if (ChildTasks.IsValidIndex(CurrentStateIndex))
 	{
+		if (UBehaviacFSMStateTask* StateTask = Cast<UBehaviacFSMStateTask>(ChildTasks[CurrentStateIndex]))
+		{
+			StateTask->ExitState(Agent, InStatus);
+		}
 		ChildTasks[CurrentStateIndex]->Reset(Agent);
 	}
 }
@@ -389,13 +394,14 @@ EBehaviacStatus UBehaviacFSMTask::UpdateFSM(UBehaviacAgentComponent* Agent, EBeh
 		for (UBehaviacFSMTransition* Transition : CurrentState->Transitions)
 		{
 			if (Transition && Transition->Evaluate(Agent))
-				{
-					// Exit current state: fire ExitAction via OnExit BEFORE Reset.
-					// Reset() alone does not call OnExit, so the ExitAction
-					// (enqueued by FSMStateTask::OnExit) would be silently
-					// skipped on every state transition.
-					CurrentStateTask->OnExit(Agent, EBehaviacStatus::Success);
-					CurrentStateTask->Reset(Agent);
+			{
+				// Exit current state: fire ExitAction via OnExit BEFORE Reset.
+				// Reset() alone does not call OnExit, so the ExitAction
+				// (enqueued by FSMStateTask::OnExit) would be silently
+				// skipped on every state transition. ExitState() is a
+				// public wrapper that calls the protected OnExit.
+				CurrentStateTask->ExitState(Agent, EBehaviacStatus::Success);
+				CurrentStateTask->Reset(Agent);
 
 				// Find and enter target state
 				UBehaviacBehaviorTask* TargetTask = FindStateTaskById(Transition->TargetStateId);
