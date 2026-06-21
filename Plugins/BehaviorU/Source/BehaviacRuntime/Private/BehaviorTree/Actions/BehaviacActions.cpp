@@ -88,10 +88,12 @@ EBehaviacStatus UBehaviacActionTask::OnUpdate(UBehaviacAgentComponent* Agent, EB
 			return EBehaviacStatus::Running;
 		}
 
-		// ResultOption == Running 表示"透传方法的真实结果"
+		// ResultOption == Running means "forward the method's real result."
+		// If the method returned Invalid (no handler registered), treat it as
+		// Failure so missing handlers are visible instead of silently succeeding.
 		if (ActionNode->ResultOption == EBehaviacStatus::Running)
 		{
-			return (Result != EBehaviacStatus::Invalid) ? Result : EBehaviacStatus::Success;
+			return (Result != EBehaviacStatus::Invalid) ? Result : EBehaviacStatus::Failure;
 		}
 
 		return ActionNode->ResultOption;

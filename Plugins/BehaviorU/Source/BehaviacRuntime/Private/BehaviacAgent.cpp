@@ -458,22 +458,28 @@ void UBehaviacAgentComponent::SetTSMethodResult(const FString& MethodName, EBeha
 
 void UBehaviacAgentComponent::SendSignal(const FString& SignalName)
 {
-	ActiveSignals.Add(SignalName);
+	{
+		FScopeLock Lock(&SignalLock);
+		ActiveSignals.Add(SignalName);
+	}
 	OnSignalReceived.Broadcast(SignalName);
 }
 
 bool UBehaviacAgentComponent::IsSignalSet(const FString& SignalName) const
 {
+	FScopeLock Lock(&SignalLock);
 	return ActiveSignals.Contains(SignalName);
 }
 
 void UBehaviacAgentComponent::ClearSignal(const FString& SignalName)
 {
+	FScopeLock Lock(&SignalLock);
 	ActiveSignals.Remove(SignalName);
 }
 
 void UBehaviacAgentComponent::ClearAllSignals()
 {
+	FScopeLock Lock(&SignalLock);
 	ActiveSignals.Empty();
 }
 
@@ -481,16 +487,19 @@ void UBehaviacAgentComponent::ClearAllSignals()
 
 void UBehaviacAgentComponent::FireEvent(const FString& EventName)
 {
+	FScopeLock Lock(&EventLock);
 	PendingEvents.Add(EventName);
 }
 
 bool UBehaviacAgentComponent::HasPendingEvent(const FString& EventName) const
 {
+	FScopeLock Lock(&EventLock);
 	return PendingEvents.Contains(EventName);
 }
 
 void UBehaviacAgentComponent::ConsumeEvent(const FString& EventName)
 {
+	FScopeLock Lock(&EventLock);
 	PendingEvents.Remove(EventName);
 }
 

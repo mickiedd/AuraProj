@@ -187,7 +187,9 @@ EBehaviacStatus UBehaviacHTNPlanner::ExecutePlan()
 		return EBehaviacStatus::Failure;
 	}
 
-	EBehaviacStatus Result = CurrentTaskExecution->Execute(Agent, EBehaviacStatus::Running);
+	// Pass Invalid (not Running) as the initial ChildStatus — this is the first
+	// execution of this task step, so no child has run yet.
+	EBehaviacStatus Result = CurrentTaskExecution->Execute(Agent, EBehaviacStatus::Invalid);
 
 	if (Result == EBehaviacStatus::Success)
 	{

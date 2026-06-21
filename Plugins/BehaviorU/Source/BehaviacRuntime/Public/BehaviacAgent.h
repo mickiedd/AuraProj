@@ -306,6 +306,14 @@ protected:
 	/** Critical section for thread safety */
 	mutable FCriticalSection PropertyLock;
 
+	/** Critical section protecting ActiveSignals (written on game thread,
+	 *  read on worker thread during Phase 2). */
+	mutable FCriticalSection SignalLock;
+
+	/** Critical section protecting PendingEvents (written on game thread,
+	 *  read on worker thread during Phase 2). */
+	mutable FCriticalSection EventLock;
+
 	/**
 	 * 是否已向 UBehaviacWorldSubsystem 注册。
 	 * 注册后由子系统统一驱动两阶段 Tick，TickComponent 不再执行业务逻辑。

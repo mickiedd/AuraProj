@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<behavior name="Imported" agenttype="BTAgent" version="5">
+  <node class="DecoratorLoop" id="0">
+    <property name="Count" value="-1"/>
+    <node class="Sequence" id="2">
+      <node class="Action" id="3">
+        <property name="Method" value="FindPlayer"/>
+        <property name="ResultOption" value="BT_SUCCESS"/>
+      </node>
+      <node class="Selector" id="4">
+        <node class="Sequence" id="5">
+          <attachment class="Precondition" id="6">
+            <property name="Opl" value="Self.bPlayerInScene"/>
+            <property name="Operator" value="Equal"/>
+            <property name="Opr" value="true"/>
+            <property name="Phase" value="Enter"/>
+          </attachment>
+          <node class="Action" id="7">
+            <property name="Method" value="FollowPlayer"/>
+            <property name="ResultOption" value="BT_SUCCESS"/>
+          </node>
+          <node class="Wait" id="8">
+            <property name="Time" value="0.05"/>
+          </node>
+          <node class="DecoratorLog" id="103"/>
+        </node>
+        <node class="Noop" id="9"/>
+      </node>
+    </node>
+  </node>
+</behavior>

@@ -38,6 +38,13 @@ public:
 
 	/** Load from properties */
 	virtual void LoadFromProperties(const TArray<FBehaviacProperty>& Properties);
+
+	/**
+	 * Called by the FSM when the owning state is (re-)entered.
+	 * Override in subclasses that need to reset internal timers/counters.
+	 * Default implementation does nothing.
+	 */
+	virtual void OnStateEntered(UBehaviacAgentComponent* Agent) {}
 };
 
 /**
@@ -79,10 +86,29 @@ class BEHAVIACRUNTIME_API UBehaviacWaitTransition : public UBehaviacFSMTransitio
 {
 	GENERATED_BODY()
 public:
+	UBehaviacWaitTransition();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behaviac|FSM")
 	float WaitDuration;
 
 	virtual bool Evaluate(UBehaviacAgentComponent* Agent) const override;
+
+	/** Load WaitDuration from XML properties. */
+	virtual void LoadFromProperties(const TArray<FBehaviacProperty>& Properties) override;
+
+	/** Reset the internal timer using the agent's world clock.
+	 *  Must be called when the owning state is (re-)entered.
+	 *  Uses GetTimeSeconds() when Agent has a World, matching Evaluate(). */
+	void ResetTimer(UBehaviacAgentComponent* Agent);
+
+	/** Called by the FSM when the owning state is entered — resets the timer. */
+	virtual void OnStateEntered(UBehaviacAgentComponent* Agent) override { ResetTimer(Agent); }
+
+private:
+	/** When the timer started (world time seconds). mutable: Evaluate is const. */
+	mutable double StartTime = 0.0;
+	/** Whether the timer has been initialised for the current state. mutable: same reason. */
+	mutable bool bTimerStarted = false;
 };
 
 // ===================================================================

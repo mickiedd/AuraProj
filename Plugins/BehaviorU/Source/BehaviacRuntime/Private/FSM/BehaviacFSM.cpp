@@ -13,6 +13,11 @@ UBehaviacFSMTransition::UBehaviacFSMTransition()
 {
 }
 
+UBehaviacWaitTransition::UBehaviacWaitTransition()
+	: WaitDuration(1.0f)
+{
+}
+
 bool UBehaviacFSMTransition::Evaluate(UBehaviacAgentComponent* Agent) const
 {
 	return false;
@@ -41,6 +46,25 @@ bool UBehaviacTransitionCondition::Evaluate(UBehaviacAgentComponent* Agent) cons
 	if (RightStr.StartsWith(TEXT("Self.")))
 		RightStr = Agent->GetPropertyValue(RightStr);
 
+	// FVector comparison: detect "X= Y= Z=" format, compare by SizeSquared
+	// for Greater/Less series (consistent with Condition and Precondition).
+	if (BehaviacIsVectorString(LeftStr) && BehaviacIsVectorString(RightStr))
+	{
+		const FVector LeftVec  = BehaviacStringToVector(LeftStr);
+		const FVector RightVec = BehaviacStringToVector(RightStr);
+
+		switch (Operator)
+		{
+		case EBehaviacOperatorType::Equal:			return LeftVec.Equals(RightVec);
+		case EBehaviacOperatorType::NotEqual:		return !LeftVec.Equals(RightVec);
+		case EBehaviacOperatorType::Greater:		return LeftVec.SizeSquared() > RightVec.SizeSquared();
+		case EBehaviacOperatorType::Less:			return LeftVec.SizeSquared() < RightVec.SizeSquared();
+		case EBehaviacOperatorType::GreaterEqual:	return LeftVec.SizeSquared() >= RightVec.SizeSquared();
+		case EBehaviacOperatorType::LessEqual:		return LeftVec.SizeSquared() <= RightVec.SizeSquared();
+		default: return false;
+		}
+	}
+
 	if (LeftStr.IsNumeric() && RightStr.IsNumeric())
 	{
 		double Left = FCString::Atod(*LeftStr);
@@ -50,7 +74,7 @@ bool UBehaviacTransitionCondition::Evaluate(UBehaviacAgentComponent* Agent) cons
 		{
 		case EBehaviacOperatorType::Equal:			return FMath::IsNearlyEqual(Left, Right);
 		case EBehaviacOperatorType::NotEqual:		return !FMath::IsNearlyEqual(Left, Right);
-		case EBehaviacOperatorType::Greater:			return Left > Right;
+		case EBehaviacOperatorType::Greater:		return Left > Right;
 		case EBehaviacOperatorType::Less:			return Left < Right;
 		case EBehaviacOperatorType::GreaterEqual:	return Left >= Right;
 		case EBehaviacOperatorType::LessEqual:		return Left <= Right;
@@ -63,8 +87,51 @@ bool UBehaviacTransitionCondition::Evaluate(UBehaviacAgentComponent* Agent) cons
 
 bool UBehaviacWaitTransition::Evaluate(UBehaviacAgentComponent* Agent) const
 {
-	// Wait transitions are time-based; evaluation is handled by the state task
-	return false;
+	// Time-based transition: fires when WaitDuration has elapsed since the
+	// owning state was entered. StartTime is set by ResetTimer() which is
+	// called by the FSM when the state is (re-)entered.
+	if (WaitDuration <= 0.f)
+	{
+		return true; // Zero or negative duration = immediate transition
+	}
+
+	if (!bTimerStarted)
+	{
+		return false;
+	}
+
+	double CurrentTime = (Agent && Agent->GetWorld())
+		? Agent->GetWorld()->GetTimeSeconds()
+		: FPlatformTime::Seconds();
+
+	return (CurrentTime - StartTime) >= WaitDuration;
+}
+
+void UBehaviacWaitTransition::LoadFromProperties(const TArray<FBehaviacProperty>& Properties)
+{
+	Super::LoadFromProperties(Properties);
+
+	WaitDuration = 1.0f;
+
+	for (const FBehaviacProperty& Prop : Properties)
+	{
+		if (Prop.Name == TEXT("WaitDuration") || Prop.Name == TEXT("Time"))
+		{
+			WaitDuration = FCString::Atof(*Prop.Value);
+		}
+	}
+}
+
+void UBehaviacWaitTransition::ResetTimer(UBehaviacAgentComponent* Agent)
+{
+	bTimerStarted = true;
+	// Use the SAME clock as Evaluate() — GetTimeSeconds() when a World is
+	// available, falling back to FPlatformTime::Seconds() only when Agent
+	// or World is null.  Mixing the two clocks (FPlatformTime for start,
+	// GetTimeSeconds for current) made the timer never fire.
+	StartTime = (Agent && Agent->GetWorld())
+		? Agent->GetWorld()->GetTimeSeconds()
+		: FPlatformTime::Seconds();
 }
 
 // ===================================================================
@@ -115,19 +182,40 @@ void UBehaviacFSMState::LoadFromProperties(int32 Version, const FString& InAgent
 bool UBehaviacFSMStateTask::OnEnter(UBehaviacAgentComponent* Agent)
 {
 	const UBehaviacFSMState* StateNode = Cast<UBehaviacFSMState>(Node);
+
+	// Reset all transitions' timers for this state (e.g., WaitTransition timers).
+	if (StateNode && Agent)
+	{
+		for (UBehaviacFSMTransition* Transition : StateNode->Transitions)
+		{
+			if (Transition)
+			{
+				Transition->OnStateEntered(Agent);
+			}
+		}
+	}
+
+	// Enqueue the EnterAction method instead of calling ExecuteMethod directly.
+	// FSM tasks execute on the worker thread during Phase 2; ExecuteMethod
+	// triggers TS/Blueprint/C++ callbacks that must run on the game thread.
+	// Using EnqueueMethodCommand with bNeedResult=false defers execution to
+	// the next Phase 1 (game thread), which is the safe path used by Action nodes.
 	if (StateNode && !StateNode->EnterAction.IsEmpty() && Agent)
 	{
-		Agent->ExecuteMethod(StateNode->EnterAction);
+		Agent->EnqueueMethodCommand(StateNode->EnterAction, /*bNeedResult=*/false);
 	}
+
 	return true;
 }
 
 void UBehaviacFSMStateTask::OnExit(UBehaviacAgentComponent* Agent, EBehaviacStatus InStatus)
 {
 	const UBehaviacFSMState* StateNode = Cast<UBehaviacFSMState>(Node);
+
+	// Enqueue the ExitAction method (same reason as OnEnter — thread safety).
 	if (StateNode && !StateNode->ExitAction.IsEmpty() && Agent)
 	{
-		Agent->ExecuteMethod(StateNode->ExitAction);
+		Agent->EnqueueMethodCommand(StateNode->ExitAction, /*bNeedResult=*/false);
 	}
 }
 
@@ -301,9 +389,13 @@ EBehaviacStatus UBehaviacFSMTask::UpdateFSM(UBehaviacAgentComponent* Agent, EBeh
 		for (UBehaviacFSMTransition* Transition : CurrentState->Transitions)
 		{
 			if (Transition && Transition->Evaluate(Agent))
-			{
-				// Exit current state
-				CurrentStateTask->Reset(Agent);
+				{
+					// Exit current state: fire ExitAction via OnExit BEFORE Reset.
+					// Reset() alone does not call OnExit, so the ExitAction
+					// (enqueued by FSMStateTask::OnExit) would be silently
+					// skipped on every state transition.
+					CurrentStateTask->OnExit(Agent, EBehaviacStatus::Success);
+					CurrentStateTask->Reset(Agent);
 
 				// Find and enter target state
 				UBehaviacBehaviorTask* TargetTask = FindStateTaskById(Transition->TargetStateId);

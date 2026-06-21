@@ -90,7 +90,7 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 		
 	}
 
-	Ar.SerializeBits(&RepBits, 19);
+	Ar.SerializeBits(&RepBits, 20);
 
 	if (RepBits & (1 << 0))
 	{

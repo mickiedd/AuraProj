@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  BT_TestEnemy.xml  —  Behaviac test behavior tree for the Aura NPC (AuraEnemy).
+
+  NOTE: The BehaviorU plugin loads behavior trees from XML (the native behaviac
+  format), not JSON. The runtime parser (UBehaviacBehaviorTree::LoadFromXML) reads
+  <node class="..."> elements with <property name="..." value="..."/> children and
+  <attachment class="..."> children. Method references in <Action> nodes call C++
+  handlers registered on UBehaviacAgentComponent via RegisterMethodHandler(); they
+  are normalized automatically (Self.X() and bare X both resolve to "X").
+
+  Tree summary (loops forever via DecoratorLoop Count=-1):
+    Loop
+      Sequence
+        Compute        Energy = Energy - 1            (drains stamina each cycle)
+        Selector
+          Sequence     [tired branch]
+            Condition  Energy <= 0
+            Action     Rest                          (C++ method)
+            Assignment Energy = 10                   (restore stamina)
+          Sequence     [wander branch]  (Precondition: Self.bCanWander == true)
+            Action     PickWanderTarget              (C++ method; Effector sets LastAction="Wander")
+            Wait       0.30s
+            Action     MoveToWanderTarget             (C++ method; moves the NPC when not in combat)
+        Wait           0.20s                         (idle gap between cycles)
+-->
+<behavior version="3" agenttype="AuraEnemyTest">
+
+  <!-- Root: loop the whole patrol/rest cycle forever. Count = -1 means infinite. -->
+  <node class="DecoratorLoop" id="0">
+    <property name="Count" value="-1"/>
+
+    <node class="Sequence" id="1">
+
+      <!-- Drain 1 unit of stamina per cycle. Opl is the destination property,
+           Opr1/Opr2 are the operands, Operator selects the arithmetic op. -->
+      <node class="Compute" id="2">
+        <property name="Opl" value="Self.Energy"/>
+        <property name="Opr1" value="Self.Energy"/>
+        <property name="Opr2" value="1"/>
+        <property name="Operator" value="Sub"/>
+      </node>
+
+      <!-- Decision: rest when exhausted, otherwise wander. -->
+      <node class="Selector" id="3">
+
+        <!-- Tired branch: only entered when Energy <= 0. -->
+        <node class="Sequence" id="4">
+          <node class="Condition" id="5">
+            <property name="Opl" value="Self.Energy"/>
+            <property name="Opr" value="0"/>
+            <property name="Operator" value="LessEqual"/>
+          </node>
+
+          <!-- Calls C++ handler "Rest". ResultOption=BT_SUCCESS so the action
+               succeeds immediately (fire-and-forget); the method's side-effect
+               (a log line) runs next frame via the command queue. -->
+          <node class="Action" id="6">
+            <property name="Method" value="Rest"/>
+            <property name="ResultOption" value="BT_SUCCESS"/>
+          </node>
+
+          <!-- Restore stamina so the next cycle wanders again. -->
+          <node class="Assignment" id="7">
+            <property name="Opl" value="Self.Energy"/>
+            <property name="Opr" value="10"/>
+          </node>
+        </node>
+
+        <!-- Wander branch: guarded by a Precondition attachment so it only runs
+             while Self.bCanWander is true. Exercises the attachment path. -->
+        <node class="Sequence" id="8">
+          <attachment class="Precondition">
+            <property name="Phase" value="Enter"/>
+            <property name="Opl" value="Self.bCanWander"/>
+            <property name="Opr" value="true"/>
+            <property name="Operator" value="Equal"/>
+          </attachment>
+
+          <!-- Pick a random wander target around the NPC and store it in the
+               Self.WanderTarget blackboard vector. An Effector attachment
+               stamps Self.LastAction="Wander" on success (exercises effectors). -->
+          <node class="Action" id="9">
+            <property name="Method" value="PickWanderTarget"/>
+            <property name="ResultOption" value="BT_SUCCESS"/>
+            <attachment class="Effector">
+              <property name="Phase" value="Success"/>
+              <property name="PropertyName" value="Self.LastAction"/>
+              <property name="PropertyValue" value="Wander"/>
+            </attachment>
+          </node>
+
+          <!-- Brief pause so movement is visible and not requested every tick. -->
+          <node class="Wait" id="10">
+            <property name="Time" value="0.30"/>
+          </node>
+
+          <!-- Issue the actual move via the NPC's AIController (guarded against
+               combat/hit-react internally by the C++ method). -->
+          <node class="Action" id="11">
+            <property name="Method" value="MoveToWanderTarget"/>
+            <property name="ResultOption" value="BT_SUCCESS"/>
+          </node>
+        </node>
+
+      </node>
+
+      <!-- ===================================================================
+           Blackboard test branch.
+           Exercises every supported blackboard property type and the
+           Condition/Compute/Assignment operators so they can be observed in
+           the Output Log (LogState, prefixed [BehaviacTest]) and in the
+           Behaviac debug WebView's blackboard snapshot.
+
+           Blackboard properties used by this tree (seeded in
+           UAuraBehaviacAgentComponent::BeginPlay):
+             Energy        int    - stamina, drained each cycle, restored on rest
+             bCanWander    bool   - gates the wander branch (Precondition)
+             WanderTarget  vector - current wander destination
+             WanderCount   int    - number of wander targets picked
+             LastAction    string - stamped "Wander"/"Rest" by effectors/logic
+             PatrolIndex   int    - incremented every cycle (int Compute)
+             Health        float  - drained by 5/cycle, reset to 100 at <=0
+             bAggressive   bool   - bool Condition test (== true)
+             Greeting      string - string Condition test (== "Hello")
+             HomeLocation  vector - vector Condition test (distance vs WanderTarget)
+      ==================================================================== -->
+      <node class="Sequence" id="13">
+
+        <!-- int Compute: PatrolIndex = PatrolIndex + 1 -->
+        <node class="Compute" id="14">
+          <property name="Opl" value="Self.PatrolIndex"/>
+          <property name="Opr1" value="Self.PatrolIndex"/>
+          <property name="Opr2" value="1"/>
+          <property name="Operator" value="Add"/>
+        </node>
+
+        <!-- float Compute: Health = Health - 5 -->
+        <node class="Compute" id="15">
+          <property name="Opl" value="Self.Health"/>
+          <property name="Opr1" value="Self.Health"/>
+          <property name="Opr2" value="5"/>
+          <property name="Operator" value="Sub"/>
+        </node>
+
+        <!-- Reset Health when it drops to/below 0 (float LessEqual compare). -->
+        <node class="Selector" id="16">
+          <node class="Sequence" id="17">
+            <node class="Condition" id="18">
+              <property name="Opl" value="Self.Health"/>
+              <property name="Opr" value="0"/>
+              <property name="Operator" value="LessEqual"/>
+            </node>
+            <node class="Assignment" id="19">
+              <property name="Opl" value="Self.Health"/>
+              <property name="Opr" value="100"/>
+            </node>
+          </node>
+
+          <!-- Otherwise dump the blackboard to the log so values are visible. -->
+          <node class="Action" id="20">
+            <property name="Method" value="LogState"/>
+            <property name="ResultOption" value="BT_SUCCESS"/>
+          </node>
+        </node>
+
+        <!-- bool Condition test: bAggressive == true. Passing keeps the cycle alive. -->
+        <node class="Condition" id="21">
+          <property name="Opl" value="Self.bAggressive"/>
+          <property name="Opr" value="true"/>
+          <property name="Operator" value="Equal"/>
+        </node>
+
+        <!-- string Condition test: Greeting == "Hello". -->
+        <node class="Condition" id="22">
+          <property name="Opl" value="Self.Greeting"/>
+          <property name="Opr" value="Hello"/>
+          <property name="Operator" value="Equal"/>
+        </node>
+
+        <!-- vector Condition test: WanderTarget distance > HomeLocation distance.
+             Greater on vectors compares SizeSquared(), so this is "is the wander
+             target farther from the origin than the home point". -->
+        <node class="Condition" id="23">
+          <property name="Opl" value="Self.WanderTarget"/>
+          <property name="Opr" value="Self.HomeLocation"/>
+          <property name="Operator" value="Greater"/>
+        </node>
+
+      </node>
+
+      <!-- Small idle gap between patrol cycles. -->
+      <node class="Wait" id="12">
+        <property name="Time" value="0.20"/>
+      </node>
+
+    </node>
+  </node>
+</behavior>

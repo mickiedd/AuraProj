@@ -275,6 +275,7 @@ class BEHAVIACRUNTIME_API UBehaviacReferenceBehaviorTask : public UBehaviacSingl
 	GENERATED_BODY()
 protected:
 	virtual bool OnEnter(UBehaviacAgentComponent* Agent) override;
+	virtual void OnExit(UBehaviacAgentComponent* Agent, EBehaviacStatus InStatus) override;
 	virtual EBehaviacStatus OnUpdate(UBehaviacAgentComponent* Agent, EBehaviacStatus ChildStatus) override;
 
 	/** The loaded sub-tree task */

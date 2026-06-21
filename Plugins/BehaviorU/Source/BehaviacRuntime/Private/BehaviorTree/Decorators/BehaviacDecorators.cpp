@@ -128,6 +128,13 @@ bool UBehaviacDecoratorLoopTask::OnEnter(UBehaviacAgentComponent* Agent)
 	const UBehaviacDecoratorLoop* LoopNode = Cast<UBehaviacDecoratorLoop>(Node);
 	TargetCount = LoopNode ? LoopNode->LoopCount : -1;
 	CurrentCount = 0;
+
+	// LoopCount == 0 means "don't loop at all" — return false to prevent
+	// the child from being entered, which makes OnUpdate return Failure.
+	if (TargetCount == 0)
+	{
+		return false;
+	}
 	return true;
 }
 
@@ -382,14 +389,25 @@ EBehaviacStatus UBehaviacDecoratorTimeTask::OnUpdate(UBehaviacAgentComponent* Ag
 
 	double CurrentTime = Agent ? Agent->GetWorld()->GetTimeSeconds() : FPlatformTime::Seconds();
 
-	// Time expired: stop ticking child and succeed
+	// Time expired: stop ticking child, reset it so the next entry is clean,
+	// and return Success.
 	if ((CurrentTime - StartTime) >= Duration)
 	{
+		ChildTask->Reset(Agent);
 		return EBehaviacStatus::Success;
 	}
 
-	// Still within time window: keep ticking child, propagate its result
-	return ChildTask->Execute(Agent, ChildStatus);
+	// Still within time window: tick child and propagate its result.
+	// Previously the child's result was ignored and Running was always
+	// returned — now we propagate Success/Failure from the child so the
+	// decorator can complete early if the child finishes.
+	EBehaviacStatus ChildResult = ChildTask->Execute(Agent, ChildStatus);
+	if (ChildResult == EBehaviacStatus::Failure)
+	{
+		return EBehaviacStatus::Failure;
+	}
+	// Success or Running: keep running until the timer expires.
+	return EBehaviacStatus::Running;
 }
 
 // ===================================================================
@@ -431,10 +449,20 @@ EBehaviacStatus UBehaviacDecoratorFramesTask::OnUpdate(UBehaviacAgentComponent* 
 
 	if (Elapsed >= Target)
 	{
+		// Frame limit reached: reset child so next entry is clean, return Success.
+		ChildTask->Reset(Agent);
 		return EBehaviacStatus::Success;
 	}
 
-	ChildTask->Execute(Agent, ChildStatus);
+	// Still within frame window: tick child and propagate Failure.
+	// Previously the child's result was ignored and Running was always
+	// returned — now we propagate Failure so the decorator can fail early.
+	EBehaviacStatus ChildResult = ChildTask->Execute(Agent, ChildStatus);
+	if (ChildResult == EBehaviacStatus::Failure)
+	{
+		return EBehaviacStatus::Failure;
+	}
+	// Success or Running: keep running until frame limit is reached.
 	return EBehaviacStatus::Running;
 }
 

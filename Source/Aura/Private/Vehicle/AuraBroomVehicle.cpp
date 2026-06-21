@@ -17,6 +17,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Player/AuraPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
+#include "AI/AuraBroomAgentComponent.h"
 
 // ─── UAuraBroomMovement ───────────────────────────────────────────────────────
 // UFloatingPawnMovement::TickComponent gates all movement on
@@ -128,6 +129,10 @@ AAuraBroomVehicle::AAuraBroomVehicle()
 
 	AutoPossessAI = EAutoPossessAI::Disabled;
 	AutoPossessPlayer = EAutoReceiveInput::Disabled;
+
+	// BehaviorU agent: auto-loads BT_BroomFollowPlayer.xml on BeginPlay and
+	// drives the broom to follow the nearest player character.
+	BroomAgentComponent = CreateDefaultSubobject<UAuraBroomAgentComponent>(TEXT("BroomAgentComponent"));
 }
 
 void AAuraBroomVehicle::BeginPlay()

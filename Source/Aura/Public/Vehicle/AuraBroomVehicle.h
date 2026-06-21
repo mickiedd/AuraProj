@@ -11,6 +11,7 @@ class UStaticMeshComponent;
 class USceneComponent;
 class UPrimitiveComponent;
 class ACharacter;
+class UAuraBroomAgentComponent;
 struct FHitResult;
 
 /**
@@ -127,6 +128,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Broom|Movement", meta = (ClampMin = "0.1", ToolTip = "Degrees/second interp speed used to rotate the broom toward the movement or camera direction."))
 	float YawInterpSpeed = 8.f;
+
+	/** BehaviorU (Behaviac) agent driving the broom follow behavior tree (BT_BroomFollowPlayer.xml). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Broom|AI")
+	TObjectPtr<UAuraBroomAgentComponent> BroomAgentComponent;
 
 private:
 	void UpdateIdleHover(float DeltaSeconds);

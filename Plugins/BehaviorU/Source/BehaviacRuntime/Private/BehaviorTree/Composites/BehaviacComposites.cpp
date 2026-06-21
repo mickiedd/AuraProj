@@ -4,6 +4,9 @@
 #include "BehaviorTree/Composites/BehaviacComposites.h"
 #include "BehaviorTree/Decorators/BehaviacDecorators.h"
 #include "BehaviacAgent.h"
+#include "BehaviorTree/BehaviacBehaviorTree.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
 // ===================================================================
 // SELECTOR
@@ -49,10 +52,21 @@ void UBehaviacSelectorTask::OnExit(UBehaviacAgentComponent* Agent, EBehaviacStat
 
 EBehaviacStatus UBehaviacSelectorTask::OnUpdate(UBehaviacAgentComponent* Agent, EBehaviacStatus ChildStatus)
 {
-	// If the current child returned success or is still running, propagate that
+	// If the current child succeeded or is still running, propagate that.
+	// Do NOT fall through to the while-loop when the child is Running — that
+	// would re-execute the same child a second time in the same tick.
 	if (ChildStatus == EBehaviacStatus::Success)
 	{
 		return EBehaviacStatus::Success;
+	}
+	if (ChildStatus == EBehaviacStatus::Running)
+	{
+		// Continue ticking the currently active child.
+		if (ChildTasks.IsValidIndex(ActiveChildIndex))
+		{
+			return ChildTasks[ActiveChildIndex]->Execute(Agent, EBehaviacStatus::Running);
+		}
+		return EBehaviacStatus::Running;
 	}
 
 	// Current child failed, try next
@@ -110,13 +124,17 @@ void UBehaviacSequenceTask::OnExit(UBehaviacAgentComponent* Agent, EBehaviacStat
 
 EBehaviacStatus UBehaviacSequenceTask::OnUpdate(UBehaviacAgentComponent* Agent, EBehaviacStatus ChildStatus)
 {
-	// If current child is running, keep running
+	// If current child is running, continue ticking it with Running status.
+	// Previously this passed Invalid, which confused composite children that
+	// rely on ChildStatus to distinguish first-entry from continuation.
 	if (ChildStatus == EBehaviacStatus::Running)
 	{
 		if (ChildTasks.IsValidIndex(ActiveChildIndex))
 		{
-			return ChildTasks[ActiveChildIndex]->Execute(Agent, EBehaviacStatus::Invalid);
+			return ChildTasks[ActiveChildIndex]->Execute(Agent, EBehaviacStatus::Running);
 		}
+		// ActiveChildIndex out of range — treat as completion.
+		return EBehaviacStatus::Success;
 	}
 
 	// If current child failed, propagate failure
@@ -516,10 +534,35 @@ EBehaviacStatus UBehaviacSelectorProbabilityTask::OnUpdate(UBehaviacAgentCompone
 		return EBehaviacStatus::Failure;
 	}
 
-	// ActiveChildIndex was chosen by weighted random in OnEnter; just execute it
+	// ActiveChildIndex was chosen by weighted random in OnEnter.
+	// Execute it; if it returns Running, keep running.
 	if (ChildTasks.IsValidIndex(ActiveChildIndex))
 	{
-		return ChildTasks[ActiveChildIndex]->Execute(Agent, ChildStatus);
+		EBehaviacStatus Result = ChildTasks[ActiveChildIndex]->Execute(Agent, ChildStatus);
+		if (Result != EBehaviacStatus::Failure)
+		{
+			return Result;
+		}
+	}
+
+	// The selected child failed — fall back to trying the remaining children
+	// in order, so the SelectorProbability still makes progress instead of
+	// returning Failure immediately. This matches the original behaviac
+	// behaviour where a probability selector is still a selector.
+	for (int32 i = 0; i < ChildTasks.Num(); ++i)
+	{
+		if (i == ActiveChildIndex)
+		{
+			continue;
+		}
+		EBehaviacStatus Result = ChildTasks[i]->Execute(Agent, EBehaviacStatus::Invalid);
+		if (Result != EBehaviacStatus::Failure)
+		{
+			// Update ActiveChildIndex so the next tick continues THIS child
+			// instead of re-executing the originally-weighted (failed) child.
+			ActiveChildIndex = i;
+			return Result;
+		}
 	}
 
 	return EBehaviacStatus::Failure;
@@ -685,8 +728,83 @@ void UBehaviacReferenceBehavior::LoadFromProperties(int32 Version, const FString
 
 bool UBehaviacReferenceBehaviorTask::OnEnter(UBehaviacAgentComponent* Agent)
 {
-	// The sub-tree is loaded via the workspace and linked during Init
+	// Load the referenced sub-tree from the XML file path stored on the node.
+	// This is deferred to OnEnter (rather than Init) because the agent component
+	// (needed for path resolution context) is available here, and it allows
+	// hot-reloading the sub-tree file between runs.
+	const UBehaviacReferenceBehavior* RefNode = Cast<UBehaviacReferenceBehavior>(Node);
+	if (!RefNode || !Agent)
+	{
+		return false;
+	}
+
+	// Clean up any previous sub-tree task.
+	if (SubTreeTask)
+	{
+		SubTreeTask->Reset(Agent);
+		SubTreeTask = nullptr;
+	}
+
+	const FString& TreePath = RefNode->ReferencedTreePath;
+	if (TreePath.IsEmpty())
+	{
+		UE_LOG(LogBehaviac, Warning, TEXT("[ReferenceBehavior] ReferencedTreePath is empty."));
+		return false;
+	}
+
+	// Resolve the path (same logic as UBehaviacAgentComponent::LoadBehaviorTreeFromXMLFile).
+	FString ResolvedPath = TreePath;
+	if (ResolvedPath.StartsWith(TEXT("/Game/")))
+	{
+		ResolvedPath = FPaths::Combine(FPaths::ProjectContentDir(), ResolvedPath.Mid(6));
+	}
+	else if (FPaths::IsRelative(ResolvedPath))
+	{
+		ResolvedPath = FPaths::Combine(FPaths::ProjectContentDir(), ResolvedPath);
+	}
+	ResolvedPath = FPaths::ConvertRelativePathToFull(ResolvedPath);
+
+	FString FileContent;
+	if (!FFileHelper::LoadFileToString(FileContent, *ResolvedPath))
+	{
+		UE_LOG(LogBehaviac, Error, TEXT("[ReferenceBehavior] Failed to read sub-tree file: %s"), *ResolvedPath);
+		return false;
+	}
+
+	UBehaviacBehaviorTree* SubTreeAsset = NewObject<UBehaviacBehaviorTree>(GetTransientPackage());
+	SubTreeAsset->SourceFilePath = ResolvedPath;
+	SubTreeAsset->TreeName = FPaths::GetBaseFilename(ResolvedPath);
+
+	if (!SubTreeAsset->LoadFromXML(FileContent))
+	{
+		UE_LOG(LogBehaviac, Error, TEXT("[ReferenceBehavior] Failed to parse sub-tree XML: %s"), *ResolvedPath);
+		return false;
+	}
+
+	UBehaviacBehaviorNode* SubRootNode = SubTreeAsset->GetRootNode();
+	if (!SubRootNode)
+	{
+		UE_LOG(LogBehaviac, Error, TEXT("[ReferenceBehavior] Sub-tree has no root node: %s"), *ResolvedPath);
+		return false;
+	}
+
+	// Create a BehaviorTreeTask wrapping the sub-tree's root node.
+	SubTreeTask = NewObject<UBehaviacBehaviorTreeTask>(this);
+	SubTreeTask->Init(SubRootNode);
+
+	UE_LOG(LogBehaviac, Log, TEXT("[ReferenceBehavior] Loaded sub-tree: %s"), *ResolvedPath);
 	return true;
+}
+
+void UBehaviacReferenceBehaviorTask::OnExit(UBehaviacAgentComponent* Agent, EBehaviacStatus InStatus)
+{
+	// Reset the sub-tree so it starts fresh on re-entry.
+	if (SubTreeTask && Agent)
+	{
+		SubTreeTask->Reset(Agent);
+	}
+
+	Super::OnExit(Agent, InStatus);
 }
 
 EBehaviacStatus UBehaviacReferenceBehaviorTask::OnUpdate(UBehaviacAgentComponent* Agent, EBehaviacStatus ChildStatus)
@@ -694,11 +812,6 @@ EBehaviacStatus UBehaviacReferenceBehaviorTask::OnUpdate(UBehaviacAgentComponent
 	if (SubTreeTask)
 	{
 		return SubTreeTask->Tick(Agent);
-	}
-
-	if (ChildTask)
-	{
-		return ChildTask->Execute(Agent, ChildStatus);
 	}
 
 	return EBehaviacStatus::Failure;
