@@ -400,7 +400,10 @@ EBehaviacStatus UBehaviacFSMTask::UpdateFSM(UBehaviacAgentComponent* Agent, EBeh
 				// (enqueued by FSMStateTask::OnExit) would be silently
 				// skipped on every state transition. ExitState() is a
 				// public wrapper that calls the protected OnExit.
-				CurrentStateTask->ExitState(Agent, EBehaviacStatus::Success);
+				if (UBehaviacFSMStateTask* StateTask = Cast<UBehaviacFSMStateTask>(CurrentStateTask))
+				{
+					StateTask->ExitState(Agent, EBehaviacStatus::Success);
+				}
 				CurrentStateTask->Reset(Agent);
 
 				// Find and enter target state
