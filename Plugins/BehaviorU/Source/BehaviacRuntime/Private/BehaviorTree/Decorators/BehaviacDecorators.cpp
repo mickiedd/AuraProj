@@ -635,7 +635,7 @@ void UBehaviacDecoratorLog::LoadFromProperties(int32 Version, const FString& InA
 
 	for (const FBehaviacProperty& Prop : Properties)
 	{
-		if (Prop.Name == TEXT("Log"))
+		if (Prop.Name == TEXT("Message"))
 		{
 			LogMessage = Prop.Value;
 		}

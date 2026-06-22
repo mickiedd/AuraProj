@@ -22,7 +22,9 @@
           <node class="Wait" id="8">
             <property name="Time" value="0.05"/>
           </node>
-          <node class="DecoratorLog" id="103"/>
+          <node class="DecoratorLog" id="103">
+            <property name="Message" value="Hello Witch."/>
+          </node>
         </node>
         <node class="Noop" id="9"/>
       </node>
