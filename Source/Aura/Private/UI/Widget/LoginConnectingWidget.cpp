@@ -90,7 +90,12 @@ void ULoginConnectingWidget::ShowConnecting(const FString& InMessage)
 		UE_LOG(LogTemp, Warning, TEXT("[LoginConnWidget] ShowConnecting: StatusTextBlock is null, message cannot render in text widget"));
 	}
 
-	SetVisibility(ESlateVisibility::Visible);
+	// HitTestInvisible: the status text renders, but the widget (a full-viewport
+	// CanvasPanel root) does NOT intercept mouse hits. Otherwise, when this is shown
+	// over the login menu (e.g. the mid-game server-lost message on return to Login),
+	// it blocks every click on the dropdown / connect button behind it. This widget
+	// is a pure status display with no interactive elements.
+	SetVisibility(ESlateVisibility::HitTestInvisible);
 
 	UE_LOG(LogTemp, Display, TEXT("[LoginConnWidget] Showing: %s"), *ConnectingMessage);
 }

@@ -58,6 +58,7 @@ void ALoginPlayerController::BeginPlay()
 			ServerTravelComponent->OnStatusMessage.AddUObject(this, &ALoginPlayerController::HandleServerTravelStatusMessage);
 		}
 		EnsureLoginScreenWidget();
+		SurfacePendingServerLostMessage();
 	}
 
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: manual connect mode ready (Local=%d)"),
@@ -154,6 +155,23 @@ void ALoginPlayerController::EnsureLoginScreenWidget()
 void ALoginPlayerController::ShowLoginMenuStatusMessage(const FString& InMessage)
 {
 	UpdateConnectingStatus(InMessage);
+}
+
+void ALoginPlayerController::SurfacePendingServerLostMessage()
+{
+	UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>();
+	if (!IsValid(GI) || !GI->HasPendingServerLostMessage())
+	{
+		return;
+	}
+
+	const FString Message = GI->PendingServerLostMessage;
+	GI->ClearPendingServerLostMessage();
+
+	// Show it in the bottom-right connecting-status widget (non-blocking; the login menu stays usable).
+	EnsureConnectingWidget();
+	ShowLoginMenuStatusMessage(Message);
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Surfacing mid-game server-lost message on Login screen: %s"), *Message);
 }
 
 void ALoginPlayerController::HandleServerTravelStatusMessage(const FString& InMessage)

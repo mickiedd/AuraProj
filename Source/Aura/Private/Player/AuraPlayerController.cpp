@@ -29,6 +29,8 @@
 #include "UI/Widget/DamageTextComponent.h"
 #include "InputCoreTypes.h"
 #include "Game/ServerTravelComponent.h"
+#include "Client/AuraClientDisconnectHandler.h"
+#include "Network/AuraHeartbeatComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Vehicle/AuraBroomVehicle.h"
 #include "Building/AuraBuildingComponent.h"
@@ -38,6 +40,8 @@ AAuraPlayerController::AAuraPlayerController()
 	bReplicates = true;
 	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
 	ServerTravelComponent = CreateDefaultSubobject<UServerTravelComponent>(TEXT("ServerTravelComponent"));
+	ClientDisconnectHandler = CreateDefaultSubobject<UAuraClientDisconnectHandler>(TEXT("ClientDisconnectHandler"));
+	HeartbeatComponent = CreateDefaultSubobject<UAuraHeartbeatComponent>(TEXT("HeartbeatComponent"));
 }
 
 void AAuraPlayerController::RequestBroomMount(AAuraBroomVehicle* BroomToMount)

@@ -22,6 +22,8 @@ class AMagicCircle;
 class AAuraBroomVehicle;
 class UCharacterMovementComponent;
 class UServerTravelComponent;
+class UAuraClientDisconnectHandler;
+class UAuraHeartbeatComponent;
 class UAuraBuildingComponent;
 
 enum class ETargetingStatus : uint8
@@ -231,6 +233,14 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Network")
 	TObjectPtr<UServerTravelComponent> ServerTravelComponent;
+
+	/** Detects mid-game server-connection loss and routes the client back to the Login level. */
+	UPROPERTY(VisibleAnywhere, Category = "Network")
+	TObjectPtr<UAuraClientDisconnectHandler> ClientDisconnectHandler;
+
+	/** Application-level heartbeat; the disconnect handler binds to its OnHeartbeatLost. */
+	UPROPERTY(VisibleAnywhere, Category = "Network")
+	TObjectPtr<UAuraHeartbeatComponent> HeartbeatComponent;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AMagicCircle> MagicCircleClass;

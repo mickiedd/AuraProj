@@ -117,4 +117,19 @@ public:
 		PendingCrossServerPlayerName.Empty();
 		PendingGameServerClient = nullptr;
 	}
+
+	// ---------------------------------------------------------------------------
+	// Mid-game server-lost handoff
+	//
+	// When UAuraClientDisconnectHandler detects that the dedicated server went
+	// away mid-game, it immediately travels back to the Login level and stashes
+	// this message so ALoginPlayerController can surface it on the Login screen.
+	// ---------------------------------------------------------------------------
+
+	UPROPERTY()
+	FString PendingServerLostMessage;
+
+	bool HasPendingServerLostMessage() const { return !PendingServerLostMessage.IsEmpty(); }
+
+	void ClearPendingServerLostMessage() { PendingServerLostMessage.Empty(); }
 };

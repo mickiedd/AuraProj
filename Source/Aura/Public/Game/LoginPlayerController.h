@@ -111,6 +111,11 @@ protected:
 	void EnsureConnectingWidget();
 	void EnsureLoginScreenWidget();
 
+	/** If the GameInstance carries a mid-game server-lost message (set by
+	 *  UAuraClientDisconnectHandler before traveling here), surface it on the
+	 *  Login screen via the connecting-status widget and clear it. */
+	void SurfacePendingServerLostMessage();
+
 	/** Callback from UGameServerClient fired on the game thread. */
 	void OnGameServerResponse(const FGameServerResponse& Response);
 
