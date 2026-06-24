@@ -18,8 +18,10 @@ class AAuraBroomVehicle;
  *   - FindPlayer:     locates a player character in the scene, stores their
  *                     location in the blackboard (Self.PlayerLocation), and sets
  *                     Self.bPlayerInScene accordingly.
- *   - FollowPlayer:   reads Self.PlayerLocation and calls AddFlightInput on the
- *                     broom to steer toward the player.
+ *   - FollowPlayer:   reads Self.PlayerLocation and sets a persistent flight
+ *                     thrust on the broom (SetBtFlightThrust) to steer toward
+ *                     the player. The thrust is re-applied every movement tick
+ *                     so the broom keeps flying between the BT's ~5-10 Hz pulses.
  *
  * The methods execute on the game thread (Phase 1 of the Behaviac world
  * subsystem tick), so they may safely touch the owning broom actor.
@@ -38,6 +40,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behaviac|Broom")
 	float FollowSpeedScale;
 
+	/**
+	 * Distance (cm) at which the broom stops thrusting toward the player and coasts
+	 * to a halt via the movement component's Deceleration. Must be >= the braking
+	 * distance from MaxSpeed (v^2 / (2*Deceleration)); with MaxSpeed=1200 and
+	 * Deceleration=3200 that is ~225cm, so 300 gives margin. Too small and the
+	 * broom overshoots/oscillates around the player.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behaviac|Broom", meta = (ClampMin = "0.0"))
+	float FollowStopRadius = 300.f;
+
 	/** If true, the broom only follows when no character is currently mounted. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behaviac|Broom")
 	bool bStopFollowWhenMounted;
@@ -48,7 +60,7 @@ protected:
 	/** Find a player character in the scene and store their location. */
 	EBehaviacStatus Method_FindPlayer();
 
-	/** Move the broom toward the stored player location via AddFlightInput. */
+	/** Move the broom toward the stored player location via persistent flight thrust. */
 	EBehaviacStatus Method_FollowPlayer();
 
 private:

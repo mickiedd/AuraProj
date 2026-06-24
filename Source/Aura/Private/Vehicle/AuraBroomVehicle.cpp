@@ -24,6 +24,27 @@
 // Controller->IsLocalController(). The broom has no possessing controller, so
 // we override TickComponent to apply server-authoritative movement directly.
 
+void UAuraBroomMovement::ApplyControlInputToVelocity(float DeltaTime)
+{
+	// Re-inject the BT follow thrust as standard movement input every tick so
+	// UFloatingPawnMovement accelerates toward it continuously. The BT only fires
+	// AddFlightInput ~5-10 Hz and UFloatingPawnMovement consumes input each tick,
+	// so without this re-injection the high Deceleration kills velocity between
+	// pulses and the broom crawls (~10 cm/s) instead of flying toward the player.
+	// When mounted, BtFlightThrust is zero (cleared on mount), so the rider's own
+	// AddFlightInput drives movement unchanged.
+	if (AAuraBroomVehicle* Broom = Cast<AAuraBroomVehicle>(PawnOwner))
+	{
+		const FVector BtThrust = Broom->GetBtFlightThrust();
+		if (!BtThrust.IsNearlyZero(1e-4f))
+		{
+			AddInputVector(BtThrust, false);
+		}
+	}
+
+	Super::ApplyControlInputToVelocity(DeltaTime);
+}
+
 void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	if (ShouldSkipUpdate(DeltaTime))
@@ -50,12 +71,6 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 
 	const FVector PendingInput = GetPendingInputVector();
-
-	/* UE_LOG(LogAura, Warning, TEXT("[BroomMovement] TickComponent (server). Broom=%s PendingInput=%s CurrentVelocity=%s DT=%.4f"),
-		*GetNameSafe(GetOwner()),
-		*PendingInput.ToCompactString(),
-		*Velocity.ToCompactString(),
-		DeltaTime); */
 
 	ApplyControlInputToVelocity(DeltaTime);
 	LimitWorldBounds();
@@ -92,6 +107,20 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 
 	UpdateComponentVelocity();
+
+	// Log-level diagnostic (throttled) so the server cooked log shows the broom
+	// actually integrating flight input into velocity and position each tick.
+	const float CurrentTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	if (CurrentTime - LastMoveLogTime >= 0.25f)
+	{
+		const FVector Loc = UpdatedComponent ? UpdatedComponent->GetComponentLocation() : FVector::ZeroVector;
+		UE_LOG(LogAura, Log, TEXT("[BroomMovement] server tick. Broom=%s PendingInput=%s Velocity=%s Loc=%s"),
+			*GetNameSafe(GetOwner()),
+			*PendingInput.ToCompactString(),
+			*Velocity.ToCompactString(),
+			*Loc.ToCompactString());
+		LastMoveLogTime = CurrentTime;
+	}
 }
 
 // ─── AAuraBroomVehicle ────────────────────────────────────────────────────────
@@ -164,6 +193,10 @@ void AAuraBroomVehicle::AddFlightInput(const FVector& WorldDirection, float Scal
 	const bool bCanLogFlight = CurrentTime - LastFlightInputLogTime >= FlightInputLogInterval;
 	const bool bCanLogFlightBlocked = CurrentTime - LastFlightBlockedLogTime >= FlightInputLogInterval;
 
+	// Stamp the last-input time so UpdateIdleHover keeps yielding to flight between
+	// BT input pulses (the BT fires AddFlightInput ~10 Hz).
+	LastFlightInputAppliedTime = CurrentTime;
+
 	UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] AddFlightInput called. Broom=%s HasAuthority=%s Rider=%s Dir=%s Scale=%.3f FlightMovement=%s"),
 		*GetNameSafe(this),
 		HasAuthority() ? TEXT("true") : TEXT("false"),
@@ -198,7 +231,7 @@ void AAuraBroomVehicle::AddFlightInput(const FVector& WorldDirection, float Scal
 
 	if (bCanLogFlight)
 	{
-		UE_LOG(LogAura, Verbose, TEXT("Flight input applied. Broom=%s Rider=%s Direction=%s Scale=%0.2f Velocity=%s Location=%s HasAuthority=%s"),
+		UE_LOG(LogAura, Log, TEXT("Flight input applied. Broom=%s Rider=%s Direction=%s Scale=%0.2f Velocity=%s Location=%s HasAuthority=%s"),
 			*GetNameSafe(this),
 			*GetNameSafe(MountedCharacter),
 			*WorldDirection.ToCompactString(),
@@ -341,6 +374,10 @@ void AAuraBroomVehicle::MountCharacterInternal(ACharacter* CharacterToMount)
 	MountedCharacter = CharacterToMount;
 	ApplyMountedState(MountedCharacter, true);
 	LastMountedCharacter = MountedCharacter;
+
+	// A rider is taking over — clear any persistent BT follow thrust so it doesn't
+	// fight the rider's own AddFlightInput while mounted.
+	BtFlightThrust = FVector::ZeroVector;
 }
 
 void AAuraBroomVehicle::DismountCharacterInternal()
@@ -498,7 +535,9 @@ void AAuraBroomVehicle::SetFlightTargetYaw(float WorldYaw)
 void AAuraBroomVehicle::UpdateFlightYaw(float DeltaSeconds)
 {
 	// Only the server drives broom rotation; movement replication carries it to clients.
-	if (!HasAuthority() || !bHasFlightTargetYaw || !IsValid(MountedCharacter))
+	// Applies both when a rider is mounted (player steer input) and when the BT is
+	// following a player unmounted (Method_FollowPlayer sets the target yaw).
+	if (!HasAuthority() || !bHasFlightTargetYaw)
 	{
 		return;
 	}
@@ -526,6 +565,37 @@ void AAuraBroomVehicle::UpdateIdleHover(float DeltaSeconds)
 		IdleHoverCurrentRotationOffset = FRotator::ZeroRotator;
 		IdleHoverBaseLocation = GetActorLocation();
 		IdleHoverBaseRotation = GetActorRotation();
+		return;
+	}
+
+	// If the BT (AddFlightInput from Method_FollowPlayer) or any other system is
+	// actively flying the broom, the movement component must be authoritative for
+	// position. The idle hover pins the actor to a frozen IdleHoverBaseLocation via
+	// SetActorLocationAndRotation every frame; if we run that while flight velocity
+	// is non-zero, the hover teleports the broom back to its spawn anchor and
+	// completely cancels the flight movement — so AddFlightInput appears to do
+	// nothing. Yield here and let the movement component drive until the broom
+	// coasts to a stop.
+	const bool bHasFlightVelocity = IsValid(FlightMovement) && FlightMovement->Velocity.SizeSquared() > 1.f;
+	const bool bHasFlightInput = IsValid(FlightMovement) && !FlightMovement->GetPendingInputVector().IsNearlyZero(0.01f);
+	const float CurrentTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	// Yield for a short window after the most recent AddFlightInput so the BT's
+	// ~10 Hz pulse cadence doesn't let the hover pin the broom between inputs.
+	const bool bHadRecentFlightInput = (CurrentTime - LastFlightInputAppliedTime) < 0.25f;
+	if (bHasFlightVelocity || bHasFlightInput || bHadRecentFlightInput)
+	{
+		// Reset so the next truly-idle frame re-captures the base around the
+		// broom's current (flown) position instead of the stale spawn location.
+		bWasHoveringLastTick = false;
+
+		if (CurrentTime - LastHoverLogTime >= FlightInputLogInterval)
+		{
+			UE_LOG(LogAura, Log, TEXT("[BroomHover] yielding to flight (no pin). Broom=%s Vel=%s Pending=%s"),
+				*GetNameSafe(this),
+				*FlightMovement->Velocity.ToCompactString(),
+				*FlightMovement->GetPendingInputVector().ToCompactString());
+			LastHoverLogTime = CurrentTime;
+		}
 		return;
 	}
 

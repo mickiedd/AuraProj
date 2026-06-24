@@ -115,6 +115,17 @@ class GraphRenderer {
     const col   = getCatColor(info.category);
     const sel   = selectedIds && selectedIds.has(n.id);
 
+    // Runtime debug status for this node, if any. window._behaviacDebugNodes is
+    // a Map<nodeId, "Running"|"Success"|"Failure"> populated by runtime-debug.js
+    // from the live bb_snapshot frames sent by the BehaviorU debug server. The
+    // node id matches because both editor graph nodes and runtime nodes derive
+    // their id from the XML `id` attribute.
+    const dbgStatus = (window._behaviacDebugNodes && window._behaviacDebugNodes.get(n.id)) || null;
+    const statusColor = dbgStatus === 'Running' ? '#ffb347'
+                      : dbgStatus === 'Success'  ? '#4ec9b0'
+                      : dbgStatus === 'Failure'  ? '#f44747'
+                      : null;
+
     // Build info lines first so we can size the node
     const lines  = this._getInfoLines(n);
     const bodyH  = Math.max(32, lines.length * BODY_LINE_H + 10);
@@ -123,8 +134,21 @@ class GraphRenderer {
     // update node height so hit-testing & ports stay accurate
     n.h = h;
 
-    // ── shadow / glow ──
-    if (sel) { ctx.shadowColor = col.header; ctx.shadowBlur = 14; }
+    // ── runtime status glow halo (drawn behind the body) ──
+    if (statusColor) {
+      ctx.save();
+      ctx.shadowColor = statusColor;
+      ctx.shadowBlur  = 18;
+      ctx.strokeStyle = statusColor;
+      ctx.lineWidth   = 2;
+      this._roundRect(ctx, n.x, n.y, w, h, 6);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // ── shadow / glow ── (skip the selection glow when a status halo is shown,
+    //    so the two glows don't stack; the white selection border still marks it)
+    if (sel && !statusColor) { ctx.shadowColor = col.header; ctx.shadowBlur = 14; }
 
     // ── body ──
     ctx.fillStyle = col.bg;
@@ -141,11 +165,21 @@ class GraphRenderer {
     this._roundRect(ctx, n.x, n.y, w, HEADER_H, [6, 6, 0, 0]);
     ctx.fill();
 
-    // ── border ──
-    ctx.strokeStyle = sel ? '#ffffff' : col.header;
-    ctx.lineWidth   = sel ? 2 : 1;
+    // ── border ── (selection takes priority; otherwise tint by runtime status)
+    ctx.strokeStyle = sel ? '#ffffff' : (statusColor || col.header);
+    ctx.lineWidth   = (sel || statusColor) ? 2 : 1;
     this._roundRect(ctx, n.x, n.y, w, h, 6);
     ctx.stroke();
+
+    // ── runtime status dot (top-right corner) ──
+    if (statusColor) {
+      ctx.save();
+      ctx.fillStyle   = statusColor;
+      ctx.beginPath();
+      ctx.arc(n.x + w - 9, n.y + 9, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
 
     // ── header: type (small, top) + label (prominent, bottom) ──
     ctx.save();

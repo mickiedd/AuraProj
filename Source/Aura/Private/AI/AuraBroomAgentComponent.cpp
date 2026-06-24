@@ -103,9 +103,11 @@ EBehaviacStatus UAuraBroomAgentComponent::Method_FollowPlayer()
 	}
 
 	// If the broom currently has a rider, stop following — the player is
-	// controlling it manually and the BT should not interfere.
+	// controlling it manually and the BT should not interfere. Drop any persistent
+	// thrust so the rider's own input is the only thing moving the broom.
 	if (bStopFollowWhenMounted && Broom->GetMountedCharacter())
 	{
+		Broom->SetBtFlightThrust(FVector::ZeroVector);
 		return EBehaviacStatus::Success;
 	}
 
@@ -119,26 +121,41 @@ EBehaviacStatus UAuraBroomAgentComponent::Method_FollowPlayer()
 	const FVector PlayerLocation = GetVectorProperty(TEXT("PlayerLocation"));
 	if (PlayerLocation.IsNearlyZero(1.f))
 	{
+		// No player to follow — stop thrusting and coast to a halt.
+		Broom->SetBtFlightThrust(FVector::ZeroVector);
 		return EBehaviacStatus::Success;
 	}
 
 	const FVector BroomLocation = Broom->GetActorLocation();
 	const FVector Direction = PlayerLocation - BroomLocation;
 
-	// If we're close enough, don't move — prevents jittering on top of the player.
+	// If we're close enough, stop thrusting so the broom coasts to a halt instead
+	// of jittering on top of the player. The movement component's Deceleration
+	// handles the actual stop. FollowStopRadius must exceed the braking distance
+	// from MaxSpeed (v^2 / (2*Deceleration)) or the broom will overshoot.
 	const float Distance = Direction.Size();
-	const float StopRadius = 150.f;
-	if (Distance <= StopRadius)
+	if (Distance <= FollowStopRadius)
 	{
+		Broom->SetBtFlightThrust(FVector::ZeroVector);
 		return EBehaviacStatus::Success;
 	}
 
-	// Normalize and apply flight input toward the player.
+	// Set a PERSISTENT thrust toward the player. Unlike one-shot AddFlightInput
+	// (consumed each tick), the movement component re-applies this every tick so
+	// the broom keeps accelerating between the BT's ~5-10 Hz pulses — otherwise the
+	// high Deceleration kills velocity between pulses and the broom only crawls.
 	const FVector NormalizedDir = Direction / Distance;
-	Broom->AddFlightInput(NormalizedDir, FollowSpeedScale);
+	Broom->SetBtFlightThrust(NormalizedDir * FollowSpeedScale);
 
 	// Update the broom's facing to point toward the player.
 	Broom->SetFlightTargetYaw(FRotationMatrix::MakeFromX(NormalizedDir).Rotator().Yaw);
+
+	// Log-level (not BEHAVIAC_VLOG/Verbose) so this shows in cooked server logs.
+	UE_LOG(LogAura, Log, TEXT("[BroomBehaviac] FollowPlayer: dist=%.0f dir=%s broomLoc=%s broomVel=%s"),
+		Distance,
+		*NormalizedDir.ToCompactString(),
+		*BroomLocation.ToCompactString(),
+		*Broom->GetVelocity().ToCompactString());
 
 	BEHAVIAC_VLOG(TEXT("[BroomBehaviac] FollowPlayer: dist=%.0f dir=%s"),
 		Distance, *NormalizedDir.ToCompactString());

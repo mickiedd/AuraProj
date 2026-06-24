@@ -484,9 +484,15 @@ class RuntimeDebugger {
         }
         window._behaviacDebugNodes.clear();
 
-        if (!this._selectedId) return;
+        // 无论下面是否写入状态，map 内容都可能已变化（被清空），
+        // 因此任何退出路径都需要通知画布重绘以同步高亮。
+        const requestRepaint = () => {
+            if (typeof markGraphDirty === 'function') markGraphDirty();
+        };
+
+        if (!this._selectedId) { requestRepaint(); return; }
         const data = this._agents.get(this._selectedId);
-        if (!data || !data.nodes.length) return;
+        if (!data || !data.nodes.length) { requestRepaint(); return; }
 
         // 仅当画布中当前渲染的行为树路径与选中 Agent 的路径一致时才高亮节点；
         // 路径不匹配说明画布显示的是另一棵树，强行高亮节点 ID 会造成误导。
@@ -497,7 +503,8 @@ class RuntimeDebugger {
             const normalizedCanvasPath = canvasPath.trim().replace(/\\/g, '/').toLowerCase();
             const normalizedAgentPath  = agentPath.trim().replace(/\\/g, '/').toLowerCase();
             if (normalizedCanvasPath && normalizedAgentPath && normalizedCanvasPath !== normalizedAgentPath) {
-                return; // 路径不匹配，不写入调试状态
+                requestRepaint(); // 路径不匹配，不写入调试状态
+                return;
             }
         }
 
@@ -505,6 +512,7 @@ class RuntimeDebugger {
             // n.id 与编辑器图节点 n.id 均来自 XML id 属性，可直接匹配
             window._behaviacDebugNodes.set(n.id, String(n.status || 'Invalid'));
         }
+        requestRepaint();
     }
 
     _setStatus(state, msg) {

@@ -27,6 +27,17 @@ class AURA_API UAuraBroomMovement : public UFloatingPawnMovement
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	// Re-injects the BT follow thrust as standard movement input every tick so the
+	// broom continuously accelerates toward the player. The BT only fires
+	// AddFlightInput ~5-10 Hz; UFloatingPawnMovement consumes input each tick, so
+	// without re-injection the high Deceleration kills velocity between pulses and
+	// the broom crawls (~10 cm/s) instead of flying.
+	virtual void ApplyControlInputToVelocity(float DeltaTime) override;
+
+private:
+	// Throttle for the diagnostic move log (Log-level, so it shows in cooked server logs).
+	float LastMoveLogTime = -1000.f;
 };
 
 UCLASS(Blueprintable)
@@ -43,6 +54,18 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Broom|Movement")
 	void AddFlightInput(const FVector& WorldDirection, float ScaleValue = 1.f);
+
+	/**
+	 * Sets the persistent world-space flight thrust the BT uses to follow a player.
+	 * Unlike AddFlightInput (one-shot, consumed each tick), this thrust is re-applied
+	 * every movement tick so the broom continuously accelerates between the BT's
+	 * ~5-10 Hz pulses. Pass FVector::ZeroVector to stop (coast/decelerate).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Broom|Movement")
+	void SetBtFlightThrust(const FVector& WorldThrust) { BtFlightThrust = WorldThrust; }
+
+	UFUNCTION(BlueprintPure, Category = "Broom|Movement")
+	FVector GetBtFlightThrust() const { return BtFlightThrust; }
 
 	/**
 	 * Sets the yaw the broom will smoothly rotate toward during flight.
@@ -153,10 +176,19 @@ private:
 
 	float LastFlightInputLogTime = -1000.f;
 	float LastFlightBlockedLogTime = -1000.f;
+	float LastHoverLogTime = -1000.f;
+	// Server time of the most recent AddFlightInput call, so UpdateIdleHover can
+	// keep yielding to flight between BT input pulses (the BT fires ~10 Hz).
+	float LastFlightInputAppliedTime = -1000.f;
 
 	// Target yaw the broom interpolates toward while the player is mounted and flying.
 	float FlightTargetYaw = 0.f;
 	bool bHasFlightTargetYaw = false;
+
+	// Persistent world-space thrust (direction * scale) commanded by the BT follow
+	// behavior. Re-injected into the movement component every tick so the broom
+	// keeps flying between BT pulses. Zero = stop/coast.
+	FVector BtFlightThrust = FVector::ZeroVector;
 
 	UPROPERTY(Transient)
 	TObjectPtr<ACharacter> LastDismountedCharacter;
