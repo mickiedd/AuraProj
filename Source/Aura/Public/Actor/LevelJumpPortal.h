@@ -9,7 +9,6 @@
 class USphereComponent;
 class UStaticMeshComponent;
 class UWorld;
-class UGameServerClient;
 class APlayerController;
 
 UCLASS()
@@ -34,9 +33,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal")
 	FString DestinationServerId;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal|GSM", meta = (ClampMin = "5.0", ClampMax = "120.0"))
-	float DestinationServerQueryTimeoutSeconds = 35.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "JumpPortal")
 	bool bOneShot = false;
@@ -68,13 +64,5 @@ protected:
 	TObjectPtr<USphereComponent> TriggerSphere;
 
 private:
-	void QueryDestinationServerViaGSM(APlayerController* PlayerController);
-	bool LoadGameServerManagerConfig(FString& OutAddress, int32& OutPort) const;
-
-	UPROPERTY()
-	TObjectPtr<UGameServerClient> DestinationGameServerClient;
-
-	bool bDestinationServerQueryInFlight = false;
-
 	bool bTriggered = false;
 };
