@@ -12,8 +12,6 @@ UAuraBroomAgentComponent::UAuraBroomAgentComponent()
 	// Auto-load the broom follow tree shipped in Content/BehaviorTrees/.
 	AutoLoadXMLFilePath = TEXT("/Game/BehaviorTrees/BT_BroomFollowPlayer.xml");
 	bAutoTick = true;
-	FollowSpeedScale = 1.0f;
-	bStopFollowWhenMounted = true;
 }
 
 void UAuraBroomAgentComponent::BeginPlay()
@@ -102,63 +100,29 @@ EBehaviacStatus UAuraBroomAgentComponent::Method_FollowPlayer()
 		return EBehaviacStatus::Failure;
 	}
 
-	// If the broom currently has a rider, stop following — the player is
-	// controlling it manually and the BT should not interfere. Drop any persistent
-	// thrust so the rider's own input is the only thing moving the broom.
-	if (bStopFollowWhenMounted && Broom->GetMountedCharacter())
-	{
-		Broom->SetBtFlightThrust(FVector::ZeroVector);
-		return EBehaviacStatus::Success;
-	}
-
 	// The tree only runs on the server (BeginPlay skips auto-load on clients),
-	// but guard against any edge case where a client might still tick.
+	// but guard against any edge case where a client might still tick. The vehicle's
+	// ComputeBtFollowThrust is side-effect-free, so only the server should apply it.
 	if (!Broom->HasAuthority())
 	{
 		return EBehaviacStatus::Success;
 	}
 
+	// Read the player location the FindPlayer method stored in the blackboard, then
+	// let the vehicle own the follow decision (mount hand-off, post-dismount
+	// back-off, approach, coast). The agent is just BT glue here — the logic and its
+	// tunables live on the vehicle next to the movement/mount state they read.
 	const FVector PlayerLocation = GetVectorProperty(TEXT("PlayerLocation"));
-	if (PlayerLocation.IsNearlyZero(1.f))
+
+	float TargetYaw = 0.f;
+	bool bHasTargetYaw = false;
+	const FVector Thrust = Broom->ComputeBtFollowThrust(PlayerLocation, TargetYaw, bHasTargetYaw);
+
+	Broom->SetBtFlightThrust(Thrust);
+	if (bHasTargetYaw)
 	{
-		// No player to follow — stop thrusting and coast to a halt.
-		Broom->SetBtFlightThrust(FVector::ZeroVector);
-		return EBehaviacStatus::Success;
+		Broom->SetFlightTargetYaw(TargetYaw);
 	}
-
-	const FVector BroomLocation = Broom->GetActorLocation();
-	const FVector Direction = PlayerLocation - BroomLocation;
-
-	// If we're close enough, stop thrusting so the broom coasts to a halt instead
-	// of jittering on top of the player. The movement component's Deceleration
-	// handles the actual stop. FollowStopRadius must exceed the braking distance
-	// from MaxSpeed (v^2 / (2*Deceleration)) or the broom will overshoot.
-	const float Distance = Direction.Size();
-	if (Distance <= FollowStopRadius)
-	{
-		Broom->SetBtFlightThrust(FVector::ZeroVector);
-		return EBehaviacStatus::Success;
-	}
-
-	// Set a PERSISTENT thrust toward the player. Unlike one-shot AddFlightInput
-	// (consumed each tick), the movement component re-applies this every tick so
-	// the broom keeps accelerating between the BT's ~5-10 Hz pulses — otherwise the
-	// high Deceleration kills velocity between pulses and the broom only crawls.
-	const FVector NormalizedDir = Direction / Distance;
-	Broom->SetBtFlightThrust(NormalizedDir * FollowSpeedScale);
-
-	// Update the broom's facing to point toward the player.
-	Broom->SetFlightTargetYaw(FRotationMatrix::MakeFromX(NormalizedDir).Rotator().Yaw);
-
-	// Log-level (not BEHAVIAC_VLOG/Verbose) so this shows in cooked server logs.
-	UE_LOG(LogAura, Log, TEXT("[BroomBehaviac] FollowPlayer: dist=%.0f dir=%s broomLoc=%s broomVel=%s"),
-		Distance,
-		*NormalizedDir.ToCompactString(),
-		*BroomLocation.ToCompactString(),
-		*Broom->GetVelocity().ToCompactString());
-
-	BEHAVIAC_VLOG(TEXT("[BroomBehaviac] FollowPlayer: dist=%.0f dir=%s"),
-		Distance, *NormalizedDir.ToCompactString());
 
 	return EBehaviacStatus::Success;
 }
