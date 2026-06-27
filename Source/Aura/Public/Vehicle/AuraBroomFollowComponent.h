@@ -76,6 +76,18 @@ public:
 	float FollowStopRadius = 300.f;
 
 	/**
+	 * Distance (cm) over which the approach thrust eases from 0 up to
+	 * FollowSpeedScale as the broom closes on the player, starting at
+	 * FollowStopRadius. Without this the thrust is full-on until FollowStopRadius
+	 * then cuts to zero and hard-brakes via Deceleration — a bang-bang profile that
+	 * overshoots and oscillates. With easing the target speed ramps down smoothly
+	 * as the broom approaches, so it settles to a halt gently. 0 disables easing
+	 * (restores the original full-scale-then-coast behavior).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Broom|Follow", meta = (ClampMin = "0.0"))
+	float FollowEaseRange = 400.f;
+
+	/**
 	 * After a rider dismounts, the broom thrusts AWAY from the player for this many
 	 * seconds so the player doesn't immediately walk back into the broom mesh and
 	 * remount by accident. Should be >= the mount component's RemountGracePeriodSeconds.
@@ -109,6 +121,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Broom|Follow", meta = (ClampMin = "0.0"))
 	float FollowHoverOffset = 50.f;
 
+	/**
+	 * Minimum altitude (cm) above the player the broom is allowed to descend to.
+	 * The broom never thrusts downward below (player.Z + this) and the movement
+	 * component clamps its position to this floor, so after a rider jumps off the
+	 * broom may back away horizontally or ascend but it can NEVER dive under the
+	 * player. 0 = never below the player's location. Only enforced during
+	 * autonomous follow (not while a rider is mounted — the rider may dive freely).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Broom|Follow", meta = (ClampMin = "0.0"))
+	float NeverDescendBelowPlayerOffset = 0.f;
+
 private:
 	AAuraBroomVehicle* GetBroomOwner() const;
 
@@ -117,4 +140,10 @@ private:
 	// keeps flying between BT pulses. Zero = stop/coast. Not replicated (server-side
 	// driver; replicated movement carries the result to clients).
 	FVector BtFlightThrust = FVector::ZeroVector;
+
+	// Throttle for the branch-specific follow log (back-off). ComputeFollowThrust is
+	// now called every movement tick (60+ Hz), so without throttling this would spam.
+	// Mutable because ComputeFollowThrust is const.
+	mutable float LastFollowLogTime = -1000.f;
+	static constexpr float FollowLogInterval = 0.2f;
 };

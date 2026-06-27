@@ -18,6 +18,7 @@
 #include "Player/AuraPlayerController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "AI/AuraBroomAgentComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // ─── AAuraBroomVehicle ────────────────────────────────────────────────────────
 
@@ -172,6 +173,92 @@ void AAuraBroomVehicle::SetFlightTargetYaw(float WorldYaw)
 	{
 		MotionComponent->SetTargetYaw(WorldYaw);
 	}
+}
+
+void AAuraBroomVehicle::RefreshAutonomousFollowThrust()
+{
+	if (!FollowComponent)
+	{
+		return;
+	}
+
+	// Resolve the player's LIVE location every call (the BT only refreshes its
+	// blackboard ~10 Hz; reading the player directly here gives 60+ Hz steering).
+	// Same lookup Method_FindPlayer uses; GetPlayerCharacter is cheap (controller 0
+	// pawn). No player → zero thrust → the follow policy coasts to a halt. Cache the
+	// result so the movement component's Z-floor clamp (GetMinFlightZ) can use it
+	// this tick without a second lookup.
+	FVector PlayerLocation = FVector::ZeroVector;
+	bool bHasPlayer = false;
+	if (UWorld* World = GetWorld())
+	{
+		if (ACharacter* PlayerChar = UGameplayStatics::GetPlayerCharacter(World, 0))
+		{
+			PlayerLocation = PlayerChar->GetActorLocation();
+			bHasPlayer = true;
+		}
+	}
+	LastKnownPlayerLocation = PlayerLocation;
+	bHasValidPlayerTarget = bHasPlayer;
+
+	float TargetYaw = 0.f;
+	bool bHasTargetYaw = false;
+	const FVector Thrust = FollowComponent->ComputeFollowThrust(PlayerLocation, TargetYaw, bHasTargetYaw);
+
+	FollowComponent->SetFlightThrust(Thrust);
+	if (bHasTargetYaw)
+	{
+		SetFlightTargetYaw(TargetYaw);
+	}
+
+	// Throttled smoothness diagnostic. Read this line to verify the follow is smooth
+	// from the cooked server log: `dist` should close monotonically without bouncing,
+	// `ease` should ramp 0->1 (no full-on/full-off slamming), `vel` should ramp
+	// without spikes, and `loc` should track `player` with a small stable gap.
+	// (RefreshAutonomousFollowThrust runs every movement tick, so this MUST be
+	// throttled — FlightInputLogInterval, default 0.25s.)
+	const float CurrentTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	if (CurrentTime - LastFollowDiagLogTime >= FlightInputLogInterval)
+	{
+		const FVector BroomLoc = GetActorLocation();
+		const float Distance = static_cast<float>(FVector::Dist(BroomLoc, PlayerLocation));
+		const float ThrustMag = Thrust.Size();
+		const float VelMag = GetVelocity().Size();
+		const float FollowSpeedScale = FollowComponent->FollowSpeedScale;
+		const float Ease = (FollowSpeedScale > KINDA_SMALL_NUMBER)
+			? FMath::Clamp(ThrustMag / FollowSpeedScale, 0.f, 1.f)
+			: 0.f;
+		// Broom's altitude relative to the player (broom.Z - player.Z). Must stay
+		// >= NeverDescendBelowPlayerOffset (default 0) — a negative value here means
+		// the broom is below the player and the Z-floor clamp should be holding it up.
+		const float Dz = BroomLoc.Z - PlayerLocation.Z;
+
+		UE_LOG(LogAura, Log, TEXT("[BroomFollow] diag: dist=%.0f ease=%.3f thrustMag=%.1f vel=%.1f dz=%.0f yaw=%s loc=%s player=%s"),
+			Distance,
+			Ease,
+			ThrustMag,
+			VelMag,
+			Dz,
+			bHasTargetYaw ? *FString::SanitizeFloat(TargetYaw) : TEXT("-"),
+			*BroomLoc.ToCompactString(),
+			*PlayerLocation.ToCompactString());
+
+		LastFollowDiagLogTime = CurrentTime;
+	}
+}
+
+bool AAuraBroomVehicle::GetMinFlightZ(float& OutFloorZ) const
+{
+	// No floor while a rider is mounted (the rider may dive freely) or when no
+	// player location is known. Otherwise the broom never descends below
+	// player.Z + NeverDescendBelowPlayerOffset.
+	if (IsValid(GetMountedCharacter()) || !bHasValidPlayerTarget || !FollowComponent)
+	{
+		return false;
+	}
+
+	OutFloorZ = LastKnownPlayerLocation.Z + FollowComponent->NeverDescendBelowPlayerOffset;
+	return true;
 }
 
 bool AAuraBroomVehicle::IsFlightInputActive() const

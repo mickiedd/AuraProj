@@ -66,20 +66,47 @@ FVector UAuraBroomFollowComponent::ComputeFollowThrust(const FVector& PlayerLoca
 	{
 		if (Distance < DismountBackOffRadius)
 		{
-			// Direction from player to broom = away from the player. If the broom is
-			// exactly on top of the player (Distance ~ 0), escape along its forward
-			// vector so we still pick a definite heading.
-			const FVector AwayDir = (Distance > 1.f)
-				? (-ToTarget / Distance)
-				: Broom->GetActorForwardVector().GetSafeNormal();
+			// Back away from the player HORIZONTALLY. The old 3D `-ToTarget/Distance`
+			// had a downward Z component when the broom was below the hover target,
+			// which dove the broom under a rider who had just jumped off. Flattening
+			// the away direction to the XY plane keeps the broom level as it retreats;
+			// vertical altitude is reclaimed by the post-back-off approach, which
+			// seeks the hover height above the player. If the broom is somehow below
+			// the player floor, add an upward component so it rises back out instead
+			// of skimming under them while backing away.
+			FVector AwayDir = (Distance > 1.f)
+				? (-ToTarget)
+				: Broom->GetActorForwardVector();
+			AwayDir.Z = 0.f;
+			if (AwayDir.IsNearlyZero(1e-4f))
+			{
+				AwayDir = Broom->GetActorForwardVector();
+				AwayDir.Z = 0.f;
+			}
+			AwayDir = AwayDir.GetSafeNormal();
+
+			const float FloorZ = PlayerLocation.Z + NeverDescendBelowPlayerOffset;
+			FVector ThrustVec = AwayDir;
+			if (BroomLocation.Z < FloorZ)
+			{
+				ThrustVec.Z = FMath::Clamp((FloorZ - BroomLocation.Z) / FMath::Max(FollowHoverOffset, 1.f), 0.f, 1.f);
+			}
+			ThrustVec = ThrustVec.GetSafeNormal();
 
 			OutTargetYaw = FRotationMatrix::MakeFromX(AwayDir).Rotator().Yaw;
 			bOutHasTargetYaw = true;
 
-			UE_LOG(LogAura, Log, TEXT("[BroomFollow] BackOff after dismount: t=%.2fs dist=%.0f awayDir=%s broomLoc=%s"),
-				TimeSinceDismount, Distance, *AwayDir.ToCompactString(), *BroomLocation.ToCompactString());
+			// Throttled: ComputeFollowThrust is called every movement tick now, so an
+			// unthrottled log here would spam during the ~1.5s back-off window.
+			const float CurrentTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+			if (CurrentTime - LastFollowLogTime >= FollowLogInterval)
+			{
+				UE_LOG(LogAura, Log, TEXT("[BroomFollow] BackOff after dismount: t=%.2fs dist=%.0f awayDir=%s broomZ=%.0f floorZ=%.0f broomLoc=%s"),
+					TimeSinceDismount, Distance, *AwayDir.ToCompactString(), BroomLocation.Z, FloorZ, *BroomLocation.ToCompactString());
+				LastFollowLogTime = CurrentTime;
+			}
 
-			return AwayDir * FollowSpeedScale;
+			return ThrustVec * FollowSpeedScale;
 		}
 
 		// Cleared the player — coast at this distance until the back-off window
@@ -96,19 +123,40 @@ FVector UAuraBroomFollowComponent::ComputeFollowThrust(const FVector& PlayerLoca
 	}
 
 	// Approach: persistent thrust toward the (height-projected) target. The movement
-	// component re-applies this every tick so the broom keeps accelerating between
-	// the BT's ~5-10 Hz pulses — otherwise the high Deceleration kills velocity
-	// between pulses and the broom only crawls. The thrust's Z component seeks the
-	// fixed hover height; the XY components close the horizontal gap to the player.
+	// component re-applies this every tick (refreshed from the player's live
+	// location) so the broom keeps accelerating smoothly toward the player. The
+	// thrust's Z component seeks the fixed hover height; the XY components close the
+	// horizontal gap to the player.
 	const FVector NormalizedDir = ToTarget / Distance;
 	OutTargetYaw = FRotationMatrix::MakeFromX(NormalizedDir).Rotator().Yaw;
 	bOutHasTargetYaw = true;
 
-	UE_LOG(LogAura, Log, TEXT("[BroomFollow] Approach: dist=%.0f dir=%s broomLoc=%s broomVel=%s"),
-		Distance,
-		*NormalizedDir.ToCompactString(),
-		*BroomLocation.ToCompactString(),
-		*Broom->GetVelocity().ToCompactString());
+	// Ease the thrust off as the broom approaches the stop radius so it decelerates
+	// smoothly instead of slamming full-thrust-then-hard-brake (bang-bang). Between
+	// FollowStopRadius and FollowStopRadius+FollowEaseRange the scale ramps 0→1;
+	// beyond that, full scale. This lets the movement component's Acceleration
+	// follow a decreasing target speed and settle gently at the follow distance.
+	const float Ease = (FollowEaseRange > KINDA_SMALL_NUMBER)
+		? FMath::Clamp((Distance - FollowStopRadius) / FollowEaseRange, 0.f, 1.f)
+		: 1.f;
+	const float ThrustScale = FollowSpeedScale * Ease;
 
-	return NormalizedDir * FollowSpeedScale;
+	// (No per-tick log here — ComputeFollowThrust is called every movement tick now,
+	// so logging here would spam. The smoothness diagnostic lives in the broom's
+	// RefreshAutonomousFollowThrust, which has the live player location + thrust.)
+
+	FVector ThrustVec = NormalizedDir * ThrustScale;
+
+	// Z floor: the broom must never thrust downward below the player. The hover
+	// target is already above the player so this is normally a no-op, but it
+	// guarantees the broom can't be driven under the player (e.g. when
+	// bUseFixedFollowHeight is off, or via any residual downward seek). The movement
+	// component also clamps the position to this floor as a hard guarantee.
+	const float FloorZ = PlayerLocation.Z + NeverDescendBelowPlayerOffset;
+	if (BroomLocation.Z <= FloorZ && ThrustVec.Z < 0.f)
+	{
+		ThrustVec.Z = 0.f;
+	}
+
+	return ThrustVec;
 }

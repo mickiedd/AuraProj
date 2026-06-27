@@ -101,28 +101,19 @@ EBehaviacStatus UAuraBroomAgentComponent::Method_FollowPlayer()
 	}
 
 	// The tree only runs on the server (BeginPlay skips auto-load on clients),
-	// but guard against any edge case where a client might still tick. The vehicle's
-	// ComputeBtFollowThrust is side-effect-free, so only the server should apply it.
+	// but guard against any edge case where a client might still tick.
 	if (!Broom->HasAuthority())
 	{
 		return EBehaviacStatus::Success;
 	}
 
-	// Read the player location the FindPlayer method stored in the blackboard, then
-	// let the vehicle own the follow decision (mount hand-off, post-dismount
-	// back-off, approach, coast). The agent is just BT glue here — the logic and its
-	// tunables live on the vehicle next to the movement/mount state they read.
-	const FVector PlayerLocation = GetVectorProperty(TEXT("PlayerLocation"));
-
-	float TargetYaw = 0.f;
-	bool bHasTargetYaw = false;
-	const FVector Thrust = Broom->ComputeBtFollowThrust(PlayerLocation, TargetYaw, bHasTargetYaw);
-
-	Broom->SetBtFlightThrust(Thrust);
-	if (bHasTargetYaw)
-	{
-		Broom->SetFlightTargetYaw(TargetYaw);
-	}
-
+	// Per-tick steering is now owned by the game-thread movement path: the movement
+	// component calls Broom->RefreshAutonomousFollowThrust() every server tick,
+	// which feeds the follow component's ComputeFollowThrust the player's LIVE
+	// location. The Behaviac subsystem only ticks this tree at ~10 Hz, so writing
+	// the thrust here would reintroduce a ~100ms-stale steering vector once per BT
+	// tick and make the follow laggy/weavy. This action is intentionally a no-op
+	// success — the BT's job is player discovery + in-scene gating (FindPlayer sets
+	// bPlayerInScene, which the precondition above checks), not per-tick steering.
 	return EBehaviacStatus::Success;
 }

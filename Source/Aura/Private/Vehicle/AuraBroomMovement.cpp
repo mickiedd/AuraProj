@@ -11,15 +11,19 @@
 
 void UAuraBroomMovement::ApplyControlInputToVelocity(float DeltaTime)
 {
-	// Re-inject the BT follow thrust as standard movement input every tick so
-	// UFloatingPawnMovement accelerates toward it continuously. The BT only fires
-	// AddFlightInput ~5-10 Hz and UFloatingPawnMovement consumes input each tick,
-	// so without this re-injection the high Deceleration kills velocity between
-	// pulses and the broom crawls (~10 cm/s) instead of flying toward the player.
-	// When mounted, BtFlightThrust is zero (cleared on mount), so the rider's own
+	// Recompute the autonomous-follow thrust from the player's LIVE location every
+	// tick, then feed it as standard movement input so UFloatingPawnMovement
+	// accelerates toward it continuously. The Behaviac subsystem only ticks the
+	// broom BT at ~10 Hz; if we re-injected the BT's frozen thrust vector the
+	// steering direction would lag the player by up to ~100ms and the broom would
+	// weave/trail. RefreshAutonomousFollowThrust reads the player's current
+	// position directly (60+ Hz) for 1:1 steering and keeps the yaw target live.
+	// When mounted the follow policy returns zero thrust, so the rider's own
 	// AddFlightInput drives movement unchanged.
 	if (AAuraBroomVehicle* Broom = Cast<AAuraBroomVehicle>(PawnOwner))
 	{
+		Broom->RefreshAutonomousFollowThrust();
+
 		const FVector BtThrust = Broom->GetBtFlightThrust();
 		if (!BtThrust.IsNearlyZero(1e-4f))
 		{
@@ -83,6 +87,34 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 		{
 			const FVector NewLocation = UpdatedComponent->GetComponentLocation();
 			Velocity = (NewLocation - OldLocation) / DeltaTime;
+		}
+
+		// Hard Z floor: the broom must never end up below the player. After a rider
+		// jumps off the broom may back away or ascend but it can never dive under the
+		// player. The follow policy already avoids producing downward-below-player
+		// thrust; this clamp is the hard guarantee that catches any residual downward
+		// momentum. Skipped while a rider is mounted (GetMinFlightZ returns false →
+		// the rider may dive freely). Runs server-side only (this tick is authority-gated).
+		if (AAuraBroomVehicle* Broom = Cast<AAuraBroomVehicle>(PawnOwner))
+		{
+			float FloorZ = 0.f;
+			if (Broom->GetMinFlightZ(FloorZ))
+			{
+				const FVector PostLoc = UpdatedComponent->GetComponentLocation();
+				if (PostLoc.Z < FloorZ)
+				{
+					UpdatedComponent->SetWorldLocation(FVector(PostLoc.X, PostLoc.Y, FloorZ), false, nullptr, ETeleportType::None);
+					if (Velocity.Z < 0.f)
+					{
+						Velocity.Z = 0.f;
+					}
+					// Event log (rare — only while the broom is being held at the floor),
+					// so the cooked server log proves the hard floor is enforcing
+					// "never below the player".
+					UE_LOG(LogAura, Log, TEXT("[BroomMovement] Z-floor clamped: broomZ=%.1f floorZ=%.1f (raised + zeroed downward vel)"),
+						PostLoc.Z, FloorZ);
+				}
+			}
 		}
 
 		UE_LOG(LogAura, Verbose, TEXT("[BroomMovement] Moved. OldLoc=%s NewLoc=%s BlockingHit=%s"),

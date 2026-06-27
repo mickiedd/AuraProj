@@ -45,6 +45,28 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Broom|Movement")
 	FVector GetBtFlightThrust() const { return FollowComponent ? FollowComponent->GetFlightThrust() : FVector::ZeroVector; }
 
+	/**
+	 * Recomputes the autonomous-follow thrust + yaw target from the player's LIVE
+	 * location, intended to be called every server movement tick (from
+	 * UAuraBroomMovement::ApplyControlInputToVelocity). The Behaviac subsystem only
+	 * ticks the broom BT at ~10 Hz, so leaving the thrust vector to the BT left the
+	 * steering direction up to ~100ms stale — the broom trailed/weaved behind a
+	 * moving player. This refresh feeds the follow component's side-effect-free
+	 * ComputeFollowThrust the player's current position every tick (60+ Hz) for
+	 * 1:1 steering, and keeps the yaw target live too. When mounted the follow
+	 * policy returns zero thrust, so the rider's own AddFlightInput drives unchanged.
+	 */
+	void RefreshAutonomousFollowThrust();
+
+	/**
+	 * Returns the minimum Z the broom is allowed to fly at during autonomous
+	 * follow (player.Z + NeverDescendBelowPlayerOffset), used by the movement
+	 * component as a hard position floor so the broom can never end up below the
+	 * player. Returns false (no floor) when a rider is mounted — the rider may dive
+	 * freely — or when no player location is known.
+	 */
+	bool GetMinFlightZ(float& OutFloorZ) const;
+
 	/** Accessor for the server-authoritative flight movement component. */
 	UFUNCTION(BlueprintPure, Category = "Broom|Movement")
 	UAuraBroomMovement* GetFlightMovement() const { return FlightMovement; }
@@ -138,6 +160,15 @@ private:
 
 	float LastFlightInputLogTime = -1000.f;
 	float LastFlightBlockedLogTime = -1000.f;
+	// Throttle for the [BroomFollow] diag smoothness log emitted from
+	// RefreshAutonomousFollowThrust (called every movement tick). Reuses
+	// FlightInputLogInterval as the period so movement debug logs share one cadence.
+	float LastFollowDiagLogTime = -1000.f;
+	// Last player location resolved by RefreshAutonomousFollowThrust (server tick),
+	// cached so the movement component's Z-floor clamp can use it without a second
+	// GetPlayerCharacter lookup. Valid only while bHasValidPlayerTarget is true.
+	FVector LastKnownPlayerLocation = FVector::ZeroVector;
+	bool bHasValidPlayerTarget = false;
 	// Server time of the most recent AddFlightInput call, so the motion component's
 	// idle hover can keep yielding to flight between BT input pulses (BT fires ~10 Hz).
 	float LastFlightInputAppliedTime = -1000.f;
