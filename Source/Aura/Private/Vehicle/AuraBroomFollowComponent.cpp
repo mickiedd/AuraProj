@@ -142,8 +142,8 @@ FVector UAuraBroomFollowComponent::ComputeFollowThrust(const FVector& PlayerLoca
 	const float ThrustScale = FollowSpeedScale * Ease;
 
 	// (No per-tick log here — ComputeFollowThrust is called every movement tick now,
-	// so logging here would spam. The smoothness diagnostic lives in the broom's
-	// RefreshAutonomousFollowThrust, which has the live player location + thrust.)
+	// so logging here would spam. The smoothness diagnostic lives in the flight driver
+	// (UAuraBroomFlightDriverComponent), which has the live player location + thrust.)
 
 	FVector ThrustVec = NormalizedDir * ThrustScale;
 

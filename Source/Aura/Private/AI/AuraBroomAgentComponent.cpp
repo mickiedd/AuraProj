@@ -107,13 +107,13 @@ EBehaviacStatus UAuraBroomAgentComponent::Method_FollowPlayer()
 		return EBehaviacStatus::Success;
 	}
 
-	// Per-tick steering is now owned by the game-thread movement path: the movement
-	// component calls Broom->RefreshAutonomousFollowThrust() every server tick,
-	// which feeds the follow component's ComputeFollowThrust the player's LIVE
-	// location. The Behaviac subsystem only ticks this tree at ~10 Hz, so writing
-	// the thrust here would reintroduce a ~100ms-stale steering vector once per BT
-	// tick and make the follow laggy/weavy. This action is intentionally a no-op
-	// success — the BT's job is player discovery + in-scene gating (FindPlayer sets
+	// Per-tick steering is owned by the flight driver (UAuraBroomFlightDriverComponent),
+	// which ticks every server tick and feeds the follow component's ComputeFollowThrust
+	// the player's LIVE location (60+ Hz). The Behaviac subsystem only ticks this tree
+	// at ~10 Hz, so writing the thrust here would reintroduce a ~100ms-stale steering
+	// vector once per BT tick and make the follow laggy/weavy. This action is
+	// intentionally a no-op success — the BT's job is player discovery + in-scene
+	// gating (FindPlayer sets
 	// bPlayerInScene, which the precondition above checks), not per-tick steering.
 	return EBehaviacStatus::Success;
 }

@@ -8,31 +8,12 @@
 // UFloatingPawnMovement::TickComponent gates all movement on
 // Controller->IsLocalController(). The broom has no possessing controller, so
 // we override TickComponent to apply server-authoritative movement directly.
-
-void UAuraBroomMovement::ApplyControlInputToVelocity(float DeltaTime)
-{
-	// Recompute the autonomous-follow thrust from the player's LIVE location every
-	// tick, then feed it as standard movement input so UFloatingPawnMovement
-	// accelerates toward it continuously. The Behaviac subsystem only ticks the
-	// broom BT at ~10 Hz; if we re-injected the BT's frozen thrust vector the
-	// steering direction would lag the player by up to ~100ms and the broom would
-	// weave/trail. RefreshAutonomousFollowThrust reads the player's current
-	// position directly (60+ Hz) for 1:1 steering and keeps the yaw target live.
-	// When mounted the follow policy returns zero thrust, so the rider's own
-	// AddFlightInput drives movement unchanged.
-	if (AAuraBroomVehicle* Broom = Cast<AAuraBroomVehicle>(PawnOwner))
-	{
-		Broom->RefreshAutonomousFollowThrust();
-
-		const FVector BtThrust = Broom->GetBtFlightThrust();
-		if (!BtThrust.IsNearlyZero(1e-4f))
-		{
-			AddInputVector(BtThrust, false);
-		}
-	}
-
-	Super::ApplyControlInputToVelocity(DeltaTime);
-}
+//
+// This component only integrates movement: the UAuraBroomFlightDriverComponent
+// (ticking before this one) and the rider's AddFlightInput feed the pending input
+// each tick; UFloatingPawnMovement's default ApplyControlInputToVelocity consumes
+// it. We also enforce the altitude floor (never below the player) — a movement
+// constraint whose value the broom supplies via GetMinFlightZ.
 
 void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -58,8 +39,6 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	{
 		return;
 	}
-
-	const FVector PendingInput = GetPendingInputVector();
 
 	ApplyControlInputToVelocity(DeltaTime);
 	LimitWorldBounds();
@@ -117,6 +96,30 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 			}
 		}
 
+		// Re-sync the actor root to the mesh's net movement.
+		//
+		// UpdatedComponent is the BroomMesh — a UPrimitiveComponent child of Root — so the
+		// SafeMoveUpdatedComponent / SlideAlongSurface calls above actually sweep collision
+		// (sweeping a plain USceneComponent only teleports, which is why the broom used to
+		// pass through buildings). But sweeping a child moves only the mesh; the actor root
+		// (Root, which carries the replicated transform and GetActorLocation()) would be
+		// left behind, desyncing replication and the follow logic. So: undo the mesh's world
+		// move (teleport it back to its pre-sweep pose) and translate the actor root by the
+		// same net delta. The mesh follows via attachment and ends at the same final pose,
+		// with the root now carrying the movement. We do NOT reparent the mesh to be the
+		// root to achieve this: BP_Broom has its own cooked component tree and reparenting
+		// against it cycles the attachment hierarchy (stack overflow during broom spawn).
+		const FVector MeshFinal = UpdatedComponent->GetComponentLocation();
+		const FVector NetDelta = MeshFinal - OldLocation;
+		if (!NetDelta.IsNearlyZero(1e-6f))
+		{
+			UpdatedComponent->SetWorldLocation(OldLocation, false, nullptr, ETeleportType::TeleportPhysics);
+			if (USceneComponent* ActorRoot = PawnOwner->GetRootComponent())
+			{
+				ActorRoot->AddWorldOffset(NetDelta, false, nullptr, ETeleportType::None);
+			}
+		}
+
 		UE_LOG(LogAura, Verbose, TEXT("[BroomMovement] Moved. OldLoc=%s NewLoc=%s BlockingHit=%s"),
 			*OldLocation.ToCompactString(),
 			*UpdatedComponent->GetComponentLocation().ToCompactString(),
@@ -124,18 +127,4 @@ void UAuraBroomMovement::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 
 	UpdateComponentVelocity();
-
-	// Log-level diagnostic (throttled) so the server cooked log shows the broom
-	// actually integrating flight input into velocity and position each tick.
-	const float CurrentTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
-	if (CurrentTime - LastMoveLogTime >= 0.25f)
-	{
-		const FVector Loc = UpdatedComponent ? UpdatedComponent->GetComponentLocation() : FVector::ZeroVector;
-		UE_LOG(LogAura, Log, TEXT("[BroomMovement] server tick. Broom=%s PendingInput=%s Velocity=%s Loc=%s"),
-			*GetNameSafe(GetOwner()),
-			*PendingInput.ToCompactString(),
-			*Velocity.ToCompactString(),
-			*Loc.ToCompactString());
-		LastMoveLogTime = CurrentTime;
-	}
 }

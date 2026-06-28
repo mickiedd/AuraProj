@@ -17,11 +17,12 @@ class ACharacter;
  * hover height), and all follow tunables. Extracted from AAuraBroomVehicle so the
  * rideable-pawn concern stays separate from the AI-follow-policy concern.
  *
- * Not replicated: BtFlightThrust is a server-side driver; the movement component
- * re-injects it every server tick and the broom's replicated movement carries the
- * result to clients. The broom exposes thin forwarders (ComputeBtFollowThrust /
- * SetBtFlightThrust / GetBtFlightThrust) so the BT agent and the movement component
- * are unchanged.
+ * Not replicated: BtFlightThrust is a server-side driver; the flight driver
+ * component (UAuraBroomFlightDriverComponent) runs this policy every server tick
+ * with the player's live location and feeds the thrust into the movement
+ * component, and the broom's replicated movement carries the result to clients.
+ * The broom exposes thin forwarders (SetBtFlightThrust / GetBtFlightThrust) for
+ * the mount component's on-mount clear and BP access.
  *
  * Reads mount state via the broom's public getters (GetMountedCharacter /
  * GetLastDismountedCharacter / GetTimeSinceLastDismount) rather than owning it, so

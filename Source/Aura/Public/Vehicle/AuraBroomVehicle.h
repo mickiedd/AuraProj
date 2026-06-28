@@ -15,6 +15,7 @@ class USceneComponent;
 class UPrimitiveComponent;
 class ACharacter;
 class UAuraBroomAgentComponent;
+class UAuraBroomFlightDriverComponent;
 struct FHitResult;
 
 UCLASS(Blueprintable)
@@ -46,30 +47,29 @@ public:
 	FVector GetBtFlightThrust() const { return FollowComponent ? FollowComponent->GetFlightThrust() : FVector::ZeroVector; }
 
 	/**
-	 * Recomputes the autonomous-follow thrust + yaw target from the player's LIVE
-	 * location, intended to be called every server movement tick (from
-	 * UAuraBroomMovement::ApplyControlInputToVelocity). The Behaviac subsystem only
-	 * ticks the broom BT at ~10 Hz, so leaving the thrust vector to the BT left the
-	 * steering direction up to ~100ms stale — the broom trailed/weaved behind a
-	 * moving player. This refresh feeds the follow component's side-effect-free
-	 * ComputeFollowThrust the player's current position every tick (60+ Hz) for
-	 * 1:1 steering, and keeps the yaw target live too. When mounted the follow
-	 * policy returns zero thrust, so the rider's own AddFlightInput drives unchanged.
-	 */
-	void RefreshAutonomousFollowThrust();
-
-	/**
 	 * Returns the minimum Z the broom is allowed to fly at during autonomous
 	 * follow (player.Z + NeverDescendBelowPlayerOffset), used by the movement
 	 * component as a hard position floor so the broom can never end up below the
-	 * player. Returns false (no floor) when a rider is mounted — the rider may dive
-	 * freely — or when no player location is known.
+	 * player. Forwards to the flight driver, which owns the cached player location.
+	 * Returns false (no floor) when a rider is mounted — the rider may dive freely —
+	 * or when no player location is known.
 	 */
 	bool GetMinFlightZ(float& OutFloorZ) const;
 
 	/** Accessor for the server-authoritative flight movement component. */
 	UFUNCTION(BlueprintPure, Category = "Broom|Movement")
 	UAuraBroomMovement* GetFlightMovement() const { return FlightMovement; }
+
+	/** Accessor for the autonomous-flight driver (per-tick thrust + yaw + diagnostics). */
+	UFUNCTION(BlueprintPure, Category = "Broom|Components")
+	UAuraBroomFlightDriverComponent* GetFlightDriver() const { return FlightDriverComponent; }
+
+	/** Accessor for the follow policy component (follow decision + thrust state). */
+	UFUNCTION(BlueprintPure, Category = "Broom|Components")
+	UAuraBroomFollowComponent* GetFollowComponent() const { return FollowComponent; }
+
+	/** Throttle period (s) shared by the broom's movement/flight debug logs. */
+	float GetMovementDebugLogInterval() const { return FlightInputLogInterval; }
 
 	/**
 	 * True while the broom is actively flying — non-zero velocity, pending movement
@@ -79,25 +79,10 @@ public:
 	bool IsFlightInputActive() const;
 
 	/**
-	 * The BT follow director. Computes the world-space follow thrust to apply this
-	 * tick (via SetBtFlightThrust) and, when the broom should also rotate, the yaw
-	 * to face (via SetFlightTargetYaw). Forwards to the follow component, which owns
-	 * the follow policy (mount hand-off, post-dismount back-off, approach, coast,
-	 * fixed hover height). Returns FVector::ZeroVector to coast; bOutHasTargetYaw=
-	 * false leaves yaw as-is.
-	 */
-	FVector ComputeBtFollowThrust(const FVector& PlayerLocation, float& OutTargetYaw, bool& bOutHasTargetYaw) const
-	{
-		if (FollowComponent) return FollowComponent->ComputeFollowThrust(PlayerLocation, OutTargetYaw, bOutHasTargetYaw);
-		OutTargetYaw = 0.f;
-		bOutHasTargetYaw = false;
-		return FVector::ZeroVector;
-	}
-
-	/**
 	 * Sets the yaw the broom will smoothly rotate toward during flight.
-	 * Called by movement input (A/D/S) and by the camera-rotation path to keep both
-	 * systems in sync and prevent them from fighting each other.
+	 * Called by the rider's movement input (A/D/S) and by the flight driver (which
+	 * derives it from the follow direction) to keep both systems in sync and
+	 * prevent them from fighting each other.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Broom|Movement")
 	void SetFlightTargetYaw(float WorldYaw);
@@ -150,6 +135,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Broom|Components")
 	TObjectPtr<UAuraBroomFollowComponent> FollowComponent;
 
+	/** Drives the broom's autonomous flight each server tick (thrust + yaw + diagnostics). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Broom|Components")
+	TObjectPtr<UAuraBroomFlightDriverComponent> FlightDriverComponent;
+
 	/** BehaviorU (Behaviac) agent driving the broom follow behavior tree (BT_BroomFollowPlayer.xml). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Broom|AI")
 	TObjectPtr<UAuraBroomAgentComponent> BroomAgentComponent;
@@ -160,15 +149,6 @@ private:
 
 	float LastFlightInputLogTime = -1000.f;
 	float LastFlightBlockedLogTime = -1000.f;
-	// Throttle for the [BroomFollow] diag smoothness log emitted from
-	// RefreshAutonomousFollowThrust (called every movement tick). Reuses
-	// FlightInputLogInterval as the period so movement debug logs share one cadence.
-	float LastFollowDiagLogTime = -1000.f;
-	// Last player location resolved by RefreshAutonomousFollowThrust (server tick),
-	// cached so the movement component's Z-floor clamp can use it without a second
-	// GetPlayerCharacter lookup. Valid only while bHasValidPlayerTarget is true.
-	FVector LastKnownPlayerLocation = FVector::ZeroVector;
-	bool bHasValidPlayerTarget = false;
 	// Server time of the most recent AddFlightInput call, so the motion component's
 	// idle hover can keep yielding to flight between BT input pulses (BT fires ~10 Hz).
 	float LastFlightInputAppliedTime = -1000.f;
