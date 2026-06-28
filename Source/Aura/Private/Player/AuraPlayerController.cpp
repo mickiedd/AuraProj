@@ -316,6 +316,7 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	RotateCameraFromScreenEdge(DeltaTime);
 	AutoRun();
 	UpdateMagicCircleLocation();
+	ApplyBroomVerticalFlight();
 }
 
 void AAuraPlayerController::ShowMagicCircle(UMaterialInterface* DecalMaterial)
@@ -707,6 +708,11 @@ void AAuraPlayerController::SetupInputComponent()
 	InputComponent->BindKey(EKeys::SpaceBar, EInputEvent::IE_Released, this, &AAuraPlayerController::JumpReleased);
 	InputComponent->BindKey(EKeys::LeftControl, EInputEvent::IE_Pressed, this, &AAuraPlayerController::CrouchPressed);
 	InputComponent->BindKey(EKeys::LeftControl, EInputEvent::IE_Released, this, &AAuraPlayerController::CrouchReleased);
+	// Broom vertical flight: Q ascends, E descends. Held-flags sampled in PlayerTick.
+	InputComponent->BindKey(EKeys::Q, EInputEvent::IE_Pressed, this, &AAuraPlayerController::BroomAscendPressed);
+	InputComponent->BindKey(EKeys::Q, EInputEvent::IE_Released, this, &AAuraPlayerController::BroomAscendReleased);
+	InputComponent->BindKey(EKeys::E, EInputEvent::IE_Pressed, this, &AAuraPlayerController::BroomDescendPressed);
+	InputComponent->BindKey(EKeys::E, EInputEvent::IE_Released, this, &AAuraPlayerController::BroomDescendReleased);
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
@@ -1061,5 +1067,77 @@ void AAuraPlayerController::CrouchReleased()
 	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())
 	{
 		ControlledCharacter->UnCrouch();
+	}
+}
+
+void AAuraPlayerController::BroomAscendPressed()
+{
+	bBroomAscendHeld = true;
+	bAutoRunning = false;
+}
+
+void AAuraPlayerController::BroomAscendReleased()
+{
+	bBroomAscendHeld = false;
+}
+
+void AAuraPlayerController::BroomDescendPressed()
+{
+	bBroomDescendHeld = true;
+	bAutoRunning = false;
+}
+
+void AAuraPlayerController::BroomDescendReleased()
+{
+	bBroomDescendHeld = false;
+}
+
+void AAuraPlayerController::ApplyBroomVerticalFlight()
+{
+	// Bail early when neither key is held so this is a no-op on foot and we don't
+	// touch the attach parent lookup every tick for nothing.
+	if (!bBroomAscendHeld && !bBroomDescendHeld)
+	{
+		return;
+	}
+
+	ACharacter* ControlledCharacter = GetPawn<ACharacter>();
+	if (!ControlledCharacter)
+	{
+		return;
+	}
+
+	// Only act while mounted on a broom — Q/E do nothing on foot. Mirrors the Move
+	// path, which also bypasses the Player_Block_InputPressed gate for broom flight
+	// so mounting-time input blocks don't silence vertical steering.
+	AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor());
+	if (!MountedBroom)
+	{
+		return;
+	}
+
+	// Net vertical sign: E (ascend) is +1, Q (descend) is -1. Holding both cancels.
+	const float VerticalSign = (bBroomAscendHeld ? 1.f : 0.f) - (bBroomDescendHeld ? 1.f : 0.f);
+	if (FMath::IsNearlyZero(VerticalSign))
+	{
+		return;
+	}
+
+	// World-up is the natural vertical axis for free flight; the broom's yaw is left
+	// untouched (AddFlightInput only re-yaws from the horizontal input component).
+	const FVector FlightDirection = FVector::UpVector * VerticalSign;
+	const float FlightScale = FMath::Clamp(BroomVerticalFlightScale, 0.f, 1.f);
+	if (FlightScale <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+
+	if (HasAuthority())
+	{
+		MountedBroom->AddFlightInput(FlightDirection, FlightScale);
+	}
+	else
+	{
+		ServerApplyBroomFlightInput(MountedBroom, FlightDirection, FlightScale);
 	}
 }

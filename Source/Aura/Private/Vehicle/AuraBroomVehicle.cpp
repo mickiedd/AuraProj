@@ -140,10 +140,14 @@ void AAuraBroomVehicle::AddFlightInput(const FVector& WorldDirection, float Scal
 	AddMovementInput(WorldDirection, ScaleValue);
 
 	// Derive the facing target from the movement direction so the broom smoothly
-	// turns to face wherever the player steers (forward, strafe, or backward).
-	if (HasAuthority() && !WorldDirection.IsNearlyZero())
+	// turns to face wherever the player steers (forward, strafe, or backward). Use
+	// only the horizontal component: a purely vertical direction (Q/E ascend/descend)
+	// has no meaningful yaw, and MakeFromX on an up-pointing vector would collapse to
+	// yaw 0 and snap the broom away from the camera-facing yaw.
+	const FVector HorizontalDir(WorldDirection.X, WorldDirection.Y, 0.f);
+	if (HasAuthority() && !HorizontalDir.IsNearlyZero())
 	{
-		SetFlightTargetYaw(FRotationMatrix::MakeFromX(WorldDirection).Rotator().Yaw);
+		SetFlightTargetYaw(FRotationMatrix::MakeFromX(HorizontalDir).Rotator().Yaw);
 	}
 
 	UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] AddMovementInput sent. PendingInputVector=%s"),

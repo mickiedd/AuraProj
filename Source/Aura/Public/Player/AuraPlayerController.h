@@ -158,6 +158,23 @@ private:
 	void CrouchPressed();
 	void CrouchReleased();
 
+	// Broom vertical flight (Q = descend, E = ascend). Held-key flags are sampled
+	// each PlayerTick so thrust stays continuous while the key is held, matching how
+	// the WASD Move action feeds AddFlightInput every tick while held.
+	void BroomAscendPressed();
+	void BroomAscendReleased();
+	void BroomDescendPressed();
+	void BroomDescendReleased();
+	void ApplyBroomVerticalFlight();
+
+	bool bBroomAscendHeld = false;
+	bool bBroomDescendHeld = false;
+
+	// 0..1 input magnitude fed to AddFlightInput for vertical flight (Q/E), mirroring
+	// the clamped magnitude the WASD Move path produces. Lower it to soften climb/dive.
+	UPROPERTY(EditDefaultsOnly, Category="Movement|Broom", meta=(ClampMin="0.0", ClampMax="1.0"))
+	float BroomVerticalFlightScale = 1.f;
+
 	UPROPERTY(EditDefaultsOnly, Category="Camera")
 	float RightMouseYawSpeed = 0.30f;
 
