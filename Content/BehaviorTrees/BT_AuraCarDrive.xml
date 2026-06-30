@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  BT_AuraCarDrive.xml  —  Autonomous driving behavior tree for AAuraCar.
+
+  The car wanders the open world by picking random waypoints and driving
+  toward them. The BT handles waypoint selection + arrival gating at its
+  tick rate (~10 Hz); the per-tick steering/throttle is owned by
+  UAuraCarDriveComponent, which runs every server tick for smooth control.
+
+  Tree summary (loops forever via DecoratorLoop Count=-1):
+    Loop
+      Sequence
+        Action       PickWaypoint    (C++ method: picks a random reachable
+                                      point and stores it in Self.WaypointLocation,
+                                      sets Self.bHasWaypoint = true)
+        Sequence     [drive branch]  (Precondition: Self.bHasWaypoint == true)
+          Action     Drive           (C++ method: no-op success; per-tick
+                                      steering is owned by the drive component)
+          Wait       0.20s           (pause between drive commands)
+        Wait         0.10s           (idle gap between waypoint cycles)
+-->
+<behavior name="AuraCarDrive" agenttype="AuraCar" version="5">
+
+  <!-- Root: loop the drive cycle forever. Count = -1 means infinite. -->
+  <node class="DecoratorLoop" id="0">
+    <property name="Count" value="-1"/>
+
+    <node class="Sequence" id="1">
+
+      <!-- Perception: pick a new random waypoint and store it in the blackboard.
+           ResultOption=BT_SUCCESS: fire-and-forget, method runs next frame. -->
+      <node class="Action" id="2">
+        <property name="Method" value="PickWaypoint"/>
+        <property name="ResultOption" value="BT_SUCCESS"/>
+      </node>
+
+      <!-- Drive branch: only runs while a valid waypoint is set. -->
+      <node class="Sequence" id="3">
+        <attachment class="Precondition" id="4">
+          <property name="Phase" value="Enter"/>
+          <property name="Opl" value="Self.bHasWaypoint"/>
+          <property name="Opr" value="true"/>
+          <property name="Operator" value="Equal"/>
+        </attachment>
+
+        <!-- Drive is a no-op success: the drive component reads
+             Self.WaypointLocation every tick and applies throttle + steering
+             toward it. The BT's job is waypoint selection + gating. -->
+        <node class="Action" id="5">
+          <property name="Method" value="Drive"/>
+          <property name="ResultOption" value="BT_SUCCESS"/>
+        </node>
+
+        <!-- Brief pause between drive pulses. -->
+        <node class="Wait" id="6">
+          <property name="Time" value="0.20"/>
+        </node>
+      </node>
+
+      <!-- Idle gap between waypoint cycles. -->
+      <node class="Wait" id="7">
+        <property name="Time" value="0.10"/>
+      </node>
+
+    </node>
+  </node>
+</behavior>
