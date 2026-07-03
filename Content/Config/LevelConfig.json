@@ -90,6 +90,21 @@
         "-unattended",
         "-NoLiveCoding"
       ]
+    },
+    {
+      "id": "Scifi_Desert_Level",
+      "displayName": "Scifi Desert Level",
+      "mapPath": "/Game/Scifi_desert_city/Level/L_showcase_level",
+      "groundAltitude": 0.0,
+      "port": 7783,
+      "queryPort": 27022,
+      "launchArgs": [
+        "-game",
+        "-server",
+        "-log",
+        "-unattended",
+        "-NoLiveCoding"
+      ]
     }
   ]
 }
