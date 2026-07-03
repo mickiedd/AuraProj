@@ -31,7 +31,13 @@ AAuraCharacter::AAuraCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("CameraBoom");
 	CameraBoom->SetupAttachment(GetRootComponent());
 	CameraBoom->SetUsingAbsoluteRotation(true);
-	CameraBoom->bDoCollisionTest = false;
+
+	// Retract the camera toward the player when buildings/terrain block the boom's sight line.
+	// Uses ECC_Camera so Pawns (other players/enemies) do not retract the camera. Fade-actor
+	// walls are excluded by setting their mesh Camera response to Ignore (see BP_FadeActor).
+	CameraBoom->bDoCollisionTest = true;
+	CameraBoom->ProbeChannel = ECC_Camera; // explicit; matches engine default
+	CameraBoom->ProbeSize = 16.f;          // sphere-sweep clearance; tunable on the component in BP
 
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>("TopDownCameraComponent");
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);

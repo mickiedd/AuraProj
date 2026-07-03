@@ -2,6 +2,21 @@
   "gameServerPort": 9000,
   "levels": [    
     {
+      "id": "Scifi_Desert_Level",
+      "displayName": "Scifi Desert Level",
+      "mapPath": "/Game/Scifi_desert_city/Level/L_showcase_level",
+      "groundAltitude": 0.0,
+      "port": 7783,
+      "queryPort": 27022,
+      "launchArgs": [
+        "-game",
+        "-server",
+        "-log",
+        "-unattended",
+        "-NoLiveCoding"
+      ]
+    },
+    {
       "id": "openworld_level_1",
       "displayName": "Open World Level 1",
       "mapPath": "/Game/Cartoon_City_Free/Maps/Demonstration",
@@ -90,21 +105,6 @@
         "-unattended",
         "-NoLiveCoding"
       ]
-    },
-    {
-      "id": "Scifi_Desert_Level",
-      "displayName": "Scifi Desert Level",
-      "mapPath": "/Game/Scifi_desert_city/Level/L_showcase_level",
-      "groundAltitude": 0.0,
-      "port": 7783,
-      "queryPort": 27022,
-      "launchArgs": [
-        "-game",
-        "-server",
-        "-log",
-        "-unattended",
-        "-NoLiveCoding"
-      ]
-    }
+    }    
   ]
 }
