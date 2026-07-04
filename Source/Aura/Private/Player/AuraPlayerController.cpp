@@ -958,24 +958,13 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 
 	if (APawn* ControlledPawn = GetPawn<APawn>())
 	{
-		if (ACharacter* ControlledCharacter = Cast<ACharacter>(ControlledPawn))
-		{
-			if (UCharacterMovementComponent* CharacterMovement = ControlledCharacter->GetCharacterMovement())
-			{
-				if (CharacterMovement->IsFalling())
-				{
-					if (bCanLogMoveBlocked)
-					{
-						UE_LOG(LogAura, Warning, TEXT("Move ignored while falling. Character=%s Velocity=%s"),
-							*GetNameSafe(ControlledCharacter),
-							*ControlledCharacter->GetVelocity().ToCompactString());
-						LastMoveBlockedLogTime = CurrentTime;
-					}
-					return;
-				}
-			}
-		}
-
+		// Feed movement input through in both walking and falling states.
+		// While airborne the CharacterMovementComponent applies AirControl
+		// (set on AAuraCharacter) instead of ground acceleration, giving the
+		// player limited lateral steering and forward-redirect mid-jump while
+		// preserving the jump's momentum. Do NOT early-out on IsFalling() here
+		// — that would starve air control and pin the player to the jump's
+		// initial horizontal velocity.
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 

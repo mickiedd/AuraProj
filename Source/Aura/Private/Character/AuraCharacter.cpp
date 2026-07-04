@@ -65,8 +65,11 @@ AAuraCharacter::AAuraCharacter()
 	GetCharacterMovement()->bSnapToPlaneAtStart = false;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	GetCharacterMovement()->JumpZVelocity = 600.f;
-	// Keep jump motion momentum-driven: no lateral steering while airborne.
-	GetCharacterMovement()->AirControl = 0.f;
+	// Allow limited lateral steering while airborne so the player can redirect or
+	// add forward motion during a jump (e.g. jump from a standstill while holding
+	// W). Momentum is still preserved — AirControl < 1 keeps the jump arc weighty
+	// rather than feeling like free flight. Tunable per-BP on the movement comp.
+	GetCharacterMovement()->AirControl = 0.5f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
