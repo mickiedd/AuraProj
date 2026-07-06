@@ -29,16 +29,17 @@ import unreal
 
 LEVEL_PATH = "/Game/Scifi_desert_city/Level/L_showcase_level"
 HOUSES_MESH_PATH = "/Game/Scifi_desert_city/Meshes/Houses"
+ROCKS_MESH_PATH = "/Game/Scifi_desert_city/Meshes/Rocks"
 
 # ---- placement parameters (all in centimeters; 100 cm = 1 m) ----
 # Cluster mode: scatter N villages of HOUSES_PER_CLUSTER[min..max] houses each,
 # each village randomly placed, houses within CLUSTER_RADIUS of the village
 # centroid. Inter-village spacing enforced via CLUSTER_SPACING.
 USE_CLUSTERS = True
-CLUSTER_COUNT = 16                 # how many villages to scatter
-HOUSES_PER_CLUSTER = (12, 25)        # random count per village
-CLUSTER_RADIUS = 1500.0            # 15 m — max XY offset of a house from its village centroid
-CLUSTER_SPACING = 60000.0          # 600 m — minimum distance between village centroids
+CLUSTER_COUNT = 36                 # how many villages to scatter
+HOUSES_PER_CLUSTER = (12, 55)        # random count per village
+CLUSTER_RADIUS = 5500.0            # 15 m — max XY offset of a house from its village centroid
+CLUSTER_SPACING = 30000.0          # 600 m — minimum distance between village centroids
 # Per-house constraints (apply to every placed house, cluster or not):
 BUILDING_CLEARANCE = 15000.0       # 150 m — keep houses away from existing structures
 INTRA_CLUSTER_SPACING = 1600.0      # 6 m — minimum distance between houses within a village
@@ -46,6 +47,13 @@ MIN_HOUSE_FOOTPRINT = 300.0        # skip meshes smaller than this (tiny detail 
 SCALE_RANGE = (1.0, 1.0)           # set e.g. (0.9, 1.1) for subtle scale jitter; (1,1) = none
 RANDOM_YAW = False                 # False -> all houses axis-aligned (yaw=0); True -> random 0-360 yaw
 EDGE_MARGIN = 8000.0               # 80 m — keep houses away from the terrain border
+# Rock ring around each cluster (only used when USE_CLUSTERS=True):
+ROCK_COUNT_PER_CLUSTER = (3, 7)    # random rock count per village
+ROCK_RING_INNER_MULT = 1.5         # inner radius = CLUSTER_RADIUS * this (just outside houses)
+ROCK_RING_OUTER_MULT = 3.0         # outer radius = CLUSTER_RADIUS * this (village halo)
+ROCK_TO_ROCK_SPACING = 400.0       # 4 m — minimum distance between rocks
+ROCK_TO_HOUSE_SPACING = 500.0      # 5 m — minimum distance between a rock and any placed house
+ROCK_MIN_FOOTPRINT = 50.0          # skip rocks smaller than this (skip pebbles)
 SEED = 12345                       # reproducible randomness
 MAX_TOTAL_ATTEMPTS = 40000         # safety cap on candidate generation
 
@@ -75,11 +83,31 @@ def _all_level_actors():
         return unreal.EditorLevelLibrary.get_all_level_actors()
 
 
+def _world_has_landscapes(world):
+    if world is None:
+        return False
+    try:
+        actors = _all_level_actors()
+    except Exception:
+        return False
+    for a in actors:
+        try:
+            if a.get_class().get_name().startswith("Landscape"):
+                return True
+        except Exception:
+            pass
+    return False
+
+
 def load_world():
+    # Prefer the currently open world, but only if it actually contains the
+    # landscapes we need — otherwise the user has a different level open and we
+    # must load L_showcase_level ourselves.
     if USE_CURRENT_WORLD:
         w = _editor_world()
-        if w is not None:
+        if w is not None and _world_has_landscapes(w):
             return w
+        unreal.log_warning("Current editor world has no landscapes; loading {}...".format(LEVEL_PATH))
     try:
         return unreal.EditorLoadingAndSavingUtils.load_map(unreal.PackagePath(LEVEL_PATH), False, False)
     except Exception:
@@ -132,13 +160,16 @@ def get_static_mesh_paths(actor):
     return paths
 
 
-def discover_house_meshes():
-    meshes = []
+def discover_static_meshes(folder_path, min_footprint):
+    """Return list of (asset_path, StaticMesh, footprint_cm) for every StaticMesh
+    asset under `folder_path` whose footprint (max X/Y extent) is at least
+    `min_footprint` cm. Searches recursively."""
+    out = []
     try:
-        assets = unreal.EditorAssetLibrary.list_assets(HOUSES_MESH_PATH, recursive=True, include_folder=False)
+        assets = unreal.EditorAssetLibrary.list_assets(folder_path, recursive=True, include_folder=False)
     except Exception as e:
-        unreal.log_error("list_assets failed for {}: {}".format(HOUSES_MESH_PATH, e))
-        return meshes
+        unreal.log_error("list_assets failed for {}: {}".format(folder_path, e))
+        return out
     for path in assets:
         try:
             obj = unreal.EditorAssetLibrary.load_asset(path)
@@ -151,17 +182,20 @@ def discover_house_meshes():
                 continue
         except Exception:
             continue
-        # footprint filter: skip tiny detail meshes
         try:
             b = obj.get_bounds()
             ext = b.box_extent
             footprint = 2.0 * max(float(ext.x), float(ext.y))
         except Exception:
             footprint = 0.0
-        if footprint < MIN_HOUSE_FOOTPRINT:
+        if footprint < min_footprint:
             continue
-        meshes.append((path, obj, footprint))
-    return meshes
+        out.append((path, obj, footprint))
+    return out
+
+
+def discover_house_meshes():
+    return discover_static_meshes(HOUSES_MESH_PATH, MIN_HOUSE_FOOTPRINT)
 
 
 def collect_existing_buildings(actors):
@@ -371,6 +405,13 @@ def main():
         return
     unreal.log("Discovered {} house meshes (footprint >= {:.0f} cm).".format(len(meshes), MIN_HOUSE_FOOTPRINT))
 
+    # ---- discover rock meshes (only used in cluster mode) ----
+    rock_meshes = []
+    if USE_CLUSTERS:
+        rock_meshes = discover_static_meshes(ROCKS_MESH_PATH, ROCK_MIN_FOOTPRINT)
+        unreal.log("Discovered {} rock meshes (footprint >= {:.0f} cm) at {}.".format(
+            len(rock_meshes), ROCK_MIN_FOOTPRINT, ROCKS_MESH_PATH))
+
     # ---- existing buildings to avoid ----
     buildings = collect_existing_buildings(actors)
     unreal.log("Existing structures to avoid: {}.".format(len(buildings)))
@@ -556,16 +597,153 @@ def main():
             unreal.log("  #{:2d} (dry-run) {:30s} loc=({:8.0f},{:8.0f},{:7.0f}) yaw={:5.1f} cluster={}".format(
                 i, path, x, y, gz, yaw, cluster_id))
 
+    # ---- rock ring around each cluster ----
+    # Houses went into `points` with cluster_id >= 0; sample N rocks per cluster
+    # in an annulus around the centroid (inner/outer radius scaled from
+    # CLUSTER_RADIUS so the ring tracks the village size automatically).
+    n_rocks_placed = 0
+    if USE_CLUSTERS and rock_meshes and centroids:
+        # build per-cluster house lookup for the rock↔house spacing check
+        houses_by_cluster = {}
+        for px, py, _pgz, pcid in points:
+            del _pgz
+            houses_by_cluster.setdefault(pcid, []).append((px, py))
+
+        ring_inner = CLUSTER_RADIUS * ROCK_RING_INNER_MULT
+        ring_outer = CLUSTER_RADIUS * ROCK_RING_OUTER_MULT
+        unreal.log("Rock ring: inner={:.0f}cm  outer={:.0f}cm  per cluster={}".format(
+            ring_inner, ring_outer, ROCK_COUNT_PER_CLUSTER))
+
+        for cid, (cx, cy) in enumerate(centroids):
+            n_rocks = random.randint(*ROCK_COUNT_PER_CLUSTER)
+            rocks_here = []  # local list for the rock↔rock spacing check
+            per_cluster_attempts = 0
+            per_cluster_cap = n_rocks * 40
+            placed = 0
+            while placed < n_rocks and per_cluster_attempts < per_cluster_cap:
+                per_cluster_attempts += 1
+                # sample in an annulus: r is uniform in [inner, outer]
+                ang = random.uniform(0.0, 2.0 * math.pi)
+                r = random.uniform(ring_inner, ring_outer)
+                rx = cx + r * math.cos(ang)
+                ry = cy + r * math.sin(ang)
+                # clearance from existing buildings (city)
+                too_close = False
+                for bx, by, br in buildings:
+                    if math.hypot(rx - bx, ry - by) < br + BUILDING_CLEARANCE:
+                        too_close = True
+                        break
+                if too_close:
+                    continue
+                # rock↔rock spacing (local to this cluster)
+                too_close = False
+                for ox, oy in rocks_here:
+                    if math.hypot(rx - ox, ry - oy) < ROCK_TO_ROCK_SPACING:
+                        too_close = True
+                        break
+                if too_close:
+                    continue
+                # rock↔house spacing (against houses in the same cluster, plus
+                # any other cluster's houses)
+                too_close = False
+                for hx, hy in houses_by_cluster.get(cid, []):
+                    if math.hypot(rx - hx, ry - hy) < ROCK_TO_HOUSE_SPACING:
+                        too_close = True
+                        break
+                if too_close:
+                    continue
+                # ground height
+                gz = trace_ground_z(world, rx, ry, ignore)
+                if gz is None:
+                    continue
+                # pick a random rock mesh
+                rpath, rmesh, _ = random.choice(rock_meshes)
+                # Rocks respect RANDOM_YAW just like houses. Consume the yaw draw
+                # unconditionally so the RNG stream (and thus rock positions/mesh
+                # picks) stays in sync with the prior dry run regardless of the
+                # toggle.
+                _yaw_draw = random.uniform(0.0, 360.0)
+                yaw = _yaw_draw if RANDOM_YAW else 0.0
+                rot = unreal.Rotator(0.0, yaw, 0.0)
+                if APPLY:
+                    try:
+                        actor = unreal.EditorLevelLibrary.spawn_actor_from_class(
+                            unreal.StaticMeshActor.static_class(),
+                            unreal.Vector(rx, ry, gz), rot, transient=False)
+                    except Exception as e:
+                        unreal.log_warning("  rock spawn failed: {}".format(e))
+                        continue
+                    if actor is None:
+                        continue
+                    try:
+                        rname = actor.get_name()
+                    except Exception:
+                        rname = "rock_{:03d}".format(n_rocks_placed)
+                    try:
+                        rcomps = actor.get_components_by_class(unreal.StaticMeshComponent)
+                        if rcomps:
+                            rcomps[0].set_static_mesh(rmesh)
+                    except Exception as e:
+                        unreal.log_warning("  {} rock set_static_mesh failed: {}".format(rname, e))
+                    # settle base onto ground (rocks often have bottom-pivot)
+                    try:
+                        o, e = actor.get_actor_bounds(only_colliding_components=False)
+                        bottom_z = o.z - e.z
+                        loc = actor.get_actor_location()
+                        shift = gz - bottom_z
+                        if abs(shift) > 0.5:
+                            actor.set_actor_location(unreal.Vector(loc.x, loc.y, loc.z + shift), False, True)
+                    except Exception:
+                        pass
+                    try:
+                        fl = actor.get_actor_location()
+                        finalloc = [float(fl.x), float(fl.y), float(fl.z)]
+                    except Exception:
+                        finalloc = [rx, ry, gz]
+                    manifest.append({
+                        "actor": rname,
+                        "mesh": rpath,
+                        "loc": finalloc,
+                        "yaw": yaw,
+                        "cluster_id": int(cid),
+                        "kind": "rock",
+                    })
+                    unreal.log("  rock     {:24s} {:30s} loc=({:8.0f},{:8.0f},{:7.0f}) yaw={:5.1f} cluster={}".format(
+                        rname, rpath, rx, ry, gz, yaw, cid))
+                else:
+                    manifest.append({
+                        "actor": "(dry-run)",
+                        "mesh": rpath,
+                        "loc": [rx, ry, gz],
+                        "yaw": yaw,
+                        "cluster_id": int(cid),
+                        "kind": "rock",
+                    })
+                    unreal.log("  rock (dry-run)              {:30s} loc=({:8.0f},{:8.0f},{:7.0f}) yaw={:5.1f} cluster={}".format(
+                        rpath, rx, ry, gz, yaw, cid))
+                rocks_here.append((rx, ry))
+                n_rocks_placed += 1
+                placed += 1
+            if placed < n_rocks:
+                unreal.log_warning("  cluster {:2d}: only placed {}/{} rocks after {} attempts".format(
+                    cid, placed, n_rocks, per_cluster_attempts))
+        unreal.log("Rock ring pass: placed {} rocks across {} clusters (target {}-{} per cluster).".format(
+            n_rocks_placed, len(centroids), ROCK_COUNT_PER_CLUSTER[0], ROCK_COUNT_PER_CLUSTER[1]))
+
     if APPLY:
         proj = unreal.SystemLibrary.get_project_directory()
         path = os.path.join(proj, MANIFEST_FILE_NAME)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
             json.dump(manifest, f, indent=2)
-        unreal.log("Placed {} houses. Manifest: {}".format(len(manifest), path))
+        n_houses = len(points)  # houses planned/sampled this run
+        n_houses_in_manifest = sum(1 for e in manifest if e.get("kind") != "rock")
+        unreal.log("Placed {} houses + {} rocks. Manifest: {}".format(n_houses_in_manifest, n_rocks_placed, path))
         unreal.log("Remember to SAVE THE LEVEL (Ctrl+S) to persist.")
     else:
-        unreal.log("DRY RUN — no actors spawned. Set APPLY=True and re-run to place them.")
+        n_dry_houses = len(points)
+        unreal.log("DRY RUN — no actors spawned. ({} houses + {} rocks planned) Set APPLY=True and re-run to place them.".format(
+            n_dry_houses, n_rocks_placed))
     unreal.log("==== populate_desert_houses done ====")
 
 
