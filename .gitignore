@@ -53,3 +53,4 @@ Desktop.ini
 /Plugins/BehaviorU/BehaviacLauncher/WebView2UserData/EBWebView/GrShaderCache
 *.old
 *.dat
+/Scripts/__pycache__

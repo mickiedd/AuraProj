@@ -54,6 +54,16 @@ ROCK_RING_OUTER_MULT = 3.0         # outer radius = CLUSTER_RADIUS * this (villa
 ROCK_TO_ROCK_SPACING = 400.0       # 4 m — minimum distance between rocks
 ROCK_TO_HOUSE_SPACING = 500.0      # 5 m — minimum distance between a rock and any placed house
 ROCK_MIN_FOOTPRINT = 50.0          # skip rocks smaller than this (skip pebbles)
+# PlayerStart per village (only used when USE_CLUSTERS=True): place one
+# untagged PlayerStart near each village centroid. AAuraGameModeBase::
+# ChoosePlayerStart picks randomly among ALL PlayerStarts when no tag matches
+# (the fresh-game case), so the player is born in a random village with no
+# tagging required. (Tag matching still handles checkpoint/portal respawns.)
+ADD_PLAYER_START_PER_CLUSTER = True
+PLAYER_START_Z_OFFSET = 100.0         # raise the capsule base slightly above the ground
+PLAYER_START_MAX_OFFSET = 2500.0     # 25 m — max XY search offset from the centroid
+PLAYER_START_CLEAR_RADIUS = 1800.0   # 18 m — min distance from any house or rock
+PLAYER_START_SEARCH_TRIES = 24
 SEED = 12345                       # reproducible randomness
 MAX_TOTAL_ATTEMPTS = 40000         # safety cap on candidate generation
 
@@ -602,13 +612,17 @@ def main():
     # in an annulus around the centroid (inner/outer radius scaled from
     # CLUSTER_RADIUS so the ring tracks the village size automatically).
     n_rocks_placed = 0
-    if USE_CLUSTERS and rock_meshes and centroids:
-        # build per-cluster house lookup for the rock↔house spacing check
-        houses_by_cluster = {}
+    # Per-cluster house/rock lookups — built unconditionally so the PlayerStart
+    # pass (which runs even when there are no rock meshes) can avoid them.
+    houses_by_cluster = {}
+    rocks_by_cluster = {}
+    if USE_CLUSTERS:
         for px, py, _pgz, pcid in points:
             del _pgz
             houses_by_cluster.setdefault(pcid, []).append((px, py))
-
+    if USE_CLUSTERS and rock_meshes and centroids:
+        # houses_by_cluster / rocks_by_cluster are initialized above the rock
+        # pass so the PlayerStart pass can reuse them too.
         ring_inner = CLUSTER_RADIUS * ROCK_RING_INNER_MULT
         ring_outer = CLUSTER_RADIUS * ROCK_RING_OUTER_MULT
         unreal.log("Rock ring: inner={:.0f}cm  outer={:.0f}cm  per cluster={}".format(
@@ -722,6 +736,7 @@ def main():
                     unreal.log("  rock (dry-run)              {:30s} loc=({:8.0f},{:8.0f},{:7.0f}) yaw={:5.1f} cluster={}".format(
                         rpath, rx, ry, gz, yaw, cid))
                 rocks_here.append((rx, ry))
+                rocks_by_cluster.setdefault(cid, []).append((rx, ry))
                 n_rocks_placed += 1
                 placed += 1
             if placed < n_rocks:
@@ -730,6 +745,106 @@ def main():
         unreal.log("Rock ring pass: placed {} rocks across {} clusters (target {}-{} per cluster).".format(
             n_rocks_placed, len(centroids), ROCK_COUNT_PER_CLUSTER[0], ROCK_COUNT_PER_CLUSTER[1]))
 
+    # ---- PlayerStart per village ----
+    # Place one untagged PlayerStart near each village centroid. The game mode
+    # (AAuraGameModeBase::ChoosePlayerStart) picks randomly among ALL PlayerStarts
+    # when no tag matches the active spawn tag — i.e. the fresh-game case — so the
+    # player is born in a random village with no tagging required. (Tag matching
+    # still handles checkpoint / portal respawns, which use a non-default tag.)
+    n_player_starts = 0
+    if USE_CLUSTERS and ADD_PLAYER_START_PER_CLUSTER and centroids:
+        unreal.log("Placing PlayerStart near each of {} village centroids...".format(len(centroids)))
+        placed_player_starts = []  # (cid, name, x, y, z, offset_from_centroid) for the summary
+        for cid, (cx, cy) in enumerate(centroids):
+            # search for a clear spot near the centroid
+            spot = None
+            spot_try = -1  # which candidate index cleared (0 = centroid itself)
+            candidates = [(cx, cy)]
+            for _ in range(PLAYER_START_SEARCH_TRIES):
+                ang = random.uniform(0.0, 2.0 * math.pi)
+                r = math.sqrt(random.random()) * PLAYER_START_MAX_OFFSET
+                candidates.append((cx + r * math.cos(ang), cy + r * math.sin(ang)))
+            for try_idx, (sx, sy) in enumerate(candidates):
+                ok = True
+                for hx, hy in houses_by_cluster.get(cid, []):
+                    if math.hypot(sx - hx, sy - hy) < PLAYER_START_CLEAR_RADIUS:
+                        ok = False; break
+                if ok:
+                    for rx, ry in rocks_by_cluster.get(cid, []):
+                        if math.hypot(sx - rx, sy - ry) < PLAYER_START_CLEAR_RADIUS:
+                            ok = False; break
+                if ok:
+                    spot = (sx, sy)
+                    spot_try = try_idx
+                    break
+            if spot is None:
+                spot = (cx, cy)  # fallback to the centroid
+                spot_try = 0
+            sx, sy = spot
+            offset = math.hypot(sx - cx, sy - cy)
+            gz = trace_ground_z(world, sx, sy, ignore)
+            if gz is None:
+                unreal.log_warning("  cluster {:2d}: PlayerStart trace missed at ({:.0f},{:.0f}), skipping".format(cid, sx, sy))
+                continue
+            pz = gz + PLAYER_START_Z_OFFSET
+            rot = unreal.Rotator(0.0, 0.0, 0.0)
+            if APPLY:
+                try:
+                    actor = unreal.EditorLevelLibrary.spawn_actor_from_class(
+                        unreal.PlayerStart.static_class(),
+                        unreal.Vector(sx, sy, pz), rot, transient=False)
+                except Exception as e:
+                    unreal.log_error("  cluster {:2d}: PlayerStart spawn failed: {}".format(cid, e))
+                    continue
+                if actor is None:
+                    unreal.log_error("  cluster {:2d}: PlayerStart spawn returned None".format(cid))
+                    continue
+                try:
+                    ps_name = actor.get_name()
+                except Exception:
+                    ps_name = "PlayerStart_{:02d}".format(cid)
+                try:
+                    fl = actor.get_actor_location()
+                    finalloc = [float(fl.x), float(fl.y), float(fl.z)]
+                except Exception:
+                    finalloc = [sx, sy, pz]
+                manifest.append({
+                    "actor": ps_name,
+                    "mesh": "",
+                    "loc": finalloc,
+                    "yaw": 0.0,
+                    "cluster_id": int(cid),
+                    "kind": "player_start",
+                })
+                n_player_starts += 1
+                placed_player_starts.append((cid, ps_name, finalloc[0], finalloc[1], finalloc[2], offset, spot_try))
+                unreal.log("  PlayerStart {:24s} loc=({:8.0f},{:8.0f},{:7.0f}) cluster={:2d} offset={:5.0f}cm (try {})".format(
+                    ps_name, sx, sy, pz, cid, offset, spot_try))
+            else:
+                manifest.append({
+                    "actor": "(dry-run)",
+                    "mesh": "",
+                    "loc": [sx, sy, pz],
+                    "yaw": 0.0,
+                    "cluster_id": int(cid),
+                    "kind": "player_start",
+                })
+                n_player_starts += 1
+                placed_player_starts.append((cid, "(dry-run)", sx, sy, pz, offset, spot_try))
+                unreal.log("  PlayerStart (dry-run)         loc=({:8.0f},{:8.0f},{:7.0f}) cluster={:2d} offset={:5.0f}cm (try {})".format(
+                    sx, sy, pz, cid, offset, spot_try))
+        unreal.log("PlayerStart pass: placed {} across {} clusters.".format(n_player_starts, len(centroids)))
+        # Summary list — correlates 1:1 with the [PlayerStart] village[i] logs the
+        # game mode prints at spawn time, so you can confirm which village the
+        # player actually spawned in.
+        if placed_player_starts:
+            unreal.log("---- PlayerStart summary (matches runtime [PlayerStart] village logs) ----")
+            for i, (cid, nm, fx, fy, fz, off, _try) in enumerate(placed_player_starts):
+                unreal.log("  [{:2d}] cluster={:2d} {:24s} loc=({:8.0f},{:8.0f},{:7.0f}) offset={:5.0f}cm".format(
+                    i, cid, nm, fx, fy, fz, off))
+            unreal.log("---- PlayerStart summary: {} villages available for random spawn ----".format(
+                len(placed_player_starts)))
+
     if APPLY:
         proj = unreal.SystemLibrary.get_project_directory()
         path = os.path.join(proj, MANIFEST_FILE_NAME)
@@ -737,13 +852,16 @@ def main():
         with open(path, "w") as f:
             json.dump(manifest, f, indent=2)
         n_houses = len(points)  # houses planned/sampled this run
-        n_houses_in_manifest = sum(1 for e in manifest if e.get("kind") != "rock")
-        unreal.log("Placed {} houses + {} rocks. Manifest: {}".format(n_houses_in_manifest, n_rocks_placed, path))
+        n_houses_in_manifest = sum(1 for e in manifest if e.get("kind") not in ("rock", "player_start"))
+        n_player_starts_in_manifest = sum(1 for e in manifest if e.get("kind") == "player_start")
+        unreal.log("Placed {} houses + {} rocks + {} player_starts. Manifest: {}".format(
+            n_houses_in_manifest, n_rocks_placed, n_player_starts_in_manifest, path))
         unreal.log("Remember to SAVE THE LEVEL (Ctrl+S) to persist.")
     else:
         n_dry_houses = len(points)
-        unreal.log("DRY RUN — no actors spawned. ({} houses + {} rocks planned) Set APPLY=True and re-run to place them.".format(
-            n_dry_houses, n_rocks_placed))
+        n_dry_player_starts = sum(1 for e in manifest if e.get("kind") == "player_start")
+        unreal.log("DRY RUN — no actors spawned. ({} houses + {} rocks + {} player_starts planned) Set APPLY=True and re-run to place them.".format(
+            n_dry_houses, n_rocks_placed, n_dry_player_starts))
     unreal.log("==== populate_desert_houses done ====")
 
 

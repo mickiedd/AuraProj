@@ -389,25 +389,70 @@ FName AAuraGameModeBase::GetActivePlayerStartTag() const
 AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
 {
 	const FName DesiredPlayerStartTag = GetActivePlayerStartTag();
-	
+
 	TArray<AActor*> Actors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), Actors);
 	if (Actors.Num() > 0)
 	{
-		AActor* SelectedActor = Actors[0];
+		// Gather every PlayerStart, and the subset whose tag matches the active
+		// spawn tag. Tag matches win (checkpoints / LevelJumpPortal destinations
+		// must spawn the player at the exact tagged spot); a single match is still
+		// deterministic (the random range is [0, 0]).
+		TArray<APlayerStart*> All;
+		TArray<APlayerStart*> Matches;
 		for (AActor* Actor : Actors)
 		{
 			if (APlayerStart* PlayerStart = Cast<APlayerStart>(Actor))
 			{
+				All.Add(PlayerStart);
 				if (PlayerStart->PlayerStartTag == DesiredPlayerStartTag)
 				{
-					SelectedActor = PlayerStart;
-					break;
+					Matches.Add(PlayerStart);
 				}
 			}
 		}
-		return SelectedActor;
+
+		// Verbose trace of the spawn selection so the random mechanism can be
+		// verified at runtime: how many PlayerStarts exist, how many matched the
+		// active tag, and which one (name/tag/location) was actually chosen.
+		UE_LOG(LogAura, Log, TEXT("[PlayerStart] ChoosePlayerStart: total=%d matchingTag=%d desiredTag=%s"),
+			All.Num(), Matches.Num(), *DesiredPlayerStartTag.ToString());
+
+		// Tag match path (respawns at a checkpoint / portal destination).
+		if (Matches.Num() > 0)
+		{
+			for (int32 i = 0; i < Matches.Num(); ++i)
+			{
+				const FVector Loc = Matches[i]->GetActorLocation();
+				UE_LOG(LogAura, Log, TEXT("[PlayerStart]   candidate[%d] %s tag=%s loc=(%.0f,%.0f,%.0f)"),
+					i, *Matches[i]->GetName(), *Matches[i]->PlayerStartTag.ToString(), Loc.X, Loc.Y, Loc.Z);
+			}
+			const int32 ChosenIndex = FMath::RandRange(0, Matches.Num() - 1);
+			APlayerStart* Chosen = Matches[ChosenIndex];
+			const FVector Loc = Chosen->GetActorLocation();
+			UE_LOG(LogAura, Log, TEXT("[PlayerStart] chosen index=%d/%d (tag-match) %s tag=%s loc=(%.0f,%.0f,%.0f)"),
+				ChosenIndex, Matches.Num(), *Chosen->GetName(), *Chosen->PlayerStartTag.ToString(), Loc.X, Loc.Y, Loc.Z);
+			return Chosen;
+		}
+
+		// No tag match — e.g. a fresh game in the desert, where the villages are
+		// untagged and DesiredPlayerStartTag matches nothing. Pick RANDOMLY among
+		// ALL PlayerStarts so the player is born in a different village each
+		// playthrough, instead of always falling back to the first one found.
+		for (int32 i = 0; i < All.Num(); ++i)
+		{
+			const FVector Loc = All[i]->GetActorLocation();
+			UE_LOG(LogAura, Log, TEXT("[PlayerStart]   village[%d] %s tag=%s loc=(%.0f,%.0f,%.0f)"),
+				i, *All[i]->GetName(), *All[i]->PlayerStartTag.ToString(), Loc.X, Loc.Y, Loc.Z);
+		}
+		const int32 AllChosenIndex = FMath::RandRange(0, All.Num() - 1);
+		APlayerStart* AllChosen = All[AllChosenIndex];
+		const FVector Loc = AllChosen->GetActorLocation();
+		UE_LOG(LogAura, Log, TEXT("[PlayerStart] chosen index=%d/%d (random-village) %s tag=%s loc=(%.0f,%.0f,%.0f)"),
+			AllChosenIndex, All.Num(), *AllChosen->GetName(), *AllChosen->PlayerStartTag.ToString(), Loc.X, Loc.Y, Loc.Z);
+		return AllChosen;
 	}
+	UE_LOG(LogAura, Warning, TEXT("[PlayerStart] no PlayerStart actors found in level."));
 	return nullptr;
 }
 
