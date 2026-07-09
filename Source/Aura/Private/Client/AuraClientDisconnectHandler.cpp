@@ -167,6 +167,12 @@ bool UAuraClientDisconnectHandler::IsLossFailure(ENetworkFailure::Type FailureTy
 	}
 }
 
+void UAuraClientDisconnectHandler::RequestServerLost(const FString& Reason)
+{
+	UE_LOG(LogAura, Log, TEXT("[ServerLost] RequestServerLost invoked (manual kick): %s"), *Reason);
+	OnServerLost(Reason);
+}
+
 void UAuraClientDisconnectHandler::OnServerLost(const FString& ErrorString)
 {
 	if (bHandled)

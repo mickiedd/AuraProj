@@ -17,6 +17,7 @@ public class AuraEditor : ModuleRules
 		{
 			"AIModule",
 			"AssetRegistry",
+			"Aura",
 			"ContentBrowser",
 			"CoreUObject",
 			"DesktopPlatform",

@@ -47,6 +47,14 @@ class AURA_API UAuraClientDisconnectHandler : public UActorComponent
 public:
 	UAuraClientDisconnectHandler();
 
+	/**
+	 * Manually trigger the server-lost path: stash the Login-screen message and
+	 * ClientTravel back to the Login level. Used by the UAuraCheatManager "KickOutSelf"
+	 * command so a tester can force a disconnect-to-Login without waiting for a real
+	 * network drop. Idempotent (guarded by bHandled, same as the real detectors).
+	 */
+	void RequestServerLost(const FString& Reason);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

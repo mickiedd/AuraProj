@@ -34,6 +34,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Vehicle/AuraBroomVehicle.h"
 #include "Building/AuraBuildingComponent.h"
+#include "Player/AuraCheatManager.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -42,6 +43,11 @@ AAuraPlayerController::AAuraPlayerController()
 	ServerTravelComponent = CreateDefaultSubobject<UServerTravelComponent>(TEXT("ServerTravelComponent"));
 	ClientDisconnectHandler = CreateDefaultSubobject<UAuraClientDisconnectHandler>(TEXT("ClientDisconnectHandler"));
 	HeartbeatComponent = CreateDefaultSubobject<UAuraHeartbeatComponent>(TEXT("HeartbeatComponent"));
+
+	// Route Aura-specific cheat commands through UAuraCheatManager. Its Exec
+	// functions are only reachable while cheats are enabled (standalone / listen
+	// host / after `enablecheats` on a dedicated server).
+	CheatClass = UAuraCheatManager::StaticClass();
 }
 
 void AAuraPlayerController::RequestBroomMount(AAuraBroomVehicle* BroomToMount)
@@ -663,6 +669,16 @@ void AAuraPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	check(AuraContext);
+
+#if !UE_BUILD_SHIPPING
+	// Auto-enable cheats in non-shipping builds so the UAuraCheatManager console
+	// commands are available without typing `enablecheats` each session. Only the
+	// local controller drives console input, so we only need the cheat manager there.
+	if (IsLocalController())
+	{
+		EnableCheats();
+	}
+#endif
 
 	if (UCharacterMovementComponent* CharacterMovement = GetControlledCharacterMovement())
 	{
