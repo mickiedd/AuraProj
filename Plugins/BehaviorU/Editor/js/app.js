@@ -1,4 +1,4 @@
-// app.js — Main application entry point
+﻿// app.js — Main application entry point
 
 // ── State ────────────────────────────────────────────────
 let _nextId  = 1;
@@ -721,7 +721,7 @@ function updateStatus() {
 let _statusFlashTimer = 0;
 function setStatusFlash(msg) {
   const bar = document.getElementById('statusbar');
-  if (!bar) { console.log('[BehaviacEditor]', msg); return; }
+  if (!bar) { console.log('[BehaviorUEditor]', msg); return; }
   // stash the transient line next to the existing status spans
   let flash = document.getElementById('sb-flash');
   if (!flash) {

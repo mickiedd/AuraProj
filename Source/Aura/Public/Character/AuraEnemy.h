@@ -70,9 +70,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UBehaviorTree> BehaviorTree;
 
-	/** BehaviorU (Behaviac) agent driving the test behavior tree (BT_TestEnemy.xml). */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|Behaviac")
-	TObjectPtr<UAuraBehaviacAgentComponent> BehaviacAgentComponent;
+	/** BehaviorU (BehaviorU) agent driving the test behavior tree (BT_TestEnemy.xml). */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|BehaviorU")
+	TObjectPtr<UAuraBehaviacAgentComponent> BehaviorUAgentComponent;
 
 	UPROPERTY()
 	TObjectPtr<AAuraAIController> AuraAIController;

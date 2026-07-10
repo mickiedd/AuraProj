@@ -4,7 +4,7 @@
 #include "Character/AuraEnemy.h"
 #include "AI/AuraAIController.h"
 #include "Aura/AuraLogChannels.h"  // LogAura
-#include "BehaviacTypes.h"          // EBehaviacStatus
+#include "BehaviorUTypes.h"          // EBehaviorUStatus
 #include "AIController.h"
 #include "NavigationSystem.h"
 #include "NavigationData.h"
@@ -20,7 +20,7 @@ UAuraBehaviacAgentComponent::UAuraBehaviacAgentComponent()
 
 void UAuraBehaviacAgentComponent::BeginPlay()
 {
-	// Super::BeginPlay registers with the Behaviac world subsystem and, because
+	// Super::BeginPlay registers with the BehaviorU world subsystem and, because
 	// AutoLoadXMLFilePath is set, auto-loads the test tree. The tree is not ticked
 	// until the subsystem's next frame, so registering handlers / seeding the
 	// blackboard afterwards is in time for the first evaluation.
@@ -57,16 +57,16 @@ void UAuraBehaviacAgentComponent::BeginPlay()
 	RegisterMethodHandler(TEXT("Rest"),              [this]() { return Method_Rest();              });
 	RegisterMethodHandler(TEXT("LogState"),          [this]() { return Method_LogState();          });
 
-	UE_LOG(LogAura, Log, TEXT("[BehaviacTest] Agent bound to %s, auto-loading %s"),
+	UE_LOG(LogAura, Log, TEXT("[BehaviorUTest] Agent bound to %s, auto-loading %s"),
 		*GetNameSafe(GetOwner()), *AutoLoadXMLFilePath);
 }
 
-EBehaviacStatus UAuraBehaviacAgentComponent::Method_PickWanderTarget()
+EBehaviorUStatus UAuraBehaviacAgentComponent::Method_PickWanderTarget()
 {
 	AActor* Owner = GetOwner();
 	if (!Owner)
 	{
-		return EBehaviacStatus::Failure;
+		return EBehaviorUStatus::Failure;
 	}
 
 	const FVector Origin = Owner->GetActorLocation();
@@ -97,19 +97,19 @@ EBehaviacStatus UAuraBehaviacAgentComponent::Method_PickWanderTarget()
 	const int32 Count = GetIntProperty(TEXT("WanderCount")) + 1;
 	SetIntProperty(TEXT("WanderCount"), Count);
 
-	UE_LOG(LogAura, Log, TEXT("[BehaviacTest] %s PickWanderTarget #%d -> %s (Energy=%s, LastAction=%s)"),
+	UE_LOG(LogAura, Log, TEXT("[BehaviorUTest] %s PickWanderTarget #%d -> %s (Energy=%s, LastAction=%s)"),
 		*Owner->GetName(), Count, *Target.ToCompactString(),
 		*GetPropertyValue(TEXT("Energy")), *GetPropertyValue(TEXT("LastAction")));
 
-	return EBehaviacStatus::Success;
+	return EBehaviorUStatus::Success;
 }
 
-EBehaviacStatus UAuraBehaviacAgentComponent::Method_MoveToWanderTarget()
+EBehaviorUStatus UAuraBehaviacAgentComponent::Method_MoveToWanderTarget()
 {
 	AAuraEnemy* Enemy = Cast<AAuraEnemy>(GetOwner());
 	if (!Enemy)
 	{
-		return EBehaviacStatus::Failure;
+		return EBehaviorUStatus::Failure;
 	}
 
 	// Don't compete with the combat AI: while engaged or reacting to a hit, let the
@@ -117,19 +117,19 @@ EBehaviacStatus UAuraBehaviacAgentComponent::Method_MoveToWanderTarget()
 	// wander Sequence fail this cycle and the outer Loop tries again next cycle.
 	if (IsValid(Enemy->CombatTarget) || Enemy->bHitReacting)
 	{
-		return EBehaviacStatus::Failure;
+		return EBehaviorUStatus::Failure;
 	}
 
 	AAIController* AIC = Cast<AAIController>(Enemy->GetController());
 	if (!AIC)
 	{
-		return EBehaviacStatus::Failure;
+		return EBehaviorUStatus::Failure;
 	}
 
 	const FVector Target = GetVectorProperty(TEXT("WanderTarget"));
 	if (Target.IsNearlyZero(1.f))
 	{
-		return EBehaviacStatus::Failure;
+		return EBehaviorUStatus::Failure;
 	}
 
 	// Fire-and-forget move. ResultOption on the <Action> is BT_SUCCESS, so the node
@@ -137,33 +137,33 @@ EBehaviacStatus UAuraBehaviacAgentComponent::Method_MoveToWanderTarget()
 	AIC->MoveToLocation(Target, 50.f, /*bStopOnOverlap=*/true, /*bUsePathfinding=*/true,
 		/*bProjectDestinationToNavigation=*/false, /*bCanStrafe=*/true);
 
-	UE_LOG(LogAura, Log, TEXT("[BehaviacTest] %s MoveToWanderTarget -> %s"),
+	UE_LOG(LogAura, Log, TEXT("[BehaviorUTest] %s MoveToWanderTarget -> %s"),
 		*Enemy->GetName(), *Target.ToCompactString());
 
-	return EBehaviacStatus::Success;
+	return EBehaviorUStatus::Success;
 }
 
-EBehaviacStatus UAuraBehaviacAgentComponent::Method_Rest()
+EBehaviorUStatus UAuraBehaviacAgentComponent::Method_Rest()
 {
-	UE_LOG(LogAura, Log, TEXT("[BehaviacTest] %s Resting (stamina will be restored by the tree)"),
+	UE_LOG(LogAura, Log, TEXT("[BehaviorUTest] %s Resting (stamina will be restored by the tree)"),
 		*GetNameSafe(GetOwner()));
-	return EBehaviacStatus::Success;
+	return EBehaviorUStatus::Success;
 }
 
-EBehaviacStatus UAuraBehaviacAgentComponent::Method_LogState()
+EBehaviorUStatus UAuraBehaviacAgentComponent::Method_LogState()
 {
 	// Throttle: only log every 5th patrol cycle to keep the output readable.
 	const int32 PatrolIndex = GetIntProperty(TEXT("PatrolIndex"));
 	if (PatrolIndex % 5 != 0)
 	{
-		return EBehaviacStatus::Success;
+		return EBehaviorUStatus::Success;
 	}
 
 	const FVector WanderTarget = GetVectorProperty(TEXT("WanderTarget"));
 	const FVector HomeLocation = GetVectorProperty(TEXT("HomeLocation"));
 
 	UE_LOG(LogAura, Log,
-		TEXT("[BehaviacTest] %s Blackboard: Energy=%s Health=%s PatrolIndex=%d WanderCount=%d "
+		TEXT("[BehaviorUTest] %s Blackboard: Energy=%s Health=%s PatrolIndex=%d WanderCount=%d "
 			 "bCanWander=%s bAggressive=%s Greeting=\"%s\" LastAction=\"%s\" "
 			 "WanderTarget=%s HomeLocation=%s"),
 		*GetNameSafe(GetOwner()),
@@ -178,5 +178,5 @@ EBehaviacStatus UAuraBehaviacAgentComponent::Method_LogState()
 		*WanderTarget.ToCompactString(),
 		*HomeLocation.ToCompactString());
 
-	return EBehaviacStatus::Success;
+	return EBehaviorUStatus::Success;
 }

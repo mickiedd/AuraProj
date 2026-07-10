@@ -1,4 +1,4 @@
-# BehaviacPlugin - Recent Updates (2026-02-25)
+﻿# BehaviorUPlugin - Recent Updates (2026-02-25)
 
 ## 🎯 New Features
 
@@ -48,9 +48,9 @@ No more manual cache deletion! Right-click → Reimport.
 Run commands directly in UE5 Output Log:
 
 ```
-Behaviac.ReimportBT BT_SimpleNPC
-Behaviac.ReimportAllBT
-Behaviac.DeleteBTCache BT_SimpleNPC
+BehaviorU.ReimportBT BT_SimpleNPC
+BehaviorU.ReimportAllBT
+BehaviorU.DeleteBTCache BT_SimpleNPC
 ```
 
 Useful for:
@@ -63,32 +63,32 @@ Useful for:
 
 ### Files Modified:
 
-**BehaviacActions.cpp** (+14 lines)
+**BehaviorUActions.cpp** (+14 lines)
 - Added debug logging in `LoadFromProperties()`
 - Logs property count, name/value pairs, final MethodName
 - Uses 📦 emoji prefix for easy filtering
 
-**BehaviacBehaviorTree.cpp** (+14 lines)
+**BehaviorUBehaviorTree.cpp** (+14 lines)
 - Added debug logging in `ParseNodeFromXML()`
 - Traces XML attribute → property conversion
 - Uses 📋 emoji prefix for easy filtering
 
-**BehaviacBehaviorTreeFactory.h** (+13 lines)
+**BehaviorUBehaviorTreeFactory.h** (+13 lines)
 - Added `#include "EditorReimportHandler.h"`
 - Inherited from `FReimportHandler` interface
 - Declared reimport interface methods
 
-**BehaviacBehaviorTreeFactory.cpp** (+75 lines)
+**BehaviorUBehaviorTreeFactory.cpp** (+75 lines)
 - Implemented `CanReimport()` - Checks if asset has source path
 - Implemented `SetReimportPaths()` - Updates source path
 - Implemented `Reimport()` - Reloads from XML and updates asset
 - Improved error messages with emoji indicators
 
-**BehaviacEditorModule.cpp** (+1 line)
-- Added `#include "BehaviacEditorCommands.h"`
+**BehaviorUEditorModule.cpp** (+1 line)
+- Added `#include "BehaviorUEditorCommands.h"`
 - Enables console commands on module load
 
-**BehaviacEditorCommands.h** (NEW FILE, +90 lines)
+**BehaviorUEditorCommands.h** (NEW FILE, +90 lines)
 - Defines `FAutoConsoleCommand` instances
 - Three commands: ReimportBT, ReimportAllBT, DeleteBTCache
 - Editor-only (wrapped in `#if WITH_EDITOR`)
@@ -105,7 +105,7 @@ Useful for:
 Tested on:
 - **Engine:** Unreal Engine 5.5
 - **Platform:** macOS (Apple M4)
-- **Project:** TopDownBehaviacTest
+- **Project:** TopDownBehaviorUTest
 
 **Test Cases:**
 1. ✅ XML import creates .uasset
@@ -140,7 +140,7 @@ vim Content/AI/BT_SimpleNPC.xml
 # Right-click asset → Reimport
 
 # Option B: Console
-Behaviac.ReimportBT BT_SimpleNPC
+BehaviorU.ReimportBT BT_SimpleNPC
 
 # Option C: Script (if editor closed)
 ./Scripts/reimport_bt.sh BT_SimpleNPC
@@ -155,7 +155,7 @@ Behaviac.ReimportBT BT_SimpleNPC
 
 ```
 # In UE5 Editor Output Log:
-Behaviac.ReimportAllBT
+BehaviorU.ReimportAllBT
 ```
 
 Or via script:
@@ -181,8 +181,8 @@ If you're updating an existing project:
 1. **Rebuild Plugin:**
    ```bash
    cd /path/to/project
-   rm -rf Plugins/BehaviacPlugin/Binaries
-   rm -rf Plugins/BehaviacPlugin/Intermediate
+   rm -rf Plugins/BehaviorUPlugin/Binaries
+   rm -rf Plugins/BehaviorUPlugin/Intermediate
    # Rebuild via Xcode or Build.sh
    ```
 

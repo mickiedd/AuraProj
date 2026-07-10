@@ -1,5 +1,5 @@
-// nodes.js — Node type definitions, categories, property schemas
-// IMPORTANT: type strings MUST match CreateNodeByClassName() in BehaviacBehaviorTree.cpp exactly!
+﻿// nodes.js — Node type definitions, categories, property schemas
+// IMPORTANT: type strings MUST match CreateNodeByClassName() in BehaviorUBehaviorTree.cpp exactly!
 // Property keys MUST match LoadFromProperties() Prop.Name comparisons in C++.
 // XML wire format: <property name="Key" value="Val"/>
 
@@ -15,7 +15,7 @@ const CAT_COLOR = {
 };
 
 // ── Property schemas ─────────────────────────────────────
-// Keys match C++ Prop.Name strings in BehaviacActions/Conditions/Attachment.cpp exactly
+// Keys match C++ Prop.Name strings in BehaviorUActions/Conditions/Attachment.cpp exactly
 const NODE_PROPS = {
   // ── Composites ──────────────────────────────────────────
   Selector:            [],

@@ -13,7 +13,7 @@ class UBoxComponent;
  * UAuraCarDriveComponent
  *
  * Per-tick kinematic driver for the autonomous car. Reads the current waypoint
- * from the Behaviac agent's blackboard (Self.WaypointLocation) every server
+ * from the BehaviorU agent's blackboard (Self.WaypointLocation) every server
  * tick and moves the car toward it via SetActorLocationAndRotation (no physics).
  * This is the car equivalent of the broom's flight driver: the BT only ticks at
  * ~10 Hz (waypoint selection + gating), while this component runs at 60+ Hz for

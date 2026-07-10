@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BehaviacAgent.h"
+#include "BehaviorUAgent.h"
 #include "AuraCarAgentComponent.generated.h"
 
 class AAuraCar;
@@ -11,7 +11,7 @@ class AAuraCar;
 /**
  * UAuraCarAgentComponent
  *
- * Aura-specific Behaviac agent for the open-world car (AAuraCar). Auto-loads
+ * Aura-specific BehaviorU agent for the open-world car (AAuraCar). Auto-loads
  * BT_AuraCarDrive.xml on server BeginPlay and binds its <Action> nodes to C++
  * methods. The agent is thin BT glue — it picks waypoints and seeds the
  * blackboard; per-tick steering/throttle is owned by UAuraCarDriveComponent,
@@ -29,10 +29,10 @@ class AAuraCar;
  *
  * Server-authoritative: skips tree load on clients (movement replicates via
  * the car's replicated CollisionBox physics). The methods execute on the game
- * thread (Phase 1 of the Behaviac world subsystem tick).
+ * thread (Phase 1 of the BehaviorU world subsystem tick).
  */
-UCLASS(ClassGroup = (AI), meta = (BlueprintSpawnableComponent), DisplayName = "Aura Car Behaviac Agent")
-class AURA_API UAuraCarAgentComponent : public UBehaviacAgentComponent
+UCLASS(ClassGroup = (AI), meta = (BlueprintSpawnableComponent), DisplayName = "Aura Car BehaviorU Agent")
+class AURA_API UAuraCarAgentComponent : public UBehaviorUAgentComponent
 {
 	GENERATED_BODY()
 
@@ -45,10 +45,10 @@ protected:
 	// --- Behavior methods bound to BT_AuraCarDrive.xml ---
 
 	/** Pick a random reachable point around the car and store it in the blackboard. */
-	EBehaviacStatus Method_PickWaypoint();
+	EBehaviorUStatus Method_PickWaypoint();
 
 	/** No-op success — per-tick steering is owned by UAuraCarDriveComponent. */
-	EBehaviacStatus Method_Drive();
+	EBehaviorUStatus Method_Drive();
 
 private:
 	/** Convenience accessor for the owning car. */

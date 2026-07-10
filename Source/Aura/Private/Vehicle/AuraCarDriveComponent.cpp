@@ -33,7 +33,7 @@ void UAuraCarDriveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		return;
 	}
 
-	// Read the current waypoint from the Behaviac agent's blackboard.
+	// Read the current waypoint from the BehaviorU agent's blackboard.
 	UAuraCarAgentComponent* Agent = Car->GetCarAgentComponent();
 	if (!Agent)
 	{

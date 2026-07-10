@@ -96,7 +96,7 @@ AAuraCar::AAuraCar()
 		WheelRearRight->SetStaticMesh(DefaultWheelRearRight);
 	}
 
-	// Autonomous driving: Behaviac BT agent (waypoint selection at ~10 Hz) +
+	// Autonomous driving: BehaviorU BT agent (waypoint selection at ~10 Hz) +
 	// per-tick drive component (steering + throttle at 60+ Hz). Server-authoritative;
 	// both skip work on clients (see their BeginPlay guards).
 	CarAgentComponent = CreateDefaultSubobject<UAuraCarAgentComponent>(TEXT("CarAgentComponent"));

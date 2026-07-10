@@ -139,7 +139,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Broom|Components")
 	TObjectPtr<UAuraBroomFlightDriverComponent> FlightDriverComponent;
 
-	/** BehaviorU (Behaviac) agent driving the broom follow behavior tree (BT_BroomFollowPlayer.xml). */
+	/** BehaviorU (BehaviorU) agent driving the broom follow behavior tree (BT_BroomFollowPlayer.xml). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Broom|AI")
 	TObjectPtr<UAuraBroomAgentComponent> BroomAgentComponent;
 

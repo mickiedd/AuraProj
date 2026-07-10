@@ -49,7 +49,7 @@ AAuraEnemy::AAuraEnemy()
 	// Bind the BehaviorU test behavior tree (BT_TestEnemy.xml). The component's
 	// constructor defaults AutoLoadXMLFilePath to the test tree, so simply
 	// instantiating it is enough — no per-enemy Blueprint wiring required.
-	BehaviacAgentComponent = CreateDefaultSubobject<UAuraBehaviacAgentComponent>(TEXT("BehaviacAgentComponent"));
+	BehaviorUAgentComponent = CreateDefaultSubobject<UAuraBehaviacAgentComponent>(TEXT("BehaviorUAgentComponent"));
 }
 
 void AAuraEnemy::PossessedBy(AController* NewController)

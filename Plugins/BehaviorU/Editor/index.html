@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -155,20 +155,20 @@
 <script>
 (function() {
   const input = document.getElementById('ws-host-input');
-  console.log('[BehaviacEditor][WSInputPrefill] location.href =', window.location.href);
-  console.log('[BehaviacEditor][WSInputPrefill] location.search =', window.location.search);
+  console.log('[BehaviorUEditor][WSInputPrefill] location.href =', window.location.href);
+  console.log('[BehaviorUEditor][WSInputPrefill] location.search =', window.location.search);
   if (!input) {
-    console.warn('[BehaviacEditor][WSInputPrefill] ws-host-input not found');
+    console.warn('[BehaviorUEditor][WSInputPrefill] ws-host-input not found');
     return;
   }
 
   const params = new URLSearchParams(window.location.search);
   const host = (params.get('host') || '').trim();
   const port = (params.get('port') || '').trim();
-  console.log('[BehaviacEditor][WSInputPrefill] parsed params =', { host, port });
-  console.log('[BehaviacEditor][WSInputPrefill] initial input value =', input.value);
+  console.log('[BehaviorUEditor][WSInputPrefill] parsed params =', { host, port });
+  console.log('[BehaviorUEditor][WSInputPrefill] initial input value =', input.value);
   if (!host && !port) {
-    console.warn('[BehaviacEditor][WSInputPrefill] no host/port query params found');
+    console.warn('[BehaviorUEditor][WSInputPrefill] no host/port query params found');
     return;
   }
 
@@ -178,7 +178,7 @@
   const currentPort = idx > 0 ? current.slice(idx + 1) : '17654';
 
   input.value = `${host || currentHost}:${port || currentPort}`;
-  console.log('[BehaviacEditor][WSInputPrefill] updated input value =', input.value);
+  console.log('[BehaviorUEditor][WSInputPrefill] updated input value =', input.value);
 })();
 </script>
 <script src="js/runtime-debug.js?v=2026062401"></script>
@@ -186,22 +186,22 @@
 <script>
 // ── Project Files Modal ──────────────────────────────────
 (function() {
-  console.log('[BehaviacEditor] Initializing Project Files Modal');
+  console.log('[BehaviorUEditor] Initializing Project Files Modal');
   const projectOverlay = document.getElementById('project-files-overlay');
   const projectList = document.getElementById('project-files-list');
   const projectClose = document.getElementById('project-files-close');
   const openBtn = document.getElementById('btn-open-project');
 
   if (!openBtn) {
-    console.error('[BehaviacEditor] btn-open-project not found!');
+    console.error('[BehaviorUEditor] btn-open-project not found!');
     return;
   }
-  console.log('[BehaviacEditor] btn-open-project found, attaching listener');
+  console.log('[BehaviorUEditor] btn-open-project found, attaching listener');
 
   let allFiles = [];
 
   openBtn.addEventListener('click', async () => {
-    console.log('[BehaviacEditor] Open from Project clicked');
+    console.log('[BehaviorUEditor] Open from Project clicked');
     const loadingDiv = document.getElementById('project-loading');
     const progressBar = document.getElementById('project-progress-bar');
 
@@ -210,19 +210,19 @@
     progressBar.style.width = '30%';
 
     try {
-      console.log('[BehaviacEditor] Fetching /list-xml...');
+      console.log('[BehaviorUEditor] Fetching /list-xml...');
       const resp = await fetch('/list-xml');
       progressBar.style.width = '70%';
-      console.log('[BehaviacEditor] Response status:', resp.status);
+      console.log('[BehaviorUEditor] Response status:', resp.status);
       const data = await resp.json();
       progressBar.style.width = '100%';
-      console.log('[BehaviacEditor] Received files:', data.files?.length || 0);
+      console.log('[BehaviorUEditor] Received files:', data.files?.length || 0);
       allFiles = data.files || [];
       renderFileList(allFiles);
       setTimeout(() => { loadingDiv.style.display = 'none'; }, 300);
-      console.log('[BehaviacEditor] Modal displayed');
+      console.log('[BehaviorUEditor] Modal displayed');
     } catch (e) {
-      console.error('[BehaviacEditor] Error loading files:', e);
+      console.error('[BehaviorUEditor] Error loading files:', e);
       loadingDiv.style.display = 'none';
       alert('Backend not available. Please start the server.');
     }
@@ -234,7 +234,7 @@
   });
 
   function renderFileList(files) {
-    console.log('[BehaviacEditor] Rendering', files.length, 'files');
+    console.log('[BehaviorUEditor] Rendering', files.length, 'files');
     projectList.innerHTML = '';
     files.forEach(f => {
       const item = document.createElement('div');
@@ -249,7 +249,7 @@
   }
 
   async function loadFile(path) {
-    console.log('[BehaviacEditor] Loading file:', path);
+    console.log('[BehaviorUEditor] Loading file:', path);
     try {
       const resp = await fetch('/load', {
         method: 'POST',
@@ -257,7 +257,7 @@
         body: JSON.stringify({ path })
       });
       const data = await resp.json();
-      console.log('[BehaviacEditor] File loaded, importing XML...');
+      console.log('[BehaviorUEditor] File loaded, importing XML...');
       const g = activeGraph();
       importFromXML(data.content, g);
       g.sourcePath = data.path;
@@ -267,9 +267,9 @@
       undoStack.push(snapshot());
       updateStatus();
       projectOverlay.style.display = 'none';
-      console.log('[BehaviacEditor] Successfully loaded XML from:', data.path);
+      console.log('[BehaviorUEditor] Successfully loaded XML from:', data.path);
     } catch (e) {
-      console.error('[BehaviacEditor] Failed to load file:', e);
+      console.error('[BehaviorUEditor] Failed to load file:', e);
       alert('Failed to load file');
     }
   }

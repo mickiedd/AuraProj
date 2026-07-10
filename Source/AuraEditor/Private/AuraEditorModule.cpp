@@ -200,6 +200,7 @@ private:
 
 		MenuBuilder.BeginSection("AuraBlueprintToolsSection", LOCTEXT("AuraBlueprintToolsSectionLabel", "Blueprint Snapshot"));
 		MenuBuilder.AddMenuEntry(
+
 			LOCTEXT("ExportBlueprintSnapshotLabel", "Export Selected Blueprint to JSON"),
 			LOCTEXT("ExportBlueprintSnapshotTooltip", "Export the selected Blueprint into an LLM-readable JSON snapshot that also embeds the exact package bytes for full recovery."),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Save"),

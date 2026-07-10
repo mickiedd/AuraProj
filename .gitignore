@@ -54,3 +54,10 @@ Desktop.ini
 *.old
 *.dat
 /Scripts/__pycache__
+/Plugins/BehaviorU/BehaviorULauncher/WebView2UserData
+/Plugins/BehaviorU/BehaviorULauncher/packages
+/Plugins/BehaviorU/BehaviorULauncher/build
+/Plugins/BehaviorU/BehaviorULauncher/.vs
+/Plugins/BehaviorU/BehaviorULauncher/*.exe
+/Plugins/BehaviorU/BehaviorULauncher/*.pdb
+/Plugins/BehaviorU/BehaviorULauncher/*WebView2Loader.dll

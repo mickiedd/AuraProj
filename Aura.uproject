@@ -54,7 +54,7 @@
 			"Enabled": false
 		},
 		{
-			"Name": "BehaviacPlugin",
+			"Name": "BehaviorUPlugin",
 			"Enabled": true
 		}
 	]

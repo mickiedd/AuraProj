@@ -15,10 +15,10 @@ public class Aura : ModuleRules
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
 
-		// BehaviorU (Behaviac) plugin — drives the test behavior tree bound to AuraEnemy.
-		// AuraBehaviacAgentComponent.h is a public header that includes BehaviacAgent.h,
-		// so BehaviacRuntime must be a public dependency.
-		PublicDependencyModuleNames.Add("BehaviacRuntime");
+		// BehaviorU (BehaviorU) plugin — drives the test behavior tree bound to AuraEnemy.
+		// AuraBehaviacAgentComponent.h is a public header that includes BehaviorUAgent.h,
+		// so BehaviorURuntime must be a public dependency.
+		PublicDependencyModuleNames.Add("BehaviorURuntime");
 
 		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
 	}

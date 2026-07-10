@@ -62,7 +62,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Car|Components")
 	UStaticMeshComponent* GetWheelMeshRearRight() const { return WheelRearRight; }
 
-	/** Returns the Behaviac agent component (BT waypoint selection + blackboard). */
+	/** Returns the BehaviorU agent component (BT waypoint selection + blackboard). */
 	UFUNCTION(BlueprintPure, Category = "Car|AI")
 	UAuraCarAgentComponent* GetCarAgentComponent() const { return CarAgentComponent; }
 
@@ -106,7 +106,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Car|Appearance")
 	TObjectPtr<UStaticMesh> DefaultWheelRearRight;
 
-	/** BehaviorU (Behaviac) agent driving the autonomous car behavior tree (BT_AuraCarDrive.xml). */
+	/** BehaviorU (BehaviorU) agent driving the autonomous car behavior tree (BT_AuraCarDrive.xml). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Car|AI")
 	TObjectPtr<UAuraCarAgentComponent> CarAgentComponent;
 

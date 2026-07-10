@@ -1,6 +1,6 @@
-# BehaviorU — Behavior Tree Editor
+﻿# BehaviorU — Behavior Tree Editor
 
-A fully visual, browser-based Behavior Tree editor for the **BehaviacPlugin** UE5 plugin.
+A fully visual, browser-based Behavior Tree editor for the **BehaviorUPlugin** UE5 plugin.
 
 ## Quick Start
 
@@ -63,7 +63,7 @@ open /Volumes/M2/Works/BehaviorU/Editor/index.html
 1. Design your tree in the editor
 2. Click **Export XML** → **Download .xml**
 3. In UE5 Content Browser: right-click → **Import** → select the `.xml` file
-4. The plugin's `UBehaviacBehaviorTreeImportFactory` creates a `.uasset` automatically
+4. The plugin's `UBehaviorUBehaviorTreeImportFactory` creates a `.uasset` automatically
 
 ## XML Format
 
