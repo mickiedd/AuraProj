@@ -72,6 +72,24 @@ public:
 	UPROPERTY()
 	FString PendingCrossServerPlayerName;
 
+	/**
+	 * Resolved game-server endpoint captured by the GSM callback BEFORE it broadcasts
+	 * OnCrossServerTravelReady.  If the GSM resolves before the Loading level has finished
+	 * loading, ALoadingPlayerController::BeginPlay will not have bound to the delegate yet
+	 * and the broadcast goes to zero listeners; this cache lets BeginPlay consume the
+	 * result directly instead of depending on the broadcast ordering.
+	 */
+	UPROPERTY()
+	FString PendingCrossServerResolvedEndpoint;
+
+	/** Player name captured alongside PendingCrossServerResolvedEndpoint. */
+	UPROPERTY()
+	FString PendingCrossServerResolvedPlayerName;
+
+	/** True once the login-flow GSM callback has cached a resolved endpoint. */
+	UPROPERTY()
+	bool bCrossServerTravelReady = false;
+
 	/** Game Server Manager address and port, loaded from ServerConnection.json. */
 	UPROPERTY()
 	FString GameServerAddress = FString();
@@ -112,9 +130,15 @@ public:
 
 	bool HasPendingCrossServerTravel() const { return !PendingCrossServerPlayerName.IsEmpty(); }
 
+	/** True once the GSM callback has cached a resolved endpoint (ready to consume directly). */
+	bool HasResolvedCrossServerTravel() const { return bCrossServerTravelReady; }
+
 	void ClearPendingCrossServerTravel()
 	{
 		PendingCrossServerPlayerName.Empty();
+		PendingCrossServerResolvedEndpoint.Empty();
+		PendingCrossServerResolvedPlayerName.Empty();
+		bCrossServerTravelReady = false;
 		PendingGameServerClient = nullptr;
 	}
 

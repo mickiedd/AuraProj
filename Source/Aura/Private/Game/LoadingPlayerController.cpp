@@ -134,7 +134,28 @@ void ALoadingPlayerController::BeginPlay()
 		// the GSM query resolved and stored the player name in GI).
 		if (UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>())
 		{
-			if (GI->HasPendingCrossServerTravel())
+			// The GSM callback caches its result before broadcasting, so it may have
+			// already resolved by the time BeginPlay runs (the broadcast went to zero
+			// listeners because we had not bound yet).  Consume the cached endpoint
+			// directly instead of waiting on a broadcast that already happened.
+			if (GI->HasResolvedCrossServerTravel())
+			{
+				const FString Endpoint = GI->PendingCrossServerResolvedEndpoint;
+				const FString PlayerName = GI->PendingCrossServerResolvedPlayerName;
+				UE_LOG(LogTemp, Display, TEXT("[LoadingPC] BeginPlay: login-flow GSM already resolved (endpoint='%s' player='%s') — calling TravelToServer directly"),
+					*Endpoint, *PlayerName);
+				SetLoadingProgressTarget(88.f, FString::Printf(TEXT("Connecting to %s..."), *Endpoint));
+				GI->ClearPendingCrossServerTravel();
+				if (IsValid(ServerTravelComponent))
+				{
+					ServerTravelComponent->TravelToServer(Endpoint, PlayerName);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("[LoadingPC] BeginPlay: ServerTravelComponent is null — cannot complete cross-server travel"));
+				}
+			}
+			else if (GI->HasPendingCrossServerTravel())
 			{
 				UE_LOG(LogTemp, Display, TEXT("[LoadingPC] BeginPlay: login-flow GSM pending (player='%s') — binding to OnCrossServerTravelReady"),
 					*GI->PendingCrossServerPlayerName);
@@ -282,6 +303,9 @@ void ALoadingPlayerController::OnCrossServerTravelReady(const FString& Endpoint,
 
 	if (UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>())
 	{
+		// Consume the cached result so a stale endpoint cannot be replayed by a
+		// later LoadingPC BeginPlay (e.g. on a subsequent reconnect attempt).
+		GI->ClearPendingCrossServerTravel();
 		UnbindCrossServerDelegates(GI);
 	}
 

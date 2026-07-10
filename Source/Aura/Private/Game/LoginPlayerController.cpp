@@ -295,7 +295,16 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 				return;
 			}
 
-			ResolvedGI->PendingCrossServerPlayerName.Empty(); // mark as consumed before broadcast
+			// Cache the resolved endpoint BEFORE broadcasting.  If the GSM resolves before
+			// the Loading level has finished loading, ALoadingPlayerController::BeginPlay
+			// will not have bound to OnCrossServerTravelReady yet and the broadcast would go
+			// to zero listeners (the endpoint only existed as a lambda-local before, so it
+			// was lost).  The cache lets BeginPlay consume the result directly regardless of
+			// whether the callback wins or loses the race against BeginPlay.  The pending
+			// flag is cleared when the result is actually consumed (in LoadingPlayerController).
+			ResolvedGI->PendingCrossServerResolvedEndpoint = Endpoint;
+			ResolvedGI->PendingCrossServerResolvedPlayerName = ResolvedPlayerName;
+			ResolvedGI->bCrossServerTravelReady = true;
 			ResolvedGI->OnCrossServerTravelReady.Broadcast(Endpoint, ResolvedPlayerName);
 		}));
 }

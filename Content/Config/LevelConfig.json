@@ -6,8 +6,8 @@
       "displayName": "Scifi Desert Level",
       "mapPath": "/Game/Scifi_desert_city/Level/L_showcase_level",
       "groundAltitude": 0.0,
-      "port": 7783,
-      "queryPort": 27022,
+      "port": 7784,
+      "queryPort": 27023,
       "launchArgs": [
         "-game",
         "-server",
