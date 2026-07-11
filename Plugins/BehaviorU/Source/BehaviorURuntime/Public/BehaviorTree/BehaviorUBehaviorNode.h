@@ -1,4 +1,4 @@
-// BehaviorU UE5 Plugin
+﻿// BehaviorU UE5 Plugin
 // Licensed under the BSD 3-Clause License.
 
 #pragma once
@@ -15,7 +15,7 @@ class UBehaviorUAttachment;
 /**
  * Base class for all behavior tree nodes.
  * 
- * This mirrors the original behaviac BehaviorNode class, restructured
+ * This mirrors the original behavioru BehaviorNode class, restructured
  * as a UObject for UE5 integration. Each node is a template that defines
  * behavior; the actual runtime state is held in UBehaviorUBehaviorTask.
  */

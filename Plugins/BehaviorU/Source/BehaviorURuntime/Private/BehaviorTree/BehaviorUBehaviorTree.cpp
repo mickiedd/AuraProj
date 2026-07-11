@@ -1,4 +1,4 @@
-// BehaviorU UE5 Plugin
+﻿// BehaviorU UE5 Plugin
 // Licensed under the BSD 3-Clause License.
 
 #include "BehaviorTree/BehaviorUBehaviorTree.h"
@@ -91,7 +91,7 @@ static UBehaviorUBehaviorNode* ParseNodeFromXML(const FXmlNode* XmlNode, UObject
 		ClassName = XmlNode->GetTag();
 	}
 
-	// Strip namespace prefix (e.g., "behaviac::Selector" -> "Selector")
+	// Strip namespace prefix (e.g., "behavioru::Selector" -> "Selector")
 	int32 LastColonIdx;
 	if (ClassName.FindLastChar(TEXT(':'), LastColonIdx))
 	{

@@ -1,4 +1,4 @@
-// Copyright Druid Mechanics
+﻿// Copyright Druid Mechanics
 
 using UnrealBuildTool;
 
@@ -16,7 +16,7 @@ public class Aura : ModuleRules
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
 
 		// BehaviorU (BehaviorU) plugin — drives the test behavior tree bound to AuraEnemy.
-		// AuraBehaviacAgentComponent.h is a public header that includes BehaviorUAgent.h,
+		// AuraBehaviorUAgentComponent.h is a public header that includes BehaviorUAgent.h,
 		// so BehaviorURuntime must be a public dependency.
 		PublicDependencyModuleNames.Add("BehaviorURuntime");
 

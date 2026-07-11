@@ -11,7 +11,7 @@ function newGraph(name) {
 function activeGraph() { return graph; }
 
 // Exposed so runtime-debug.js can request a canvas repaint after it updates
-// window._behaviacDebugNodes (the runtime node-status map consumed by _drawNode).
+// window._behavioruDebugNodes (the runtime node-status map consumed by _drawNode).
 function markGraphDirty() { if (renderer) renderer.markDirty(); }
 
 // ── Renderer + subsystems ────────────────────────────────

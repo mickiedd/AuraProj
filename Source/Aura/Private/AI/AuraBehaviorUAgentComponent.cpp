@@ -1,6 +1,6 @@
-// Copyright Druid Mechanics
+﻿// Copyright Druid Mechanics
 
-#include "AI/AuraBehaviacAgentComponent.h"
+#include "AI/AuraBehaviorUAgentComponent.h"
 #include "Character/AuraEnemy.h"
 #include "AI/AuraAIController.h"
 #include "Aura/AuraLogChannels.h"  // LogAura
@@ -9,7 +9,7 @@
 #include "NavigationSystem.h"
 #include "NavigationData.h"
 
-UAuraBehaviacAgentComponent::UAuraBehaviacAgentComponent()
+UAuraBehaviorUAgentComponent::UAuraBehaviorUAgentComponent()
 {
 	// Default to the test tree shipped in Content/BehaviorTrees/.
 	// /Game/ resolves to <Project>/Content/ inside the plugin's path resolver.
@@ -18,7 +18,7 @@ UAuraBehaviacAgentComponent::UAuraBehaviacAgentComponent()
 	WanderRadius = 600.f;
 }
 
-void UAuraBehaviacAgentComponent::BeginPlay()
+void UAuraBehaviorUAgentComponent::BeginPlay()
 {
 	// Super::BeginPlay registers with the BehaviorU world subsystem and, because
 	// AutoLoadXMLFilePath is set, auto-loads the test tree. The tree is not ticked
@@ -61,7 +61,7 @@ void UAuraBehaviacAgentComponent::BeginPlay()
 		*GetNameSafe(GetOwner()), *AutoLoadXMLFilePath);
 }
 
-EBehaviorUStatus UAuraBehaviacAgentComponent::Method_PickWanderTarget()
+EBehaviorUStatus UAuraBehaviorUAgentComponent::Method_PickWanderTarget()
 {
 	AActor* Owner = GetOwner();
 	if (!Owner)
@@ -104,7 +104,7 @@ EBehaviorUStatus UAuraBehaviacAgentComponent::Method_PickWanderTarget()
 	return EBehaviorUStatus::Success;
 }
 
-EBehaviorUStatus UAuraBehaviacAgentComponent::Method_MoveToWanderTarget()
+EBehaviorUStatus UAuraBehaviorUAgentComponent::Method_MoveToWanderTarget()
 {
 	AAuraEnemy* Enemy = Cast<AAuraEnemy>(GetOwner());
 	if (!Enemy)
@@ -143,14 +143,14 @@ EBehaviorUStatus UAuraBehaviacAgentComponent::Method_MoveToWanderTarget()
 	return EBehaviorUStatus::Success;
 }
 
-EBehaviorUStatus UAuraBehaviacAgentComponent::Method_Rest()
+EBehaviorUStatus UAuraBehaviorUAgentComponent::Method_Rest()
 {
 	UE_LOG(LogAura, Log, TEXT("[BehaviorUTest] %s Resting (stamina will be restored by the tree)"),
 		*GetNameSafe(GetOwner()));
 	return EBehaviorUStatus::Success;
 }
 
-EBehaviorUStatus UAuraBehaviacAgentComponent::Method_LogState()
+EBehaviorUStatus UAuraBehaviorUAgentComponent::Method_LogState()
 {
 	// Throttle: only log every 5th patrol cycle to keep the output readable.
 	const int32 PatrolIndex = GetIntProperty(TEXT("PatrolIndex"));

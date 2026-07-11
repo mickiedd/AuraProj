@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
-  BT_TestEnemy.xml  —  Behaviac test behavior tree for the Aura NPC (AuraEnemy).
+  BT_TestEnemy.xml  —  BehaviorU test behavior tree for the Aura NPC (AuraEnemy).
 
-  NOTE: The BehaviorU plugin loads behavior trees from XML (the native behaviac
-  format), not JSON. The runtime parser (UBehaviacBehaviorTree::LoadFromXML) reads
+  NOTE: The BehaviorU plugin loads behavior trees from XML (the native behavioru
+  format), not JSON. The runtime parser (UBehaviorUBehaviorTree::LoadFromXML) reads
   <node class="..."> elements with <property name="..." value="..."/> children and
   <attachment class="..."> children. Method references in <Action> nodes call C++
-  handlers registered on UBehaviacAgentComponent via RegisterMethodHandler(); they
+  handlers registered on UBehaviorUAgentComponent via RegisterMethodHandler(); they
   are normalized automatically (Self.X() and bare X both resolve to "X").
 
   Tree summary (loops forever via DecoratorLoop Count=-1):
@@ -109,11 +109,11 @@
            Blackboard test branch.
            Exercises every supported blackboard property type and the
            Condition/Compute/Assignment operators so they can be observed in
-           the Output Log (LogState, prefixed [BehaviacTest]) and in the
-           Behaviac debug WebView's blackboard snapshot.
+           the Output Log (LogState, prefixed [BehaviorUTest]) and in the
+           BehaviorU debug WebView's blackboard snapshot.
 
            Blackboard properties used by this tree (seeded in
-           UAuraBehaviacAgentComponent::BeginPlay):
+           UAurabehavioruAgentComponent::BeginPlay):
              Energy        int    - stamina, drained each cycle, restored on rest
              bCanWander    bool   - gates the wander branch (Precondition)
              WanderTarget  vector - current wander destination

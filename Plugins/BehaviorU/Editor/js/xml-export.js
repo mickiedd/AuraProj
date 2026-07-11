@@ -1,4 +1,4 @@
-// xml-export.js — Serialize graph to behaviac-compatible XML
+﻿// xml-export.js — Serialize graph to behavioru-compatible XML
 // Wire format: <property name="Key" value="Val"/>  (matches plugin's ParseNodeFromXML)
 // NOTE: The editor's "__Root__" node is a visual-only wrapper.
 //       The plugin has no "Root" class — the first real child becomes the XML root node.

@@ -1,4 +1,4 @@
-// Copyright Druid Mechanics
+﻿// Copyright Druid Mechanics
 
 #pragma once
 
@@ -12,7 +12,7 @@
 class UWidgetComponent;
 class UBehaviorTree;
 class AAuraAIController;
-class UAuraBehaviacAgentComponent;
+class UAuraBehaviorUAgentComponent;
 /**
  * 
  */
@@ -72,7 +72,7 @@ protected:
 
 	/** BehaviorU (BehaviorU) agent driving the test behavior tree (BT_TestEnemy.xml). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI|BehaviorU")
-	TObjectPtr<UAuraBehaviacAgentComponent> BehaviorUAgentComponent;
+	TObjectPtr<UAuraBehaviorUAgentComponent> BehaviorUAgentComponent;
 
 	UPROPERTY()
 	TObjectPtr<AAuraAIController> AuraAIController;

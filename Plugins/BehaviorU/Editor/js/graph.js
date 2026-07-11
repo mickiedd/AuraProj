@@ -1,4 +1,4 @@
-// graph.js — Canvas rendering, pan/zoom, hit-testing, node/edge drawing
+﻿// graph.js — Canvas rendering, pan/zoom, hit-testing, node/edge drawing
 
 const NODE_W = 180;
 const NODE_H = 72;      // default; dynamic per node
@@ -115,12 +115,12 @@ class GraphRenderer {
     const col   = getCatColor(info.category);
     const sel   = selectedIds && selectedIds.has(n.id);
 
-    // Runtime debug status for this node, if any. window._behaviacDebugNodes is
+    // Runtime debug status for this node, if any. window._behavioruDebugNodes is
     // a Map<nodeId, "Running"|"Success"|"Failure"> populated by runtime-debug.js
     // from the live bb_snapshot frames sent by the BehaviorU debug server. The
     // node id matches because both editor graph nodes and runtime nodes derive
     // their id from the XML `id` attribute.
-    const dbgStatus = (window._behaviacDebugNodes && window._behaviacDebugNodes.get(n.id)) || null;
+    const dbgStatus = (window._behavioruDebugNodes && window._behavioruDebugNodes.get(n.id)) || null;
     const statusColor = dbgStatus === 'Running' ? '#ffb347'
                       : dbgStatus === 'Success'  ? '#4ec9b0'
                       : dbgStatus === 'Failure'  ? '#f44747'

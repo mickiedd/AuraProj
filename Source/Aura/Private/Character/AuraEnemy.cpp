@@ -1,4 +1,4 @@
-// Copyright Druid Mechanics
+﻿// Copyright Druid Mechanics
 
 
 #include "Character/AuraEnemy.h"
@@ -11,7 +11,7 @@
 #include "UI/Widget/AuraUserWidget.h"
 #include "AuraGameplayTags.h"
 #include "AI/AuraAIController.h"
-#include "AI/AuraBehaviacAgentComponent.h"
+#include "AI/AuraBehaviorUAgentComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -49,7 +49,7 @@ AAuraEnemy::AAuraEnemy()
 	// Bind the BehaviorU test behavior tree (BT_TestEnemy.xml). The component's
 	// constructor defaults AutoLoadXMLFilePath to the test tree, so simply
 	// instantiating it is enough — no per-enemy Blueprint wiring required.
-	BehaviorUAgentComponent = CreateDefaultSubobject<UAuraBehaviacAgentComponent>(TEXT("BehaviorUAgentComponent"));
+	BehaviorUAgentComponent = CreateDefaultSubobject<UAuraBehaviorUAgentComponent>(TEXT("BehaviorUAgentComponent"));
 }
 
 void AAuraEnemy::PossessedBy(AController* NewController)

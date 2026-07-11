@@ -1,4 +1,4 @@
-// BehaviorU UE5 Plugin
+﻿// BehaviorU UE5 Plugin
 // Licensed under the BSD 3-Clause License.
 
 #pragma once
@@ -65,7 +65,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBehaviorUMethodNameDelegate, const 
  * UBehaviorUAgentComponent: The central AI agent component for Unreal Engine 5.
  *
  * Attach this to any Actor to give it behavior tree / FSM / HTN capabilities.
- * This replaces the original behaviac Agent class, integrated as a UActorComponent.
+ * This replaces the original behavioru Agent class, integrated as a UActorComponent.
  *
  * Features:
  * - Load and execute behavior trees by asset path

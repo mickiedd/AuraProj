@@ -1,4 +1,4 @@
-// BehaviorU UE5 Plugin
+﻿// BehaviorU UE5 Plugin
 // Licensed under the BSD 3-Clause License.
 
 #include "BehaviorTree/Composites/BehaviorUComposites.h"
@@ -547,7 +547,7 @@ EBehaviorUStatus UBehaviorUSelectorProbabilityTask::OnUpdate(UBehaviorUAgentComp
 
 	// The selected child failed — fall back to trying the remaining children
 	// in order, so the SelectorProbability still makes progress instead of
-	// returning Failure immediately. This matches the original behaviac
+	// returning Failure immediately. This matches the original behavioru
 	// behaviour where a probability selector is still a selector.
 	for (int32 i = 0; i < ChildTasks.Num(); ++i)
 	{

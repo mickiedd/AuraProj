@@ -1,4 +1,4 @@
-// xml-import.js — Parse behaviac XML into graph nodes/edges
+﻿// xml-import.js — Parse behavioru XML into graph nodes/edges
 // Supports both formats:
 //   <property name="Key" value="Val"/>   ← plugin format
 //   <property Key="Val"/>                ← legacy attribute-per-key format
@@ -62,7 +62,7 @@ function importFromXML(xmlStr, graph) {
   /**
    * Normalize class names to editor type strings.
    * Handles:
-   *  - "behaviac::Selector" → "Selector"  (namespace strip)
+   *  - "behavioru::Selector" → "Selector"  (namespace strip)
    *  - "Root"               → "__Root__"  (plugin has no Root class)
    *  - "WaitForSignal"      → "WaitforSignal" (case fix)
    *  - "AlwaysFailure"      → "DecoratorAlwaysFailure" (prefix fix)

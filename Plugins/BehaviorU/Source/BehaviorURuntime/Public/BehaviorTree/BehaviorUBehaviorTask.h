@@ -1,4 +1,4 @@
-// BehaviorU UE5 Plugin
+﻿// BehaviorU UE5 Plugin
 // Licensed under the BSD 3-Clause License.
 
 #pragma once
@@ -14,7 +14,7 @@ class UBehaviorUAgentComponent;
 /**
  * Base class for behavior task instances (runtime state of a behavior node).
  *
- * Mirrors the original behaviac BehaviorTask. Each task holds the runtime
+ * Mirrors the original behavioru BehaviorTask. Each task holds the runtime
  * execution state for one node instance. The node definition is in
  * UBehaviorUBehaviorNode; the task is the live execution context.
  */

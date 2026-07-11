@@ -1,4 +1,4 @@
-// runtime-debug.js — WebSocket 运行时黑板调试面板
+﻿// runtime-debug.js — WebSocket 运行时黑板调试面板
 // 协议（Game → Editor）：
 //   { type:"bb_snapshot",   agent_id, agent_name, tree_name, tree_status,
 //     properties:{k:v,...}, object_properties:{k:name,...} }
@@ -475,14 +475,14 @@ class RuntimeDebugger {
 
     // ── 调试节点映射（供 graph.js 画布发光使用）────────────────────────────────
 
-    /** 将当前选中 agent 的节点状态同步到 window._behaviacDebugNodes
+    /** 将当前选中 agent 的节点状态同步到 window._behavioruDebugNodes
      *  graph.js 的 _drawNode() 通过该 Map 读取每个节点的运行时状态
      */
     _updateDebugNodeMap() {
-        if (!window._behaviacDebugNodes) {
-            window._behaviacDebugNodes = new Map();
+        if (!window._behavioruDebugNodes) {
+            window._behavioruDebugNodes = new Map();
         }
-        window._behaviacDebugNodes.clear();
+        window._behavioruDebugNodes.clear();
 
         // 无论下面是否写入状态，map 内容都可能已变化（被清空），
         // 因此任何退出路径都需要通知画布重绘以同步高亮。
@@ -510,7 +510,7 @@ class RuntimeDebugger {
 
         for (const n of data.nodes) {
             // n.id 与编辑器图节点 n.id 均来自 XML id 属性，可直接匹配
-            window._behaviacDebugNodes.set(n.id, String(n.status || 'Invalid'));
+            window._behavioruDebugNodes.set(n.id, String(n.status || 'Invalid'));
         }
         requestRepaint();
     }

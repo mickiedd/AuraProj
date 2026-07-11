@@ -1,15 +1,15 @@
-// Copyright Druid Mechanics
+﻿// Copyright Druid Mechanics
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "BehaviorUAgent.h"
-#include "AuraBehaviacAgentComponent.generated.h"
+#include "AuraBehaviorUAgentComponent.generated.h"
 
 class AAuraEnemy;
 
 /**
- * UAuraBehaviacAgentComponent
+ * UAuraBehaviorUAgentComponent
  *
  * Aura-specific subclass of the BehaviorU plugin's UBehaviorUAgentComponent.
  *
@@ -26,12 +26,12 @@ class AAuraEnemy;
  * tick), so they may safely touch the owning Actor and its AIController.
  */
 UCLASS(ClassGroup = (AI), meta = (BlueprintSpawnableComponent), DisplayName = "Aura BehaviorU Agent")
-class AURA_API UAuraBehaviacAgentComponent : public UBehaviorUAgentComponent
+class AURA_API UAuraBehaviorUAgentComponent : public UBehaviorUAgentComponent
 {
 	GENERATED_BODY()
 
 public:
-	UAuraBehaviacAgentComponent();
+	UAuraBehaviorUAgentComponent();
 
 	virtual void BeginPlay() override;
 

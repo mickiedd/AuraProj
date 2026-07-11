@@ -1,4 +1,4 @@
-// BehaviorU UE5 Plugin
+﻿// BehaviorU UE5 Plugin
 // Licensed under the BSD 3-Clause License.
 
 #include "BehaviorUAgent.h"
@@ -333,13 +333,13 @@ UObject* UBehaviorUAgentComponent::GetObjectProperty(const FString& PropertyName
 
 /**
  * Normalize a method name so that handler lookups and TypeScript broadcasts are
- * convention-independent. Native behaviac editor exports use the form
+ * convention-independent. Native behavioru editor exports use the form
  * "Self::Agent::PickWanderTarget()" or "Self.PickWanderTarget()"; hand-authored
  * trees (and the documented TypeScript bridge) use the bare "PickWanderTarget".
  *
  * Strips a leading "Self." / "Self::" prefix and a trailing "()"/"(...)" so that
  * all three forms resolve to the same handler key and the same OnMethodNameCalled
- * payload. Without this, a tree exported by the behaviac editor would silently fail
+ * payload. Without this, a tree exported by the behavioru editor would silently fail
  * to match a bare-name C++/TS handler (ExecuteMethod would fall through to
  * EBehaviorUStatus::Invalid and the Action would never produce its real result).
  */

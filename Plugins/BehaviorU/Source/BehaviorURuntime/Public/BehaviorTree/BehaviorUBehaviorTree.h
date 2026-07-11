@@ -1,4 +1,4 @@
-// BehaviorU UE5 Plugin
+﻿// BehaviorU UE5 Plugin
 // Licensed under the BSD 3-Clause License.
 
 #pragma once
@@ -14,7 +14,7 @@ class UBehaviorUBehaviorNode;
 /**
  * UBehaviorUBehaviorTree: Data asset representing a behavior tree definition.
  *
- * This is the UE5 equivalent of the original behaviac BehaviorTree class.
+ * This is the UE5 equivalent of the original behavioru BehaviorTree class.
  * It can be created in the editor or imported from XML/BSON files.
  */
 UCLASS(BlueprintType)

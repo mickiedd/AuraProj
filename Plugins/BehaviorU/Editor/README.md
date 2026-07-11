@@ -39,7 +39,7 @@ open /Volumes/M2/Works/BehaviorU/Editor/index.html
 - Press **F** to fit all nodes to the screen
 
 ### Import / Export
-- **Export XML** → generates behaviac-compatible XML (matches plugin's `LoadFromXML()`)
+- **Export XML** → generates behavioru-compatible XML (matches plugin's `LoadFromXML()`)
 - **Import XML** → paste XML or load a `.xml` file
 - **Download** saves the XML file
 

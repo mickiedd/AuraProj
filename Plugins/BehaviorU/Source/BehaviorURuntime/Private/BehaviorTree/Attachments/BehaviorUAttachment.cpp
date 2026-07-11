@@ -1,4 +1,4 @@
-// BehaviorU UE5 Plugin
+﻿// BehaviorU UE5 Plugin
 // Licensed under the BSD 3-Clause License.
 
 #include "BehaviorTree/Attachments/BehaviorUAttachment.h"
@@ -189,7 +189,7 @@ void UBehaviorUEffector::LoadFromProperties(int32 Version, const FString& AgentT
 	for (const FBehaviorUProperty& Prop : Properties)
 	{
 		// Accept both "PropertyName"/"Opl" and "PropertyValue"/"Opr" naming conventions
-		// so effectors exported by the behaviac editor (Opl/Opr) and hand-authored ones
+		// so effectors exported by the behavioru editor (Opl/Opr) and hand-authored ones
 		// (PropertyName/PropertyValue) both work.
 		if (Prop.Name == TEXT("PropertyName") || Prop.Name == TEXT("Opl"))
 		{

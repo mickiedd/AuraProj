@@ -61,22 +61,22 @@ BehaviorUAgent->LoadBehaviorTree(MyBehaviorTreeAsset);
 4. Implement **On Execute Method** to handle action calls
 5. The tree ticks automatically each frame (disable with `bAutoTick = false`)
 
-## Importing Existing behaviac Trees
+## Importing Existing behavioru Trees
 
 The plugin includes an XML import factory. In the Content Browser:
 1. Right-click > Import
-2. Select `.xml` behavior tree files exported from the behaviac designer
+2. Select `.xml` behavior tree files exported from the behavioru designer
 3. The importer creates `UBehaviorUBehaviorTree` assets automatically
 
 ## Architecture
 
 | Original (C++ standalone) | UE5 Plugin |
 |---------------------------|------------|
-| `behaviac::Agent` | `UBehaviorUAgentComponent` (UActorComponent) |
-| `behaviac::BehaviorTree` | `UBehaviorUBehaviorTree` (UDataAsset) |
-| `behaviac::BehaviorNode` | `UBehaviorUBehaviorNode` (UObject) |
-| `behaviac::BehaviorTask` | `UBehaviorUBehaviorTask` (UObject) |
-| `behaviac::Workspace` | Integrated into Agent + subsystem |
+| `behavioru::Agent` | `UBehaviorUAgentComponent` (UActorComponent) |
+| `behavioru::BehaviorTree` | `UBehaviorUBehaviorTree` (UDataAsset) |
+| `behavioru::BehaviorNode` | `UBehaviorUBehaviorNode` (UObject) |
+| `behavioru::BehaviorTask` | `UBehaviorUBehaviorTask` (UObject) |
+| `behavioru::Workspace` | Integrated into Agent + subsystem |
 | `std::vector` / `std::map` | `TArray` / `TMap` |
 | `std::string` | `FString` |
 | Custom memory allocator | `FMemory` (UE5 default) |
