@@ -20,6 +20,8 @@ class UCharacterMovementComponent;
  * State machine overview (matches the ABP state machine):
  *   Entry → Idle
  *   Idle  ↔ Running         (GroundSpeed / bShouldMove)
+ *   Idle  ↔ Crouch          (bIsCrouched – crouch takes priority over locomotion)
+ *     Crouch ↔ CrouchWalk   (bIsCrouchMoving – plays CrouchWalkForward)
  *   Idle  ↔ Cast_Shock_Loop (bIsBeingShocked)
  *   Idle  → Sit             (bIsMounted – character is riding the broom)
  *   Sit   → Idle            (!bIsMounted)
@@ -46,7 +48,8 @@ public:
 
 	/**
 	 * True when the character should be in a locomotion pose.
-	 * Equivalent to GroundSpeed > 0 AND not mounted AND not dead AND not stunned.
+	 * Equivalent to GroundSpeed > 0 AND not in air AND not crouched AND not
+	 * mounted AND not dead AND not stunned.
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bShouldMove = false;
@@ -54,6 +57,23 @@ public:
 	/** True while the character is airborne (in-air / jump). */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsInAir = false;
+
+	/**
+	 * True while the character is crouching (reads ACharacter::bIsCrouched).
+	 * Drives the Idle↔Crouch transition. Crouch is treated as a status state that
+	 * takes priority over locomotion, so bShouldMove is false while crouched.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	bool bIsCrouched = false;
+
+	/**
+	 * True while the character is crouching AND moving on the ground.
+	 * Drives the Crouch↔CrouchWalkForward transition inside the Crouch state.
+	 * Equivalent to bIsCrouched AND GroundSpeed > 0 AND not in air AND not dead
+	 * AND not stunned.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	bool bIsCrouchMoving = false;
 
 	// ── Broom ─────────────────────────────────────────────────────────────────
 

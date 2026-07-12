@@ -30,6 +30,7 @@ void UAuraCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	GroundSpeed = OwningCharacter->GetVelocity().Size2D();
 	bIsInAir    = OwningMovement->IsFalling();
+	bIsCrouched = OwningCharacter->bIsCrouched;
 
 	// ── Broom mount ──────────────────────────────────────────────────────────
 
@@ -45,9 +46,19 @@ void UAuraCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// ── Composite helper ─────────────────────────────────────────────────────
 
 	// Character should show locomotion only when freely moving on the ground.
+	// Crouch is a status state that takes priority over the Running blendspace.
 	bShouldMove = GroundSpeed > 0.f
 	           && !bIsInAir
+	           && !bIsCrouched
 	           && !bIsMounted
 	           && !bIsDead
 	           && !bIsStunned;
+
+	// Crouch-walk: crouched and actually moving on the ground. Drives the
+	// Crouch↔CrouchWalkForward transition inside the Crouch state.
+	bIsCrouchMoving = bIsCrouched
+	               && GroundSpeed > 0.f
+	               && !bIsInAir
+	               && !bIsDead
+	               && !bIsStunned;
 }
