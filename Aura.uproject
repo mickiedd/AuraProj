@@ -56,6 +56,10 @@
 		{
 			"Name": "BehaviorUPlugin",
 			"Enabled": true
+		},
+		{
+			"Name": "AuraAutoTestPlugin",
+			"Enabled": true
 		}
 	]
 }

@@ -9,6 +9,7 @@
 #include "BehaviorTree/Decorators/BehaviorUDecorators.h"
 #include "BehaviorTree/Attachments/BehaviorUAttachment.h"
 #include "FSM/BehaviorUFSM.h"
+#include "BehaviorUNodeRegistry.h"
 #include "Misc/FileHelper.h"
 #include "XmlFile.h"
 
@@ -24,6 +25,14 @@ static UBehaviorUBehaviorNode* ParseNodeFromXML(const FXmlNode* XmlNode, UObject
 /** Map a class name to a node UClass */
 static UBehaviorUBehaviorNode* CreateNodeByClassName(const FString& ClassName, UObject* Outer)
 {
+	// --- Extension hook: consult the external registry first so other modules can
+	//     register custom <node class="..."> types. Returns nullptr for unregistered
+	//     names, falling through to the built-in chain below (backward compatible).
+	if (UBehaviorUBehaviorNode* ExternalNode = FBehaviorUNodeRegistry::Get().Create(ClassName, Outer))
+	{
+		return ExternalNode;
+	}
+
 	// Composites
 	if (ClassName == TEXT("Selector"))			return NewObject<UBehaviorUSelector>(Outer);
 	if (ClassName == TEXT("Sequence"))			return NewObject<UBehaviorUSequence>(Outer);

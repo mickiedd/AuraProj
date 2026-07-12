@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AutoRunMap.xml — auto-run test that drives the local player pawn.
+
+  Behavior:
+    1. StartAutoRun — enables continuous forward movement (the agent's FTSTicker
+       applies AddMovementInput every game-thread frame using the controller yaw as
+       the forward direction, exactly like AAuraPlayerController::Move).
+    2. Loop 12 cycles. Each cycle:
+         - keep running ~0.7s,
+         - RandomJumpOrCrouch (50/50 ACharacter::Jump() or ACharacter::Crouch()),
+         - let it play ~0.4s,
+         - recover (StopJumping + UnCrouch — no-ops if not applicable),
+         - LogResult checkpoint.
+    3. StopAutoRun, log completion, Pass.
+
+  Requires a PIE session with a player pawn. The player-drive handlers operate on
+  the local player character directly (ACharacter API), bypassing Enhanced Input.
+-->
+<behavior version="3" agenttype="AutoTest">
+  <property name="name" value="AutoRunMap"/>
+  <property name="description" value="Auto-runs the player forward and randomly jumps or crouches."/>
+  <property name="timeout" value="30"/>
+  <property name="tags" value="autorun,player"/>
+
+  <node class="Sequence" id="1">
+
+    <!-- Begin continuous forward movement. -->
+    <node class="Action" id="2">
+      <property name="Method" value="StartAutoRun"/>
+      <property name="ResultOption" value="BT_SUCCESS"/>
+    </node>
+
+    <node class="LogResult" id="3">
+      <property name="Message" value="Auto-run started"/>
+      <property name="Passed" value="true"/>
+    </node>
+
+    <!-- Run for a fixed number of cycles, randomly jumping or crouching each cycle. -->
+    <node class="DecoratorLoop" id="4">
+      <property name="Count" value="12"/>
+
+      <node class="Sequence" id="5">
+
+        <!-- Keep running. -->
+        <node class="Wait" id="6">
+          <property name="Time" value="0.7"/>
+        </node>
+
+        <!-- Randomly jump or crouch (50/50). -->
+        <node class="Action" id="7">
+          <property name="Method" value="RandomJumpOrCrouch"/>
+          <property name="ResultOption" value="BT_SUCCESS"/>
+        </node>
+
+        <!-- Let the jump/crouch play out. -->
+        <node class="Wait" id="8">
+          <property name="Time" value="0.4"/>
+        </node>
+
+        <!-- Recover: stop jumping and stand up (no-ops if not currently jumping/crouching). -->
+        <node class="Action" id="9">
+          <property name="Method" value="StopJump"/>
+          <property name="ResultOption" value="BT_SUCCESS"/>
+        </node>
+        <node class="Action" id="10">
+          <property name="Method" value="UnCrouch"/>
+          <property name="ResultOption" value="BT_SUCCESS"/>
+        </node>
+
+        <!-- Brief checkpoint per cycle. -->
+        <node class="LogResult" id="11">
+          <property name="Message" value="completed an auto-run cycle"/>
+          <property name="Passed" value="true"/>
+        </node>
+
+      </node>
+    </node>
+
+    <!-- Stop continuous movement. -->
+    <node class="Action" id="12">
+      <property name="Method" value="StopAutoRun"/>
+      <property name="ResultOption" value="BT_SUCCESS"/>
+    </node>
+
+    <node class="LogResult" id="13">
+      <property name="Message" value="Auto-run complete"/>
+      <property name="Passed" value="true"/>
+    </node>
+
+    <!-- Terminate the test as Pass. -->
+    <node class="Pass" id="14"/>
+
+  </node>
+</behavior>

@@ -150,37 +150,65 @@ class BehaviorUHandler(SimpleHTTPRequestHandler):
         self.wfile.write(json.dumps(resp).encode('utf-8'))
 
     def _handle_list_xml(self):
-        """列出项目 Content 文件夹中所有 XML 文件（优化版）"""
+        """List every Behavior Tree XML reachable from the project — the project's own
+        Content/ folder PLUS every installed plugin's Content/ folder (e.g. BTs shipped
+        inside Plugins/<Plugin>/Content/AutoTests/). Stays fast via skip-dir pruning and
+        a depth cap; only Content trees are scanned (Source/Intermediate/Binaries ignored).
+        """
         xml_files = []
+        seen_paths = set()
+
+        # The server runs from Plugins/BehaviorU/Editor, so ../../.. is the project root.
         project_root = os.path.abspath(os.path.join(os.getcwd(), '..', '..', '..'))
-        content_folder = os.path.join(project_root, 'Content')
 
-        if not os.path.isdir(content_folder):
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'ok': True, 'files': []}).encode('utf-8'))
-            return
+        # Collect every Content root to scan: project Content + each plugin's Content.
+        content_roots = [os.path.join(project_root, 'Content')]
 
-        # 跳过的目录（大文件夹，不太可能包含行为树）
-        skip_dirs = {'Collections', 'Developers', 'Movies', 'Audio', 'Textures', 'Materials', 'Meshes', 'Models'}
+        plugins_dir = os.path.join(project_root, 'Plugins')
+        if os.path.isdir(plugins_dir):
+            for entry in os.listdir(plugins_dir):
+                plugin_path = os.path.join(plugins_dir, entry)
+                if not os.path.isdir(plugin_path):
+                    continue
+                # Plugins may live directly under Plugins/<Name>/ or nested under
+                # Plugins/<Group>/<Name>/ (e.g. Plugins/Developer/RiderLink). Pick up
+                # Content folders at either level.
+                direct_content = os.path.join(plugin_path, 'Content')
+                if os.path.isdir(direct_content):
+                    content_roots.append(direct_content)
+                for sub in os.listdir(plugin_path):
+                    sub_content = os.path.join(plugin_path, sub, 'Content')
+                    if os.path.isdir(sub_content):
+                        content_roots.append(sub_content)
+
+        # Directories that are large and never contain behavior trees — pruned in-place.
+        skip_dirs = {'Collections', 'Developers', 'Movies', 'Audio', 'Textures',
+                     'Materials', 'Meshes', 'Models', 'Internal', 'Binaries',
+                     'Intermediate', 'Generated', 'Saved', 'Config'}
         max_depth = 8
 
-        for root, dirs, files in os.walk(content_folder):
-            # 计算当前深度
-            depth = root[len(content_folder):].count(os.sep)
-            if depth >= max_depth:
-                dirs[:] = []  # 停止深入
+        for content_folder in content_roots:
+            if not os.path.isdir(content_folder):
                 continue
+            for root, dirs, files in os.walk(content_folder):
+                depth = root[len(content_folder):].count(os.sep)
+                if depth >= max_depth:
+                    dirs[:] = []
+                    continue
+                dirs[:] = [d for d in dirs if d not in skip_dirs and not d.startswith('.')]
 
-            # 原地修改 dirs 列表来跳过不需要的目录
-            dirs[:] = [d for d in dirs if d not in skip_dirs and not d.startswith('.')]
-
-            for f in files:
-                if f.endswith('.xml'):
-                    full_path = os.path.join(root, f)
+                for f in files:
+                    if not f.lower().endswith('.xml'):
+                        continue
+                    full_path = os.path.abspath(os.path.join(root, f))
+                    if full_path in seen_paths:
+                        continue
+                    seen_paths.add(full_path)
                     rel_path = os.path.relpath(full_path, project_root)
                     xml_files.append({'path': full_path, 'name': rel_path})
+
+        # Stable, readable ordering by relative path.
+        xml_files.sort(key=lambda item: item['name'].lower())
 
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')

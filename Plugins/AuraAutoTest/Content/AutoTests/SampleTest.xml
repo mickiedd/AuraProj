@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SampleTest.xml — AuraAutoTest sample exercising every custom test node.
+
+  Pure-blackboard assertions make this test deterministic and project-agnostic:
+  it always passes in PIE without depending on any project-specific content.
+
+  Flow:
+    1. Seed blackboard: bReady=true; Counter=Counter+1 (Counter starts empty -> 1).
+    2. WaitForProperty: Self.bReady == true (passes immediately).
+    3. Assert: Self.Counter == 1 (numeric equality).
+    4. Expect: Self.bReady == true (soft, non-fatal check).
+    5. SpawnActor: engine PointLight at origin -> Self.SpawnedLight (game-thread spawn
+       via the agent's "SpawnActor" method handler).
+    6. Wait 0.05s so the spawn command result is available next frame.
+    7. LogResult checkpoint.
+    8. Pass — marks the test terminal Pass.
+-->
+<behavior version="3" agenttype="AutoTest">
+  <property name="name" value="SampleTest"/>
+  <property name="description" value="Exercises Assert/Expect/WaitForProperty/SpawnActor/LogResult/Pass."/>
+  <property name="timeout" value="10"/>
+  <property name="tags" value="smoke,sample"/>
+
+  <node class="Sequence" id="1">
+
+    <!-- Seed a bool flag and increment a counter. -->
+    <node class="Assignment" id="2">
+      <property name="Opl" value="Self.bReady"/>
+      <property name="Opr" value="true"/>
+    </node>
+    <node class="Compute" id="3">
+      <property name="Opl" value="Self.Counter"/>
+      <property name="Opr1" value="Self.Counter"/>
+      <property name="Opr2" value="1"/>
+      <property name="Operator" value="Add"/>
+    </node>
+
+    <!-- Wait for the flag we just set (condition holds immediately). -->
+    <node class="WaitForProperty" id="4">
+      <property name="Key" value="Self.bReady"/>
+      <property name="Op" value="Equals"/>
+      <property name="Value" value="true"/>
+      <property name="Timeout" value="2.0"/>
+      <property name="FailOnTimeout" value="true"/>
+      <property name="Message" value="bReady should be true"/>
+    </node>
+
+    <!-- Hard assertion on the computed counter. -->
+    <node class="Assert" id="5">
+      <property name="Key" value="Self.Counter"/>
+      <property name="Op" value="Equals"/>
+      <property name="Value" value="1"/>
+      <property name="Message" value="Counter should equal 1 after first increment"/>
+    </node>
+
+    <!-- Soft expectation (non-fatal). -->
+    <node class="Expect" id="6">
+      <property name="Key" value="Self.bReady"/>
+      <property name="Op" value="Equals"/>
+      <property name="Value" value="true"/>
+      <property name="Message" value="bReady expected true (soft)"/>
+      <property name="Fatal" value="false"/>
+    </node>
+
+    <!-- Spawn an engine PointLight on the game thread, stored into Self.SpawnedLight. -->
+    <node class="SpawnActor" id="7">
+      <property name="Class" value="/Script/Engine.PointLight"/>
+      <property name="Location" value=""/>
+      <property name="OutputKey" value="SpawnedLight"/>
+    </node>
+
+    <!-- Let the spawn command complete (1-frame command-queue latency). -->
+    <node class="Wait" id="8">
+      <property name="Time" value="0.05"/>
+    </node>
+
+    <!-- Record a checkpoint. -->
+    <node class="LogResult" id="9">
+      <property name="Message" value="Reached end of sample test"/>
+      <property name="Passed" value="true"/>
+    </node>
+
+    <!-- Terminate the test as Pass. -->
+    <node class="Pass" id="10"/>
+
+  </node>
+</behavior>
