@@ -7,6 +7,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
 #include "EnhancedInputSubsystems.h"
+#include "EngineUtils.h"
+#include "GameFramework/Controller.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
 #include "NiagaraFunctionLibrary.h"
@@ -244,6 +246,85 @@ void AAuraPlayerController::FullAbilities()
 	}
 
 	ServerFullAbilities();
+}
+
+void AAuraPlayerController::RequestTransferToRandomPlayer()
+{
+	UE_LOG(LogAura, Log, TEXT("TransferToRandomPlayer invoked on %s. HasAuthority=%s Pawn=%s"),
+		*GetNameSafe(this),
+		HasAuthority() ? TEXT("true") : TEXT("false"),
+		*GetNameSafe(GetPawn()));
+
+	if (HasAuthority())
+	{
+		ExecuteTransferToRandomPlayer();
+		return;
+	}
+
+	ServerTransferToRandomPlayer();
+}
+
+void AAuraPlayerController::ServerTransferToRandomPlayer_Implementation()
+{
+	ExecuteTransferToRandomPlayer();
+}
+
+void AAuraPlayerController::ExecuteTransferToRandomPlayer()
+{
+	APawn* MyPawn = GetPawn();
+	if (!MyPawn)
+	{
+		UE_LOG(LogAura, Warning, TEXT("TransferToRandomPlayer: no controlled pawn for %s."), *GetNameSafe(this));
+		ClientMessage(TEXT("TransferToRandomPlayer: no local pawn to move."));
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	// Run on the server so every player pawn is a candidate: a far-away player's
+	// pawn may be net-culled on the invoking client and not even exist there, but
+	// the authoritative world still has it. Filter to pawns whose controller owns a
+	// live NetConnection (real remote players), excluding our own pawn.
+	TArray<APawn*> Candidates;
+	for (TActorIterator<APawn> It(World); It; ++It)
+	{
+		APawn* CandidatePawn = *It;
+		if (!CandidatePawn || CandidatePawn == MyPawn)
+		{
+			continue;
+		}
+
+		AController* CandidateController = CandidatePawn->GetController();
+		if (!CandidateController || !CandidateController->GetNetConnection())
+		{
+			continue;
+		}
+
+		Candidates.Add(CandidatePawn);
+	}
+
+	if (Candidates.IsEmpty())
+	{
+		UE_LOG(LogAura, Log, TEXT("TransferToRandomPlayer: no other connected player pawns found."));
+		ClientMessage(TEXT("TransferToRandomPlayer: no other connected players to teleport to."));
+		return;
+	}
+
+	APawn* TargetPawn = Candidates[FMath::RandRange(0, Candidates.Num() - 1)];
+	const FVector TargetLocation = TargetPawn->GetActorLocation();
+	const FRotator TargetRotation = TargetPawn->GetActorRotation();
+
+	// Teleport (no sweep) so we don't collide-slide on arrival; bNoCheck=true
+	// resets velocity/kinematics cleanly at the destination.
+	MyPawn->TeleportTo(TargetLocation, TargetRotation, /*bIsTest=*/false, /*bNoCheck=*/true);
+
+	UE_LOG(LogAura, Log, TEXT("TransferToRandomPlayer: moved %s -> %s (loc=%s)."),
+		*MyPawn->GetName(), *TargetPawn->GetName(), *TargetLocation.ToString());
+	ClientMessage(FString::Printf(TEXT("TransferToRandomPlayer: teleported to %s."), *TargetPawn->GetName()));
 }
 
 void AAuraPlayerController::ShowLocation()

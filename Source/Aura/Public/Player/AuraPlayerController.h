@@ -50,6 +50,14 @@ public:
 	UFUNCTION(Exec)
 	void ShowLocation();
 
+	/**
+	 * Teleport the controlled pawn to a randomly chosen other player's pawn.
+	 * Runs server-side so every player is a candidate regardless of client-side
+	 * net-relevancy culling; safe to call from either client or authority (it
+	 * routes through a server RPC when invoked on a non-authoritative controller).
+	 */
+	void RequestTransferToRandomPlayer();
+
 	// ---- UGC Building Exec Commands ----------------------------------------
 
 	/**
@@ -90,10 +98,16 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerFullAbilities();
 
+	UFUNCTION(Server, Reliable)
+	void ServerTransferToRandomPlayer();
+
 	UFUNCTION(Client, Reliable)
 	void ClientRefreshAbilityUI();
 
 	void ExecuteFullAbilities();
+
+	/** Server-authoritative implementation of RequestTransferToRandomPlayer. */
+	void ExecuteTransferToRandomPlayer();
 private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputMappingContext> AuraContext;

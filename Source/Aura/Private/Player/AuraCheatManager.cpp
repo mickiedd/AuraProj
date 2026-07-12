@@ -217,6 +217,22 @@ void UAuraCheatManager::AddSpellPoints(int32 InPoints)
 	UE_LOG(LogAura, Warning, TEXT("AuraCheatManager::AddSpellPoints: no AuraPlayerState."));
 }
 
+void UAuraCheatManager::TransferToRandomPlayer()
+{
+	AAuraPlayerController* PC = GetAuraPC();
+	if (!PC)
+	{
+		UE_LOG(LogAura, Warning, TEXT("AuraCheatManager::TransferToRandomPlayer: no owning PlayerController."));
+		return;
+	}
+
+	// The actual selection + teleport runs on the server (authority) so every
+	// player pawn is a candidate regardless of client-side net-relevancy culling,
+	// and the move replicates. RequestTransferToRandomPlayer handles the
+	// HasAuthority() short-circuit / server-RPC routing.
+	PC->RequestTransferToRandomPlayer();
+}
+
 void UAuraCheatManager::DumpAttributes()
 {
 	const UAuraAttributeSet* AS = GetAuraAS();

@@ -9,6 +9,8 @@
 #include "HAL/PlatformProcess.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Dom/JsonObject.h"
@@ -59,6 +61,7 @@ void ALoginPlayerController::BeginPlay()
 		}
 		EnsureLoginScreenWidget();
 		SurfacePendingServerLostMessage();
+		TryAutoLoginFromCommandLine();
 	}
 
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: manual connect mode ready (Local=%d)"),
@@ -533,16 +536,33 @@ bool ALoginPlayerController::LoadServerConnectionFromJson()
 FString ALoginPlayerController::ResolvePlayerName() const
 {
 	FString PlayerName;
-	if (const UAuraGameInstance* GI = Cast<UAuraGameInstance>(GetGameInstance()))
+
+	// Command-line override first. The -nullrhi auto-login launcher passes
+	// -AutoLoginPlayerName=<unique> so every launched client connects as a distinct
+	// player (its own pawn on the dedicated server) instead of sharing the OS username.
+	FString CommandLineName;
+	if (FParse::Value(FCommandLine::Get(), TEXT("AutoLoginPlayerName="), CommandLineName))
 	{
-		if (!GI->LoadSlotName.IsEmpty() &&
-			UGameplayStatics::DoesSaveGameExist(GI->LoadSlotName, GI->LoadSlotIndex))
+		CommandLineName.TrimStartAndEndInline();
+		if (!CommandLineName.IsEmpty())
 		{
-			if (USaveGame* SaveObject = UGameplayStatics::LoadGameFromSlot(GI->LoadSlotName, GI->LoadSlotIndex))
+			PlayerName = CommandLineName;
+		}
+	}
+
+	if (PlayerName.IsEmpty())
+	{
+		if (const UAuraGameInstance* GI = Cast<UAuraGameInstance>(GetGameInstance()))
+		{
+			if (!GI->LoadSlotName.IsEmpty() &&
+				UGameplayStatics::DoesSaveGameExist(GI->LoadSlotName, GI->LoadSlotIndex))
 			{
-				if (const ULoadScreenSaveGame* LoadScreenSaveGame = Cast<ULoadScreenSaveGame>(SaveObject))
+				if (USaveGame* SaveObject = UGameplayStatics::LoadGameFromSlot(GI->LoadSlotName, GI->LoadSlotIndex))
 				{
-					PlayerName = LoadScreenSaveGame->PlayerName;
+					if (const ULoadScreenSaveGame* LoadScreenSaveGame = Cast<ULoadScreenSaveGame>(SaveObject))
+					{
+						PlayerName = LoadScreenSaveGame->PlayerName;
+					}
 				}
 			}
 		}
@@ -607,4 +627,218 @@ void ALoginPlayerController::UpdateConnectingStatus(const FString& InMessage) co
 			GEngine->AddOnScreenDebugMessage(MessageKey, 6.0f, FColor::Yellow, InMessage);
 		}
 	}
+}
+
+void ALoginPlayerController::TryAutoLoginFromCommandLine()
+{
+	// Only the local player controller on the Login map drives a connection, and only once.
+	if (!IsLocalPlayerController() || bAutoLoginDispatched)
+	{
+		return;
+	}
+
+	const TCHAR* const CmdLine = FCommandLine::Get();
+
+	FString RequestedLevelId;
+	if (!FParse::Value(CmdLine, TEXT("AutoLoginLevel="), RequestedLevelId))
+	{
+		// No auto-login requested — the normal WBP_LoginMenu flow is fully in charge.
+		return;
+	}
+
+	RequestedLevelId.TrimStartAndEndInline();
+	if (RequestedLevelId.IsEmpty())
+	{
+		return;
+	}
+
+	bAutoLoginDispatched = true;
+
+	// Optional command-line overrides, applied after LoadServerConnectionFromJson() so they win.
+	FString OverrideHost;
+	if (FParse::Value(CmdLine, TEXT("AutoLoginHost="), OverrideHost))
+	{
+		OverrideHost.TrimStartAndEndInline();
+		if (!OverrideHost.IsEmpty())
+		{
+			ServerAddress = OverrideHost;
+			GameServerAddress = OverrideHost;
+			if (UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>())
+			{
+				GI->GameServerAddress = OverrideHost;
+			}
+		}
+	}
+
+	int32 OverrideGSMPort = 0;
+	if (FParse::Value(CmdLine, TEXT("AutoLoginGSMPort="), OverrideGSMPort) && OverrideGSMPort >= 1 && OverrideGSMPort <= 65535)
+	{
+		GameServerPort = OverrideGSMPort;
+		if (UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>())
+		{
+			GI->GameServerPort = OverrideGSMPort;
+		}
+	}
+
+	int32 OverrideFallbackPort = 0;
+	FParse::Value(CmdLine, TEXT("AutoLoginPort="), OverrideFallbackPort);
+
+	float AutoLoginDelay = 0.5f;
+	FString DelayString;
+	if (FParse::Value(CmdLine, TEXT("AutoLoginDelay="), DelayString) && !DelayString.IsEmpty())
+	{
+		LexTryParseString(AutoLoginDelay, *DelayString);
+		if (AutoLoginDelay < 0.0f)
+		{
+			AutoLoginDelay = 0.0f;
+		}
+	}
+
+	// Resolve the level from LevelConfig.json the same way the menu does.
+	FString DisplayName;
+	FString MapPath;
+	int32 LevelConfigPort = 0;
+	if (!LoadLevelConfigTarget(RequestedLevelId, DisplayName, MapPath, LevelConfigPort))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] AutoLogin: level '%s' not found in LevelConfig.json; falling back to menu"), *RequestedLevelId);
+		return;
+	}
+
+	const int32 FallbackPort = (OverrideFallbackPort >= 1 && OverrideFallbackPort <= 65535) ? OverrideFallbackPort : LevelConfigPort;
+
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] AutoLogin: level '%s' -> displayName='%s' map='%s' fallbackPort=%d (delay=%.2fs)"),
+		*RequestedLevelId, *DisplayName, *MapPath, FallbackPort, AutoLoginDelay);
+
+	// Replay the exact menu sequence: register the selection now, then connect after a short
+	// delay so the world/widget are settled before ClientTravel fires to the Loading level.
+	HandleLoginMenuSelectionChanged(DisplayName, RequestedLevelId, FallbackPort);
+
+	if (UWorld* World = GetWorld())
+	{
+		FTimerHandle AutoLoginTimer;
+		FTimerDelegate AutoLoginDelegate;
+		AutoLoginDelegate.BindWeakLambda(this,
+			[this, DisplayName, RequestedLevelId, FallbackPort]()
+			{
+				RequestLoginMenuConnect(DisplayName, RequestedLevelId, FallbackPort);
+			});
+		World->GetTimerManager().SetTimer(AutoLoginTimer, AutoLoginDelegate, AutoLoginDelay, false);
+	}
+	else
+	{
+		RequestLoginMenuConnect(DisplayName, RequestedLevelId, FallbackPort);
+	}
+}
+
+bool ALoginPlayerController::LoadLevelConfigTarget(const FString& LevelId, FString& OutDisplayName, FString& OutMapPath, int32& OutPort)
+{
+	OutDisplayName.Reset();
+	OutMapPath.Reset();
+	OutPort = 0;
+
+	if (LevelId.IsEmpty())
+	{
+		return false;
+	}
+
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("LevelConfig.json"));
+	FString JsonContent;
+	if (!FPaths::FileExists(ConfigPath) || !FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] AutoLogin: failed to read LevelConfig.json: %s"), *ConfigPath);
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> RootObject;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] AutoLogin: failed to parse LevelConfig.json: %s"), *ConfigPath);
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* LevelsArray = nullptr;
+	if (!RootObject->TryGetArrayField(TEXT("levels"), LevelsArray) || LevelsArray == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] AutoLogin: LevelConfig.json has no 'levels' array: %s"), *ConfigPath);
+		return false;
+	}
+
+	FString MatchedById;
+	FString MatchedByDisplayName;
+	FString MatchedByMapPath;
+
+	for (const TSharedPtr<FJsonValue>& LevelValue : *LevelsArray)
+	{
+		const TSharedPtr<FJsonObject>* LevelObject = nullptr;
+		if (!LevelValue.IsValid() || !LevelValue->TryGetObject(LevelObject) || LevelObject == nullptr || !LevelObject->IsValid())
+		{
+			continue;
+		}
+
+		FString EntryDisplayName;
+		FString EntryId;
+		FString EntryMapPath;
+		if (!(*LevelObject)->TryGetStringField(TEXT("displayName"), EntryDisplayName) || EntryDisplayName.IsEmpty())
+		{
+			continue;
+		}
+
+		(*LevelObject)->TryGetStringField(TEXT("id"), EntryId);
+		(*LevelObject)->TryGetStringField(TEXT("mapPath"), EntryMapPath);
+
+		double PortValue = 0.0;
+		int32 EntryPort = 0;
+		if ((*LevelObject)->TryGetNumberField(TEXT("port"), PortValue))
+		{
+			EntryPort = static_cast<int32>(PortValue);
+		}
+
+		if (!EntryId.IsEmpty() && EntryId.Equals(LevelId, ESearchCase::IgnoreCase))
+		{
+			OutDisplayName = EntryDisplayName;
+			OutMapPath = EntryMapPath;
+			OutPort = EntryPort;
+			MatchedById = EntryId;
+			break;
+		}
+
+		// Tolerant fallbacks for usability; the primary match is by id.
+		if (MatchedByDisplayName.IsEmpty() && EntryDisplayName.Equals(LevelId, ESearchCase::IgnoreCase))
+		{
+			MatchedByDisplayName = EntryDisplayName;
+			OutDisplayName = EntryDisplayName;
+			OutMapPath = EntryMapPath;
+			OutPort = EntryPort;
+		}
+		else if (MatchedByDisplayName.IsEmpty() && MatchedByMapPath.IsEmpty() &&
+				 !EntryMapPath.IsEmpty() && EntryMapPath.Equals(LevelId, ESearchCase::IgnoreCase))
+		{
+			MatchedByMapPath = EntryMapPath;
+			OutDisplayName = EntryDisplayName;
+			OutMapPath = EntryMapPath;
+			OutPort = EntryPort;
+		}
+	}
+
+	if (!MatchedById.IsEmpty())
+	{
+		UE_LOG(LogTemp, Display, TEXT("[LoginConn] AutoLogin: matched LevelConfig entry by id='%s'"), *MatchedById);
+		return OutPort >= 1 && OutPort <= 65535;
+	}
+
+	if (!MatchedByDisplayName.IsEmpty())
+	{
+		UE_LOG(LogTemp, Display, TEXT("[LoginConn] AutoLogin: matched LevelConfig entry by displayName='%s'"), *MatchedByDisplayName);
+		return OutPort >= 1 && OutPort <= 65535;
+	}
+
+	if (!MatchedByMapPath.IsEmpty())
+	{
+		UE_LOG(LogTemp, Display, TEXT("[LoginConn] AutoLogin: matched LevelConfig entry by mapPath='%s'"), *MatchedByMapPath);
+		return OutPort >= 1 && OutPort <= 65535;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[LoginConn] AutoLogin: no LevelConfig entry matched '%s'"), *LevelId);
+	return false;
 }

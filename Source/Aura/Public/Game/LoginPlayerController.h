@@ -128,9 +128,28 @@ protected:
 	FString BuildConnectingStatusMessage() const;
 
 	/**
+	 * Headless / scripted launch path.  When -AutoLoginLevel=<levelId> is on the command line
+	 * (e.g. from RunClientNullRHI.bat in -nullrhi mode), this replays the exact menu sequence —
+	 * HandleLoginMenuSelectionChanged then a delayed RequestLoginMenuConnect — so the client
+	 * drives the full Login -> Loading -> cross-server travel -> battleground flow without a
+	 * human clicking WBP_LoginMenu.  Inert when the flag is absent: the normal menu flow is
+	 * unchanged.
+	 */
+	void TryAutoLoginFromCommandLine();
+
+	/** Looks up a level by id (case-insensitive) in Content/Config/LevelConfig.json, with a
+	 *  tolerant fallback on displayName / mapPath.  Returns the entry's display name, map path
+	 *  and fallback port.  Used by TryAutoLoginFromCommandLine to mirror the menu's selection. */
+	bool LoadLevelConfigTarget(const FString& LevelId, FString& OutDisplayName, FString& OutMapPath, int32& OutPort);
+
+	/**
 	 * Flag to ensure we only attempt connection once.
 	 */
 	bool bConnectionAttempted = false;
+
+	/** One-shot guard so the command-line auto-login path only fires once
+	 *  (BeginPlay + OnPossess can both run on the Login map). */
+	bool bAutoLoginDispatched = false;
 
 	/** True while a Game Server Manager TCP query is in flight. */
 	bool bQueryingGameServer = false;

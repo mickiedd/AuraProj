@@ -150,7 +150,7 @@ private:
 
 				const FText Label = LOCTEXT("StartDedicatedServerNoLevelsLabel", "No dedicated server levels available");
 				const FText Tooltip = bLoadedDedicatedServerLaunchLevels
-					? LOCTEXT("StartDedicatedServerNoLevelsTooltip", "Add level entries to Config/LevelConfig.json and reopen the menu.")
+					? LOCTEXT("StartDedicatedServerNoLevelsTooltip", "Add level entries to Content/Config/LevelConfig.json and reopen the menu.")
 					: DedicatedServerLaunchError;
 				AddDisabledMenuEntry(SubMenuBuilder, Label, Tooltip);
 			}),
@@ -161,7 +161,7 @@ private:
 		{
 			MenuBuilder.AddMenuEntry(
 				LOCTEXT("LaunchAllDedicatedServersLabel", "Launch All Dedicated Servers"),
-				LOCTEXT("LaunchAllDedicatedServersTooltip", "Launch every dedicated server level listed in Config/LevelConfig.json."),
+				LOCTEXT("LaunchAllDedicatedServersTooltip", "Launch every dedicated server level listed in Content/Config/LevelConfig.json."),
 				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
 				FUIAction(FExecuteAction::CreateLambda([this, DedicatedServerLaunchLevels]()
 				{
@@ -171,13 +171,37 @@ private:
 		else
 		{
 			const FText DisabledTooltip = bLoadedDedicatedServerLaunchLevels
-				? LOCTEXT("LaunchAllDedicatedServersNoLevelsTooltip", "Add level entries to Config/LevelConfig.json and reopen the menu.")
+				? LOCTEXT("LaunchAllDedicatedServersNoLevelsTooltip", "Add level entries to Content/Config/LevelConfig.json and reopen the menu.")
 				: DedicatedServerLaunchError;
 			AddDisabledMenuEntry(
 				MenuBuilder,
 				LOCTEXT("LaunchAllDedicatedServersLabel", "Launch All Dedicated Servers"),
 				DisabledTooltip);
 		}
+
+		MenuBuilder.AddSubMenu(
+			LOCTEXT("LaunchNullRhiClientLabel", "Launch NullRHI Client (Headless)"),
+			bLoadedDedicatedServerLaunchLevels
+				? LOCTEXT("LaunchNullRhiClientTooltip", "Launch the Aura game client in headless -nullrhi editor -game mode and auto-drive the Login -> battleground flow for the selected level (passes -AutoLoginLevel=<id>).\n\nStart the Game Server Manager and a dedicated server for the level first; the client writes to Saved/Logs/Aura.log.")
+				: FText::Format(
+					LOCTEXT("LaunchNullRhiClientConfigFailureTooltip", "Could not load the configured levels for the NullRHI client.\n\n{0}"),
+					DedicatedServerLaunchError),
+			FNewMenuDelegate::CreateLambda([this, DedicatedServerLaunchLevels = DedicatedServerLaunchLevels, bLoadedDedicatedServerLaunchLevels, DedicatedServerLaunchError](FMenuBuilder& SubMenuBuilder)
+			{
+				if (bLoadedDedicatedServerLaunchLevels && !DedicatedServerLaunchLevels.IsEmpty())
+				{
+					BuildNullRhiClientLevelMenu(SubMenuBuilder, DedicatedServerLaunchLevels);
+					return;
+				}
+
+				const FText Label = LOCTEXT("LaunchNullRhiClientNoLevelsLabel", "No levels available");
+				const FText Tooltip = bLoadedDedicatedServerLaunchLevels
+					? LOCTEXT("LaunchNullRhiClientNoLevelsTooltip", "Add level entries to Content/Config/LevelConfig.json and reopen the menu.")
+					: DedicatedServerLaunchError;
+				AddDisabledMenuEntry(SubMenuBuilder, Label, Tooltip);
+			}),
+			false,
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"));
 
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("StopAllDedicatedServersLabel", "Stop All Dedicated Servers"),
@@ -433,6 +457,7 @@ private:
 
 	struct FDedicatedServerLaunchLevel
 	{
+		FString Id;
 		FString DisplayName;
 		FString MapPath;
 		TArray<FString> LaunchArgs;
@@ -442,7 +467,9 @@ private:
 
 	FString GetDedicatedServerLevelConfigPath() const
 	{
-		return FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Config/LevelConfig.json"));
+		// LevelConfig.json lives under Content/Config (same path the runtime
+		// LoginMenuWidget/LoginPlayerController read), not the engine Config/ folder.
+		return FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() / TEXT("Config/LevelConfig.json"));
 	}
 
 	void AddDisabledMenuEntry(FMenuBuilder& MenuBuilder, const FText& Label, const FText& Tooltip) const
@@ -474,6 +501,67 @@ private:
 					LaunchDedicatedServerLevel(LaunchLevel);
 				})));
 		}
+	}
+
+	void BuildNullRhiClientLevelMenu(FMenuBuilder& MenuBuilder, const TArray<FDedicatedServerLaunchLevel>& LaunchLevels) const
+	{
+		for (const FDedicatedServerLaunchLevel& LaunchLevel : LaunchLevels)
+		{
+			// RunClientNullRHI.bat takes the levelId as its positional argument; fall back to
+			// mapPath (no spaces) when an entry lacks an explicit id. The runtime auto-login
+			// hook matches id first, then displayName, then mapPath.
+			const FString LevelIdForLaunch = !LaunchLevel.Id.IsEmpty() ? LaunchLevel.Id : LaunchLevel.MapPath;
+
+			const FText LevelTooltip = FText::Format(
+				LOCTEXT("NullRhiClientLevelTooltip", "Launch the headless -nullrhi client and auto-connect to {0}.\nLevel id: {1}\nMap: {2}"),
+				FText::FromString(LaunchLevel.DisplayName),
+				FText::FromString(LaunchLevel.Id.IsEmpty() ? LevelIdForLaunch : LaunchLevel.Id),
+				FText::FromString(LaunchLevel.MapPath));
+
+			MenuBuilder.AddMenuEntry(
+				FText::FromString(LaunchLevel.DisplayName),
+				LevelTooltip,
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
+				FUIAction(FExecuteAction::CreateLambda([this, LevelIdForLaunch, LaunchLevel]()
+				{
+					LaunchNullRhiClientLevel(LaunchLevel, LevelIdForLaunch);
+				})));
+		}
+	}
+
+	bool LaunchNullRhiClientLevel(const FDedicatedServerLaunchLevel& LaunchLevel, const FString& LevelId) const
+	{
+		const FString SuccessLabel = FString::Printf(TEXT("RunClientNullRHI:%s"), *LaunchLevel.DisplayName);
+		UE_LOG(LogAuraEditor, Display, TEXT("NullRHI client launch requested | Level='%s' | LevelId='%s'"), *LaunchLevel.DisplayName, *LevelId);
+
+#if PLATFORM_WINDOWS
+		const bool bLaunched = LaunchProjectScript(
+			TEXT("RunClientNullRHI.bat"),
+			LevelId,
+			FText::Format(
+				LOCTEXT("RunClientNullRhiMissingWindows", "Could not find RunClientNullRHI.bat at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("RunClientNullRHI.bat")))),
+			TEXT("Failed to launch the NullRHI client."),
+			SuccessLabel);
+
+		if (bLaunched)
+		{
+			FMessageDialog::Open(
+				EAppMsgType::Ok,
+				FText::Format(
+					LOCTEXT("RunClientNullRhiLaunched", "NullRHI client launch request sent for level '{0}'.\n\nThe client runs headless (-nullrhi) and auto-drives Login -> Loading -> battleground. Output is written to Saved/Logs/Aura.log (or Aura_2.log if Aura.log is locked). Start the Game Server Manager and a dedicated server for the level first."),
+					FText::FromString(LaunchLevel.DisplayName)));
+		}
+		return bLaunched;
+#elif PLATFORM_MAC
+		UE_LOG(LogAuraEditor, Warning, TEXT("NullRHI client launch blocked: not implemented on Mac | Level='%s'"), *LaunchLevel.DisplayName);
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("RunClientNullRhiUnsupportedMac", "Launching the NullRHI client from this menu is not supported on Mac. Use RunClientNullRHI.bat on Windows."));
+		return false;
+#else
+		UE_LOG(LogAuraEditor, Warning, TEXT("NullRHI client launch blocked: unsupported platform | Level='%s'"), *LaunchLevel.DisplayName);
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("RunClientNullRhiUnsupported", "Launching the NullRHI client is not supported on this platform."));
+		return false;
+#endif
 	}
 
 	bool LoadDedicatedServerLaunchLevels(TArray<FDedicatedServerLaunchLevel>& OutLaunchLevels, FText& OutFailureReason) const
@@ -526,6 +614,11 @@ private:
 					FText::FromString(ConfigPath));
 				return false;
 			}
+
+			// id is optional for the dedicated server flow but required by the NullRHI
+			// client launcher (RunClientNullRHI.bat passes it as -AutoLoginLevel=).
+			// Falls back to mapPath at launch time when absent.
+			(*LevelObject)->TryGetStringField(TEXT("id"), LaunchLevel.Id);
 
 			if (!(*LevelObject)->TryGetStringField(TEXT("mapPath"), LaunchLevel.MapPath) || LaunchLevel.MapPath.IsEmpty())
 			{
@@ -1834,7 +1927,7 @@ private:
 #if PLATFORM_MAC
 		return LOCTEXT("StartDedicatedServerTooltip", "Launch StartDedicatedServer.command from the project root in Terminal.");
 #else
-		return LOCTEXT("StartDedicatedServerTooltip", "Open a configured level list from Config/LevelConfig.json and launch the dedicated server with the selected map and launch arguments.");
+		return LOCTEXT("StartDedicatedServerTooltip", "Open a configured level list from Content/Config/LevelConfig.json and launch the dedicated server with the selected map and launch arguments.");
 #endif
 	}
 
@@ -2026,7 +2119,7 @@ private:
 		{
 			UE_LOG(LogAuraEditor, Warning, TEXT("Dedicated server launch aborted: no configured levels available"));
 			FMessageDialog::Open(EAppMsgType::Ok, DedicatedServerLaunchError.IsEmpty()
-				? LOCTEXT("StartDedicatedServerNoLevelsAvailable", "No dedicated server levels are configured in Config/LevelConfig.json.")
+				? LOCTEXT("StartDedicatedServerNoLevelsAvailable", "No dedicated server levels are configured in Content/Config/LevelConfig.json.")
 				: DedicatedServerLaunchError);
 			return;
 		}
@@ -2041,7 +2134,7 @@ private:
 		if (FMessageDialog::Open(
 			EAppMsgType::YesNo,
 			FText::Format(
-				LOCTEXT("ConfirmLaunchAllDedicatedServers", "Launch all dedicated server levels in Config/LevelConfig.json?\n\nCount: {0}"),
+				LOCTEXT("ConfirmLaunchAllDedicatedServers", "Launch all dedicated server levels in Content/Config/LevelConfig.json?\n\nCount: {0}"),
 				DedicatedServerLaunchLevels.Num())) != EAppReturnType::Yes)
 		{
 			UE_LOG(LogAuraEditor, Display, TEXT("Launch all dedicated servers canceled at confirmation prompt"));

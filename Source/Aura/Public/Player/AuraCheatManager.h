@@ -74,6 +74,16 @@ public:
 	UFUNCTION(Exec, Category="Aura|Cheats")
 	void AddSpellPoints(int32 InPoints);
 
+	// ---- Transport ----------------------------------------------------------
+
+	/**
+	 * Teleport the local player's pawn to a randomly chosen other player's pawn.
+	 * Only pawns whose controller owns a live NetConnection (i.e. real remote
+	 * players, not AI or the local player) are considered as candidates.
+	 */
+	UFUNCTION(Exec, Category="Aura|Cheats")
+	void TransferToRandomPlayer();
+
 	// ---- Debug --------------------------------------------------------------
 
 	/** Dump all Aura attributes for the controlled character to the log. */
