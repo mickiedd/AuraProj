@@ -53,6 +53,8 @@ private:
 	FReply OnRunAllClicked();
 	FReply OnRunSelectedClicked();
 	FReply OnRefreshClicked();
+	FReply OnStopClicked();
+	bool IsStopEnabled() const;
 	FReply OnRunRowClicked(FString FilePath);
 
 	void OnTestDoubleClicked(TSharedPtr<FAutoTestRow> Row);

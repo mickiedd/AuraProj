@@ -21,6 +21,7 @@ static FString StatusToString(EAutoTestStatus S)
 	case EAutoTestStatus::Fail:		return TEXT("fail");
 	case EAutoTestStatus::Timeout:	return TEXT("timeout");
 	case EAutoTestStatus::Error:	return TEXT("error");
+	case EAutoTestStatus::Aborted:	return TEXT("aborted");
 	}
 	return TEXT("unknown");
 }
@@ -42,6 +43,7 @@ FString WriteAutoTestReport(const FAutoTestSuiteResult& Suite)
 	Writer->WriteValue(TEXT("failed"), Suite.Failed);
 	Writer->WriteValue(TEXT("timeout"), Suite.TimedOut);
 	Writer->WriteValue(TEXT("error"), Suite.Errored);
+	Writer->WriteValue(TEXT("aborted"), Suite.Aborted);
 	Writer->WriteObjectEnd();
 
 	Writer->WriteArrayStart(TEXT("tests"));

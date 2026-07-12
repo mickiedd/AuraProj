@@ -33,6 +33,7 @@ FString FAutoTestRow::GetStatusText() const
 	case EAutoTestStatus::Fail:		return TEXT("FAIL");
 	case EAutoTestStatus::Timeout:	return TEXT("TIMEOUT");
 	case EAutoTestStatus::Error:		return TEXT("ERROR");
+	case EAutoTestStatus::Aborted:	return TEXT("ABORTED");
 	}
 	return TEXT("?");
 }
@@ -47,6 +48,7 @@ FString FAutoTestRow::GetStatusColorHex() const
 	case EAutoTestStatus::Fail:		return TEXT("#CC3333");
 	case EAutoTestStatus::Timeout:	return TEXT("#CCAA33");
 	case EAutoTestStatus::Error:		return TEXT("#CC3333");
+	case EAutoTestStatus::Aborted:	return TEXT("#9966CC");
 	}
 	return TEXT("#888888");
 }
@@ -148,6 +150,14 @@ void SAutoTestPanel::Construct(const FArguments& InArgs)
 				SNew(SButton)
 				.Text(FText::FromString(TEXT("Refresh")))
 				.OnClicked(this, &SAutoTestPanel::OnRefreshClicked)
+			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(2)
+			[
+				SNew(SButton)
+				.Text(FText::FromString(TEXT("Stop")))
+				.ToolTipText(FText::FromString(TEXT("Stop the in-progress suite (current test is marked Aborted)")))
+				.IsEnabled(this, &SAutoTestPanel::IsStopEnabled)
+				.OnClicked(this, &SAutoTestPanel::OnStopClicked)
 			]
 			+ SHorizontalBox::Slot()
 			.FillWidth(1.0f)
@@ -368,8 +378,8 @@ FText SAutoTestPanel::GetSummaryText() const
 		if (R.Total > 0)
 		{
 			return FText::FromString(FString::Printf(
-				TEXT("Total %d | Pass %d | Fail %d | Timeout %d | Error %d"),
-				R.Total, R.Passed, R.Failed, R.TimedOut, R.Errored));
+				TEXT("Total %d | Pass %d | Fail %d | Timeout %d | Error %d | Aborted %d"),
+				R.Total, R.Passed, R.Failed, R.TimedOut, R.Errored, R.Aborted));
 		}
 	}
 	return FText::FromString(TEXT("Idle"));
@@ -417,6 +427,28 @@ FReply SAutoTestPanel::OnRefreshClicked()
 		bListDirty = true;
 	}
 	return FReply::Handled();
+}
+
+FReply SAutoTestPanel::OnStopClicked()
+{
+	if (UAutoTestRunnerSubsystem* Runner = GetPIERunner())
+	{
+		Runner->StopRun();
+	}
+	else
+	{
+		UE_LOG(LogAuraTest, Warning, TEXT("[AutoTest] Stop: no PIE session."));
+	}
+	return FReply::Handled();
+}
+
+bool SAutoTestPanel::IsStopEnabled() const
+{
+	if (UAutoTestRunnerSubsystem* Runner = GetPIERunner())
+	{
+		return Runner->IsRunning();
+	}
+	return false;
 }
 
 FReply SAutoTestPanel::OnRunRowClicked(FString FilePath)

@@ -29,6 +29,7 @@ enum class EAutoTestStatus : uint8
 	Fail	UMETA(DisplayName = "Fail"),
 	Timeout UMETA(DisplayName = "Timeout"),
 	Error	UMETA(DisplayName = "Error"),
+	Aborted UMETA(DisplayName = "Aborted"),
 };
 
 /** A single recorded assertion / checkpoint. */

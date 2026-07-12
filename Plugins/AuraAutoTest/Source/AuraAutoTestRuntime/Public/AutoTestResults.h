@@ -54,6 +54,7 @@ struct FAutoTestSuiteResult
 	int32 Failed = 0;
 	int32 TimedOut = 0;
 	int32 Errored = 0;
+	int32 Aborted = 0;
 
 	TArray<FAutoTestResult> Tests;
 	FString ReportPath;

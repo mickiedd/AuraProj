@@ -269,6 +269,34 @@ void UAutoTestRunnerSubsystem::RunByFilter(const FString& Filter)
 	StartSuite(Selected);
 }
 
+void UAutoTestRunnerSubsystem::StopRun()
+{
+	if (!bIsRunning)
+	{
+		UE_LOG(LogAuraTest, Warning, TEXT("[AutoTest] StopRun: no run in progress."));
+		return;
+	}
+
+	UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] Stop requested; finishing current test and skipping the rest."));
+	bStopRequested = true;
+	PendingQueue.Empty(); // do not start any further tests
+
+	if (CurrentContext)
+	{
+		// Mark the in-progress test Aborted (no-op if it already reached a terminal
+		// Pass/Fail/etc. this frame). Defer finalization one tick so the worker-thread
+		// Phase 2 flushes, then FinalizeTest records the result and winds the suite down.
+		CurrentContext->SetTerminal(EAutoTestStatus::Aborted);
+		bPendingFinalize = true;
+	}
+	else
+	{
+		// Between tests with nothing to finalize: wind the suite down directly.
+		RestoreTickRate();
+		FinalizeSuite();
+	}
+}
+
 // ===================================================================
 // Per-run flow
 // ===================================================================
@@ -283,6 +311,7 @@ void UAutoTestRunnerSubsystem::StartSuite(const TArray<FAutoTestInfo>& Tests)
 	}
 
 	bIsRunning = true;
+	bStopRequested = false;
 	PendingQueue = Tests;
 
 	LastResults = FAutoTestSuiteResult();
@@ -323,6 +352,10 @@ bool UAutoTestRunnerSubsystem::StartNextTest()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	SpawnParams.Name = TEXT("AutoTestHost");
+	// FActorSpawnParameters defaults NameMode to Required_Fatal. A destroyed-but-not-yet-GC'd
+	// host from a previous run still owns the "AutoTestHost" name, so reusing it would fatal
+	// ("Cannot generate unique name..."). Requested resolves the collision to AutoTestHost_1, etc.
+	SpawnParams.NameMode = FActorSpawnParameters::ESpawnActorNameMode::Requested;
 	AActor* Host = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform(FVector(0, 0, -1000000)), SpawnParams);
 	if (!Host)
 	{
@@ -428,7 +461,7 @@ void UAutoTestRunnerSubsystem::FinalizeSuite()
 	const double TotalDuration = (FPlatformTime::Seconds() - SuiteStartTime) * 1000.0;
 	LastResults.DurationMs = TotalDuration;
 
-	int32 Passed = 0, Failed = 0, TimedOut = 0, Errored = 0;
+	int32 Passed = 0, Failed = 0, TimedOut = 0, Errored = 0, Aborted = 0;
 	for (const FAutoTestResult& T : LastResults.Tests)
 	{
 		switch (T.Status)
@@ -437,6 +470,7 @@ void UAutoTestRunnerSubsystem::FinalizeSuite()
 		case EAutoTestStatus::Fail:		++Failed; break;
 		case EAutoTestStatus::Timeout:	++TimedOut; break;
 		case EAutoTestStatus::Error:		++Errored; break;
+		case EAutoTestStatus::Aborted:	++Aborted; break;
 		default: break;
 		}
 	}
@@ -445,14 +479,15 @@ void UAutoTestRunnerSubsystem::FinalizeSuite()
 	LastResults.Failed = Failed;
 	LastResults.TimedOut = TimedOut;
 	LastResults.Errored = Errored;
+	LastResults.Aborted = Aborted;
 
 	// Write the JSON report.
 	LastResults.ReportPath = WriteAutoTestReport(LastResults);
 
 	UE_LOG(LogAuraTest, Log,
-		TEXT("[AutoTest] Suite complete: %d total, %d passed, %d failed, %d timeout, %d error (%.1f ms). Report: %s"),
+		TEXT("[AutoTest] Suite complete: %d total, %d passed, %d failed, %d timeout, %d error, %d aborted (%.1f ms). Report: %s"),
 		LastResults.Total, LastResults.Passed, LastResults.Failed, LastResults.TimedOut, LastResults.Errored,
-		LastResults.DurationMs, *LastResults.ReportPath);
+		LastResults.Aborted, LastResults.DurationMs, *LastResults.ReportPath);
 
 	bIsRunning = false;
 	RunCompleteDelegate.Broadcast(LastResults);
@@ -480,6 +515,7 @@ void UAutoTestRunnerSubsystem::AbortRun(const FString& Reason)
 	CurrentContext.Reset();
 	PendingQueue.Empty();
 	bPendingFinalize = false;
+	bStopRequested = false;
 	bIsRunning = false;
 }
 
@@ -578,6 +614,7 @@ void UAutoTestRunnerSubsystem::RegisterConsoleCommands()
 
 	Register(TEXT("AutoTest.Run"),       TEXT("Run a test. Usage: AutoTest.Run [all|name:Foo|tag:smoke|<name>]"), &UAutoTestRunnerSubsystem::Cmd_Run,      ECVF_Cheat);
 	Register(TEXT("AutoTest.RunAll"),     TEXT("Run all discovered tests."),                                                &UAutoTestRunnerSubsystem::Cmd_RunAll,   ECVF_Cheat);
+	Register(TEXT("AutoTest.Stop"),       TEXT("Stop the in-progress AutoTest suite (current test is marked Aborted)."),    &UAutoTestRunnerSubsystem::Cmd_Stop,     ECVF_Cheat);
 	Register(TEXT("AutoTest.OpenPanel"),  TEXT("Open the AutoTest results panel (editor)."),                                &UAutoTestRunnerSubsystem::Cmd_OpenPanel, ECVF_Default);
 	Register(TEXT("AutoTest.Refresh"),    TEXT("Re-scan test directories."),                                                &UAutoTestRunnerSubsystem::Cmd_Refresh,  ECVF_Default);
 }
@@ -603,6 +640,11 @@ void UAutoTestRunnerSubsystem::Cmd_Run(const TArray<FString>& Args)
 void UAutoTestRunnerSubsystem::Cmd_RunAll(const TArray<FString>& Args)
 {
 	RunAll();
+}
+
+void UAutoTestRunnerSubsystem::Cmd_Stop(const TArray<FString>& Args)
+{
+	StopRun();
 }
 
 void UAutoTestRunnerSubsystem::Cmd_OpenPanel(const TArray<FString>& Args)

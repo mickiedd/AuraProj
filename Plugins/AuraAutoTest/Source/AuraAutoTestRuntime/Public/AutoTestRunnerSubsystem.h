@@ -65,6 +65,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AutoTest")
 	void RunByFilter(const FString& Filter);
 
+	/** Stop the in-progress suite: marks the active test Aborted, records it, skips the
+	 *  rest of the queue, and broadcasts OnRunComplete. No-op if nothing is running. */
+	UFUNCTION(BlueprintCallable, Category = "AutoTest")
+	void StopRun();
+
 	/** True while a suite is running. */
 	UFUNCTION(BlueprintPure, Category = "AutoTest")
 	bool IsRunning() const { return bIsRunning; }
@@ -84,6 +89,7 @@ private:
 	void UnregisterConsoleCommands();
 	void Cmd_Run(const TArray<FString>& Args);
 	void Cmd_RunAll(const TArray<FString>& Args);
+	void Cmd_Stop(const TArray<FString>& Args);
 	void Cmd_OpenPanel(const TArray<FString>& Args);
 	void Cmd_Refresh(const TArray<FString>& Args);
 	TArray<FName> ConsoleCommandNames;
@@ -108,6 +114,7 @@ private:
 
 	bool bIsRunning = false;
 	TArray<FAutoTestInfo> PendingQueue;
+	bool bStopRequested = false; // set by StopRun: FinalizeTest winds the suite down instead of advancing
 
 	// Active test state.
 	TUniquePtr<FAutoTestRunContext> CurrentContext;
