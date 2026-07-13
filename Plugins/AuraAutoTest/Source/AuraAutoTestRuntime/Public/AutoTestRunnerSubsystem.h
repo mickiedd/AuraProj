@@ -98,6 +98,14 @@ private:
 	bool OnTick(float DeltaSeconds);
 	FTSTicker::FDelegateHandle TickHandle;
 
+	// --- Launcher-driven auto-run (-AutoRun=<name>) ---
+	// The headless stress-test launcher passes -AutoRun=<testName>; we record it at init and
+	// fire RunByFilter("name:<testName>") once from OnTick, after the client has traveled into the
+	// battleground (not Login/Loading) and the local player possesses a Character pawn.
+	void TryStartPendingAutoRun();
+	FString PendingAutoRunName;   // empty = no auto-run requested
+	bool bAutoRunDispatched = false;
+
 	// --- Per-run state ---
 	void StartSuite(const TArray<FAutoTestInfo>& Tests);
 	bool StartNextTest();

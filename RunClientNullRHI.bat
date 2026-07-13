@@ -29,6 +29,13 @@ REM   -delay <sec>         Auto-login select->connect delay in seconds (default 
 REM   -player <name>       Player name (default: auto-generated NullRHI_<rand>_<rand>,
 REM                        so each launch is a distinct player with its own pawn).
 REM   -extra "<args>"      Extra Unreal command-line tokens passed through verbatim.
+REM   -stress              Stress-test mode: after arriving in the battleground and
+REM                        possessing a pawn, auto-start the AutoRunMap.xml BehaviorU
+REM                        test (continuous forward movement + random jump/crouch).
+REM                        Shorthand for -autorun AutoRunMap. Off by default.
+REM   -autorun <name>      Auto-start a specific discovered AutoTest BT by name after
+REM                        arrival+possession (e.g. -autorun AutoRunMap, or a project-
+REM                        authored BT in Content/AutoTests). Off by default.
 REM   -nolog               Do not pass -log (default includes -log).
 REM   -editor-exe <path>   Override UnrealEditor.exe (also via UE_EDITOR_EXE env).
 REM   -h  --help           Show this help and list configured level ids.
@@ -37,6 +44,7 @@ REM Examples:
 REM   RunClientNullRHI.bat Scifi_Desert_Level
 REM   RunClientNullRHI.bat dungeon_level_1 -host 127.0.0.1 -gsmport 9000
 REM   RunClientNullRHI.bat Scifi_Desert_Level -extra "-FrameRate=30"
+REM   RunClientNullRHI.bat Scifi_Desert_Level -stress
 REM ============================================================================
 
 set "ROOT_DIR=%~dp0"
@@ -51,6 +59,7 @@ set "AUTO_PORT="
 set "AUTO_DELAY="
 set "AUTO_PLAYER="
 set "EXTRA_ARGS="
+set "AUTO_RUN="
 set "USE_LOG=1"
 set "UE_EDITOR_EXE=%UE_EDITOR_EXE%"
 set "ENGINE_ASSOC="
@@ -96,6 +105,16 @@ if /i "%~1"=="-player" (
 )
 if /i "%~1"=="-extra" (
     set "EXTRA_ARGS=%~2"
+    shift & shift
+    goto :collect_args
+)
+if /i "%~1"=="-stress" (
+    set "AUTO_RUN=AutoRunMap"
+    shift
+    goto :collect_args
+)
+if /i "%~1"=="-autorun" (
+    set "AUTO_RUN=%~2"
     shift & shift
     goto :collect_args
 )
@@ -186,6 +205,7 @@ if not "%AUTO_HOST%"==""    set "CMD_ARGS=%CMD_ARGS% -AutoLoginHost=%AUTO_HOST%"
 if not "%AUTO_GSMPORT%"=="" set "CMD_ARGS=%CMD_ARGS% -AutoLoginGSMPort=%AUTO_GSMPORT%"
 if not "%AUTO_PORT%"==""    set "CMD_ARGS=%CMD_ARGS% -AutoLoginPort=%AUTO_PORT%"
 if not "%AUTO_DELAY%"==""   set "CMD_ARGS=%CMD_ARGS% -AutoLoginDelay=%AUTO_DELAY%"
+if not "%AUTO_RUN%"==""     set "CMD_ARGS=%CMD_ARGS% -AutoRun=%AUTO_RUN%"
 if not "%EXTRA_ARGS%"==""    set "CMD_ARGS=%CMD_ARGS% %EXTRA_ARGS%"
 
 REM Report which server host the client will use (from ServerConnection.json unless overridden).
@@ -207,6 +227,7 @@ echo   Project: %UPROJECT%
 echo   Level:   %LEVEL_ID%
 echo   Player:  %AUTO_PLAYER%
 echo   Server:  %EFFECTIVE_HOST% (from ServerConnection.json unless -host given)
+if not "%AUTO_RUN%"=="" echo   AutoRun: %AUTO_RUN% (stress-test BT, starts after battleground arrival)
 echo.
 echo   Full command:
 echo   "%UE_EDITOR_EXE%" %CMD_ARGS%
@@ -237,6 +258,11 @@ echo   -delay ^<sec^>        Auto-login delay in seconds (default 0.5).
 echo   -player ^<name^>      Player name (default: auto NullRHI_^<rand^>_^<rand^>,
 echo                       so each launch is a distinct player with its own pawn).
 echo   -extra "^<args^>"     Extra Unreal command-line tokens, passed through.
+echo   -stress              After battleground arrival+possession, auto-start the
+echo                       AutoRunMap.xml BT as a stress-test client. Shorthand for
+echo                       -autorun AutoRunMap. Off by default.
+echo   -autorun ^<name^>    Auto-start a specific discovered AutoTest BT by name after
+echo                       arrival+possession. Off by default.
 echo   -nolog               Do not pass -log.
 echo   -editor-exe ^<path^>  Override UnrealEditor.exe (also UE_EDITOR_EXE env).
 echo   -h  --help         Show this help (also accepts /?).
@@ -245,6 +271,7 @@ echo Examples:
 echo   %~nx0 Scifi_Desert_Level
 echo   %~nx0 dungeon_level_1 -host 127.0.0.1 -gsmport 9000
 echo   %~nx0 Scifi_Desert_Level -extra "-FrameRate=30"
+echo   %~nx0 Scifi_Desert_Level -stress
 echo.
 if not exist "%LEVEL_CONFIG%" (
     echo Could not find LevelConfig.json: %LEVEL_CONFIG%

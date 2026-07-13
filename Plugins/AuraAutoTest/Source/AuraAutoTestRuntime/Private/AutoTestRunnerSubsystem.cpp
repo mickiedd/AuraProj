@@ -11,9 +11,13 @@
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Character.h"
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
 #include "Misc/FeedbackContext.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformTime.h"
 #include "Interfaces/IPluginManager.h"
@@ -109,6 +113,20 @@ void UAutoTestRunnerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	DiscoveredTests = DiscoverTests();
+
+	// Launcher-driven stress-test auto-run: -AutoRun=<testName> (emitted by RunClientNullRHI.bat
+	// -stress / -autorun). We cannot start it here (no world/pawn yet); we record the name and
+	// TryStartPendingAutoRun() fires RunByFilter once the client is in the battleground with a
+	// possessed Character pawn (see OnTick).
+	{
+		FString AutoRunName;
+		if (FParse::Value(FCommandLine::Get(), TEXT("AutoRun="), AutoRunName) && !AutoRunName.IsEmpty())
+		{
+			AutoRunName.TrimStartAndEndInline();
+			PendingAutoRunName = AutoRunName;
+			UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] -AutoRun=%s: will start once the client possesses a pawn in the battleground."), *PendingAutoRunName);
+		}
+	}
 
 	RegisterConsoleCommands();
 
@@ -520,11 +538,59 @@ void UAutoTestRunnerSubsystem::AbortRun(const FString& Reason)
 }
 
 // ===================================================================
+// Launcher-driven auto-run
+// ===================================================================
+
+void UAutoTestRunnerSubsystem::TryStartPendingAutoRun()
+{
+	if (PendingAutoRunName.IsEmpty() || bAutoRunDispatched || bIsRunning)
+	{
+		return;
+	}
+
+	UWorld* World = GetActiveWorld(this);
+	if (!World)
+	{
+		return;
+	}
+
+	// Login and Loading are also EWorldType::Game in -game mode, so the world-type check in
+	// GetActiveWorld is not enough. Gate on the world's path name to only fire once the client has
+	// actually traveled into a battleground (e.g. "/Game/Maps/Scifi_Desert.Scifi_Desert").
+	// Stays decoupled from gameplay classes. (FString::Contains defaults to case-insensitive.)
+	const FString WorldPath = World->GetPathName();
+	if (WorldPath.Contains(TEXT("Login")) || WorldPath.Contains(TEXT("Loading")))
+	{
+		return;
+	}
+
+	// The auto-run drives an ACharacter via the first player controller; require a possessed
+	// character pawn before starting (possession RPCs land a few frames after arrival).
+	APlayerController* PC = World->GetFirstPlayerController();
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Cast<ACharacter>(Pawn))
+	{
+		return;
+	}
+
+	bAutoRunDispatched = true;
+	UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] Battleground arrival detected; auto-running '%s'."), *PendingAutoRunName);
+	RunByFilter(FString::Printf(TEXT("name:%s"), *PendingAutoRunName));
+}
+
+// ===================================================================
 // Tick
 // ===================================================================
 
 bool UAutoTestRunnerSubsystem::OnTick(float DeltaSeconds)
 {
+	// Launcher-driven auto-run: poll for battleground arrival + possessed pawn while idle.
+	// Must run before the not-running early return below, otherwise it never executes.
+	if (!bAutoRunDispatched)
+	{
+		TryStartPendingAutoRun();
+	}
+
 	if (!bIsRunning || !CurrentContext)
 	{
 		return true;

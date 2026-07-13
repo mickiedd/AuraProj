@@ -16,6 +16,7 @@
 #include "EdGraph/EdGraph.h"
 #include "EdGraph/EdGraphNode.h"
 #include "EdGraph/EdGraphPin.h"
+#include "EdGraph/EdGraphSchema.h"
 #include "Editor.h"
 #include "Engine/Blueprint.h"
 #include "HAL/PlatformMisc.h"
@@ -44,6 +45,7 @@
 #include "Framework/SlateDelegates.h"
 #include "UObject/Class.h"
 #include "UObject/UnrealType.h"
+#include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Input/STextEntryPopup.h"
 
 #define LOCTEXT_NAMESPACE "FAuraEditorModule"
@@ -505,6 +507,20 @@ private:
 
 	void BuildNullRhiClientLevelMenu(FMenuBuilder& MenuBuilder, const TArray<FDedicatedServerLaunchLevel>& LaunchLevels) const
 	{
+		// Toggle: when checked, every level entry below launches with -stress (the bat emits
+		// -AutoRun=AutoRunMap), turning the client into a stress-test bot after battleground
+		// arrival. State persists in the module across menu rebuilds; mutable because these
+		// menu-builder methods are const but UI toggle state is not logical object state.
+		MenuBuilder.AddWidget(
+			SNew(SCheckBox)
+				.IsChecked_Lambda([this]() { return bNullRhiClientAutoRun ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
+				.OnCheckStateChanged_Lambda([this](ECheckBoxState NewState) { bNullRhiClientAutoRun = (NewState == ECheckBoxState::Checked); }),
+			LOCTEXT("NullRhiClientAutoRunLabel", "Stress test: auto-run AutoRunMap BT"),
+			false,
+			true,
+			LOCTEXT("NullRhiClientAutoRunTooltip", "When checked, the client launches with -AutoRun=AutoRunMap and auto-runs the AutoRunMap BehaviorU test (continuous movement + random jump/crouch) after arriving in the battleground, for stress testing."));
+		MenuBuilder.AddMenuSeparator();
+
 		for (const FDedicatedServerLaunchLevel& LaunchLevel : LaunchLevels)
 		{
 			// RunClientNullRHI.bat takes the levelId as its positional argument; fall back to
@@ -532,12 +548,20 @@ private:
 	bool LaunchNullRhiClientLevel(const FDedicatedServerLaunchLevel& LaunchLevel, const FString& LevelId) const
 	{
 		const FString SuccessLabel = FString::Printf(TEXT("RunClientNullRHI:%s"), *LaunchLevel.DisplayName);
-		UE_LOG(LogAuraEditor, Display, TEXT("NullRHI client launch requested | Level='%s' | LevelId='%s'"), *LaunchLevel.DisplayName, *LevelId);
+		UE_LOG(LogAuraEditor, Display, TEXT("NullRHI client launch requested | Level='%s' | LevelId='%s' | AutoRun=%s"), *LaunchLevel.DisplayName, *LevelId, bNullRhiClientAutoRun ? TEXT("true") : TEXT("false"));
+
+		// RunClientNullRHI.bat takes the levelId as its positional argument; append -stress when
+		// the submenu checkbox is checked so the client auto-runs AutoRunMap.xml after arrival.
+		FString ScriptArgs = LevelId;
+		if (bNullRhiClientAutoRun)
+		{
+			ScriptArgs += TEXT(" -stress");
+		}
 
 #if PLATFORM_WINDOWS
 		const bool bLaunched = LaunchProjectScript(
 			TEXT("RunClientNullRHI.bat"),
-			LevelId,
+			ScriptArgs,
 			FText::Format(
 				LOCTEXT("RunClientNullRhiMissingWindows", "Could not find RunClientNullRHI.bat at:\n{0}"),
 				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("RunClientNullRHI.bat")))),
@@ -2306,6 +2330,11 @@ private:
 	}
 
 	TSharedPtr<FExtender> ToolbarExtender;
+
+	// Ephemeral UI state for the "Launch NullRHI Client" submenu checkbox: when checked, level
+	// entries launch with -stress (-AutoRun=AutoRunMap). Mutable because the menu-builder/launch
+	// helpers are const but this is UI toggle state, not logical object state.
+	mutable bool bNullRhiClientAutoRun = false;
 };
 
 #undef LOCTEXT_NAMESPACE
