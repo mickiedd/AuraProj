@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <behavior name="Imported" agenttype="BTAgent" version="5">
   <property name="name" value="AutoRunMap"/>
-  <property name="description" value="Stress auto-run: continuous forward movement with random jump/crouch, infinite loop."/>
+  <property name="description" value="Stress auto-run: natural wander movement (curved heading, varied stride, idle pauses, periodic sprints) with occasional jump/crouch flavor and random skill use, infinite loop. Per-frame movement is driven by the agent ticker; this tree paces the flavor beats."/>
   <property name="timeout" value="86400"/>
   <property name="tags" value="autorun,player,stress"/>
   <node class="Sequence" id="2">
@@ -14,14 +14,14 @@
       <property name="Count" value="-1"/>
       <node class="Sequence" id="6">
         <node class="Wait" id="7">
-          <property name="Time" value="0.7"/>
+          <property name="Time" value="1.2"/>
         </node>
         <node class="Action" id="8">
           <property name="Method" value="RandomJumpOrCrouch"/>
           <property name="ResultOption" value="BT_SUCCESS"/>
         </node>
         <node class="Wait" id="9">
-          <property name="Time" value="0.4"/>
+          <property name="Time" value="0.5"/>
         </node>
         <node class="Action" id="10">
           <property name="Method" value="StopJump"/>
@@ -29,6 +29,10 @@
         </node>
         <node class="Action" id="11">
           <property name="Method" value="UnCrouch"/>
+          <property name="ResultOption" value="BT_SUCCESS"/>
+        </node>
+        <node class="Action" id="16">
+          <property name="Method" value="UseRandomSkill"/>
           <property name="ResultOption" value="BT_SUCCESS"/>
         </node>
         <node class="LogResult" id="12"/>

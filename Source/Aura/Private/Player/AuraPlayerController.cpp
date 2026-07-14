@@ -30,6 +30,7 @@
 #include "UI/WidgetController/SpellMenuWidgetController.h"
 #include "UI/Widget/DamageTextComponent.h"
 #include "InputCoreTypes.h"
+#include "TimerManager.h"
 #include "Game/ServerTravelComponent.h"
 #include "Client/AuraClientDisconnectHandler.h"
 #include "Network/AuraHeartbeatComponent.h"
@@ -644,6 +645,62 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		{
 			// Click-to-move is disabled. LMB without an equipped ability is a no-op for movement.
 		}
+	}
+}
+
+void AAuraPlayerController::AutoTestUseRandomEquippedAbility()
+{
+	if (!IsAbilityInputReady())
+	{
+		UE_LOG(LogAura, Log, TEXT("[AutoTest] UseRandomAbility: ability input not ready yet."));
+		return;
+	}
+
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+
+	// Candidate skill slots: the numbered keys plus LMB. RMB and passive slots are
+	// skipped — RMB is a no-op in the press/release path and passives aren't player-fired.
+	TArray<FGameplayTag> EquippedTags;
+	for (const FGameplayTag Tag : { GameplayTags.InputTag_1, GameplayTags.InputTag_2, GameplayTags.InputTag_3, GameplayTags.InputTag_4, GameplayTags.InputTag_LMB })
+	{
+		if (Tag.IsValid() && HasEquippedAbilityForInputTag(Tag))
+		{
+			EquippedTags.Add(Tag);
+		}
+	}
+
+	if (EquippedTags.Num() == 0)
+	{
+		UE_LOG(LogAura, Log, TEXT("[AutoTest] UseRandomAbility: no equipped skill slots found."));
+		return;
+	}
+
+	const FGameplayTag Chosen = EquippedTags[FMath::RandRange(0, EquippedTags.Num() - 1)];
+	UE_LOG(LogAura, Log, TEXT("[AutoTest] UseRandomAbility: firing equipped slot %s."), *Chosen.ToString());
+
+	// Mirror a real tap-hold-release. The ASC only calls TryActivateAbility from the HELD
+	// path (AbilityInputTagHeld), so a bare press+release never activates the ability —
+	// press only marks the spec input-pressed and sets LMB targeting state. We press, then
+	// drive one held tick to trigger activation (which runs the targeting task and, for
+	// projectile spells, sends cursor target data to the server), then release a short
+	// moment later so the server-side activation + target-data RPC have time to complete on
+	// a network client before the ability is ended.
+	AbilityInputTagPressed(Chosen);
+	AbilityInputTagHeld(Chosen);
+
+	if (UWorld* World = GetWorld())
+	{
+		FTimerHandle ReleaseHandle;
+		World->GetTimerManager().SetTimer(ReleaseHandle,
+			FTimerDelegate::CreateWeakLambda(this, [this, Chosen]()
+			{
+				AbilityInputTagReleased(Chosen);
+			}),
+			0.12f, false);
+	}
+	else
+	{
+		AbilityInputTagReleased(Chosen);
 	}
 }
 

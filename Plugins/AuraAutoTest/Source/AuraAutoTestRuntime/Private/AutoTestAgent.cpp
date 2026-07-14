@@ -9,12 +9,21 @@
 #include "Engine/Engine.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "UObject/UObjectGlobals.h"
 
 static const FString GSpawnClassKey		= TEXT("__AutoTest_SpawnClass");
 static const FString GSpawnLocationKey	= TEXT("__AutoTest_SpawnLocation");
 static const FString GSpawnOutputKey	= TEXT("__AutoTest_SpawnOutput");
+
+// --- Natural auto-run wander tuning ---
+// Matches AAuraPlayerController::SprintSpeedMultiplier so a sprint burst here runs at the
+// same speed a real player reaches by holding Shift.
+static constexpr float GAutoRunSprintMultiplier = 1.5f;
+// Peak turn rate (deg/sec). Wander retargets pick a target in [-Max, +Max] every ~0.8-2.5s
+// and we ease toward it, so most of the time the pawn traces gentle arcs rather than spinning.
+static constexpr float GAutoRunMaxTurnRate = 110.f;
 
 UAutoTestAgent::UAutoTestAgent()
 {
@@ -38,6 +47,7 @@ void UAutoTestAgent::BeginPlay()
 	RegisterMethodHandler(TEXT("Crouch"),              [this]() { return HandleCrouch(); });
 	RegisterMethodHandler(TEXT("UnCrouch"),            [this]() { return HandleUnCrouch(); });
 	RegisterMethodHandler(TEXT("RandomJumpOrCrouch"), [this]() { return HandleRandomJumpOrCrouch(); });
+	RegisterMethodHandler(TEXT("UseRandomSkill"),      [this]() { return HandleUseRandomSkill(); });
 
 	// Continuous-movement ticker (game thread). Cheap when idle; only applies input
 	// while bAutoRunning. Removed in EndPlay.
@@ -54,6 +64,9 @@ void UAutoTestAgent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		AutoRunTickHandle.Reset();
 	}
 	bAutoRunning = false;
+	// StopRun aborts the tree mid-loop, so the BT's trailing StopAutoRun is never reached.
+	// Make sure we never leave the pawn sprinting after the test host is torn down.
+	RestoreAutoRunWalkSpeed();
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -156,14 +169,38 @@ EBehaviorUStatus UAutoTestAgent::HandleSpawnActor()
 EBehaviorUStatus UAutoTestAgent::HandleStartAutoRun()
 {
 	bAutoRunning = true;
-	UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] StartAutoRun: continuous forward movement enabled."));
+
+	// Seed the wander heading from the controller's current facing so the pawn starts by
+	// walking forward, then let the steering ease it into curves over time.
+	if (UWorld* World = GetWorld())
+	{
+		if (APlayerController* PC = World->GetFirstPlayerController())
+		{
+			AutoRunHeadingYaw = PC->GetControlRotation().Yaw;
+		}
+	}
+
+	// Reset the wander/sprint/pause state so each run begins from a clean walk.
+	AutoRunAngularVel = 0.f;
+	AutoRunTargetAngularVel = 0.f;
+	AutoRunWanderTimer = 0.f;
+	AutoRunIntentScale = 1.f;
+	AutoRunIntentTimer = 0.f;
+	bAutoRunSprinting = false;
+	AutoRunSprintTimer = FMath::FRandRange(2.f, 5.f); // walk a stretch before the first sprint
+	AutoRunBaseWalkSpeed = 0.f;
+	bAutoRunPaused = false;
+	AutoRunPauseTimer = FMath::FRandRange(3.f, 6.5f);
+
+	UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] StartAutoRun: natural wander movement enabled (heading=%.1f)."), AutoRunHeadingYaw);
 	return EBehaviorUStatus::Success;
 }
 
 EBehaviorUStatus UAutoTestAgent::HandleStopAutoRun()
 {
 	bAutoRunning = false;
-	UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] StopAutoRun: continuous forward movement disabled."));
+	RestoreAutoRunWalkSpeed();
+	UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] StopAutoRun: wander movement disabled, walk speed restored."));
 	return EBehaviorUStatus::Success;
 }
 
@@ -212,18 +249,106 @@ EBehaviorUStatus UAutoTestAgent::HandleUnCrouch()
 
 EBehaviorUStatus UAutoTestAgent::HandleRandomJumpOrCrouch()
 {
-	// 50/50 pick between a jump or a crouch each call.
-	const bool bJump = FMath::FRand() < 0.5;
-	if (bJump)
+	// Most beats do nothing — the pawn just keeps walking/running — and only occasionally
+	// throws in a jump or a crouch, which reads far more naturally than hopping every cycle.
+	const float R = FMath::FRand();
+	if (R < 0.2f)
 	{
-		return HandleJump();
+		return HandleJump();   // 20% jump
 	}
-	return HandleCrouch();
+	if (R < 0.4f)
+	{
+		return HandleCrouch(); // 20% crouch
+	}
+	return EBehaviorUStatus::Success; // 60% nothing
+}
+
+EBehaviorUStatus UAutoTestAgent::HandleUseRandomSkill()
+{
+	// Only fire roughly every other beat so the pawn "sometimes" uses a skill rather than
+	// spamming it every loop. The controller hook itself no-ops when nothing is equipped or
+	// the ability is on cooldown, so this stays gentle either way.
+	if (FMath::FRand() >= 0.5f)
+	{
+		return EBehaviorUStatus::Success;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return EBehaviorUStatus::Failure;
+	}
+	APlayerController* PC = World->GetFirstPlayerController();
+	if (!PC)
+	{
+		return EBehaviorUStatus::Failure;
+	}
+
+	// Invoke the controller's AutoTestUseRandomEquippedAbility hook by name via reflection,
+	// so this plugin never has to include or link against Aura. The function takes no args
+	// and returns void, so the Parameter buffer is unused.
+	static const FName SkillHookName = TEXT("AutoTestUseRandomEquippedAbility");
+	if (UFunction* SkillFn = PC->FindFunction(SkillHookName))
+	{
+		PC->ProcessEvent(SkillFn, nullptr);
+		return EBehaviorUStatus::Success;
+	}
+
+	UE_LOG(LogAuraTest, Warning, TEXT("[AutoTest] UseRandomSkill: controller has no AutoTestUseRandomEquippedAbility hook."));
+	return EBehaviorUStatus::Failure;
 }
 
 // ===================================================================
 // Continuous auto-run movement tick (game thread)
 // ===================================================================
+
+void UAutoTestAgent::ApplyAutoRunSprint(UCharacterMovementComponent* MoveComp)
+{
+	if (!MoveComp)
+	{
+		return;
+	}
+
+	if (bAutoRunSprinting)
+	{
+		// Cache the base walk speed the first time we sprint this run so we can restore it.
+		if (AutoRunBaseWalkSpeed <= 0.f)
+		{
+			AutoRunBaseWalkSpeed = MoveComp->MaxWalkSpeed;
+		}
+		const float Target = AutoRunBaseWalkSpeed * GAutoRunSprintMultiplier;
+		if (!FMath::IsNearlyEqual(MoveComp->MaxWalkSpeed, Target))
+		{
+			MoveComp->MaxWalkSpeed = Target;
+		}
+	}
+	else if (AutoRunBaseWalkSpeed > 0.f)
+	{
+		if (!FMath::IsNearlyEqual(MoveComp->MaxWalkSpeed, AutoRunBaseWalkSpeed))
+		{
+			MoveComp->MaxWalkSpeed = AutoRunBaseWalkSpeed;
+		}
+	}
+}
+
+void UAutoTestAgent::RestoreAutoRunWalkSpeed()
+{
+	if (AutoRunBaseWalkSpeed > 0.f)
+	{
+		if (ACharacter* Char = GetPlayerCharacter())
+		{
+			if (UCharacterMovementComponent* MoveComp = Char->GetCharacterMovement())
+			{
+				if (!FMath::IsNearlyEqual(MoveComp->MaxWalkSpeed, AutoRunBaseWalkSpeed))
+				{
+					MoveComp->MaxWalkSpeed = AutoRunBaseWalkSpeed;
+				}
+			}
+		}
+	}
+	bAutoRunSprinting = false;
+	AutoRunBaseWalkSpeed = 0.f;
+}
 
 bool UAutoTestAgent::OnAutoRunTick(float DeltaSeconds)
 {
@@ -232,30 +357,89 @@ bool UAutoTestAgent::OnAutoRunTick(float DeltaSeconds)
 		return true; // keep the ticker alive; cheap while idle
 	}
 
-	UWorld* World = GetWorld();
-	if (!World)
+	ACharacter* Char = GetPlayerCharacter();
+	if (!Char)
+	{
+		return true;
+	}
+	UCharacterMovementComponent* MoveComp = Char->GetCharacterMovement();
+	if (!MoveComp)
 	{
 		return true;
 	}
 
-	APlayerController* PC = World->GetFirstPlayerController();
-	if (!PC)
+	// --- Idle beats: occasionally stand still for a moment, then walk on. ---
+	AutoRunPauseTimer -= DeltaSeconds;
+	if (AutoRunPauseTimer <= 0.f)
 	{
-		return true;
+		if (bAutoRunPaused)
+		{
+			bAutoRunPaused = false;
+			AutoRunPauseTimer = FMath::FRandRange(3.f, 6.5f);
+		}
+		else
+		{
+			bAutoRunPaused = (FMath::FRand() < 0.18f);
+			AutoRunPauseTimer = bAutoRunPaused ? FMath::FRandRange(0.4f, 1.2f)
+											   : FMath::FRandRange(3.f, 6.5f);
+		}
 	}
 
-	APawn* Pawn = PC->GetPawn();
-	if (!Pawn)
+	// --- Sprint beats: toggle run on/off so the pawn sometimes runs. Never start a
+	//     sprint while paused; instead push the next decision out. ---
+	AutoRunSprintTimer -= DeltaSeconds;
+	if (AutoRunSprintTimer <= 0.f)
 	{
-		return true;
+		if (bAutoRunSprinting)
+		{
+			bAutoRunSprinting = false;
+			AutoRunSprintTimer = FMath::FRandRange(3.0f, 7.5f); // walk gap
+		}
+		else if (!bAutoRunPaused)
+		{
+			bAutoRunSprinting = true;
+			AutoRunSprintTimer = FMath::FRandRange(1.5f, 4.0f); // sprint burst
+		}
+		else
+		{
+			AutoRunSprintTimer = FMath::FRandRange(1.0f, 2.5f); // retry after the pause
+		}
+		ApplyAutoRunSprint(MoveComp);
 	}
 
-	// Forward direction from the controller yaw — the same source the player's Move()
-	// handler uses (AAuraPlayerController::Move). bOrientRotationToMovement will rotate
-	// the pawn to face this direction automatically.
-	const FRotator YawRot(0.f, PC->GetControlRotation().Yaw, 0.f);
-	const FVector ForwardDir = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
+	// --- Wander steering: pick a new target turn rate every so often and ease toward
+	//     it, so the heading traces gentle arcs and the pawn veers into different
+	//     directions instead of marching in a straight line. ---
+	AutoRunWanderTimer -= DeltaSeconds;
+	if (AutoRunWanderTimer <= 0.f)
+	{
+		// Centered on 0 (straight-ish); occasionally commit to a harder turn.
+		AutoRunTargetAngularVel = (FMath::FRand() - 0.5f) * 2.f * GAutoRunMaxTurnRate;
+		if (FMath::FRand() < 0.25f)
+		{
+			AutoRunTargetAngularVel *= 2.0f;
+		}
+		AutoRunWanderTimer = FMath::FRandRange(0.8f, 2.5f);
+	}
+	AutoRunAngularVel = FMath::FInterpTo(AutoRunAngularVel, AutoRunTargetAngularVel, DeltaSeconds, 3.0f);
+	AutoRunHeadingYaw = FMath::UnwindDegrees(AutoRunHeadingYaw + AutoRunAngularVel * DeltaSeconds);
 
-	Pawn->AddMovementInput(ForwardDir, 1.0f);
+	// --- Stride intensity: vary how hard we lean into the input. Full tilt while
+	//     sprinting; a relaxed dawdle..brisk walk otherwise. ---
+	AutoRunIntentTimer -= DeltaSeconds;
+	if (AutoRunIntentTimer <= 0.f)
+	{
+		AutoRunIntentScale = bAutoRunSprinting ? 1.0f : FMath::FRandRange(0.55f, 1.0f);
+		AutoRunIntentTimer = FMath::FRandRange(1.5f, 4.0f);
+	}
+
+	// --- Apply movement. AddMovementInput takes a world-space direction; with
+	//     bOrientRotationToMovement=true the pawn turns to face it automatically. ---
+	const float Scale = bAutoRunPaused ? 0.f : AutoRunIntentScale;
+	if (Scale > KINDA_SMALL_NUMBER)
+	{
+		const FVector MoveDir = FRotationMatrix(FRotator(0.f, AutoRunHeadingYaw, 0.f)).GetUnitAxis(EAxis::X);
+		Char->AddMovementInput(MoveDir, Scale);
+	}
 	return true;
 }

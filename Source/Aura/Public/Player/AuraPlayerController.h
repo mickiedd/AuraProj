@@ -90,7 +90,15 @@ public:
 
 	void RequestBroomMount(AAuraBroomVehicle* BroomToMount);
 
-	
+	/** Automation/test hook: fire one of the equipped ability slots (1-4 or LMB) with a
+	 *  simulated press+release. Picks uniformly at random among slots that actually have
+	 *  an ability equipped, so it is a no-op (and logged) when nothing is equipped or
+	 *  ability input is blocked. Invoked by name (UObject reflection) by the AutoTest
+	 *  stress harness so that plugin stays decoupled from Aura. */
+	UFUNCTION(BlueprintCallable, Category = "AutoTest")
+	void AutoTestUseRandomEquippedAbility();
+
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
