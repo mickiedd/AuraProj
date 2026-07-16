@@ -37,6 +37,13 @@ AAuraBroomVehicle::AAuraBroomVehicle()
 	BroomMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BroomMesh"));
 	BroomMesh->SetupAttachment(Root);
 	BroomMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	// The rider attaches to this mesh's RiderSocket, so the player's spring-arm camera
+	// boom (ECC_Camera probe) sits right on top of it. BlockAllDynamic blocks ECC_Camera,
+	// which makes the boom retract to ~0 length and snap the view to first-person while
+	// mounted. Ignore the Camera channel so the boom never probes the broom the player is
+	// riding (matches the capsule/mesh ignore in AuraCharacterBase). Movement sweeps and
+	// collision-driven mounting use World channels, so this does not affect gameplay.
+	BroomMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	BroomMesh->SetNotifyRigidBodyCollision(true);
 	BroomMesh->SetIsReplicated(true);
 	// OnComponentHit is bound by the mount component in its BeginPlay.
