@@ -174,36 +174,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
 		DamageTypeValue *= ( 100.f - Resistance ) / 100.f;
 
-		if (UAuraAbilitySystemLibrary::IsRadialDamage(EffectContextHandle))
-		{
-			// 1. override TakeDamage in AuraCharacterBase. *
-			// 2. create delegate OnDamageDelegate, broadcast damage received in TakeDamage *
-			// 3. Bind lambda to OnDamageDelegate on the Victim here. *
-			// 4. Call UGameplayStatics::ApplyRadialDamageWithFalloff to cause damage (this will result in TakeDamage being called
-			//		on the Victim, which will then broadcast OnDamageDelegate)
-			// 5. In Lambda, set DamageTypeValue to the damage received from the broadcast *
-
-			if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(TargetAvatar))
-			{
-				CombatInterface->GetOnDamageSignature().AddLambda([&](float DamageAmount)
-				{
-					DamageTypeValue = DamageAmount;
-				});
-			}
-			UGameplayStatics::ApplyRadialDamageWithFalloff(
-				TargetAvatar,
-				DamageTypeValue,
-				0.f,
-				UAuraAbilitySystemLibrary::GetRadialDamageOrigin(EffectContextHandle),
-				UAuraAbilitySystemLibrary::GetRadialDamageInnerRadius(EffectContextHandle),
-				UAuraAbilitySystemLibrary::GetRadialDamageOuterRadius(EffectContextHandle),
-				1.f,
-				UDamageType::StaticClass(),
-				TArray<AActor*>(),
-				SourceAvatar,
-				nullptr);
-		}
-		
 		Damage += DamageTypeValue;
 	}
 

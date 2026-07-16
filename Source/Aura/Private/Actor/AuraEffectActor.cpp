@@ -123,15 +123,18 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 	}
 	if (InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{
-		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-		if (!IsValid(TargetASC)) return;
+		TWeakObjectPtr<UAbilitySystemComponent> TargetASCWeak = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+		if (!TargetASCWeak.IsValid()) return;
 
 		TArray<FActiveGameplayEffectHandle> HandlesToRemove;
-		for (TTuple<FActiveGameplayEffectHandle, UAbilitySystemComponent*> HandlePair : ActiveEffectHandles)
+		for (const TTuple<FActiveGameplayEffectHandle, TWeakObjectPtr<UAbilitySystemComponent>>& HandlePair : ActiveEffectHandles)
 		{
-			if (TargetASC == HandlePair.Value)
+			if (TargetASCWeak == HandlePair.Value)
 			{
-				TargetASC->RemoveActiveGameplayEffect(HandlePair.Key, 1);
+				if (UAbilitySystemComponent* ASC = HandlePair.Value.Get())
+				{
+					ASC->RemoveActiveGameplayEffect(HandlePair.Key, 1);
+				}
 				HandlesToRemove.Add(HandlePair.Key);
 			}
 		}
@@ -140,6 +143,22 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 			ActiveEffectHandles.FindAndRemoveChecked(Handle);
 		}
 	}
+}
+
+void AAuraEffectActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Remove any infinite effects we are still tracking so they don't leak when
+	// the actor is destroyed without an end-overlap (e.g. level transition, GC).
+	for (const TTuple<FActiveGameplayEffectHandle, TWeakObjectPtr<UAbilitySystemComponent>>& HandlePair : ActiveEffectHandles)
+	{
+		if (UAbilitySystemComponent* ASC = HandlePair.Value.Get())
+		{
+			ASC->RemoveActiveGameplayEffect(HandlePair.Key, 1);
+		}
+	}
+	ActiveEffectHandles.Empty();
+
+	Super::EndPlay(EndPlayReason);
 }
 
 

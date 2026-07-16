@@ -6,7 +6,7 @@
 	"Description": "A comprehensive game AI framework supporting Behavior Trees, Finite State Machines, and Hierarchical Task Networks.",
 	"Category": "AI",
 	"CreatedBy": "BehaviorU Contributors",
-	"CreatedByURL": "https://github.com/mickiedd/BehaviaU",
+	"CreatedByURL": "https://github.com/mickiedd/BehaviorU",
 	"DocsURL": "",
 	"MarketplaceURL": "",
 	"CanContainContent": true,

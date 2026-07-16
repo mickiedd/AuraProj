@@ -806,7 +806,11 @@ void AAuraPlayerController::ClientRefreshAbilityUI_Implementation()
 void AAuraPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	check(AuraContext);
+	if (!AuraContext)
+	{
+		UE_LOG(LogAura, Error, TEXT("AAuraPlayerController::BeginPlay: AuraContext (Input Mapping Context) is not set. Input will not be bound."));
+		return;
+	}
 
 #if !UE_BUILD_SHIPPING
 	// Auto-enable cheats in non-shipping builds so the UAuraCheatManager console

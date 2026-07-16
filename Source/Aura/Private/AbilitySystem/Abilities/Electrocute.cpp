@@ -59,7 +59,7 @@ FString UElectrocute::GetDescription(int32 Level)
 			Level,
 			ManaCost,
 			Cooldown,
-			FMath::Min(Level, MaxNumShockTargets - 1),
+			FMath::Min(Level - 1, MaxNumShockTargets),
 			ScaledDamage);		
 	}
 }
@@ -92,6 +92,6 @@ FString UElectrocute::GetNextLevelDescription(int32 Level)
 			Level,
 			ManaCost,
 			Cooldown,
-			FMath::Min(Level, MaxNumShockTargets - 1),
+			FMath::Min(Level - 1, MaxNumShockTargets),
 			ScaledDamage);	
 }

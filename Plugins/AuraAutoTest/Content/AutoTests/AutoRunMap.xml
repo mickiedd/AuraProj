@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<behavior name="Imported" agenttype="BTAgent" version="5">
+<behavior name="Imported" agenttype="AutoTest" version="5">
   <property name="name" value="AutoRunMap"/>
   <property name="description" value="Stress auto-run: natural wander movement (curved heading, varied stride, idle pauses, periodic sprints) with occasional jump/crouch flavor and random skill use, infinite loop. Per-frame movement is driven by the agent ticker; this tree paces the flavor beats."/>
   <property name="timeout" value="86400"/>

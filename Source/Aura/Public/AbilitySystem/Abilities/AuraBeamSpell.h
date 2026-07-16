@@ -31,6 +31,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void AdditionalTargetDied(AActor* DeadActor);
+
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 protected:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Beam")
@@ -47,4 +49,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Beam")
 	int32 MaxNumShockTargets = 5;
+
+	// Targets whose OnDeathDelegate we have bound, so we can unbind on ability end.
+	UPROPERTY()
+	TArray<TWeakObjectPtr<AActor>> BoundDeathTargets;
+
+	void UnbindDeathDelegates();
 };

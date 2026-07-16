@@ -471,6 +471,16 @@ void UAutoTestRunnerSubsystem::FinalizeTest()
 
 	TestCompleteDelegate.Broadcast(Broadcast);
 
+	// StopRun() requested: skip the rest of the queue and wind the suite down.
+	if (bStopRequested)
+	{
+		CurrentContext.Reset();
+		PendingQueue.Empty();
+		bStopRequested = false;
+		FinalizeSuite();
+		return;
+	}
+
 	StartNextTest();
 }
 

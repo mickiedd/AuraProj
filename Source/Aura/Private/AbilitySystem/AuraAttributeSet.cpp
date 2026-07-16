@@ -137,6 +137,11 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	FEffectProperties Props;
 	SetEffectProperties(Data, Props);
 
+	if (!IsValid(Props.TargetCharacter))
+	{
+		return;
+	}
+
 	if(Props.TargetCharacter->Implements<UCombatInterface>() && ICombatInterface::Execute_IsDead(Props.TargetCharacter)) return;
 
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())

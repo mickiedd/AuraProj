@@ -64,6 +64,7 @@ void UAuraBeamSpell::TraceFirstTarget(const FVector& BeamTargetLocation)
 		if (!CombatInterface->GetOnDeathDelegate().IsAlreadyBound(this, &UAuraBeamSpell::PrimaryTargetDied))
 		{
 			CombatInterface->GetOnDeathDelegate().AddDynamic(this, &UAuraBeamSpell::PrimaryTargetDied);
+			BoundDeathTargets.AddUnique(MouseHitActor);
 		}
 	}
 }
@@ -98,7 +99,30 @@ void UAuraBeamSpell::StoreAdditionalTargets(TArray<AActor*>& OutAdditionalTarget
 			if (!CombatInterface->GetOnDeathDelegate().IsAlreadyBound(this, &UAuraBeamSpell::AdditionalTargetDied))
 			{
 				CombatInterface->GetOnDeathDelegate().AddDynamic(this, &UAuraBeamSpell::AdditionalTargetDied);
+				BoundDeathTargets.AddUnique(Target);
 			}
 		}
 	}
+}
+
+void UAuraBeamSpell::UnbindDeathDelegates()
+{
+	for (const TWeakObjectPtr<AActor>& WeakTarget : BoundDeathTargets)
+	{
+		if (AActor* Target = WeakTarget.Get())
+		{
+			if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Target))
+			{
+				CombatInterface->GetOnDeathDelegate().RemoveDynamic(this, &UAuraBeamSpell::PrimaryTargetDied);
+				CombatInterface->GetOnDeathDelegate().RemoveDynamic(this, &UAuraBeamSpell::AdditionalTargetDied);
+			}
+		}
+	}
+	BoundDeathTargets.Empty();
+}
+
+void UAuraBeamSpell::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	UnbindDeathDelegates();
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
