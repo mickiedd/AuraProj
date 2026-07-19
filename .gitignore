@@ -7,6 +7,8 @@
 /Plugins/**/Binaries/
 /Plugins/**/Intermediate/
 /Plugins/**/Temp/
+# Per-developer IDE tooling plugins (e.g. JetBrains RiderLink) — auto-installed, not shared.
+/Plugins/Developer/
 
 # Generated build/package artifacts
 /Build/**/FileOpenOrder/
@@ -42,15 +44,7 @@ Desktop.ini
 *.xcodeproj
 *.xcworkspace
 /enc_temp_folder
-/enc_temp_folder
-/enc_temp_folder/b4b7b3e09c2815afea82f8e12a724f17
-/enc_temp_folder
-/Plugins/BehaviorU/BehaviacLauncher/build
-/Plugins/BehaviorU/BehaviacLauncher/packages
 *.log
-/Plugins/BehaviorU/BehaviacLauncher/WebView2UserData
-/Plugins/BehaviorU/BehaviacLauncher/WebView2UserData/EBWebView/Default/Sync Data
-/Plugins/BehaviorU/BehaviacLauncher/WebView2UserData/EBWebView/GrShaderCache
 *.old
 *.dat
 /Scripts/__pycache__
