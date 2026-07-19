@@ -940,7 +940,7 @@ bool AAuraGameModeBase::LoadMonsterSpawnTable()
 
 	if (LoadedFromPath.IsEmpty())
 	{
-		UE_LOG(LogAura, Warning, TEXT("Monster spawn table not found. Expected file '%s' in Config, Data, or Saved/Config."), *MonsterSpawnTableFileName);
+		UE_LOG(LogAura, Warning, TEXT("Monster spawn table not found. Expected file '%s' in Content/Config, Config, or Saved/Config."), *MonsterSpawnTableFileName);
 		return false;
 	}
 
@@ -1266,9 +1266,13 @@ TArray<FString> AAuraGameModeBase::BuildCandidateMonsterSpawnTablePaths() const
 	TArray<FString> CandidatePaths;
 	CandidatePaths.Reserve(3);
 
+	// Search order: runtime override (Saved/Config) -> canonical cook-safe location
+	// (Content/Config, packaged with the build) -> legacy project Config/ fallback
+	// (still staged via DirectoriesToAlwaysStageAsUFS). Content/Config is the source of
+	// truth; the others are override/back-compat paths. Matches RoleConfig/LevelConfig.
 	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), MonsterSpawnTableFileName));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), MonsterSpawnTableFileName));
 	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), MonsterSpawnTableFileName));
-	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectDir(), TEXT("Data"), MonsterSpawnTableFileName));
 
 	return CandidatePaths;
 }
@@ -1294,7 +1298,7 @@ bool AAuraGameModeBase::LoadItemSpawnTable()
 
 	if (LoadedFromPath.IsEmpty())
 	{
-		UE_LOG(LogAura, Warning, TEXT("Item spawn table not found. Expected file '%s' in Config, Data, or Saved/Config."), *ItemSpawnTableFileName);
+		UE_LOG(LogAura, Warning, TEXT("Item spawn table not found. Expected file '%s' in Content/Config, Config, or Saved/Config."), *ItemSpawnTableFileName);
 		return false;
 	}
 
@@ -1638,9 +1642,13 @@ TArray<FString> AAuraGameModeBase::BuildCandidateItemSpawnTablePaths() const
 	TArray<FString> CandidatePaths;
 	CandidatePaths.Reserve(3);
 
+	// Search order: runtime override (Saved/Config) -> canonical cook-safe location
+	// (Content/Config, packaged with the build) -> legacy project Config/ fallback
+	// (still staged via DirectoriesToAlwaysStageAsUFS). Content/Config is the source of
+	// truth; the others are override/back-compat paths. Matches RoleConfig/LevelConfig.
 	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config"), ItemSpawnTableFileName));
+	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), ItemSpawnTableFileName));
 	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectConfigDir(), ItemSpawnTableFileName));
-	CandidatePaths.Add(FPaths::Combine(FPaths::ProjectDir(), TEXT("Data"), ItemSpawnTableFileName));
 
 	return CandidatePaths;
 }
