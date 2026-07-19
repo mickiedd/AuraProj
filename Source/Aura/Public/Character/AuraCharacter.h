@@ -88,6 +88,9 @@ private:
 	void UpdateOverheadNameFacingCamera();
 	void HandlePlayerNameChanged(const FString& NewName);
 
+	void BindRoleDelegate();
+	void HandleRoleChanged(FName NewRole);
+
 	float CurrentFallDuration = 0.f;
 	bool bWasInFatalFallWindow = false;
 

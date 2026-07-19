@@ -6,6 +6,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "AbilitySystem/Data/RoleInfo.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
@@ -31,6 +32,18 @@ public:
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+	/**
+	 * Applies a player Role: swaps the body SkeletalMesh + AnimBP + weapon mesh/sockets +
+	 * death/dissolve VFX from URoleInfo, and copies the role's primary-attributes GE and
+	 * startup abilities onto this character so the existing InitializeDefaultAttributes() /
+	 * AddCharacterAbilities() consume them. Safe to call on both server (before gameplay
+	 * init) and client (visuals only). No-ops if Role is unchanged since the last apply.
+	 */
+	void ApplyRole(FName InRole);
+
+	/** Player hero identity (role name from RoleConfig.json). NAME_None until ApplyRole runs. Orthogonal to CharacterClass. */
+	FName GetCharacterRole() const { return CharacterRole; }
 
 	/** Combat Interface */
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;	
@@ -128,6 +141,13 @@ protected:
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
 	virtual void InitializeDefaultAttributes() const;
 
+	/**
+	 * Applies this character's primary attributes from the role's numeric values (Strength/
+	 * Intelligence/Resilience/Vigor) via the shared PrimaryAttributes_SetByCaller GE, then the
+	 * shared Secondary/Vital GEs from the BP. Used for first-time player init when a Role is set.
+	 */
+	void InitializeDefaultAttributesForRole(FName InRole) const;
+
 	void AddCharacterAbilities();
 
 	/* Dissolve Effects */
@@ -158,6 +178,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Class Defaults")
 	ECharacterClass CharacterClass = ECharacterClass::Warrior;
+
+	/** Currently applied player Role (role name from RoleConfig.json). NAME_None until ApplyRole runs. */
+	FName CharacterRole = NAME_None;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;

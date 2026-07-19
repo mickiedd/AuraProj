@@ -15,6 +15,7 @@ class ULevelUpInfo;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChanged, int32 /*StatValue*/)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLevelChanged, int32 /*StatValue*/, bool /*bLevelUp*/)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerNameChanged, const FString& /*PlayerName*/)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnRoleChanged, FName /*Role*/)
 
 /**
  * 
@@ -39,21 +40,24 @@ public:
 	FOnPlayerStatChanged OnAttributePointsChangedDelegate;
 	FOnPlayerStatChanged OnSpellPointsChangedDelegate;
 	FOnPlayerNameChanged OnPlayerNameChangedDelegate;
+	FOnRoleChanged OnRoleChangedDelegate;
 
 	FORCEINLINE int32 GetPlayerLevel() const { return Level; }
 	FORCEINLINE int32 GetXP() const { return XP; }
 	FORCEINLINE int32 GetAttributePoints() const { return AttributePoints; }
 	FORCEINLINE int32 GetSpellPoints() const { return SpellPoints; }
+	FORCEINLINE FName GetRole() const { return CharacterRole; }
 
 	void AddToXP(int32 InXP);
 	void AddToLevel(int32 InLevel);
 	void AddToAttributePoints(int32 InPoints);
 	void AddToSpellPoints(int32 InPoints);
-	
+
 	void SetXP(int32 InXP);
 	void SetLevel(int32 InLevel);
 	void SetAttributePoints(int32 InPoints);
 	void SetSpellPoints(int32 InPoints);
+	void SetRole(FName InRole);
 	
 protected:
 	
@@ -76,7 +80,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_SpellPoints)
 	int32 SpellPoints = 0;
-	
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Role)
+	FName CharacterRole = NAME_None;
+
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
 
@@ -88,4 +95,7 @@ private:
 
 	UFUNCTION()
 	void OnRep_SpellPoints(int32 OldSpellPoints);
+
+	UFUNCTION()
+	void OnRep_Role();
 };

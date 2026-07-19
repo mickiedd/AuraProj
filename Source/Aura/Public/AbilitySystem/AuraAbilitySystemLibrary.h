@@ -11,6 +11,7 @@
 class ULootTiers;
 class ULoadScreenSaveGame;
 class UAbilityInfo;
+class URoleInfo;
 class USpellMenuWidgetController;
 class UAbilitySystemComponent;
 class UAttributeMenuWidgetController;
@@ -59,6 +60,21 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static UAbilityInfo* GetAbilityInfo(const UObject* WorldContextObject);
+
+	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
+	static URoleInfo* GetRoleInfo(const UObject* WorldContextObject);
+
+	/** Role used when no role is explicitly chosen (no save / no UI selection). Reads URoleInfo::DefaultRole from RoleConfig.json; returns NAME_None if unset. */
+	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
+	static FName GetDefaultRole(const UObject* WorldContextObject);
+
+	/**
+	 * Builds a transient URoleInfo from Content/Config/RoleConfig.json, resolving asset paths
+	 * (mesh/anim/weapon/VFX) and ability class paths to loaded objects. Called once by the
+	 * GameMode at BeginPlay; the result is cached on AAuraGameModeBase::RoleInfo.
+	 */
+	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
+	static URoleInfo* LoadRoleInfoFromConfig(const UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta = (DefaultToSelf = "WorldContextObject"))
 	static ULootTiers* GetLootTiers(const UObject* WorldContextObject);

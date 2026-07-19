@@ -114,6 +114,9 @@ public:
 	/* Player */
 
 	UPROPERTY()
+	FName Role = NAME_None;
+
+	UPROPERTY()
 	int32 PlayerLevel = 1;
 
 	UPROPERTY()

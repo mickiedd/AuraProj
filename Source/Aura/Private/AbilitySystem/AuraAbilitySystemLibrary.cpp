@@ -16,6 +16,22 @@
 #include "UI/HUD/AuraHUD.h"
 #include "UI/WidgetController/AuraWidgetController.h"
 
+// Role config (JSON)
+#include "AbilitySystem/Data/RoleInfo.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonObject.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimInstance.h"
+#include "Materials/MaterialInstance.h"
+#include "NiagaraSystem.h"
+#include "Sound/SoundBase.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/StrongObjectPtr.h"
+#include "Aura/AuraLogChannels.h"
+
 bool UAuraAbilitySystemLibrary::MakeWidgetControllerParams(const UObject* WorldContextObject, FWidgetControllerParams& OutWCParams, AAuraHUD*& OutAuraHUD)
 {
 	if (APlayerController* PC = UGameplayStatics::GetPlayerController(WorldContextObject, 0))
@@ -208,6 +224,184 @@ UAbilityInfo* UAuraAbilitySystemLibrary::GetAbilityInfo(const UObject* WorldCont
 	const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
 	if (AuraGameMode == nullptr) return nullptr;
 	return AuraGameMode->AbilityInfo;
+}
+
+URoleInfo* UAuraAbilitySystemLibrary::GetRoleInfo(const UObject* WorldContextObject)
+{
+	if (const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+	{
+		if (AuraGameMode->RoleInfo)
+		{
+			return AuraGameMode->RoleInfo;
+		}
+	}
+
+	// No GameMode (e.g. a client on the battleground map) or GameMode hasn't loaded RoleInfo yet:
+	// load RoleConfig.json directly and cache it for the process lifetime. RoleConfig.json is
+	// packaged with the client (same as LevelConfig.json), so this works client-side.
+	static TStrongObjectPtr<URoleInfo> ClientRoleInfoCache;
+	if (!ClientRoleInfoCache.IsValid())
+	{
+		ClientRoleInfoCache.Reset(LoadRoleInfoFromConfig(WorldContextObject));
+	}
+	return ClientRoleInfoCache.Get();
+}
+
+FName UAuraAbilitySystemLibrary::GetDefaultRole(const UObject* WorldContextObject)
+{
+	if (const URoleInfo* RoleInfo = GetRoleInfo(WorldContextObject))
+	{
+		return RoleInfo->DefaultRole;
+	}
+	return NAME_None;
+}
+
+namespace RoleConfigPrivate
+{
+	static void LoadAbilityClasses(const TArray<TSharedPtr<FJsonValue>>& Paths, TArray<TSubclassOf<UGameplayAbility>>& OutClasses, const FString& RoleName, const FString& FieldLabel)
+	{
+		for (const TSharedPtr<FJsonValue>& PathValue : Paths)
+		{
+			if (!PathValue.IsValid()) continue;
+			const FString Path = PathValue->AsString();
+			if (Path.IsEmpty()) continue;
+			const TSubclassOf<UGameplayAbility> Loaded = LoadClass<UGameplayAbility>(nullptr, *Path);
+			if (Loaded)
+			{
+				OutClasses.AddUnique(Loaded);
+			}
+			else
+			{
+				UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load %s class '%s'."), *RoleName, *FieldLabel, *Path);
+			}
+		}
+	}
+}
+
+URoleInfo* UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(const UObject* WorldContextObject)
+{
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("RoleConfig.json"));
+	FString JsonContent;
+	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Failed to read role config file: %s"), *ConfigPath);
+		return nullptr;
+	}
+
+	TSharedPtr<FJsonObject> RootObject;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Failed to parse role config JSON: %s"), *ConfigPath);
+		return nullptr;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* RolesArray = nullptr;
+	if (!RootObject->TryGetArrayField(TEXT("roles"), RolesArray) || RolesArray == nullptr)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] No 'roles' array in %s"), *ConfigPath);
+		return nullptr;
+	}
+
+	URoleInfo* RoleInfo = NewObject<URoleInfo>(GetTransientPackage());
+
+	// Top-level "defaultRole": role used when no role is explicitly chosen (no save / no UI).
+	// Stored as a name string; validated against the loaded roles below.
+	FString DefaultRoleStr;
+	if (RootObject->TryGetStringField(TEXT("defaultRole"), DefaultRoleStr) && !DefaultRoleStr.IsEmpty())
+	{
+		RoleInfo->DefaultRole = FName(*DefaultRoleStr);
+	}
+
+	for (const TSharedPtr<FJsonValue>& RoleValue : *RolesArray)
+	{
+		const TSharedPtr<FJsonObject>* RoleObjPtr = nullptr;
+		if (!RoleValue.IsValid() || !RoleValue->TryGetObject(RoleObjPtr) || !RoleObjPtr->IsValid())
+		{
+			continue;
+		}
+		const TSharedPtr<FJsonObject> RoleObj = *RoleObjPtr;
+
+		FString RoleNameStr;
+		if (!RoleObj->TryGetStringField(TEXT("role"), RoleNameStr) || RoleNameStr.IsEmpty())
+		{
+			UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role entry missing 'role' name; skipping."));
+			continue;
+		}
+		const FName RoleName = FName(*RoleNameStr);
+
+		FRoleDefaultInfo Info;
+
+		// Visuals: asset paths resolved synchronously (loader runs once at GameMode BeginPlay).
+		const FString MeshPath = RoleObj->GetStringField(TEXT("mesh"));
+		const FString AnimPath = RoleObj->GetStringField(TEXT("animBlueprint"));
+		const FString WeaponMeshPath = RoleObj->GetStringField(TEXT("weaponMesh"));
+		const FString DissolvePath = RoleObj->GetStringField(TEXT("dissolve"));
+		const FString WeaponDissolvePath = RoleObj->GetStringField(TEXT("weaponDissolve"));
+		const FString BloodPath = RoleObj->GetStringField(TEXT("bloodEffect"));
+		const FString DeathSoundPath = RoleObj->GetStringField(TEXT("deathSound"));
+
+		if (!MeshPath.IsEmpty()) Info.SkeletalMesh = LoadObject<USkeletalMesh>(nullptr, *MeshPath);
+		if (!AnimPath.IsEmpty()) Info.AnimBlueprintClass = LoadClass<UAnimInstance>(nullptr, *AnimPath);
+		if (!WeaponMeshPath.IsEmpty()) Info.WeaponMesh = LoadObject<USkeletalMesh>(nullptr, *WeaponMeshPath);
+		if (!DissolvePath.IsEmpty()) Info.DissolveMaterialInstance = LoadObject<UMaterialInstance>(nullptr, *DissolvePath);
+		if (!WeaponDissolvePath.IsEmpty()) Info.WeaponDissolveMaterialInstance = LoadObject<UMaterialInstance>(nullptr, *WeaponDissolvePath);
+		if (!BloodPath.IsEmpty()) Info.BloodEffect = LoadObject<UNiagaraSystem>(nullptr, *BloodPath);
+		if (!DeathSoundPath.IsEmpty()) Info.DeathSound = LoadObject<USoundBase>(nullptr, *DeathSoundPath);
+
+		if (!MeshPath.IsEmpty() && Info.SkeletalMesh == nullptr) UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load mesh '%s'."), *RoleNameStr, *MeshPath);
+		if (!AnimPath.IsEmpty() && Info.AnimBlueprintClass == nullptr) UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load anim blueprint '%s'."), *RoleNameStr, *AnimPath);
+
+		// Sockets.
+		const FString WeaponSocket = RoleObj->GetStringField(TEXT("weaponSocket"));
+		Info.WeaponSocketName = WeaponSocket.IsEmpty() ? FName("WeaponHandSocket") : FName(*WeaponSocket);
+		Info.WeaponTipSocketName = FName(*RoleObj->GetStringField(TEXT("weaponTipSocket")));
+		Info.LeftHandSocketName = FName(*RoleObj->GetStringField(TEXT("leftHandSocket")));
+		Info.RightHandSocketName = FName(*RoleObj->GetStringField(TEXT("rightHandSocket")));
+		Info.TailSocketName = FName(*RoleObj->GetStringField(TEXT("tailSocket")));
+
+		// Attributes (numeric, applied via PrimaryAttributes_SetByCaller at init).
+		const TSharedPtr<FJsonObject> Attrs = RoleObj->GetObjectField(TEXT("attributes"));
+		if (Attrs.IsValid())
+		{
+			Info.Strength = static_cast<float>(Attrs->GetNumberField(TEXT("strength")));
+			Info.Intelligence = static_cast<float>(Attrs->GetNumberField(TEXT("intelligence")));
+			Info.Resilience = static_cast<float>(Attrs->GetNumberField(TEXT("resilience")));
+			Info.Vigor = static_cast<float>(Attrs->GetNumberField(TEXT("vigor")));
+		}
+
+		// Abilities (class paths; Blueprint classes need the _C suffix).
+		const TArray<TSharedPtr<FJsonValue>>& StartupArr = RoleObj->GetArrayField(TEXT("startupAbilities"));
+		RoleConfigPrivate::LoadAbilityClasses(StartupArr, Info.StartupAbilities, RoleNameStr, TEXT("startup ability"));
+
+		const TArray<TSharedPtr<FJsonValue>>& PassiveArr = RoleObj->GetArrayField(TEXT("startupPassiveAbilities"));
+		RoleConfigPrivate::LoadAbilityClasses(PassiveArr, Info.StartupPassiveAbilities, RoleNameStr, TEXT("startup passive ability"));
+
+		RoleInfo->RoleInformation.Add(RoleName, Info);
+		UE_LOG(LogAura, Log, TEXT("[RoleConfig] Loaded role '%s' (mesh=%s, anim=%s, abilities=%d)."),
+			*RoleNameStr,
+			*GetNameSafe(Info.SkeletalMesh.Get()),
+			*GetNameSafe(Info.AnimBlueprintClass.Get()),
+			Info.StartupAbilities.Num());
+	}
+
+	// Validate the default role references a role that was actually loaded.
+	if (RoleInfo->DefaultRole.IsNone())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] No 'defaultRole' set in %s; login will require an explicit role."), *ConfigPath);
+	}
+	else if (!RoleInfo->RoleInformation.Contains(RoleInfo->DefaultRole))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] defaultRole '%s' does not match any role entry in %s; login will be refused until it is configured."),
+			*RoleInfo->DefaultRole.ToString(), *ConfigPath);
+	}
+	else
+	{
+		UE_LOG(LogAura, Log, TEXT("[RoleConfig] Default role = '%s'."), *RoleInfo->DefaultRole.ToString());
+	}
+
+	UE_LOG(LogAura, Log, TEXT("[RoleConfig] Loaded %d role(s) from %s."), RoleInfo->RoleInformation.Num(), *ConfigPath);
+	return RoleInfo;
 }
 
 ULootTiers* UAuraAbilitySystemLibrary::GetLootTiers(const UObject* WorldContextObject)

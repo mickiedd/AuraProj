@@ -13,6 +13,7 @@ class USaveGame;
 class UMVVM_LoadSlot;
 class UAbilityInfo;
 class UCharacterClassInfo;
+class URoleInfo;
 class AAuraEnemy;
 class APlayerController;
 class APlayerState;
@@ -117,6 +118,10 @@ class AURA_API AAuraGameModeBase : public AGameModeBase
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Character Class Defaults")
 	TObjectPtr<UCharacterClassInfo> CharacterClassInfo;
+
+	/** Per-role config. Built at BeginPlay from Content/Config/RoleConfig.json (replaces DA_RoleInfo). */
+	UPROPERTY(Transient)
+	TObjectPtr<URoleInfo> RoleInfo;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability Info")
 	TObjectPtr<UAbilityInfo> AbilityInfo;

@@ -7,6 +7,7 @@
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/Data/LevelUpInfo.h"
+#include "AbilitySystem/Data/RoleInfo.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
@@ -102,6 +103,7 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	BindPlayerNameDelegate();
+	BindRoleDelegate();
 	UpdateOverheadPlayerName();
 
 	UE_LOG(LogAura, Log, TEXT("[Character][Server] PossessedBy called: Character=%s Controller=%s HasAuthority=%s"),
@@ -122,9 +124,36 @@ void AAuraCharacter::LoadProgress()
 	UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress enter: Character=%s HasAuthority=%s"),
 		*GetNameSafe(this), HasAuthority() ? TEXT("true") : TEXT("false"));
 
+	// Role config is incomplete (e.g. placeholder Bonman/Ironman with empty mesh/anim): refuse to
+	// log in with a broken role — log an Error and send the client back to the Login level with an
+	// alert via the existing server-lost path (reused by KickOutSelf / mid-game server loss).
+	auto RejectLogin = [this](const FString& Reason)
+	{
+		UE_LOG(LogAura, Error, TEXT("[Role][Login] %s"), *Reason);
+		if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetController()))
+		{
+			AuraPC->ClientRejectLogin(Reason);
+		}
+		else
+		{
+			UE_LOG(LogAura, Error, TEXT("[Role][Login] No PlayerController for Character=%s to reject login."), *GetNameSafe(this));
+		}
+	};
+
 	auto InitializeFallbackDefaults = [this]()
 	{
-		InitializeDefaultAttributes();
+		// No save data (e.g. direct connect to a dedicated server with no slot): load the default
+		// role from RoleConfig.json ("defaultRole"). Replicate it via PlayerState so clients render
+		// the same role, apply visuals/abilities, and apply attributes from JSON.
+		const FName DefaultRole = UAuraAbilitySystemLibrary::GetDefaultRole(this);
+		UE_LOG(LogAura, Log, TEXT("[Character][Server] Fallback: loading default role = '%s'."), *DefaultRole.ToString());
+
+		if (AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState()))
+		{
+			AuraPlayerState->SetRole(DefaultRole);
+		}
+		ApplyRole(DefaultRole);
+		InitializeDefaultAttributesForRole(DefaultRole);
 		AddCharacterAbilities();
 
 		if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
@@ -141,6 +170,19 @@ void AAuraCharacter::LoadProgress()
 		if (SaveData == nullptr)
 		{
 			UE_LOG(LogAura, Warning, TEXT("[Character][Server] LoadProgress: SaveData is null for Character=%s. Applying fallback defaults."), *GetNameSafe(this));
+
+			// Refuse login if the default role is not fully configured (empty mesh/animation).
+			if (URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this))
+			{
+				const FName DefaultRole = UAuraAbilitySystemLibrary::GetDefaultRole(this);
+				if (!RoleInfo->IsRoleConfigured(DefaultRole))
+				{
+					RejectLogin(FString::Printf(TEXT("Default role '%s' is not fully configured in RoleConfig.json (empty mesh or animation). Login refused."),
+						*DefaultRole.ToString()));
+					return;
+				}
+			}
+
 			InitializeFallbackDefaults();
 			return;
 		}
@@ -148,9 +190,30 @@ void AAuraCharacter::LoadProgress()
 		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: SaveData found FirstTime=%s Level=%d"),
 			SaveData->bFirstTimeLoadIn ? TEXT("true") : TEXT("false"), SaveData->PlayerLevel);
 
+		// Refuse login if the saved role is not fully configured (empty mesh/animation).
+		if (URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this))
+		{
+			if (!RoleInfo->IsRoleConfigured(SaveData->Role))
+			{
+				RejectLogin(FString::Printf(TEXT("Role '%s' is not fully configured in RoleConfig.json (empty mesh or animation). Login refused."),
+					*SaveData->Role.ToString()));
+				return;
+			}
+		}
+
+		// Apply the saved Role before gameplay init: visuals + (server) replicate via PlayerState.
+		// Copying the role's DefaultPrimaryAttributes / StartupAbilities onto this character makes
+		// the InitializeDefaultAttributes() / AddCharacterAbilities() calls below consume role data.
+		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: SaveData Role='%s' — applying role + replicating via PlayerState."), *SaveData->Role.ToString());
+		if (AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState()))
+		{
+			AuraPlayerState->SetRole(SaveData->Role);
+		}
+		ApplyRole(SaveData->Role);
+
 		if (SaveData->bFirstTimeLoadIn)
 		{
-			InitializeDefaultAttributes();
+			InitializeDefaultAttributesForRole(SaveData->Role);
 			AddCharacterAbilities();
 
 			if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
@@ -194,10 +257,17 @@ void AAuraCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	BindPlayerNameDelegate();
+	BindRoleDelegate();
 	UpdateOverheadPlayerName();
 
 	// Init ability actor info for the Client
 	InitAbilityActorInfo();
+
+	// Apply this player's chosen Role on the client (visuals only; gameplay is server-granted).
+	if (const AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>())
+	{
+		ApplyRole(AuraPlayerState->GetRole());
+	}
 
 	if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
 	{
@@ -211,6 +281,7 @@ void AAuraCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (IsValid(BoundPlayerState))
 	{
 		BoundPlayerState->OnPlayerNameChangedDelegate.RemoveAll(this);
+		BoundPlayerState->OnRoleChangedDelegate.RemoveAll(this);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -349,6 +420,11 @@ void AAuraCharacter::SaveProgress_Implementation(const FName& CheckpointTag)
 		SaveData->Vigor = UAuraAttributeSet::GetVigorAttribute().GetNumericValue(GetAttributeSet());
 
 		SaveData->bFirstTimeLoadIn = false;
+
+		if (const AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState()))
+		{
+			SaveData->Role = AuraPlayerState->GetRole();
+		}
 
 		if (!HasAuthority()) return;
 
@@ -547,6 +623,22 @@ void AAuraCharacter::HandlePlayerNameChanged(const FString& NewName)
 
 	const FString SafeName = NewName.IsEmpty() ? TEXT("Player") : NewName;
 	OverheadNameText->SetText(FText::FromString(SafeName));
+}
+
+void AAuraCharacter::BindRoleDelegate()
+{
+	// BoundPlayerState is maintained by BindPlayerNameDelegate (called just before this).
+	// RemoveAll + Add avoids duplicate bindings if this runs more than once.
+	if (IsValid(BoundPlayerState))
+	{
+		BoundPlayerState->OnRoleChangedDelegate.RemoveAll(this);
+		BoundPlayerState->OnRoleChangedDelegate.AddUObject(this, &AAuraCharacter::HandleRoleChanged);
+	}
+}
+
+void AAuraCharacter::HandleRoleChanged(FName NewRole)
+{
+	ApplyRole(NewRole);
 }
 
 void AAuraCharacter::InitAbilityActorInfo()

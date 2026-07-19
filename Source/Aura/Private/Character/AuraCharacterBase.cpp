@@ -4,10 +4,15 @@
 #include "Character/AuraCharacterBase.h"
 #include "AbilitySystemComponent.h"
 #include "AuraGameplayTags.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/Data/RoleInfo.h"
 #include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
 #include "AbilitySystem/Passive/PassiveNiagaraComponent.h"
 #include "Aura/Aura.h"
+#include "Aura/AuraLogChannels.h"
+#include "Animation/AnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -74,6 +79,90 @@ float AAuraCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void AAuraCharacterBase::ApplyRole(FName InRole)
+{
+	if (CharacterRole == InRole)
+	{
+		UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: Role='%s' already applied (no-op)."),
+			*GetNameSafe(this), *InRole.ToString());
+		return;
+	}
+
+	URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
+	if (RoleInfo == nullptr)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Role][Apply] %s: URoleInfo not configured on the GameMode; cannot apply Role='%s'."),
+			*GetNameSafe(this), *InRole.ToString());
+		return;
+	}
+	if (!RoleInfo->RoleInformation.Contains(InRole))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Role][Apply] %s: Role='%s' not found in RoleConfig.json; leaving BP defaults."),
+			*GetNameSafe(this), *InRole.ToString());
+		return;
+	}
+
+	const FRoleDefaultInfo Info = RoleInfo->GetRoleDefaultInfo(InRole);
+
+	// Body mesh + anim blueprint. Only set when the role specifies one; for mesh, skip the
+	// redundant set when it already matches (avoids a needless re-init). Anim is (re)set
+	// unconditionally when specified — re-setting the same class is a harmless one-time cost.
+	if (Info.SkeletalMesh && GetMesh()->GetSkeletalMeshAsset() != Info.SkeletalMesh)
+	{
+		GetMesh()->SetSkeletalMeshAsset(Info.SkeletalMesh);
+	}
+	if (Info.AnimBlueprintClass)
+	{
+		GetMesh()->SetAnimInstanceClass(Info.AnimBlueprintClass);
+		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	}
+
+	// Weapon mesh + socket. Re-attach when the role's weapon socket differs from the current one.
+	if (Info.WeaponMesh)
+	{
+		Weapon->SetSkeletalMeshAsset(Info.WeaponMesh);
+	}
+	if (!Info.WeaponSocketName.IsNone() && Weapon->GetAttachSocketName() != Info.WeaponSocketName)
+	{
+		Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, Info.WeaponSocketName);
+	}
+
+	// Combat sockets are skeleton-dependent. Only override when the role specifies a name, so an
+	// unspecified socket keeps the BP default (GetCombatSocketLocation still resolves correctly).
+	if (!Info.WeaponTipSocketName.IsNone()) WeaponTipSocketName = Info.WeaponTipSocketName;
+	if (!Info.LeftHandSocketName.IsNone()) LeftHandSocketName = Info.LeftHandSocketName;
+	if (!Info.RightHandSocketName.IsNone()) RightHandSocketName = Info.RightHandSocketName;
+	if (!Info.TailSocketName.IsNone()) TailSocketName = Info.TailSocketName;
+
+	// Death / dissolve VFX. Only override when the role specifies an asset, so an unspecified
+	// field keeps the BP default rather than clearing it to null.
+	if (Info.DissolveMaterialInstance) DissolveMaterialInstance = Info.DissolveMaterialInstance;
+	if (Info.WeaponDissolveMaterialInstance) WeaponDissolveMaterialInstance = Info.WeaponDissolveMaterialInstance;
+	if (Info.BloodEffect) BloodEffect = Info.BloodEffect;
+	if (Info.DeathSound) DeathSound = Info.DeathSound;
+
+	// Gameplay: copy startup abilities so AddCharacterAbilities() grants role-specific skills.
+	// (Primary attributes come from the role's numeric values via InitializeDefaultAttributesForRole.)
+	// Only overwrite when the role actually lists abilities — an empty JSON array means "leave the
+	// BP defaults", so an under-filled role (e.g. a test default) doesn't strip all abilities.
+	if (Info.StartupAbilities.Num() > 0)
+	{
+		StartupAbilities = Info.StartupAbilities;
+	}
+	if (Info.StartupPassiveAbilities.Num() > 0)
+	{
+		StartupPassiveAbilities = Info.StartupPassiveAbilities;
+	}
+
+	UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: applied Role='%s' (mesh=%s anim=%s weapon=%s, abilities=%d passive=%d)."),
+		*GetNameSafe(this), *InRole.ToString(),
+		*GetNameSafe(Info.SkeletalMesh.Get()), *GetNameSafe(Info.AnimBlueprintClass.Get()),
+		*GetNameSafe(Info.WeaponMesh.Get()), Info.StartupAbilities.Num(), Info.StartupPassiveAbilities.Num());
+
+	CharacterRole = InRole;
 }
 
 UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
@@ -247,6 +336,48 @@ void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> Gameplay
 void AAuraCharacterBase::InitializeDefaultAttributes() const
 {
 	ApplyEffectToSelf(DefaultPrimaryAttributes, 1.f);
+	ApplyEffectToSelf(DefaultSecondaryAttributes, 1.f);
+	ApplyEffectToSelf(DefaultVitalAttributes, 1.f);
+}
+
+void AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole) const
+{
+	URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
+	UCharacterClassInfo* CharacterClassInfo = UAuraAbilitySystemLibrary::GetCharacterClassInfo(this);
+	if (RoleInfo == nullptr || CharacterClassInfo == nullptr || !RoleInfo->RoleInformation.Contains(InRole))
+	{
+		// No role data available / role not in config: fall back to the BP-set DefaultPrimaryAttributes path.
+		InitializeDefaultAttributes();
+		return;
+	}
+
+	const FRoleDefaultInfo Info = RoleInfo->GetRoleDefaultInfo(InRole);
+
+	// Safety net: if the role config left all primary attribute values unset, keep the legacy
+	// BP-set DefaultPrimaryAttributes GE so the character isn't zeroed out.
+	if (Info.Strength == 0.f && Info.Intelligence == 0.f && Info.Resilience == 0.f && Info.Vigor == 0.f)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Role][Attributes] %s: Role='%s' has no attribute values in RoleConfig.json; falling back to BP DefaultPrimaryAttributes."), *GetNameSafe(this), *InRole.ToString());
+		InitializeDefaultAttributes();
+		return;
+	}
+
+	UE_LOG(LogAura, Log, TEXT("[Role][Attributes] %s: Role='%s' primary via SetByCaller (Str=%.1f Int=%.1f Res=%.1f Vig=%.1f)."),
+		*GetNameSafe(this), *InRole.ToString(), Info.Strength, Info.Intelligence, Info.Resilience, Info.Vigor);
+
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+
+	// Primary attributes via the shared SetByCaller GE, magnitudes from the role config.
+	FGameplayEffectContextHandle PrimaryContext = GetAbilitySystemComponent()->MakeEffectContext();
+	PrimaryContext.AddSourceObject(this);
+	const FGameplayEffectSpecHandle PrimarySpec = GetAbilitySystemComponent()->MakeOutgoingSpec(CharacterClassInfo->PrimaryAttributes_SetByCaller, 1.f, PrimaryContext);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Strength, Info.Strength);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Intelligence, Info.Intelligence);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Resilience, Info.Resilience);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Vigor, Info.Vigor);
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
+
+	// Secondary + Vital stay shared (BP-set members), matching InitializeDefaultAttributes().
 	ApplyEffectToSelf(DefaultSecondaryAttributes, 1.f);
 	ApplyEffectToSelf(DefaultVitalAttributes, 1.f);
 }

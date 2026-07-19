@@ -803,6 +803,22 @@ void AAuraPlayerController::ClientRefreshAbilityUI_Implementation()
 	}
 }
 
+void AAuraPlayerController::ClientRejectLogin_Implementation(const FString& Reason)
+{
+	UE_LOG(LogAura, Error, TEXT("[Role][Login] ClientRejectLogin: %s"), *Reason);
+
+	// Reuse the same server-lost path as KickOutSelf / mid-game server loss: stash the reason as
+	// the Login-screen alert message and travel back to the Login level (dropping the connection).
+	if (ClientDisconnectHandler)
+	{
+		ClientDisconnectHandler->RequestServerLost(Reason);
+	}
+	else
+	{
+		ClientTravel(UServerTravelComponent::LoginLevelPath, TRAVEL_Absolute);
+	}
+}
+
 void AAuraPlayerController::BeginPlay()
 {
 	Super::BeginPlay();

@@ -6,6 +6,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "Net/UnrealNetwork.h"
+#include "Aura/AuraLogChannels.h"
 
 AAuraPlayerState::AAuraPlayerState()
 {
@@ -26,6 +27,7 @@ void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AAuraPlayerState, XP);
 	DOREPLIFETIME(AAuraPlayerState, AttributePoints);
 	DOREPLIFETIME(AAuraPlayerState, SpellPoints);
+	DOREPLIFETIME(AAuraPlayerState, CharacterRole);
 }
 
 UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
@@ -81,6 +83,16 @@ void AAuraPlayerState::SetSpellPoints(int32 InPoints)
 	OnSpellPointsChangedDelegate.Broadcast(SpellPoints);
 }
 
+void AAuraPlayerState::SetRole(FName InRole)
+{
+	if (CharacterRole == InRole)
+	{
+		return;
+	}
+	CharacterRole = InRole;
+	OnRoleChangedDelegate.Broadcast(CharacterRole);
+}
+
 void AAuraPlayerState::OnRep_Level(int32 OldLevel)
 {
 	OnLevelChangedDelegate.Broadcast(Level, true);
@@ -99,6 +111,12 @@ void AAuraPlayerState::OnRep_AttributePoints(int32 OldAttributePoints)
 void AAuraPlayerState::OnRep_SpellPoints(int32 OldSpellPoints)
 {
 	OnSpellPointsChangedDelegate.Broadcast(SpellPoints);
+}
+
+void AAuraPlayerState::OnRep_Role()
+{
+	UE_LOG(LogAura, Log, TEXT("[Role][Client] OnRep_Role: received Role='%s' for %s."), *CharacterRole.ToString(), *GetNameSafe(this));
+	OnRoleChangedDelegate.Broadcast(CharacterRole);
 }
 
 void AAuraPlayerState::AddToAttributePoints(int32 InPoints)

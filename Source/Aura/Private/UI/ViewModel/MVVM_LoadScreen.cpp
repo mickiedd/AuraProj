@@ -7,18 +7,26 @@
 #include "Game/AuraGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 
 void UMVVM_LoadScreen::InitializeLoadSlots()
 {
+	// New slots default to the role configured in RoleConfig.json ("defaultRole"),
+	// so a new game with no role-picker UI loads the default role.
+	const FName DefaultRole = UAuraAbilitySystemLibrary::GetDefaultRole(this);
+
 	LoadSlot_0 = NewObject<UMVVM_LoadSlot>(this, LoadSlotViewModelClass);
 	LoadSlot_0->SetLoadSlotName(FString("LoadSlot_0"));
 	LoadSlot_0->SlotIndex = 0;
+	LoadSlot_0->SetRole(DefaultRole);
 	LoadSlots.Add(0, LoadSlot_0);
 	LoadSlot_1 = NewObject<UMVVM_LoadSlot>(this, LoadSlotViewModelClass);
+	LoadSlot_1->SetRole(DefaultRole);
 	LoadSlots.Add(1, LoadSlot_1);
 	LoadSlot_1->SlotIndex = 1;
 	LoadSlot_1->SetLoadSlotName(FString("LoadSlot_1"));
 	LoadSlot_2 = NewObject<UMVVM_LoadSlot>(this, LoadSlotViewModelClass);
+	LoadSlot_2->SetRole(DefaultRole);
 	LoadSlots.Add(2, LoadSlot_2);
 	LoadSlot_2->SetLoadSlotName(FString("LoadSlot_2"));
 	LoadSlot_2->SlotIndex = 2;
@@ -43,6 +51,7 @@ void UMVVM_LoadScreen::NewSlotButtonPressed(int32 Slot, const FString& EnteredNa
 	LoadSlots[Slot]->SetMapName(AuraGameMode->DefaultMapName);
 	LoadSlots[Slot]->SetPlayerName(EnteredName);
 	LoadSlots[Slot]->SetPlayerLevel(1);
+	// Role is owned by the slot VM (defaults to Aura); a future role-picker UI would call SetRole here.
 	LoadSlots[Slot]->SlotStatus = Taken;
 	LoadSlots[Slot]->PlayerStartTag = AuraGameMode->DefaultPlayerStartTag;
 	LoadSlots[Slot]->MapAssetName = AuraGameMode->DefaultMap.ToSoftObjectPath().GetAssetName();
@@ -121,6 +130,7 @@ void UMVVM_LoadScreen::LoadData()
 		LoadSlot.Value->SetMapName(SaveObject->MapName);
 		LoadSlot.Value->PlayerStartTag = SaveObject->PlayerStartTag;
 		LoadSlot.Value->SetPlayerLevel(SaveObject->PlayerLevel);
+		LoadSlot.Value->SetRole(SaveObject->Role);
 	}
 }
 

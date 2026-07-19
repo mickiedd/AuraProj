@@ -13,6 +13,7 @@
 #include "Game/ServerTravelComponent.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
@@ -47,6 +48,9 @@ void AAuraGameModeBase::SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex)
 	LoadScreenSaveGame->MapName = LoadSlot->GetMapName();
 	LoadScreenSaveGame->MapAssetName = LoadSlot->MapAssetName;
 	LoadScreenSaveGame->PlayerStartTag = LoadSlot->PlayerStartTag;
+	LoadScreenSaveGame->Role = LoadSlot->GetRole();
+	UE_LOG(LogAura, Log, TEXT("[Role][SaveSlot] Slot='%s' Index=%d Role='%s' PlayerName='%s'."),
+		*LoadSlot->GetLoadSlotName(), SlotIndex, *LoadScreenSaveGame->Role.ToString(), *LoadScreenSaveGame->PlayerName);
 
 	UGameplayStatics::SaveGameToSlot(LoadScreenSaveGame, LoadSlot->GetLoadSlotName(), SlotIndex);
 }
@@ -536,6 +540,10 @@ void AAuraGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	Maps.Add(DefaultMapName, DefaultMap);
+
+	// Build per-role config from Content/Config/RoleConfig.json. Replaces a designer-authored
+	// DA_RoleInfo asset; consumed at runtime via UAuraAbilitySystemLibrary::GetRoleInfo.
+	RoleInfo = UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(this);
 
 	if (bEnableMonsterTableAutoSpawn && LoadMonsterSpawnTable())
 	{

@@ -98,6 +98,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AutoTest")
 	void AutoTestUseRandomEquippedAbility();
 
+	/**
+	 * Server → client: login was rejected (e.g. the selected/default Role has empty mesh or
+	 * animation in RoleConfig.json). Routes the client back to the Login level with an alert
+	 * via the existing AuraClientDisconnectHandler (same path as mid-game server loss / KickOutSelf).
+	 */
+	UFUNCTION(Client, Reliable)
+	void ClientRejectLogin(const FString& Reason);
+
 
 protected:
 	virtual void BeginPlay() override;

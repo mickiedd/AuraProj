@@ -1,0 +1,53 @@
+{
+  "defaultRole": "Aura",
+  "roles": [
+    {
+      "role": "Aura",
+      "displayName": "Aura",
+      "mesh": "/Game/Assets/Characters/Aura/SKM_Aura",
+      "animBlueprint": "/Game/Blueprints/Character/Aura/ABP_Aura.ABP_Aura_C",
+      "weaponMesh": "/Game/Assets/Characters/Aura/Staff/SKM_Staff",
+      "weaponSocket": "WeaponHandSocket",
+      "weaponTipSocket": "",
+      "leftHandSocket": "",
+      "rightHandSocket": "",
+      "tailSocket": "",
+      "dissolve": "",
+      "weaponDissolve": "",
+      "bloodEffect": "",
+      "deathSound": "",
+      "attributes": {
+        "strength": 10,
+        "intelligence": 15,
+        "resilience": 10,
+        "vigor": 10
+      },
+      "startupAbilities": [],
+      "startupPassiveAbilities": []
+    },
+    {
+      "role": "BungeeMan",
+      "displayName": "BungeeMan",
+      "mesh": "/Game/BungeeMan/SKM_BungeeMan.SKM_BungeeMan",
+      "animBlueprint": "/Game/BungeeMan/Blueprints/ABP_Bungee.ABP_Bungee_C",
+      "weaponMesh": "",
+      "weaponSocket": "",
+      "weaponTipSocket": "",
+      "leftHandSocket": "",
+      "rightHandSocket": "",
+      "tailSocket": "",
+      "dissolve": "",
+      "weaponDissolve": "",
+      "bloodEffect": "",
+      "deathSound": "",
+      "attributes": {
+        "strength": 10,
+        "intelligence": 15,
+        "resilience": 10,
+        "vigor": 10
+      },
+      "startupAbilities": [],
+      "startupPassiveAbilities": []
+    }
+  ]
+}
