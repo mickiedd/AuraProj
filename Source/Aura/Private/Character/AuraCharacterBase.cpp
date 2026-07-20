@@ -314,6 +314,12 @@ bool AAuraCharacterBase::IsBeingShocked_Implementation() const
 	return bIsBeingShocked;
 }
 
+bool AAuraCharacterBase::IsInAir_Implementation() const
+{
+	const UCharacterMovementComponent* Movement = GetCharacterMovement();
+	return Movement != nullptr && Movement->IsFalling();
+}
+
 FOnDamageSignature& AAuraCharacterBase::GetOnDamageSignature()
 {
 	return OnDamageDelegate;

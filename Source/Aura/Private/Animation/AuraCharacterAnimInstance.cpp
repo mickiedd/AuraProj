@@ -29,7 +29,7 @@ void UAuraCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	// ── Movement ─────────────────────────────────────────────────────────────
 
 	GroundSpeed = OwningCharacter->GetVelocity().Size2D();
-	bIsInAir    = OwningMovement->IsFalling();
+	bIsInAir    = ICombatInterface::Execute_IsInAir(OwningCharacter);
 	bIsCrouched = OwningCharacter->bIsCrouched;
 
 	// ── Broom mount ──────────────────────────────────────────────────────────

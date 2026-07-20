@@ -104,4 +104,12 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SetIsBeingShocked(bool bInShock);
+
+	/**
+	 * True while the pawn is airborne / falling (CharacterMovementComponent::IsFalling).
+	 * Exposed so the Animation Blueprint (and any gameplay code holding an ICombatInterface)
+	 * can query in-air state without reaching into the movement component directly.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool IsInAir() const;
 };

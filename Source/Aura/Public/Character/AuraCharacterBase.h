@@ -62,6 +62,7 @@ public:
 	virtual USkeletalMeshComponent* GetWeapon_Implementation() override;
 	virtual void SetIsBeingShocked_Implementation(bool bInShock) override;
 	virtual bool IsBeingShocked_Implementation() const override;
+	virtual bool IsInAir_Implementation() const override;
 	virtual FOnDamageSignature& GetOnDamageSignature() override;
 	/** end Combat Interface */
 
