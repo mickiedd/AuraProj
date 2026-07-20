@@ -27,6 +27,7 @@
 #include "Json.h"
 #include "LevelEditor.h"
 #include "Misc/Base64.h"
+#include "Misc/DateTime.h"
 #include "Misc/FileHelper.h"
 #include "Misc/MessageDialog.h"
 #include "Misc/Paths.h"
@@ -261,6 +262,19 @@ private:
 			LOCTEXT("ExportBehaviorTreeSnapshotTooltip", "Export the selected Behavior Tree into an LLM-readable JSON snapshot that also embeds the exact package bytes for full recovery."),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Save"),
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnExportSelectedBehaviorTreeToJsonClicked)));
+		MenuBuilder.EndSection();
+
+		MenuBuilder.BeginSection("AuraRoleConfigSection", LOCTEXT("AuraRoleConfigSectionLabel", "Role Config"));
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("ReloadRoleConfigLabel", "Reload Role Config on Running Sessions"),
+			LOCTEXT("ReloadRoleConfigTooltip", "Validate Content/Config/RoleConfig.json and signal the running dedicated server, NullRHI client, and PIE sessions to drop their cached URoleInfo and re-read it. New logins/spawns use the new defaultRole. Already-spawned characters are not touched."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Refresh"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnReloadRoleConfigClicked)));
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("OpenRoleConfigLabel", "Open RoleConfig.json"),
+			LOCTEXT("OpenRoleConfigTooltip", "Open Content/Config/RoleConfig.json in the default text editor to edit role assets or the defaultRole, then use 'Reload Role Config on Running Sessions' to apply."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Edit"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnOpenRoleConfigClicked)));
 		MenuBuilder.EndSection();
 
 		MenuBuilder.BeginSection("AuraCheatCommandsSection", LOCTEXT("AuraCheatCommandsSectionLabel", "Cheat Commands"));
@@ -1935,6 +1949,169 @@ private:
 			LOCTEXT("BehaviorTreeSnapshotWritePackageFailure", "Failed to write restored package file:\n{0}\n\nIf this asset is source-controlled, check it out or make it writable, then retry. If the asset is open in another process, close that process and retry."),
 			LOCTEXT("BehaviorTreeSnapshotImportReloadWarning", "Behavior Tree package files were restored from JSON, but reload did not complete:\n{0}\n\nUse Asset Actions -> Reload on the restored asset, or restart the editor."),
 			LOCTEXT("BehaviorTreeSnapshotImportSuccess", "Behavior Tree package files were restored from the JSON snapshot and any loaded packages were reloaded from disk."));
+	}
+
+	// ---- Role Config mending tool ------------------------------------------
+
+	FString GetRoleConfigPath() const
+	{
+		// Same path UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig reads at runtime, so the
+		// running dev-time server (AuraServer.exe from the project root) and NullRHI client
+		// (UnrealEditor.exe -game -nullrhi on the .uproject) both resolve this to the source
+		// project's Content/Config/RoleConfig.json.
+		return FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() / TEXT("Config/RoleConfig.json"));
+	}
+
+	FString GetRoleConfigReloadSentinelPath() const
+	{
+		return FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() / TEXT("Config/.RoleConfig.reload"));
+	}
+
+	/**
+	 * Parse Content/Config/RoleConfig.json the same way the runtime does and build a human
+	 * report (role count, role names, defaultRole, whether defaultRole is configured). Returns
+	 * false with an error message when the file is missing / not valid JSON / has no roles /
+	 * has a defaultRole that does not match any role, so the editor refuses to signal a broken
+	 * config to the running sessions.
+	 */
+	bool ValidateRoleConfigJson(FText& OutReport) const
+	{
+		const FString ConfigPath = GetRoleConfigPath();
+		FString JsonInput;
+		if (!FFileHelper::LoadFileToString(JsonInput, *ConfigPath))
+		{
+			OutReport = FText::Format(
+				LOCTEXT("RoleConfigReadFailure", "Could not read RoleConfig.json:\n{0}"),
+				FText::FromString(ConfigPath));
+			return false;
+		}
+
+		TSharedPtr<FJsonObject> RootObject;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonInput);
+		if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+		{
+			OutReport = FText::Format(
+				LOCTEXT("RoleConfigInvalidJson", "RoleConfig.json is not valid JSON:\n{0}"),
+				FText::FromString(ConfigPath));
+			return false;
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>* RolesArray = nullptr;
+		if (!RootObject->TryGetArrayField(TEXT("roles"), RolesArray) || RolesArray == nullptr || RolesArray->IsEmpty())
+		{
+			OutReport = FText::Format(
+				LOCTEXT("RoleConfigNoRoles", "RoleConfig.json has no 'roles' array (or it is empty):\n{0}"),
+				FText::FromString(ConfigPath));
+			return false;
+		}
+
+		TArray<FString> RoleNames;
+		TSet<FString> RoleNameSet;
+		for (const TSharedPtr<FJsonValue>& RoleValue : *RolesArray)
+		{
+			const TSharedPtr<FJsonObject>* RoleObjPtr = nullptr;
+			if (!RoleValue.IsValid() || !RoleValue->TryGetObject(RoleObjPtr) || !RoleObjPtr->IsValid())
+			{
+				OutReport = FText::Format(
+					LOCTEXT("RoleConfigMalformedEntry", "A role entry in RoleConfig.json is malformed:\n{0}"),
+					FText::FromString(ConfigPath));
+				return false;
+			}
+
+			FString RoleName;
+			if (!(*RoleObjPtr)->TryGetStringField(TEXT("role"), RoleName) || RoleName.IsEmpty())
+			{
+				OutReport = FText::Format(
+					LOCTEXT("RoleConfigMissingRoleName", "A role entry is missing its 'role' name field:\n{0}"),
+					FText::FromString(ConfigPath));
+				return false;
+			}
+
+			RoleNames.Add(RoleName);
+			RoleNameSet.Add(RoleName);
+		}
+
+		FString DefaultRoleStr;
+		const bool bHasDefaultRole = RootObject->TryGetStringField(TEXT("defaultRole"), DefaultRoleStr) && !DefaultRoleStr.IsEmpty();
+		bool bDefaultRoleConfigured = false;
+		if (bHasDefaultRole)
+		{
+			bDefaultRoleConfigured = RoleNameSet.Contains(DefaultRoleStr);
+			if (!bDefaultRoleConfigured)
+			{
+				OutReport = FText::Format(
+					LOCTEXT("RoleConfigDefaultRoleMismatch", "defaultRole '{0}' does not match any role entry in RoleConfig.json.\n\nRoles: {1}\n\nFix the defaultRole value or add the role, then retry."),
+					FText::FromString(DefaultRoleStr),
+					FText::FromString(FString::Join(RoleNames, TEXT(", "))));
+				return false;
+			}
+		}
+
+		const FString RolesList = FString::Join(RoleNames, TEXT(", "));
+		const FString DefaultLine = bHasDefaultRole
+			? FString::Printf(TEXT("defaultRole = %s (configured: %s)"), *DefaultRoleStr, bDefaultRoleConfigured ? TEXT("yes") : TEXT("no"))
+			: TEXT("defaultRole = <not set; login will require an explicit role>");
+
+		OutReport = FText::Format(
+			LOCTEXT("RoleConfigValidReport", "RoleConfig.json validated.\n\n{0} role(s): {1}\n{2}"),
+			RoleNames.Num(),
+			FText::FromString(RolesList),
+			FText::FromString(DefaultLine));
+		return true;
+	}
+
+	void OnReloadRoleConfigClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Reload Role Config on running sessions clicked"));
+
+		FText Report;
+		if (!ValidateRoleConfigJson(Report))
+		{
+			UE_LOG(LogAuraEditor, Warning, TEXT("Role config validation failed; no reload signal sent | Report='%s'"), *Report.ToString());
+			FMessageDialog::Open(EAppMsgType::Ok, Report);
+			return;
+		}
+
+		// Write the sentinel consumed by UAuraAbilitySystemLibrary::PollRoleConfigReload. A fresh
+		// timestamp body makes each click distinguishable and bumps the file mtime even if the
+		// sentinel already existed from a prior click that no runtime consumed.
+		const FString SentinelPath = GetRoleConfigReloadSentinelPath();
+		const FString SentinelBody = FDateTime::UtcNow().ToIso8601();
+		if (!FFileHelper::SaveStringToFile(SentinelBody, *SentinelPath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_EvenIfReadOnly))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("Failed to write RoleConfig reload sentinel | Path='%s'"), *SentinelPath);
+			FMessageDialog::Open(
+				EAppMsgType::Ok,
+				FText::Format(
+					LOCTEXT("RoleConfigSentinelWriteFailure", "Could not write the reload sentinel file:\n{0}\n\nCheck that Content/Config is writable."),
+					FText::FromString(SentinelPath)));
+			return;
+		}
+
+		UE_LOG(LogAuraEditor, Display, TEXT("RoleConfig reload sentinel written | Path='%s'"), *SentinelPath);
+
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			FText::Format(
+				LOCTEXT("RoleConfigReloadSent", "{0}\n\nReload signal sent to the running dedicated server, NullRHI client, and PIE sessions. The server picks it up within ~1s; clients pick it up on the next login. Already-spawned characters are not changed."),
+				Report));
+	}
+
+	void OnOpenRoleConfigClicked() const
+	{
+		const FString ConfigPath = GetRoleConfigPath();
+		if (!FPaths::FileExists(ConfigPath))
+		{
+			FMessageDialog::Open(
+				EAppMsgType::Ok,
+				FText::Format(
+					LOCTEXT("RoleConfigMissing", "Could not find RoleConfig.json at:\n{0}"),
+					FText::FromString(ConfigPath)));
+			return;
+		}
+
+		FPlatformProcess::LaunchFileInDefaultExternalApplication(*ConfigPath);
+		UE_LOG(LogAuraEditor, Display, TEXT("Opened RoleConfig.json in default editor | Path='%s'"), *ConfigPath);
 	}
 
 	FText GetDedicatedServerMenuLabel() const

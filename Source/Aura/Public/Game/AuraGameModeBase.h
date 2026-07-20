@@ -123,6 +123,15 @@ public:
 	UPROPERTY(Transient)
 	TObjectPtr<URoleInfo> RoleInfo;
 
+	/**
+	 * How often (seconds) the server polls Content/Config/.RoleConfig.reload for the editor
+	 * "Reload Role Config" mending tool. When the sentinel is found, RoleInfo is rebuilt from
+	 * RoleConfig.json so new logins/spawns use the new defaultRole. <= 0 disables the poll.
+	 * Clients are unaffected (they poll inside UAuraAbilitySystemLibrary::GetRoleInfo).
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Role Config", meta = (ClampMin = "0.0"))
+	float RoleConfigPollInterval = 1.0f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Ability Info")
 	TObjectPtr<UAbilityInfo> AbilityInfo;
 
@@ -180,6 +189,7 @@ public:
 	void PlayerDied(ACharacter* DeadCharacter, float RespawnDelay);
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
 	 * On dedicated server, notify GSM that this map is fully loaded and accepting clients.
@@ -256,5 +266,7 @@ private:
 	bool bItemSpawnTableLoaded = false;
 	int32 DedicatedServerReadyNotifyAttempts = 0;
 	FTimerHandle DedicatedServerReadyNotifyTimerHandle;
-	
+
+	FTimerHandle RoleConfigPollTimerHandle;
+
 };

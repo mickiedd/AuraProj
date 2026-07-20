@@ -20,6 +20,8 @@
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "HAL/PlatformTime.h"
+#include "HAL/FileManager.h" // IFileManager + FFileStatData for the reload sentinel poll
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Dom/JsonObject.h"
@@ -226,8 +228,33 @@ UAbilityInfo* UAuraAbilitySystemLibrary::GetAbilityInfo(const UObject* WorldCont
 	return AuraGameMode->AbilityInfo;
 }
 
+namespace RoleConfigReloadPrivate
+{
+	// Process-lifetime cache of URoleInfo for contexts with no GameMode (pure clients on the
+	// battleground or the Login map). Promoted from a function-static so ReloadRoleConfig can
+	// reset it by name. Held via TStrongObjectPtr because URoleInfo is a transient UObject.
+	static TStrongObjectPtr<URoleInfo> GClientRoleInfoCache;
+
+	// Editor "Reload Role Config" tool writes this sentinel to Content/Config/.RoleConfig.reload.
+	// Runtimes poll it (cheap stat) and reload when it appears/changes.
+	static FString GetReloadSentinelPath()
+	{
+		return FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT(".RoleConfig.reload"));
+	}
+
+	// Throttle the sentinel stat so per-frame callers (e.g. GetRoleInfo) cost nothing.
+	static double GLastSentinelCheckTime = 0.0;
+	static FDateTime GLastSentinelModTime; // Default-constructed (0 ticks) => any real mtime is "newer".
+	static constexpr double SentinelCheckIntervalSeconds = 0.5;
+}
+
 URoleInfo* UAuraAbilitySystemLibrary::GetRoleInfo(const UObject* WorldContextObject)
 {
+	// Pick up an editor-triggered RoleConfig.json reload (writes a sentinel file) before
+	// handing out the cached URoleInfo, so callers on pure clients (Login screen, battleground)
+	// see the new defaultRole/assets on the next call after the button is clicked. Throttled.
+	PollRoleConfigReload(WorldContextObject);
+
 	if (const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
 	{
 		if (AuraGameMode->RoleInfo)
@@ -239,12 +266,11 @@ URoleInfo* UAuraAbilitySystemLibrary::GetRoleInfo(const UObject* WorldContextObj
 	// No GameMode (e.g. a client on the battleground map) or GameMode hasn't loaded RoleInfo yet:
 	// load RoleConfig.json directly and cache it for the process lifetime. RoleConfig.json is
 	// packaged with the client (same as LevelConfig.json), so this works client-side.
-	static TStrongObjectPtr<URoleInfo> ClientRoleInfoCache;
-	if (!ClientRoleInfoCache.IsValid())
+	if (!RoleConfigReloadPrivate::GClientRoleInfoCache.IsValid())
 	{
-		ClientRoleInfoCache.Reset(LoadRoleInfoFromConfig(WorldContextObject));
+		RoleConfigReloadPrivate::GClientRoleInfoCache.Reset(LoadRoleInfoFromConfig(WorldContextObject));
 	}
-	return ClientRoleInfoCache.Get();
+	return RoleConfigReloadPrivate::GClientRoleInfoCache.Get();
 }
 
 FName UAuraAbilitySystemLibrary::GetDefaultRole(const UObject* WorldContextObject)
@@ -254,6 +280,84 @@ FName UAuraAbilitySystemLibrary::GetDefaultRole(const UObject* WorldContextObjec
 		return RoleInfo->DefaultRole;
 	}
 	return NAME_None;
+}
+
+void UAuraAbilitySystemLibrary::ReloadRoleConfig(const UObject* WorldContextObject)
+{
+	// Drop the pure-client static cache so the next GetRoleInfo call on a client rebuilds it.
+	RoleConfigReloadPrivate::GClientRoleInfoCache.Reset();
+
+	URoleInfo* Reloaded = nullptr;
+
+	// On the server (GameMode present), refresh the authoritative AAuraGameModeBase::RoleInfo
+	// that every server-side spawn/login reads. The GameMode keeps its own poll timer, but this
+	// path also covers a direct console-command invocation on a listen/PIE server.
+	if (AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+	{
+		AuraGameMode->RoleInfo = LoadRoleInfoFromConfig(WorldContextObject);
+		Reloaded = AuraGameMode->RoleInfo;
+	}
+	else
+	{
+		// Pure client (no GameMode): rebuild the static cache immediately so the next
+		// GetDefaultRole/GetRoleInfo call returns the new config without waiting on a poll.
+		Reloaded = LoadRoleInfoFromConfig(WorldContextObject);
+		RoleConfigReloadPrivate::GClientRoleInfoCache.Reset(Reloaded);
+	}
+
+	if (Reloaded)
+	{
+		UE_LOG(LogAura, Log, TEXT("[RoleConfig] Reloaded: %d role(s), defaultRole='%s'."),
+			Reloaded->RoleInformation.Num(),
+			*Reloaded->DefaultRole.ToString());
+	}
+	else
+	{
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Reload requested but LoadRoleInfoFromConfig returned null; keeping prior state."));
+	}
+}
+
+void UAuraAbilitySystemLibrary::PollRoleConfigReload(const UObject* WorldContextObject)
+{
+	using namespace RoleConfigReloadPrivate;
+
+	const double Now = FPlatformTime::Seconds();
+	if (Now - GLastSentinelCheckTime < SentinelCheckIntervalSeconds)
+	{
+		return; // Throttled: avoid a file stat on every GetRoleInfo call.
+	}
+	GLastSentinelCheckTime = Now;
+
+	const FString SentinelPath = GetReloadSentinelPath();
+	IFileManager& FileManager = IFileManager::Get();
+	if (!FileManager.FileExists(*SentinelPath))
+	{
+		return; // No reload requested since last consumption.
+	}
+
+	// Stat the sentinel; reload only when its mtime advances (the editor writes a fresh
+	// timestamp body on each click, which updates mtime). This avoids re-loading on a
+	// stale/leftover sentinel from a previous session.
+	const FFileStatData StatData = FileManager.GetStatData(*SentinelPath);
+	if (!StatData.bIsValid)
+	{
+		return;
+	}
+
+	const FDateTime SentinelModTime = StatData.ModificationTime;
+	if (SentinelModTime <= GLastSentinelModTime)
+	{
+		return;
+	}
+
+	GLastSentinelModTime = SentinelModTime;
+
+	UE_LOG(LogAura, Log, TEXT("[RoleConfig] Reload sentinel detected; reloading RoleConfig.json."));
+	ReloadRoleConfig(WorldContextObject);
+
+	// Consume the sentinel so we don't reload again until the next editor button click.
+	// IFileManager::Delete(Filename, RequireExists, EvenReadOnly, Quiet).
+	FileManager.Delete(*SentinelPath, false, true, true);
 }
 
 namespace RoleConfigPrivate

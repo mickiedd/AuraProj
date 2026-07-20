@@ -545,6 +545,21 @@ void AAuraGameModeBase::BeginPlay()
 	// DA_RoleInfo asset; consumed at runtime via UAuraAbilitySystemLibrary::GetRoleInfo.
 	RoleInfo = UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(this);
 
+	// Poll the editor "Reload Role Config" mending-tool sentinel so a running dedicated server
+	// picks up hand-edits to RoleConfig.json without a restart. New logins/spawns then use the
+	// new defaultRole; already-spawned pawns are untouched. Clients poll inside GetRoleInfo.
+	if (RoleConfigPollInterval > 0.0f)
+	{
+		GetWorldTimerManager().SetTimer(
+			RoleConfigPollTimerHandle,
+			[this]()
+			{
+				UAuraAbilitySystemLibrary::PollRoleConfigReload(this);
+			},
+			FMath::Max(0.1f, RoleConfigPollInterval),
+			true);
+	}
+
 	if (bEnableMonsterTableAutoSpawn && LoadMonsterSpawnTable())
 	{
 		const int32 SpawnedCount = SpawnMonstersFromLoadedTable();
@@ -570,6 +585,16 @@ void AAuraGameModeBase::BeginPlay()
 		UE_LOG(LogAura, Display, TEXT("[GSM-Ready] Dedicated server ready notification scheduled (initialDelay=%.2fs)."),
 			GameServerReadyNotifyInitialDelaySeconds);
 	}
+}
+
+void AAuraGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(RoleConfigPollTimerHandle);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AAuraGameModeBase::HandleDedicatedServerReadyNotify()

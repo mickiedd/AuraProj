@@ -22,6 +22,8 @@
 !/Content/Assets/
 !/Content/Config/
 !/Content/BehaviorTrees/
+# Transient reload-sentinel written by the editor "Reload Role Config" mending tool.
+/Content/Config/.RoleConfig.reload
 /Platforms/
 *.VC.db
 *.VC.opendb

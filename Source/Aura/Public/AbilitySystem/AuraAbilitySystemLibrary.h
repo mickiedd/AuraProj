@@ -76,6 +76,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static URoleInfo* LoadRoleInfoFromConfig(const UObject* WorldContextObject);
 
+	/**
+	 * Drop both RoleInfo caches (AAuraGameModeBase::RoleInfo on the server, and the
+	 * process-lifetime client static cache) and re-read Content/Config/RoleConfig.json.
+	 * Subsequent logins/spawns use the new defaultRole and role assets. Does NOT touch
+	 * already-spawned characters. Triggered by the editor "Reload Role Config" tool via
+	 * PollRoleConfigReload, or callable directly (e.g. from a console command).
+	 */
+	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta = (DefaultToSelf = "WorldContextObject"))
+	static void ReloadRoleConfig(const UObject* WorldContextObject);
+
+	/**
+	 * If the editor "Reload Role Config" sentinel file (Content/Config/.RoleConfig.reload)
+	 * is present and newer than the last time we consumed it, run ReloadRoleConfig and
+	 * delete the sentinel. Throttled (a few stats per second at most) so it is cheap to call
+	 * from GetRoleInfo / a GameMode timer. No-op when nothing changed.
+	 */
+	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta = (DefaultToSelf = "WorldContextObject"))
+	static void PollRoleConfigReload(const UObject* WorldContextObject);
+
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta = (DefaultToSelf = "WorldContextObject"))
 	static ULootTiers* GetLootTiers(const UObject* WorldContextObject);
 	
