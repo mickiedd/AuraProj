@@ -7,6 +7,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
 #include "AbilitySystem/Passive/PassiveNiagaraComponent.h"
@@ -119,15 +120,26 @@ void AAuraCharacterBase::ApplyRole(FName InRole)
 		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 	}
 
-	// Weapon mesh + socket. Re-attach when the role's weapon socket differs from the current one.
-	if (Info.WeaponMesh)
+	// Weapon mesh + socket. The weapon is tied to the role's LMB skill: a role with no LMB
+	// ability (Info.DefaultLMBAbility empty) holds NO weapon, so clear the mesh and skip attach.
+	// A role with an LMB ability equips its configured weapon (if specified) on the role's socket.
+	if (Info.DefaultLMBAbility)
 	{
-		Weapon->SetSkeletalMeshAsset(Info.WeaponMesh);
+		if (Info.WeaponMesh)
+		{
+			Weapon->SetSkeletalMeshAsset(Info.WeaponMesh);
+		}
+		if (!Info.WeaponSocketName.IsNone() && Weapon->GetAttachSocketName() != Info.WeaponSocketName)
+		{
+			Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, Info.WeaponSocketName);
+		}
 	}
-	if (!Info.WeaponSocketName.IsNone() && Weapon->GetAttachSocketName() != Info.WeaponSocketName)
+	else
 	{
-		Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, Info.WeaponSocketName);
+		// No LMB skill → no weapon. Clear the mesh so this role spawns empty-handed rather than
+		// inheriting the BP-default (Aura) staff.
+		Weapon->SetSkeletalMeshAsset(nullptr);
 	}
 
 	// Combat sockets are skeleton-dependent. Only override when the role specifies a name, so an
@@ -155,6 +167,24 @@ void AAuraCharacterBase::ApplyRole(FName InRole)
 	if (Info.StartupPassiveAbilities.Num() > 0)
 	{
 		StartupPassiveAbilities = Info.StartupPassiveAbilities;
+	}
+
+	// LMB default skill is data-driven via Info.DefaultLMBAbility. First strip any LMB-tagged
+	// ability inherited from the BP defaults (or the role's own startup list), then re-add the
+	// role's configured LMB ability. An empty lmbAbility in RoleConfig.json leaves the array
+	// without any LMB skill — so a weaponless role (e.g. BungeeMan) gets no LMB attack ability.
+	const FGameplayTag LMBInputTag = FAuraGameplayTags::Get().InputTag_LMB;
+	StartupAbilities.RemoveAll([&LMBInputTag](const TSubclassOf<UGameplayAbility>& AbilityClass)
+	{
+		if (const UAuraGameplayAbility* DefaultObj = Cast<UAuraGameplayAbility>(AbilityClass.GetDefaultObject()))
+		{
+			return DefaultObj->StartupInputTag.MatchesTagExact(LMBInputTag);
+		}
+		return false;
+	});
+	if (Info.DefaultLMBAbility)
+	{
+		StartupAbilities.AddUnique(Info.DefaultLMBAbility);
 	}
 
 	UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: applied Role='%s' (mesh=%s anim=%s weapon=%s, abilities=%d passive=%d)."),

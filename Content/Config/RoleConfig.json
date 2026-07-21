@@ -1,5 +1,5 @@
 {
-  "defaultRole": "BungeeMan",
+  "defaultRole": "Aura",
   "roles": [
     {
       "role": "Aura",
@@ -23,14 +23,15 @@
         "vigor": 10
       },
       "startupAbilities": [],
-      "startupPassiveAbilities": []
+      "startupPassiveAbilities": [],
+      "lmbAbility": "/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/GA_FireBolt.GA_FireBolt_C"
     },
     {
       "role": "BungeeMan",
       "displayName": "BungeeMan",
       "mesh": "/Game/BungeeMan/SKM_BungeeMan.SKM_BungeeMan",
       "animBlueprint": "/Game/BungeeMan/Blueprints/ABP_Bungee.ABP_Bungee_C",
-      "weaponMesh": "/Game/Assets/Characters/Aura/Staff/SKM_Staff",
+      "weaponMesh": "",
       "weaponSocket": "WeaponHandSocket",
       "weaponTipSocket": "",
       "leftHandSocket": "",
@@ -47,7 +48,8 @@
         "vigor": 10
       },
       "startupAbilities": [],
-      "startupPassiveAbilities": []
+      "startupPassiveAbilities": [],
+      "lmbAbility": ""
     }
   ]
 }

@@ -481,6 +481,17 @@ URoleInfo* UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(const UObject* Worl
 		const TArray<TSharedPtr<FJsonValue>>& PassiveArr = RoleObj->GetArrayField(TEXT("startupPassiveAbilities"));
 		RoleConfigPrivate::LoadAbilityClasses(PassiveArr, Info.StartupPassiveAbilities, RoleNameStr, TEXT("startup passive ability"));
 
+		// LMB default skill (single class path; empty = no LMB skill and no weapon for this role).
+		const FString LMBAbilityPath = RoleObj->GetStringField(TEXT("lmbAbility"));
+		if (!LMBAbilityPath.IsEmpty())
+		{
+			Info.DefaultLMBAbility = LoadClass<UGameplayAbility>(nullptr, *LMBAbilityPath);
+			if (Info.DefaultLMBAbility == nullptr)
+			{
+				UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load LMB ability '%s'."), *RoleNameStr, *LMBAbilityPath);
+			}
+		}
+
 		RoleInfo->RoleInformation.Add(RoleName, Info);
 		UE_LOG(LogAura, Log, TEXT("[RoleConfig] Loaded role '%s' (mesh=%s, anim=%s, abilities=%d)."),
 			*RoleNameStr,
