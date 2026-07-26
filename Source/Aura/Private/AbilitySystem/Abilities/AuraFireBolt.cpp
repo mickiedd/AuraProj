@@ -140,7 +140,7 @@ void UAuraFireBolt::SpawnProjectiles(const FVector& ProjectileTargetLocation, co
 		}
 		else
 		{
-			Projectile->HomingTargetSceneComponent = NewObject<USceneComponent>(USceneComponent::StaticClass());
+			Projectile->HomingTargetSceneComponent = NewObject<USceneComponent>(Projectile, TEXT("HomingTargetSceneComponent"));
 			Projectile->HomingTargetSceneComponent->SetWorldLocation(ProjectileTargetLocation);
 			Projectile->ProjectileMovement->HomingTargetComponent = Projectile->HomingTargetSceneComponent;
 		}

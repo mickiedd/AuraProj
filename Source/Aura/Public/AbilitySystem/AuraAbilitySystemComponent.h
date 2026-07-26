@@ -8,6 +8,8 @@
 
 class ULoadScreenSaveGame;
 struct FAuraAbilityInfo;
+class UAuraDataAbility;
+class UAuraAbilityDefinition;
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
@@ -33,10 +35,12 @@ public:
 	FDeactivatePassiveAbility DeactivatePassiveAbility;
 	FActivatePassiveEffect ActivatePassiveEffect;
 
-	void AddCharacterAbilitiesFromSaveData(ULoadScreenSaveGame* SaveData);
-	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
-	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
-	bool bStartupAbilitiesGiven = false;
+ 	void AddCharacterAbilitiesFromSaveData(ULoadScreenSaveGame* SaveData);
+ 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
+ 	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
+ 	void AddCharacterDataAbilities(const TArray<UAuraAbilityDefinition*>& Definitions);
+ 	void AddCharacterDataPassiveAbilities(const TArray<UAuraAbilityDefinition*>& Definitions);
+ 	bool bStartupAbilitiesGiven = false;
 
 	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);

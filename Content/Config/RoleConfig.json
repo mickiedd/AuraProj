@@ -24,16 +24,19 @@
       },
       "startupAbilities": [],
       "startupPassiveAbilities": [],
-      "lmbAbility": "/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/GA_FireBolt.GA_FireBolt_C"
+      "startupAbilityDefinitions": [],
+      "startupPassiveAbilityDefinitions": [],
+      "lmbAbility": "",
+      "lmbAbilityDefinition": "/Game/AbilityDefinitions/FireBolt.xml"
     },
     {
       "role": "BungeeMan",
       "displayName": "BungeeMan",
       "mesh": "/Game/BungeeMan/SKM_BungeeMan.SKM_BungeeMan",
       "animBlueprint": "/Game/BungeeMan/Blueprints/ABP_Bungee.ABP_Bungee_C",
-      "weaponMesh": "",
+      "weaponMesh": "/Game/MilitaryWeapDark/Weapons/Assault_Rifle_B.Assault_Rifle_B",
       "weaponSocket": "WeaponHandSocket",
-      "weaponTipSocket": "",
+      "weaponTipSocket": "Muzzle",
       "leftHandSocket": "",
       "rightHandSocket": "",
       "tailSocket": "",
@@ -49,7 +52,10 @@
       },
       "startupAbilities": [],
       "startupPassiveAbilities": [],
-      "lmbAbility": ""
+      "startupAbilityDefinitions": [],
+      "startupPassiveAbilityDefinitions": [],
+      "lmbAbility": "",
+      "lmbAbilityDefinition": "/Game/AbilityDefinitions/FireGun.xml"
     }
   ]
 }

@@ -60,6 +60,13 @@
 		{
 			"Name": "AuraAutoTestPlugin",
 			"Enabled": true
+		},
+		{
+			"Name": "AuraAbilityGraph",
+			"Enabled": true,
+			"AdditionalDependencies": [
+				"GameplayAbilities"
+			]
 		}
 	]
 }

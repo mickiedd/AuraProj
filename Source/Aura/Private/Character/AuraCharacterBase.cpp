@@ -18,6 +18,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Sound/SoundBase.h"
+
+#include "AuraAbilityGraph/Public/AbilityDefinition.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
@@ -121,10 +125,13 @@ void AAuraCharacterBase::ApplyRole(FName InRole)
 	}
 
 	// Weapon mesh + socket. The weapon is tied to the role's LMB skill: a role with no LMB
-	// ability (Info.DefaultLMBAbility empty) holds NO weapon, so clear the mesh and skip attach.
+	// ability (Info.DefaultLMBAbility / Info.DefaultLMBAbilityDefinition empty) holds NO weapon,
+	// so clear the mesh and skip attach.
 	// A role with an LMB ability equips its configured weapon (if specified) on the role's socket.
-	if (Info.DefaultLMBAbility)
+	if (Info.DefaultLMBAbility || Info.DefaultLMBAbilityDefinition)
 	{
+		UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: equipping weapon mesh=%s socket=%s"),
+			*GetNameSafe(this), *GetNameSafe(Info.WeaponMesh.Get()), *Info.WeaponSocketName.ToString());
 		if (Info.WeaponMesh)
 		{
 			Weapon->SetSkeletalMeshAsset(Info.WeaponMesh);
@@ -139,6 +146,7 @@ void AAuraCharacterBase::ApplyRole(FName InRole)
 	{
 		// No LMB skill → no weapon. Clear the mesh so this role spawns empty-handed rather than
 		// inheriting the BP-default (Aura) staff.
+		UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: clearing weapon (no LMB skill)"), *GetNameSafe(this));
 		Weapon->SetSkeletalMeshAsset(nullptr);
 	}
 
@@ -169,10 +177,25 @@ void AAuraCharacterBase::ApplyRole(FName InRole)
 		StartupPassiveAbilities = Info.StartupPassiveAbilities;
 	}
 
-	// LMB default skill is data-driven via Info.DefaultLMBAbility. First strip any LMB-tagged
-	// ability inherited from the BP defaults (or the role's own startup list), then re-add the
-	// role's configured LMB ability. An empty lmbAbility in RoleConfig.json leaves the array
-	// without any LMB skill — so a weaponless role (e.g. BungeeMan) gets no LMB attack ability.
+	// Data-driven ability definitions (granted as UAuraDataAbility with SourceObject = Definition).
+	if (Info.StartupAbilityDefinitions.Num() > 0)
+	{
+		StartupAbilityDefinitionObjects.SetNum(Info.StartupAbilityDefinitions.Num());
+		for (int32 i = 0; i < Info.StartupAbilityDefinitions.Num(); ++i)
+		{
+			StartupAbilityDefinitionObjects[i] = Cast<UObject>(Info.StartupAbilityDefinitions[i].Get());
+		}
+	}
+	if (Info.StartupPassiveAbilityDefinitions.Num() > 0)
+	{
+		StartupPassiveAbilityDefinitionObjects.SetNum(Info.StartupPassiveAbilityDefinitions.Num());
+		for (int32 i = 0; i < Info.StartupPassiveAbilityDefinitions.Num(); ++i)
+		{
+			StartupPassiveAbilityDefinitionObjects[i] = Cast<UObject>(Info.StartupPassiveAbilityDefinitions[i].Get());
+		}
+	}
+
+	// LMB default skill: prefer data-driven definition, fall back to legacy class path.
 	const FGameplayTag LMBInputTag = FAuraGameplayTags::Get().InputTag_LMB;
 	StartupAbilities.RemoveAll([&LMBInputTag](const TSubclassOf<UGameplayAbility>& AbilityClass)
 	{
@@ -182,12 +205,17 @@ void AAuraCharacterBase::ApplyRole(FName InRole)
 		}
 		return false;
 	});
-	if (Info.DefaultLMBAbility)
+
+	if (Info.DefaultLMBAbilityDefinition)
+	{
+		DefaultLMBAbilityDefinitionObject = Cast<UObject>(Info.DefaultLMBAbilityDefinition.Get());
+	}
+	else if (Info.DefaultLMBAbility)
 	{
 		StartupAbilities.AddUnique(Info.DefaultLMBAbility);
 	}
 
-	UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: applied Role='%s' (mesh=%s anim=%s weapon=%s, abilities=%d passive=%d)."),
+	UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: applied Role='%s' (mesh=%s anim=%s weapon=%s)."),
 		*GetNameSafe(this), *InRole.ToString(),
 		*GetNameSafe(Info.SkeletalMesh.Get()), *GetNameSafe(Info.AnimBlueprintClass.Get()),
 		*GetNameSafe(Info.WeaponMesh.Get()), Info.StartupAbilities.Num(), Info.StartupPassiveAbilities.Num());
@@ -232,6 +260,27 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation(const FVector& Deat
 	BurnDebuffComponent->Deactivate();
 	StunDebuffComponent->Deactivate();
 	OnDeathDelegate.Broadcast(this);
+}
+
+void AAuraCharacterBase::MulticastPlayGunFireFX_Implementation(
+	const FVector_NetQuantize& MuzzleLocation,
+	UParticleSystem* MuzzleFX, USoundBase* FireSound)
+{
+	// Cosmetic only — runs on the server and every client. The bullet handles impact + tracer FX;
+	// this just plays the muzzle flash + fire sound. Dedicated servers bail early to skip FX.
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+
+	if (MuzzleFX)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, MuzzleFX, MuzzleLocation, GetActorRotation());
+	}
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, MuzzleLocation, GetActorRotation());
+	}
 }
 
 void AAuraCharacterBase::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
@@ -425,6 +474,22 @@ void AAuraCharacterBase::AddCharacterAbilities()
 
 	AuraASC->AddCharacterAbilities(StartupAbilities);
 	AuraASC->AddCharacterPassiveAbilities(StartupPassiveAbilities);
+	TArray<UAuraAbilityDefinition*> DataAbilityDefs;
+	for (const TObjectPtr<UObject>& Obj : StartupAbilityDefinitionObjects)
+	{
+		DataAbilityDefs.Add(Cast<UAuraAbilityDefinition>(Obj.Get()));
+	}
+	if (DefaultLMBAbilityDefinitionObject)
+	{
+		DataAbilityDefs.Add(Cast<UAuraAbilityDefinition>(DefaultLMBAbilityDefinitionObject.Get()));
+	}
+	AuraASC->AddCharacterDataAbilities(DataAbilityDefs);
+	TArray<UAuraAbilityDefinition*> DataPassiveDefs;
+	for (const TObjectPtr<UObject>& Obj : StartupPassiveAbilityDefinitionObjects)
+	{
+		DataPassiveDefs.Add(Cast<UAuraAbilityDefinition>(Obj.Get()));
+	}
+	AuraASC->AddCharacterDataPassiveAbilities(DataPassiveDefs);
 }
 
 void AAuraCharacterBase::Dissolve()
@@ -442,4 +507,3 @@ void AAuraCharacterBase::Dissolve()
 		StartWeaponDissolveTimeline(DynamicMatInst);
 	}
 }
-

@@ -291,6 +291,11 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FString("Arcane Shards Ability Tag")
 		);
 
+	GameplayTags.Abilities_Gun_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Gun.Fire"),
+		FString("Gun Fire Ability Tag (BungeeMan LMB hitscan)")
+		);
+
 	/*
 	 * Passive Spells
 	 */
@@ -322,6 +327,16 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Abilities_Status_Equipped = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Status.Equipped"),
 		FString("Equipped Status")
+		);
+
+	GameplayTags.Abilities_Cost_Mana = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Cost.Mana"),
+		FString("Mana Cost Tag")
+		);
+
+	GameplayTags.Abilities_Cooldown_Duration = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Cooldown.Duration"),
+		FString("Cooldown Duration Tag")
 		);
 
 	GameplayTags.Abilities_Status_Locked = UGameplayTagsManager::Get().AddNativeGameplayTag(
@@ -356,6 +371,11 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Cooldown_Fire_FireBolt = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Cooldown.Fire.FireBolt"),
 		FString("FireBolt Cooldown Tag")
+		);
+
+	GameplayTags.Cooldown_Gun_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Cooldown.Gun.Fire"),
+		FString("Gun Fire Cooldown Tag")
 		);
 
 	/*

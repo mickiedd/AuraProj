@@ -18,6 +18,9 @@
 
 // Role config (JSON)
 #include "AbilitySystem/Data/RoleInfo.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
+
+#include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "HAL/PlatformTime.h"
@@ -221,8 +224,99 @@ UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterClassInfo(const UObj
 	return AuraGameMode->CharacterClassInfo;
 }
 
+URuntimeAbilityInfo* UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(const UObject* WorldContextObject)
+{
+	// Process-lifetime cache for pure clients (no GameMode)
+	static TStrongObjectPtr<URuntimeAbilityInfo> GClientAbilityInfoCache;
+
+	// Server: get from GameMode's cached instance
+	if (AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+	{
+		if (!AuraGameMode->RuntimeAbilityInfo)
+		{
+			// First access on server: load from JSON
+			AuraGameMode->RuntimeAbilityInfo = LoadAbilityInfoFromJSON();
+		}
+		return AuraGameMode->RuntimeAbilityInfo;
+	}
+
+	// Client: use process-lifetime cache (reload if null)
+	if (!GClientAbilityInfoCache.IsValid())
+	{
+		GClientAbilityInfoCache = TStrongObjectPtr<URuntimeAbilityInfo>(LoadAbilityInfoFromJSON());
+	}
+	return GClientAbilityInfoCache.Get();
+}
+
+URuntimeAbilityInfo* UAuraAbilitySystemLibrary::LoadAbilityInfoFromJSON()
+{
+	const FString JSONPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("AbilityInfo.json"));
+	FString JSONContent;
+
+	if (!FFileHelper::LoadFileToString(JSONContent, *JSONPath))
+	{
+		UE_LOG(LogAura, Error, TEXT("[AbilityInfo] Failed to load AbilityInfo.json from: %s"), *JSONPath);
+		// Return empty object so callers don't crash
+		return NewObject<URuntimeAbilityInfo>(GetTransientPackage());
+	}
+
+	URuntimeAbilityInfo* Info = NewObject<URuntimeAbilityInfo>(GetTransientPackage());
+	if (!Info->LoadFromJSON(JSONContent))
+	{
+		UE_LOG(LogAura, Error, TEXT("[AbilityInfo] Failed to parse AbilityInfo.json"));
+	}
+	else
+	{
+		UE_LOG(LogAura, Log, TEXT("[AbilityInfo] Successfully loaded AbilityInfo.json from: %s"), *JSONPath);
+	}
+
+	return Info;
+}
+
+UAuraAbilityDefinition* UAuraAbilitySystemLibrary::LoadAbilityDefinitionFromXMLFile(const FString& FilePath)
+{
+	// Resolve the path to a real filesystem path (mirror BehaviorU's path resolution)
+	// Handles three forms:
+	//   /Game/AbilityDefinitions/FireGun.xml  → <ProjectContentDir>/AbilityDefinitions/FireGun.xml
+	//   relative/path.xml  → <ProjectContentDir>/relative/path.xml
+	//   C:/absolute/path.xml → used as-is
+	FString ResolvedPath = FilePath;
+	if (ResolvedPath.StartsWith(TEXT("/Game/")))
+	{
+		ResolvedPath = FPaths::Combine(FPaths::ProjectContentDir(), ResolvedPath.Mid(6 /*len("/Game/")*/));
+	}
+	else if (FPaths::IsRelative(ResolvedPath))
+	{
+		ResolvedPath = FPaths::Combine(FPaths::ProjectContentDir(), ResolvedPath);
+	}
+	ResolvedPath = FPaths::ConvertRelativePathToFull(ResolvedPath);
+
+	FString FileContent;
+	if (!FFileHelper::LoadFileToString(FileContent, *ResolvedPath))
+	{
+		UE_LOG(LogAura, Error, TEXT("[AbilityDefinition] Failed to read XML file: %s"), *ResolvedPath);
+		return nullptr;
+	}
+
+	// Create a transient definition object (not saved to asset registry; held alive by caller)
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	Definition->AbilityName = FName(*FPaths::GetBaseFilename(ResolvedPath));
+
+	if (!Definition->LoadFromXML(FileContent))
+	{
+		UE_LOG(LogAura, Error, TEXT("[AbilityDefinition] XML parse failed for: %s"), *ResolvedPath);
+		return nullptr;
+	}
+
+	UE_LOG(LogAura, Log, TEXT("[AbilityDefinition] Loaded ability definition from XML: %s (Tag=%s)"),
+		*ResolvedPath, *Definition->AbilityTag.ToString());
+	return Definition;
+}
+
 UAbilityInfo* UAuraAbilitySystemLibrary::GetAbilityInfo(const UObject* WorldContextObject)
 {
+	// DEPRECATED: Legacy UAsset-based ability info. Kept for backward compatibility.
+	// New code should call GetRuntimeAbilityInfo() instead.
 	const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
 	if (AuraGameMode == nullptr) return nullptr;
 	return AuraGameMode->AbilityInfo;
@@ -380,6 +474,38 @@ namespace RoleConfigPrivate
 			}
 		}
 	}
+
+	static UAuraAbilityDefinition* LoadAbilityDefinition(const FString& DefPath, const FString& RoleName)
+	{
+		if (DefPath.IsEmpty())
+		{
+			return nullptr;
+		}
+
+		// Prioritize XML loading (new data-driven approach)
+		if (DefPath.EndsWith(TEXT(".xml")) || DefPath.Contains(TEXT("/AbilityDefinitions/")))
+		{
+			// Use the centralized XML loader (mirrors BehaviorU pattern)
+			if (UAuraAbilityDefinition* Def = UAuraAbilitySystemLibrary::LoadAbilityDefinitionFromXMLFile(DefPath))
+			{
+				UE_LOG(LogAura, Log, TEXT("[RoleConfig] Role '%s': loaded definition XML '%s' (Tag=%s)."),
+					*RoleName, *DefPath, *Def->AbilityTag.ToString());
+				return Def;
+			}
+			UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load definition XML '%s'."), *RoleName, *DefPath);
+			return nullptr;
+		}
+
+		// Fallback: legacy UAsset loading (for backward compatibility during migration)
+		if (UAuraAbilityDefinition* Def = LoadObject<UAuraAbilityDefinition>(nullptr, *DefPath))
+		{
+			UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': loaded LEGACY UAsset definition '%s'. Migrate to XML!"), *RoleName, *DefPath);
+			return Def;
+		}
+
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load definition '%s' (not XML or UAsset)."), *RoleName, *DefPath);
+		return nullptr;
+	}
 }
 
 URoleInfo* UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(const UObject* WorldContextObject)
@@ -481,7 +607,42 @@ URoleInfo* UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(const UObject* Worl
 		const TArray<TSharedPtr<FJsonValue>>& PassiveArr = RoleObj->GetArrayField(TEXT("startupPassiveAbilities"));
 		RoleConfigPrivate::LoadAbilityClasses(PassiveArr, Info.StartupPassiveAbilities, RoleNameStr, TEXT("startup passive ability"));
 
-		// LMB default skill (single class path; empty = no LMB skill and no weapon for this role).
+		// Data-driven ability definitions (UAuraAbilityDefinition asset paths or .xml file paths).
+		const TArray<TSharedPtr<FJsonValue>>& StartupDefArr = RoleObj->GetArrayField(TEXT("startupAbilityDefinitions"));
+		for (const TSharedPtr<FJsonValue>& DefValue : StartupDefArr)
+		{
+			if (!DefValue.IsValid()) continue;
+			const FString DefPath = DefValue->AsString();
+			if (DefPath.IsEmpty()) continue;
+			if (UAuraAbilityDefinition* Def = RoleConfigPrivate::LoadAbilityDefinition(DefPath, RoleNameStr))
+			{
+				Info.StartupAbilityDefinitionPaths.Add(DefPath);
+				Info.StartupAbilityDefinitions.Add(Def);
+			}
+		}
+
+		const TArray<TSharedPtr<FJsonValue>>& PassiveDefArr = RoleObj->GetArrayField(TEXT("startupPassiveAbilityDefinitions"));
+		for (const TSharedPtr<FJsonValue>& DefValue : PassiveDefArr)
+		{
+			if (!DefValue.IsValid()) continue;
+			const FString DefPath = DefValue->AsString();
+			if (DefPath.IsEmpty()) continue;
+			if (UAuraAbilityDefinition* Def = RoleConfigPrivate::LoadAbilityDefinition(DefPath, RoleNameStr))
+			{
+				Info.StartupPassiveAbilityDefinitionPaths.Add(DefPath);
+				Info.StartupPassiveAbilityDefinitions.Add(Def);
+			}
+		}
+
+		// LMB default skill: try data-driven definition first (asset or .xml), fall back to class path.
+		const FString LMBDefPath = RoleObj->GetStringField(TEXT("lmbAbilityDefinition"));
+		if (!LMBDefPath.IsEmpty())
+		{
+			Info.DefaultLMBAbilityDefinitionPath = LMBDefPath;
+			Info.DefaultLMBAbilityDefinition = RoleConfigPrivate::LoadAbilityDefinition(LMBDefPath, RoleNameStr);
+		}
+
+		// Legacy LMB class path (backward compatibility).
 		const FString LMBAbilityPath = RoleObj->GetStringField(TEXT("lmbAbility"));
 		if (!LMBAbilityPath.IsEmpty())
 		{

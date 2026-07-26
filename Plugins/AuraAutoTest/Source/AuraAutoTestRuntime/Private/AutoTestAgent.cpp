@@ -11,6 +11,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "Modules/ModuleManager.h"
 #include "UObject/UObjectGlobals.h"
 
 static const FString GSpawnClassKey		= TEXT("__AutoTest_SpawnClass");
@@ -35,7 +36,7 @@ UAutoTestAgent::UAutoTestAgent()
 void UAutoTestAgent::BeginPlay()
 {
 	// Super auto-registers with UBehaviorUWorldSubsystem (bManagedBySubsystem = true,
-	// component tick disabled) â€” the subsystem drives the two-phase tick. We must NOT
+	// component tick disabled) â€?the subsystem drives the two-phase tick. We must NOT
 	// tick the tree manually.
 	Super::BeginPlay();
 
@@ -45,9 +46,10 @@ void UAutoTestAgent::BeginPlay()
 	RegisterMethodHandler(TEXT("Jump"),                [this]() { return HandleJump(); });
 	RegisterMethodHandler(TEXT("StopJump"),           [this]() { return HandleStopJump(); });
 	RegisterMethodHandler(TEXT("Crouch"),              [this]() { return HandleCrouch(); });
-	RegisterMethodHandler(TEXT("UnCrouch"),            [this]() { return HandleUnCrouch(); });
+	RegisterMethodHandler(TEXT("UnCrouch"),            [this]() { HandleUnCrouch(); return EBehaviorUStatus::Success; });
 	RegisterMethodHandler(TEXT("RandomJumpOrCrouch"), [this]() { return HandleRandomJumpOrCrouch(); });
 	RegisterMethodHandler(TEXT("UseRandomSkill"),      [this]() { return HandleUseRandomSkill(); });
+	RegisterMethodHandler(TEXT("AssertAbilityGraphLoaded"), [this]() { return HandleAssertAbilityGraphLoaded(); });
 
 	// Continuous-movement ticker (game thread). Cheap when idle; only applies input
 	// while bAutoRunning. Removed in EndPlay.
@@ -249,7 +251,7 @@ EBehaviorUStatus UAutoTestAgent::HandleUnCrouch()
 
 EBehaviorUStatus UAutoTestAgent::HandleRandomJumpOrCrouch()
 {
-	// Most beats do nothing â€” the pawn just keeps walking/running â€” and only occasionally
+	// Most beats do nothing â€?the pawn just keeps walking/running â€?and only occasionally
 	// throws in a jump or a crouch, which reads far more naturally than hopping every cycle.
 	const float R = FMath::FRand();
 	if (R < 0.2f)
@@ -436,10 +438,37 @@ bool UAutoTestAgent::OnAutoRunTick(float DeltaSeconds)
 	// --- Apply movement. AddMovementInput takes a world-space direction; with
 	//     bOrientRotationToMovement=true the pawn turns to face it automatically. ---
 	const float Scale = bAutoRunPaused ? 0.f : AutoRunIntentScale;
-	if (Scale > KINDA_SMALL_NUMBER)
-	{
-		const FVector MoveDir = FRotationMatrix(FRotator(0.f, AutoRunHeadingYaw, 0.f)).GetUnitAxis(EAxis::X);
-		Char->AddMovementInput(MoveDir, Scale);
-	}
-	return true;
-}
+ 	if (Scale > KINDA_SMALL_NUMBER)
+ 	{
+ 		const FVector MoveDir = FRotationMatrix(FRotator(0.f, AutoRunHeadingYaw, 0.f)).GetUnitAxis(EAxis::X);
+ 		Char->AddMovementInput(MoveDir, Scale);
+ 	}
+ 	return true;
+ }
+
+ EBehaviorUStatus UAutoTestAgent::HandleAssertAbilityGraphLoaded()
+ {
+ 	bool bFound = false;
+ #if !IS_MONOLITHIC
+ 	FModuleManager& ModuleManager = FModuleManager::Get();
+ 	if (ModuleManager.IsModuleLoaded(TEXT("AuraAbilityGraph")))
+ 	{
+ 		bFound = true;
+ 	}
+	else if (ModuleManager.LoadModule(TEXT("AuraAbilityGraph")) != nullptr)
+ 	{
+ 		bFound = true;
+ 	}
+ #endif
+ 
+ 	SetPropertyValue(TEXT("Self.AbilityGraphLoaded"), bFound ? TEXT("true") : TEXT("false"));
+ 
+ 	if (!bFound)
+ 	{
+ 		UE_LOG(LogAuraTest, Warning, TEXT("[AutoTest] AssertAbilityGraphLoaded: AuraAbilityGraph module is not loaded."));
+ 		return EBehaviorUStatus::Failure;
+ 	}
+ 
+ 	UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] AssertAbilityGraphLoaded: AuraAbilityGraph module is present."));
+ 	return EBehaviorUStatus::Success;
+ }

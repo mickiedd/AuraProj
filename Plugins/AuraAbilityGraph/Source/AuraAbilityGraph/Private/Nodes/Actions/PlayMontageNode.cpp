@@ -1,0 +1,99 @@
+// Copyright Druid Mechanics
+
+#include "Nodes/Actions/PlayMontageNode.h"
+#include "Nodes/AbilityActionTask.h"
+#include "AbilityDefinition.h"
+#include "DataAbility.h"
+#include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AuraAbilityGraphLogChannels.h"
+
+UAuraAbilityActionTask* UPlayMontageNode::CreateTask(UObject* Outer) const
+{
+    return NewObject<UPlayMontageTask>(Outer);
+}
+
+EAuraAbilityActionStatus UPlayMontageTask::OnStart(FAuraAbilityExecutionContext& Ctx)
+{
+    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnStart OwnerAbility=%s"), *GetNameSafe(OwnerAbility));
+    if (!OwnerAbility)
+    {
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnStart abort: OwnerAbility null"));
+        return EAuraAbilityActionStatus::Failure;
+    }
+
+    const UAuraAbilityDefinition* Definition = nullptr;
+    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+    {
+        Definition = DataAbility->GetDefinition();
+    }
+
+    if (!Definition || !Definition->Montage)
+    {
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnStart abort: no montage on definition"));
+        return EAuraAbilityActionStatus::Success;
+    }
+
+    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnStart playing montage=%s"), *Definition->Montage.GetName());
+    UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+        OwnerAbility,
+        FName("PlayMontage"),
+        Definition->Montage,
+        1.0f,
+        NAME_None,
+        true,
+        1.0f,
+        0.0f,
+        false);
+
+    if (!Task)
+    {
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnStart abort: CreatePlayMontageAndWaitProxy returned null"));
+        return EAuraAbilityActionStatus::Failure;
+    }
+
+    FScriptDelegate CompletedDelegate;
+    CompletedDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UPlayMontageTask, OnCompleted));
+    Task->OnCompleted.Add(CompletedDelegate);
+
+    FScriptDelegate InterruptedDelegate;
+    InterruptedDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UPlayMontageTask, OnInterrupted));
+    Task->OnInterrupted.Add(InterruptedDelegate);
+
+    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+    {
+        DataAbility->PendingMontageTask = Task;
+    }
+
+    Task->ReadyForActivation();
+
+    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnStart task activated"));
+    return EAuraAbilityActionStatus::Success;
+}
+
+void UPlayMontageTask::OnCompleted()
+{
+    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnCompleted"));
+    PendingStatus = EAuraAbilityActionStatus::Success;
+    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+    {
+        DataAbility->PendingMontageTask.Reset();
+        DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Success);
+    }
+}
+
+void UPlayMontageTask::OnInterrupted()
+{
+    UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnInterrupted"));
+    PendingStatus = EAuraAbilityActionStatus::Failure;
+    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+    {
+        DataAbility->PendingMontageTask.Reset();
+        DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Failure);
+    }
+}
+
+void UPlayMontageTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status)
+{
+    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+}

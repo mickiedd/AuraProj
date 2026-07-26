@@ -9,9 +9,13 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
+#include "AbilitySystem/Data/RoleInfo.h"
 #include "Aura/AuraLogChannels.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "Interaction/PlayerInterface.h"
+
+#include "AuraAbilityGraph/Public/DataAbility.h"
+#include "AuraAbilityGraph/Public/AbilityDefinition.h"
 
 namespace
 {
@@ -89,6 +93,50 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 	}
 	bStartupAbilitiesGiven = true;
 	AbilitiesGivenDelegate.Broadcast();
+}
+
+void UAuraAbilitySystemComponent::AddCharacterDataAbilities(const TArray<UAuraAbilityDefinition*>& Definitions)
+{
+	UE_LOG(LogAura, Log, TEXT("[ASC] AddCharacterDataAbilities count=%d"), Definitions.Num());
+	for (UAuraAbilityDefinition* Definition : Definitions)
+	{
+		if (!Definition || !Definition->AbilityTag.IsValid())
+		{
+			UE_LOG(LogAura, Warning, TEXT("[ASC] AddCharacterDataAbilities skipping invalid definition"));
+			continue;
+		}
+
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(UAuraDataAbility::StaticClass(), 1);
+		AbilitySpec.SourceObject = Definition;
+		AbilitySpec.DynamicAbilityTags.AddTag(Definition->InputTag);
+		AbilitySpec.DynamicAbilityTags.AddTag(Definition->AbilityTag);
+		AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
+		GiveAbility(AbilitySpec);
+		UE_LOG(LogAura, Log, TEXT("[ASC] AddCharacterDataAbilities granted definition=%s InputTag=%s AbilityTag=%s"),
+			*Definition->AbilityTag.ToString(), *Definition->InputTag.ToString(), *Definition->AbilityTag.ToString());
+	}
+	bStartupAbilitiesGiven = true;
+	AbilitiesGivenDelegate.Broadcast();
+}
+
+void UAuraAbilitySystemComponent::AddCharacterDataPassiveAbilities(const TArray<UAuraAbilityDefinition*>& Definitions)
+{
+	UE_LOG(LogAura, Log, TEXT("[ASC] AddCharacterDataPassiveAbilities count=%d"), Definitions.Num());
+	for (UAuraAbilityDefinition* Definition : Definitions)
+	{
+		if (!Definition || !Definition->AbilityTag.IsValid())
+		{
+			UE_LOG(LogAura, Warning, TEXT("[ASC] AddCharacterDataPassiveAbilities skipping invalid definition"));
+			continue;
+		}
+
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(UAuraDataAbility::StaticClass(), 1);
+		AbilitySpec.SourceObject = Definition;
+		AbilitySpec.DynamicAbilityTags.AddTag(Definition->AbilityTag);
+		AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
+		GiveAbilityAndActivateOnce(AbilitySpec);
+		UE_LOG(LogAura, Log, TEXT("[ASC] AddCharacterDataPassiveAbilities granted definition=%s"), *Definition->AbilityTag.ToString());
+	}
 }
 
 void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities)
@@ -270,16 +318,28 @@ void UAuraAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate
 
 FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
 {
+	UE_LOG(LogAura, Log, TEXT("[ASC] GetAbilityTagFromSpec Ability=%s DynamicTags=%d"),
+		*GetNameSafe(AbilitySpec.Ability), AbilitySpec.DynamicAbilityTags.Num());
 	if (AbilitySpec.Ability)
 	{
 		for (FGameplayTag Tag : AbilitySpec.Ability.Get()->AbilityTags)
 		{
 			if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities"))))
 			{
+				UE_LOG(LogAura, Log, TEXT("[ASC] GetAbilityTagFromSpec resolved from AbilityTags: %s"), *Tag.ToString());
 				return Tag;
 			}
 		}
 	}
+	for (FGameplayTag Tag : AbilitySpec.DynamicAbilityTags)
+	{
+		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities"))))
+		{
+			UE_LOG(LogAura, Log, TEXT("[ASC] GetAbilityTagFromSpec resolved from DynamicAbilityTags: %s"), *Tag.ToString());
+			return Tag;
+		}
+	}
+	UE_LOG(LogAura, Warning, TEXT("[ASC] GetAbilityTagFromSpec FAILED to resolve ability tag"));
 	return FGameplayTag();
 }
 

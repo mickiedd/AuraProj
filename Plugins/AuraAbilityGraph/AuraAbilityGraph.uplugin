@@ -1,0 +1,22 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "Aura Ability Graph",
+  "Description": "Data-driven ability system for Aura",
+  "Category": "Aura",
+  "Modules": [
+    {
+      "Name": "AuraAbilityGraph",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "Dependencies": [ "GameplayAbilities" ]
+    },
+    {
+      "Name": "AuraAbilityGraphEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default",
+      "Dependencies": [ "AuraAbilityGraph", "EditorScriptingUtilities" ]
+    }
+  ]
+}

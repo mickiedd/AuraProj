@@ -70,6 +70,7 @@ protected:
 	EBehaviorUStatus HandleUnCrouch();            // ACharacter::UnCrouch()
 	EBehaviorUStatus HandleRandomJumpOrCrouch();  // jump / crouch / nothing each call
 	EBehaviorUStatus HandleUseRandomSkill();      // fire a random equipped ability (sometimes)
+	EBehaviorUStatus HandleAssertAbilityGraphLoaded();
 
 	/** Apply or clear the auto-run sprint state on the controlled character's movement
 	 *  component (raises MaxWalkSpeed by AutoRunSprintMultiplier while sprinting). */

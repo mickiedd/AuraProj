@@ -13,11 +13,17 @@
 class UPassiveNiagaraComponent;
 class UDebuffNiagaraComponent;
 class UNiagaraSystem;
+class UParticleSystem;
 class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayEffect;
 class UGameplayAbility;
 class UAnimMontage;
+class USoundBase;
+class UAuraDataAbility;
+class UAuraAbilityDefinition;
+class UAuraDataAbility;
+class UAuraAbilityDefinition;
 
 UCLASS(Abstract)
 class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -72,6 +78,16 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath(const FVector& DeathImpulse);
+
+	/**
+	 * Multicasts the gun's muzzle flash + fire sound to all clients. Called server-side by
+	 * UAuraFireGun when it spawns the bullet. Impact + tracer FX are handled by the AAuraBullet
+	 * projectile itself, so only muzzle cosmetics are relayed here. FX are Cascade
+	 * UParticleSystem assets (SpawnEmitterAtLocation).
+	 */
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPlayGunFireFX(const FVector_NetQuantize& MuzzleLocation,
+		UParticleSystem* MuzzleFX, USoundBase* FireSound);
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<FTaggedMontage> AttackMontages;
@@ -196,6 +212,15 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupPassiveAbilities;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UObject>> StartupAbilityDefinitionObjects;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UObject>> StartupPassiveAbilityDefinitionObjects;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UObject> DefaultLMBAbilityDefinitionObject;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TObjectPtr<UAnimMontage> HitReactMontage;

@@ -11,6 +11,7 @@
 class ULootTiers;
 class ULoadScreenSaveGame;
 class UAbilityInfo;
+class URuntimeAbilityInfo;
 class URoleInfo;
 class USpellMenuWidgetController;
 class UAbilitySystemComponent;
@@ -58,7 +59,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static UCharacterClassInfo* GetCharacterClassInfo(const UObject* WorldContextObject);
 
+	/**
+	 * Get ability UI metadata (icons, materials, level requirements) for all abilities.
+	 * Loads from Content/Config/AbilityInfo.json on first access. Server: cached on GameMode.
+	 * Client: process-lifetime static cache. Automatically hot-reloads if JSON changes.
+	 * DEPRECATED: Legacy GetAbilityInfo() returns UAbilityInfo (UAsset-based), kept for BP compatibility.
+	 */
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
+	static URuntimeAbilityInfo* GetRuntimeAbilityInfo(const UObject* WorldContextObject);
+
+	/** DEPRECATED: Legacy UAsset-based ability info. Use GetRuntimeAbilityInfo() for JSON-driven system. */
+	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta=(DeprecatedFunction, DeprecationMessage="Use GetRuntimeAbilityInfo instead"))
 	static UAbilityInfo* GetAbilityInfo(const UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
@@ -75,6 +86,24 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static URoleInfo* LoadRoleInfoFromConfig(const UObject* WorldContextObject);
+
+	/**
+	 * Loads Content/Config/AbilityInfo.json and builds a transient URuntimeAbilityInfo.
+	 * Called automatically by GetRuntimeAbilityInfo() on first access. Public for manual reload scenarios.
+	 */
+	static URuntimeAbilityInfo* LoadAbilityInfoFromJSON();
+
+	/**
+	 * Load an ability definition from an XML file at runtime (mirrors BehaviorU's LoadBehaviorTreeFromXMLFile).
+	 * Resolves /Game/ paths to Content/ on disk, reads the XML, and creates a transient UAuraAbilityDefinition.
+	 * 
+	 * @param FilePath - Path to XML file. Supports:
+	 *                   /Game/AbilityDefinitions/FireGun.xml → Content/AbilityDefinitions/FireGun.xml
+	 *                   relative/path.xml → Content/relative/path.xml
+	 *                   C:/absolute/path.xml → used as-is
+	 * @return Transient UAuraAbilityDefinition, or nullptr on failure. Never saved/cooked.
+	 */
+	static class UAuraAbilityDefinition* LoadAbilityDefinitionFromXMLFile(const FString& FilePath);
 
 	/**
 	 * Drop both RoleInfo caches (AAuraGameModeBase::RoleInfo on the server, and the

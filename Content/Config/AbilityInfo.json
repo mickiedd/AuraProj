@@ -1,0 +1,52 @@
+{
+  "abilities": [
+    {
+      "abilityTag": "Abilities.Fire.FireBolt",
+      "icon": "/Game/UI/GlobeSpecs/FireBolt.FireBolt",
+      "backgroundMaterial": "/Game/UI/GlobeSpecs/M_FireBolt.M_FireBolt",
+      "levelRequirement": 1
+    },
+    {
+      "abilityTag": "Abilities.Gun.Fire",
+      "icon": "/Game/UI/GlobeSpecs/FireBolt.FireBolt",
+      "backgroundMaterial": "/Game/UI/GlobeSpecs/M_FireBolt.M_FireBolt",
+      "levelRequirement": 1
+    },
+    {
+      "abilityTag": "Abilities.Lightning.Electrocute",
+      "icon": "/Game/UI/GlobeSpecs/Electrocute.Electrocute",
+      "backgroundMaterial": "/Game/UI/GlobeSpecs/M_Electrocute.M_Electrocute",
+      "levelRequirement": 1
+    },
+    {
+      "abilityTag": "Abilities.Fire.FireBlast",
+      "icon": "/Game/UI/GlobeSpecs/FireBlast.FireBlast",
+      "backgroundMaterial": "/Game/UI/GlobeSpecs/M_FireBlast.M_FireBlast",
+      "levelRequirement": 15
+    },
+    {
+      "abilityTag": "Abilities.Arcane.ArcaneShards",
+      "icon": "/Game/UI/GlobeSpecs/ArcaneShards.ArcaneShards",
+      "backgroundMaterial": "/Game/UI/GlobeSpecs/M_ArcaneShards.M_ArcaneShards",
+      "levelRequirement": 5
+    },
+    {
+      "abilityTag": "Abilities.Passive.HaloOfProtection",
+      "icon": "/Game/UI/GlobeSpecs/HaloOfProtection.HaloOfProtection",
+      "backgroundMaterial": "/Game/UI/GlobeSpecs/M_Passive.M_Passive",
+      "levelRequirement": 10
+    },
+    {
+      "abilityTag": "Abilities.Passive.LifeSiphon",
+      "icon": "/Game/UI/GlobeSpecs/LifeSiphon.LifeSiphon",
+      "backgroundMaterial": "/Game/UI/GlobeSpecs/M_Passive.M_Passive",
+      "levelRequirement": 15
+    },
+    {
+      "abilityTag": "Abilities.Passive.ManaSiphon",
+      "icon": "/Game/UI/GlobeSpecs/ManaSiphon.ManaSiphon",
+      "backgroundMaterial": "/Game/UI/GlobeSpecs/M_Passive.M_Passive",
+      "levelRequirement": 20
+    }
+  ]
+}

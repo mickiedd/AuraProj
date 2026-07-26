@@ -13,13 +13,10 @@ class UNiagaraSystem;
 class USoundBase;
 class UGameplayEffect;
 class UGameplayAbility;
+class UObject;
 
 /**
- * Player hero identity ("Role"). A role is identified purely by its name string (FName) as
- * declared in Content/Config/RoleConfig.json — there is no hardcoded C++ enum. Each role
- * selects a whole asset set (mesh, anim blueprint, weapon, sockets, death VFX) and gameplay
- * defaults (primary attributes + startup abilities). Orthogonal to ECharacterClass, which
- * enemies still use for their own attribute/ability sets.
+ * 
  */
 USTRUCT(BlueprintType)
 struct FRoleDefaultInfo
@@ -89,6 +86,24 @@ struct FRoleDefaultInfo
 
 	UPROPERTY(EditDefaultsOnly, Category = "Role|Gameplay")
 	TArray<TSubclassOf<UGameplayAbility>> StartupPassiveAbilities;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UObject>> StartupAbilityDefinitions;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UObject>> StartupPassiveAbilityDefinitions;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Role|Gameplay")
+	TArray<FString> StartupAbilityDefinitionPaths;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Role|Gameplay")
+	TArray<FString> StartupPassiveAbilityDefinitionPaths;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UObject> DefaultLMBAbilityDefinition;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Role|Gameplay")
+	FString DefaultLMBAbilityDefinitionPath;
 
 	/* The LMB default skill for this role (the ability bound to InputTag.LMB at startup).
 	   Data-driven: when set, ApplyRole grants this ability as the role's LMB skill and equips

@@ -10,6 +10,8 @@
 class UNiagaraSystem;
 class USphereComponent;
 class UProjectileMovementComponent;
+class UStaticMeshComponent;
+class UNiagaraComponent;
 
 UCLASS()
 class AURA_API AAuraProjectile : public AActor
@@ -46,6 +48,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USphereComponent> Sphere;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UStaticMeshComponent> ProjectileMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UNiagaraComponent> FlightTrailComponent;
+
 	bool IsValidOverlap(AActor* OtherActor);
 	bool bHit = false;
 
@@ -58,8 +66,9 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float LifeSpan = 15.f;
 
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UNiagaraSystem> FlightTrail;
 
-	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UNiagaraSystem> ImpactEffect;
 
