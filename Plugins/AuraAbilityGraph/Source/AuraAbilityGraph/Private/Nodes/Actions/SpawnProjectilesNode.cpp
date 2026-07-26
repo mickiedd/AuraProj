@@ -7,7 +7,6 @@
 #include "DataAbility.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Actor/AuraProjectile.h"
-#include "AuraGameplayTags.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraAbilityGraphLogChannels.h"
 
@@ -58,7 +57,7 @@ void USpawnProjectilesNode::LoadFromProperties(int32 Version, const TArray<FAura
 
 EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectiles] OnStart OwnerAbility=%s Avatar=%s"), *GetNameSafe(OwnerAbility), *GetNameSafe(Ctx.AvatarActor));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart OwnerAbility=%s Avatar=%s"), *GetNameSafe(OwnerAbility), *GetNameSafe(Ctx.AvatarActor));
     if (!OwnerAbility || !Ctx.AvatarActor)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnProjectiles] OnStart abort: missing OwnerAbility or AvatarActor"));
@@ -73,19 +72,19 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
     }
 
     const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->SocketTag);
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectiles] OnStart SocketTag=%s SocketLoc=%s"), *Node->SocketTag.ToString(), *SocketLocation.ToString());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart SocketTag=%s SocketLoc=%s"), *Node->SocketTag.ToString(), *SocketLocation.ToString());
     FVector TargetLocation = Ctx.CursorHit.ImpactPoint;
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectiles] OnStart Target=%s Actor=%s"), *TargetLocation.ToString(), *GetNameSafe(Ctx.CursorHit.GetActor()));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart Target=%s Actor=%s"), *TargetLocation.ToString(), *GetNameSafe(Ctx.CursorHit.GetActor()));
     if (TargetLocation.IsZero())
     {
         TargetLocation = Ctx.AvatarActor->GetActorLocation() + Ctx.AvatarActor->GetActorForwardVector() * 1000.f;
-        UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectiles] OnStart using fallback target=%s"), *TargetLocation.ToString());
+        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart using fallback target=%s"), *TargetLocation.ToString());
     }
 
     FRotator Rotation = (TargetLocation - SocketLocation).Rotation();
     const FVector Forward = Rotation.Vector();
     const int32 EffectiveCount = FMath::Max(1, Node->Count);
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectiles] OnStart Count=%d EffectiveCount=%d Spread=%.1f"), Node->Count, EffectiveCount, Node->Spread);
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart Count=%d EffectiveCount=%d Spread=%.1f"), Node->Count, EffectiveCount, Node->Spread);
     TArray<FRotator> Rotations = UAuraAbilitySystemLibrary::EvenlySpacedRotators(Forward, FVector::UpVector, Node->Spread, EffectiveCount);
 
     TSubclassOf<AAuraProjectile> ProjectileClass = LoadClass<AAuraProjectile>(nullptr, *Node->ProjectileClass);
@@ -117,7 +116,7 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
 
         if (const UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
         {
-            if (const UAuraAbilityDefinition* Definition = DataAbility->GetDefinition())
+            if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
             {
                 FDamageEffectParams Params;
                 Params.SourceAbilitySystemComponent = Ctx.ASC;
@@ -144,9 +143,9 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
         }
 
         Projectile->FinishSpawning(SpawnTransform);
-        UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectiles] OnStart spawned projectile[%d] class=%s"), i, *ProjectileClass->GetName());
+        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart spawned projectile[%d] class=%s"), i, *ProjectileClass->GetName());
     }
 
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectiles] OnStart spawned %d projectiles"), Rotations.Num());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart spawned %d projectiles"), Rotations.Num());
     return EAuraAbilityActionStatus::Success;
 }

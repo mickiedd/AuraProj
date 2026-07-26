@@ -28,18 +28,18 @@ void UCauseDamageNode::LoadFromProperties(int32 Version, const TArray<FAuraAbili
 
 EAuraAbilityActionStatus UCauseDamageTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[CauseDamage] OnStart"));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[CauseDamage] OnStart"));
     AActor* TargetActor = Ctx.CursorHit.GetActor();
     if (!TargetActor)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[CauseDamage] OnStart abort: no target actor"));
         return EAuraAbilityActionStatus::Failure;
     }
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[CauseDamage] OnStart TargetActor=%s"), *TargetActor->GetName());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[CauseDamage] OnStart TargetActor=%s"), *TargetActor->GetName());
 
     if (const UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
-        if (const UAuraAbilityDefinition* Definition = DataAbility->GetDefinition())
+        if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
         {
             UAbilitySystemComponent* SourceASC = DataAbility->GetAbilitySystemComponentFromActorInfo();
             UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);

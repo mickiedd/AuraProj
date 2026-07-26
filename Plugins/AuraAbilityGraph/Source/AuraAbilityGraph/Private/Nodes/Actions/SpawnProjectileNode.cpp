@@ -7,7 +7,6 @@
 #include "DataAbility.h"
 #include "Actor/AuraProjectile.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
-#include "AuraGameplayTags.h"
 #include "Interaction/CombatInterface.h"
 #include "Engine/EngineTypes.h"
 #include "AuraAbilityGraphLogChannels.h"
@@ -39,7 +38,7 @@ void USpawnProjectileNode::LoadFromProperties(int32 Version, const TArray<FAuraA
 
 EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectile] OnStart OwnerAbility=%s Avatar=%s"), *GetNameSafe(OwnerAbility), *GetNameSafe(Ctx.AvatarActor));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart OwnerAbility=%s Avatar=%s"), *GetNameSafe(OwnerAbility), *GetNameSafe(Ctx.AvatarActor));
     if (!OwnerAbility || !Ctx.AvatarActor)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnProjectile] OnStart abort: missing OwnerAbility or AvatarActor"));
@@ -54,13 +53,13 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
     }
 
     const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->SocketTag);
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectile] OnStart SocketTag=%s SocketLoc=%s"), *Node->SocketTag.ToString(), *SocketLocation.ToString());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart SocketTag=%s SocketLoc=%s"), *Node->SocketTag.ToString(), *SocketLocation.ToString());
     FVector TargetLocation = Ctx.CursorHit.ImpactPoint;
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectile] OnStart TargetLocation=%s TargetActor=%s"), *TargetLocation.ToString(), *GetNameSafe(Ctx.CursorHit.GetActor()));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart TargetLocation=%s TargetActor=%s"), *TargetLocation.ToString(), *GetNameSafe(Ctx.CursorHit.GetActor()));
     if (TargetLocation.IsZero())
     {
         TargetLocation = Ctx.AvatarActor->GetActorLocation() + Ctx.AvatarActor->GetActorForwardVector() * 1000.f;
-        UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectile] OnStart using fallback target=%s"), *TargetLocation.ToString());
+        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart using fallback target=%s"), *TargetLocation.ToString());
     }
 
     FRotator Rotation = (TargetLocation - SocketLocation).Rotation();
@@ -90,7 +89,7 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
 
     if (const UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
-        if (const UAuraAbilityDefinition* Definition = DataAbility->GetDefinition())
+        if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
         {
             const FVector Direction = (TargetLocation - SocketLocation).GetSafeNormal();
             FDamageEffectParams Params;
@@ -114,16 +113,16 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
             Params.RadialDamageOuterRadius = 0.f;
             Params.RadialDamageOrigin = FVector::ZeroVector;
             Projectile->DamageEffectParams = Params;
-            UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectile] OnStart damage base=%.1f type=%s"), Params.BaseDamage, *Params.DamageType.ToString());
+            UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart damage base=%.1f type=%s"), Params.BaseDamage, *Params.DamageType.ToString());
         }
     }
 
     Projectile->FinishSpawning(SpawnTransform);
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectile] OnStart projectile spawned class=%s"), *ProjectileClass->GetName());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart projectile spawned class=%s"), *ProjectileClass->GetName());
     return EAuraAbilityActionStatus::Success;
 }
 
 void USpawnProjectileTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectile] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
 }

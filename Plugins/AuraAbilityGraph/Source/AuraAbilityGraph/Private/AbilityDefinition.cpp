@@ -3,37 +3,17 @@
 #include "AbilityDefinition.h"
 #include "AbilityNodeRegistry.h"
 #include "AuraAbilityGraphLogChannels.h"
-#include "Nodes/Composites/SequenceNode.h"
-#include "Nodes/Actions/WaitForTargetDataNode.h"
-#include "Nodes/Actions/PlayMontageNode.h"
-#include "Nodes/Actions/WaitForMontageEventNode.h"
-#include "Nodes/Actions/SpawnProjectileNode.h"
-#include "Nodes/Actions/SpawnProjectilesNode.h"
-#include "Nodes/Actions/ApplyDamageNode.h"
-#include "Nodes/Actions/CauseDamageNode.h"
-#include "Nodes/Actions/MulticastGunFXNode.h"
-#include "Nodes/Actions/HitscanTraceNode.h"
+#include "Nodes/AbilityActionNode.h"
 #include "XmlFile.h"
 
 static UAuraAbilityActionNode* ParseNodeFromXML(const FXmlNode* XmlNode, UObject* Outer);
 
 static UAuraAbilityActionNode* CreateNodeByClassName(const FString& ClassName, UObject* Outer)
 {
-    if (UAuraAbilityActionNode* ExternalNode = FAuraAbilityNodeRegistry::Get().Create(ClassName, Outer))
+    if (UAuraAbilityActionNode* Node = FAuraAbilityNodeRegistry::Get().Create(ClassName, Outer))
     {
-        return ExternalNode;
+        return Node;
     }
-
-    if (ClassName == TEXT("Sequence")) return NewObject<UAuraSequenceNode>(Outer);
-    if (ClassName == TEXT("WaitForTargetData")) return NewObject<UWaitForTargetDataNode>(Outer);
-    if (ClassName == TEXT("PlayMontage")) return NewObject<UPlayMontageNode>(Outer);
-    if (ClassName == TEXT("WaitForMontageEvent")) return NewObject<UWaitForMontageEventNode>(Outer);
-    if (ClassName == TEXT("SpawnProjectile")) return NewObject<USpawnProjectileNode>(Outer);
-    if (ClassName == TEXT("SpawnProjectiles")) return NewObject<USpawnProjectilesNode>(Outer);
-    if (ClassName == TEXT("ApplyDamage")) return NewObject<UApplyDamageNode>(Outer);
-    if (ClassName == TEXT("CauseDamage")) return NewObject<UCauseDamageNode>(Outer);
-    if (ClassName == TEXT("MulticastGunFX")) return NewObject<UMulticastGunFXNode>(Outer);
-    if (ClassName == TEXT("HitscanTrace")) return NewObject<UHitscanTraceNode>(Outer);
 
     UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[AuraAbilityGraph] Unknown node class: %s"), *ClassName);
     return nullptr;

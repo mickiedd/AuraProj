@@ -13,7 +13,7 @@ UAuraAbilityActionTask* UWaitForTargetDataNode::CreateTask(UObject* Outer) const
 
 EAuraAbilityActionStatus UWaitForTargetDataTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForTargetData] OnStart OwnerAbility=%s ASC=%s"), *GetNameSafe(OwnerAbility), *GetNameSafe(Ctx.ASC));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForTargetData] OnStart OwnerAbility=%s ASC=%s"), *GetNameSafe(OwnerAbility), *GetNameSafe(Ctx.ASC));
     if (!OwnerAbility || !Ctx.ASC)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForTargetData] OnStart abort: missing OwnerAbility or ASC"));
@@ -38,13 +38,13 @@ EAuraAbilityActionStatus UWaitForTargetDataTask::OnStart(FAuraAbilityExecutionCo
         DataAbility->PendingTargetDataTask = Task;
     }
 
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForTargetData] OnStart waiting for cursor target data"));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForTargetData] OnStart waiting for cursor target data"));
     return EAuraAbilityActionStatus::Running;
 }
 
 void UWaitForTargetDataTask::OnValidData(const FGameplayAbilityTargetDataHandle& DataHandle)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForTargetData] OnValidData received DataNum=%d"), DataHandle.Num());
+    UE_LOG(LogAuraAbilityGraph, VeryVerbose, TEXT("[WaitForTargetData] OnValidData received DataNum=%d"), DataHandle.Num());
     PendingStatus = EAuraAbilityActionStatus::Success;
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
@@ -54,10 +54,10 @@ void UWaitForTargetDataTask::OnValidData(const FGameplayAbilityTargetDataHandle&
 
 void UWaitForTargetDataTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForTargetData] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForTargetData] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
     if (TargetDataTask.IsValid())
     {
-        UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForTargetData] OnExit ending target data task"));
+        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForTargetData] OnExit ending target data task"));
         TargetDataTask->EndTask();
         TargetDataTask.Reset();
     }

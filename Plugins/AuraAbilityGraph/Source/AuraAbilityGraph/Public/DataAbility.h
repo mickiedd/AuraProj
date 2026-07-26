@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "AbilityGraphTypes.h"
+#include "AuraManaCostGameplayEffect.h"
 #include "DataAbility.generated.h"
 
 class UAuraAbilityDefinition;
@@ -14,7 +15,7 @@ class UAbilityTask_PlayMontageAndWait;
 class UAbilityTask_WaitGameplayEvent;
 class UTargetDataUnderMouse;
 
-UCLASS()
+UCLASS(meta=(NotBlueprintable))
 class AURAABILITYGRAPH_API UAuraDataAbility : public UAuraGameplayAbility
 {
     GENERATED_BODY()

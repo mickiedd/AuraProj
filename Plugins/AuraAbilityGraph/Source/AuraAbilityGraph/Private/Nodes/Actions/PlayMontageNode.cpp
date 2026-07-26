@@ -15,26 +15,21 @@ UAuraAbilityActionTask* UPlayMontageNode::CreateTask(UObject* Outer) const
 
 EAuraAbilityActionStatus UPlayMontageTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnStart OwnerAbility=%s"), *GetNameSafe(OwnerAbility));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[PlayMontage] OnStart OwnerAbility=%s"), *GetNameSafe(OwnerAbility));
     if (!OwnerAbility)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnStart abort: OwnerAbility null"));
         return EAuraAbilityActionStatus::Failure;
     }
 
-    const UAuraAbilityDefinition* Definition = nullptr;
-    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
-    {
-        Definition = DataAbility->GetDefinition();
-    }
-
+    const UAuraAbilityDefinition* Definition = Ctx.Definition;
     if (!Definition || !Definition->Montage)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnStart abort: no montage on definition"));
         return EAuraAbilityActionStatus::Success;
     }
 
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnStart playing montage=%s"), *Definition->Montage.GetName());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[PlayMontage] OnStart playing montage=%s"), *Definition->Montage.GetName());
     UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
         OwnerAbility,
         FName("PlayMontage"),
@@ -52,14 +47,6 @@ EAuraAbilityActionStatus UPlayMontageTask::OnStart(FAuraAbilityExecutionContext&
         return EAuraAbilityActionStatus::Failure;
     }
 
-    FScriptDelegate CompletedDelegate;
-    CompletedDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UPlayMontageTask, OnCompleted));
-    Task->OnCompleted.Add(CompletedDelegate);
-
-    FScriptDelegate InterruptedDelegate;
-    InterruptedDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UPlayMontageTask, OnInterrupted));
-    Task->OnInterrupted.Add(InterruptedDelegate);
-
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
         DataAbility->PendingMontageTask = Task;
@@ -67,33 +54,11 @@ EAuraAbilityActionStatus UPlayMontageTask::OnStart(FAuraAbilityExecutionContext&
 
     Task->ReadyForActivation();
 
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnStart task activated"));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[PlayMontage] OnStart task activated"));
     return EAuraAbilityActionStatus::Success;
-}
-
-void UPlayMontageTask::OnCompleted()
-{
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnCompleted"));
-    PendingStatus = EAuraAbilityActionStatus::Success;
-    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
-    {
-        DataAbility->PendingMontageTask.Reset();
-        DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Success);
-    }
-}
-
-void UPlayMontageTask::OnInterrupted()
-{
-    UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnInterrupted"));
-    PendingStatus = EAuraAbilityActionStatus::Failure;
-    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
-    {
-        DataAbility->PendingMontageTask.Reset();
-        DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Failure);
-    }
 }
 
 void UPlayMontageTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[PlayMontage] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[PlayMontage] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
 }

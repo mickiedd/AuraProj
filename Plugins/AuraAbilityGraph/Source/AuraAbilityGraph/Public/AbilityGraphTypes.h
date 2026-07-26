@@ -8,6 +8,7 @@
 #include "AbilityGraphTypes.generated.h"
 
 class UAuraAbilityActionNode;
+class UAuraAbilityDefinition;
 
 UENUM(BlueprintType)
 enum class EAuraAbilityActionStatus : uint8
@@ -42,6 +43,7 @@ struct FAuraAbilityExecutionContext
     UAbilitySystemComponent* ASC = nullptr;
     AActor* AvatarActor = nullptr;
     FGameplayAbilitySpecHandle SpecHandle;
+    const UAuraAbilityDefinition* Definition = nullptr;
     UAuraAbilityActionNode* NodeDef = nullptr;
 
     FGameplayAbilityTargetDataHandle TargetDataHandle;

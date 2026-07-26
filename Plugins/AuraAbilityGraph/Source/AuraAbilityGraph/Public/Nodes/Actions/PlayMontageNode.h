@@ -24,10 +24,4 @@ class AURAABILITYGRAPH_API UPlayMontageTask : public UAuraAbilityActionTask
 public:
     virtual EAuraAbilityActionStatus OnStart(FAuraAbilityExecutionContext& Ctx) override;
     virtual void OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status) override;
-
-    UFUNCTION()
-    void OnCompleted();
-
-    UFUNCTION()
-    void OnInterrupted();
 };

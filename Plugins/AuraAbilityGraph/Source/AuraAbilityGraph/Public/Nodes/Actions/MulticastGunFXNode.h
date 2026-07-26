@@ -24,6 +24,12 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MulticastGunFX")
     FString FireSound;
+
+    UPROPERTY(transient)
+    TObjectPtr<UParticleSystem> LoadedMuzzleEffect;
+
+    UPROPERTY(transient)
+    TObjectPtr<USoundBase> LoadedFireSound;
 };
 
 UCLASS()

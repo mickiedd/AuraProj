@@ -28,7 +28,7 @@ void UWaitForMontageEventNode::LoadFromProperties(int32 Version, const TArray<FA
 
 EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForMontageEvent] OnStart OwnerAbility=%s"), *GetNameSafe(OwnerAbility));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart OwnerAbility=%s"), *GetNameSafe(OwnerAbility));
     if (!OwnerAbility)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForMontageEvent] OnStart abort: OwnerAbility null"));
@@ -38,15 +38,12 @@ EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecution
     FGameplayTag EventTag = NodeDef ? Cast<UWaitForMontageEventNode>(NodeDef)->EventTag : FGameplayTag();
     if (!EventTag.IsValid())
     {
-        if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+        if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
         {
-            if (const UAuraAbilityDefinition* Definition = DataAbility->GetDefinition())
-            {
-                EventTag = Definition->MontageEventTag;
-            }
+            EventTag = Definition->MontageEventTag;
         }
     }
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForMontageEvent] OnStart EventTag=%s"), *EventTag.ToString());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart EventTag=%s"), *EventTag.ToString());
 
     UAbilityTask_WaitGameplayEvent* Task = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(OwnerAbility, EventTag, nullptr, false, true);
     if (!Task)
@@ -66,13 +63,13 @@ EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecution
 
     Task->ReadyForActivation();
 
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForMontageEvent] OnStart waiting for event"));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart waiting for event"));
     return EAuraAbilityActionStatus::Running;
 }
 
 void UWaitForMontageEventTask::OnEventReceived(FGameplayEventData EventData)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForMontageEvent] OnEventReceived received"));
+    UE_LOG(LogAuraAbilityGraph, VeryVerbose, TEXT("[WaitForMontageEvent] OnEventReceived received"));
     PendingStatus = EAuraAbilityActionStatus::Success;
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
@@ -83,5 +80,5 @@ void UWaitForMontageEventTask::OnEventReceived(FGameplayEventData EventData)
 
 void UWaitForMontageEventTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForMontageEvent] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
 }

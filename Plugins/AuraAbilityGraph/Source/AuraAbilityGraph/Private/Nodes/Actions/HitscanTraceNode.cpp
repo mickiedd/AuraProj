@@ -39,7 +39,7 @@ void UHitscanTraceNode::LoadFromProperties(int32 Version, const TArray<FAuraAbil
 
 EAuraAbilityActionStatus UHitscanTraceTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[HitscanTrace] OnStart OwnerAbility=%s Avatar=%s"), *GetNameSafe(OwnerAbility), *GetNameSafe(Ctx.AvatarActor));
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart OwnerAbility=%s Avatar=%s"), *GetNameSafe(OwnerAbility), *GetNameSafe(Ctx.AvatarActor));
     if (!OwnerAbility || !Ctx.AvatarActor)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[HitscanTrace] OnStart abort: missing OwnerAbility or AvatarActor"));
@@ -54,13 +54,13 @@ EAuraAbilityActionStatus UHitscanTraceTask::OnStart(FAuraAbilityExecutionContext
     }
 
     const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->SocketTag);
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[HitscanTrace] OnStart SocketTag=%s SocketLoc=%s"), *Node->SocketTag.ToString(), *SocketLocation.ToString());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart SocketTag=%s SocketLoc=%s"), *Node->SocketTag.ToString(), *SocketLocation.ToString());
     FVector TargetLocation = Ctx.CursorHit.ImpactPoint;
     if (TargetLocation.IsZero())
     {
         TargetLocation = Ctx.AvatarActor->GetActorLocation() + Ctx.AvatarActor->GetActorForwardVector() * Node->TraceRange;
     }
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[HitscanTrace] OnStart Target=%s TraceRange=%.1f Scatter=%.1f"), *TargetLocation.ToString(), Node->TraceRange, Node->ScatterRadius);
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart Target=%s TraceRange=%.1f Scatter=%.1f"), *TargetLocation.ToString(), Node->TraceRange, Node->ScatterRadius);
 
     const FVector Direction = (TargetLocation - SocketLocation).GetSafeNormal();
     const FVector TraceEnd = SocketLocation + Direction * Node->TraceRange;
@@ -69,41 +69,38 @@ EAuraAbilityActionStatus UHitscanTraceTask::OnStart(FAuraAbilityExecutionContext
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(Ctx.AvatarActor);
 
-    const bool bHit = Ctx.AvatarActor->GetWorld()->LineTraceSingleByChannel(Hit, SocketLocation, TraceEnd, ECC_GameTraceChannel1, Params);
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[HitscanTrace] OnStart LineTrace bHit=%s HitActor=%s"), bHit ? TEXT("true") : TEXT("false"), *GetNameSafe(bHit ? Hit.GetActor() : nullptr));
+    const bool bHit = Ctx.AvatarActor->GetWorld()->LineTraceSingleByChannel(Hit, SocketLocation, TraceEnd, ECC_Visibility, Params);
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart LineTrace bHit=%s HitActor=%s"), bHit ? TEXT("true") : TEXT("false"), *GetNameSafe(bHit ? Hit.GetActor() : nullptr));
 
     if (bHit && Hit.GetActor())
     {
         UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Hit.GetActor());
         if (TargetASC)
         {
-            if (const UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+            if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
             {
-                if (const UAuraAbilityDefinition* Definition = DataAbility->GetDefinition())
-                {
-                    FDamageEffectParams DamageParams;
-                    DamageParams.SourceAbilitySystemComponent = Ctx.ASC;
-                    DamageParams.TargetAbilitySystemComponent = TargetASC;
-                    DamageParams.AbilityLevel = DataAbility->GetAbilityLevel();
-                    DamageParams.DamageGameplayEffectClass = Definition->DamageEffectClass;
-                    DamageParams.DamageType = Definition->DamageType;
-                    DamageParams.BaseDamage = Definition->Damage.GetValueAtLevel(DataAbility->GetAbilityLevel());
-                    DamageParams.DebuffChance = Definition->DebuffChance;
-                    DamageParams.DebuffDamage = Definition->DebuffDamage;
-                    DamageParams.DebuffDuration = Definition->DebuffDuration;
-                    DamageParams.DebuffFrequency = Definition->DebuffFrequency;
-                    DamageParams.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
-                    DamageParams.DeathImpulse = Direction * Definition->DeathImpulseMagnitude;
-                    DamageParams.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
-                    DamageParams.KnockbackForce = FVector::UpVector * Definition->KnockbackForceMagnitude;
-                    DamageParams.KnockbackChance = Definition->KnockbackChance;
-                    DamageParams.bIsRadialDamage = false;
-                    DamageParams.RadialDamageInnerRadius = 0.f;
-                    DamageParams.RadialDamageOuterRadius = 0.f;
-                    DamageParams.RadialDamageOrigin = FVector::ZeroVector;
-                    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[HitscanTrace] OnStart applying damage base=%.1f type=%s"), DamageParams.BaseDamage, *DamageParams.DamageType.ToString());
-                    UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageParams);
-                }
+                FDamageEffectParams DamageParams;
+                DamageParams.SourceAbilitySystemComponent = Ctx.ASC;
+                DamageParams.TargetAbilitySystemComponent = TargetASC;
+                DamageParams.AbilityLevel = OwnerAbility->GetAbilityLevel();
+                DamageParams.DamageGameplayEffectClass = Definition->DamageEffectClass;
+                DamageParams.DamageType = Definition->DamageType;
+                DamageParams.BaseDamage = Definition->Damage.GetValueAtLevel(OwnerAbility->GetAbilityLevel());
+                DamageParams.DebuffChance = Definition->DebuffChance;
+                DamageParams.DebuffDamage = Definition->DebuffDamage;
+                DamageParams.DebuffDuration = Definition->DebuffDuration;
+                DamageParams.DebuffFrequency = Definition->DebuffFrequency;
+                DamageParams.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
+                DamageParams.DeathImpulse = Direction * Definition->DeathImpulseMagnitude;
+                DamageParams.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
+                DamageParams.KnockbackForce = FVector::UpVector * Definition->KnockbackForceMagnitude;
+                DamageParams.KnockbackChance = Definition->KnockbackChance;
+                DamageParams.bIsRadialDamage = false;
+                DamageParams.RadialDamageInnerRadius = 0.f;
+                DamageParams.RadialDamageOuterRadius = 0.f;
+                DamageParams.RadialDamageOrigin = FVector::ZeroVector;
+                UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart applying damage base=%.1f type=%s"), DamageParams.BaseDamage, *DamageParams.DamageType.ToString());
+                UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageParams);
             }
         }
         else
