@@ -1,0 +1,29 @@
+<ability name="FireBolt" abilityTag="Abilities.Fire.FireBolt" inputTag="InputTag.LMB" type="Abilities.Type.Offensive">
+  <cooldown tag="Cooldown.Fire.FireBolt" duration="5"/>
+  <cost mana="10"/>
+  <damage type="Damage.Fire" base="50" deathImpulseMagnitude="5000" knockbackForceMagnitude="2000" knockbackChance="0.1"/>
+  <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBolt.AM_Cast_FireBolt" eventTag="Event.Montage.FireBolt"/>
+  <graph>
+    <node class="Sequence" id="1">
+      <node class="WaitForTargetData" id="2"/>
+      <node class="FaceTarget" id="6">
+        <property name="bSetControllerRotation" value="true"/>
+        <property name="bSetActorRotation" value="true"/>
+        <property name="bYawOnly" value="false"/>
+      </node>
+      <node class="PlayMontage" id="3"/>
+      <node class="WaitForMontageEvent" id="4">
+        <property name="EventTag" value="Event.Montage.FireBolt"/>
+      </node>
+      <node class="SpawnProjectiles" id="5">
+        <property name="SocketTag" value="CombatSocket.Weapon"/>
+        <property name="ProjectileClass" value="/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/BP_FireBolt.BP_FireBolt_C"/>
+        <property name="Count" value="5"/>
+        <property name="Spread" value="90"/>
+        <property name="bHoming" value="true"/>
+        <property name="HomingAccelerationMin" value="1600"/>
+        <property name="HomingAccelerationMax" value="3200"/>
+      </node>
+    </node>
+  </graph>
+</ability>

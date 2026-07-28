@@ -1,0 +1,30 @@
+<ability name="FireGun" abilityTag="Abilities.Gun.Fire" inputTag="InputTag.LMB" type="Abilities.Type.Offensive">
+  <cooldown tag="Cooldown.Gun.Fire" duration="0.2"/>
+  <cost mana="0"/>
+  <damage effectClass="/Game/Blueprints/AbilitySystem/Aura/Effects/GE_Damage.GE_Damage" type="Damage.Physical" base="5" deathImpulseMagnitude="1000" knockbackChance="0"/>
+  <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun" eventTag="Event.Montage.FireGun"/>
+  <graph>
+    <node class="Sequence" id="1">
+      <node class="WaitForTargetData" id="2"/>
+      <node class="FaceTarget" id="7">
+        <property name="bSetControllerRotation" value="true"/>
+        <property name="bSetActorRotation" value="true"/>
+        <property name="bYawOnly" value="false"/>
+      </node>
+      <node class="PlayMontage" id="3"/>
+      <node class="WaitForMontageEvent" id="4">
+        <property name="EventTag" value="Event.Montage.FireGun"/>
+      </node>
+      <node class="SpawnProjectile" id="5">
+        <property name="SocketTag" value="CombatSocket.Weapon"/>
+        <property name="ProjectileClass" value="/Script/Aura.AuraProjectile"/>
+        <property name="TargetFromContext" value="CursorHit.ImpactPoint"/>
+      </node>
+      <node class="MulticastGunFX" id="6">
+        <property name="MuzzleSocketTag" value="CombatSocket.Weapon"/>
+        <property name="MuzzleEffect" value="/Game/MilitaryWeapDark/FX/P_AssaultRifle_MuzzleFlash.P_AssaultRifle_MuzzleFlash"/>
+        <property name="FireSound" value="/Game/MilitaryWeapDark/Sound/Rifle/RifleB_Fire_Cue.RifleB_Fire_Cue"/>
+      </node>
+    </node>
+  </graph>
+</ability>

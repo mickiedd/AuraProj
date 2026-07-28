@@ -39,6 +39,11 @@ const NODE_PROPS = {
     { key:'TraceRange', label:'Trace Range', type:'string', default:'10000' },
     { key:'ScatterRadius', label:'Scatter Radius', type:'string', default:'50' }
   ],
+  FaceTarget: [
+    { key:'bSetControllerRotation', label:'Set Controller Rotation', type:'bool', default:true },
+    { key:'bSetActorRotation', label:'Set Actor Rotation', type:'bool', default:true },
+    { key:'bYawOnly', label:'Yaw Only', type:'bool', default:false }
+  ],
   ApplyDamage: [
     { key:'TargetFromContext', label:'Target From Context', type:'string', default:'' }
   ],
@@ -64,6 +69,7 @@ const NODE_TYPES = [
   { type:'ApplyDamage',           category:NodeCategory.ACTION,    label:'Apply Damage',          tooltip:'Applies damage effect to target.' },
   { type:'CauseDamage',           category:NodeCategory.ACTION,    label:'Cause Damage',          tooltip:'Causes damage with impulse/knockback.' },
   { type:'MulticastGunFX',        category:NodeCategory.ACTION,    label:'Multicast Gun FX',      tooltip:'Plays muzzle FX and sound.' },
+  { type:'FaceTarget',            category:NodeCategory.ACTION,    label:'Face Target',          tooltip:'Turn the avatar toward the trigger/cursor direction.' },
 ];
 
 const NODE_TYPE_MAP = Object.fromEntries(NODE_TYPES.map(n => [n.type, n]));

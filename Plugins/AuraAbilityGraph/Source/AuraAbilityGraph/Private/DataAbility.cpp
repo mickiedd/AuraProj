@@ -299,24 +299,6 @@ void UAuraDataAbility::OnTargetDataReady(const FGameplayAbilityTargetDataHandle&
         }
     }
 
-    if (PersistentCtx.AvatarActor && PersistentCtx.CursorHit.bBlockingHit)
-    {
-        const FVector Direction = (PersistentCtx.CursorHit.ImpactPoint - PersistentCtx.AvatarActor->GetActorLocation());
-        if (!Direction.IsZero())
-        {
-            const FRotator TargetRotation = Direction.Rotation();
-            if (APawn* ControllablePawn = Cast<APawn>(PersistentCtx.AvatarActor))
-            {
-                if (AController* Ctrl = ControllablePawn->GetController())
-                {
-                    Ctrl->SetControlRotation(TargetRotation);
-                }
-            }
-            PersistentCtx.AvatarActor->SetActorRotation(TargetRotation);
-            UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] OnTargetDataReady rotated character to %s"), *TargetRotation.ToString());
-        }
-    }
-
     if (PendingTargetDataTask.IsValid())
     {
         UE_LOG(LogAuraAbilityGraph, Log, TEXT("[DataAbility] OnTargetDataReady ending pending target data task"));

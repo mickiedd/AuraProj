@@ -21,7 +21,13 @@ public class AuraAbilityGraphEditor : ModuleRules
             "UnrealEd",
             "AssetTools",
             "EditorScriptingUtilities",
-            "XmlParser"
+            "XmlParser",
+            "Slate",
+            "SlateCore",
+            "ToolMenus",
+            "LevelEditor",
+            "InputCore",
+            "Projects"
         });
     }
 }

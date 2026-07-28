@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAbilityInfoTab();
   initRoleConfigTab();
   bindTabs();
+  updateTabTooltips();
 });
 
 // ── Tabs ─────────────────────────────────────────────────
@@ -88,6 +89,21 @@ function bindTabs() {
       }
     });
   });
+}
+
+// Reflect each tab's backing source-file fullpath into its hover tooltip.
+// Called after load/save/refresh so the tooltip always matches current state.
+let abilityInfoPath = '';
+let roleConfigPath   = '';
+function updateTabTooltips() {
+  const g = activeGraph();
+  const set = (tab, path) => {
+    const el = document.querySelector(`.tab[data-tab="${tab}"]`);
+    if (el) el.title = path ? `Source: ${path}` : 'No source file loaded';
+  };
+  set('graph', g ? (g.sourcePath || '') : '');
+  set('ability-info', abilityInfoPath);
+  set('role-config', roleConfigPath);
 }
 
 // ── Palette ──────────────────────────────────────────────
@@ -578,6 +594,7 @@ async function loadFile(path) {
     renderer.fitAll(g.nodes, document.getElementById('canvas-wrap').clientWidth, document.getElementById('canvas-wrap').clientHeight);
     undoStack.push(snapshot());
     updateStatus();
+    updateTabTooltips();
     document.getElementById('project-files-overlay').style.display = 'none';
   } catch (e) {
     console.error('Failed to load file:', e);
@@ -647,6 +664,7 @@ function restore(json) {
   renderer.markDirty();
   renderMinimap();
   updateStatus();
+  updateTabTooltips();
 }
 
 function undo() { const s = undoStack.undo(); if (s) restore(s); }
@@ -787,6 +805,7 @@ async function saveTree() {
     const data = await resp.json().catch(() => ({}));
     if (resp.ok && data.ok) {
       if (data.path) g.sourcePath = data.path;
+      updateTabTooltips();
       setStatusFlash('Saved → ' + (data.path || filename));
     } else {
       setStatusFlash('Save failed');
@@ -846,6 +865,8 @@ async function saveTree() {
       const infoResp = await fetch('/load-ability-info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       const infoData = await infoResp.json();
       if (infoData.ok && infoData.content) {
+        abilityInfoPath = infoData.path || abilityInfoPath;
+        updateTabTooltips();
         const info = JSON.parse(infoData.content);
         const byTag = Object.fromEntries((info.abilities || []).map(a => [a.abilityTag, a]));
         for (const tr of list.querySelectorAll('tr')) {
@@ -935,6 +956,8 @@ let roleConfigData = { roles: [] };
     try {
       const resp = await fetch('/load-role-config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       const data = await resp.json();
+      roleConfigPath = data.path || roleConfigPath;
+      updateTabTooltips();
       const config = JSON.parse(data.content);
       roleConfigData = config;
       renderRoleConfig(container, config);

@@ -22,6 +22,7 @@
 !/Content/Assets/
 !/Content/Config/
 !/Content/BehaviorTrees/
+!/Content/AbilityDefinitions/
 # Transient reload-sentinel written by the editor "Reload Role Config" mending tool.
 /Content/Config/.RoleConfig.reload
 /Platforms/
@@ -57,3 +58,4 @@ Desktop.ini
 /Plugins/BehaviorU/BehaviorULauncher/*.exe
 /Plugins/BehaviorU/BehaviorULauncher/*.pdb
 /Plugins/BehaviorU/BehaviorULauncher/*WebView2Loader.dll
+/Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/WebView2UserData
