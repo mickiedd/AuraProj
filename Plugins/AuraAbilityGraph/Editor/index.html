@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AuraAbilityGraph — Ability Graph Editor</title>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Tab Bar ──────────────────────────────────────── -->
+  <div id="tab-bar">
+    <div class="tab active" data-tab="graph">Ability Graph</div>
+    <div class="tab" data-tab="ability-info">Ability Info</div>
+    <div class="tab" data-tab="role-config">Role Config</div>
+  </div>
+
+  <!-- ── Toolbar ──────────────────────────────────────── -->
+  <div id="toolbar">
+    <span style="font-weight:700;font-size:13px;color:#fff;margin-right:4px;">⚡ AuraAbilityGraph</span>
+    <div class="sep"></div>
+    <input id="tree-name-input" type="text" value="Ability_Unnamed" title="Ability Name"/>
+    <div class="sep"></div>
+    <button class="btn" id="btn-auto-layout" title="Auto-layout (BFS top-down)">
+      <svg viewBox="0 0 16 16"><path d="M8 1v14M1 8h14"/></svg> Layout
+    </button>
+    <button class="btn" id="btn-fit" title="Fit view (F)">⊡ Fit</button>
+    <div class="sep"></div>
+    <button class="btn" id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
+    <button class="btn" id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
+    <div class="sep"></div>
+    <button class="btn primary" id="btn-export" title="Save XML (Ctrl+S)">
+      <svg viewBox="0 0 16 16"><path d="M2 12v2h12v-2M8 2v9M4 8l4 4 4-4"/></svg> Save
+    </button>
+    <button class="btn" id="btn-open-project" title="Open from Project">
+      <svg viewBox="0 0 16 16"><path d="M2 3v10h12V3zM1 2h14v12H1z"/></svg> Open from Project
+    </button>
+    <div class="sep"></div>
+    <button class="btn danger" id="btn-clear" title="Clear canvas">✕ Clear</button>
+    <div style="margin-left:auto;font-size:11px;color:var(--text-muted);">
+      Del=delete · Ctrl+Z=undo · Ctrl+A=select all · Ctrl+D=dupe · F=fit · Space+drag=pan
+    </div>
+  </div>
+
+  <!-- ── Ability Graph Tab ─────────────────────────────── -->
+  <div id="tab-content-graph" class="tab-content active">
+    <div id="main-area">
+      <div id="palette">
+        <div id="palette-header">Node Palette</div>
+        <input id="palette-search" type="text" placeholder="Search nodes…"/>
+        <div id="palette-list"></div>
+      </div>
+      <div id="canvas-wrap">
+        <canvas id="main-canvas"></canvas>
+        <div id="sel-box"></div>
+        <div id="minimap"><canvas width="160" height="100"></canvas></div>
+      </div>
+      <div id="props-panel">
+        <div id="props-header">Properties</div>
+        <div id="props-content">
+          <div id="props-empty">Select a node or ability to edit its properties.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Ability Info Tab ──────────────────────────────── -->
+  <div id="tab-content-ability-info" class="tab-content">
+    <div class="tab-toolbar">
+      <span class="title">Ability Info</span>
+      <button class="btn" id="btn-refresh-abilities">Refresh from Project</button>
+      <button class="btn primary" id="btn-save-ability-info">Save</button>
+    </div>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <colgroup>
+          <col style="width:25%"/>
+          <col style="width:25%"/>
+          <col style="width:20%"/>
+          <col style="width:20%"/>
+          <col style="width:10%"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Ability Name</th>
+            <th>Ability Tag</th>
+            <th>Icon Path</th>
+            <th>Background Material</th>
+            <th>Level Req</th>
+          </tr>
+        </thead>
+        <tbody id="ability-info-list"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Role Config Tab ──────────────────────────────── -->
+  <div id="tab-content-role-config" class="tab-content">
+    <div class="tab-toolbar">
+      <span class="title">Role Config</span>
+      <button class="btn" id="btn-refresh-roles">Refresh from Project</button>
+      <button class="btn primary" id="btn-save-role-config">Save</button>
+    </div>
+    <div class="data-table-wrap" id="role-config-list">
+    </div>
+  </div>
+
+  <!-- ── Status bar ─────────────────────────────────────── -->
+  <div id="statusbar">
+    <span id="sb-nodes">Nodes: 0</span>
+    <span id="sb-edges">Edges: 0</span>
+    <span id="sb-zoom">Zoom: 100%</span>
+    <span style="margin-left:auto;opacity:.6;">AuraAbilityGraph Editor</span>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ── Context menu ─────────────────────────────────────── -->
+<div id="ctx-menu"></div>
+
+<!-- ── Tooltip ───────────────────────────────────────────── -->
+<div id="tooltip"></div>
+
+<!-- ── Project Files Modal ──────────────────────────────── -->
+<div id="project-files-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg);border:1px solid var(--border);border-radius:4px;width:600px;max-height:80vh;display:flex;flex-direction:column;">
+    <h3 style="margin:12px;font-size:14px;">Open XML from Project</h3>
+    <div id="project-loading" style="display:none;margin:0 12px 8px;padding:8px;background:var(--hover);border-radius:4px;font-size:11px;">
+      <div style="margin-bottom:4px;font-weight:600;">🔍 Searching XML files...</div>
+      <div style="margin-bottom:6px;color:var(--text-muted);line-height:1.4;">
+        • Scanning: Content folder<br>
+        • Skipping: Collections, Developers, Movies, Audio, Textures, Materials, Meshes, Models<br>
+        • Depth: Max 8 levels
+      </div>
+      <div style="background:var(--bg);height:4px;border-radius:2px;overflow:hidden;">
+        <div id="project-progress-bar" style="background:var(--primary);height:100%;width:0%;transition:width 0.5s ease-out;"></div>
+      </div>
+    </div>
+    <div id="project-files-list" style="flex:1;overflow-y:auto;margin:0 12px 12px;border:1px solid var(--border);max-height:400px;"></div>
+    <div style="margin:12px;text-align:right;">
+      <button class="btn" id="project-files-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ──────────────────────────────────────────── -->
+<script src="js/nodes.js?v=2026041301"></script>
+<script src="js/undo.js?v=2026041301"></script>
+<script src="js/graph.js?v=2026062401"></script>
+<script src="js/xml-export.js?v=2026041301"></script>
+<script src="js/xml-import.js?v=2026041301"></script>
+<script src="js/properties.js?v=2026041301"></script>
+<script src="js/ability-data.js?v=2026041301"></script>
+<script src="js/app.js?v=2026062401"></script>
+
+</body>
+</html>
