@@ -44,6 +44,9 @@ const NODE_PROPS = {
     { key:'bSetActorRotation', label:'Set Actor Rotation', type:'bool', default:true },
     { key:'bYawOnly', label:'Yaw Only', type:'bool', default:false }
   ],
+  Wait: [
+    { key:'Seconds', label:'Seconds', type:'string', default:'0.5' }
+  ],
   ApplyDamage: [
     { key:'TargetFromContext', label:'Target From Context', type:'string', default:'' }
   ],
@@ -70,6 +73,7 @@ const NODE_TYPES = [
   { type:'CauseDamage',           category:NodeCategory.ACTION,    label:'Cause Damage',          tooltip:'Causes damage with impulse/knockback.' },
   { type:'MulticastGunFX',        category:NodeCategory.ACTION,    label:'Multicast Gun FX',      tooltip:'Plays muzzle FX and sound.' },
   { type:'FaceTarget',            category:NodeCategory.ACTION,    label:'Face Target',          tooltip:'Turn the avatar toward the trigger/cursor direction.' },
+  { type:'Wait',                  category:NodeCategory.ACTION,    label:'Wait',                 tooltip:'Waits for a specified number of seconds before continuing.' },
 ];
 
 const NODE_TYPE_MAP = Object.fromEntries(NODE_TYPES.map(n => [n.type, n]));

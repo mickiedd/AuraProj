@@ -16,6 +16,7 @@
 #include "Nodes/Actions/MulticastGunFXNode.h"
 #include "Nodes/Actions/HitscanTraceNode.h"
 #include "Nodes/Actions/FaceTargetNode.h"
+#include "Nodes/Actions/WaitNode.h"
 #include "Engine/World.h"
 #include "XmlFile.h"
 #include "HAL/IConsoleManager.h"
@@ -612,6 +613,7 @@ void FAuraAbilityGraphModule::StartupModule()
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("MulticastGunFX"), [](UObject* O) { return NewObject<UMulticastGunFXNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("HitscanTrace"), [](UObject* O) { return NewObject<UHitscanTraceNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("FaceTarget"), [](UObject* O) { return NewObject<UFaceTargetNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("Wait"), [](UObject* O) { return NewObject<UWaitNode>(O); });
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("AuraAbilityGraph module started."));
 
