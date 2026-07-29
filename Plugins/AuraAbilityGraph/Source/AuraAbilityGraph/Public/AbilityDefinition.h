@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
 #include "AbilityGraphTypes.h"
+#include "AuraDamageGameplayEffect.h"
 #include "AbilityDefinition.generated.h"
 
 class UAuraAbilityActionNode;
@@ -33,8 +34,9 @@ public:
     FGameplayTag CooldownTag;
     FScalableFloat CooldownDuration;
 
-    // Damage — set from <damage>. DamageEffectClass loaded by path at XML parse time.
-    TSubclassOf<UGameplayEffect> DamageEffectClass;
+    // Damage — set from <damage>. Defaults to UAuraDamageGameplayEffect (pure C++, no UAsset).
+    // If <damage effectClass="..."> is present in XML, it overrides this with a custom GE class.
+    TSubclassOf<UGameplayEffect> DamageEffectClass = UAuraDamageGameplayEffect::StaticClass();
     FGameplayTag DamageType;
     FScalableFloat Damage;
     float DebuffChance = 20.f;

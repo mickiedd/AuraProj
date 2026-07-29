@@ -18,6 +18,7 @@
 
 // Role config (JSON)
 #include "AbilitySystem/Data/RoleInfo.h"
+#include "AuraDamageGameplayEffect.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
@@ -996,7 +997,11 @@ FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const 
 	SetRadialDamageOuterRadius(EffectContexthandle, DamageEffectParams.RadialDamageOuterRadius);
 	SetRadialDamageOrigin(EffectContexthandle, DamageEffectParams.RadialDamageOrigin);
 	
-	const FGameplayEffectSpecHandle SpecHandle = DamageEffectParams.SourceAbilitySystemComponent->MakeOutgoingSpec(DamageEffectParams.DamageGameplayEffectClass, DamageEffectParams.AbilityLevel, EffectContexthandle);
+	const TSubclassOf<UGameplayEffect> EffectiveGEClass = DamageEffectParams.DamageGameplayEffectClass
+		? TSubclassOf<UGameplayEffect>(DamageEffectParams.DamageGameplayEffectClass)
+		: TSubclassOf<UGameplayEffect>(UAuraDamageGameplayEffect::StaticClass());
+
+	const FGameplayEffectSpecHandle SpecHandle = DamageEffectParams.SourceAbilitySystemComponent->MakeOutgoingSpec(EffectiveGEClass, DamageEffectParams.AbilityLevel, EffectContexthandle);
 
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageEffectParams.DamageType, DamageEffectParams.BaseDamage);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Debuff_Chance, DamageEffectParams.DebuffChance);

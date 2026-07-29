@@ -1,7 +1,7 @@
 <ability name="FireGun" abilityTag="Abilities.Gun.Fire" inputTag="InputTag.LMB" type="Abilities.Type.Offensive">
   <cooldown tag="Cooldown.Gun.Fire" duration="0.2"/>
   <cost mana="0"/>
-  <damage effectClass="/Game/Blueprints/AbilitySystem/Aura/Effects/GE_Damage.GE_Damage" type="Damage.Physical" base="5" deathImpulseMagnitude="1000" knockbackChance="0"/>
+  <damage type="Damage.Physical" base="5" deathImpulseMagnitude="1000" knockbackChance="0"/>
   <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun" eventTag="Event.Montage.FireGun"/>
   <graph>
     <node class="Sequence" id="1">
