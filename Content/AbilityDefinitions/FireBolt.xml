@@ -12,6 +12,9 @@
         <property name="bYawOnly" value="false"/>
       </node>
       <node class="PlayMontage" id="3"/>
+      <node class="Wait" id="7">
+        <property name="Seconds" value="1.0"/>
+      </node>
       <node class="WaitForMontageEvent" id="4">
         <property name="EventTag" value="Event.Montage.FireBolt"/>
       </node>
