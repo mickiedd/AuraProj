@@ -66,7 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initAbilityInfoTab();
   initRoleConfigTab();
+  initGEConfigTab();
   bindTabs();
+  updateTabTooltips();
 });
 
 // ── Tabs ─────────────────────────────────────────────────
@@ -88,6 +90,23 @@ function bindTabs() {
       }
     });
   });
+}
+
+// Reflect each tab's backing source-file fullpath into its hover tooltip.
+// Called after load/save/refresh so the tooltip always matches current state.
+let abilityInfoPath = '';
+let roleConfigPath   = '';
+let geConfigPath     = '';
+function updateTabTooltips() {
+  const g = activeGraph();
+  const set = (tab, path) => {
+    const el = document.querySelector(`.tab[data-tab="${tab}"]`);
+    if (el) el.title = path ? `Source: ${path}` : 'No source file loaded';
+  };
+  set('graph', g ? (g.sourcePath || '') : '');
+  set('ability-info', abilityInfoPath);
+  set('role-config', roleConfigPath);
+  set('ge-config', geConfigPath);
 }
 
 // ── Palette ──────────────────────────────────────────────
@@ -578,6 +597,7 @@ async function loadFile(path) {
     renderer.fitAll(g.nodes, document.getElementById('canvas-wrap').clientWidth, document.getElementById('canvas-wrap').clientHeight);
     undoStack.push(snapshot());
     updateStatus();
+    updateTabTooltips();
     document.getElementById('project-files-overlay').style.display = 'none';
   } catch (e) {
     console.error('Failed to load file:', e);
@@ -647,6 +667,7 @@ function restore(json) {
   renderer.markDirty();
   renderMinimap();
   updateStatus();
+  updateTabTooltips();
 }
 
 function undo() { const s = undoStack.undo(); if (s) restore(s); }
@@ -787,6 +808,7 @@ async function saveTree() {
     const data = await resp.json().catch(() => ({}));
     if (resp.ok && data.ok) {
       if (data.path) g.sourcePath = data.path;
+      updateTabTooltips();
       setStatusFlash('Saved → ' + (data.path || filename));
     } else {
       setStatusFlash('Save failed');
@@ -846,6 +868,8 @@ async function saveTree() {
       const infoResp = await fetch('/load-ability-info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       const infoData = await infoResp.json();
       if (infoData.ok && infoData.content) {
+        abilityInfoPath = infoData.path || abilityInfoPath;
+        updateTabTooltips();
         const info = JSON.parse(infoData.content);
         const byTag = Object.fromEntries((info.abilities || []).map(a => [a.abilityTag, a]));
         for (const tr of list.querySelectorAll('tr')) {
@@ -935,6 +959,8 @@ let roleConfigData = { roles: [] };
     try {
       const resp = await fetch('/load-role-config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       const data = await resp.json();
+      roleConfigPath = data.path || roleConfigPath;
+      updateTabTooltips();
       const config = JSON.parse(data.content);
       roleConfigData = config;
       renderRoleConfig(container, config);
@@ -1003,6 +1029,202 @@ let roleConfigData = { roles: [] };
       }
     } catch (e) {
       setStatusFlash('Failed to save RoleConfig.json');
+    }
+  }
+
+// ── GE Config Tab ────────────────────────────────────────
+let geConfigData = null;
+
+  async function initGEConfigTab() {
+    const container = document.getElementById('ge-config-list');
+    if (!container) return;
+
+    const refreshBtn = document.getElementById('btn-refresh-ge');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', async () => {
+        await loadGEConfigTable();
+      });
+    }
+
+    const saveBtn = document.getElementById('btn-save-ge-config');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        await saveGEConfigTable(container);
+      });
+    }
+
+    await loadGEConfigTable();
+  }
+
+  async function loadGEConfigTable() {
+    const container = document.getElementById('ge-config-list');
+    if (!container) return;
+    container.innerHTML = '<div style="color:var(--text-muted);padding:20px;">Loading...</div>';
+    try {
+      const { config, path } = await AbilityData.loadGEConfig();
+      geConfigPath = path || geConfigPath;
+      updateTabTooltips();
+      if (!config) {
+        container.innerHTML = '<div style="color:var(--danger);padding:20px;">GameplayEffects.json not found. Click Save to create it.</div>';
+        geConfigData = { secondaryAttributes: {}, resistances: {}, pickupEffects: {} };
+        return;
+      }
+      geConfigData = config;
+      renderGEConfig(container, config);
+    } catch (e) {
+      container.innerHTML = '<div style="color:var(--danger);padding:20px;">Failed to load GameplayEffects.json</div>';
+    }
+  }
+
+  // All secondary/resistance attribute fields with labels
+  const GE_SECONDARY_FIELDS = [
+    ['Armor', 'Armor'], ['ArmorPenetration', 'Armor Penetration'], ['BlockChance', 'Block Chance'],
+    ['CriticalHitChance', 'Crit Chance'], ['CriticalHitDamage', 'Crit Damage'],
+    ['CriticalHitResistance', 'Crit Resistance'], ['HealthRegeneration', 'Health Regen'],
+    ['ManaRegeneration', 'Mana Regen'], ['MaxHealth', 'Max Health'], ['MaxMana', 'Max Mana'],
+  ];
+  const GE_RESISTANCE_FIELDS = [
+    ['Fire', 'Fire'], ['Lightning', 'Lightning'], ['Arcane', 'Arcane'], ['Physical', 'Physical'],
+  ];
+
+  function renderGEConfig(container, config) {
+    container.innerHTML = '';
+    const sec = config.secondaryAttributes || {};
+    const res = config.resistances || {};
+    const pickups = config.pickupEffects || {};
+
+    // ── Secondary / Vital Attributes section ──────────────
+    const secCard = document.createElement('div');
+    secCard.className = 'role-card';
+    secCard.innerHTML = '<div class="role-name">Secondary & Vital Attributes</div>';
+    GE_SECONDARY_FIELDS.forEach(([key, label]) => {
+      const row = document.createElement('div');
+      row.className = 'role-row';
+      row.innerHTML = `<label>${escHtml(label)}</label><input type="number" step="any" class="ge-sec-${key}" value="${sec[key] ?? 0}"/>`;
+      secCard.appendChild(row);
+    });
+    container.appendChild(secCard);
+
+    // ── Resistance section ────────────────────────────────
+    const resCard = document.createElement('div');
+    resCard.className = 'role-card';
+    resCard.innerHTML = '<div class="role-name">Resistances</div>';
+    GE_RESISTANCE_FIELDS.forEach(([key, label]) => {
+      const row = document.createElement('div');
+      row.className = 'role-row';
+      row.innerHTML = `<label>${escHtml(label)}</label><input type="number" step="any" class="ge-res-${key}" value="${res[key] ?? 0}"/>`;
+      resCard.appendChild(row);
+    });
+    container.appendChild(resCard);
+
+    // ── Pickup Effects section ────────────────────────────
+    const pickupCard = document.createElement('div');
+    pickupCard.className = 'role-card';
+    pickupCard.innerHTML = '<div class="role-name">Pickup Effects</div>' +
+      '<div style="color:var(--text-muted);font-size:11px;margin-bottom:8px;">Named effects used by AuraEffectActor via InstantEffectName / DurationEffectName / InfiniteEffectName</div>';
+    Object.keys(pickups).forEach(name => {
+      const eff = pickups[name] || {};
+      const row = document.createElement('div');
+      row.className = 'role-row';
+      row.style.flexDirection = 'column';
+      row.style.gap = '4px';
+      row.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;width:100%;">
+          <label style="min-width:120px;">${escHtml(name)}</label>
+          <input type="text" class="ge-pickup-name" value="${escHtml(name)}" style="flex:0 0 150px;" data-original="${escHtml(name)}"/>
+          <button class="btn danger ge-pickup-delete" style="padding:2px 8px;font-size:11px;">Delete</button>
+        </div>
+        <div style="display:flex;gap:12px;width:100%;">
+          <label style="min-width:80px;">Health</label>
+          <input type="number" step="any" class="ge-pickup-health" value="${eff.health ?? 0}" style="flex:1;"/>
+          <label style="min-width:80px;">Mana</label>
+          <input type="number" step="any" class="ge-pickup-mana" value="${eff.mana ?? 0}" style="flex:1;"/>
+          <label style="min-width:80px;">Duration</label>
+          <input type="text" class="ge-pickup-duration" value="${escHtml(eff.duration || 'instant')}" style="flex:1;"/>
+        </div>
+      `;
+      row.querySelector('.ge-pickup-delete').addEventListener('click', () => {
+        row.remove();
+      });
+      pickupCard.appendChild(row);
+    });
+    // Add new pickup effect button
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn';
+    addBtn.style.marginTop = '8px';
+    addBtn.textContent = '+ Add Pickup Effect';
+    addBtn.addEventListener('click', () => {
+      const row = document.createElement('div');
+      row.className = 'role-row';
+      row.style.flexDirection = 'column';
+      row.style.gap = '4px';
+      row.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;width:100%;">
+          <label style="min-width:120px;">New Effect</label>
+          <input type="text" class="ge-pickup-name" value="" placeholder="effectName" style="flex:0 0 150px;" data-original=""/>
+          <button class="btn danger ge-pickup-delete" style="padding:2px 8px;font-size:11px;">Delete</button>
+        </div>
+        <div style="display:flex;gap:12px;width:100%;">
+          <label style="min-width:80px;">Health</label>
+          <input type="number" step="any" class="ge-pickup-health" value="0" style="flex:1;"/>
+          <label style="min-width:80px;">Mana</label>
+          <input type="number" step="any" class="ge-pickup-mana" value="0" style="flex:1;"/>
+          <label style="min-width:80px;">Duration</label>
+          <input type="text" class="ge-pickup-duration" value="instant" style="flex:1;"/>
+        </div>
+      `;
+      row.querySelector('.ge-pickup-delete').addEventListener('click', () => { row.remove(); });
+      pickupCard.insertBefore(row, addBtn);
+    });
+    pickupCard.appendChild(addBtn);
+    container.appendChild(pickupCard);
+  }
+
+  async function saveGEConfigTable(container) {
+    try {
+      const config = geConfigData || { secondaryAttributes: {}, resistances: {}, pickupEffects: {} };
+
+      // Collect secondary/vital
+      config.secondaryAttributes = {};
+      GE_SECONDARY_FIELDS.forEach(([key]) => {
+        const el = container.querySelector(`.ge-sec-${key}`);
+        config.secondaryAttributes[key] = el ? parseFloat(el.value) || 0 : 0;
+      });
+
+      // Collect resistances
+      config.resistances = {};
+      GE_RESISTANCE_FIELDS.forEach(([key]) => {
+        const el = container.querySelector(`.ge-res-${key}`);
+        config.resistances[key] = el ? parseFloat(el.value) || 0 : 0;
+      });
+
+      // Collect pickup effects
+      config.pickupEffects = {};
+      const pickupRows = container.querySelectorAll('#ge-config-list .role-card:last-child .role-row');
+      pickupRows.forEach(row => {
+        const nameEl = row.querySelector('.ge-pickup-name');
+        const healthEl = row.querySelector('.ge-pickup-health');
+        const manaEl = row.querySelector('.ge-pickup-mana');
+        const durEl = row.querySelector('.ge-pickup-duration');
+        if (!nameEl) return;
+        const name = nameEl.value.trim();
+        if (!name) return;
+        config.pickupEffects[name] = {
+          duration: durEl ? durEl.value.trim() || 'instant' : 'instant',
+          health: healthEl ? parseFloat(healthEl.value) || 0 : 0,
+          mana: manaEl ? parseFloat(manaEl.value) || 0 : 0,
+        };
+      });
+
+      const ok = await AbilityData.saveGEConfig(config);
+      if (ok) {
+        setStatusFlash('GameplayEffects.json saved');
+        geConfigData = config;
+      } else {
+        setStatusFlash('Failed to save GameplayEffects.json');
+      }
+    } catch (e) {
+      setStatusFlash('Failed to save GameplayEffects.json');
     }
   }
 

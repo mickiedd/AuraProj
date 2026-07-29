@@ -19,6 +19,7 @@
 // Role config (JSON)
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "AuraDamageGameplayEffect.h"
+#include "AuraAttributeGameplayEffect.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
@@ -96,38 +97,70 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
 {
 	AActor* AvatarActor = ASC->GetAvatarActor();
 
-	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
-	FCharacterClassDefaultInfo ClassDefaultInfo = CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
+	// All attribute GEs are now C++ (UAuraAttributeGameplayEffect) with SetByCaller magnitudes.
+	// Primary: zero defaults (legacy path didn't use SetByCaller for per-class; the role config path handles real values).
+	// Secondary/Vital/Resistance: loaded from GameplayEffects.json by the caller's LoadAndApplySecondaryAttributes.
+	FGameplayEffectContextHandle PrimaryContext = ASC->MakeEffectContext();
+	PrimaryContext.AddSourceObject(AvatarActor);
+	const FGameplayEffectSpecHandle PrimarySpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), Level, PrimaryContext);
+	ASC->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
 
-	FGameplayEffectContextHandle PrimaryAttributesContextHandle = ASC->MakeEffectContext();
-	PrimaryAttributesContextHandle.AddSourceObject(AvatarActor);
-	const FGameplayEffectSpecHandle PrimaryAttributesSpecHandle = ASC->MakeOutgoingSpec(ClassDefaultInfo.PrimaryAttributes, Level, PrimaryAttributesContextHandle);
-	ASC->ApplyGameplayEffectSpecToSelf(*PrimaryAttributesSpecHandle.Data.Get());
+	// Secondary + Vital + Resistance from GameplayEffects.json
+	FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("GameplayEffects.json"));
+	FString JsonContent;
+	if (FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		TSharedPtr<FJsonObject> RootObj;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+		if (FJsonSerializer::Deserialize(Reader, RootObj) && RootObj.IsValid())
+		{
+			const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+			FGameplayEffectContextHandle SecContext = ASC->MakeEffectContext();
+			SecContext.AddSourceObject(AvatarActor);
+			const FGameplayEffectSpecHandle SecSpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), Level, SecContext);
 
-	FGameplayEffectContextHandle SecondaryAttributesContextHandle = ASC->MakeEffectContext();
-	SecondaryAttributesContextHandle.AddSourceObject(AvatarActor);
-	const FGameplayEffectSpecHandle SecondaryAttributesSpecHandle = ASC->MakeOutgoingSpec(CharacterClassInfo->SecondaryAttributes, Level, SecondaryAttributesContextHandle);
-	ASC->ApplyGameplayEffectSpecToSelf(*SecondaryAttributesSpecHandle.Data.Get());
+			auto AssignFromJson = [&SecSpec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)
+			{
+				if (Obj.IsValid() && Obj->HasField(FieldName))
+				{
+					UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SecSpec, Tag, static_cast<float>(Obj->GetNumberField(FieldName)));
+				}
+			};
 
-	FGameplayEffectContextHandle VitalAttributesContextHandle = ASC->MakeEffectContext();
-	VitalAttributesContextHandle.AddSourceObject(AvatarActor);
-	const FGameplayEffectSpecHandle VitalAttributesSpecHandle = ASC->MakeOutgoingSpec(CharacterClassInfo->VitalAttributes, Level, VitalAttributesContextHandle);
-	ASC->ApplyGameplayEffectSpecToSelf(*VitalAttributesSpecHandle.Data.Get());
+			const TSharedPtr<FJsonObject>& Secondary = RootObj->GetObjectField(TEXT("secondaryAttributes"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_Armor, TEXT("Armor"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_ArmorPenetration, TEXT("ArmorPenetration"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_BlockChance, TEXT("BlockChance"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitChance, TEXT("CriticalHitChance"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitDamage, TEXT("CriticalHitDamage"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitResistance, TEXT("CriticalHitResistance"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_HealthRegeneration, TEXT("HealthRegeneration"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_ManaRegeneration, TEXT("ManaRegeneration"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxHealth, TEXT("MaxHealth"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxMana, TEXT("MaxMana"));
+
+			const TSharedPtr<FJsonObject>& Resistances = RootObj->GetObjectField(TEXT("resistances"));
+			AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Fire, TEXT("Fire"));
+			AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Lightning, TEXT("Lightning"));
+			AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Arcane, TEXT("Arcane"));
+			AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Physical, TEXT("Physical"));
+
+			ASC->ApplyGameplayEffectSpecToSelf(*SecSpec.Data.Get());
+		}
+	}
 }
 
 void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ULoadScreenSaveGame* SaveGame)
 {
-	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
-	if (CharacterClassInfo == nullptr) return;
-
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 
 	const AActor* SourceAvatarActor = ASC->GetAvatarActor();
 
+	// Primary attributes via C++ SetByCaller GE, magnitudes from save data.
 	FGameplayEffectContextHandle EffectContexthandle = ASC->MakeEffectContext();
 	EffectContexthandle.AddSourceObject(SourceAvatarActor);
 
-	const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(CharacterClassInfo->PrimaryAttributes_SetByCaller, 1.f, EffectContexthandle);
+	const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, EffectContexthandle);
 
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Strength, SaveGame->Strength);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Intelligence, SaveGame->Intelligence);
@@ -136,15 +169,38 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UO
 
 	ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 
-	FGameplayEffectContextHandle SecondaryAttributesContextHandle = ASC->MakeEffectContext();
-	SecondaryAttributesContextHandle.AddSourceObject(SourceAvatarActor);
-	const FGameplayEffectSpecHandle SecondaryAttributesSpecHandle = ASC->MakeOutgoingSpec(CharacterClassInfo->SecondaryAttributes_Infinite, 1.f, SecondaryAttributesContextHandle);
-	ASC->ApplyGameplayEffectSpecToSelf(*SecondaryAttributesSpecHandle.Data.Get());
+	// Secondary + Vital: use Infinite variant for save-data path (matches legacy behavior).
+	FGameplayEffectContextHandle SecContext = ASC->MakeEffectContext();
+	SecContext.AddSourceObject(SourceAvatarActor);
+	ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect_Infinite::StaticClass(), 1.f, SecContext);
 
-	FGameplayEffectContextHandle VitalAttributesContextHandle = ASC->MakeEffectContext();
-	VitalAttributesContextHandle.AddSourceObject(SourceAvatarActor);
-	const FGameplayEffectSpecHandle VitalAttributesSpecHandle = ASC->MakeOutgoingSpec(CharacterClassInfo->VitalAttributes, 1.f, VitalAttributesContextHandle);
-	ASC->ApplyGameplayEffectSpecToSelf(*VitalAttributesSpecHandle.Data.Get());
+	// Vital via C++ GE (same class, different magnitudes from JSON).
+	FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("GameplayEffects.json"));
+	FString JsonContent;
+	if (FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		TSharedPtr<FJsonObject> RootObj;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+		if (FJsonSerializer::Deserialize(Reader, RootObj) && RootObj.IsValid())
+		{
+			FGameplayEffectContextHandle VitalContext = ASC->MakeEffectContext();
+			VitalContext.AddSourceObject(SourceAvatarActor);
+			const FGameplayEffectSpecHandle VitalSpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, VitalContext);
+
+			const TSharedPtr<FJsonObject>& Secondary = RootObj->GetObjectField(TEXT("secondaryAttributes"));
+			auto AssignFromJson = [&VitalSpec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)
+			{
+				if (Obj.IsValid() && Obj->HasField(FieldName))
+				{
+					UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(VitalSpec, Tag, static_cast<float>(Obj->GetNumberField(FieldName)));
+				}
+			};
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxHealth, TEXT("MaxHealth"));
+			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxMana, TEXT("MaxMana"));
+
+			ASC->ApplyGameplayEffectSpecToSelf(*VitalSpec.Data.Get());
+		}
+	}
 }
 
 void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ECharacterClass CharacterClass)

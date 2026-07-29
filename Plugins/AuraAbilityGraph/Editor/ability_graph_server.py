@@ -14,6 +14,8 @@ Endpoints:
   POST /save-ability-info  -> save Content/Config/AbilityInfo.json
   POST /load-role-config   -> load Content/Config/RoleConfig.json
   POST /save-role-config   -> save Content/Config/RoleConfig.json
+  POST /load-ge-config     -> load Content/Config/GameplayEffects.json
+  POST /save-ge-config     -> save Content/Config/GameplayEffects.json
 """
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import sys, os, json, urllib.parse, re
@@ -48,6 +50,12 @@ class AuraAbilityGraphHandler(SimpleHTTPRequestHandler):
             return
         if self.path == '/save-role-config':
             self._handle_save_json('Content/Config/RoleConfig.json')
+            return
+        if self.path == '/load-ge-config':
+            self._handle_load_json('Content/Config/GameplayEffects.json')
+            return
+        if self.path == '/save-ge-config':
+            self._handle_save_json('Content/Config/GameplayEffects.json')
             return
         self.send_response(404)
         self.end_headers()

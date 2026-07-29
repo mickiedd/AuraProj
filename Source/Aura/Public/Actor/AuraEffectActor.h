@@ -69,6 +69,10 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass);
 
+	/** Apply a data-driven pickup effect by name (from GameplayEffects.json). Uses C++ UAuraPickupGameplayEffect. */
+	UFUNCTION(BlueprintCallable)
+	void ApplyDataDrivenEffect(AActor* TargetActor, const FString& EffectName);
+
 	UFUNCTION(BlueprintCallable)
 	void OnOverlap(AActor* TargetActor);
 
@@ -101,6 +105,19 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
 	EEffectRemovalPolicy InfiniteEffectRemovalPolicy = EEffectRemovalPolicy::RemoveOnEndOverlap;
+
+	// ── Data-driven pickup effects (JSON) ─────────────────────────
+	// If set, overrides the UAsset GE classes. The name indexes into
+	// Content/Config/GameplayEffects.json → "pickupEffects" → <name>.
+	// Uses UAuraPickupGameplayEffect (C++) with SetByCaller magnitudes from JSON.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects|DataDriven")
+	FString InstantEffectName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects|DataDriven")
+	FString DurationEffectName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects|DataDriven")
+	FString InfiniteEffectName;
 
 	TMap<FActiveGameplayEffectHandle, TWeakObjectPtr<UAbilitySystemComponent>> ActiveEffectHandles;
 

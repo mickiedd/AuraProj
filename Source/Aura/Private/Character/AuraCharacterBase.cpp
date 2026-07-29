@@ -13,6 +13,7 @@
 #include "AbilitySystem/Passive/PassiveNiagaraComponent.h"
 #include "Aura/Aura.h"
 #include "Aura/AuraLogChannels.h"
+#include "AuraAttributeGameplayEffect.h"
 #include "Animation/AnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -418,11 +419,70 @@ void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> Gameplay
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
 }
 
+void AAuraCharacterBase::LoadAndApplySecondaryAttributes() const
+{
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+
+	// Load GameplayEffects.json for secondary/vital/resistance default values.
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("GameplayEffects.json"));
+	FString JsonContent;
+	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Attributes] Failed to load GameplayEffects.json: %s — using zero defaults."), *ConfigPath);
+		ApplyEffectToSelf(UAuraAttributeGameplayEffect::StaticClass(), 1.f);
+		return;
+	}
+
+	TSharedPtr<FJsonObject> RootObj;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObj) || !RootObj.IsValid())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Attributes] Failed to parse GameplayEffects.json — using zero defaults."));
+		ApplyEffectToSelf(UAuraAttributeGameplayEffect::StaticClass(), 1.f);
+		return;
+	}
+
+	// Build the spec and assign SetByCaller magnitudes from JSON.
+	FGameplayEffectContextHandle Context = GetAbilitySystemComponent()->MakeEffectContext();
+	Context.AddSourceObject(this);
+	const FGameplayEffectSpecHandle Spec = GetAbilitySystemComponent()->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, Context);
+
+	auto AssignFromJson = [&Spec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)
+	{
+		if (Obj.IsValid() && Obj->HasField(FieldName))
+		{
+			const float Value = static_cast<float>(Obj->GetNumberField(FieldName));
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tag, Value);
+		}
+	};
+
+	const TSharedPtr<FJsonObject>& Secondary = RootObj->GetObjectField(TEXT("secondaryAttributes"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_Armor, TEXT("Armor"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_ArmorPenetration, TEXT("ArmorPenetration"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_BlockChance, TEXT("BlockChance"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitChance, TEXT("CriticalHitChance"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitDamage, TEXT("CriticalHitDamage"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitResistance, TEXT("CriticalHitResistance"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_HealthRegeneration, TEXT("HealthRegeneration"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_ManaRegeneration, TEXT("ManaRegeneration"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxHealth, TEXT("MaxHealth"));
+	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxMana, TEXT("MaxMana"));
+
+	const TSharedPtr<FJsonObject>& Resistances = RootObj->GetObjectField(TEXT("resistances"));
+	AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Fire, TEXT("Fire"));
+	AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Lightning, TEXT("Lightning"));
+	AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Arcane, TEXT("Arcane"));
+	AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Physical, TEXT("Physical"));
+
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+	UE_LOG(LogAura, Log, TEXT("[Attributes] Secondary/vital/resistance applied from GameplayEffects.json."));
+}
+
 void AAuraCharacterBase::InitializeDefaultAttributes() const
 {
-	ApplyEffectToSelf(DefaultPrimaryAttributes, 1.f);
-	ApplyEffectToSelf(DefaultSecondaryAttributes, 1.f);
-	ApplyEffectToSelf(DefaultVitalAttributes, 1.f);
+	// Legacy fallback: uses C++ GEs with zero primary magnitudes.
+	ApplyEffectToSelf(UAuraAttributeGameplayEffect::StaticClass(), 1.f);
+	LoadAndApplySecondaryAttributes();
 }
 
 void AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole) const
@@ -452,19 +512,19 @@ void AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole) const
 
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 
-	// Primary attributes via the shared SetByCaller GE, magnitudes from the role config.
+	// Primary attributes via the C++ SetByCaller GE, magnitudes from the role config.
 	FGameplayEffectContextHandle PrimaryContext = GetAbilitySystemComponent()->MakeEffectContext();
 	PrimaryContext.AddSourceObject(this);
-	const FGameplayEffectSpecHandle PrimarySpec = GetAbilitySystemComponent()->MakeOutgoingSpec(CharacterClassInfo->PrimaryAttributes_SetByCaller, 1.f, PrimaryContext);
+	const FGameplayEffectSpecHandle PrimarySpec = GetAbilitySystemComponent()->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, PrimaryContext);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Strength, Info.Strength);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Intelligence, Info.Intelligence);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Resilience, Info.Resilience);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Vigor, Info.Vigor);
-	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
 
-	// Secondary + Vital stay shared (BP-set members), matching InitializeDefaultAttributes().
-	ApplyEffectToSelf(DefaultSecondaryAttributes, 1.f);
-	ApplyEffectToSelf(DefaultVitalAttributes, 1.f);
+	// Secondary + Vital + Resistance via the same C++ GE, magnitudes from GameplayEffects.json.
+	LoadAndApplySecondaryAttributes();
+
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
 }
 
 void AAuraCharacterBase::AddCharacterAbilities()

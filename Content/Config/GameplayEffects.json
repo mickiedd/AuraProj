@@ -1,0 +1,32 @@
+{
+  "secondaryAttributes": {
+    "Armor": 0,
+    "ArmorPenetration": 0,
+    "BlockChance": 0,
+    "CriticalHitChance": 0,
+    "CriticalHitDamage": 0,
+    "CriticalHitResistance": 0,
+    "HealthRegeneration": 1,
+    "ManaRegeneration": 1,
+    "MaxHealth": 100,
+    "MaxMana": 50
+  },
+  "resistances": {
+    "Fire": 0,
+    "Lightning": 0,
+    "Arcane": 0,
+    "Physical": 0
+  },
+  "pickupEffects": {
+    "healthPotion": {
+      "duration": "instant",
+      "health": 50,
+      "mana": 0
+    },
+    "manaPotion": {
+      "duration": "instant",
+      "health": 0,
+      "mana": 25
+    }
+  }
+}

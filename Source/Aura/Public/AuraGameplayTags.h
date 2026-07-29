@@ -32,7 +32,11 @@ public:
 	FGameplayTag Attributes_Secondary_ManaRegeneration;
 	FGameplayTag Attributes_Secondary_MaxHealth;
 	FGameplayTag Attributes_Secondary_MaxMana;
-	
+
+	// Vital (direct Health/Mana modification, used by pickup GEs)
+	FGameplayTag Attributes_Vital_Health;
+	FGameplayTag Attributes_Vital_Mana;
+
 	FGameplayTag Attributes_Meta_IncomingXP;
 
 	FGameplayTag InputTag_LMB;

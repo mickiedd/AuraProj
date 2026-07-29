@@ -6,6 +6,12 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "AuraGameplayTags.h"
+#include "AuraAttributeGameplayEffect.h"
+#include "JsonObjectConverter.h"
+#include "JsonUtilities.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
 AAuraEffectActor::AAuraEffectActor()
 {
@@ -65,7 +71,7 @@ void AAuraEffectActor::StartRotation()
 void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
 {
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
-	
+
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 	if (TargetASC == nullptr) return;
 
@@ -87,39 +93,122 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
 	}
 }
 
+void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString& EffectName)
+{
+	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
+	if (EffectName.IsEmpty()) return;
+
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if (TargetASC == nullptr) return;
+
+	// Load GameplayEffects.json
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("GameplayEffects.json"));
+	FString JsonContent;
+	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Failed to load GameplayEffects.json"));
+		return;
+	}
+
+	TSharedPtr<FJsonObject> RootObj;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObj) || !RootObj.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Failed to parse GameplayEffects.json"));
+		return;
+	}
+
+	const TSharedPtr<FJsonObject>* PickupObj;
+	if (!RootObj->GetObjectField(TEXT("pickupEffects"))->TryGetObjectField(EffectName, PickupObj) || !PickupObj->IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' not found in GameplayEffects.json"), *EffectName);
+		return;
+	}
+
+	// Apply via the C++ UAuraPickupGameplayEffect with SetByCaller magnitudes.
+	FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
+	Context.AddSourceObject(this);
+	const FGameplayEffectSpecHandle Spec = TargetASC->MakeOutgoingSpec(UAuraPickupGameplayEffect::StaticClass(), ActorLevel, Context);
+
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	const float HealthValue = static_cast<float>((*PickupObj)->GetNumberField(TEXT("health")));
+	const float ManaValue = static_cast<float>((*PickupObj)->GetNumberField(TEXT("mana")));
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, GameplayTags.Attributes_Vital_Health, HealthValue);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, GameplayTags.Attributes_Vital_Mana, ManaValue);
+
+	// Handle duration override
+	const FString DurationStr = (*PickupObj)->GetStringField(TEXT("duration"));
+	if (DurationStr == TEXT("duration") && Spec.Data.IsValid())
+	{
+		Spec.Data.Get()->SetDuration((*PickupObj)->GetNumberField(TEXT("durationValue")), false);
+	}
+
+	const FActiveGameplayEffectHandle ActiveEffectHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+
+	const bool bIsInfinite = Spec.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;
+	if (bIsInfinite && InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
+	{
+		ActiveEffectHandles.Add(ActiveEffectHandle, TargetASC);
+	}
+
+	if (!bIsInfinite)
+	{
+		Destroy();
+	}
+}
+
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
-	
+
+	// Data-driven path: if effect names are set, use C++ GE + JSON config.
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
+		if (!InstantEffectName.IsEmpty())
+			ApplyDataDrivenEffect(TargetActor, InstantEffectName);
+		else if (InstantGameplayEffectClass)
+			ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
 	}
 	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+		if (!DurationEffectName.IsEmpty())
+			ApplyDataDrivenEffect(TargetActor, DurationEffectName);
+		else if (DurationGameplayEffectClass)
+			ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
 	}
 	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
+		if (!InfiniteEffectName.IsEmpty())
+			ApplyDataDrivenEffect(TargetActor, InfiniteEffectName);
+		else if (InfiniteGameplayEffectClass)
+			ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
 	}
 }
 
 void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
-	
+
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
+		if (!InstantEffectName.IsEmpty())
+			ApplyDataDrivenEffect(TargetActor, InstantEffectName);
+		else if (InstantGameplayEffectClass)
+			ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
 	}
 	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+		if (!DurationEffectName.IsEmpty())
+			ApplyDataDrivenEffect(TargetActor, DurationEffectName);
+		else if (DurationGameplayEffectClass)
+			ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
 	}
 	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
-		ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
+		if (!InfiniteEffectName.IsEmpty())
+			ApplyDataDrivenEffect(TargetActor, InfiniteEffectName);
+		else if (InfiniteGameplayEffectClass)
+			ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
 	}
 	if (InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{

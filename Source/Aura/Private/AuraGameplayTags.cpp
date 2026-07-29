@@ -86,6 +86,18 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		);
 
 	/*
+	 * Vital attribute tags (used by pickup GEs for direct Health/Mana modification)
+	 */
+	GameplayTags.Attributes_Vital_Health = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Vital.Health"),
+		FString("Current Health")
+		);
+	GameplayTags.Attributes_Vital_Mana = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Vital.Mana"),
+		FString("Current Mana")
+		);
+
+	/*
 	 * Input Tags
 	 */
 	

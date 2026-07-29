@@ -158,6 +158,9 @@ protected:
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
 	virtual void InitializeDefaultAttributes() const;
 
+	/** Loads secondary/vital/resistance attribute values from GameplayEffects.json and applies them via the C++ SetByCaller GE. */
+	void LoadAndApplySecondaryAttributes() const;
+
 	/**
 	 * Applies this character's primary attributes from the role's numeric values (Strength/
 	 * Intelligence/Resilience/Vigor) via the shared PrimaryAttributes_SetByCaller GE, then the
