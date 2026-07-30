@@ -39,6 +39,7 @@
 #include "ToolMenus.h"
 
 #include "Player/AuraCheatManager.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Engine/Console.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -90,6 +91,14 @@ public:
 		UToolMenus::RegisterStartupCallback(
 			FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FAuraEditorModule::RegisterMenus));
 		UE_LOG(LogAuraEditor, Display, TEXT("ToolMenus startup callback registered"));
+
+		// Drop the Aura module's process-lifetime UObject caches (client RoleInfo /
+		// RuntimeAbilityInfo / definition registry) when PIE ends. These TStrongObjectPtr caches
+		// root transient UObjects across sessions, which the editor's EndPlayMap stale-reference
+		// detector otherwise flags as leaks. Each cache lazily rebuilds from JSON on next access.
+		FEditorDelegates::EndPIE.AddRaw(this, &FAuraEditorModule::OnPIEEnded);
+		UE_LOG(LogAuraEditor, Display, TEXT("EndPIE cache-cleanup delegate registered"));
+
 		UE_LOG(LogAuraEditor, Display, TEXT("Startup complete"));
 	}
 
@@ -114,10 +123,26 @@ public:
 		UToolMenus::UnRegisterStartupCallback(this);
 		UToolMenus::UnregisterOwner(this);
 		UE_LOG(LogAuraEditor, Display, TEXT("ToolMenus callbacks/owner unregistered"));
+
+		FEditorDelegates::EndPIE.RemoveAll(this);
+		UE_LOG(LogAuraEditor, Display, TEXT("EndPIE cache-cleanup delegate unregistered"));
+
 		UE_LOG(LogAuraEditor, Display, TEXT("Shutdown complete"));
 	}
 
 private:
+	/**
+	 * Called when PIE stops. Drops the Aura runtime module's process-lifetime UObject caches
+	 * (client URoleInfo, client URuntimeAbilityInfo, weak definition registry) so the transient
+	 * objects they root can be garbage-collected with the torn-down PIE world instead of being
+	 * reported by the editor's EndPlayMap stale-reference detector. Caches rebuild lazily on the
+	 * next PIE session that needs them.
+	 */
+	void OnPIEEnded(bool bIsSimulating)
+	{
+		UAuraAbilitySystemLibrary::ClearProcessLifetimeCaches();
+	}
+
 	void AddLegacyToolbarButton(FToolBarBuilder& ToolbarBuilder)
 	{
 		UE_LOG(LogAuraEditor, Display, TEXT("Legacy toolbar builder callback fired; adding combo button"));

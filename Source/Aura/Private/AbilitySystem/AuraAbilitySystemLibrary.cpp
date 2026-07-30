@@ -306,11 +306,14 @@ UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterClassInfo(const UObj
 	return AuraGameMode->CharacterClassInfo;
 }
 
+// File-scope process-lifetime cache for the client (no GameMode) path. Held via
+// TStrongObjectPtr so it roots URuntimeAbilityInfo; cleared on PIE end by
+// ClearProcessLifetimeCaches() so the editor's EndPlayMap stale-reference detector
+// doesn't flag it (and its referenced assets) as a leak across PIE sessions.
+static TStrongObjectPtr<URuntimeAbilityInfo> GClientAbilityInfoCache;
+
 URuntimeAbilityInfo* UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(const UObject* WorldContextObject)
 {
-	// Process-lifetime cache for pure clients (no GameMode)
-	static TStrongObjectPtr<URuntimeAbilityInfo> GClientAbilityInfoCache;
-
 	// Server: get from GameMode's cached instance
 	if (AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
 	{
@@ -454,6 +457,20 @@ namespace RoleConfigReloadPrivate
 	static double GLastSentinelCheckTime = 0.0;
 	static FDateTime GLastSentinelModTime; // Default-constructed (0 ticks) => any real mtime is "newer".
 	static constexpr double SentinelCheckIntervalSeconds = 0.5;
+}
+
+void UAuraAbilitySystemLibrary::ClearProcessLifetimeCaches()
+{
+	// Drop the process-lifetime TStrongObjectPtr caches so the transient UObjects they root
+	// (URoleInfo + its UAuraAbilityDefinition array and subobjects, URuntimeAbilityInfo) can be
+	// garbage-collected when the PIE world tears down. Without this the editor's EndPlayMap
+	// stale-reference detector reports them as leaks across PIE sessions. The weak definition
+	// registry is emptied too (it doesn't root objects, but clearing avoids dangling entries).
+	// Next access lazily rebuilds each cache from JSON. Intended to be called from EndPIE.
+	RoleConfigReloadPrivate::GClientRoleInfoCache.Reset();
+	GClientAbilityInfoCache.Reset();
+	AuraAbilityDefRegistryPrivate::GDefinitionRegistry.Empty();
+	UE_LOG(LogAura, Log, TEXT("[AbilitySystemLibrary] Cleared process-lifetime RoleInfo/AbilityInfo/Definition caches (PIE end)."));
 }
 
 URoleInfo* UAuraAbilitySystemLibrary::GetRoleInfo(const UObject* WorldContextObject)

@@ -100,13 +100,21 @@ EAuraAbilityActionStatus UElectrocuteBeamTask::OnStart(FAuraAbilityExecutionCont
     }
 
     FTimerDelegate TimerDel;
-    TimerDel.BindWeakLambda(OwnerAbility, [ThisObj = TStrongObjectPtr<UElectrocuteBeamTask>(this)]()
+    // Capture the task WEAKLY, not strongly: a TStrongObjectPtr here would root the task for the
+    // lifetime of the timer delegate. If the PIE world tears down while the beam is still
+    // channeling (OnExit never runs, so the timer is never cleared), that strong capture keeps
+    // the task — and its Outer chain up to the World — root-set, so the old PIE World can't be
+    // GC'd and the editor's EndPlayMap stale-reference ensure fires. BindWeakLambda already gates
+    // execution on OwnerAbility validity; the weak task capture handles the task-being-GC'd case
+    // without rooting it.
+    TimerDel.BindWeakLambda(OwnerAbility, [ThisObj = TWeakObjectPtr<UElectrocuteBeamTask>(this)]()
     {
-        if (!ThisObj->OwnerAbility)
+        UElectrocuteBeamTask* Task = ThisObj.Get();
+        if (!Task || !Task->OwnerAbility)
         {
             return;
         }
-        ThisObj->TickDamage();
+        Task->TickDamage();
     });
 
     World->GetTimerManager().SetTimer(TickTimerHandle, TimerDel, Node->TickInterval, true);

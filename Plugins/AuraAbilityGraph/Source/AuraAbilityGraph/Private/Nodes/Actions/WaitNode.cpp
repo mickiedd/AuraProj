@@ -46,17 +46,21 @@ EAuraAbilityActionStatus UWaitTask::OnStart(FAuraAbilityExecutionContext& Ctx)
     }
 
     FTimerDelegate TimerDel;
-    TimerDel.BindWeakLambda(OwnerAbility, [ThisObj = TStrongObjectPtr<UWaitTask>(this)]()
+    // Weak capture — see ElectrocuteBeamNode.cpp: a strong capture would root this task (and its
+    // Outer chain up to the World) via the timer delegate, leaking the PIE World on teardown
+    // while the wait is still pending. BindWeakLambda already gates on OwnerAbility.
+    TimerDel.BindWeakLambda(OwnerAbility, [ThisObj = TWeakObjectPtr<UWaitTask>(this)]()
     {
-        if (!ThisObj->OwnerAbility)
+        UWaitTask* Task = ThisObj.Get();
+        if (!Task || !Task->OwnerAbility)
         {
-            UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[Wait] Timer fired but OwnerAbility is null"));
+            UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[Wait] Timer fired but task/OwnerAbility is null"));
             return;
         }
 
-        ThisObj->PendingStatus = EAuraAbilityActionStatus::Success;
+        Task->PendingStatus = EAuraAbilityActionStatus::Success;
 
-        if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(ThisObj->OwnerAbility))
+        if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(Task->OwnerAbility))
         {
             DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Success);
         }

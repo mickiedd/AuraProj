@@ -140,19 +140,23 @@ EAuraAbilityActionStatus USpawnShardsTask::OnStart(FAuraAbilityExecutionContext&
     if (CurrentShardIndex < ShardLocations.Num())
     {
         FTimerDelegate TimerDel;
-        TimerDel.BindWeakLambda(OwnerAbility, [ThisObj = TStrongObjectPtr<USpawnShardsTask>(this)]()
+        // Weak capture — see ElectrocuteBeamNode.cpp: a strong capture would root this task (and
+        // its Outer chain up to the World) via the timer delegate, leaking the PIE World on
+        // mid-channel teardown. BindWeakLambda already gates on OwnerAbility.
+        TimerDel.BindWeakLambda(OwnerAbility, [ThisObj = TWeakObjectPtr<USpawnShardsTask>(this)]()
         {
-            if (!ThisObj->OwnerAbility)
+            USpawnShardsTask* Task = ThisObj.Get();
+            if (!Task || !Task->OwnerAbility)
             {
                 return;
             }
-            ThisObj->SpawnNextShard();
+            Task->SpawnNextShard();
 
-            if (ThisObj->CurrentShardIndex >= ThisObj->ShardLocations.Num())
+            if (Task->CurrentShardIndex >= Task->ShardLocations.Num())
             {
                 // All shards spawned — advance the graph
-                ThisObj->PendingStatus = EAuraAbilityActionStatus::Success;
-                if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(ThisObj->OwnerAbility))
+                Task->PendingStatus = EAuraAbilityActionStatus::Success;
+                if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(Task->OwnerAbility))
                 {
                     DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Success);
                 }

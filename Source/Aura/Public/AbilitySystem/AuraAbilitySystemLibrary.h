@@ -128,6 +128,15 @@ public:
 	static const class UAuraAbilityDefinition* FindAbilityDefinitionByTag(const FGameplayTag& AbilityTag);
 
 	/**
+	 * Drop the process-lifetime client caches (client RoleInfo, client RuntimeAbilityInfo, and
+	 * the weak definition registry) so the transient UObjects they root can be garbage-collected
+	 * when the PIE world tears down. Without this the editor's EndPlayMap stale-reference detector
+	 * reports those rooted objects as leaks across PIE sessions. Each cache lazily rebuilds from
+	 * JSON on next access. Intended to be called from an FEditorDelegates::EndPIE handler.
+	 */
+	static void ClearProcessLifetimeCaches();
+
+	/**
 	 * Drop both RoleInfo caches (AAuraGameModeBase::RoleInfo on the server, and the
 	 * process-lifetime client static cache) and re-read Content/Config/RoleConfig.json.
 	 * Subsequent logins/spawns use the new defaultRole and role assets. Does NOT touch
