@@ -4,6 +4,8 @@ setlocal enabledelayedexpansion
 REM Run Unreal Editor with AuraAbilityGraph smoke test launch parameter
 REM Usage: RunSmokeTest.bat
 REM This will launch the editor and automatically run the smoke test on startup
+REM The console will end after the smoke test is complete, and the log file will be saved to Saved\Logs\Aura.log
+REM Check the log file for results.
 
 echo ========================================
 echo Launching Unreal Editor with AuraAbilityGraph smoke test...
