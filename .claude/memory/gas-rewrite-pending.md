@@ -38,7 +38,6 @@ See `.claude/ability-logic-issues.md` for the full catalog (including fixed item
 | M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | Double AdvanceGraph call risk. |
 | M11 | WaitForTargetData no active-graph check | Medium | PendingStatus set unconditionally. |
 | L13 | Hardcoded Python path in launcher | Low | Fallback to PATH works; cosmetic. |
-| L14 | CooldownDuration doesn't scale from XML | Low | Ignores ScalableFloat curve. |
 | L15 | FDamageEffectParams::WorldContextObject never populated | Low | Declared, always nullptr, never read. |
 | L16 | ImportFactory CanReimport always false | Low | Must delete + re-import XML assets. |
 | L17 | MulticastGunFX no fallback for non-Aura characters | Low | FX silently dropped. |
@@ -65,6 +64,7 @@ These were listed as open in the original pending file but are now confirmed fix
 | C1 | WebView2 cache + launcher binaries in git | Cleaned in commits `2918713`/`144d96b`/`a47c56e` |
 | C2 | Path traversal in Python server | `_confine_to_content` + loopback bind |
 | C3 | SourceObject replication null on clients | Process-lifetime definition registry keyed by AbilityTag |
+| L14 | CooldownDuration doesn't scale from XML | `DataAbility.cpp:240` now calls `GetValueAtLevel()` |
 
 ---
 
