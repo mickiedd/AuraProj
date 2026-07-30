@@ -8,7 +8,14 @@
 
 bool UAuraGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	// Server performs the authoritative cost check; no client-side bypass.
+	// Skip the cost check on non-authoritative clients — attributes (e.g. Mana) may not
+	// have replicated yet, which would make predicted activation fail spuriously. The
+	// server always performs the authoritative cost check and applies the cost on
+	// activation, so a client that predicts past the check is still corrected server-side.
+	if (ActorInfo && !ActorInfo->IsNetAuthority())
+	{
+		return true;
+	}
 	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags);
 }
 

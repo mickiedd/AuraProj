@@ -392,7 +392,39 @@ UAuraAbilityDefinition* UAuraAbilitySystemLibrary::LoadAbilityDefinitionFromXMLF
 
 	UE_LOG(LogAura, Log, TEXT("[AbilityDefinition] Loaded ability definition from XML: %s (Tag=%s)"),
 		*ResolvedPath, *Definition->AbilityTag.ToString());
+
+	RegisterAbilityDefinition(Definition);
 	return Definition;
+}
+
+// Process-lifetime registry of ability definitions keyed by AbilityTag. TWeakObjectPtr so
+// a reloaded RoleConfig (new transient definition objects) doesn't keep the stale ones alive;
+// the map simply re-points the tag at the newest definition on the next load.
+namespace AuraAbilityDefRegistryPrivate
+{
+	TMap<FGameplayTag, TWeakObjectPtr<UAuraAbilityDefinition>> GDefinitionRegistry;
+}
+
+void UAuraAbilitySystemLibrary::RegisterAbilityDefinition(UAuraAbilityDefinition* Definition)
+{
+	if (!Definition || !Definition->AbilityTag.IsValid())
+	{
+		return;
+	}
+	AuraAbilityDefRegistryPrivate::GDefinitionRegistry.Add(Definition->AbilityTag, Definition);
+}
+
+const UAuraAbilityDefinition* UAuraAbilitySystemLibrary::FindAbilityDefinitionByTag(const FGameplayTag& AbilityTag)
+{
+	if (!AbilityTag.IsValid())
+	{
+		return nullptr;
+	}
+	if (const TWeakObjectPtr<UAuraAbilityDefinition>* Found = AuraAbilityDefRegistryPrivate::GDefinitionRegistry.Find(AbilityTag))
+	{
+		return Found->Get();
+	}
+	return nullptr;
 }
 
 UAbilityInfo* UAuraAbilitySystemLibrary::GetAbilityInfo(const UObject* WorldContextObject)

@@ -32,6 +32,18 @@ const UAuraAbilityDefinition* UAuraDataAbility::GetDefinition() const
             {
                 return Cast<UAuraAbilityDefinition>(Spec->SourceObject.Get());
             }
+            // FGameplayAbilitySpec::SourceObject is a TWeakObjectPtr that does NOT replicate.
+            // On non-authoritative clients the spec arrives with a null SourceObject, so the
+            // ability would otherwise abort in ActivateAbility. Fall back to the process-lifetime
+            // definition registry keyed by AbilityTag. The AbilityTag rides in the spec's
+            // DynamicAbilityTags (which DO replicate), so we can resolve the definition that way.
+            for (const FGameplayTag& Tag : Spec->DynamicAbilityTags)
+            {
+                if (const UAuraAbilityDefinition* Def = UAuraAbilitySystemLibrary::FindAbilityDefinitionByTag(Tag))
+                {
+                    return Def;
+                }
+            }
         }
     }
     return nullptr;

@@ -59,3 +59,10 @@ Desktop.ini
 /Plugins/BehaviorU/BehaviorULauncher/*.pdb
 /Plugins/BehaviorU/BehaviorULauncher/*WebView2Loader.dll
 /Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/WebView2UserData
+/Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/packages
+/Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/build
+/Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/.vs
+/Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/*.exe
+/Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/*.pdb
+/Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/*WebView2Loader.dll
+__pycache__/

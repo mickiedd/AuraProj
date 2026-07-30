@@ -50,6 +50,14 @@ EAuraAbilityActionStatus UPlayMontageTask::OnStart(FAuraAbilityExecutionContext&
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
         DataAbility->PendingMontageTask = Task;
+        // Wire the montage task's interruption delegates to the ability. Without these,
+        // an interrupted/blended-out montage would never signal the graph, leaving it
+        // hung in a Running state forever (EndAbility never fires). OnMontageInterrupted
+        // advances the graph with Failure, ending the ability as cancelled. The graph's
+        // bGraphActive guard makes late callbacks (after a normal event-driven completion)
+        // a safe no-op.
+        Task->OnInterrupted.AddDynamic(DataAbility, &UAuraDataAbility::OnMontageInterrupted);
+        Task->OnBlendOut.AddDynamic(DataAbility, &UAuraDataAbility::OnMontageInterrupted);
     }
 
     Task->ReadyForActivation();

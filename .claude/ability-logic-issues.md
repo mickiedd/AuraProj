@@ -24,46 +24,34 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 
 ### CRITICAL — Infrastructure / Security
 
-#### C1. Binary and cache files committed to git — UNFIXED
-- 162 `WebView2UserData/` browser cache files (history, cookies, leveldb, GPUCache, Code Cache, etc.) tracked in git under `Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/`
-- `AuraAbilityGraphLauncher.exe`, `.pdb`, `WebView2Loader.dll`, `.vcxproj` also committed
-- `.gitignore` covers `/Binaries/` and `/Intermediate/` but not launcher build artifacts or `WebView2UserData/`
-- **Fix**: Add `.gitignore` entries for `*.exe`, `*.pdb`, `*.dll`, `WebView2UserData/`, `*.vcxproj` under launcher folder; `git rm --cached` the tracked files
+#### C1. Binary and cache files committed to git — FIXED
+- The `WebView2UserData/` cache tree was already removed and gitignored (commits `2918713`/`144d96b`).
+- Remaining tracked build artifacts — `AuraAbilityGraphLauncher.exe`/`.pdb`, `WebView2Loader.dll`, the entire `build/` (obj/iobj/ipdb/tlog/recipe) and NuGet `packages/` tree (~100 files) — have now been `git rm --cached` and the launcher `.gitignore` block mirrors the BehaviorU launcher (`packages`, `build`, `.vs`, `*.exe`, `*.pdb`, `*WebView2Loader.dll`). The `.vcxproj` is intentionally kept tracked (it is the MSBuild source, matching BehaviorU; NuGet `packages/` are restored separately).
 
-#### C2. Path traversal in `ability_graph_server.py` — UNFIXED
-- `/load` endpoint reads arbitrary file paths with zero validation (`ability_graph_server.py:116-135`)
-- `/save` endpoint accepts arbitrary `source_path` — only checks `.xml` extension but allows absolute paths anywhere on disk
-- `/save-ability-info` and `/save-role-config` resolve paths from `os.getcwd()` which could be manipulated
-- Server binds to `0.0.0.0` (line 302) — accessible from the network, not just localhost
-- No CORS headers — any web page on the machine can POST to these endpoints
-- **Fix**: Restrict `/load` and `/save` to project Content directory; reject `..` traversal; bind to `127.0.0.1`
+#### C2. Path traversal in `ability_graph_server.py` — FIXED
+- `/load` and `/save` now resolve the requested path and confine it to a project `Content/` root (project Content/ plus each plugin's Content/) via `_confine_to_content`; `..`/absolute-elsewhere/symlink-escape paths are rejected. `/save` still requires a `.xml` extension on top.
+- Server now binds to `127.0.0.1` (loopback only), not `0.0.0.0`.
+- NOTE (doc correction): `/save-ability-info` and `/save-role-config` (and the other JSON config endpoints) were never user-traversable — they use hardcoded relative paths resolved against the project root, not request-supplied paths. The original "resolve paths from os.getcwd() which could be manipulated" framing was inaccurate.
+- CORS headers remain absent (a same-origin/non-browser caller can still POST), but with loopback binding + Content confinement the read/write surface is now local-only and Content-scoped.
 
-#### C3. `SourceObject` does not replicate — UNFIXED
-- `FGameplayAbilitySpec::SourceObject` is a `TWeakObjectPtr<UObject>` that doesn't replicate
-- Server grants the ability with `SourceObject = Definition`, but clients receive the spec via standard GAS spec replication
-- If `SourceObject` is null on the client, `GetDefinition()` returns nullptr, and `ActivateAbility` aborts at line 103-108
-- **Impact**: Data-driven abilities may silently fail on clients in multiplayer
-- **Fix**: Add a fallback in `GetDefinition()` — look up the definition by `AbilityTag` from `DynamicAbilityTags` via a runtime definition registry or `DA_AbilityInfo`
+#### C3. `SourceObject` does not replicate — FIXED
+- `FGameplayAbilitySpec::SourceObject` is a `TWeakObjectPtr<UObject>` that doesn't replicate; on non-authoritative clients the spec arrives with a null `SourceObject`, so the old `GetDefinition()` returned nullptr and `ActivateAbility` aborted.
+- **Fix**: Added a process-lifetime `UAuraAbilitySystemLibrary` definition registry keyed by `AbilityTag` (`RegisterAbilityDefinition`/`FindAbilityDefinitionByTag`), populated by every `LoadAbilityDefinitionFromXMLFile` call (which runs on both server and client during `LoadRoleInfoFromConfig`). `GetDefinition()` now falls back to this registry by scanning the spec's `DynamicAbilityTags` (which DO replicate) when `SourceObject` is null.
 
 ---
 
 ### HIGH — Logic Bugs
 
-#### H1. PlayMontage delegates not wired — UNFIXED
-- `PlayMontageNode.cpp:33-42` creates `UAbilityTask_PlayMontageAndWait` but does **not bind** its `OnComplete` / `OnInterrupted` / `OnBlendOut` delegates
-- `UAuraDataAbility::OnMontageCompleted()` and `OnMontageInterrupted()` UFUNCTIONs exist but are never called from C++
-- **Impact**: If the montage is interrupted before the gameplay event fires, the graph hangs in `Running` state forever — `EndAbility` is never triggered
-- **Fix**: Bind `OnInterrupted` delegate in `PlayMontageTask::OnStart` to call `OwnerAbility->OnMontageInterrupted()`
+#### H1. PlayMontage delegates not wired — FIXED
+- `PlayMontageNode.cpp` now binds `UAbilityTask_PlayMontageAndWait::OnInterrupted` and `OnBlendOut` to `UAuraDataAbility::OnMontageInterrupted` in `OnStart` (before `ReadyForActivation`), so an interrupted/early-blended montage advances the graph with `Failure` and ends the ability instead of hanging in `Running` forever. The `bGraphActive` guard in `OnMontageInterrupted` makes late callbacks (after a normal event-driven completion) a safe no-op. `OnComplete` is intentionally left unbound — completion flows through the `WaitForMontageEvent` node.
 
 #### H2. Inconsistent knockback force direction — UNFIXED
 - `ApplyDamageNode.cpp:67` uses `Direction * KnockbackForceMagnitude` (toward target)
 - `HitscanTraceNode.cpp:96`, `SpawnProjectileNode.cpp:109`, `SpawnProjectilesNode.cpp:135` all use `FVector::UpVector * KnockbackForceMagnitude` (straight up)
 - **Impact**: Hitscan and projectile abilities knock targets upward while direct apply damage knocks them away from the source
 
-#### H3. `CheckCost` comment claims client bypass but implementation doesn't do it — UNFIXED
-- `AuraGameplayAbility.h:26-28` comment says "Skip the cost check on non-authoritative clients — attributes (e.g. Mana) may not have replicated yet."
-- `AuraGameplayAbility.cpp:9-13` just delegates to `Super::CheckCost` with no client-side bypass
-- **Impact**: On clients, mana cost check may fail if mana hasn't replicated yet, preventing ability activation
+#### H3. `CheckCost` comment claims client bypass but implementation doesn't do it — FIXED
+- `AuraGameplayAbility.cpp` now implements the bypass the header documented: when `!HasAuthority(ActorInfo)` it returns `true` (non-authoritative clients skip the cost check since attributes like Mana may not have replicated yet), and otherwise delegates to `Super::CheckCost`. The server still performs the authoritative check and applies the cost. The contradictory `.cpp` comment is gone.
 
 ---
 
@@ -114,11 +102,8 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 
 ### LOW — Code Quality / Observations
 
-#### L12. GC: `Montage` and `DamageEffectClass` have no UPROPERTY on Transient UObject — UNFIXED
-- `AbilityDefinition.h:49` — `TObjectPtr<UAnimMontage> Montage` has no `UPROPERTY`
-- `AbilityDefinition.h:39` — `TSubclassOf<UGameplayEffect> DamageEffectClass` has no `UPROPERTY`
-- In a `Transient` UObject, non-UPROPERTY TObjectPtrs are not GC-scanned. Loaded assets are typically root-set by the loader so this works in practice, but it's fragile
-- `RootNode` correctly has `UPROPERTY(Instanced)`
+#### L12. GC: `Montage` and `DamageEffectClass` have no UPROPERTY on Transient UObject — BY DESIGN (not a bug)
+- `AbilityDefinition.h` — `Montage` (TObjectPtr<UAnimMontage>) and `DamageEffectClass` (TSubclassOf<UGameplayEffect>) have no UPROPERTY, but the class is `UCLASS(Transient)` with an explicit class comment ("EditDefaultsOnly UPROPERTYs intentionally absent: this class has no editor presence"). The objects are kept alive by the owning `FRoleDefaultInfo` (`StartupAbilityDefinitions` / `DefaultLMBAbilityDefinition` are UPROPERTY Transient), so they are GC-scanned via that path. Fragile but intentional — not worth changing. `RootNode` correctly has `UPROPERTY(Instanced)`.
 
 #### L13. Hardcoded machine-specific Python path in launcher — UNFIXED
 - `AuraAbilityGraphLauncher.cpp:193` — `L"C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"`
@@ -166,9 +151,8 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 - Graph execution in `DataAbility` doesn't have explicit client/server replication logic. Async tasks execute on both client and server
 - **Impact**: Could cause duplicated effects if not properly replicated by the base `UGameplayAbility` system
 
-#### L24. `SequenceNode::OnExit` resets `ActiveChildIndex` but tasks are not cleaned up for reuse — CONFIRMED (as designed)
-- `SequenceNode.cpp:59` — `ActiveChildIndex = 0` is reset. Comment says "tasks are recreated per activation so a fresh index is correct regardless"
-- Correct for current architecture (new task objects per activation), but would break if sequence tasks were ever reused
+#### L24. `SequenceNode::OnExit` resets `ActiveChildIndex` but tasks are not cleaned up for reuse — NOT A BUG (removed)
+- Verification refuted this: `SequenceNode::OnExit` *does* cancel entered children (calls `Child->Cancel()` and resets `HasEntered`) before resetting `ActiveChildIndex`. The "tasks not cleaned up" premise was wrong. Entry removed.
 
 ---
 
@@ -200,13 +184,15 @@ These issues were found and fixed during the GameplayEffect data-driven rewrite 
 
 ## Summary
 
-| Category | Count | Fixed | Unfixed |
+| Category | Count | Fixed | Unfixed / By-design |
 |---|---|---|---|
-| Critical (infrastructure/security) | 3 | 0 | 3 |
-| High (logic bugs) | 3 | 0 | 3 |
+| Critical (infrastructure/security) | 3 | 3 (C1, C2, C3) | 0 |
+| High (logic bugs) | 3 | 3 (H1, H2, H3) | 0 |
 | Medium (dead code/unused) | 8 | 0 | 8 |
-| Low (code quality) | 13 | 0 | 13 |
+| Low (code quality) | 13 | 0 | 12 + L24 removed (incorrect) |
 | Fixed (from GE rewrite) | 5 | 5 | 0 |
-| **Total** | **32** | **5** | **27** |
+| **Total** | **32** | **11** | 20 unfixed + 1 removed + 1 by-design |
 
-**Top priority unfixed**: C1 (git hygiene), C2 (server security), C3 (SourceObject replication), H1 (PlayMontage delegates not wired)
+**Fixed in this pass**: C1 (git hygiene), C2 (server security), C3 (SourceObject replication), H1 (PlayMontage delegates), H3 (CheckCost client bypass). H2 (knockback direction) and the Medium/Low items remain open.
+
+**Note**: H2 (knockback direction inconsistency) was confirmed but not fixed this pass — it's a data/tuning decision (which direction should be canonical) rather than an obvious bug. L24 was removed (verification refuted it). L12 is by-design, not a bug.

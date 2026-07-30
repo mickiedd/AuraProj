@@ -116,6 +116,18 @@ public:
 	static class UAuraAbilityDefinition* LoadAbilityDefinitionFromXMLFile(const FString& FilePath);
 
 	/**
+	 * Process-lifetime registry of ability definitions keyed by AbilityTag.
+	 * PopulateAtLoad: every LoadAbilityDefinitionFromXMLFile() call registers its result.
+	 * Used as a client-side fallback in UAuraDataAbility::GetDefinition() because
+	 * FGameplayAbilitySpec::SourceObject does NOT replicate — on non-authoritative clients
+	 * the spec arrives with a null SourceObject, so the ability resolves its definition by
+	 * the AbilityTag carried in DynamicAbilityTags (which does replicate) instead.
+	 * Safe to call on any thread context that already touches gameplay code (single-threaded).
+	 */
+	static void RegisterAbilityDefinition(class UAuraAbilityDefinition* Definition);
+	static const class UAuraAbilityDefinition* FindAbilityDefinitionByTag(const FGameplayTag& AbilityTag);
+
+	/**
 	 * Drop both RoleInfo caches (AAuraGameModeBase::RoleInfo on the server, and the
 	 * process-lifetime client static cache) and re-read Content/Config/RoleConfig.json.
 	 * Subsequent logins/spawns use the new defaultRole and role assets. Does NOT touch

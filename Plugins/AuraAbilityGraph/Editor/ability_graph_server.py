@@ -22,6 +22,50 @@ import sys, os, json, urllib.parse, re
 from datetime import datetime
 
 
+def _project_root():
+    # serve_dir is the Editor/ folder (we os.chdir to it in run()). The project root is
+    # three levels up: Editor/ -> AuraAbilityGraph -> Plugins -> <project root>.
+    return os.path.abspath(os.path.join(os.getcwd(), '..', '..', '..'))
+
+
+def _content_roots():
+    """Absolute paths to every Content/ directory the editor may legitimately touch:
+    the project Content/ plus each plugin's Content/ (direct or one level nested)."""
+    root = _project_root()
+    roots = [os.path.join(root, 'Content')]
+    plugins_dir = os.path.join(root, 'Plugins')
+    if os.path.isdir(plugins_dir):
+        for entry in os.listdir(plugins_dir):
+            plugin_path = os.path.join(plugins_dir, entry)
+            if not os.path.isdir(plugin_path):
+                continue
+            direct_content = os.path.join(plugin_path, 'Content')
+            if os.path.isdir(direct_content):
+                roots.append(direct_content)
+            for sub in os.listdir(plugin_path):
+                sub_content = os.path.join(plugin_path, sub, 'Content')
+                if os.path.isdir(sub_content):
+                    roots.append(sub_content)
+    return [os.path.abspath(r) for r in roots]
+
+
+def _confine_to_content(user_path):
+    """Resolve user_path (relative to the Editor/ cwd or absolute) and return its absolute
+    path only if it lives inside one of the project Content/ roots. Returns None if the path
+    escapes Content (absolute path elsewhere, '..' traversal, symlink escape, etc.).
+    os.path.abspath collapses '..' so the containment check is reliable."""
+    if not user_path:
+        return None
+    norm = os.path.normpath(user_path)
+    if not os.path.isabs(norm):
+        norm = os.path.normpath(os.path.join(os.getcwd(), norm))
+    norm = os.path.abspath(norm)
+    for root in _content_roots():
+        if norm == root or norm.startswith(root + os.sep):
+            return norm
+    return None
+
+
 class AuraAbilityGraphHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/list-xml':
@@ -85,15 +129,18 @@ class AuraAbilityGraphHandler(SimpleHTTPRequestHandler):
 
         save_path = ''
         if source_path:
-            norm_path = os.path.normpath(source_path)
-            if not os.path.isabs(norm_path):
-                norm_path = os.path.normpath(os.path.join(os.getcwd(), norm_path))
-            if not norm_path.lower().endswith('.xml'):
+            confined = _confine_to_content(source_path)
+            if not confined:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b'Invalid path; must be within a project Content directory')
+                return
+            if not confined.lower().endswith('.xml'):
                 self.send_response(400)
                 self.end_headers()
                 self.wfile.write(b'Invalid target extension; expected .xml')
                 return
-            save_path = norm_path
+            save_path = confined
             parent_dir = os.path.dirname(save_path)
             if parent_dir:
                 os.makedirs(parent_dir, exist_ok=True)
@@ -127,16 +174,17 @@ class AuraAbilityGraphHandler(SimpleHTTPRequestHandler):
         try:
             data = json.loads(raw.decode('utf-8'))
             file_path = data.get('path', '')
-            if not file_path or not os.path.isfile(file_path):
+            confined = _confine_to_content(file_path)
+            if not confined or not os.path.isfile(confined):
                 self.send_response(404)
                 self.end_headers()
                 return
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(confined, 'r', encoding='utf-8') as f:
                 content = f.read()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            resp = {'ok': True, 'path': os.path.abspath(file_path), 'content': content}
+            resp = {'ok': True, 'path': confined, 'content': content}
             self.wfile.write(json.dumps(resp).encode('utf-8'))
         except Exception:
             self.send_response(500)
@@ -307,7 +355,9 @@ class AuraAbilityGraphHandler(SimpleHTTPRequestHandler):
 
 def run(port, serve_dir):
     os.chdir(serve_dir)
-    server = HTTPServer(('0.0.0.0', port), AuraAbilityGraphHandler)
+    # Bind to loopback only — the editor is a local tool and the /load|/save endpoints
+    # read/write files inside the project, so they must not be reachable from the network.
+    server = HTTPServer(('127.0.0.1', port), AuraAbilityGraphHandler)
     print('AuraAbilityGraph editor server serving %s on port %d' % (serve_dir, port))
     try:
         server.serve_forever()
