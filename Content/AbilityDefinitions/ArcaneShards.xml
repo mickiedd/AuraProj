@@ -1,0 +1,27 @@
+<ability name="ArcaneShards" abilityTag="Abilities.Arcane.ArcaneShards" inputTag="InputTag.2" type="Abilities.Type.Offensive">
+  <cooldown tag="Cooldown.Arcane.ArcaneShards" duration="8"/>
+  <cost mana="20"/>
+  <damage type="Damage.Arcane" base="30" deathImpulseMagnitude="2000" knockbackForceMagnitude="500" knockbackChance="0.1" debuffChance="0.3" debuffDamage="3" debuffDuration="5" debuffFrequency="1"/>
+  <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_ArcaneShards.AM_Cast_ArcaneShards" eventTag="Event.Montage.ArcaneShards"/>
+  <graph>
+    <node class="Sequence" id="1">
+      <node class="WaitForTargetData" id="2"/>
+      <node class="FaceTarget" id="3">
+        <property name="bSetControllerRotation" value="true"/>
+        <property name="bSetActorRotation" value="true"/>
+        <property name="bYawOnly" value="false"/>
+      </node>
+      <node class="PlayMontage" id="4"/>
+      <node class="WaitForMontageEvent" id="5">
+        <property name="EventTag" value="Event.Montage.ArcaneShards"/>
+      </node>
+      <node class="SpawnShards" id="6">
+        <property name="PointCollectionClass" value="/Game/Blueprints/AbilitySystem/Aura/Abilities/Arcane/ArcaneShards/BP_PointCollection.BP_PointCollection_C"/>
+        <property name="MaxShards" value="11"/>
+        <property name="SpawnInterval" value="0.1"/>
+        <property name="RadialDamageRadius" value="300"/>
+        <property name="GameplayCueTag" value="GameplayCue.ArcaneShards"/>
+      </node>
+    </node>
+  </graph>
+</ability>

@@ -24,7 +24,11 @@
       },
       "startupAbilities": [],
       "startupPassiveAbilities": [],
-      "startupAbilityDefinitions": [],
+      "startupAbilityDefinitions": [
+        "/Game/AbilityDefinitions/FireBlast.xml",
+        "/Game/AbilityDefinitions/ArcaneShards.xml",
+        "/Game/AbilityDefinitions/Electrocute.xml"
+      ],
       "startupPassiveAbilityDefinitions": [],
       "lmbAbility": "",
       "lmbAbilityDefinition": "/Game/AbilityDefinitions/FireBolt.xml"

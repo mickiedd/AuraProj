@@ -1,0 +1,17 @@
+<ability name="FireBlast" abilityTag="Abilities.Fire.FireBlast" inputTag="InputTag.1" type="Abilities.Type.Offensive">
+  <cooldown tag="Cooldown.Fire.FireBlast" duration="10"/>
+  <cost mana="25"/>
+  <damage type="Damage.Fire" base="60" deathImpulseMagnitude="3000" knockbackForceMagnitude="1000" knockbackChance="0.2" debuffChance="0.5" debuffDamage="5" debuffDuration="5" debuffFrequency="1"/>
+  <graph>
+    <node class="Sequence" id="1">
+      <node class="SpawnProjectiles" id="2">
+        <property name="SocketTag" value="CombatSocket.Weapon"/>
+        <property name="ProjectileClass" value="/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBlast/BP_FireBall.BP_FireBall_C"/>
+        <property name="Count" value="12"/>
+        <property name="Spread" value="360"/>
+        <property name="bHoming" value="false"/>
+        <property name="bSetReturnToOwner" value="true"/>
+      </node>
+    </node>
+  </graph>
+</ability>

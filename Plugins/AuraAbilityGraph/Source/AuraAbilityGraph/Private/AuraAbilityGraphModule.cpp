@@ -17,6 +17,8 @@
 #include "Nodes/Actions/HitscanTraceNode.h"
 #include "Nodes/Actions/FaceTargetNode.h"
 #include "Nodes/Actions/WaitNode.h"
+#include "Nodes/Actions/SpawnShardsNode.h"
+#include "Nodes/Actions/ElectrocuteBeamNode.h"
 #include "Engine/World.h"
 #include "XmlFile.h"
 #include "HAL/IConsoleManager.h"
@@ -105,6 +107,10 @@ static bool SmokeTest_NodeRegistry()
 		TEXT("CauseDamage"),
 		TEXT("MulticastGunFX"),
 		TEXT("HitscanTrace"),
+		TEXT("FaceTarget"),
+		TEXT("Wait"),
+		TEXT("SpawnShards"),
+		TEXT("ElectrocuteBeam"),
 	};
 
 	for (const FString& ClassName : Expected)
@@ -651,6 +657,373 @@ static bool SmokeTest_FireBoltFileGraph()
 }
 
 // ===================================================================
+// Phase 3 smoke tests — load the real XML files from disk and validate
+// graph structure, node types, and properties for the newly ported
+// abilities: FireBlast, ArcaneShards, Electrocute.
+// ===================================================================
+
+static bool SmokeTest_FireBlastFileGraph()
+{
+	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("FireBlast.xml"));
+	FString XMLContent;
+	if (!FFileHelper::LoadFileToString(XMLContent, *FilePath))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: could not load %s"), *FilePath);
+		return false;
+	}
+
+	UAuraAbilityDefinition* Def = NewObject<UAuraAbilityDefinition>();
+	if (!Def->LoadFromXML(XMLContent))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: LoadFromXML failed"));
+		return false;
+	}
+
+	if (Def->AbilityName != TEXT("FireBlast"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: AbilityName mismatch: got '%s'"), *Def->AbilityName.ToString());
+		return false;
+	}
+
+	if (Def->AbilityTag.ToString() != TEXT("Abilities.Fire.FireBlast"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: AbilityTag mismatch: got '%s'"), *Def->AbilityTag.ToString());
+		return false;
+	}
+
+	if (Def->ManaCost != 25.f)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: ManaCost mismatch: expected 25, got %.1f"), Def->ManaCost);
+		return false;
+	}
+
+	if (Def->DamageType.ToString() != TEXT("Damage.Fire"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: DamageType mismatch: got '%s'"), *Def->DamageType.ToString());
+		return false;
+	}
+
+	if (!FMath::IsNearlyEqual(Def->Damage.Value, 60.f))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: Damage base mismatch: expected 60, got %.1f"), Def->Damage.Value);
+		return false;
+	}
+
+	if (!Def->RootNode || Def->RootNode->NodeClassName != TEXT("Sequence"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: root is not a Sequence"));
+		return false;
+	}
+
+	if (Def->RootNode->Children.Num() != 1)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: expected 1 child, got %d"), Def->RootNode->Children.Num());
+		return false;
+	}
+
+	if (Def->RootNode->Children[0]->NodeClassName != TEXT("SpawnProjectiles"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: child[0] is not SpawnProjectiles, got '%s'"), *Def->RootNode->Children[0]->NodeClassName);
+		return false;
+	}
+
+	if (USpawnProjectilesNode* SpawnNode = Cast<USpawnProjectilesNode>(Def->RootNode->Children[0]))
+	{
+		if (SpawnNode->Count != 12)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: Count mismatch: expected 12, got %d"), SpawnNode->Count);
+			return false;
+		}
+		if (!FMath::IsNearlyEqual(SpawnNode->Spread, 360.f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: Spread mismatch: expected 360, got %.1f"), SpawnNode->Spread);
+			return false;
+		}
+		if (!SpawnNode->bSetReturnToOwner)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: bSetReturnToOwner should be true"));
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: failed to cast child[0] to USpawnProjectilesNode"));
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] FireBlastFileGraph PASSED (SpawnProjectiles Count=12 Spread=360 bSetReturnToOwner=true)."));
+	return true;
+}
+
+static bool SmokeTest_ArcaneShardsFileGraph()
+{
+	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("ArcaneShards.xml"));
+	FString XMLContent;
+	if (!FFileHelper::LoadFileToString(XMLContent, *FilePath))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: could not load %s"), *FilePath);
+		return false;
+	}
+
+	UAuraAbilityDefinition* Def = NewObject<UAuraAbilityDefinition>();
+	if (!Def->LoadFromXML(XMLContent))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: LoadFromXML failed"));
+		return false;
+	}
+
+	if (Def->AbilityName != TEXT("ArcaneShards"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: AbilityName mismatch: got '%s'"), *Def->AbilityName.ToString());
+		return false;
+	}
+
+	if (Def->AbilityTag.ToString() != TEXT("Abilities.Arcane.ArcaneShards"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: AbilityTag mismatch: got '%s'"), *Def->AbilityTag.ToString());
+		return false;
+	}
+
+	if (Def->ManaCost != 20.f)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: ManaCost mismatch: expected 20, got %.1f"), Def->ManaCost);
+		return false;
+	}
+
+	if (Def->DamageType.ToString() != TEXT("Damage.Arcane"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: DamageType mismatch: got '%s'"), *Def->DamageType.ToString());
+		return false;
+	}
+
+	if (!Def->Montage)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: Montage was not loaded."));
+		return false;
+	}
+
+	if (Def->MontageEventTag.ToString() != TEXT("Event.Montage.ArcaneShards"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: MontageEventTag mismatch: got '%s'"), *Def->MontageEventTag.ToString());
+		return false;
+	}
+
+	if (!Def->RootNode || Def->RootNode->NodeClassName != TEXT("Sequence"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: root is not a Sequence"));
+		return false;
+	}
+
+	const auto& Children = Def->RootNode->Children;
+	auto ClassOf = [&](int32 Idx) -> FString { return Children.IsValidIndex(Idx) ? Children[Idx]->NodeClassName : FString(); };
+
+	if (Children.Num() != 5)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: expected 5 children, got %d"), Children.Num());
+		return false;
+	}
+
+	// WaitForTargetData -> FaceTarget -> PlayMontage -> WaitForMontageEvent -> SpawnShards
+	if (ClassOf(0) != TEXT("WaitForTargetData"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: child[0] is '%s', expected WaitForTargetData"), *ClassOf(0));
+		return false;
+	}
+	if (ClassOf(1) != TEXT("FaceTarget"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: child[1] is '%s', expected FaceTarget"), *ClassOf(1));
+		return false;
+	}
+	if (ClassOf(2) != TEXT("PlayMontage"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: child[2] is '%s', expected PlayMontage"), *ClassOf(2));
+		return false;
+	}
+	if (ClassOf(3) != TEXT("WaitForMontageEvent"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: child[3] is '%s', expected WaitForMontageEvent"), *ClassOf(3));
+		return false;
+	}
+	if (ClassOf(4) != TEXT("SpawnShards"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: child[4] is '%s', expected SpawnShards"), *ClassOf(4));
+		return false;
+	}
+
+	// Validate SpawnShards node properties
+	if (USpawnShardsNode* ShardsNode = Cast<USpawnShardsNode>(Children[4]))
+	{
+		if (ShardsNode->MaxShards != 11)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: MaxShards mismatch: expected 11, got %d"), ShardsNode->MaxShards);
+			return false;
+		}
+		if (!FMath::IsNearlyEqual(ShardsNode->SpawnInterval, 0.1f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: SpawnInterval mismatch: expected 0.1, got %.2f"), ShardsNode->SpawnInterval);
+			return false;
+		}
+		if (!FMath::IsNearlyEqual(ShardsNode->RadialDamageRadius, 300.f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: RadialDamageRadius mismatch: expected 300, got %.1f"), ShardsNode->RadialDamageRadius);
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: failed to cast child[4] to USpawnShardsNode"));
+		return false;
+	}
+
+	// Validate WaitForMontageEvent EventTag
+	if (UWaitForMontageEventNode* EventNode = Cast<UWaitForMontageEventNode>(Children[3]))
+	{
+		if (EventNode->EventTag.ToString() != TEXT("Event.Montage.ArcaneShards"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: EventTag mismatch: got '%s'"), *EventNode->EventTag.ToString());
+			return false;
+		}
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ArcaneShardsFileGraph PASSED (WaitForTargetData->FaceTarget->PlayMontage->WaitForMontageEvent->SpawnShards)."));
+	return true;
+}
+
+static bool SmokeTest_ElectrocuteFileGraph()
+{
+	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("Electrocute.xml"));
+	FString XMLContent;
+	if (!FFileHelper::LoadFileToString(XMLContent, *FilePath))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: could not load %s"), *FilePath);
+		return false;
+	}
+
+	UAuraAbilityDefinition* Def = NewObject<UAuraAbilityDefinition>();
+	if (!Def->LoadFromXML(XMLContent))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: LoadFromXML failed"));
+		return false;
+	}
+
+	if (Def->AbilityName != TEXT("Electrocute"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: AbilityName mismatch: got '%s'"), *Def->AbilityName.ToString());
+		return false;
+	}
+
+	if (Def->AbilityTag.ToString() != TEXT("Abilities.Lightning.Electrocute"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: AbilityTag mismatch: got '%s'"), *Def->AbilityTag.ToString());
+		return false;
+	}
+
+	if (Def->ManaCost != 5.f)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: ManaCost mismatch: expected 5, got %.1f"), Def->ManaCost);
+		return false;
+	}
+
+	if (Def->DamageType.ToString() != TEXT("Damage.Lightning"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: DamageType mismatch: got '%s'"), *Def->DamageType.ToString());
+		return false;
+	}
+
+	if (!Def->Montage)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: Montage was not loaded."));
+		return false;
+	}
+
+	if (Def->MontageEventTag.ToString() != TEXT("Event.Montage.Electrocute"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: MontageEventTag mismatch: got '%s'"), *Def->MontageEventTag.ToString());
+		return false;
+	}
+
+	if (!Def->RootNode || Def->RootNode->NodeClassName != TEXT("Sequence"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: root is not a Sequence"));
+		return false;
+	}
+
+	const auto& Children = Def->RootNode->Children;
+	auto ClassOf = [&](int32 Idx) -> FString { return Children.IsValidIndex(Idx) ? Children[Idx]->NodeClassName : FString(); };
+
+	if (Children.Num() != 5)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: expected 5 children, got %d"), Children.Num());
+		return false;
+	}
+
+	// WaitForTargetData -> FaceTarget -> PlayMontage -> WaitForMontageEvent -> ElectrocuteBeam
+	if (ClassOf(0) != TEXT("WaitForTargetData"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[0] is '%s', expected WaitForTargetData"), *ClassOf(0));
+		return false;
+	}
+	if (ClassOf(1) != TEXT("FaceTarget"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[1] is '%s', expected FaceTarget"), *ClassOf(1));
+		return false;
+	}
+	if (ClassOf(2) != TEXT("PlayMontage"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[2] is '%s', expected PlayMontage"), *ClassOf(2));
+		return false;
+	}
+	if (ClassOf(3) != TEXT("WaitForMontageEvent"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[3] is '%s', expected WaitForMontageEvent"), *ClassOf(3));
+		return false;
+	}
+	if (ClassOf(4) != TEXT("ElectrocuteBeam"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[4] is '%s', expected ElectrocuteBeam"), *ClassOf(4));
+		return false;
+	}
+
+	// Validate ElectrocuteBeam node properties
+	if (UElectrocuteBeamNode* BeamNode = Cast<UElectrocuteBeamNode>(Children[4]))
+	{
+		if (BeamNode->MaxChainTargets != 5)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: MaxChainTargets mismatch: expected 5, got %d"), BeamNode->MaxChainTargets);
+			return false;
+		}
+		if (!FMath::IsNearlyEqual(BeamNode->ChainRadius, 850.f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: ChainRadius mismatch: expected 850, got %.1f"), BeamNode->ChainRadius);
+			return false;
+		}
+		if (!FMath::IsNearlyEqual(BeamNode->TickInterval, 0.2f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: TickInterval mismatch: expected 0.2, got %.2f"), BeamNode->TickInterval);
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: failed to cast child[4] to UElectrocuteBeamNode"));
+		return false;
+	}
+
+	// Validate WaitForMontageEvent EventTag
+	if (UWaitForMontageEventNode* EventNode = Cast<UWaitForMontageEventNode>(Children[3]))
+	{
+		if (EventNode->EventTag.ToString() != TEXT("Event.Montage.Electrocute"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: EventTag mismatch: got '%s'"), *EventNode->EventTag.ToString());
+			return false;
+		}
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteFileGraph PASSED (WaitForTargetData->FaceTarget->PlayMontage->WaitForMontageEvent->ElectrocuteBeam)."));
+	return true;
+}
+
+// ===================================================================
 // Console command handler
 // ===================================================================
 
@@ -678,6 +1051,9 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("FireGunMigration"), SmokeTest_FireGunMigration);
 	Run(TEXT("RoleDefinitionLoading"), SmokeTest_RoleDefinitionLoading);
 	Run(TEXT("FireBoltFileGraph"), SmokeTest_FireBoltFileGraph);
+	Run(TEXT("FireBlastFileGraph"), SmokeTest_FireBlastFileGraph);
+	Run(TEXT("ArcaneShardsFileGraph"), SmokeTest_ArcaneShardsFileGraph);
+	Run(TEXT("ElectrocuteFileGraph"), SmokeTest_ElectrocuteFileGraph);
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("========================================"));
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Result: %d passed, %d failed."), Passed, Failed);
@@ -704,6 +1080,8 @@ void FAuraAbilityGraphModule::StartupModule()
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("HitscanTrace"), [](UObject* O) { return NewObject<UHitscanTraceNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("FaceTarget"), [](UObject* O) { return NewObject<UFaceTargetNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("Wait"), [](UObject* O) { return NewObject<UWaitNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("SpawnShards"), [](UObject* O) { return NewObject<USpawnShardsNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("ElectrocuteBeam"), [](UObject* O) { return NewObject<UElectrocuteBeamNode>(O); });
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("AuraAbilityGraph module started."));
 

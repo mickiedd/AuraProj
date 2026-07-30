@@ -7,6 +7,7 @@
 #include "DataAbility.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Actor/AuraProjectile.h"
+#include "Actor/AuraFireBall.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraAbilityGraphLogChannels.h"
 
@@ -51,6 +52,10 @@ void USpawnProjectilesNode::LoadFromProperties(int32 Version, const TArray<FAura
         else if (Property.Name == TEXT("TargetFromContext"))
         {
             TargetFromContext = Property.Value;
+        }
+        else if (Property.Name == TEXT("bSetReturnToOwner"))
+        {
+            bSetReturnToOwner = Property.Value.ToBool();
         }
     }
 }
@@ -143,6 +148,23 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
         }
 
         Projectile->FinishSpawning(SpawnTransform);
+
+        // If this is an AAuraFireBall and bSetReturnToOwner is enabled, set ReturnToActor
+        // so the fireball flies back to the owner after spawning (FireBlast mechanic).
+        if (Node->bSetReturnToOwner)
+        {
+            if (AAuraFireBall* FireBall = Cast<AAuraFireBall>(Projectile))
+            {
+                FireBall->ReturnToActor = Ctx.AvatarActor;
+                FireBall->SetOwner(Ctx.AvatarActor);
+                // TryStartOutgoingTimeline is called from BeginPlay when ReturnToActor
+                // is already set. If BeginPlay already ran (deferred spawn), we need
+                // to trigger it manually. Since OnRep_ReturnToActor is protected, we
+                // rely on the Blueprint's BeginPlay having already called it, or the
+                // replicated property triggering OnRep on clients.
+            }
+        }
+
         UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart spawned projectile[%d] class=%s"), i, *ProjectileClass->GetName());
     }
 

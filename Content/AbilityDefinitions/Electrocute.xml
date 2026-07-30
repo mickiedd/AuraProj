@@ -1,0 +1,27 @@
+<ability name="Electrocute" abilityTag="Abilities.Lightning.Electrocute" inputTag="InputTag.3" type="Abilities.Type.Offensive">
+  <cooldown tag="Cooldown.Lightning.Electrocute" duration="3"/>
+  <cost mana="5"/>
+  <damage type="Damage.Lightning" base="10" deathImpulseMagnitude="1000" knockbackForceMagnitude="500" knockbackChance="0.1" debuffChance="0.5" debuffDamage="2" debuffDuration="3" debuffFrequency="0.5"/>
+  <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_Electrocute.AM_Cast_Electrocute" eventTag="Event.Montage.Electrocute"/>
+  <graph>
+    <node class="Sequence" id="1">
+      <node class="WaitForTargetData" id="2"/>
+      <node class="FaceTarget" id="3">
+        <property name="bSetControllerRotation" value="true"/>
+        <property name="bSetActorRotation" value="true"/>
+        <property name="bYawOnly" value="false"/>
+      </node>
+      <node class="PlayMontage" id="4"/>
+      <node class="WaitForMontageEvent" id="5">
+        <property name="EventTag" value="Event.Montage.Electrocute"/>
+      </node>
+      <node class="ElectrocuteBeam" id="6">
+        <property name="SocketTag" value="CombatSocket.Weapon"/>
+        <property name="TraceRadius" value="10"/>
+        <property name="MaxChainTargets" value="5"/>
+        <property name="ChainRadius" value="850"/>
+        <property name="TickInterval" value="0.2"/>
+      </node>
+    </node>
+  </graph>
+</ability>
