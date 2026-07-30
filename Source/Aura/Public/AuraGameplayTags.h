@@ -126,5 +126,5 @@ public:
 	FGameplayTag GameplayCue_FireBlast;
 
 private:
-    static FAuraGameplayTags GameplayTags;
+    static AURA_API FAuraGameplayTags GameplayTags;
 };

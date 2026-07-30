@@ -203,7 +203,11 @@ void UAuraDataAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const 
     FGameplayEffectSpecHandle SpecHandle = ActorInfo->AbilitySystemComponent->MakeOutgoingSpec(SharedCostGE, GetAbilityLevel(), MakeEffectContext(Handle, ActorInfo));
     if (SpecHandle.IsValid())
     {
-        UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, FGameplayTag::RequestGameplayTag(FName("Abilities.Cost.Mana"), false), -GetDefinition()->ManaCost);
+        // UAuraManaCostGameplayEffect's modifier uses SetByCaller.DataName = "Abilities.Cost.Mana"
+        // (an FName, not an FGameplayTag), so it looks up the spec's SetByCallerNameMagnitudes map.
+        // Use the FName-based assign to match — the tag-based assign writes a different map and the
+        // magnitude would never bind (leaving the cost at 0, so mana was never consumed).
+        UAbilitySystemBlueprintLibrary::AssignSetByCallerMagnitude(SpecHandle, FName("Abilities.Cost.Mana"), -GetDefinition()->ManaCost);
         ActorInfo->AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
         UE_LOG(LogAuraAbilityGraph, Log, TEXT("[DataAbility] ApplyCost mana cost=%.1f applied via GE"), GetDefinition()->ManaCost);
     }

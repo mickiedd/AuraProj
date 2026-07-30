@@ -20,6 +20,7 @@
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "AuraDamageGameplayEffect.h"
 #include "AuraAttributeGameplayEffect.h"
+#include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
@@ -93,6 +94,24 @@ USpellMenuWidgetController* UAuraAbilitySystemLibrary::GetSpellMenuWidgetControl
 	return nullptr;
 }
 
+void UAuraAbilitySystemLibrary::TopOffVitalAttributes(UAbilitySystemComponent* ASC, const UObject* SourceAvatar)
+{
+	if (!ASC) return;
+	const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(ASC->GetAttributeSet(UAuraAttributeSet::StaticClass()));
+	if (!AuraAS) return;
+
+	// Apply a Vital.Health/Vital.Mana SetByCaller GE with the max values so current
+	// Health/Mana are initialized to max. PostGameplayEffectExecute clamps and the
+	// value-change delegates (OnHealthChanged/OnManaChanged) fire for the UI.
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	FGameplayEffectContextHandle Ctx = ASC->MakeEffectContext();
+	Ctx.AddSourceObject(SourceAvatar);
+	const FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(UAuraPickupGameplayEffect::StaticClass(), 1.f, Ctx);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tags.Attributes_Vital_Health, AuraAS->GetMaxHealth());
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tags.Attributes_Vital_Mana, AuraAS->GetMaxMana());
+	ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+}
+
 void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* WorldContextObject, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC)
 {
 	AActor* AvatarActor = ASC->GetAvatarActor();
@@ -148,6 +167,9 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
 			ASC->ApplyGameplayEffectSpecToSelf(*SecSpec.Data.Get());
 		}
 	}
+
+	// Initialize current Health/Mana to MaxHealth/MaxMana (MaxHealth/MaxMana set above).
+	TopOffVitalAttributes(ASC, AvatarActor);
 }
 
 void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ULoadScreenSaveGame* SaveGame)
@@ -201,6 +223,9 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UO
 			ASC->ApplyGameplayEffectSpecToSelf(*VitalSpec.Data.Get());
 		}
 	}
+
+	// Initialize current Health/Mana to MaxHealth/MaxMana (MaxHealth/MaxMana set above).
+	TopOffVitalAttributes(ASC, SourceAvatarActor);
 }
 
 void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ECharacterClass CharacterClass)

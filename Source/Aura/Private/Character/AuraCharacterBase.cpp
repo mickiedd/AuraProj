@@ -476,6 +476,11 @@ void AAuraCharacterBase::LoadAndApplySecondaryAttributes() const
 
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 	UE_LOG(LogAura, Log, TEXT("[Attributes] Secondary/vital/resistance applied from GameplayEffects.json."));
+
+	// Initialize current Health/Mana to MaxHealth/MaxMana (MaxHealth/MaxMana set above).
+	// The data-driven init no longer applies a separate DefaultVitalAttributes GE, so
+	// without this the current Health/Mana stay at 0 and mana-cost abilities abort at CheckCost.
+	UAuraAbilitySystemLibrary::TopOffVitalAttributes(GetAbilitySystemComponent(), this);
 }
 
 void AAuraCharacterBase::InitializeDefaultAttributes() const

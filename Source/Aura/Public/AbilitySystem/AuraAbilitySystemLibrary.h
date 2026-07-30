@@ -52,6 +52,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static void InitializeDefaultAttributesFromSaveData(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ULoadScreenSaveGame* SaveGame);
+
+	/**
+	 * Set current Health/Mana to MaxHealth/MaxMana. Call after the attribute init GEs
+	 * that set MaxHealth/MaxMana have been applied — the data-driven init no longer
+	 * applies a separate DefaultVitalAttributes GE, so without this the current
+	 * Health/Mana stay at 0 (the attribute default) and any mana-cost ability aborts
+	 * at CheckCost. Uses UAuraPickupGameplayEffect (Vital.Health/Vital.Mana SetByCaller)
+	 * so PostGameplayEffectExecute + value-change delegates fire normally.
+	 */
+	static void TopOffVitalAttributes(UAbilitySystemComponent* ASC, const UObject* SourceAvatar);
 	
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static void GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ECharacterClass CharacterClass);

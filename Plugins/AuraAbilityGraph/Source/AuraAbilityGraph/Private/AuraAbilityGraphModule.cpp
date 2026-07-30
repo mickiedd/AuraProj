@@ -22,6 +22,8 @@
 #include "HAL/IConsoleManager.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "Containers/Ticker.h"
 #include "HAL/PlatformMisc.h"
 
@@ -561,6 +563,93 @@ static bool SmokeTest_RoleDefinitionLoading()
 	return true;
 }
 
+// Loads the REAL Content/AbilityDefinitions/FireBolt.xml from disk (via the engine
+// parser) and asserts the graph invariant regressed by commit c6eff50 ("Add 1s
+// wait before montage event"): PlayMontage must be IMMEDIATELY followed by
+// WaitForMontageEvent, with no 'Wait' node anywhere between them. A Wait there
+// makes WaitForMontageEvent subscribe AFTER the Event.Montage.FireBolt anim
+// notify fired (UAbilityTask_WaitGameplayEvent only catches events after it
+// subscribes), hanging the ability forever — no projectile, never ends.
+static bool SmokeTest_FireBoltFileGraph()
+{
+	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("FireBolt.xml"));
+	FString XMLContent;
+	if (!FFileHelper::LoadFileToString(XMLContent, *FilePath))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: could not load %s"), *FilePath);
+		return false;
+	}
+
+	UAuraAbilityDefinition* Def = NewObject<UAuraAbilityDefinition>();
+	if (!Def->LoadFromXML(XMLContent))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: LoadFromXML failed"));
+		return false;
+	}
+
+	if (!Def->RootNode || Def->RootNode->NodeClassName != TEXT("Sequence"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: root is not a Sequence"));
+		return false;
+	}
+
+	const auto& Children = Def->RootNode->Children;
+	auto ClassOf = [&](int32 Idx) -> FString { return Children.IsValidIndex(Idx) ? Children[Idx]->NodeClassName : FString(); };
+
+	// No 'Wait' node anywhere in the FireBolt graph.
+	for (int32 i = 0; i < Children.Num(); ++i)
+	{
+		if (Children[i]->NodeClassName == TEXT("Wait"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: 'Wait' node at index %d must not be present (regression from c6eff50)"), i);
+			return false;
+		}
+	}
+
+	// PlayMontage must be immediately followed by WaitForMontageEvent.
+	int32 PlayMontageIdx = INDEX_NONE;
+	for (int32 i = 0; i < Children.Num(); ++i)
+	{
+		if (Children[i]->NodeClassName == TEXT("PlayMontage")) { PlayMontageIdx = i; break; }
+	}
+	if (PlayMontageIdx == INDEX_NONE)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: no PlayMontage node"));
+		return false;
+	}
+	const int32 WaitIdx = PlayMontageIdx + 1;
+	if (ClassOf(WaitIdx) != TEXT("WaitForMontageEvent"))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: node after PlayMontage (idx %d) is '%s', expected WaitForMontageEvent"), PlayMontageIdx, *ClassOf(WaitIdx));
+		return false;
+	}
+
+	// SpawnProjectiles must come after WaitForMontageEvent.
+	bool bFoundSpawn = false;
+	for (int32 i = WaitIdx + 1; i < Children.Num(); ++i)
+	{
+		if (Children[i]->NodeClassName == TEXT("SpawnProjectiles")) { bFoundSpawn = true; break; }
+	}
+	if (!bFoundSpawn)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: no SpawnProjectiles after WaitForMontageEvent"));
+		return false;
+	}
+
+	// WaitForMontageEvent must use Event.Montage.FireBolt.
+	if (const UWaitForMontageEventNode* EventNode = Cast<UWaitForMontageEventNode>(Children[WaitIdx]))
+	{
+		if (EventNode->EventTag.ToString() != TEXT("Event.Montage.FireBolt"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: WaitForMontageEvent EventTag='%s', expected Event.Montage.FireBolt"), *EventNode->EventTag.ToString());
+			return false;
+		}
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] FireBoltFileGraph PASSED (PlayMontage->WaitForMontageEvent->SpawnProjectiles, no Wait)."));
+	return true;
+}
+
 // ===================================================================
 // Console command handler
 // ===================================================================
@@ -588,6 +677,7 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("FireBoltMigration"), SmokeTest_FireBoltMigration);
 	Run(TEXT("FireGunMigration"), SmokeTest_FireGunMigration);
 	Run(TEXT("RoleDefinitionLoading"), SmokeTest_RoleDefinitionLoading);
+	Run(TEXT("FireBoltFileGraph"), SmokeTest_FireBoltFileGraph);
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("========================================"));
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Result: %d passed, %d failed."), Passed, Failed);

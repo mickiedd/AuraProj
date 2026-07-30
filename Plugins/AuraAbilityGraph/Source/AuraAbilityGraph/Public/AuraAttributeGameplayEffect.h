@@ -18,6 +18,14 @@
  * to 0, which is harmless (Additive 0 = no change).
  *
  * For the Infinite-duration variant, see UAuraAttributeGameplayEffect_Infinite.
+ *
+ * NOTE: The modifier DataTags are sourced from FAuraGameplayTags, whose members
+ * are only populated by FAuraGameplayTags::InitializeNativeGameplayTags() (called
+ * from UAuraAssetManager::StartInitialLoading). This class's CDO is constructed
+ * at module load, *before* that runs, so the constructor would bake DataTag=None
+ * and AssignTagSetByCallerMagnitude could never bind (attributes would stay 0).
+ * RebuildModifiers() is called from UAuraAssetManager after the tags are
+ * initialized to re-bake the modifiers with valid DataTags.
  */
 UCLASS()
 class AURAABILITYGRAPH_API UAuraAttributeGameplayEffect : public UGameplayEffect
@@ -28,6 +36,18 @@ public:
     UAuraAttributeGameplayEffect()
     {
         DurationPolicy = EGameplayEffectDurationType::Instant;
+        BuildModifiers();
+    }
+
+    /** Re-bake SetByCaller modifier DataTags from FAuraGameplayTags. Call once after
+     *  FAuraGameplayTags::InitializeNativeGameplayTags() so the DataTags are valid
+     *  (the CDO constructor runs at module load, before the tags are populated). */
+    void RebuildModifiers() { BuildModifiers(); }
+
+private:
+    void BuildModifiers()
+    {
+        Modifiers.Reset();
 
         const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
 
@@ -88,6 +108,9 @@ public:
  * Magnitude values come from GameplayEffects.json at runtime.
  * DurationPolicy is set to Instant by default; the spec can override duration
  * via SetDuration when a Duration or Infinite effect is needed.
+ *
+ * NOTE: Same CDO/DataTag timing caveat as UAuraAttributeGameplayEffect —
+ * RebuildModifiers() must be called after native tags are initialized.
  */
 UCLASS()
 class AURAABILITYGRAPH_API UAuraPickupGameplayEffect : public UGameplayEffect
@@ -97,6 +120,16 @@ public:
     UAuraPickupGameplayEffect()
     {
         DurationPolicy = EGameplayEffectDurationType::Instant;
+        BuildModifiers();
+    }
+
+    /** Re-bake SetByCaller modifier DataTags from FAuraGameplayTags. */
+    void RebuildModifiers() { BuildModifiers(); }
+
+private:
+    void BuildModifiers()
+    {
+        Modifiers.Reset();
 
         // Health and Mana are the most common pickup effects (potions, heals).
         // Add SetByCaller modifiers so the magnitude can be set per-application.
