@@ -50,14 +50,16 @@ EAuraAbilityActionStatus UPlayMontageTask::OnStart(FAuraAbilityExecutionContext&
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
         DataAbility->PendingMontageTask = Task;
-        // Wire the montage task's interruption delegates to the ability. Without these,
-        // an interrupted/blended-out montage would never signal the graph, leaving it
-        // hung in a Running state forever (EndAbility never fires). OnMontageInterrupted
-        // advances the graph with Failure, ending the ability as cancelled. The graph's
-        // bGraphActive guard makes late callbacks (after a normal event-driven completion)
-        // a safe no-op.
+        // Wire only the true-interruption delegate. OnInterrupted fires when the montage
+        // is bumped by another montage/ability — that's the case where the graph would
+        // otherwise hang in Running forever (no event will ever arrive), so we advance
+        // with Failure and AdvanceGraph ends the ability as cancelled. We deliberately
+        // do NOT bind OnBlendOut: a montage blends out on natural completion too, and for
+        // a channeled ability (e.g. Electrocute) the beam must keep channeling after the
+        // short cast montage ends. Binding OnBlendOut would cancel the ability the moment
+        // the cast animation finished, cutting the beam short. The graph's bGraphActive
+        // guard makes any late callback (after a normal event-driven completion) a no-op.
         Task->OnInterrupted.AddDynamic(DataAbility, &UAuraDataAbility::OnMontageInterrupted);
-        Task->OnBlendOut.AddDynamic(DataAbility, &UAuraDataAbility::OnMontageInterrupted);
     }
 
     Task->ReadyForActivation();

@@ -1,21 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ability name="FireBolt" abilityTag="Abilities.Fire.FireBolt" inputTag="InputTag.LMB" type="Abilities.Type.Offensive">
-  <cooldown tag="Cooldown.Fire.FireBolt" duration="5"/>
   <cost mana="10"/>
-  <damage type="Damage.Fire" base="50" deathImpulseMagnitude="5000" knockbackForceMagnitude="2000" knockbackChance="0.1"/>
+  <cooldown tag="Cooldown.Fire.FireBolt" duration="5"/>
+  <damage effectClass="" type="Damage.Fire" base="50" debuffChance="0" debuffDamage="0" debuffDuration="0" debuffFrequency="0" deathImpulseMagnitude="5000" knockbackForceMagnitude="2000" knockbackChance="0.1"/>
   <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBolt.AM_Cast_FireBolt" eventTag="Event.Montage.FireBolt"/>
   <graph>
-    <node class="Sequence" id="1">
-      <node class="WaitForTargetData" id="2"/>
-      <node class="FaceTarget" id="6">
-        <property name="bSetControllerRotation" value="true"/>
+    <node class="Sequence">
+      <node class="WaitForTargetData"/>
+      <node class="FaceTarget">
+        <property name="bSetControllerRotation" value="false"/>
         <property name="bSetActorRotation" value="true"/>
-        <property name="bYawOnly" value="false"/>
+        <property name="bYawOnly" value="true"/>
       </node>
-      <node class="PlayMontage" id="3"/>
-      <node class="WaitForMontageEvent" id="4">
+      <node class="PlayMontage"/>
+      <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.FireBolt"/>
+        <property name="Timeout" value="5"/>
       </node>
-      <node class="SpawnProjectiles" id="5">
+      <node class="SpawnProjectiles">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
         <property name="ProjectileClass" value="/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/BP_FireBolt.BP_FireBolt_C"/>
         <property name="Count" value="5"/>

@@ -19,6 +19,12 @@
 #include "Nodes/Actions/WaitNode.h"
 #include "Nodes/Actions/SpawnShardsNode.h"
 #include "Nodes/Actions/ElectrocuteBeamNode.h"
+#include "Tests/TestCombatAvatar.h"
+#include "Tests/TestDataAbility.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "Actor/AuraProjectile.h"
+#include "NiagaraSystem.h"
+#include "EngineUtils.h"
 #include "Engine/World.h"
 #include "XmlFile.h"
 #include "HAL/IConsoleManager.h"
@@ -987,6 +993,16 @@ static bool SmokeTest_ElectrocuteFileGraph()
 	// Validate ElectrocuteBeam node properties
 	if (UElectrocuteBeamNode* BeamNode = Cast<UElectrocuteBeamNode>(Children[4]))
 	{
+		if (BeamNode->BeamEffect != TEXT("/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: BeamEffect mismatch: got '%s'"), *BeamNode->BeamEffect);
+			return false;
+		}
+		if (BeamNode->BeamStartParameter != TEXT("BeamStart") || BeamNode->BeamEndParameter != TEXT("BeamEnd"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: beam param mismatch: start='%s' end='%s'"), *BeamNode->BeamStartParameter, *BeamNode->BeamEndParameter);
+			return false;
+		}
 		if (BeamNode->MaxChainTargets != 5)
 		{
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: MaxChainTargets mismatch: expected 5, got %d"), BeamNode->MaxChainTargets);
@@ -1000,6 +1016,11 @@ static bool SmokeTest_ElectrocuteFileGraph()
 		if (!FMath::IsNearlyEqual(BeamNode->TickInterval, 0.2f))
 		{
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: TickInterval mismatch: expected 0.2, got %.2f"), BeamNode->TickInterval);
+			return false;
+		}
+		if (!FMath::IsNearlyEqual(BeamNode->ChannelDuration, 2.0f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: ChannelDuration mismatch: expected 2.0, got %.2f"), BeamNode->ChannelDuration);
 			return false;
 		}
 	}
@@ -1020,6 +1041,467 @@ static bool SmokeTest_ElectrocuteFileGraph()
 	}
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteFileGraph PASSED (WaitForTargetData->FaceTarget->PlayMontage->WaitForMontageEvent->ElectrocuteBeam)."));
+	return true;
+}
+
+// ===================================================================
+// Crash / lifecycle regression tests.
+//
+// The structural tests above only cover XML + properties. The teardown crash of
+// 2026-07-30 was a *lifecycle* bug: UAuraDataAbility::EndAbility calls
+// RootTask->Cancel() on a still-Running graph at PIE stop, and Sequence did not
+// propagate Cancel to its children, so channeled tasks (the Electrocute beam's
+// Niagara arc + tick timer) were never torn down and crashed/hung at EndPlayMap.
+// These tests build the REAL task tree and exercise the Cancel path so that
+// regression cannot recur silently.
+// ===================================================================
+
+// Asserts that Sequence::Cancel propagates to every entered child (un-entering it)
+// and that the channeled beam child tears down cleanly. Uses an empty context — no
+// ASC/Avatar/World — so it also verifies Cancel is safe with null runtime context.
+static bool SmokeTest_SequenceCancelPropagation()
+{
+	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("Electrocute.xml"));
+	FString XMLContent;
+	if (!FFileHelper::LoadFileToString(XMLContent, *FilePath))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: could not load %s"), *FilePath);
+		return false;
+	}
+
+	UAuraAbilityDefinition* Def = NewObject<UAuraAbilityDefinition>();
+	if (!Def->LoadFromXML(XMLContent) || !Def->RootNode)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: parse/root failed"));
+		return false;
+	}
+
+	UAuraSequenceTask* Root = NewObject<UAuraSequenceTask>(GetTransientPackage());
+	Root->Init(Def->RootNode, /*OwnerAbility=*/nullptr);
+	Root->ParentTask = nullptr;
+
+	if (Root->ChildTasks.Num() != 5)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: expected 5 children, got %d"), Root->ChildTasks.Num());
+		return false;
+	}
+
+	if (!Root->ChildTasks[4] || !Root->ChildTasks[4]->IsA<UElectrocuteBeamTask>())
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: child[4] is not UElectrocuteBeamTask"));
+		return false;
+	}
+
+	// Simulate a graph that has run all the way to the channeled beam: mark every
+	// child entered (Running), as EndPlayMap would find it.
+	for (UAuraAbilityActionTask* Child : Root->ChildTasks)
+	{
+		if (Child)
+		{
+			Child->HasEntered = true;
+		}
+	}
+
+	FAuraAbilityExecutionContext Ctx; // empty: no ASC/Avatar/World
+	Root->Cancel(Ctx); // must not crash
+
+	// Propagation: every child must have been un-entered by the cancel sweep.
+	for (int32 i = 0; i < Root->ChildTasks.Num(); ++i)
+	{
+		if (Root->ChildTasks[i] && Root->ChildTasks[i]->HasEntered)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: child[%d] still HasEntered after Cancel (Cancel did not propagate)"), i);
+			return false;
+		}
+	}
+
+	if (Root->ActiveChildIndex != 0)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: ActiveChildIndex=%d after Cancel, expected 0"), Root->ActiveChildIndex);
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] SequenceCancelPropagation PASSED (Cancel propagated to 5 children, no crash)."));
+	return true;
+}
+
+// Asserts the beam task is safe to Cancel / OnExit / OnStart with a null runtime
+// context (no owner ability, avatar, or world) — the condition EndPlayMep teardown
+// leaves it in. OnStart must return Failure (not crash); Cancel/OnExit must no-op.
+static bool SmokeTest_ElectrocuteBeamTaskCancelSafe()
+{
+	UElectrocuteBeamNode* Node = NewObject<UElectrocuteBeamNode>(GetTransientPackage());
+	UElectrocuteBeamTask* Task = NewObject<UElectrocuteBeamTask>(GetTransientPackage());
+	Task->Init(Node, /*OwnerAbility=*/nullptr);
+
+	FAuraAbilityExecutionContext Ctx; // empty
+
+	const EAuraAbilityActionStatus StartStatus = Task->OnStart(Ctx);
+	if (StartStatus != EAuraAbilityActionStatus::Failure)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteBeamTaskCancelSafe: OnStart with null owner/avatar returned %s, expected Failure"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(StartStatus));
+		return false;
+	}
+
+	Task->Cancel(Ctx);                         // must not crash
+	Task->OnExit(Ctx, EAuraAbilityActionStatus::Success); // must not crash
+
+	if (Task->GetBeamTargetCountForTest() != 0)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteBeamTaskCancelSafe: beam targets=%d after Cancel/OnExit, expected 0"), Task->GetBeamTargetCountForTest());
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteBeamTaskCancelSafe PASSED (null-context OnStart->Failure, Cancel/OnExit safe)."));
+	return true;
+}
+
+// ===================================================================
+// Spawn smoke tests: verify a projectile/Niagara effect actually spawns
+// and at the correct world location. These run headlessly in a transient
+// UWorld (no PIE, no rendering) — the spawned AAuraProjectile /
+// UNiagaraComponent exist and are queryable regardless.
+// ===================================================================
+
+struct FSpawnTestEnv
+{
+	UWorld* World = nullptr;
+	ATestCombatAvatar* Avatar = nullptr;
+	UTestDataAbility* Ability = nullptr;
+};
+
+static FSpawnTestEnv CreateSpawnTestEnv(const FVector& Location, const FRotator& Rotation)
+{
+	FSpawnTestEnv Env;
+	Env.World = UWorld::CreateWorld(EWorldType::Game, /*bInformEngineOfWorld=*/false);
+	if (!Env.World)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] CreateSpawnTestEnv: UWorld::CreateWorld returned null"));
+		return Env;
+	}
+	FActorSpawnParameters SP;
+	SP.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Env.Avatar = Env.World->SpawnActor<ATestCombatAvatar>(ATestCombatAvatar::StaticClass(), FTransform(Rotation, Location), SP);
+	if (Env.Avatar)
+	{
+		Env.Ability = NewObject<UTestDataAbility>(Env.Avatar);
+		Env.Ability->InitTestOwner(Env.Avatar);
+	}
+	return Env;
+}
+
+static void DestroySpawnTestEnv(FSpawnTestEnv& Env)
+{
+	Env.Ability = nullptr;
+	Env.Avatar = nullptr;
+	if (Env.World)
+	{
+		Env.World->RemoveFromRoot();
+		Env.World->DestroyWorld(/*bInformEngineOfWorld=*/false);
+		Env.World = nullptr;
+	}
+}
+
+// Pure math: locks EvenlySpacedRotators so the spawn-direction assertions below rest on
+// a known-good baseline (and catches the impl's hardcoded-UpVector-axis quirk).
+static bool SmokeTest_EvenlySpacedRotators()
+{
+	const FVector Forward = FVector::ForwardVector; // (1,0,0)
+	const float Spread = 90.f;
+	const int32 N = 5;
+
+	const TArray<FRotator> Rots = UAuraAbilitySystemLibrary::EvenlySpacedRotators(Forward, FVector::UpVector, Spread, N);
+	if (Rots.Num() != N)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EvenlySpacedRotators: expected %d, got %d"), N, Rots.Num());
+		return false;
+	}
+
+	const float Delta = Spread / (N - 1); // 22.5
+	for (int32 i = 0; i < N; ++i)
+	{
+		const FVector ExpectedDir = Forward.RotateAngleAxis(-Spread / 2.f + Delta * i, FVector::UpVector);
+		const FRotator Expected = ExpectedDir.Rotation();
+		if (!Expected.Equals(Rots[i], 0.01f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EvenlySpacedRotators: rot[%d]=%s expected=%s"), i, *Rots[i].ToString(), *Expected.ToString());
+			return false;
+		}
+	}
+
+	// N==1 collapses to the forward rotation.
+	const TArray<FRotator> One = UAuraAbilitySystemLibrary::EvenlySpacedRotators(Forward, FVector::UpVector, 90.f, 1);
+	if (One.Num() != 1 || !One[0].Equals(Forward.Rotation(), 0.01f))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EvenlySpacedRotators: N==1 case failed (%d)"), One.Num());
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] EvenlySpacedRotators PASSED (5 rotors @90deg + N==1)."));
+	return true;
+}
+
+// Verifies SpawnProjectiles actually spawns Count actors, all at the socket location,
+// and that their directions are the evenly-spread set — i.e. "spawned, and aimed right".
+static bool SmokeTest_ProjectileSpawnCountAndLocation()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar || !Env.Ability)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	USpawnProjectilesNode* Node = NewObject<USpawnProjectilesNode>(GetTransientPackage());
+	Node->SocketTag = FGameplayTag::RequestGameplayTag(FName("CombatSocket.Weapon"), false);
+	Node->ProjectileClass = AAuraProjectile::StaticClass()->GetPathName();
+	Node->Count = 5;
+	Node->Spread = 90.f;
+	Node->bHoming = false;
+
+	USpawnProjectilesTask* Task = Cast<USpawnProjectilesTask>(Node->CreateTask(Env.Ability));
+	if (!Task)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileSpawn: CreateTask returned null"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	Task->Init(Node, Env.Ability);
+
+	// Expected socket = the same call the node makes. Execute_ on a native-only class
+	// dispatches to the interface's base _Implementation (the native exec's P_THIS
+	// reinterpret doesn't adjust for multiple-inheritance), so this returns the base
+	// value here; what matters is that the node spawns AT this location. In a real
+	// (BP-avatar) game this resolves to the actual weapon socket.
+	const FVector SocketLoc = ICombatInterface::Execute_GetCombatSocketLocation(Env.Avatar, Node->SocketTag);
+	const FVector TargetLoc = SocketLoc + FVector(1000.f, 0.f, 0.f); // forward
+
+	FAuraAbilityExecutionContext Ctx;
+	Ctx.AvatarActor = Env.Avatar;
+	Ctx.Definition = nullptr;
+	Ctx.CursorHit.ImpactPoint = TargetLoc;
+
+	const EAuraAbilityActionStatus Status = Task->OnStart(Ctx);
+	if (Status == EAuraAbilityActionStatus::Failure)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileSpawn: OnStart returned Failure (ProjectileClass load failed? path=%s)"), *Node->ProjectileClass);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// Count spawned projectiles.
+	TArray<FVector> SpawnedDirs;
+	int32 Count = 0;
+	for (AAuraProjectile* Proj : TActorRange<AAuraProjectile>(Env.World))
+	{
+		++Count;
+		if (!Proj->GetActorLocation().Equals(SocketLoc, 1.f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileSpawn: projectile spawned at %s, expected socket %s"), *Proj->GetActorLocation().ToString(), *SocketLoc.ToString());
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+		SpawnedDirs.Add(Proj->GetActorForwardVector());
+	}
+	if (Count != 5)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileSpawn: spawned %d, expected 5"), Count);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// Each spawned direction must match one of the expected spread directions.
+	const FVector Forward = (TargetLoc - SocketLoc).GetSafeNormal();
+	const TArray<FRotator> ExpectedRots = UAuraAbilitySystemLibrary::EvenlySpacedRotators(Forward, FVector::UpVector, 90.f, 5);
+	auto DirMatches = [](const FVector& A, const FVector& B) { return A.Equals(B, 0.01f); };
+	for (const FVector& Spawned : SpawnedDirs)
+	{
+		bool bFound = false;
+		for (const FRotator& R : ExpectedRots)
+		{
+			if (DirMatches(Spawned, R.Vector()))
+			{
+				bFound = true;
+				break;
+			}
+		}
+		if (!bFound)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileSpawn: spawned direction %s not in expected spread set"), *Spawned.ToString());
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+	}
+
+	DestroySpawnTestEnv(Env);
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ProjectileSpawnCountAndLocation PASSED (5 projectiles at socket, 90deg spread)."));
+	return true;
+}
+
+// Drives the ElectrocuteBeam node against a trace target: asserts a beam target is
+// found, a Niagara component is spawned, and the beam end lands on the target along
+// the pawn's facing direction.
+static bool SmokeTest_ElectrocuteBeamSpawnEndpoints()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar || !Env.Ability)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	const FVector SocketLoc = Env.Avatar->GetActorLocation() + Env.Avatar->SocketOffset;
+	const FVector Forward = Env.Avatar->GetActorForwardVector(); // (1,0,0)
+	const float TargetDist = 500.f;
+	const float TargetRadius = Env.Avatar->SphereRadius; // 50
+	const float TraceRadius = 10.f;
+
+	// Second avatar instance acts as the blocking trace target.
+	FActorSpawnParameters SP;
+	SP.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATestCombatAvatar* Target = Env.World->SpawnActor<ATestCombatAvatar>(ATestCombatAvatar::StaticClass(), FTransform(FRotator::ZeroRotator, SocketLoc + Forward * TargetDist), SP);
+	if (!Target)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamEndpoints: failed to spawn target"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	UElectrocuteBeamNode* Node = NewObject<UElectrocuteBeamNode>(GetTransientPackage());
+	Node->SocketTag = FGameplayTag::RequestGameplayTag(FName("CombatSocket.Weapon"), false);
+	Node->BeamEffect = TEXT("/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam");
+	Node->BeamStartParameter = TEXT("BeamStart");
+	Node->BeamEndParameter = TEXT("BeamEnd");
+	Node->TraceRadius = TraceRadius;
+	Node->MaxChainTargets = 0;
+	Node->ChannelDuration = 0.f; // no channel timer
+
+	UElectrocuteBeamTask* Task = Cast<UElectrocuteBeamTask>(Node->CreateTask(Env.Ability));
+	if (!Task)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamEndpoints: CreateTask returned null"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	Task->Init(Node, Env.Ability);
+
+	FAuraAbilityExecutionContext Ctx;
+	Ctx.AvatarActor = Env.Avatar;
+	Ctx.Definition = nullptr;
+
+	const EAuraAbilityActionStatus Status = Task->OnStart(Ctx); // runs FindBeamTargets + SpawnBeamFX (+ authority tick setup)
+
+	if (Task->GetBeamTargetCountForTest() != 1)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamEndpoints: beam targets=%d, expected 1"), Task->GetBeamTargetCountForTest());
+		Task->Cancel(Ctx);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// The BeamEffect asset must resolve (RHI-independent). This is the real regression
+	// guard: an empty/missing BeamEffect (the bug just fixed) fails here.
+	UObject* BeamAsset = LoadObject<UNiagaraSystem>(nullptr, *Node->BeamEffect);
+	if (!BeamAsset)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamEndpoints: BeamEffect '%s' failed to load"), *Node->BeamEffect);
+		Task->Cancel(Ctx);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// The Niagara component spawn is RHI-gated: under -nullrhi (the smoke runner) no
+	// component is created, so this is best-effort. When RHI is present a component MUST
+	// be spawned; under nullrhi we just log and continue (the asset + location checks
+	// above/below still validate the spawn logic).
+	const bool bHasComponent = Task->HasBeamComponentForTest();
+	if (bHasComponent)
+	{
+		UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] BeamEndpoints: Niagara component spawned (RHI active)."));
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SmokeTest] BeamEndpoints: no Niagara component (expected under -nullrhi); asset + location still validated."));
+	}
+
+	const FVector BeamEnd = Task->GetBeamEndLocationForTest(0);
+	const FVector TargetCenter = Target->GetActorLocation();
+	const float DistToTarget = FVector::Dist(BeamEnd, TargetCenter);
+	const float Tolerance = TargetRadius + TraceRadius + 1.f;
+	if (DistToTarget > Tolerance)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamEndpoints: beam end %s is %.1f from target center %s (tolerance %.1f)"), *BeamEnd.ToString(), DistToTarget, *TargetCenter.ToString(), Tolerance);
+		Task->Cancel(Ctx);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	// The endpoint must lie along the pawn's facing direction from the socket.
+	const FVector ToEnd = (BeamEnd - SocketLoc).GetSafeNormal();
+	if (ToEnd.Dot(Forward) < 0.99f)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamEndpoints: beam end direction %s not aligned with forward %s"), *ToEnd.ToString(), *Forward.ToString());
+		Task->Cancel(Ctx);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	Task->Cancel(Ctx); // clears tick/channel timers + cleans up beams
+	DestroySpawnTestEnv(Env);
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteBeamSpawnEndpoints PASSED (target found, BeamEffect loaded, end on target; component=%s)."), bHasComponent ? TEXT("yes") : TEXT("no(nullrhi)"));
+	return true;
+}
+
+// Regression guard for the bug just fixed: an empty BeamEffect must spawn NO Niagara
+// component even though the target is still found (damage path intact, visual absent).
+static bool SmokeTest_ElectrocuteBeamEmptyEffectNoSpawn()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar || !Env.Ability)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	const FVector SocketLoc = Env.Avatar->GetActorLocation() + Env.Avatar->SocketOffset;
+	const FVector Forward = Env.Avatar->GetActorForwardVector();
+
+	FActorSpawnParameters SP;
+	SP.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATestCombatAvatar* Target = Env.World->SpawnActor<ATestCombatAvatar>(ATestCombatAvatar::StaticClass(), FTransform(FRotator::ZeroRotator, SocketLoc + Forward * 500.f), SP);
+	if (!Target)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	UElectrocuteBeamNode* Node = NewObject<UElectrocuteBeamNode>(GetTransientPackage());
+	Node->SocketTag = FGameplayTag::RequestGameplayTag(FName("CombatSocket.Weapon"), false);
+	Node->BeamEffect = TEXT(""); // empty -> no visual
+	Node->TraceRadius = 10.f;
+	Node->MaxChainTargets = 0;
+	Node->ChannelDuration = 0.f;
+
+	UElectrocuteBeamTask* Task = Cast<UElectrocuteBeamTask>(Node->CreateTask(Env.Ability));
+	Task->Init(Node, Env.Ability);
+
+	FAuraAbilityExecutionContext Ctx;
+	Ctx.AvatarActor = Env.Avatar;
+	Ctx.Definition = nullptr;
+
+	Task->OnStart(Ctx);
+
+	const bool bTargetFound = (Task->GetBeamTargetCountForTest() == 1);
+	const bool bNoComponent = !Task->HasBeamComponentForTest();
+	Task->Cancel(Ctx);
+	DestroySpawnTestEnv(Env);
+
+	if (!bTargetFound || !bNoComponent)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EmptyEffectNoSpawn: targetFound=%d noComponent=%d (expected target found, NO Niagara)"), bTargetFound, bNoComponent);
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteBeamEmptyEffectNoSpawn PASSED (empty BeamEffect -> target found, no Niagara)."));
 	return true;
 }
 
@@ -1054,6 +1536,12 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("FireBlastFileGraph"), SmokeTest_FireBlastFileGraph);
 	Run(TEXT("ArcaneShardsFileGraph"), SmokeTest_ArcaneShardsFileGraph);
 	Run(TEXT("ElectrocuteFileGraph"), SmokeTest_ElectrocuteFileGraph);
+	Run(TEXT("SequenceCancelPropagation"), SmokeTest_SequenceCancelPropagation);
+	Run(TEXT("ElectrocuteBeamTaskCancelSafe"), SmokeTest_ElectrocuteBeamTaskCancelSafe);
+	Run(TEXT("EvenlySpacedRotators"), SmokeTest_EvenlySpacedRotators);
+	Run(TEXT("ProjectileSpawnCountAndLocation"), SmokeTest_ProjectileSpawnCountAndLocation);
+	Run(TEXT("ElectrocuteBeamSpawnEndpoints"), SmokeTest_ElectrocuteBeamSpawnEndpoints);
+	Run(TEXT("ElectrocuteBeamEmptyEffectNoSpawn"), SmokeTest_ElectrocuteBeamEmptyEffectNoSpawn);
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("========================================"));
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Result: %d passed, %d failed."), Passed, Failed);

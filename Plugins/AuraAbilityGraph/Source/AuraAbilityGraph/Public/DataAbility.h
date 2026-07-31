@@ -60,8 +60,16 @@ public:
     void OnMontageInterrupted();
 
 protected:
+    // UPROPERTY: keeps the per-activation task tree rooted on the (instanced) ability
+    // so it can't be GC'd mid-channel, and is released cleanly when EndAbility nulls it.
+    UPROPERTY()
     UAuraAbilityActionTask* RootTask = nullptr;
     bool bGraphActive = false;
+
+    // Re-entrancy guard: ending a Pending montage/event task can fire OnInterrupted
+    // synchronously, which would re-enter EndAbility via AdvanceGraph(Failure). The
+    // guard makes the recursive call a no-op.
+    bool bIsEndingAbility = false;
 
     void BuildAndExecuteGraph(FAuraAbilityExecutionContext& Ctx);
 

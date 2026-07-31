@@ -20,6 +20,25 @@ UAuraDataAbility::UAuraDataAbility()
 {
     SharedCostGE = UAuraManaCostGameplayEffect::StaticClass();
     SharedCooldownGE = UAuraCooldownGameplayEffect::StaticClass();
+
+    // The ability stores per-activation graph state on itself (RootTask, bGraphActive,
+    // PersistentCtx, Pending*Task). With the default NonInstanced policy ActivateAbility
+    // runs on the CDO (Default__UAuraDataAbility) — a single object shared by EVERY
+    // DataAbility spec (FireBolt, ArcaneShards, Electrocute, ...). Overlapping or
+    // back-to-back activations overwrite each other's RootTask/bGraphActive, which:
+    //   - orphans a still-Running graph (its RootTask pointer is clobbered), so the
+    //     ability never ends ("stuck Running" — e.g. ArcaneShards waiting on a montage
+    //     event that never fires while a later cast repoints RootTask);
+    //   - leaks the orphaned tasks (Outer == CDO, process-lifetime, never GC'd) — the
+    //     PIE leak the weak-capture work was chasing;
+    //   - makes PIE teardown cancel a stale/wrong RootTask whose World-owned resources
+    //     (beam tick timer, Niagara arc) belong to a torn-down PIE world → the
+    //     EXCEPTION_ACCESS_VIOLATION reading 0xFFFFFFFFFFFFFFFF in AuraAbilityGraph at
+    //     editor shutdown.
+    // InstancedPerActor gives each ability spec (per owner ASC) its own instance, so the
+    // graph state is isolated per ability+actor and the instance (and its tasks) is
+    // destroyed with the actor — no sharing, no leak, no stale-RootTask teardown crash.
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
 const UAuraAbilityDefinition* UAuraDataAbility::GetDefinition() const
@@ -137,12 +156,38 @@ void UAuraDataAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
     UE_LOG(LogAuraAbilityGraph, Log, TEXT("[DataAbility] EndAbility START handle=%s bWasCancelled=%s"), *Handle.ToString(), bWasCancelled ? TEXT("true") : TEXT("false"));
+
+    // Re-entrancy guard: ending a Pending montage/event task below can fire
+    // OnInterrupted/OnMontageInterrupted synchronously, which re-enters EndAbility via
+    // AdvanceGraph(Failure). The recursive call must do nothing — the ability is
+    // already being torn down.
+    if (bIsEndingAbility)
+    {
+        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] EndAbility re-entrant call ignored"));
+        return;
+    }
+    bIsEndingAbility = true;
+
+    // Mark the graph inactive BEFORE tearing it down so any callback that fires
+    // synchronously during cleanup (OnMontageInterrupted, OnTargetDataReady, a tick
+    // timer firing into AdvanceGraph) is a no-op instead of re-advancing/cancelling a
+    // half-destroyed graph.
+    bGraphActive = false;
+
+    if (!ActorInfo || !ActorInfo->AbilitySystemComponent.IsValid())
+    {
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[DataAbility] EndAbility: stale ActorInfo, skipping graph cleanup"));
+        bIsEndingAbility = false;
+        Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+        return;
+    }
+
     FAuraAbilityExecutionContext Ctx;
     Ctx.ASC = ActorInfo->AbilitySystemComponent.Get();
     Ctx.AvatarActor = ActorInfo->AvatarActor.Get();
     Ctx.SpecHandle = Handle;
 
-    if (RootTask)
+    if (IsValid(RootTask))
     {
         UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] EndAbility cancelling RootTask"));
         FAuraAbilityExecutionContext CancelCtx;
@@ -173,10 +218,10 @@ void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const
         PendingMontageEventTask.Reset();
     }
 
-    bGraphActive = false;
     PersistentCtx.TargetDataHandle.Clear();
     PersistentCtx.CursorHit = FHitResult();
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] EndAbility END"));
+    bIsEndingAbility = false;
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -264,6 +309,19 @@ void UAuraDataAbility::AdvanceGraph(EAuraAbilityActionStatus ChildStatus)
     PersistentCtx.ASC = CurrentActorInfo->AbilitySystemComponent.Get();
     PersistentCtx.AvatarActor = CurrentActorInfo->AvatarActor.Get();
     PersistentCtx.SpecHandle = CurrentSpecHandle;
+
+    // A forced Failure (e.g. the cast montage was interrupted) means the graph cannot
+    // continue — end the ability as cancelled. Re-executing the RootTask here would
+    // just re-run the currently-Running child (which has no PendingStatus yet) and
+    // return Running again, swallowing the cancel signal and leaving the ability hung
+    // forever — which is exactly the "second press does nothing" symptom. End now.
+    if (ChildStatus == EAuraAbilityActionStatus::Failure)
+    {
+        UE_LOG(LogAuraAbilityGraph, Log, TEXT("[DataAbility] AdvanceGraph forced Failure, ending ability as cancelled"));
+        const FGameplayAbilityActivationInfo& ActivationInfo = GetCurrentActivationInfo();
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, ActivationInfo, true, true);
+        return;
+    }
 
     if (RootTask)
     {

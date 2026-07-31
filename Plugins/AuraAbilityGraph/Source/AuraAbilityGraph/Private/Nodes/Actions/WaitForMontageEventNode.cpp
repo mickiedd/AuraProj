@@ -8,6 +8,8 @@
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AuraAbilityGraphLogChannels.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 UAuraAbilityActionTask* UWaitForMontageEventNode::CreateTask(UObject* Outer) const
 {
@@ -22,6 +24,10 @@ void UWaitForMontageEventNode::LoadFromProperties(int32 Version, const TArray<FA
         if (Property.Name == TEXT("EventTag"))
         {
             EventTag = FGameplayTag::RequestGameplayTag(FName(*Property.Value), false);
+        }
+        else if (Property.Name == TEXT("Timeout"))
+        {
+            Timeout = FCString::Atof(*Property.Value);
         }
     }
 }
@@ -63,13 +69,53 @@ EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecution
 
     Task->ReadyForActivation();
 
-    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart waiting for event"));
+    // Safety net: if the montage gameplay event never arrives (missing AnimNotify on
+    // the cast montage, event swallowed, or the montage didn't play) the wait would
+    // otherwise hang the ability Running forever — un-retriggerable, and the stuck
+    // graph is what later crashed PIE teardown. A Timeout > 0 arms a one-shot timer
+    // that gives up and cancels the wait. The cast-montage event fires in a fraction
+    // of a second in normal play, so this only trips when something is genuinely wrong.
+    const UWaitForMontageEventNode* EventNode = Cast<UWaitForMontageEventNode>(NodeDef);
+    const float TimeoutSec = EventNode ? EventNode->Timeout : 0.f;
+    if (TimeoutSec > 0.f && OwnerAbility)
+    {
+        if (UWorld* World = OwnerAbility->GetWorld())
+        {
+            FTimerDelegate TimeoutDel;
+            // Weak captures (ability + task) so a PIE teardown mid-wait can't root the
+            // task via the timer delegate — same rationale as the ElectrocuteBeam timers.
+            TimeoutDel.BindWeakLambda(OwnerAbility, [ThisObj = TWeakObjectPtr<UWaitForMontageEventTask>(this)]()
+            {
+                if (UWaitForMontageEventTask* Task = ThisObj.Get())
+                {
+                    Task->OnTimeout();
+                }
+            });
+            World->GetTimerManager().SetTimer(TimeoutHandle, TimeoutDel, TimeoutSec, false);
+        }
+    }
+
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart waiting for event (timeout=%.2f)"), TimeoutSec);
     return EAuraAbilityActionStatus::Running;
+}
+
+void UWaitForMontageEventTask::OnTimeout()
+{
+    // Event never arrived in time. Clear our handle and advance with Failure so the
+    // Sequence ends this node and the DataAbility ends as cancelled instead of hanging.
+    TimeoutHandle.Invalidate();
+    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+    {
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForMontageEvent] Timed out waiting for montage event — ending ability as cancelled"));
+        DataAbility->PendingMontageEventTask.Reset();
+        DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Failure);
+    }
 }
 
 void UWaitForMontageEventTask::OnEventReceived(FGameplayEventData EventData)
 {
     UE_LOG(LogAuraAbilityGraph, VeryVerbose, TEXT("[WaitForMontageEvent] OnEventReceived received"));
+    TimeoutHandle.Invalidate();   // event arrived — cancel the safety-net timeout
     PendingStatus = EAuraAbilityActionStatus::Success;
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
@@ -81,4 +127,16 @@ void UWaitForMontageEventTask::OnEventReceived(FGameplayEventData EventData)
 void UWaitForMontageEventTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status)
 {
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+    if (UWorld* World = OwnerAbility ? OwnerAbility->GetWorld() : nullptr)
+    {
+        World->GetTimerManager().ClearTimer(TimeoutHandle);
+    }
+}
+
+void UWaitForMontageEventTask::Cancel(FAuraAbilityExecutionContext& Ctx)
+{
+    if (UWorld* World = OwnerAbility ? OwnerAbility->GetWorld() : nullptr)
+    {
+        World->GetTimerManager().ClearTimer(TimeoutHandle);
+    }
 }

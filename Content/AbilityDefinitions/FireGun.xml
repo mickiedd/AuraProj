@@ -1,26 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ability name="FireGun" abilityTag="Abilities.Gun.Fire" inputTag="InputTag.LMB" type="Abilities.Type.Offensive">
-  <cooldown tag="Cooldown.Gun.Fire" duration="0.2"/>
   <cost mana="0"/>
-  <damage type="Damage.Physical" base="5" deathImpulseMagnitude="1000" knockbackChance="0"/>
+  <cooldown tag="Cooldown.Gun.Fire" duration="0.2"/>
+  <damage effectClass="" type="Damage.Physical" base="5" debuffChance="0" debuffDamage="0" debuffDuration="0" debuffFrequency="0" deathImpulseMagnitude="1000" knockbackForceMagnitude="0" knockbackChance="0"/>
   <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun" eventTag="Event.Montage.FireGun"/>
   <graph>
-    <node class="Sequence" id="1">
-      <node class="WaitForTargetData" id="2"/>
-      <node class="FaceTarget" id="7">
-        <property name="bSetControllerRotation" value="true"/>
+    <node class="Sequence">
+      <node class="WaitForTargetData"/>
+      <node class="FaceTarget">
+        <property name="bSetControllerRotation" value="false"/>
         <property name="bSetActorRotation" value="true"/>
-        <property name="bYawOnly" value="false"/>
+        <property name="bYawOnly" value="true"/>
       </node>
-      <node class="PlayMontage" id="3"/>
-      <node class="WaitForMontageEvent" id="4">
+      <node class="PlayMontage"/>
+      <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.FireGun"/>
       </node>
-      <node class="SpawnProjectile" id="5">
+      <node class="SpawnProjectile">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
         <property name="ProjectileClass" value="/Script/Aura.AuraProjectile"/>
-        <property name="TargetFromContext" value="CursorHit.ImpactPoint"/>
       </node>
-      <node class="MulticastGunFX" id="6">
+      <node class="MulticastGunFX">
         <property name="MuzzleSocketTag" value="CombatSocket.Weapon"/>
         <property name="MuzzleEffect" value="/Game/MilitaryWeapDark/FX/P_AssaultRifle_MuzzleFlash.P_AssaultRifle_MuzzleFlash"/>
         <property name="FireSound" value="/Game/MilitaryWeapDark/Sound/Rifle/RifleB_Fire_Cue.RifleB_Fire_Cue"/>

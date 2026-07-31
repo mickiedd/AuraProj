@@ -1,25 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ability name="ArcaneShards" abilityTag="Abilities.Arcane.ArcaneShards" inputTag="InputTag.2" type="Abilities.Type.Offensive">
-  <cooldown tag="Cooldown.Arcane.ArcaneShards" duration="8"/>
   <cost mana="20"/>
-  <damage type="Damage.Arcane" base="30" deathImpulseMagnitude="2000" knockbackForceMagnitude="500" knockbackChance="0.1" debuffChance="0.3" debuffDamage="3" debuffDuration="5" debuffFrequency="1"/>
+  <cooldown tag="Cooldown.Arcane.ArcaneShards" duration="8"/>
+  <damage effectClass="" type="Damage.Arcane" base="30" debuffChance="0.3" debuffDamage="3" debuffDuration="5" debuffFrequency="1" deathImpulseMagnitude="2000" knockbackForceMagnitude="500" knockbackChance="0.1"/>
   <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_ArcaneShards.AM_Cast_ArcaneShards" eventTag="Event.Montage.ArcaneShards"/>
   <graph>
-    <node class="Sequence" id="1">
-      <node class="WaitForTargetData" id="2"/>
-      <node class="FaceTarget" id="3">
-        <property name="bSetControllerRotation" value="true"/>
+    <node class="Sequence">
+      <node class="WaitForTargetData"/>
+      <node class="FaceTarget">
+        <property name="bSetControllerRotation" value="false"/>
         <property name="bSetActorRotation" value="true"/>
-        <property name="bYawOnly" value="false"/>
+        <property name="bYawOnly" value="true"/>
       </node>
-      <node class="PlayMontage" id="4"/>
-      <node class="WaitForMontageEvent" id="5">
+      <node class="PlayMontage"/>
+      <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.ArcaneShards"/>
+        <property name="Timeout" value="5"/>
       </node>
-      <node class="SpawnShards" id="6">
-        <property name="PointCollectionClass" value="/Game/Blueprints/AbilitySystem/Aura/Abilities/Arcane/ArcaneShards/BP_PointCollection.BP_PointCollection_C"/>
-        <property name="MaxShards" value="11"/>
-        <property name="SpawnInterval" value="0.1"/>
-        <property name="RadialDamageRadius" value="300"/>
+      <node class="SpawnShards">
         <property name="GameplayCueTag" value="GameplayCue.ArcaneShards"/>
       </node>
     </node>

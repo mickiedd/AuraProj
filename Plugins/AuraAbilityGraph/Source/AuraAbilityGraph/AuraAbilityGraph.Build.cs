@@ -19,6 +19,7 @@ public class AuraAbilityGraph : ModuleRules
             "GameplayTasks",
             "XmlParser",
             "GameplayAbilities",
+            "Niagara",
             "Aura"
         });
 

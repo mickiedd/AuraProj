@@ -18,6 +18,16 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WaitForMontageEvent")
     FGameplayTag EventTag;
+
+    // Seconds to wait for the montage gameplay event before giving up and ending the
+    // ability as cancelled. 0 = wait forever (legacy behavior — hangs the ability
+    // Running if the AnimNotify is missing or the event is swallowed, e.g. ArcaneShards
+    // stuck active for 84s until PIE teardown). A small value (e.g. 5) is a safety net:
+    // the cast montage event fires within a fraction of a second in normal play, so this
+    // only trips when something is genuinely wrong, and the ability ends instead of
+    // hanging un-retriggerable.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WaitForMontageEvent")
+    float Timeout = 0.f;
 };
 
 UCLASS()
@@ -28,8 +38,15 @@ class AURAABILITYGRAPH_API UWaitForMontageEventTask : public UAuraAbilityActionT
 public:
     virtual EAuraAbilityActionStatus OnStart(FAuraAbilityExecutionContext& Ctx) override;
     virtual void OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status) override;
+    virtual void Cancel(FAuraAbilityExecutionContext& Ctx) override;
 
 private:
     UFUNCTION()
     void OnEventReceived(FGameplayEventData EventData);
+
+    // Fired by TimeoutHandle when the wait has gone on too long — advances the graph
+    // with Failure so the ability ends (cancelled) instead of hanging Running forever.
+    void OnTimeout();
+
+    FTimerHandle TimeoutHandle;
 };

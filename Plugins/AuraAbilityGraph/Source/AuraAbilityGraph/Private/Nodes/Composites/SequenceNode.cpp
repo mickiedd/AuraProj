@@ -15,7 +15,7 @@ EAuraAbilityActionStatus UAuraSequenceTask::OnStart(FAuraAbilityExecutionContext
     while (ActiveChildIndex < ChildTasks.Num())
     {
         UAuraAbilityActionTask* CurrentChild = ChildTasks[ActiveChildIndex];
-        if (!CurrentChild)
+        if (!IsValid(CurrentChild))
         {
             UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[Sequence] OnStart skipping null child at index %d"), ActiveChildIndex);
             ++ActiveChildIndex;
@@ -50,12 +50,29 @@ void UAuraSequenceTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityAc
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[Sequence] OnExit status=%s cancelling %d children"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status), ChildTasks.Num());
     for (UAuraAbilityActionTask* Child : ChildTasks)
     {
-        if (Child && Child->HasEntered)
+        if (IsValid(Child) && Child->HasEntered)
         {
             Child->Cancel(Ctx);
             Child->HasEntered = false;
         }
     }
     // Reset state for potential reuse; tasks are recreated per activation so a fresh index is correct regardless of Success/Cancel.
+    ActiveChildIndex = 0;
+}
+
+void UAuraSequenceTask::Cancel(FAuraAbilityExecutionContext& Ctx)
+{
+    // EndAbility calls RootTask->Cancel() on a still-Running graph. Propagate to every
+    // entered child so channeled tasks (beam arc + tick timer, pending waits) clean up
+    // their World-owned resources instead of leaking until PIE world teardown.
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[Sequence] Cancel cancelling %d children"), ChildTasks.Num());
+    for (UAuraAbilityActionTask* Child : ChildTasks)
+    {
+        if (IsValid(Child) && Child->HasEntered)
+        {
+            Child->Cancel(Ctx);
+            Child->HasEntered = false;
+        }
+    }
     ActiveChildIndex = 0;
 }
