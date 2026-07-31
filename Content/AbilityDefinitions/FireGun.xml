@@ -3,7 +3,6 @@
   <cost mana="0"/>
   <cooldown tag="Cooldown.Gun.Fire" duration="0.2"/>
   <damage effectClass="" type="Damage.Physical" base="5" debuffChance="0" debuffDamage="0" debuffDuration="0" debuffFrequency="0" deathImpulseMagnitude="1000" knockbackForceMagnitude="0" knockbackChance="0"/>
-  <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun" eventTag="Event.Montage.FireGun"/>
   <graph>
     <node class="Sequence">
       <node class="WaitForTargetData"/>
@@ -12,7 +11,9 @@
         <property name="bSetActorRotation" value="true"/>
         <property name="bYawOnly" value="true"/>
       </node>
-      <node class="PlayMontage"/>
+      <node class="PlayMontage">
+        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun"/>
+      </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.FireGun"/>
       </node>

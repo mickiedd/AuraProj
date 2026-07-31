@@ -3,7 +3,6 @@
   <cost mana="20"/>
   <cooldown tag="Cooldown.Arcane.ArcaneShards" duration="8"/>
   <damage effectClass="" type="Damage.Arcane" base="30" debuffChance="0.3" debuffDamage="3" debuffDuration="5" debuffFrequency="1" deathImpulseMagnitude="2000" knockbackForceMagnitude="500" knockbackChance="0.1"/>
-  <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_ArcaneShards.AM_Cast_ArcaneShards" eventTag="Event.Montage.ArcaneShards"/>
   <graph>
     <node class="Sequence">
       <node class="WaitForTargetData"/>
@@ -12,7 +11,9 @@
         <property name="bSetActorRotation" value="true"/>
         <property name="bYawOnly" value="true"/>
       </node>
-      <node class="PlayMontage"/>
+      <node class="PlayMontage">
+        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_ArcaneShards.AM_Cast_ArcaneShards"/>
+      </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.ArcaneShards"/>
         <property name="Timeout" value="5"/>

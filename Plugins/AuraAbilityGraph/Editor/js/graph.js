@@ -225,7 +225,18 @@ class GraphRenderer {
         addFull('run all → stop on ✗', 'rgba(255,255,255,0.35)');
         break;
       case 'PlayMontage':
-        addFull('plays ability montage', 'rgba(255,255,255,0.35)');
+        if (p.Montage) {
+          // UE asset paths look like /Game/Folder/AM_Cast_FireBolt.AM_Cast_FireBolt;
+          // the full string overflows the 180px node, so show the short asset
+          // name (leaf, minus the redundant .ObjectName suffix). The full path
+          // remains editable in the property panel.
+          let m = String(p.Montage);
+          m = m.replace(/\.[^./]*$/, '');   // strip trailing .ObjectName
+          m = m.split('/').pop();           // leaf name
+          add('montage', m || p.Montage, '#b5cea8');
+        } else {
+          addFull('no montage set', 'rgba(255,165,0,0.55)');
+        }
         break;
       case 'WaitForMontageEvent':
         add('event', p.EventTag, '#f78c6c');

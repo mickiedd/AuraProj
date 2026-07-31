@@ -3,7 +3,6 @@
 #include "Nodes/Actions/WaitForMontageEventNode.h"
 #include "Nodes/AbilityActionNode.h"
 #include "Nodes/AbilityActionTask.h"
-#include "AbilityDefinition.h"
 #include "DataAbility.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
@@ -44,10 +43,12 @@ EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecution
     FGameplayTag EventTag = NodeDef ? Cast<UWaitForMontageEventNode>(NodeDef)->EventTag : FGameplayTag();
     if (!EventTag.IsValid())
     {
-        if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
-        {
-            EventTag = Definition->MontageEventTag;
-        }
+        // The node's own EventTag is now the only source (the ability-level <montage
+        // eventTag=...> fallback was removed). An empty tag would WaitGameplayEvent on
+        // FGameplayTag() and never fire — fail fast so the config error surfaces instead
+        // of hanging the ability Running until the Timeout (or forever if Timeout=0).
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForMontageEvent] OnStart abort: no EventTag set on node"));
+        return EAuraAbilityActionStatus::Failure;
     }
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart EventTag=%s"), *EventTag.ToString());
 

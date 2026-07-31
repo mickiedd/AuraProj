@@ -47,10 +47,6 @@ public:
     float KnockbackForceMagnitude = 10000.f;
     float KnockbackChance = 0.f;
 
-    // Animation — Montage loaded by path at XML parse time from <montage>
-    TObjectPtr<UAnimMontage> Montage;
-    FGameplayTag MontageEventTag;
-
     // Action graph — root node built from <graph> during LoadFromXML
     UPROPERTY(Instanced)
     TObjectPtr<UAuraAbilityActionNode> RootNode;

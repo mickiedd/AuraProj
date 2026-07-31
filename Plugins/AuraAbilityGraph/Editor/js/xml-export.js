@@ -53,9 +53,6 @@ function exportToXML(graph) {
     ].filter(Boolean).join(' ');
     lines.push(`  <damage ${dmgAttrs}/>`);
   }
-  if (meta.montagePath || meta.montageEventTag) {
-    lines.push(`  <montage path="${escXML(meta.montagePath || '')}" eventTag="${escXML(meta.montageEventTag || '')}"/>`);
-  }
 
   lines.push(`  <graph>`);
 

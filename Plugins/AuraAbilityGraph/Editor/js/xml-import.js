@@ -36,9 +36,6 @@ function importFromXML(xmlStr, graph) {
       graph.abilityMeta.deathImpulse = child.getAttribute('deathImpulseMagnitude') || '';
       graph.abilityMeta.knockbackForce = child.getAttribute('knockbackForceMagnitude') || '';
       graph.abilityMeta.knockbackChance = child.getAttribute('knockbackChance') || '';
-    } else if (tag === 'montage') {
-      graph.abilityMeta.montagePath = child.getAttribute('path') || '';
-      graph.abilityMeta.montageEventTag = child.getAttribute('eventTag') || '';
     }
   }
 

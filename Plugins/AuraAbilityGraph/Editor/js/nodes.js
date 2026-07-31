@@ -15,7 +15,9 @@ const NODE_PROPS = {
   Sequence: [],
 
   // ── Actions ─────────────────────────────────────────────
-  PlayMontage: [],
+  PlayMontage: [
+    { key:'Montage', label:'Montage Path', type:'string', default:'' }
+  ],
   WaitForMontageEvent: [
     { key:'EventTag', label:'Event Tag', type:'string', default:'' }
   ],
@@ -63,7 +65,7 @@ const NODE_PROPS = {
 // ── Master node list ─────────────────────────────────────
 const NODE_TYPES = [
   { type:'Sequence',              category:NodeCategory.COMPOSITE, label:'Sequence',              tooltip:'Runs children left-to-right. Stops on failure.' },
-  { type:'PlayMontage',           category:NodeCategory.ACTION,    label:'Play Montage',          tooltip:'Plays the ability montage.' },
+  { type:'PlayMontage',           category:NodeCategory.ACTION,    label:'Play Montage',          tooltip:'Plays a montage (configure path on this node).' },
   { type:'WaitForMontageEvent',   category:NodeCategory.ACTION,    label:'Wait For Montage Event',tooltip:'Waits for a gameplay event from the montage.' },
   { type:'WaitForTargetData',     category:NodeCategory.ACTION,    label:'Wait For Target Data',  tooltip:'Waits for target data from client.' },
   { type:'SpawnProjectile',       category:NodeCategory.ACTION,    label:'Spawn Projectile',      tooltip:'Spawns a single projectile.' },

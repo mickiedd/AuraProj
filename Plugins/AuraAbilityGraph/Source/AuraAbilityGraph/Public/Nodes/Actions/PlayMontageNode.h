@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Nodes/AbilityActionNode.h"
 #include "Nodes/AbilityActionTask.h"
+#include "Animation/AnimMontage.h"
 #include "PlayMontageNode.generated.h"
 
 UCLASS(DisplayName = "PlayMontage")
@@ -14,6 +15,18 @@ class AURAABILITYGRAPH_API UPlayMontageNode : public UAuraAbilityActionNode
 
 public:
     virtual UAuraAbilityActionTask* CreateTask(UObject* Outer) const override;
+    virtual void LoadFromProperties(int32 Version, const TArray<FAuraAbilityGraphProperty>& Properties) override;
+
+    // Asset path of the montage to play (mirrors SpawnProjectiles::ProjectileClass string
+    // convention). Loaded once into `Montage` at parse time.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayMontage")
+    FString MontagePath;
+
+    // Montage loaded from MontagePath. Cached on the node (which lives in the GC-rooted
+    // RootNode tree) so it stays resident for the ability's whole lifetime — a transient
+    // load only on the task could be GC'd mid-cast.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PlayMontage")
+    TObjectPtr<UAnimMontage> Montage;
 };
 
 UCLASS()

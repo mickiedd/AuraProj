@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AuraAbilityGraph — Ability Graph Editor</title>
-<link rel="stylesheet" href="css/style.css"/>
+<script>document.write('<link rel="stylesheet" href="css/style.css?v=' + Date.now() + '"/>');</script>
 </head>
 <body>
 
@@ -158,14 +158,20 @@
 </div>
 
 <!-- ── Scripts ──────────────────────────────────────────── -->
-<script src="js/nodes.js?v=2026072901"></script>
-<script src="js/undo.js?v=2026041301"></script>
-<script src="js/graph.js?v=2026062401"></script>
-<script src="js/xml-export.js?v=2026041301"></script>
-<script src="js/xml-import.js?v=2026041301"></script>
-<script src="js/properties.js?v=2026041301"></script>
-<script src="js/ability-data.js?v=2026073001"></script>
-<script src="js/app.js?v=2026073001"></script>
+<!-- Cache-bust: a fresh token per page load forces every JS file to be re-fetched,
+     so edits are always visible during iteration (no stale cached copies). -->
+<script>
+(function () {
+  var v = Date.now();
+  var files = [
+    'nodes.js', 'undo.js', 'graph.js', 'xml-export.js',
+    'xml-import.js', 'properties.js', 'ability-data.js', 'app.js'
+  ];
+  for (var i = 0; i < files.length; i++) {
+    document.write('<script src="js/' + files[i] + '?v=' + v + '"><\/script>');
+  }
+})();
+</script>
 
 </body>
 </html>

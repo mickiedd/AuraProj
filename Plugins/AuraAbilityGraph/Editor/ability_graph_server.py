@@ -67,6 +67,16 @@ def _confine_to_content(user_path):
 
 
 class AuraAbilityGraphHandler(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        # Never cache: this is a dev tool served from the source Editor/ folder,
+        # so edits to index.html / js / css must be visible on the next reload
+        # without the webview serving a stale copy. (The ?v=Date.now() tokens in
+        # index.html also help, but only if index.html itself isn't cached —
+        # this header is what guarantees that.)
+        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
+        self.send_header('Pragma', 'no-cache')
+        super().end_headers()
+
     def do_GET(self):
         if self.path == '/list-xml':
             self._handle_list_xml()

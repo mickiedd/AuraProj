@@ -2,7 +2,6 @@
 
 #include "Nodes/Actions/PlayMontageNode.h"
 #include "Nodes/AbilityActionTask.h"
-#include "AbilityDefinition.h"
 #include "DataAbility.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -11,6 +10,26 @@
 UAuraAbilityActionTask* UPlayMontageNode::CreateTask(UObject* Outer) const
 {
     return NewObject<UPlayMontageTask>(Outer);
+}
+
+void UPlayMontageNode::LoadFromProperties(int32 Version, const TArray<FAuraAbilityGraphProperty>& Properties)
+{
+    Super::LoadFromProperties(Version, Properties);
+    for (const FAuraAbilityGraphProperty& Property : Properties)
+    {
+        if (Property.Name == TEXT("Montage"))
+        {
+            MontagePath = Property.Value;
+            if (!MontagePath.IsEmpty())
+            {
+                Montage = LoadObject<UAnimMontage>(nullptr, *MontagePath);
+                if (!Montage)
+                {
+                    UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] LoadFromProperties: failed to load montage '%s'"), *MontagePath);
+                }
+            }
+        }
+    }
 }
 
 EAuraAbilityActionStatus UPlayMontageTask::OnStart(FAuraAbilityExecutionContext& Ctx)
@@ -22,18 +41,27 @@ EAuraAbilityActionStatus UPlayMontageTask::OnStart(FAuraAbilityExecutionContext&
         return EAuraAbilityActionStatus::Failure;
     }
 
-    const UAuraAbilityDefinition* Definition = Ctx.Definition;
-    if (!Definition || !Definition->Montage)
+    const UPlayMontageNode* PlayNode = Cast<UPlayMontageNode>(NodeDef);
+    UAnimMontage* Montage = PlayNode ? PlayNode->Montage.Get() : nullptr;
+    if (!Montage)
     {
-        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnStart abort: no montage on definition"));
+        // No montage configured, or the path failed to load. A missing/empty path is
+        // treated as "intentionally no animation" -> skip and continue the graph. A set
+        // path that failed to load is a broken config -> fail fast so it surfaces.
+        if (PlayNode && !PlayNode->MontagePath.IsEmpty())
+        {
+            UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnStart abort: montage '%s' failed to load"), *PlayNode->MontagePath);
+            return EAuraAbilityActionStatus::Failure;
+        }
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[PlayMontage] OnStart: no montage on node, skipping"));
         return EAuraAbilityActionStatus::Success;
     }
 
-    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[PlayMontage] OnStart playing montage=%s"), *Definition->Montage.GetName());
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[PlayMontage] OnStart playing montage=%s"), *Montage->GetName());
     UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
         OwnerAbility,
         FName("PlayMontage"),
-        Definition->Montage,
+        Montage,
         1.0f,
         NAME_None,
         true,

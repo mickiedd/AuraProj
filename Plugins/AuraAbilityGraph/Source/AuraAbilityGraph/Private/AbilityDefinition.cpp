@@ -171,19 +171,6 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
             KnockbackForceMagnitude = FCString::Atof(*Child->GetAttribute(TEXT("knockbackForceMagnitude")));
             KnockbackChance = FCString::Atof(*Child->GetAttribute(TEXT("knockbackChance")));
         }
-        else if (Tag == TEXT("montage"))
-        {
-            const FString MontagePath = Child->GetAttribute(TEXT("path"));
-            if (!MontagePath.IsEmpty())
-            {
-                Montage = LoadObject<UAnimMontage>(nullptr, *MontagePath);
-            }
-            const FString EventTagStr = Child->GetAttribute(TEXT("eventTag"));
-            if (!EventTagStr.IsEmpty())
-            {
-                MontageEventTag = FGameplayTag::RequestGameplayTag(FName(*EventTagStr), false);
-            }
-        }
         else if (Tag == TEXT("graph"))
         {
             const FXmlNode* FirstNode = Child->FindChildNode(TEXT("node"));

@@ -3,7 +3,6 @@
   <cost mana="5"/>
   <cooldown tag="Cooldown.Lightning.Electrocute" duration="3"/>
   <damage effectClass="" type="Damage.Lightning" base="10" debuffChance="0.5" debuffDamage="2" debuffDuration="3" debuffFrequency="0.5" deathImpulseMagnitude="1000" knockbackForceMagnitude="500" knockbackChance="0.1"/>
-  <montage path="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_Electrocute.AM_Cast_Electrocute" eventTag="Event.Montage.Electrocute"/>
   <graph>
     <node class="Sequence">
       <node class="WaitForTargetData"/>
@@ -12,7 +11,9 @@
         <property name="bSetActorRotation" value="true"/>
         <property name="bYawOnly" value="true"/>
       </node>
-      <node class="PlayMontage"/>
+      <node class="PlayMontage">
+        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_Electrocute.AM_Cast_Electrocute"/>
+      </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.Electrocute"/>
       </node>

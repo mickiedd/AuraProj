@@ -50,7 +50,6 @@ static bool SmokeTest_XMLParsing()
 		"  <cooldown tag=\"Abilities.Cooldown.Fireball\" duration=\"5\"/>"
 		"  <cost mana=\"20\"/>"
 		"  <damage type=\"Abilities.Damage.Fire\" base=\"100\" debuffChance=\"0.2\" debuffDamage=\"10\" debuffDuration=\"3\" debuffFrequency=\"1\" deathImpulseMagnitude=\"5000\" knockbackForceMagnitude=\"2000\" knockbackChance=\"0.1\"/>"
-		"  <montage path=\"/Game/Anim/Fireball\"/>"
 		"  <graph>"
 		"    <node class=\"Sequence\" id=\"1\">"
 		"      <node class=\"SpawnProjectile\" id=\"2\">"
@@ -176,11 +175,12 @@ static bool SmokeTest_FireBoltMigration()
 		"  <cooldown tag=\"Cooldown.Fire.FireBolt\" duration=\"5\"/>"
 		"  <cost mana=\"10\"/>"
 		"  <damage type=\"Damage.Fire\" base=\"50\" deathImpulseMagnitude=\"5000\" knockbackForceMagnitude=\"2000\" knockbackChance=\"0.1\"/>"
-		"  <montage path=\"/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBolt.AM_Cast_FireBolt\" eventTag=\"Event.Montage.FireBolt\"/>"
 		"  <graph>"
 		"    <node class=\"Sequence\" id=\"1\">"
 		"      <node class=\"WaitForTargetData\" id=\"2\"/>"
-		"      <node class=\"PlayMontage\" id=\"3\"/>"
+		"      <node class=\"PlayMontage\" id=\"3\">"
+		"        <property name=\"Montage\" value=\"/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBolt.AM_Cast_FireBolt\"/>"
+		"      </node>"
 		"      <node class=\"WaitForMontageEvent\" id=\"4\">"
 		"        <property name=\"EventTag\" value=\"Event.Montage.FireBolt\"/>"
 		"      </node>"
@@ -232,18 +232,6 @@ static bool SmokeTest_FireBoltMigration()
 	if (!FMath::IsNearlyEqual(Def->Damage.Value, 50.f))
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] Damage base mismatch: expected 50, got %.1f"), Def->Damage.Value);
-		return false;
-	}
-
-	if (!Def->Montage)
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] Montage was not loaded."));
-		return false;
-	}
-
-	if (Def->MontageEventTag.ToString() != TEXT("Event.Montage.FireBolt"))
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] MontageEventTag mismatch: got '%s'"), *Def->MontageEventTag.ToString());
 		return false;
 	}
 
@@ -348,11 +336,12 @@ static bool SmokeTest_FireGunMigration()
 		"  <cooldown tag=\"Cooldown.Gun.Fire\" duration=\"0.2\"/>"
 		"  <cost mana=\"0\"/>"
 		"  <damage effectClass=\"/Game/Blueprints/AbilitySystem/Aura/Effects/GE_Damage.GE_Damage\" type=\"Damage.Physical\" base=\"5\" deathImpulseMagnitude=\"1000\" knockbackChance=\"0\"/>"
-		"  <montage path=\"/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun\" eventTag=\"Event.Montage.FireGun\"/>"
 		"  <graph>"
 		"    <node class=\"Sequence\" id=\"1\">"
 		"      <node class=\"WaitForTargetData\" id=\"2\"/>"
-		"      <node class=\"PlayMontage\" id=\"3\"/>"
+		"      <node class=\"PlayMontage\" id=\"3\">"
+		"        <property name=\"Montage\" value=\"/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun\"/>"
+		"      </node>"
 		"      <node class=\"WaitForMontageEvent\" id=\"4\">"
 		"        <property name=\"EventTag\" value=\"Event.Montage.FireGun\"/>"
 		"      </node>"
@@ -414,18 +403,6 @@ static bool SmokeTest_FireGunMigration()
 		return false;
 	}
 
-	if (!Def->Montage)
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] Montage was not loaded."));
-		return false;
-	}
-
-	if (Def->MontageEventTag.ToString() != TEXT("Event.Montage.FireGun"))
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] MontageEventTag mismatch: got '%s'"), *Def->MontageEventTag.ToString());
-		return false;
-	}
-
 	if (!Def->RootNode)
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] RootNode was not built."));
@@ -453,6 +430,25 @@ static bool SmokeTest_FireGunMigration()
 	if (Def->RootNode->Children[1]->NodeClassName != TEXT("PlayMontage"))
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] Child[1] class mismatch: got '%s'"), *Def->RootNode->Children[1]->NodeClassName);
+		return false;
+	}
+
+	if (UPlayMontageNode* PlayNode = Cast<UPlayMontageNode>(Def->RootNode->Children[1]))
+	{
+		if (!PlayNode->Montage)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] PlayMontage Montage was not loaded from path '%s'."), *PlayNode->MontagePath);
+			return false;
+		}
+		if (PlayNode->MontagePath != TEXT("/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] PlayMontage MontagePath mismatch: got '%s'"), *PlayNode->MontagePath);
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] Failed to cast child[1] to UPlayMontageNode"));
 		return false;
 	}
 
@@ -547,7 +543,6 @@ static bool SmokeTest_RoleDefinitionLoading()
 		"  <cooldown tag=\"Cooldown.Fire.FireBolt\" duration=\"5\"/>"
 		"  <cost mana=\"10\"/>"
 		"  <damage type=\"Damage.Fire\" base=\"50\"/>"
-		"  <montage path=\"/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBolt.AM_Cast_FireBolt\" eventTag=\"Event.Montage.FireBolt\"/>"
 		"  <graph><node class=\"Sequence\" id=\"1\"><node class=\"SpawnProjectiles\" id=\"2\"/></node></graph>"
 		"</ability>"
 	);
@@ -628,6 +623,14 @@ static bool SmokeTest_FireBoltFileGraph()
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: no PlayMontage node"));
 		return false;
+	}
+	if (const UPlayMontageNode* PlayNode = Cast<UPlayMontageNode>(Children[PlayMontageIdx]))
+	{
+		if (!PlayNode->Montage)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: PlayMontage Montage not loaded from '%s'"), *PlayNode->MontagePath);
+			return false;
+		}
 	}
 	const int32 WaitIdx = PlayMontageIdx + 1;
 	if (ClassOf(WaitIdx) != TEXT("WaitForMontageEvent"))
@@ -802,18 +805,6 @@ static bool SmokeTest_ArcaneShardsFileGraph()
 		return false;
 	}
 
-	if (!Def->Montage)
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: Montage was not loaded."));
-		return false;
-	}
-
-	if (Def->MontageEventTag.ToString() != TEXT("Event.Montage.ArcaneShards"))
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: MontageEventTag mismatch: got '%s'"), *Def->MontageEventTag.ToString());
-		return false;
-	}
-
 	if (!Def->RootNode || Def->RootNode->NodeClassName != TEXT("Sequence"))
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: root is not a Sequence"));
@@ -843,6 +834,19 @@ static bool SmokeTest_ArcaneShardsFileGraph()
 	if (ClassOf(2) != TEXT("PlayMontage"))
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: child[2] is '%s', expected PlayMontage"), *ClassOf(2));
+		return false;
+	}
+	if (UPlayMontageNode* PlayNode = Cast<UPlayMontageNode>(Children[2]))
+	{
+		if (!PlayNode->Montage)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: PlayMontage Montage not loaded from '%s'"), *PlayNode->MontagePath);
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: failed to cast child[2] to UPlayMontageNode"));
 		return false;
 	}
 	if (ClassOf(3) != TEXT("WaitForMontageEvent"))
@@ -936,18 +940,6 @@ static bool SmokeTest_ElectrocuteFileGraph()
 		return false;
 	}
 
-	if (!Def->Montage)
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: Montage was not loaded."));
-		return false;
-	}
-
-	if (Def->MontageEventTag.ToString() != TEXT("Event.Montage.Electrocute"))
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: MontageEventTag mismatch: got '%s'"), *Def->MontageEventTag.ToString());
-		return false;
-	}
-
 	if (!Def->RootNode || Def->RootNode->NodeClassName != TEXT("Sequence"))
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: root is not a Sequence"));
@@ -977,6 +969,19 @@ static bool SmokeTest_ElectrocuteFileGraph()
 	if (ClassOf(2) != TEXT("PlayMontage"))
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[2] is '%s', expected PlayMontage"), *ClassOf(2));
+		return false;
+	}
+	if (UPlayMontageNode* PlayNode = Cast<UPlayMontageNode>(Children[2]))
+	{
+		if (!PlayNode->Montage)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: PlayMontage Montage not loaded from '%s'"), *PlayNode->MontagePath);
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: failed to cast child[2] to UPlayMontageNode"));
 		return false;
 	}
 	if (ClassOf(3) != TEXT("WaitForMontageEvent"))

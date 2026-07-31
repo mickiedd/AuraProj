@@ -67,8 +67,6 @@ class PropertiesPanel {
       { key:'deathImpulse', label:'Death Impulse Magnitude', type:'string' },
       { key:'knockbackForce', label:'Knockback Force Magnitude', type:'string' },
       { key:'knockbackChance', label:'Knockback Chance', type:'string' },
-      { key:'montagePath', label:'Montage Path', type:'string' },
-      { key:'montageEventTag', label:'Montage Event Tag', type:'string' },
     ];
 
     for (const f of fields) {
