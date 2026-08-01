@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FExtender;
-
 class FAutoTestEditorModule : public IModuleInterface
 {
 public:
@@ -23,7 +21,6 @@ public:
 private:
 	void RegisterToolbar();
 	void RegisterToolMenuToolbar();
-	void AddLegacyToolbarButton(FToolBarBuilder& Builder);
 
 	/** Bind to the runner's OnRequestOpenPanel delegate so the console command
 	 *  can open the tab without the runtime module depending on Slate. */
@@ -32,6 +29,4 @@ private:
 
 	// Handle bound to a PIE runner instance; rebind on PIE start.
 	FDelegateHandle RequestOpenPanelHandle;
-
-	TSharedPtr<FExtender> ToolbarExtender;
 };

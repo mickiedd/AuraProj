@@ -1139,8 +1139,24 @@ let geConfigData = null;
           <input type="number" step="any" class="ge-pickup-health" value="${eff.health ?? 0}" style="flex:1;"/>
           <label style="min-width:80px;">Mana</label>
           <input type="number" step="any" class="ge-pickup-mana" value="${eff.mana ?? 0}" style="flex:1;"/>
-          <label style="min-width:80px;">Duration</label>
-          <input type="text" class="ge-pickup-duration" value="${escHtml(eff.duration || 'instant')}" style="flex:1;"/>
+          <label style="min-width:60px;">Policy</label>
+          <select class="ge-pickup-duration" style="flex:1;">
+            ${['instant', 'duration', 'infinite'].map(value => `<option value="${value}" ${value === (eff.duration || 'instant') ? 'selected' : ''}>${value}</option>`).join('')}
+          </select>
+          <label style="min-width:60px;">Seconds</label>
+          <input type="number" min="0" step="any" class="ge-pickup-duration-value" value="${eff.durationValue ?? 0}" style="flex:1;"/>
+          <label style="min-width:45px;">Period</label>
+          <input type="number" min="0" step="any" class="ge-pickup-period" value="${eff.period ?? 0}" style="flex:1;"/>
+        </div>
+        <div style="display:flex;gap:12px;width:100%;align-items:center;">
+          <label style="min-width:145px;">Execute on application</label>
+          <input type="checkbox" class="ge-pickup-execute" ${eff.executeOnApplication !== false ? 'checked' : ''}/>
+          <label style="min-width:70px;">Asset tags</label>
+          <input type="text" class="ge-pickup-tags" value="${escHtml((eff.assetTags || []).join(', '))}" placeholder="Message.HealthPotion" style="flex:1;"/>
+        </div>
+        <div style="display:flex;gap:12px;width:100%;align-items:center;">
+          <label style="min-width:145px;">Attributes (tag/value JSON)</label>
+          <textarea class="ge-pickup-attributes" rows="2" placeholder='{"Attributes.Primary.Resilience": 15}' style="flex:1;">${escHtml(JSON.stringify(eff.attributes || {}))}</textarea>
         </div>
       `;
       row.querySelector('.ge-pickup-delete').addEventListener('click', () => {
@@ -1169,8 +1185,22 @@ let geConfigData = null;
           <input type="number" step="any" class="ge-pickup-health" value="0" style="flex:1;"/>
           <label style="min-width:80px;">Mana</label>
           <input type="number" step="any" class="ge-pickup-mana" value="0" style="flex:1;"/>
-          <label style="min-width:80px;">Duration</label>
-          <input type="text" class="ge-pickup-duration" value="instant" style="flex:1;"/>
+          <label style="min-width:60px;">Policy</label>
+          <select class="ge-pickup-duration" style="flex:1;"><option>instant</option><option>duration</option><option>infinite</option></select>
+          <label style="min-width:60px;">Seconds</label>
+          <input type="number" min="0" step="any" class="ge-pickup-duration-value" value="0" style="flex:1;"/>
+          <label style="min-width:45px;">Period</label>
+          <input type="number" min="0" step="any" class="ge-pickup-period" value="0" style="flex:1;"/>
+        </div>
+        <div style="display:flex;gap:12px;width:100%;align-items:center;">
+          <label style="min-width:145px;">Execute on application</label>
+          <input type="checkbox" class="ge-pickup-execute" checked/>
+          <label style="min-width:70px;">Asset tags</label>
+          <input type="text" class="ge-pickup-tags" value="" placeholder="Message.HealthPotion" style="flex:1;"/>
+        </div>
+        <div style="display:flex;gap:12px;width:100%;align-items:center;">
+          <label style="min-width:145px;">Attributes (tag/value JSON)</label>
+          <textarea class="ge-pickup-attributes" rows="2" placeholder='{"Attributes.Primary.Resilience": 15}' style="flex:1;">{}</textarea>
         </div>
       `;
       row.querySelector('.ge-pickup-delete').addEventListener('click', () => { row.remove(); });
@@ -1206,14 +1236,34 @@ let geConfigData = null;
         const healthEl = row.querySelector('.ge-pickup-health');
         const manaEl = row.querySelector('.ge-pickup-mana');
         const durEl = row.querySelector('.ge-pickup-duration');
+        const durValueEl = row.querySelector('.ge-pickup-duration-value');
+        const periodEl = row.querySelector('.ge-pickup-period');
+        const executeEl = row.querySelector('.ge-pickup-execute');
+        const tagsEl = row.querySelector('.ge-pickup-tags');
+        const attributesEl = row.querySelector('.ge-pickup-attributes');
         if (!nameEl) return;
         const name = nameEl.value.trim();
         if (!name) return;
-        config.pickupEffects[name] = {
-          duration: durEl ? durEl.value.trim() || 'instant' : 'instant',
+        const duration = durEl ? durEl.value.trim() || 'instant' : 'instant';
+        const effect = {
+          duration,
           health: healthEl ? parseFloat(healthEl.value) || 0 : 0,
           mana: manaEl ? parseFloat(manaEl.value) || 0 : 0,
         };
+        const durationValue = durValueEl ? parseFloat(durValueEl.value) || 0 : 0;
+        if (duration === 'duration') effect.durationValue = durationValue;
+        const period = periodEl ? parseFloat(periodEl.value) || 0 : 0;
+        if (period > 0) {
+          effect.period = period;
+          effect.executeOnApplication = executeEl ? executeEl.checked : true;
+        }
+        const assetTags = tagsEl ? tagsEl.value.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+        if (assetTags.length) effect.assetTags = assetTags;
+        const attributes = attributesEl && attributesEl.value.trim() ? JSON.parse(attributesEl.value) : {};
+        if (attributes && typeof attributes === 'object' && !Array.isArray(attributes) && Object.keys(attributes).length) {
+          effect.attributes = attributes;
+        }
+        config.pickupEffects[name] = effect;
       });
 
       const ok = await AbilityData.saveGEConfig(config);

@@ -29,16 +29,16 @@ Each ability also has a C++ class in `Source/Aura/Public/AbilitySystem/Abilities
 
 ```
 UGameplayAbility (UE5 GAS)
-  └─ UAauraGameplayAbility
-       ├─ UAauraDamageGameplayAbility
-       │    ├─ UAauraProjectileSpell → UAauraFireBolt / UAauraGun
-       │    ├─ UAauraBeamSpell → UElectrocute
-       │    └─ (direct) → UArcaneShards / UAauraFireBlast
-       ├─ UAauraSummonAbility
+  └─ UAuraGameplayAbility
+       ├─ UAuraDamageGameplayAbility
+       │    ├─ UAuraProjectileSpell → UAuraFireBolt / UAuraFireGun
+       │    ├─ UAuraBeamSpell → UElectrocute
+       │    └─ (direct) → UArcaneShards / UAuraFireBlast
+       ├─ UAuraSummonAbility
        └─ UAuraPassiveAbility
 ```
 
-The C++ classes provide the `BlueprintCallable` functions that the graph nodes invoke (e.g., `SpawnProjectiles()`, `FireGun()`, `SpawnFireBalls()`, `CauseDamage()`).
+The C++ classes provide the `BlueprintCallable` function-provider layer that graph nodes invoke (for example, `SpawnProjectiles()`, `FireGun()`, `SpawnFireBalls()`, and `CauseDamage()`). `UAuraFireBolt`, `UAuraFireGun`, `UArcaneShards`, `UAuraFireBlast`, and `UElectrocute` remain available for the traditional path while the ownership decision in `Docs/GAS-Migration-TODOs.md` remains open.
 
 ### 3. Configuration
 
@@ -48,7 +48,18 @@ The C++ classes provide the `BlueprintCallable` functions that the graph nodes i
 | UI metadata | `Content/Config/AbilityInfo.json` | Icons, materials, level requirements |
 | Role mapping | `Content/Config/RoleConfig.json` | Which abilities map to which role (Aura, BungeeMan) |
 | Gameplay tags | `Config/DefaultGameplayTags.ini` | Native tag declarations |
-| Attributes/effects | `Content/Config/GameplayEffects.json` | Secondary attribute defaults |
+| Attributes/effects | `Content/Config/GameplayEffects.json` | Attribute defaults and named pickup/buff effects |
+| Level progression | `Content/Config/LevelConfig.json` | Level requirements and rewards |
+
+---
+
+## Buff and Pickup Effects
+
+`AAuraEffectActor` applies named entries from `Content/Config/GameplayEffects.json` through native `UGameplayEffect` classes. Blueprint pickup instances select an entry with `InstantEffectName`, `DurationEffectName`, or `InfiniteEffectName`; effect magnitudes no longer require a Gameplay Effect Blueprint asset.
+
+Each `pickupEffects` entry supports `duration` (`instant`, `duration`, or `infinite`), `durationValue` for duration effects, optional `period` and `executeOnApplication` settings, convenient `health` and `mana` magnitudes, arbitrary supported values in an `attributes` gameplay-tag map, and optional `assetTags` such as `Message.HealthPotion`.
+
+The runtime selects a native Instant, Duration, or Infinite `UAuraPickupGameplayEffect` variant before it creates the spec. Changing only a spec's duration does not convert an Instant Gameplay Effect definition into a persistent effect. Infinite handles configured with `RemoveOnEndOverlap` are tracked per target and removed when overlap ends.
 
 ---
 
@@ -58,13 +69,13 @@ The C++ classes provide the `BlueprintCallable` functions that the graph nodes i
 
 ```
 UGameplayAbility (UE5 GAS)
-  └─ UAauraGameplayAbility
+  └─ UAuraGameplayAbility
        ├─ CheckCost() — skips cost check on non-authoritative clients
        ├─ GetManaCost() / GetCooldown() — read from GEs
        ├─ GetDescription() / GetNextLevelDescription() / GetLockedDescription()
        └─ StartupInputTag (FGameplayTag)
 
-  └─ UAauraDamageGameplayAbility : UAauraGameplayAbility
+  └─ UAuraDamageGameplayAbility : UAuraGameplayAbility
        ├─ CauseDamage(AActor*) — applies damage via GE spec
        ├─ MakeDamageEffectParamsFromClassDefaults() — builds FDamageEffectParams
        ├─ GetDamageAtLevel()
@@ -74,13 +85,13 @@ UGameplayAbility (UE5 GAS)
             KnockbackForceMagnitude, KnockbackChance, bIsRadialDamage,
             RadialDamageInner/OuterRadius
 
-  └─ UAauraProjectileSpell : UAauraDamageGameplayAbility
+  └─ UAuraProjectileSpell : UAuraDamageGameplayAbility
        ├─ ActivateAbility() — override (currently empty base impl)
        ├─ SpawnProjectile() — server-only, spawns AAuraProjectile
        ├─ ProjectileClass (TSubclassOf<AAuraProjectile>)
        └─ NumProjectiles (int32)
 
-  └─ UAauraBeamSpell : UAauraDamageGameplayAbility
+  └─ UAuraBeamSpell : UAuraDamageGameplayAbility
        ├─ StoreMouseDataInfo() / StoreOwnerVariables() / TraceFirstTarget()
        ├─ StoreAdditionalTargets()
        ├─ PrimaryTargetDied / AdditionalTargetDied (BPImplementableEvent)
@@ -88,11 +99,11 @@ UGameplayAbility (UE5 GAS)
        └─ Properties: MouseHitLocation, MouseHitActor, OwnerPlayerController,
             OwnerCharacter, MaxNumShockTargets, BoundDeathTargets
 
-  └─ UAauraSummonAbility : UAauraGameplayAbility
+  └─ UAuraSummonAbility : UAuraGameplayAbility
        ├─ GetSpawnLocations() / GetRandomMinionClass()
        └─ Properties: NumMinions, MinionClasses, Min/MaxSpawnDistance, SpawnSpread
 
-  └─ UAuraPassiveAbility : UAauraGameplayAbility
+  └─ UAuraPassiveAbility : UAuraGameplayAbility
        ├─ ActivateAbility() — override
        └─ ReceiveDeactivate()
 ```
@@ -109,7 +120,7 @@ UGameplayAbility (UE5 GAS)
 
 **Step 1: Create the C++ class**
 
-Extend `UAuraProjectileSpell` (which extends `UAauraDamageGameplayAbility` → `UAauraGameplayAbility` → `UGameplayAbility`). Add the FireBolt-specific properties:
+Extend `UAuraProjectileSpell` (which extends `UAuraDamageGameplayAbility` → `UAuraGameplayAbility` → `UGameplayAbility`). Add the FireBolt-specific properties:
 
 ```cpp
 // AuraFireBolt.h
@@ -255,7 +266,7 @@ Extend `UAuraProjectileSpell`. Add `FireGun()` method and muzzle FX properties:
 ```cpp
 // AuraGun.h
 UCLASS()
-class UAauraGun : public UAuraProjectileSpell
+class UAuraFireGun : public UAuraProjectileSpell
 {
     GENERATED_BODY()
 public:
@@ -273,7 +284,7 @@ protected:
 
 **Step 2: Create the Legacy Blueprint GA**
 
-- Blueprint `GA_FireGun` extending `UAauraGun`
+- Blueprint `GA_FireGun` extending `UAuraFireGun`
 - Default properties: `ProjectileClass = BP_AuraBullet`, single projectile
 - Set `MuzzleEffect` and `FireSound` in the Blueprint defaults
 - `Damage = 5`, `DamageType = Damage.Physical`, no debuff, no knockback
@@ -347,7 +358,7 @@ No GE Blueprint UAssets, no Blueprint ability — just the XML file. The `Multic
 
 | Aspect | GAS-Version (Traditional) | AuraAbilityGraph (Data-Driven) |
 |---|---|---|
-| **Ability class** | Blueprint `GA_FireGun` extending `UAauraGun` | No Blueprint; generic `UAuraDataAbility` |
+| **Ability class** | Blueprint `GA_FireGun` extending `UAuraFireGun` | No Blueprint; generic `UAuraDataAbility` |
 | **Graph wiring** | 6 BP task nodes wired visually | 6 XML graph nodes in `<graph>` |
 | **Cost GE** | `GE_Cost_FireGun` Blueprint (mana=0, no-op) | C++ `UAuraManaCostGameplayEffect` |
 | **Cooldown GE** | `GE_Cooldown_FireGun` Blueprint (0.2s) | C++ `UAuraCooldownGameplayEffect` + XML duration |
@@ -366,12 +377,12 @@ No GE Blueprint UAssets, no Blueprint ability — just the XML file. The `Multic
 
 **Step 1: Create the C++ class**
 
-Extend `UAauraDamageGameplayAbility` directly (not projectile/beam — this is a direct-damage ability):
+Extend `UAuraDamageGameplayAbility` directly (not projectile/beam — this is a direct-damage ability):
 
 ```cpp
 // ArcaneShards.h
 UCLASS()
-class UArcaneShards : public UAauraDamageGameplayAbility
+class UArcaneShards : public UAuraDamageGameplayAbility
 {
     GENERATED_BODY()
 public:
@@ -475,12 +486,12 @@ The `SpawnShards` node is a **new XML node type** added in Phase 3. It's impleme
 
 **Step 1: Create the C++ class**
 
-Extend `UAauraDamageGameplayAbility` directly:
+Extend `UAuraDamageGameplayAbility` directly:
 
 ```cpp
 // AuraFireBlast.h
 UCLASS()
-class UAauraFireBlast : public UAauraDamageGameplayAbility
+class UAuraFireBlast : public UAuraDamageGameplayAbility
 {
     GENERATED_BODY()
 public:
@@ -502,7 +513,7 @@ private:
 
 **Step 2: Create the Legacy Blueprint GA**
 
-- Blueprint `GA_FireBlast` extending `UAauraFireBlast`
+- Blueprint `GA_FireBlast` extending `UAuraFireBlast`
 - Default properties: `Damage = 60`, `DamageType = Damage.Fire`, `DebuffChance = 0.5`
 - `NumFireBalls = 12`, `FireBallClass = BP_FireBall`
 
@@ -571,7 +582,7 @@ Also notable: **no `<montage>` element** — FireBlast has no cast animation. No
 
 | Aspect | GAS-Version (Traditional) | AuraAbilityGraph (Data-Driven) |
 |---|---|---|
-| **Ability class** | Blueprint `GA_FireBlast` extending `UAauraFireBlast` | No Blueprint; `UAuraDataAbility` generic |
+| **Ability class** | Blueprint `GA_FireBlast` extending `UAuraFireBlast` | No Blueprint; `UAuraDataAbility` generic |
 | **No montage/cast** | Must remember to omit PlayMontage/WaitForMontageEvent | XML naturally omits `<montage>` element |
 | **No targeting** | Must remember to omit WaitForTargetData/FaceTarget | XML naturally omits these nodes |
 | **360° spread** | Hardcoded in `UAuraAbilitySystemLibrary::EvenlySpacedRotators` call | XML property `Spread="360"` |
@@ -588,12 +599,12 @@ Also notable: **no `<montage>` element** — FireBlast has no cast animation. No
 
 **Step 1: Create the C++ class**
 
-Extend `UAauraBeamSpell`:
+Extend `UAuraBeamSpell`:
 
 ```cpp
 // Electrocute.h
 UCLASS()
-class UElectrocute : public UAauraBeamSpell
+class UElectrocute : public UAuraBeamSpell
 {
     GENERATED_BODY()
 public:

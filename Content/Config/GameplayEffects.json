@@ -21,12 +21,55 @@
     "healthPotion": {
       "duration": "instant",
       "health": 50,
-      "mana": 0
+      "mana": 0,
+      "assetTags": [
+        "Message.HealthPotion"
+      ]
     },
     "manaPotion": {
       "duration": "instant",
       "health": 0,
-      "mana": 25
+      "mana": 25,
+      "assetTags": [
+        "Message.ManaPotion"
+      ]
+    },
+    "healthCrystal": {
+      "duration": "duration",
+      "durationValue": 4,
+      "period": 0.1,
+      "executeOnApplication": true,
+      "health": 1,
+      "mana": 0,
+      "assetTags": [
+        "Message.HealthCrystal"
+      ]
+    },
+    "manaCrystal": {
+      "duration": "duration",
+      "durationValue": 1,
+      "period": 0.1,
+      "executeOnApplication": false,
+      "health": 0,
+      "mana": 1,
+      "assetTags": [
+        "Message.ManaCrystal"
+      ]
+    },
+    "fireArea": {
+      "duration": "infinite",
+      "period": 1,
+      "executeOnApplication": true,
+      "health": -5,
+      "mana": 0
+    },
+    "testAttribute": {
+      "duration": "instant",
+      "health": 0,
+      "mana": 0,
+      "attributes": {
+        "Attributes.Primary.Resilience": 15
+      }
     }
   }
 }

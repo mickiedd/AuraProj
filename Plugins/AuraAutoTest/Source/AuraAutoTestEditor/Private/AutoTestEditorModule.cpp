@@ -12,8 +12,6 @@
 #include "ToolMenu.h"
 #include "ToolMenuSection.h"
 #include "Framework/Commands/UIAction.h"
-#include "Framework/MultiBox/MultiBoxBuilder.h"
-#include "LevelEditor.h"
 #include "Styling/AppStyle.h"
 #include "Editor.h"
 #include "Engine/Engine.h"
@@ -40,16 +38,6 @@ void FAutoTestEditorModule::ShutdownModule()
 {
 	FEditorDelegates::BeginPIE.RemoveAll(this);
 	UnbindRunnerDelegates();
-
-	if (FModuleManager::Get().IsModuleLoaded("LevelEditor"))
-	{
-		FLevelEditorModule& LevelEditorModule = FModuleManager::GetModuleChecked<FLevelEditorModule>("LevelEditor");
-		if (ToolbarExtender.IsValid())
-		{
-			LevelEditorModule.GetToolBarExtensibilityManager()->RemoveExtender(ToolbarExtender);
-			ToolbarExtender.Reset();
-		}
-	}
 
 	UToolMenus::UnRegisterStartupCallback(this);
 	UToolMenus::UnregisterOwner(this);
@@ -81,13 +69,6 @@ void FAutoTestEditorModule::RegisterToolbar()
 	{
 		UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FAutoTestEditorModule::RegisterToolMenuToolbar));
 	}
-
-	// Legacy extender fallback.
-	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
-	ToolbarExtender = MakeShared<FExtender>();
-	ToolbarExtender->AddToolBarExtension("Play", EExtensionHook::After, nullptr,
-		FToolBarExtensionDelegate::CreateRaw(this, &FAutoTestEditorModule::AddLegacyToolbarButton));
-	LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
 }
 
 void FAutoTestEditorModule::RegisterToolMenuToolbar()
@@ -105,16 +86,6 @@ void FAutoTestEditorModule::RegisterToolMenuToolbar()
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Symbols.Check"));
 		Section.AddEntry(Entry);
 	}
-}
-
-void FAutoTestEditorModule::AddLegacyToolbarButton(FToolBarBuilder& Builder)
-{
-	Builder.AddToolBarButton(
-		FUIAction(FExecuteAction::CreateStatic(&FAutoTestEditorModule::OpenResultsPanel)),
-		NAME_None,
-		FText::FromString(TEXT("AutoTest")),
-		FText::FromString(TEXT("Open the Aura AutoTest results panel")),
-		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Symbols.Check"));
 }
 
 void FAutoTestEditorModule::OpenResultsPanel()

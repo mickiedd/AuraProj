@@ -41,4 +41,20 @@ void UAuraAssetManager::StartInitialLoading()
 	{
 		PickCDO->RebuildModifiers();
 	}
+	if (UAuraPickupGameplayEffect_Duration* PickDurationCDO = UAuraPickupGameplayEffect_Duration::StaticClass()->GetDefaultObject<UAuraPickupGameplayEffect_Duration>())
+	{
+		PickDurationCDO->RebuildModifiers();
+	}
+	if (UAuraPickupGameplayEffect_DurationDelayed* PickDurationDelayedCDO = UAuraPickupGameplayEffect_DurationDelayed::StaticClass()->GetDefaultObject<UAuraPickupGameplayEffect_DurationDelayed>())
+	{
+		PickDurationDelayedCDO->RebuildModifiers();
+	}
+	if (UAuraPickupGameplayEffect_Infinite* PickInfiniteCDO = UAuraPickupGameplayEffect_Infinite::StaticClass()->GetDefaultObject<UAuraPickupGameplayEffect_Infinite>())
+	{
+		PickInfiniteCDO->RebuildModifiers();
+	}
+	if (UAuraPickupGameplayEffect_InfiniteDelayed* PickInfiniteDelayedCDO = UAuraPickupGameplayEffect_InfiniteDelayed::StaticClass()->GetDefaultObject<UAuraPickupGameplayEffect_InfiniteDelayed>())
+	{
+		PickInfiniteDelayedCDO->RebuildModifiers();
+	}
 }

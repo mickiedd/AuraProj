@@ -13,6 +13,22 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 
+namespace AuraEffectActorPrivate
+{
+	bool IsSupportedAttributeTag(const FGameplayTag& Tag)
+	{
+		const UAuraPickupGameplayEffect* PickupCDO = GetDefault<UAuraPickupGameplayEffect>();
+		for (const FGameplayModifierInfo& Modifier : PickupCDO->Modifiers)
+		{
+			if (Modifier.ModifierMagnitude.GetSetByCallerFloat().DataTag == Tag)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
 AAuraEffectActor::AAuraEffectActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -68,33 +84,9 @@ void AAuraEffectActor::StartRotation()
 	CalculatedRotation = GetActorRotation();
 }
 
-void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
-{
-	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
-
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-	if (TargetASC == nullptr) return;
-
-	check(GameplayEffectClass);
-	FGameplayEffectContextHandle EffectContextHandle = TargetASC->MakeEffectContext();
-	EffectContextHandle.AddSourceObject(this);
-	const FGameplayEffectSpecHandle EffectSpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass, ActorLevel, EffectContextHandle);
-	const FActiveGameplayEffectHandle ActiveEffectHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
-
-	const bool bIsInfinite =  EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;
-	if (bIsInfinite && InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
-	{
-		ActiveEffectHandles.Add(ActiveEffectHandle, TargetASC);
-	}
-
-	if (!bIsInfinite)
-	{
-		Destroy();
-	}
-}
-
 void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString& EffectName)
 {
+	if (!IsValid(TargetActor)) return;
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
 	if (EffectName.IsEmpty()) return;
 
@@ -118,34 +110,160 @@ void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString&
 		return;
 	}
 
-	const TSharedPtr<FJsonObject>* PickupObj;
-	if (!RootObj->GetObjectField(TEXT("pickupEffects"))->TryGetObjectField(EffectName, PickupObj) || !PickupObj->IsValid())
+	const TSharedPtr<FJsonObject>* PickupEffectsObj = nullptr;
+	if (!RootObj->TryGetObjectField(TEXT("pickupEffects"), PickupEffectsObj) || !PickupEffectsObj || !PickupEffectsObj->IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] GameplayEffects.json has no valid 'pickupEffects' object"));
+		return;
+	}
+
+	const TSharedPtr<FJsonObject>* PickupObj = nullptr;
+	if (!(*PickupEffectsObj)->TryGetObjectField(EffectName, PickupObj) || !PickupObj || !PickupObj->IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' not found in GameplayEffects.json"), *EffectName);
 		return;
 	}
 
-	// Apply via the C++ UAuraPickupGameplayEffect with SetByCaller magnitudes.
+	FString DurationType;
+	if (!(*PickupObj)->TryGetStringField(TEXT("duration"), DurationType))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' is missing string field 'duration'"), *EffectName);
+		return;
+	}
+	DurationType.ToLowerInline();
+
+	bool bExecuteOnApplication = true;
+	(*PickupObj)->TryGetBoolField(TEXT("executeOnApplication"), bExecuteOnApplication);
+
+	TSubclassOf<UGameplayEffect> EffectClass;
+	if (DurationType == TEXT("instant"))
+	{
+		EffectClass = UAuraPickupGameplayEffect::StaticClass();
+	}
+	else if (DurationType == TEXT("duration"))
+	{
+		EffectClass = bExecuteOnApplication
+			? UAuraPickupGameplayEffect_Duration::StaticClass()
+			: UAuraPickupGameplayEffect_DurationDelayed::StaticClass();
+	}
+	else if (DurationType == TEXT("infinite"))
+	{
+		EffectClass = bExecuteOnApplication
+			? UAuraPickupGameplayEffect_Infinite::StaticClass()
+			: UAuraPickupGameplayEffect_InfiniteDelayed::StaticClass();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' has invalid duration '%s'"), *EffectName, *DurationType);
+		return;
+	}
+
 	FGameplayEffectContextHandle Context = TargetASC->MakeEffectContext();
 	Context.AddSourceObject(this);
-	const FGameplayEffectSpecHandle Spec = TargetASC->MakeOutgoingSpec(UAuraPickupGameplayEffect::StaticClass(), ActorLevel, Context);
+	const FGameplayEffectSpecHandle Spec = TargetASC->MakeOutgoingSpec(EffectClass, ActorLevel, Context);
+	if (!Spec.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Failed to create spec for pickup effect '%s'"), *EffectName);
+		return;
+	}
 
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-	const float HealthValue = static_cast<float>((*PickupObj)->GetNumberField(TEXT("health")));
-	const float ManaValue = static_cast<float>((*PickupObj)->GetNumberField(TEXT("mana")));
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, GameplayTags.Attributes_Vital_Health, HealthValue);
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, GameplayTags.Attributes_Vital_Mana, ManaValue);
-
-	// Handle duration override
-	const FString DurationStr = (*PickupObj)->GetStringField(TEXT("duration"));
-	if (DurationStr == TEXT("duration") && Spec.Data.IsValid())
+	TMap<FGameplayTag, float> AttributeMagnitudes;
+	// Every modifier on the shared native GE must have a SetByCaller value. GAS
+	// logs missing values as errors, so seed all supported attributes with a
+	// harmless zero before overlaying the configured values.
+	const UGameplayEffect* EffectCDO = EffectClass->GetDefaultObject<UGameplayEffect>();
+	for (const FGameplayModifierInfo& Modifier : EffectCDO->Modifiers)
 	{
-		Spec.Data.Get()->SetDuration((*PickupObj)->GetNumberField(TEXT("durationValue")), false);
+		const FGameplayTag DataTag = Modifier.ModifierMagnitude.GetSetByCallerFloat().DataTag;
+		if (DataTag.IsValid())
+		{
+			AttributeMagnitudes.Add(DataTag, 0.f);
+		}
+	}
+	double NumberValue = 0.0;
+	if ((*PickupObj)->TryGetNumberField(TEXT("health"), NumberValue))
+	{
+		AttributeMagnitudes.Add(GameplayTags.Attributes_Vital_Health, static_cast<float>(NumberValue));
+	}
+	if ((*PickupObj)->TryGetNumberField(TEXT("mana"), NumberValue))
+	{
+		AttributeMagnitudes.Add(GameplayTags.Attributes_Vital_Mana, static_cast<float>(NumberValue));
+	}
+
+	const TSharedPtr<FJsonObject>* AttributesObj = nullptr;
+	if ((*PickupObj)->TryGetObjectField(TEXT("attributes"), AttributesObj) && AttributesObj && AttributesObj->IsValid())
+	{
+		for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : (*AttributesObj)->Values)
+		{
+			double AttributeValue = 0.0;
+			if (!Pair.Value.IsValid() || !Pair.Value->TryGetNumber(AttributeValue))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' attribute '%s' must be numeric"), *EffectName, *Pair.Key);
+				continue;
+			}
+
+			const FGameplayTag AttributeTag = FGameplayTag::RequestGameplayTag(FName(*Pair.Key), false);
+			if (!AttributeTag.IsValid() || !AuraEffectActorPrivate::IsSupportedAttributeTag(AttributeTag))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' uses unsupported attribute tag '%s'"), *EffectName, *Pair.Key);
+				continue;
+			}
+			AttributeMagnitudes.Add(AttributeTag, static_cast<float>(AttributeValue));
+		}
+	}
+
+	for (const TPair<FGameplayTag, float>& Pair : AttributeMagnitudes)
+	{
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Pair.Key, Pair.Value);
+	}
+
+	if (DurationType == TEXT("duration"))
+	{
+		double DurationValue = 0.0;
+		if (!(*PickupObj)->TryGetNumberField(TEXT("durationValue"), DurationValue) || DurationValue <= 0.0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Duration pickup effect '%s' requires durationValue > 0"), *EffectName);
+			return;
+		}
+		Spec.Data->SetDuration(static_cast<float>(DurationValue), false);
+	}
+
+	double PeriodValue = 0.0;
+	if ((*PickupObj)->TryGetNumberField(TEXT("period"), PeriodValue))
+	{
+		if (DurationType == TEXT("instant") || PeriodValue <= 0.0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' has an invalid period"), *EffectName);
+			return;
+		}
+		Spec.Data->Period = static_cast<float>(PeriodValue);
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* AssetTagValues = nullptr;
+	if ((*PickupObj)->TryGetArrayField(TEXT("assetTags"), AssetTagValues) && AssetTagValues)
+	{
+		FGameplayTagContainer DynamicAssetTags;
+		for (const TSharedPtr<FJsonValue>& TagValue : *AssetTagValues)
+		{
+			FString TagString;
+			if (!TagValue.IsValid() || !TagValue->TryGetString(TagString)) continue;
+			const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*TagString), false);
+			if (Tag.IsValid())
+			{
+				DynamicAssetTags.AddTag(Tag);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' has unknown asset tag '%s'"), *EffectName, *TagString);
+			}
+		}
+		Spec.Data->AppendDynamicAssetTags(DynamicAssetTags);
 	}
 
 	const FActiveGameplayEffectHandle ActiveEffectHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 
-	const bool bIsInfinite = Spec.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;
+	const bool bIsInfinite = DurationType == TEXT("infinite");
 	if (bIsInfinite && InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{
 		ActiveEffectHandles.Add(ActiveEffectHandle, TargetASC);
@@ -159,56 +277,39 @@ void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString&
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
+	if (!IsValid(TargetActor)) return;
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
 
-	// Data-driven path: if effect names are set, use C++ GE + JSON config.
-	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
+	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap && !InstantEffectName.IsEmpty())
 	{
-		if (!InstantEffectName.IsEmpty())
-			ApplyDataDrivenEffect(TargetActor, InstantEffectName);
-		else if (InstantGameplayEffectClass)
-			ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
+		ApplyDataDrivenEffect(TargetActor, InstantEffectName);
 	}
-	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
+	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap && !DurationEffectName.IsEmpty())
 	{
-		if (!DurationEffectName.IsEmpty())
-			ApplyDataDrivenEffect(TargetActor, DurationEffectName);
-		else if (DurationGameplayEffectClass)
-			ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+		ApplyDataDrivenEffect(TargetActor, DurationEffectName);
 	}
-	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
+	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap && !InfiniteEffectName.IsEmpty())
 	{
-		if (!InfiniteEffectName.IsEmpty())
-			ApplyDataDrivenEffect(TargetActor, InfiniteEffectName);
-		else if (InfiniteGameplayEffectClass)
-			ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
+		ApplyDataDrivenEffect(TargetActor, InfiniteEffectName);
 	}
 }
 
 void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
+	if (!IsValid(TargetActor)) return;
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
 
-	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
+	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap && !InstantEffectName.IsEmpty())
 	{
-		if (!InstantEffectName.IsEmpty())
-			ApplyDataDrivenEffect(TargetActor, InstantEffectName);
-		else if (InstantGameplayEffectClass)
-			ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
+		ApplyDataDrivenEffect(TargetActor, InstantEffectName);
 	}
-	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
+	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap && !DurationEffectName.IsEmpty())
 	{
-		if (!DurationEffectName.IsEmpty())
-			ApplyDataDrivenEffect(TargetActor, DurationEffectName);
-		else if (DurationGameplayEffectClass)
-			ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
+		ApplyDataDrivenEffect(TargetActor, DurationEffectName);
 	}
-	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
+	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap && !InfiniteEffectName.IsEmpty())
 	{
-		if (!InfiniteEffectName.IsEmpty())
-			ApplyDataDrivenEffect(TargetActor, InfiniteEffectName);
-		else if (InfiniteGameplayEffectClass)
-			ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
+		ApplyDataDrivenEffect(TargetActor, InfiniteEffectName);
 	}
 	if (InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{

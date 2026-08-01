@@ -101,13 +101,11 @@ public:
 };
 
 /**
- * C++ GE for pickup/buff effects. Replaces the BP UAssets used by AuraEffectActor
- * (InstantGameplayEffectClass, DurationGameplayEffectClass, InfiniteGameplayEffectClass).
+ * C++ GE for pickup/buff effects used by AuraEffectActor's named JSON entries.
  *
- * Adds SetByCaller modifiers for Health and Mana so potions/buffs can modify them.
- * Magnitude values come from GameplayEffects.json at runtime.
- * DurationPolicy is set to Instant by default; the spec can override duration
- * via SetDuration when a Duration or Infinite effect is needed.
+ * Adds SetByCaller modifiers for every player-facing attribute so pickup entries
+ * can target arbitrary attributes by gameplay tag. Magnitudes come from
+ * GameplayEffects.json at runtime.
  *
  * NOTE: Same CDO/DataTag timing caveat as UAuraAttributeGameplayEffect —
  * RebuildModifiers() must be called after native tags are initialized.
@@ -131,22 +129,89 @@ private:
     {
         Modifiers.Reset();
 
-        // Health and Mana are the most common pickup effects (potions, heals).
-        // Add SetByCaller modifiers so the magnitude can be set per-application.
         const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
 
-        FGameplayModifierInfo& HealthInfo = Modifiers.AddDefaulted_GetRef();
-        HealthInfo.Attribute = UAuraAttributeSet::GetHealthAttribute();
-        HealthInfo.ModifierOp = EGameplayModOp::Additive;
-        FSetByCallerFloat HealthSetByCaller;
-        HealthSetByCaller.DataTag = Tags.Attributes_Vital_Health;
-        HealthInfo.ModifierMagnitude = FGameplayEffectModifierMagnitude(HealthSetByCaller);
+        auto AddMod = [this](FGameplayAttribute Attribute, FGameplayTag DataTag)
+        {
+            FGameplayModifierInfo& Info = Modifiers.AddDefaulted_GetRef();
+            Info.Attribute = Attribute;
+            Info.ModifierOp = EGameplayModOp::Additive;
+            FSetByCallerFloat SetByCaller;
+            SetByCaller.DataTag = DataTag;
+            Info.ModifierMagnitude = FGameplayEffectModifierMagnitude(SetByCaller);
+        };
 
-        FGameplayModifierInfo& ManaInfo = Modifiers.AddDefaulted_GetRef();
-        ManaInfo.Attribute = UAuraAttributeSet::GetManaAttribute();
-        ManaInfo.ModifierOp = EGameplayModOp::Additive;
-        FSetByCallerFloat ManaSetByCaller;
-        ManaSetByCaller.DataTag = Tags.Attributes_Vital_Mana;
-        ManaInfo.ModifierMagnitude = FGameplayEffectModifierMagnitude(ManaSetByCaller);
+        AddMod(UAuraAttributeSet::GetStrengthAttribute(), Tags.Attributes_Primary_Strength);
+        AddMod(UAuraAttributeSet::GetIntelligenceAttribute(), Tags.Attributes_Primary_Intelligence);
+        AddMod(UAuraAttributeSet::GetResilienceAttribute(), Tags.Attributes_Primary_Resilience);
+        AddMod(UAuraAttributeSet::GetVigorAttribute(), Tags.Attributes_Primary_Vigor);
+        AddMod(UAuraAttributeSet::GetArmorAttribute(), Tags.Attributes_Secondary_Armor);
+        AddMod(UAuraAttributeSet::GetArmorPenetrationAttribute(), Tags.Attributes_Secondary_ArmorPenetration);
+        AddMod(UAuraAttributeSet::GetBlockChanceAttribute(), Tags.Attributes_Secondary_BlockChance);
+        AddMod(UAuraAttributeSet::GetCriticalHitChanceAttribute(), Tags.Attributes_Secondary_CriticalHitChance);
+        AddMod(UAuraAttributeSet::GetCriticalHitDamageAttribute(), Tags.Attributes_Secondary_CriticalHitDamage);
+        AddMod(UAuraAttributeSet::GetCriticalHitResistanceAttribute(), Tags.Attributes_Secondary_CriticalHitResistance);
+        AddMod(UAuraAttributeSet::GetHealthRegenerationAttribute(), Tags.Attributes_Secondary_HealthRegeneration);
+        AddMod(UAuraAttributeSet::GetManaRegenerationAttribute(), Tags.Attributes_Secondary_ManaRegeneration);
+        AddMod(UAuraAttributeSet::GetMaxHealthAttribute(), Tags.Attributes_Secondary_MaxHealth);
+        AddMod(UAuraAttributeSet::GetMaxManaAttribute(), Tags.Attributes_Secondary_MaxMana);
+        AddMod(UAuraAttributeSet::GetFireResistanceAttribute(), Tags.Attributes_Resistance_Fire);
+        AddMod(UAuraAttributeSet::GetLightningResistanceAttribute(), Tags.Attributes_Resistance_Lightning);
+        AddMod(UAuraAttributeSet::GetArcaneResistanceAttribute(), Tags.Attributes_Resistance_Arcane);
+        AddMod(UAuraAttributeSet::GetPhysicalResistanceAttribute(), Tags.Attributes_Resistance_Physical);
+        AddMod(UAuraAttributeSet::GetHealthAttribute(), Tags.Attributes_Vital_Health);
+        AddMod(UAuraAttributeSet::GetManaAttribute(), Tags.Attributes_Vital_Mana);
+    }
+};
+
+/** Duration pickup that executes immediately when periodic. */
+UCLASS()
+class AURAABILITYGRAPH_API UAuraPickupGameplayEffect_Duration : public UAuraPickupGameplayEffect
+{
+    GENERATED_BODY()
+public:
+    UAuraPickupGameplayEffect_Duration()
+    {
+        DurationPolicy = EGameplayEffectDurationType::HasDuration;
+        bExecutePeriodicEffectOnApplication = true;
+    }
+};
+
+/** Duration pickup whose first periodic execution waits for one period. */
+UCLASS()
+class AURAABILITYGRAPH_API UAuraPickupGameplayEffect_DurationDelayed : public UAuraPickupGameplayEffect
+{
+    GENERATED_BODY()
+public:
+    UAuraPickupGameplayEffect_DurationDelayed()
+    {
+        DurationPolicy = EGameplayEffectDurationType::HasDuration;
+        bExecutePeriodicEffectOnApplication = false;
+    }
+};
+
+/** Infinite pickup that executes immediately when periodic. */
+UCLASS()
+class AURAABILITYGRAPH_API UAuraPickupGameplayEffect_Infinite : public UAuraPickupGameplayEffect
+{
+    GENERATED_BODY()
+public:
+    UAuraPickupGameplayEffect_Infinite()
+    {
+        DurationPolicy = EGameplayEffectDurationType::Infinite;
+        bExecutePeriodicEffectOnApplication = true;
+    }
+};
+
+/** Infinite pickup whose first periodic execution waits for one period. */
+UCLASS()
+class AURAABILITYGRAPH_API UAuraPickupGameplayEffect_InfiniteDelayed : public UAuraPickupGameplayEffect
+{
+    GENERATED_BODY()
+public:
+    UAuraPickupGameplayEffect_InfiniteDelayed()
+    {
+        DurationPolicy = EGameplayEffectDurationType::Infinite;
+        bExecutePeriodicEffectOnApplication = false;
     }
 };

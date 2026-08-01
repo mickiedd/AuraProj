@@ -8,7 +8,6 @@
 #include "AuraEffectActor.generated.h"
 
 class UAbilitySystemComponent;
-class UGameplayEffect;
 
 UENUM(BlueprintType)
 enum class EEffectApplicationPolicy : uint8
@@ -66,9 +65,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup Movement")
 	FVector InitialLocation;
 
-	UFUNCTION(BlueprintCallable)
-	void ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass);
-
 	/** Apply a data-driven pickup effect by name (from GameplayEffects.json). Uses C++ UAuraPickupGameplayEffect. */
 	UFUNCTION(BlueprintCallable)
 	void ApplyDataDrivenEffect(AActor* TargetActor, const FString& EffectName);
@@ -86,19 +82,10 @@ protected:
 	bool bApplyEffectsToEnemies = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
-	TSubclassOf<UGameplayEffect> InstantGameplayEffectClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
 	EEffectApplicationPolicy InstantEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
-	TSubclassOf<UGameplayEffect> DurationGameplayEffectClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
 	EEffectApplicationPolicy DurationEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
-	TSubclassOf<UGameplayEffect> InfiniteGameplayEffectClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
 	EEffectApplicationPolicy InfiniteEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
@@ -107,7 +94,7 @@ protected:
 	EEffectRemovalPolicy InfiniteEffectRemovalPolicy = EEffectRemovalPolicy::RemoveOnEndOverlap;
 
 	// ── Data-driven pickup effects (JSON) ─────────────────────────
-	// If set, overrides the UAsset GE classes. The name indexes into
+	// The name indexes into
 	// Content/Config/GameplayEffects.json → "pickupEffects" → <name>.
 	// Uses UAuraPickupGameplayEffect (C++) with SetByCaller magnitudes from JSON.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects|DataDriven")
