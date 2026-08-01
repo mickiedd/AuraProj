@@ -6,6 +6,8 @@
 
 Buffs and pickups are configured in `Content/Config/GameplayEffects.json` and applied by `AAuraEffectActor` through native `UGameplayEffect` classes. Pickup Blueprint assets select effects by JSON name and no longer reference Gameplay Effect Blueprint UAssets.
 
+The next migration—replacing the remaining Blueprint projectile and pickup actor behavior while retaining presentation assets—is specified in `Gameplay-Blueprint-Decoupling-Migration-Plan.md`.
+
 The system supports:
 
 - Instant, fixed-duration, and infinite effects.
