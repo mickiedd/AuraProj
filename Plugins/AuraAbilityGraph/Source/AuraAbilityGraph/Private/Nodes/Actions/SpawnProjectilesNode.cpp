@@ -10,6 +10,7 @@
 #include "Actor/AuraFireBall.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraAbilityGraphLogChannels.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 
 UAuraAbilityActionTask* USpawnProjectilesNode::CreateTask(UObject* Outer) const
 {
@@ -144,6 +145,23 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
                 Params.RadialDamageOuterRadius = 0.f;
                 Params.RadialDamageOrigin = FVector::ZeroVector;
                 Projectile->DamageEffectParams = Params;
+
+                if (Node->bHoming)
+                {
+                    AActor* HomingTarget = Ctx.CursorHit.GetActor();
+                    if (HomingTarget && HomingTarget->Implements<UCombatInterface>())
+                    {
+                        Projectile->ProjectileMovement->HomingTargetComponent = HomingTarget->GetRootComponent();
+                    }
+                    else
+                    {
+                        Projectile->HomingTargetSceneComponent = NewObject<USceneComponent>(Projectile, TEXT("HomingTargetSceneComponent"));
+                        Projectile->HomingTargetSceneComponent->SetWorldLocation(TargetLocation);
+                        Projectile->ProjectileMovement->HomingTargetComponent = Projectile->HomingTargetSceneComponent;
+                    }
+                    Projectile->ProjectileMovement->HomingAccelerationMagnitude = FMath::FRandRange(Node->HomingAccelerationMin, Node->HomingAccelerationMax);
+                    Projectile->ProjectileMovement->bIsHomingProjectile = true;
+                }
             }
         }
 

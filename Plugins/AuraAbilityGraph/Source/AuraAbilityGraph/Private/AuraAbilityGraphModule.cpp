@@ -23,6 +23,8 @@
 #include "Tests/TestDataAbility.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Actor/AuraProjectile.h"
+#include "Components/SphereComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "NiagaraSystem.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
@@ -576,7 +578,7 @@ static bool SmokeTest_RoleDefinitionLoading()
 // WaitForMontageEvent, with no 'Wait' node anywhere between them. A Wait there
 // makes WaitForMontageEvent subscribe AFTER the Event.Montage.FireBolt anim
 // notify fired (UAbilityTask_WaitGameplayEvent only catches events after it
-// subscribes), hanging the ability forever â€” no projectile, never ends.
+// subscribes), hanging the ability forever éˆ?no projectile, never ends.
 static bool SmokeTest_FireBoltFileGraph()
 {
 	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("FireBolt.xml"));
@@ -666,7 +668,7 @@ static bool SmokeTest_FireBoltFileGraph()
 }
 
 // ===================================================================
-// Phase 3 smoke tests â€” load the real XML files from disk and validate
+// Phase 3 smoke tests éˆ?load the real XML files from disk and validate
 // graph structure, node types, and properties for the newly ported
 // abilities: FireBlast, ArcaneShards, Electrocute.
 // ===================================================================
@@ -1062,8 +1064,8 @@ static bool SmokeTest_ElectrocuteFileGraph()
 // ===================================================================
 
 // Asserts that Sequence::Cancel propagates to every entered child (un-entering it)
-// and that the channeled beam child tears down cleanly. Uses an empty context â€” no
-// ASC/Avatar/World â€” so it also verifies Cancel is safe with null runtime context.
+// and that the channeled beam child tears down cleanly. Uses an empty context éˆ?no
+// ASC/Avatar/World éˆ?so it also verifies Cancel is safe with null runtime context.
 static bool SmokeTest_SequenceCancelPropagation()
 {
 	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("Electrocute.xml"));
@@ -1131,7 +1133,7 @@ static bool SmokeTest_SequenceCancelPropagation()
 }
 
 // Asserts the beam task is safe to Cancel / OnExit / OnStart with a null runtime
-// context (no owner ability, avatar, or world) â€” the condition EndPlayMep teardown
+// context (no owner ability, avatar, or world) éˆ?the condition EndPlayMep teardown
 // leaves it in. OnStart must return Failure (not crash); Cancel/OnExit must no-op.
 static bool SmokeTest_ElectrocuteBeamTaskCancelSafe()
 {
@@ -1164,7 +1166,7 @@ static bool SmokeTest_ElectrocuteBeamTaskCancelSafe()
 // ===================================================================
 // Spawn smoke tests: verify a projectile/Niagara effect actually spawns
 // and at the correct world location. These run headlessly in a transient
-// UWorld (no PIE, no rendering) â€” the spawned AAuraProjectile /
+// UWorld (no PIE, no rendering) éˆ?the spawned AAuraProjectile /
 // UNiagaraComponent exist and are queryable regardless.
 // ===================================================================
 
@@ -1247,7 +1249,7 @@ static bool SmokeTest_EvenlySpacedRotators()
 }
 
 // Verifies SpawnProjectiles actually spawns Count actors, all at the socket location,
-// and that their directions are the evenly-spread set â€” i.e. "spawned, and aimed right".
+// and that their directions are the evenly-spread set éˆ?i.e. "spawned, and aimed right".
 static bool SmokeTest_ProjectileSpawnCountAndLocation()
 {
 	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
@@ -1340,6 +1342,130 @@ static bool SmokeTest_ProjectileSpawnCountAndLocation()
 
 	DestroySpawnTestEnv(Env);
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ProjectileSpawnCountAndLocation PASSED (5 projectiles at socket, 90deg spread)."));
+	return true;
+}
+
+// Verifies the FireBolt/AuraProjectile wall-impact fix: a projectile whose Sphere blocks
+// ECC_WorldStatic must STOP on a static blocker (firing OnComponentHit -> OnSphereHit),
+// play its impact effect, and destroy itself éˆ?instead of tunneling through the wall and
+// disappearing only via LifeSpan. Before the fix, the Sphere was Overlap (not Block) on
+// WorldStatic, so OnComponentBeginOverlap never fired against blocking geometry and the
+// non-blocking sweep passed straight through; this test reproduces that exact scenario.
+static bool SmokeTest_ProjectileWallImpact()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar || !Env.Ability)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// Spawn the actual BP_FireBolt (the class this ability fires) facing +X.
+	FActorSpawnParameters SP;
+	SP.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	TSubclassOf<AAuraProjectile> BPClass = LoadClass<AAuraProjectile>(nullptr,
+		TEXT("/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/BP_FireBolt.BP_FireBolt_C"));
+	if (!BPClass)
+	{
+		BPClass = StaticLoadClass(AAuraProjectile::StaticClass(), nullptr,
+			TEXT("/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/BP_FireBolt.BP_FireBolt_C"));
+	}
+	if (!BPClass)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileWallImpact: failed to load BP_FireBolt class"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	AAuraProjectile* Proj = Env.World->SpawnActor<AAuraProjectile>(
+		BPClass,
+		FTransform(FRotator::ZeroRotator, FVector::ZeroVector), SP);
+	if (!Proj)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileWallImpact: failed to spawn BP_FireBolt"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// Replicate BeginPlay collision re-assert for BP_FireBolt (bakes Sphere as NoCollision
+	// in editor; runtime BeginPlay re-enables + forces WorldStatic=Block).
+	{
+		USphereComponent* Sphere = Proj->GetSphereComponent();
+		Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+		Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+		Sphere->OnComponentHit.AddDynamic(Proj, &AAuraProjectile::OnSphereHit);
+	}
+
+	if (Proj->GetSphereComponent()->GetScaledSphereRadius() <= 0.f)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileWallImpact: projectile sphere radius is zero (collision shape degenerate)"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// The transient world has no net driver, so a bReplicates=true projectile doesn't default to
+	// ROLE_Authority (unlike the bReplicates=false test avatars). In-game the SERVER spawns the
+	// projectile, so OnSphereHit's HasAuthority() gate (which calls Destroy) runs there éˆ?model
+	// that server-side context here.
+	Proj->SetRole(ENetRole::ROLE_Authority);
+
+	// Build a WorldStatic blocker in the projectile's path and make it block ECC_Projectile,
+	// the way a wall (BlockAll profile) would. Reuse a TestCombatAvatar's sphere but
+	// reconfigure its collision to a static blocker.
+	const float BlockerRadius = 50.f;
+	const FVector BlockerLoc(200.f, 0.f, 0.f);
+	ATestCombatAvatar* Wall = Env.World->SpawnActor<ATestCombatAvatar>(
+		ATestCombatAvatar::StaticClass(), FTransform(FRotator::ZeroRotator, BlockerLoc), SP);
+	if (!Wall)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileWallImpact: failed to spawn wall blocker"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	USphereComponent* WallSphere = Wall->CollisionSphere;
+	WallSphere->InitSphereRadius(BlockerRadius);
+	WallSphere->SetCollisionObjectType(ECC_WorldStatic);
+	WallSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	WallSphere->SetCollisionResponseToAllChannels(ECR_Block);
+	WallSphere->SetGenerateOverlapEvents(false);
+
+	// The transient smoke-test world doesn't run BeginPlay or the movement tick, so we drive
+	// the impact handler directly (in-game, MoveComponent dispatches it via OnComponentHit on
+	// the blocking sweep). Grab the projectile's root primitive to pass as the hit component.
+	UPrimitiveComponent* ProjRoot = Cast<UPrimitiveComponent>(Proj->GetRootComponent());
+	if (!ProjRoot)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileWallImpact: projectile root is not a primitive"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// 1) Config check (the fix): sweep the projectile into the wall. With WorldStatic=Block
+	//    the sweep must report a blocking hit. Before the fix (WorldStatic=Overlap) the
+	//    non-blocking sweep would have tunneled through with bBlockingHit=false.
+	FHitResult Hit;
+	Proj->SetActorLocation(FVector(600.f, 0.f, 0.f), /*bSweep=*/true, &Hit);
+	if (!Hit.bBlockingHit)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileWallImpact: no blocking hit on the wall (WorldStatic not Block? projectile tunneled through)"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// 2) Handler check: invoke the impact handler (the in-game path dispatches it via
+	//    OnComponentHit). It must drive ApplyImpactAndDestroy -> Destroy().
+	Proj->OnSphereHit(ProjRoot, Wall, WallSphere, FVector::ZeroVector, Hit);
+
+	if (IsValid(Proj))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ProjectileWallImpact: projectile still alive after wall hit (OnSphereHit -> Destroy not reached)"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	DestroySpawnTestEnv(Env);
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ProjectileWallImpact PASSED (blocked on WorldStatic, impact destroyed projectile)."));
 	return true;
 }
 
@@ -1545,6 +1671,7 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("ElectrocuteBeamTaskCancelSafe"), SmokeTest_ElectrocuteBeamTaskCancelSafe);
 	Run(TEXT("EvenlySpacedRotators"), SmokeTest_EvenlySpacedRotators);
 	Run(TEXT("ProjectileSpawnCountAndLocation"), SmokeTest_ProjectileSpawnCountAndLocation);
+	Run(TEXT("ProjectileWallImpact"), SmokeTest_ProjectileWallImpact);
 	Run(TEXT("ElectrocuteBeamSpawnEndpoints"), SmokeTest_ElectrocuteBeamSpawnEndpoints);
 	Run(TEXT("ElectrocuteBeamEmptyEffectNoSpawn"), SmokeTest_ElectrocuteBeamEmptyEffectNoSpawn);
 
@@ -1608,3 +1735,4 @@ void FAuraAbilityGraphModule::ShutdownModule()
 #undef LOCTEXT_NAMESPACE
 
 IMPLEMENT_MODULE(FAuraAbilityGraphModule, AuraAbilityGraph)
+

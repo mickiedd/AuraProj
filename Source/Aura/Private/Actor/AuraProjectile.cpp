@@ -15,6 +15,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Aura/AuraLogChannels.h"
+#include "Engine/World.h"
+#include "WorldCollision.h"
 
 AAuraProjectile::AAuraProjectile()
 {
@@ -25,11 +27,15 @@ AAuraProjectile::AAuraProjectile()
 
 	Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
 	SetRootComponent(Sphere);
+	Sphere->InitSphereRadius(15.f);
 	Sphere->SetCollisionObjectType(ECC_Projectile);
 	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Sphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+	// Block (not Overlap) WorldStatic so the projectile physically stops against walls and
+	// fires OnComponentHit; an Overlap-only QueryOnly sphere would pass straight through.
+	// AAuraFireBall opts back out to Ignore (it returns to its caster and must fly through geometry).
+	Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>("ProjectileMesh");
@@ -46,11 +52,59 @@ AAuraProjectile::AAuraProjectile()
 void AAuraProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogAura, Log, TEXT("[Projectile] BeginPlay: Actor=%s Role=%d RemoteRole=%d"),
-		*GetNameSafe(this), (int32)GetLocalRole(), (int32)GetRemoteRole());
+	UE_LOG(LogAura, Log, TEXT("[Projectile] BeginPlay: Actor=%s Role=%d RemoteRole=%d Loc=%s"),
+		*GetNameSafe(this), (int32)GetLocalRole(), (int32)GetRemoteRole(), *GetActorLocation().ToCompactString());
+
+	// Log the *actual* runtime collision responses the Sphere ended up with. BP subclasses
+	// (e.g. BP_FireBolt) bake the Sphere's responses into the asset at compile time, which
+	// overrides the C++ constructor defaults — this log surfaces that (pre-reassert) so a
+	// projectile that tunnels through walls can be diagnosed.
+	UE_LOG(LogAura, Log, TEXT("[Projectile] BeginPlay: pre-reassert Sphere WorldStatic=%d WorldDynamic=%d Pawn=%d Enabled=%d"),
+		(int32)Sphere->GetCollisionResponseToChannel(ECC_WorldStatic),
+		(int32)Sphere->GetCollisionResponseToChannel(ECC_WorldDynamic),
+		(int32)Sphere->GetCollisionResponseToChannel(ECC_Pawn),
+		(int32)Sphere->GetCollisionEnabled());
+
 	SetLifeSpan(LifeSpan);
 	SetReplicateMovement(true);
+
+	// Re-assert collision responses at runtime so BP-baked values can't override the fix.
+	// WorldStatic MUST be Block or the projectile's sweep is non-blocking and it tunnels
+	// through walls (the bug). AAuraFireBall::BeginPlay re-opts-out to Ignore afterward
+	// (the FireBall returns to its caster and must fly through geometry).
+	// Also force collision ENABLED: BP_FireBolt bakes Sphere collision as NoCollision (a
+	// 0.1s-delayed "Set Collision Enabled" node is meant to re-enable it but never takes effect,
+	// so the projectile never collides). Self-collision is guarded (SourceAvatarActor check), so
+	// enabling from frame 0 is safe.
+	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraProjectile::OnSphereOverlap);
+	Sphere->OnComponentHit.AddDynamic(this, &AAuraProjectile::OnSphereHit);
+	UE_LOG(LogAura, Log, TEXT("[Projectile] BeginPlay: post-reassert WorldStatic=%d Enabled=%d overlapBound=%d hitBound=%d"),
+		(int32)Sphere->GetCollisionResponseToChannel(ECC_WorldStatic),
+		(int32)Sphere->GetCollisionEnabled(),
+		(int32)Sphere->OnComponentBeginOverlap.IsBound(),
+		(int32)Sphere->OnComponentHit.IsBound());
+
+	// DIAGNOSTIC: forward probe along the firing direction. Tells us whether a wall (WorldStatic)
+	// or a pawn is actually in the bolt's path at spawn, and how far. If a wall is ahead at dist X
+	// but the bolt later expires at a location past X with bHit=0, the movement sweep is passing
+	// through the wall (not a homing-into-open-space issue). Probe with ECC_Projectile (the bolt's
+	// own channel) so it reflects what the bolt's collision would see.
+	{
+		FHitResult ProbeHit;
+		FCollisionQueryParams QP(SCENE_QUERY_STAT(ProjProbe), false, this);
+		if (GetOwner()) QP.AddIgnoredActor(GetOwner());
+		FCollisionShape Sph = FCollisionShape::MakeSphere(16.f);
+		const FVector Start = GetActorLocation();
+		const FVector End = Start + GetActorForwardVector() * 5000.f;
+		const bool bBlocked = GetWorld()->SweepSingleByChannel(ProbeHit, Start, End, FQuat::Identity, ECC_Projectile, Sph, QP);
+		UE_LOG(LogAura, Log, TEXT("[Projectile] BeginPlay: fwdProbe(ECC_Projectile) blocked=%d actor=%s comp=%s dist=%.0f"),
+			(int32)bBlocked, *GetNameSafe(ProbeHit.GetActor()), *GetNameSafe(ProbeHit.GetComponent()), ProbeHit.Distance);
+	}
 
 	if (FlightTrail && !FlightTrailComponent)
 	{
@@ -62,6 +116,8 @@ void AAuraProjectile::BeginPlay()
 
 void AAuraProjectile::OnHit()
 {
+	UE_LOG(LogAura, Log, TEXT("[Projectile] OnHit: Actor=%s bHit=%d HasAuth=%d Loc=%s"),
+		*GetNameSafe(this), (int32)bHit, (int32)HasAuthority(), *GetActorLocation().ToCompactString());
 	if (bHit)
 	{
 		return;
@@ -108,6 +164,8 @@ void AAuraProjectile::StopLoopingSound()
 void AAuraProjectile::Destroyed()
 {
 	StopLoopingSound();
+	UE_LOG(LogAura, Log, TEXT("[Projectile] Destroyed: Actor=%s bHit=%d HasAuth=%d Loc=%s"),
+		*GetNameSafe(this), (int32)bHit, (int32)HasAuthority(), *GetActorLocation().ToCompactString());
 	if (!bHit && !HasAuthority()) OnHit();
 	Super::Destroyed();
 }
@@ -123,6 +181,24 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 		*GetNameSafe(this), *GetNameSafe(OtherActor), *GetActorLocation().ToCompactString(),
 		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor) ? TEXT("true") : TEXT("false"));
 
+	ApplyImpactAndDestroy(OtherActor);
+}
+
+void AAuraProjectile::OnSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent ? DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor() : nullptr;
+	if (SourceAvatarActor == OtherActor) return;
+	if (bHit) return;
+
+	UE_LOG(LogAura, Log, TEXT("[Projectile] Hit(block): Actor=%s Other=%s Loc=%s bHasASC=%s"),
+		*GetNameSafe(this), *GetNameSafe(OtherActor), *GetActorLocation().ToCompactString(),
+		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor) ? TEXT("true") : TEXT("false"));
+
+	ApplyImpactAndDestroy(OtherActor);
+}
+
+void AAuraProjectile::ApplyImpactAndDestroy(AActor* OtherActor)
+{
 	OnHit();
 
 	if (HasAuthority())
@@ -138,17 +214,17 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 				{
 					FRotator Rotation = GetActorRotation();
 					Rotation.Pitch = 45.f;
-					
+
 					const FVector KnockbackDirection = Rotation.Vector();
 					const FVector KnockbackForce = KnockbackDirection * DamageEffectParams.KnockbackForceMagnitude;
 					DamageEffectParams.KnockbackForce = KnockbackForce;
 				}
-				
+
 				DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
 				UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
 			}
 		}
-		
+
 		Destroy();
 	}
 }

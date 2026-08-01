@@ -9,7 +9,18 @@
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Aura/AuraLogChannels.h"
 #include "Components/AudioComponent.h"
+#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
+
+AAuraFireBall::AAuraFireBall()
+{
+	// The FireBall travels out and returns to its caster; it must pass through walls rather
+	// than stop on them, so opt out of the base class's Block-on-WorldStatic behavior.
+	if (Sphere)
+	{
+		Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+	}
+}
 
 void AAuraFireBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -21,8 +32,16 @@ void AAuraFireBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 void AAuraFireBall::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogAura, Log, TEXT("[FireBall] BeginPlay: Actor=%s Role=%d RemoteRole=%d ReturnToActor=%s"),
-		*GetNameSafe(this), (int32)GetLocalRole(), (int32)GetRemoteRole(), *GetNameSafe(ReturnToActor));
+	// Super::BeginPlay re-asserts WorldStatic=Block (so BP-baked values can't break the base
+	// projectile). The FireBall must pass through walls (it returns to its caster), so opt back
+	// out to Ignore *after* Super::BeginPlay.
+	if (Sphere)
+	{
+		Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Ignore);
+	}
+	UE_LOG(LogAura, Log, TEXT("[FireBall] BeginPlay: Actor=%s Role=%d RemoteRole=%d ReturnToActor=%s WorldStatic=%d"),
+		*GetNameSafe(this), (int32)GetLocalRole(), (int32)GetRemoteRole(), *GetNameSafe(ReturnToActor),
+		(int32)Sphere->GetCollisionResponseToChannel(ECC_WorldStatic));
 	TryStartOutgoingTimeline();
 }
 

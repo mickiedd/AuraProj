@@ -14,6 +14,8 @@ class AURA_API AAuraFireBall : public AAuraProjectile
 {
 	GENERATED_BODY()
 public:
+	AAuraFireBall();
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintImplementableEvent)
