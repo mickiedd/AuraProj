@@ -11,8 +11,9 @@
 - RoleConfig.json updated: Aura role now has FireBlast, ArcaneShards, Electrocute in `startupAbilityDefinitions`
 - Build passes, 8/8 smoke tests pass
 
-### Phase 4 — Enemy abilities + cleanup ⬜ NOT STARTED
-- Enemy abilities still use legacy BPs (GA_EnemyFireBolt, GA_RangedAttack, GA_MeleeAttack, GA_HitReact)
+### Phase 4 — Enemy abilities + cleanup 🟨 IN PROGRESS (2026-08-03)
+- Four enemy XML definitions, class-based JSON grants, native enemy graph nodes, and focused validation tests are implemented and pass compile-only validation.
+- Legacy BPs (GA_EnemyFireBolt, GA_RangedAttack, GA_MeleeAttack, GA_HitReact) remain pending Asset Registry, reload, automation, and gameplay gates.
 - Legacy `GE_Cost_*` / `GE_Cooldown_*` BPs still on disk (dead code for DataAbility path)
 - Depends on Phase 3 completing first
 - Remove unused GE Blueprint assets after migration complete

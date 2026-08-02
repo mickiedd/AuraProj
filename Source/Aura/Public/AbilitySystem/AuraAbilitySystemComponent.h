@@ -38,7 +38,7 @@ public:
  	void AddCharacterAbilitiesFromSaveData(ULoadScreenSaveGame* SaveData);
  	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
  	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
- 	void AddCharacterDataAbilities(const TArray<UAuraAbilityDefinition*>& Definitions);
+	void AddCharacterDataAbilities(const TArray<UAuraAbilityDefinition*>& Definitions, int32 AbilityLevel = 1);
  	void AddCharacterDataPassiveAbilities(const TArray<UAuraAbilityDefinition*>& Definitions);
  	bool bStartupAbilitiesGiven = false;
 
@@ -93,6 +93,9 @@ public:
 	void ClearAbilitiesOfSlot(const FGameplayTag& Slot);
 	static bool AbilityHasSlot(FGameplayAbilitySpec* Spec, const FGameplayTag& Slot);
 protected:
+	/** Keeps transient XML definitions alive; FGameplayAbilitySpec::SourceObject is weak. */
+	UPROPERTY()
+	TArray<TObjectPtr<UAuraAbilityDefinition>> GrantedAbilityDefinitions;
 
 	virtual void OnRep_ActivateAbilities() override;
 

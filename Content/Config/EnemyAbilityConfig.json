@@ -1,0 +1,16 @@
+{
+  "commonAbilityDefinitions": [
+    "/Game/AbilityDefinitions/EnemyHitReact.xml"
+  ],
+  "classes": {
+    "Elementalist": [
+      "/Game/AbilityDefinitions/EnemyFireBolt.xml"
+    ],
+    "Warrior": [
+      "/Game/AbilityDefinitions/EnemyMeleeAttack.xml"
+    ],
+    "Ranger": [
+      "/Game/AbilityDefinitions/EnemyRangedAttack.xml"
+    ]
+  }
+}

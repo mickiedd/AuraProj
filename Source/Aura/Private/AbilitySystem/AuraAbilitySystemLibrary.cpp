@@ -2,6 +2,7 @@
 
 
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraAbilityTypes.h"
@@ -232,6 +233,61 @@ void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContext
 {
 	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
 	if (CharacterClassInfo == nullptr) return;
+
+	// Enemy abilities are configured independently from player RoleConfig because
+	// ECharacterClass drives AI archetypes. Grant the XML set first and retain the
+	// legacy data-asset path only as a fail-safe for malformed/missing config.
+	TArray<UAuraAbilityDefinition*> EnemyDefinitions;
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config/EnemyAbilityConfig.json"));
+	FString ConfigContent;
+	TSharedPtr<FJsonObject> ConfigObject;
+	if (FFileHelper::LoadFileToString(ConfigContent, *ConfigPath))
+	{
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ConfigContent);
+		FJsonSerializer::Deserialize(Reader, ConfigObject);
+	}
+
+	auto LoadDefinitionArray = [&EnemyDefinitions](const TArray<TSharedPtr<FJsonValue>>* Values)
+	{
+		if (!Values) return true;
+		for (const TSharedPtr<FJsonValue>& Value : *Values)
+		{
+			FString Path;
+			if (!Value.IsValid() || !Value->TryGetString(Path)) return false;
+			UAuraAbilityDefinition* Definition = UAuraAbilitySystemLibrary::LoadAbilityDefinitionFromXMLFile(Path);
+			if (!Definition) return false;
+			EnemyDefinitions.Add(Definition);
+		}
+		return true;
+	};
+
+	bool bLoadedDataDriven = false;
+	if (ConfigObject.IsValid())
+	{
+		const TArray<TSharedPtr<FJsonValue>>* Common = nullptr;
+		const TSharedPtr<FJsonObject>* Classes = nullptr;
+		bLoadedDataDriven = ConfigObject->TryGetArrayField(TEXT("commonAbilityDefinitions"), Common) &&
+			ConfigObject->TryGetObjectField(TEXT("classes"), Classes) && LoadDefinitionArray(Common);
+		if (bLoadedDataDriven)
+		{
+			const TCHAR* ClassName = CharacterClass == ECharacterClass::Elementalist ? TEXT("Elementalist") :
+				CharacterClass == ECharacterClass::Ranger ? TEXT("Ranger") : TEXT("Warrior");
+			const TArray<TSharedPtr<FJsonValue>>* ClassValues = nullptr;
+			bLoadedDataDriven = (*Classes)->TryGetArrayField(ClassName, ClassValues) && LoadDefinitionArray(ClassValues);
+		}
+	}
+
+	if (bLoadedDataDriven && EnemyDefinitions.Num() >= 2)
+	{
+		if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(ASC))
+		{
+			const int32 AbilityLevel = ASC->GetAvatarActor()->Implements<UCombatInterface>()
+				? ICombatInterface::Execute_GetPlayerLevel(ASC->GetAvatarActor()) : 1;
+			AuraASC->AddCharacterDataAbilities(EnemyDefinitions, AbilityLevel);
+			return;
+		}
+	}
+	UE_LOG(LogAura, Error, TEXT("[EnemyAbilities] Failed to load '%s'; retaining legacy Blueprint grants"), *ConfigPath);
 	for (TSubclassOf<UGameplayAbility> AbilityClass : CharacterClassInfo->CommonAbilities)
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);

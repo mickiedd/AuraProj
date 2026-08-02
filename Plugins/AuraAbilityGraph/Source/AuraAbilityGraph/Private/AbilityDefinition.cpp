@@ -115,6 +115,21 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
 
     AbilityName = FName(*Root->GetAttribute(TEXT("name")));
     AbilityTag = FGameplayTag::RequestGameplayTag(FName(*Root->GetAttribute(TEXT("abilityTag"))), false);
+    if (AbilityTag.IsValid())
+    {
+        AbilityTags.AddTag(AbilityTag);
+    }
+    TArray<FString> AdditionalTags;
+    Root->GetAttribute(TEXT("abilityTags")).ParseIntoArray(AdditionalTags, TEXT(","), true);
+    for (FString& TagString : AdditionalTags)
+    {
+        TagString.TrimStartAndEndInline();
+        const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*TagString), false);
+        if (Tag.IsValid())
+        {
+            AbilityTags.AddTag(Tag);
+        }
+    }
     InputTag = FGameplayTag::RequestGameplayTag(FName(*Root->GetAttribute(TEXT("inputTag"))), false);
     AbilityType = FGameplayTag::RequestGameplayTag(FName(*Root->GetAttribute(TEXT("type"))), false);
 
@@ -162,6 +177,21 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
             if (!BaseStr.IsEmpty())
             {
                 Damage.Value = FCString::Atof(*BaseStr);
+            }
+            const FString CurveTablePath = Child->GetAttribute(TEXT("curveTable"));
+            const FString CurveRow = Child->GetAttribute(TEXT("curveRow"));
+            if (!CurveTablePath.IsEmpty() && !CurveRow.IsEmpty())
+            {
+                if (UCurveTable* CurveTable = LoadObject<UCurveTable>(nullptr, *CurveTablePath))
+                {
+                    Damage.Curve.CurveTable = CurveTable;
+                    Damage.Curve.RowName = FName(*CurveRow);
+                }
+                else
+                {
+                    UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Failed to load damage curve table '%s'"), *CurveTablePath);
+                    return false;
+                }
             }
             DebuffChance = FCString::Atof(*Child->GetAttribute(TEXT("debuffChance")));
             DebuffDamage = FCString::Atof(*Child->GetAttribute(TEXT("debuffDamage")));

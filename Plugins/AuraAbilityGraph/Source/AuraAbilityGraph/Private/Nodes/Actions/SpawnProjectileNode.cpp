@@ -38,6 +38,10 @@ void USpawnProjectileNode::LoadFromProperties(int32 Version, const TArray<FAuraA
         {
             TargetFromContext = Property.Value;
         }
+        else if (Property.Name == TEXT("SocketFromContext"))
+        {
+            bSocketFromContext = Property.Value.ToBool();
+        }
     }
 }
 
@@ -58,7 +62,9 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
         return EAuraAbilityActionStatus::Failure;
     }
 
-    const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->SocketTag);
+    const FGameplayTag EffectiveSocketTag = Node->bSocketFromContext && Ctx.CombatSocketTag.IsValid()
+        ? Ctx.CombatSocketTag : Node->SocketTag;
+    const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, EffectiveSocketTag);
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart SocketTag=%s SocketLoc=%s"), *Node->SocketTag.ToString(), *SocketLocation.ToString());
     FVector TargetLocation = Ctx.CursorHit.ImpactPoint;
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart TargetLocation=%s TargetActor=%s"), *TargetLocation.ToString(), *GetNameSafe(Ctx.CursorHit.GetActor()));

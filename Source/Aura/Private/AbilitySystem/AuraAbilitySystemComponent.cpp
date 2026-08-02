@@ -184,7 +184,7 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 	AbilitiesGivenDelegate.Broadcast();
 }
 
-void UAuraAbilitySystemComponent::AddCharacterDataAbilities(const TArray<UAuraAbilityDefinition*>& Definitions)
+void UAuraAbilitySystemComponent::AddCharacterDataAbilities(const TArray<UAuraAbilityDefinition*>& Definitions, int32 AbilityLevel)
 {
 	UE_LOG(LogAura, Log, TEXT("[ASC] AddCharacterDataAbilities count=%d"), Definitions.Num());
 	for (UAuraAbilityDefinition* Definition : Definitions)
@@ -195,10 +195,23 @@ void UAuraAbilitySystemComponent::AddCharacterDataAbilities(const TArray<UAuraAb
 			continue;
 		}
 
-		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(UAuraDataAbility::StaticClass(), 1);
+		TSubclassOf<UGameplayAbility> DataAbilityClass = UAuraDataAbility::StaticClass();
+		if (Definition->AbilityTags.HasTagExact(FAuraGameplayTags::Get().Abilities_Attack))
+		{
+			DataAbilityClass = UAuraEnemyAttackDataAbility::StaticClass();
+		}
+		else if (Definition->AbilityTag.MatchesTagExact(FAuraGameplayTags::Get().Effects_HitReact))
+		{
+			DataAbilityClass = UAuraEnemyHitReactDataAbility::StaticClass();
+		}
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(DataAbilityClass, FMath::Max(1, AbilityLevel));
+		GrantedAbilityDefinitions.AddUnique(Definition);
 		AbilitySpec.SourceObject = Definition;
-		AbilitySpec.DynamicAbilityTags.AddTag(Definition->InputTag);
-		AbilitySpec.DynamicAbilityTags.AddTag(Definition->AbilityTag);
+		if (Definition->InputTag.IsValid())
+		{
+			AbilitySpec.DynamicAbilityTags.AddTag(Definition->InputTag);
+		}
+		AbilitySpec.DynamicAbilityTags.AppendTags(Definition->AbilityTags);
 		AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
 		GiveAbility(AbilitySpec);
 		UE_LOG(LogAura, Log, TEXT("[ASC] AddCharacterDataAbilities granted definition=%s InputTag=%s AbilityTag=%s"),
@@ -220,8 +233,10 @@ void UAuraAbilitySystemComponent::AddCharacterDataPassiveAbilities(const TArray<
 		}
 
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(UAuraDataAbility::StaticClass(), 1);
+		GrantedAbilityDefinitions.AddUnique(Definition);
 		AbilitySpec.SourceObject = Definition;
 		AbilitySpec.DynamicAbilityTags.AddTag(Definition->AbilityTag);
+		AbilitySpec.DynamicAbilityTags.AppendTags(Definition->AbilityTags);
 		AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
 		GiveAbilityAndActivateOnce(AbilitySpec);
 		UE_LOG(LogAura, Log, TEXT("[ASC] AddCharacterDataPassiveAbilities granted definition=%s"), *Definition->AbilityTag.ToString());

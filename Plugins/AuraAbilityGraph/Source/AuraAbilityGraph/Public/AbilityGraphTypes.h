@@ -48,4 +48,5 @@ struct FAuraAbilityExecutionContext
 
     FGameplayAbilityTargetDataHandle TargetDataHandle;
     FHitResult CursorHit;
+    FGameplayTag CombatSocketTag;
 };

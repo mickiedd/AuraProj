@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ability name="EnemyMeleeAttack" abilityTag="Abilities.Melee" abilityTags="Abilities.Attack" inputTag="" type="Abilities.Type.Offensive">
+  <cost mana="0"/>
+  <damage type="Damage.Physical" base="0" curveTable="/Game/Blueprints/AbilitySystem/Data/CT_Damage.CT_Damage" curveRow="Melee" debuffChance="20" debuffDamage="5" debuffDuration="5" debuffFrequency="1" deathImpulseMagnitude="1000" knockbackForceMagnitude="1000" knockbackChance="0"/>
+  <graph>
+    <node class="Sequence">
+      <node class="EnemyCombatMontage"><property name="Timeout" value="5"/></node>
+      <node class="EnemyMeleeDamage"><property name="Radius" value="45"/></node>
+    </node>
+  </graph>
+</ability>

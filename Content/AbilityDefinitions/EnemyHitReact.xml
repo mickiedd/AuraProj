@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ability name="EnemyHitReact" abilityTag="Effects.HitReact" inputTag="" type="Abilities.Type.None">
+  <cost mana="0"/>
+  <graph><node class="EnemyHitReact"/></graph>
+</ability>

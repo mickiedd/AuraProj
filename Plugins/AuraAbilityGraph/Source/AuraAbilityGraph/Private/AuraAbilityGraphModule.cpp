@@ -19,9 +19,13 @@
 #include "Nodes/Actions/WaitNode.h"
 #include "Nodes/Actions/SpawnShardsNode.h"
 #include "Nodes/Actions/ElectrocuteBeamNode.h"
+#include "Nodes/Actions/EnemyCombatMontageNode.h"
+#include "Nodes/Actions/EnemyMeleeDamageNode.h"
+#include "Nodes/Actions/EnemyHitReactNode.h"
 #include "Tests/TestCombatAvatar.h"
 #include "Tests/TestDataAbility.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AuraGameplayTags.h"
 #include "Actor/AuraProjectile.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -36,6 +40,7 @@
 #include "Misc/Paths.h"
 #include "Containers/Ticker.h"
 #include "HAL/PlatformMisc.h"
+#include "GameplayTagsManager.h"
 
 #define LOCTEXT_NAMESPACE "FAuraAbilityGraphModule"
 
@@ -578,7 +583,7 @@ static bool SmokeTest_RoleDefinitionLoading()
 // WaitForMontageEvent, with no 'Wait' node anywhere between them. A Wait there
 // makes WaitForMontageEvent subscribe AFTER the Event.Montage.FireBolt anim
 // notify fired (UAbilityTask_WaitGameplayEvent only catches events after it
-// subscribes), hanging the ability forever éˆ?no projectile, never ends.
+// subscribes), hanging the ability forever é–³?no projectile, never ends.
 static bool SmokeTest_FireBoltFileGraph()
 {
 	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("FireBolt.xml"));
@@ -668,7 +673,7 @@ static bool SmokeTest_FireBoltFileGraph()
 }
 
 // ===================================================================
-// Phase 3 smoke tests éˆ?load the real XML files from disk and validate
+// Phase 3 smoke tests é–³?load the real XML files from disk and validate
 // graph structure, node types, and properties for the newly ported
 // abilities: FireBlast, ArcaneShards, Electrocute.
 // ===================================================================
@@ -1064,8 +1069,8 @@ static bool SmokeTest_ElectrocuteFileGraph()
 // ===================================================================
 
 // Asserts that Sequence::Cancel propagates to every entered child (un-entering it)
-// and that the channeled beam child tears down cleanly. Uses an empty context éˆ?no
-// ASC/Avatar/World éˆ?so it also verifies Cancel is safe with null runtime context.
+// and that the channeled beam child tears down cleanly. Uses an empty context é–³?no
+// ASC/Avatar/World é–³?so it also verifies Cancel is safe with null runtime context.
 static bool SmokeTest_SequenceCancelPropagation()
 {
 	const FString FilePath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), TEXT("Electrocute.xml"));
@@ -1133,7 +1138,7 @@ static bool SmokeTest_SequenceCancelPropagation()
 }
 
 // Asserts the beam task is safe to Cancel / OnExit / OnStart with a null runtime
-// context (no owner ability, avatar, or world) éˆ?the condition EndPlayMep teardown
+// context (no owner ability, avatar, or world) é–³?the condition EndPlayMep teardown
 // leaves it in. OnStart must return Failure (not crash); Cancel/OnExit must no-op.
 static bool SmokeTest_ElectrocuteBeamTaskCancelSafe()
 {
@@ -1166,7 +1171,7 @@ static bool SmokeTest_ElectrocuteBeamTaskCancelSafe()
 // ===================================================================
 // Spawn smoke tests: verify a projectile/Niagara effect actually spawns
 // and at the correct world location. These run headlessly in a transient
-// UWorld (no PIE, no rendering) éˆ?the spawned AAuraProjectile /
+// UWorld (no PIE, no rendering) é–³?the spawned AAuraProjectile /
 // UNiagaraComponent exist and are queryable regardless.
 // ===================================================================
 
@@ -1249,7 +1254,7 @@ static bool SmokeTest_EvenlySpacedRotators()
 }
 
 // Verifies SpawnProjectiles actually spawns Count actors, all at the socket location,
-// and that their directions are the evenly-spread set éˆ?i.e. "spawned, and aimed right".
+// and that their directions are the evenly-spread set é–³?i.e. "spawned, and aimed right".
 static bool SmokeTest_ProjectileSpawnCountAndLocation()
 {
 	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
@@ -1347,7 +1352,7 @@ static bool SmokeTest_ProjectileSpawnCountAndLocation()
 
 // Verifies the FireBolt/AuraProjectile wall-impact fix: a projectile whose Sphere blocks
 // ECC_WorldStatic must STOP on a static blocker (firing OnComponentHit -> OnSphereHit),
-// play its impact effect, and destroy itself éˆ?instead of tunneling through the wall and
+// play its impact effect, and destroy itself é–³?instead of tunneling through the wall and
 // disappearing only via LifeSpan. Before the fix, the Sphere was Overlap (not Block) on
 // WorldStatic, so OnComponentBeginOverlap never fired against blocking geometry and the
 // non-blocking sweep passed straight through; this test reproduces that exact scenario.
@@ -1406,7 +1411,7 @@ static bool SmokeTest_ProjectileWallImpact()
 
 	// The transient world has no net driver, so a bReplicates=true projectile doesn't default to
 	// ROLE_Authority (unlike the bReplicates=false test avatars). In-game the SERVER spawns the
-	// projectile, so OnSphereHit's HasAuthority() gate (which calls Destroy) runs there éˆ?model
+	// projectile, so OnSphereHit's HasAuthority() gate (which calls Destroy) runs there é–³?model
 	// that server-side context here.
 	Proj->SetRole(ENetRole::ROLE_Authority);
 
@@ -1636,6 +1641,85 @@ static bool SmokeTest_ElectrocuteBeamEmptyEffectNoSpawn()
 	return true;
 }
 
+// Loads the shipped enemy definitions from disk and validates the complete graph
+// shape used by the AI path. This catches missing XML files, unregistered nodes,
+// invalid activation tags, and damage curve regressions without requiring a PIE world.
+static bool SmokeTest_EnemyAbilityFiles()
+{
+	struct FExpectedEnemyAbility
+	{
+		const TCHAR* FileName;
+		const TCHAR* AbilityTag;
+		const TCHAR* FinalNode;
+		const TCHAR* CurveRow;
+		bool bAttackTag;
+	};
+
+	const FExpectedEnemyAbility Expected[] = {
+		{TEXT("EnemyFireBolt.xml"), TEXT("Abilities.FireBolt"), TEXT("SpawnProjectile"), TEXT("FireBolt"), true},
+		{TEXT("EnemyRangedAttack.xml"), TEXT("Abilities.Ranged"), TEXT("SpawnProjectile"), TEXT("Ranged"), true},
+		{TEXT("EnemyMeleeAttack.xml"), TEXT("Abilities.Melee"), TEXT("EnemyMeleeDamage"), TEXT("Melee"), true},
+		{TEXT("EnemyHitReact.xml"), TEXT("Effects.HitReact"), TEXT("EnemyHitReact"), TEXT(""), false},
+	};
+
+	for (const FExpectedEnemyAbility& Item : Expected)
+	{
+		const FString Path = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"), Item.FileName);
+		FString XML;
+		if (!FFileHelper::LoadFileToString(XML, *Path))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EnemyAbilityFiles: failed to read %s"), *Path);
+			return false;
+		}
+
+		UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+		if (!Definition || !Definition->LoadFromXML(XML))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EnemyAbilityFiles: failed to parse %s"), Item.FileName);
+			return false;
+		}
+		if (Definition->AbilityTag.ToString() != Item.AbilityTag || !Definition->RootNode)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EnemyAbilityFiles: identity/root mismatch in %s tag=%s"),
+				Item.FileName, *Definition->AbilityTag.ToString());
+			return false;
+		}
+
+		UAuraAbilityActionNode* FinalNode = Definition->RootNode;
+		if (Definition->RootNode->NodeClassName == TEXT("Sequence"))
+		{
+			if (Definition->RootNode->Children.Num() != 2)
+			{
+				UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EnemyAbilityFiles: expected two sequence nodes in %s, got %d"),
+					Item.FileName, Definition->RootNode->Children.Num());
+				return false;
+			}
+			FinalNode = Definition->RootNode->Children.Last();
+		}
+		if (!FinalNode || FinalNode->NodeClassName != Item.FinalNode)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EnemyAbilityFiles: final node mismatch in %s, got %s expected %s"),
+				Item.FileName, FinalNode ? *FinalNode->NodeClassName : TEXT("<null>"), Item.FinalNode);
+			return false;
+		}
+
+		if (Item.bAttackTag && !Definition->AbilityTags.HasTagExact(FAuraGameplayTags::Get().Abilities_Attack))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EnemyAbilityFiles: attack activation tag missing in %s"), Item.FileName);
+			return false;
+		}
+		if (FCString::Strlen(Item.CurveRow) > 0 && Definition->Damage.Curve.RowName != FName(Item.CurveRow))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EnemyAbilityFiles: curve row mismatch in %s, got %s expected %s"),
+				Item.FileName, *Definition->Damage.Curve.RowName.ToString(), Item.CurveRow);
+			return false;
+		}
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] EnemyAbilityFiles PASSED (4 XML definitions, graph nodes, tags, and damage curves)."));
+	return true;
+}
+
 // ===================================================================
 // Console command handler
 // ===================================================================
@@ -1674,6 +1758,7 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("ProjectileWallImpact"), SmokeTest_ProjectileWallImpact);
 	Run(TEXT("ElectrocuteBeamSpawnEndpoints"), SmokeTest_ElectrocuteBeamSpawnEndpoints);
 	Run(TEXT("ElectrocuteBeamEmptyEffectNoSpawn"), SmokeTest_ElectrocuteBeamEmptyEffectNoSpawn);
+	Run(TEXT("EnemyAbilityFiles"), SmokeTest_EnemyAbilityFiles);
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("========================================"));
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Result: %d passed, %d failed."), Passed, Failed);
@@ -1688,6 +1773,12 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 
 void FAuraAbilityGraphModule::StartupModule()
 {
+	// Aura's gameplay-tag singleton may initialize after this plugin's compiled-in
+	// ability CDOs. Register the two tags required by enemy activation before those
+	// CDOs are constructed; duplicate registration by AuraGameplayTags is idempotent.
+	UGameplayTagsManager::Get().AddNativeGameplayTag(FName(TEXT("Abilities.Attack")), TEXT("Enemy attack activation tag"));
+	UGameplayTagsManager::Get().AddNativeGameplayTag(FName(TEXT("Effects.HitReact")), TEXT("Enemy hit-react activation tag"));
+
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("Sequence"), [](UObject* O) { return NewObject<UAuraSequenceNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("WaitForTargetData"), [](UObject* O) { return NewObject<UWaitForTargetDataNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("PlayMontage"), [](UObject* O) { return NewObject<UPlayMontageNode>(O); });
@@ -1702,6 +1793,9 @@ void FAuraAbilityGraphModule::StartupModule()
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("Wait"), [](UObject* O) { return NewObject<UWaitNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("SpawnShards"), [](UObject* O) { return NewObject<USpawnShardsNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("ElectrocuteBeam"), [](UObject* O) { return NewObject<UElectrocuteBeamNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("EnemyCombatMontage"), [](UObject* O) { return NewObject<UEnemyCombatMontageNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("EnemyMeleeDamage"), [](UObject* O) { return NewObject<UEnemyMeleeDamageNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("EnemyHitReact"), [](UObject* O) { return NewObject<UEnemyHitReactNode>(O); });
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("AuraAbilityGraph module started."));
 

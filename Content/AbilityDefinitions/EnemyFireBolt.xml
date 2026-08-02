@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ability name="EnemyFireBolt" abilityTag="Abilities.FireBolt" abilityTags="Abilities.Attack" inputTag="" type="Abilities.Type.Offensive">
+  <cost mana="0"/>
+  <damage type="Damage.Fire" base="0" curveTable="/Game/Blueprints/AbilitySystem/Data/CT_Damage.CT_Damage" curveRow="FireBolt" debuffChance="20" debuffDamage="5" debuffDuration="5" debuffFrequency="1" deathImpulseMagnitude="1000" knockbackForceMagnitude="1000" knockbackChance="0"/>
+  <graph>
+    <node class="Sequence">
+      <node class="EnemyCombatMontage"><property name="Timeout" value="5"/></node>
+      <node class="SpawnProjectile">
+        <property name="SocketTag" value="CombatSocket.Weapon"/>
+        <property name="SocketFromContext" value="true"/>
+        <property name="ProjectileDefinition" value="fireBolt"/>
+        <property name="TargetFromContext" value="CombatTarget"/>
+      </node>
+    </node>
+  </graph>
+</ability>

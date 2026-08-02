@@ -26,6 +26,7 @@ public:
     // Identity — set from <ability> attributes
     FName AbilityName;
     FGameplayTag AbilityTag;
+    FGameplayTagContainer AbilityTags;
     FGameplayTag InputTag;
     FGameplayTag AbilityType;
 

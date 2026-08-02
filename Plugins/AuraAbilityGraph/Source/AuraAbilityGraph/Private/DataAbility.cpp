@@ -41,6 +41,31 @@ UAuraDataAbility::UAuraDataAbility()
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
+UAuraEnemyAttackDataAbility::UAuraEnemyAttackDataAbility()
+{
+    FGameplayTagContainer Tags;
+    // The plugin CDO can be constructed before project/native gameplay tags are
+    // registered. Do not assert during module startup; the definition's dynamic
+    // tags still carry the authoritative runtime tags after config loading.
+    const FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Attack"), false);
+    if (AttackTag.IsValid())
+    {
+        Tags.AddTag(AttackTag);
+    }
+    SetAssetTags(Tags);
+}
+
+UAuraEnemyHitReactDataAbility::UAuraEnemyHitReactDataAbility()
+{
+    FGameplayTagContainer Tags;
+    const FGameplayTag HitReactTag = FGameplayTag::RequestGameplayTag(TEXT("Effects.HitReact"), false);
+    if (HitReactTag.IsValid())
+    {
+        Tags.AddTag(HitReactTag);
+    }
+    SetAssetTags(Tags);
+}
+
 const UAuraAbilityDefinition* UAuraDataAbility::GetDefinition() const
 {
     if (CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid())

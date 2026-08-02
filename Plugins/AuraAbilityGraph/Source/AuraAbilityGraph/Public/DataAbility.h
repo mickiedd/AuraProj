@@ -82,3 +82,21 @@ public:
     TWeakObjectPtr<UAbilityTask_PlayMontageAndWait> PendingMontageTask;
     TWeakObjectPtr<UAbilityTask_WaitGameplayEvent> PendingMontageEventTask;
 };
+
+/** Graph ability class discoverable by existing enemy BT tasks through Abilities.Attack. */
+UCLASS(meta=(NotBlueprintable))
+class AURAABILITYGRAPH_API UAuraEnemyAttackDataAbility : public UAuraDataAbility
+{
+    GENERATED_BODY()
+public:
+    UAuraEnemyAttackDataAbility();
+};
+
+/** Graph ability class activated by AuraAttributeSet through Effects.HitReact. */
+UCLASS(meta=(NotBlueprintable))
+class AURAABILITYGRAPH_API UAuraEnemyHitReactDataAbility : public UAuraDataAbility
+{
+    GENERATED_BODY()
+public:
+    UAuraEnemyHitReactDataAbility();
+};

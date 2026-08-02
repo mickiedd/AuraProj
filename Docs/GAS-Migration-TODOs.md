@@ -34,7 +34,9 @@ Ordered continuation steps and acceptance gates: `Docs/Gameplay-Blueprint-Decoup
 
 ---
 
-## ⬜ Phase 4 — Enemy Abilities + Cleanup (NOT STARTED)
+## 🟨 Phase 4 — Enemy Abilities + Cleanup (IN PROGRESS)
+
+Implementation update (2026-08-03): all four enemy definitions now exist and enemy startup grants load through `EnemyAbilityConfig.json`. Native graph nodes preserve combat-target selection, per-enemy tagged montages and sockets, montage-event timing, server-authoritative projectile/melee damage, and hit-react tag lifetime. Compile-only validation passes. Legacy packages remain until the active editor is closed and the reference/reload/automation gates can be run.
 
 ### 4.1 Port Enemy Abilities to XML
 
@@ -46,13 +48,13 @@ Ordered continuation steps and acceptance gates: `Docs/Gameplay-Blueprint-Decoup
 | E4 | `GA_HitReact` | `Content/Blueprints/AbilitySystem/Aura/Abilities/Enemy/...` | Low — passive animation-only |
 
 **Steps for each enemy ability:**
-1. [ ] Create XML definition in `Content/AbilityDefinitions/` (e.g., `EnemyFireBolt.xml`)
-2. [ ] Determine ability class hierarchy needed (likely `UAaurDamageGameplayAbility` or custom subclass)
-3. [ ] If new node types needed (e.g., for melee reach, AI-specific targeting), add them to the plugin
-4. [ ] Add enemy-specific `RoleConfig.json` entries (for each enemy type)
-5. [ ] Add UI metadata to `AbilityInfo.json`
-6. [ ] Add gameplay tags to `DefaultGameplayTags.ini`
-7. [ ] Write test for XML parsing + graph validation
+1. [x] Create XML definitions in `Content/AbilityDefinitions/`
+2. [x] Add tagged `UAuraDataAbility` subclasses for existing AI activation paths
+3. [x] Add enemy montage, melee damage, and hit-react graph nodes
+4. [x] Add `EnemyAbilityConfig.json` entries by `ECharacterClass` (enemy classes are separate from player `RoleConfig.json` roles)
+5. [x] Confirm UI metadata is not applicable to AI-only abilities
+6. [x] Add gameplay tags to `DefaultGameplayTags.ini`
+7. [x] Write tests for XML parsing, graph structure, damage curves, and config validation
 8. [ ] Remove legacy BP GA + GE assets
 
 ### 4.2 Remove Legacy Blueprint Assets (Dead Code)
