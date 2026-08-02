@@ -8,14 +8,14 @@
 
 ## Summary
 
-2026-08-02 decoupling update: active FireBolt/FireBlast/FireGun XML now uses cached native definitions from `ProjectileDefinitions.json`, and FireBall outbound/return behavior is native. The `AbilityInfo.json` runtime boundary is also complete: active C++ and resaved UI/GameMode Blueprints no longer depend on `GetAbilityInfo()` or `DA_AbilityInfo`; save/restore is tag-based and strict JSON validation is covered by automation tests. Projectile package deletion remains blocked: `BP_FireBolt` is referenced by `GA_FireBolt` and `GA_EnemyFireBolt`; `BP_FireBall` is referenced by `GA_FireBlast`. The native pickup migration is complete and its eight historical Blueprint packages were deleted after reference, reload, automation, and cook gates.
+2026-08-02 decoupling update: active FireBolt/FireBlast/FireGun XML now uses cached native definitions from `ProjectileDefinitions.json`, and FireBall outbound/return behavior is native. The `AbilityInfo.json` runtime boundary is complete: active C++ and resaved UI/GameMode Blueprints no longer call `GetAbilityInfo()` or serialize a `DA_AbilityInfo` dependency. The legacy `DA_AbilityInfo` asset itself remains for cleanup/deletion after reference validation. Save/restore is tag-based and strict JSON validation is covered by automation tests. Projectile package deletion remains blocked: `BP_FireBolt` is referenced by `GA_FireBolt` and `GA_EnemyFireBolt`; `BP_FireBall` is referenced by `GA_FireBlast`. The native pickup migration is complete; legacy pickup packages were removed after reference, reload, automation, and cook gates.
 
 Ordered continuation steps and acceptance gates: `Docs/Gameplay-Blueprint-Decoupling-Next-Moves.md`.
 
 | Status | Count | Items |
 |---|---|---|
 | ✅ Done | 5 | FireBolt, FireGun, ArcaneShards, FireBlast, Electrocute |
-| ⬜ Not Started | 12 | Enemy abilities, passives, cleanup, known issues, optional Phase 6 |
+| ⬜ Remaining | — | Enemy abilities, legacy asset cleanup, unresolved graph issues, optional Phase 6, and passives |
 
 ---
 
@@ -29,7 +29,7 @@ Ordered continuation steps and acceptance gates: `Docs/Gameplay-Blueprint-Decoup
 - [x] `UAuraDataAbility` implements full runtime (ActivateAbility → graph execution → EndAbility)
 - [x] `UAuraAbilityDefinition` XML parsing (`LoadFromXML`)
 - [x] Build passes on UE 5.5.1
-- [x] 8/8 smoke tests pass (XML parsing, node registry, sequence execution, cooldown tag extraction, FireBolt migration, FireGun migration, RoleDefinition loading, Phase 3 file-graph validation, crash/lifecycle regression tests)
+- [x] AuraAbilityGraph console smoke suite passes, including XML parsing, node registration, file-graph validation, projectile/beam behavior, and lifecycle regression checks (the suite contains more than eight named checks; it is separate from Automation tests)
 - [x] AbilityInfo.json runtime boundary completed: runtime consumers migrated, tag-based save/restore implemented, strict metadata validation added, four active Blueprints resaved, and 5/5 focused metadata tests pass (9/9 total Aura automation tests)
 
 ---
@@ -128,26 +128,30 @@ These are the known issues from `GAS-DataDriven-Rewrite-Plan-Pending.md` that sh
 
 ### Medium Priority
 
+Current-status note: M7 and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. M8 is only partially resolved: empty node tags are rejected, but authored montage tags are not inspected. M10 remains open because the wait task still advances the graph directly instead of routing through `OnMontageEventReceived`.
+
 | # | Issue | Description | Fix |
 |---|---|---|---|
 | 2 | Dead declarations | `CreateNodeByClassName`, `BuildAndExecuteGraph` declared but unused/dead | Remove dead declarations or implement their intended functionality |
 | 3 | Unused XML properties | `TargetFromContext`, `ScatterRadius` in XML but not used by nodes | Either implement support for these properties or remove them from XML schema and docs |
 | 4 | Fake smoke tests | Log-only tests with no assertions in `AuraAbilityGraphModule.cpp` | Convert to real unit tests with assertions |
-| M7 | PlayMontage returns Success when no montage | `PlayMontageNode.cpp:29` — returns Success even when no montage is set | Add null-montage check that returns Failure instead |
-| M8 | WaitForMontageEvent no EventTag validation | No validation that the requested EventTag matches the montage's actual tags | Add validation in `WaitForMontageEventNode::OnStart` |
+| M7 | PlayMontage missing montage behavior | Resolved: configured load failures return Failure; an intentionally empty montage remains a successful no-op | Keep regression coverage |
+| M8 | WaitForMontageEvent no authored-tag validation | The node rejects an empty/invalid `EventTag`, but does not verify that the tag exists on the authored montage/AnimNotify | Add validation against authored montage event metadata, or document runtime gameplay-event ownership |
 | M9 | Two damage paths with different context setup | `ApplyDamageNode` vs `CauseDamageNode` set up `FDamageEffectParams` differently | Unify the context setup, or document the difference and make it intentional |
 | M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Directly calls `AdvanceGraph` instead of going through the standard callback | Fix to use `OnMontageEventReceived` path |
-| M11 | WaitForTargetData no active-graph check | Can advance the graph after it's been deactivated | Add `bGraphActive` check |
+| M11 | WaitForTargetData callback lifecycle | Resolved centrally: `OnTargetDataReady`, `AdvanceGraph`, and montage callbacks ignore events after `bGraphActive` becomes false | Keep regression coverage |
 
 ### Low Priority
+
+Current-status note: L17 now has a null-check and warning for non-`AAuraCharacterBase` avatars, but no fallback FX path. L13, L15, L16, and L18-L22 remain open unless otherwise noted below.
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
 | L13 | Hardcoded Python path in launcher | `AuraAbilityGraphLauncher.cpp:193` | Make path configurable |
-| L14 | CooldownDuration doesn't scale from XML | `AbilityDefinition.cpp:138` — `CooldownDuration.Value` set from XML attr but doesn't use `GetValueAtLevel` | Use `FCooldownGameplayEffect` or scale via `CooldownDuration.GetStaticMagnitudeIfPossible` |
+| L14 | CooldownDuration scaling | Resolved: XML duration is evaluated with `CooldownDuration.GetValueAtLevel(GetAbilityLevel())` before the cooldown spec is applied | Keep regression coverage |
 | L15 | WorldContextObject never populated | `AuraAbilityTypes.h:16` | Populate in `MakeDamageEffectParamsFromClassDefaults` and nodes |
 | L16 | ImportFactory CanReimport always false | `AbilityDefinitionImportFactory.cpp` | Implement proper reimport support |
-| L17 | MulticastGunFX no fallback for non-Aura characters | `MulticastGunFXNode.cpp` | Add null-check for `AAuraCharacterBase` cast |
+| L17 | MulticastGunFX lacks fallback for non-Aura characters | The `AAuraCharacterBase` cast is null-checked and logs a warning, but non-Aura avatars still receive no fallback FX | Add an interface-based or generic FX fallback if non-Aura avatars are supported |
 | L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | `HitscanTraceNode.cpp` | Align directions with the standard pattern |
 | L19 | ApplyDamage hardcodes `bIsRadialDamage=false` | `ApplyDamageNode.cpp:69` | Make configurable or remove the hardcoded override |
 | L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode.cpp:44` | Unify with ApplyDamage pattern |
@@ -182,7 +186,9 @@ Currently passives (`HaloOfProtection`, `LifeSiphon`, `ManaSiphon`) are left as 
 
 ## ⬜ Cleanup: GE Blueprint UAssets
 
-### Currently Eliminated by the C++ GE System (No Action Needed These Are Already Gone)
+### Replaced at Runtime by the C++ GE System
+
+These assets are no longer runtime dependencies, but replacement does not mean the corresponding legacy packages have already been deleted from the repository. The packages listed in Section 4.2 remain cleanup candidates until reference and reload gates pass.
 
 The following GE Blueprint UAssets are already dead code — the C++ GE classes replaced them:
 
@@ -218,9 +224,9 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 ### Phase 5 Verification Steps (Issue Fixes)
 
 - [ ] H2: Knockback direction consistent across all damage node types
-- [ ] M7: `PlayMontage` returns Failure when no montage assigned
+- [x] M7: `PlayMontage` handles missing montage configuration safely (configured load failures return Failure)
 - [ ] M9: `ApplyDamageNode` and `CauseDamageNode` produce identical `FDamageEffectParams` context
-- [ ] L14: `CooldownDuration` scales correctly with ability level from XML
+- [x] L14: `CooldownDuration` scales correctly with ability level from XML
 
 ### Phase 6 Verification Steps (Optional)
 
@@ -273,6 +279,7 @@ All Phases ──► Phase 8: Verification & Documentation
 When adding a new ability (e.g., an enemy ability or a new player spell), follow these steps:
 
 ### Step 1: Determine the C++ class hierarchy
+- Active XML abilities use `UAuraDataAbility` and registered graph nodes. The legacy spell/passive classes below describe the traditional path and should not be selected for a new XML definition unless a deliberate compatibility path is required.
 - Projectile-based → `UAuraProjectileSpell` → `UAuraDamageGameplayAbility`
 - Beam-based → `UAauraBeamSpell` → `UAauraDamageGameplayAbility`
 - Direct damage → `UAauraDamageGameplayAbility` (no subclass needed if basic)
@@ -280,24 +287,26 @@ When adding a new ability (e.g., an enemy ability or a new player spell), follow
 - Passive → `UAuraPassiveAbility` (not data-driven yet)
 
 ### Step 2: Write the XML definition
+Use node properties for montage and projectile configuration. The XML loader does not treat a standalone `<montage>` element as the active graph configuration. Prefer `ProjectileDefinition` for native projectile configuration rather than a Blueprint-generated projectile class.
 ```xml
 <ability name="NewAbility" abilityTag="Abilities.Category.NewAbility" 
          inputTag="InputTag.LMB" type="Abilities.Type.Offensive">
   <cost mana="15"/>
   <cooldown tag="Cooldown.Category.NewAbility" duration="8"/>
   <damage type="Damage.Fire" base="40" debuffChance="0.2" .../>
-  <montage path="/Game/.../AM_NewAbility" eventTag="Event.Montage.NewAbility"/>
   <graph>
     <node class="Sequence">
       <node class="WaitForTargetData"/>
       <node class="FaceTarget"/>
-      <node class="PlayMontage"/>
+      <node class="PlayMontage">
+        <property name="Montage" value="/Game/.../AM_NewAbility.AM_NewAbility"/>
+      </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.NewAbility"/>
       </node>
       <node class="SpawnProjectile">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
-        <property name="ProjectileClass" value="/Game/.../BP_NewProjectile.BP_NewProjectile_C"/>
+        <property name="ProjectileDefinition" value="newProjectile"/>
       </node>
     </node>
   </graph>
@@ -313,7 +322,7 @@ When adding a new ability (e.g., an enemy ability or a new player spell), follow
 
 ### Step 4: Add UI metadata
 ```json
-; Content/Config/AbilityInfo.json
+// Content/Config/AbilityInfo.json (documentation label; omit this line from actual JSON)
 {
   "abilityTag": "Abilities.Category.NewAbility",
   "icon": "/Game/UI/Icons/T_NewAbility.T_NewAbility",
