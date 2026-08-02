@@ -341,20 +341,17 @@ URuntimeAbilityInfo* UAuraAbilitySystemLibrary::LoadAbilityInfoFromJSON()
 	if (!FFileHelper::LoadFileToString(JSONContent, *JSONPath))
 	{
 		UE_LOG(LogAura, Error, TEXT("[AbilityInfo] Failed to load AbilityInfo.json from: %s"), *JSONPath);
-		// Return empty object so callers don't crash
-		return NewObject<URuntimeAbilityInfo>(GetTransientPackage());
+		return nullptr;
 	}
 
 	URuntimeAbilityInfo* Info = NewObject<URuntimeAbilityInfo>(GetTransientPackage());
 	if (!Info->LoadFromJSON(JSONContent))
 	{
-		UE_LOG(LogAura, Error, TEXT("[AbilityInfo] Failed to parse AbilityInfo.json"));
-	}
-	else
-	{
-		UE_LOG(LogAura, Log, TEXT("[AbilityInfo] Successfully loaded AbilityInfo.json from: %s"), *JSONPath);
+		UE_LOG(LogAura, Error, TEXT("[AbilityInfo] Rejected invalid AbilityInfo.json at: %s"), *JSONPath);
+		return nullptr;
 	}
 
+	UE_LOG(LogAura, Log, TEXT("[AbilityInfo] Successfully loaded AbilityInfo.json from: %s"), *JSONPath);
 	return Info;
 }
 
@@ -428,15 +425,6 @@ const UAuraAbilityDefinition* UAuraAbilitySystemLibrary::FindAbilityDefinitionBy
 		return Found->Get();
 	}
 	return nullptr;
-}
-
-UAbilityInfo* UAuraAbilitySystemLibrary::GetAbilityInfo(const UObject* WorldContextObject)
-{
-	// DEPRECATED: Legacy UAsset-based ability info. Kept for backward compatibility.
-	// New code should call GetRuntimeAbilityInfo() instead.
-	const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
-	if (AuraGameMode == nullptr) return nullptr;
-	return AuraGameMode->AbilityInfo;
 }
 
 namespace RoleConfigReloadPrivate
@@ -737,6 +725,14 @@ URoleInfo* UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(const UObject* Worl
 
 		const TArray<TSharedPtr<FJsonValue>>& PassiveArr = RoleObj->GetArrayField(TEXT("startupPassiveAbilities"));
 		RoleConfigPrivate::LoadAbilityClasses(PassiveArr, Info.StartupPassiveAbilities, RoleNameStr, TEXT("startup passive ability"));
+
+		// Unlock catalog: legacy classes which remain level-gated and must not be granted at startup.
+		// Data-driven definitions are resolved from the definition registry by ability tag.
+		const TArray<TSharedPtr<FJsonValue>>* UnlockableArr = nullptr;
+		if (RoleObj->TryGetArrayField(TEXT("unlockableAbilities"), UnlockableArr) && UnlockableArr)
+		{
+			RoleConfigPrivate::LoadAbilityClasses(*UnlockableArr, Info.UnlockableAbilities, RoleNameStr, TEXT("unlockable ability"));
+		}
 
 		// Data-driven ability definitions (UAuraAbilityDefinition asset paths or .xml file paths).
 		const TArray<TSharedPtr<FJsonValue>>& StartupDefArr = RoleObj->GetArrayField(TEXT("startupAbilityDefinitions"));

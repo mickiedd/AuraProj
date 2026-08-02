@@ -87,6 +87,10 @@ struct FRoleDefaultInfo
 	UPROPERTY(EditDefaultsOnly, Category = "Role|Gameplay")
 	TArray<TSubclassOf<UGameplayAbility>> StartupPassiveAbilities;
 
+	/** Legacy abilities that may be unlocked by level/cheats but are not granted at startup. */
+	UPROPERTY(EditDefaultsOnly, Category = "Role|Gameplay")
+	TArray<TSubclassOf<UGameplayAbility>> UnlockableAbilities;
+
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UObject>> StartupAbilityDefinitions;
 

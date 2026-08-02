@@ -8,6 +8,7 @@
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "AbilitySystem/Abilities/AuraPassiveAbility.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "Aura/AuraLogChannels.h"
@@ -19,6 +20,90 @@
 
 namespace
 {
+	struct FResolvedAbilitySource
+	{
+		TSubclassOf<UGameplayAbility> AbilityClass;
+		const UAuraAbilityDefinition* Definition = nullptr;
+		FGameplayTag AbilityType;
+		FGameplayTag InputTag;
+	};
+
+	FGameplayTag GetAbilityTagFromClass(const TSubclassOf<UGameplayAbility>& AbilityClass)
+	{
+		const UGameplayAbility* DefaultAbility = AbilityClass ? AbilityClass.GetDefaultObject() : nullptr;
+		if (!DefaultAbility) return FGameplayTag();
+		const FGameplayTag AbilitiesRoot = FGameplayTag::RequestGameplayTag(FName("Abilities"));
+		for (const FGameplayTag& Tag : DefaultAbility->AbilityTags)
+		{
+			if (Tag.MatchesTag(AbilitiesRoot)) return Tag;
+		}
+		return FGameplayTag();
+	}
+
+	FGameplayTag InferAbilityType(const UGameplayAbility* Ability)
+	{
+		const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+		return Ability && Ability->IsA<UAuraPassiveAbility>() ? Tags.Abilities_Type_Passive : Tags.Abilities_Type_Offensive;
+	}
+
+	bool ResolveAbilitySource(const UObject* WorldContextObject, const FGameplayTag& AbilityTag,
+		const FGameplayAbilitySpec* LiveSpec, FResolvedAbilitySource& OutSource)
+	{
+		if (!AbilityTag.IsValid()) return false;
+
+		if (const UAuraAbilityDefinition* Definition = UAuraAbilitySystemLibrary::FindAbilityDefinitionByTag(AbilityTag))
+		{
+			OutSource.AbilityClass = UAuraDataAbility::StaticClass();
+			OutSource.Definition = Definition;
+			OutSource.AbilityType = Definition->AbilityType;
+			OutSource.InputTag = Definition->InputTag;
+			return true;
+		}
+
+		if (LiveSpec && LiveSpec->Ability)
+		{
+			OutSource.AbilityClass = LiveSpec->Ability->GetClass();
+			OutSource.AbilityType = InferAbilityType(LiveSpec->Ability);
+			OutSource.InputTag = UAuraAbilitySystemComponent::GetInputTagFromSpec(*LiveSpec);
+			return true;
+		}
+
+		const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(WorldContextObject);
+		if (!RoleInfo) return false;
+		for (const TPair<FName, FRoleDefaultInfo>& Pair : RoleInfo->RoleInformation)
+		{
+			TArray<TSubclassOf<UGameplayAbility>> CandidateClasses = Pair.Value.UnlockableAbilities;
+			CandidateClasses.Append(Pair.Value.StartupAbilities);
+			CandidateClasses.Append(Pair.Value.StartupPassiveAbilities);
+			if (Pair.Value.DefaultLMBAbility) CandidateClasses.Add(Pair.Value.DefaultLMBAbility);
+			for (const TSubclassOf<UGameplayAbility>& Candidate : CandidateClasses)
+			{
+				if (GetAbilityTagFromClass(Candidate).MatchesTagExact(AbilityTag))
+				{
+					OutSource.AbilityClass = Candidate;
+					OutSource.AbilityType = InferAbilityType(Candidate.GetDefaultObject());
+					if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(Candidate.GetDefaultObject()))
+					{
+						OutSource.InputTag = AuraAbility->StartupInputTag;
+					}
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	FGameplayAbilitySpec MakeAbilitySpec(const FResolvedAbilitySource& Source, int32 Level)
+	{
+		FGameplayAbilitySpec Spec(Source.AbilityClass, Level);
+		if (Source.Definition)
+		{
+			Spec.SourceObject = const_cast<UAuraAbilityDefinition*>(Source.Definition);
+			Spec.DynamicAbilityTags.AddTag(Source.Definition->AbilityTag);
+		}
+		return Spec;
+	}
+
 	TArray<FGameplayTag> GetOrderedSlotsForAbilityType(const FGameplayTag& AbilityType)
 	{
 		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
@@ -52,17 +137,21 @@ void UAuraAbilitySystemComponent::AddCharacterAbilitiesFromSaveData(ULoadScreenS
 {
 	for (const FSavedAbility& Data : SaveData->SavedAbilities)
 	{
-		const TSubclassOf<UGameplayAbility> LoadedAbilityClass = Data.GameplayAbility;
+		FResolvedAbilitySource Source;
+		if (!ResolveAbilitySource(GetAvatarActor(), Data.AbilityTag, nullptr, Source))
+		{
+			UE_LOG(LogAura, Error, TEXT("[ASC] Save restore skipped unresolved ability tag %s"), *Data.AbilityTag.ToString());
+			continue;
+		}
 
-		FGameplayAbilitySpec LoadedAbilitySpec = FGameplayAbilitySpec(LoadedAbilityClass, Data.AbilityLevel);
-
-		LoadedAbilitySpec.DynamicAbilityTags.AddTag(Data.AbilitySlot);
-		LoadedAbilitySpec.DynamicAbilityTags.AddTag(Data.AbilityStatus);
-		if (Data.AbilityType == FAuraGameplayTags::Get().Abilities_Type_Offensive)
+		FGameplayAbilitySpec LoadedAbilitySpec = MakeAbilitySpec(Source, Data.AbilityLevel);
+		if (Data.AbilitySlot.IsValid()) LoadedAbilitySpec.DynamicAbilityTags.AddTag(Data.AbilitySlot);
+		if (Data.AbilityStatus.IsValid()) LoadedAbilitySpec.DynamicAbilityTags.AddTag(Data.AbilityStatus);
+		if (Source.AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Offensive))
 		{
 			GiveAbility(LoadedAbilitySpec);
 		}
-		else if (Data.AbilityType == FAuraGameplayTags::Get().Abilities_Type_Passive)
+		else if (Source.AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive))
 		{
 			if (Data.AbilityStatus.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Status_Equipped))
 			{
@@ -367,6 +456,40 @@ FGameplayTag UAuraAbilitySystemComponent::GetStatusFromSpec(const FGameplayAbili
 	return FGameplayTag();
 }
 
+FAuraAbilityInfo UAuraAbilitySystemComponent::GetRuntimeAbilityInfoForSpec(const FGameplayAbilitySpec& AbilitySpec) const
+{
+	const FGameplayTag AbilityTag = GetAbilityTagFromSpec(AbilitySpec);
+	FAuraAbilityInfo Info = GetRuntimeAbilityInfoForTag(AbilityTag);
+	Info.InputTag = GetInputTagFromSpec(AbilitySpec);
+	Info.StatusTag = GetStatusFromSpec(AbilitySpec);
+	return Info;
+}
+
+FAuraAbilityInfo UAuraAbilitySystemComponent::GetRuntimeAbilityInfoForTag(const FGameplayTag& AbilityTag) const
+{
+	FAuraAbilityInfo Info;
+	const AActor* AvatarActorContext = AbilityActorInfo.IsValid() ? GetAvatarActor() : nullptr;
+	if (const URuntimeAbilityInfo* RuntimeInfo = UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(AvatarActorContext))
+	{
+		Info = RuntimeInfo->FindAbilityInfoForTag(AbilityTag, true);
+	}
+	Info.AbilityTag = AbilityTag;
+
+	const FGameplayAbilitySpec* LiveSpec = nullptr;
+	if (AbilityActorInfo.IsValid())
+	{
+		LiveSpec = const_cast<UAuraAbilitySystemComponent*>(this)->GetSpecFromAbilityTag(AbilityTag);
+	}
+	FResolvedAbilitySource Source;
+	if (ResolveAbilitySource(AvatarActorContext, AbilityTag, LiveSpec, Source))
+	{
+		Info.AbilityType = Source.AbilityType;
+		Info.InputTag = LiveSpec ? GetInputTagFromSpec(*LiveSpec) : Source.InputTag;
+		if (Source.Definition) Info.CooldownTag = Source.Definition->CooldownTag;
+	}
+	return Info;
+}
+
 FGameplayTag UAuraAbilitySystemComponent::GetStatusFromAbilityTag(const FGameplayTag& AbilityTag)
 {
 	if (const FGameplayAbilitySpec* Spec = GetSpecFromAbilityTag(AbilityTag))
@@ -423,11 +546,7 @@ FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecWithSlot(const FGamepl
 
 bool UAuraAbilitySystemComponent::IsPassiveAbility(const FGameplayAbilitySpec& Spec) const
 {
-	const UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
-	const FGameplayTag AbilityTag = GetAbilityTagFromSpec(Spec);
-	const FAuraAbilityInfo& Info = AbilityInfo->FindAbilityInfoForTag(AbilityTag);
-	const FGameplayTag AbilityType = Info.AbilityType;
-	return AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive);
+	return GetRuntimeAbilityInfoForSpec(Spec).AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive);
 }
 
 void UAuraAbilitySystemComponent::AssignSlotToAbility(FGameplayAbilitySpec& Spec, const FGameplayTag& Slot)
@@ -446,13 +565,7 @@ FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecFromAbilityTag(const F
 	FScopedAbilityListLock ActiveScopeLoc(*this);
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		for (FGameplayTag Tag : AbilitySpec.Ability.Get()->AbilityTags)
-		{
-			if (Tag.MatchesTag(AbilityTag))
-			{
-				return &AbilitySpec;
-			}
-		}
+		if (GetAbilityTagFromSpec(AbilitySpec).MatchesTagExact(AbilityTag)) return &AbilitySpec;
 	}
 	return nullptr;
 }
@@ -484,17 +597,27 @@ void UAuraAbilitySystemComponent::ServerUpgradeAttribute_Implementation(const FG
 
 void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 Level)
 {
-	UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
-	for (const FAuraAbilityInfo& Info : AbilityInfo->AbilityInformation)
+	const URuntimeAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(GetAvatarActor());
+	if (!AbilityInfo)
+	{
+		UE_LOG(LogAura, Error, TEXT("UpdateAbilityStatuses aborted: AbilityInfo.json is unavailable"));
+		return;
+	}
+	for (const FAuraAbilityInfo& Info : AbilityInfo->GetAllAbilityInfo())
 	{
 		if (!Info.AbilityTag.IsValid()) continue;
 		if (Level < Info.LevelRequirement) continue;
 		if (GetSpecFromAbilityTag(Info.AbilityTag) == nullptr)
 		{
-			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Info.Ability, 1);
+			FResolvedAbilitySource Source;
+			if (!ResolveAbilitySource(GetAvatarActor(), Info.AbilityTag, nullptr, Source))
+			{
+				UE_LOG(LogAura, Warning, TEXT("UpdateAbilityStatuses has metadata but no runtime source for %s"), *Info.AbilityTag.ToString());
+				continue;
+			}
+			FGameplayAbilitySpec AbilitySpec = MakeAbilitySpec(Source, 1);
 			AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Eligible);
 			GiveAbility(AbilitySpec);
-			MarkAbilitySpecDirty(AbilitySpec);
 			ClientUpdateAbilityStatus(Info.AbilityTag,FAuraGameplayTags::Get().Abilities_Status_Eligible, 1);
 		}
 	}
@@ -511,12 +634,13 @@ void UAuraAbilitySystemComponent::GrantAndEquipAllAbilities()
 		return;
 	}
 
-	UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
+	const URuntimeAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(GetAvatarActor());
 	if (AbilityInfo == nullptr)
 	{
-		UE_LOG(LogAura, Warning, TEXT("GrantAndEquipAllAbilities aborted. AbilityInfo asset missing for avatar %s"), *GetNameSafe(GetAvatarActor()));
+		UE_LOG(LogAura, Error, TEXT("GrantAndEquipAllAbilities aborted. AbilityInfo.json is unavailable for avatar %s"), *GetNameSafe(GetAvatarActor()));
 		return;
 	}
+	const TArray<FAuraAbilityInfo> AllAbilityInfo = AbilityInfo->GetAllAbilityInfo();
 
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 	TSet<FGameplayTag> ReservedSlots;
@@ -528,7 +652,7 @@ void UAuraAbilitySystemComponent::GrantAndEquipAllAbilities()
 
 	UE_LOG(LogAura, Log, TEXT("GrantAndEquipAllAbilities starting for avatar %s with %d ability definitions"),
 		*GetNameSafe(GetAvatarActor()),
-		AbilityInfo->AbilityInformation.Num());
+		AllAbilityInfo.Num());
 
 	FForEachAbility CollectReservedSlotsDelegate;
 	CollectReservedSlotsDelegate.BindLambda([this, &ReservedSlots](const FGameplayAbilitySpec& AbilitySpec)
@@ -543,9 +667,17 @@ void UAuraAbilitySystemComponent::GrantAndEquipAllAbilities()
 	ExistingAbilityCount = GetActivatableAbilities().Num();
 	UE_LOG(LogAura, Log, TEXT("GrantAndEquipAllAbilities initial state: existing abilities=%d reserved slots=%d"), ExistingAbilityCount, ReservedSlots.Num());
 
-	for (const FAuraAbilityInfo& Info : AbilityInfo->AbilityInformation)
+	for (const FAuraAbilityInfo& Metadata : AllAbilityInfo)
 	{
-		if (!Info.AbilityTag.IsValid() || !Info.Ability) continue;
+		if (!Metadata.AbilityTag.IsValid()) continue;
+
+		FResolvedAbilitySource Source;
+		if (!ResolveAbilitySource(GetAvatarActor(), Metadata.AbilityTag, nullptr, Source))
+		{
+			UE_LOG(LogAura, Warning, TEXT("FullAbilities has metadata but no runtime source for %s"), *Metadata.AbilityTag.ToString());
+			continue;
+		}
+		const FAuraAbilityInfo Info = GetRuntimeAbilityInfoForTag(Metadata.AbilityTag);
 		if (!Info.AbilityType.MatchesTagExact(GameplayTags.Abilities_Type_Offensive) &&
 			!Info.AbilityType.MatchesTagExact(GameplayTags.Abilities_Type_Passive))
 		{
@@ -556,7 +688,7 @@ void UAuraAbilitySystemComponent::GrantAndEquipAllAbilities()
 		const bool bHadAbilityAlready = AbilitySpec != nullptr;
 		if (AbilitySpec == nullptr)
 		{
-			FGameplayAbilitySpec NewAbilitySpec = FGameplayAbilitySpec(Info.Ability, 1);
+			FGameplayAbilitySpec NewAbilitySpec = MakeAbilitySpec(Source, 1);
 			SetAbilityStatus(NewAbilitySpec, GameplayTags.Abilities_Status_Unlocked);
 			GiveAbility(NewAbilitySpec);
 			AbilitySpec = GetSpecFromAbilityTag(Info.AbilityTag);
@@ -565,7 +697,7 @@ void UAuraAbilitySystemComponent::GrantAndEquipAllAbilities()
 				GrantedAbilityCount++;
 				UE_LOG(LogAura, Log, TEXT("FullAbilities granted ability %s class=%s"),
 					*Info.AbilityTag.ToString(),
-					*GetNameSafe(Info.Ability));
+					*GetNameSafe(Source.AbilityClass));
 			}
 		}
 
@@ -837,14 +969,13 @@ bool UAuraAbilitySystemComponent::GetDescriptionsByAbilityTag(const FGameplayTag
 			return true;
 		}
 	}
-	const UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
 	if (!AbilityTag.IsValid() || AbilityTag.MatchesTagExact(FAuraGameplayTags::Get().Abilities_None))
 	{
 		OutDescription = FString();
 	}
 	else
 	{
-		OutDescription = UAuraGameplayAbility::GetLockedDescription(AbilityInfo->FindAbilityInfoForTag(AbilityTag).LevelRequirement);
+		OutDescription = UAuraGameplayAbility::GetLockedDescription(GetRuntimeAbilityInfoForTag(AbilityTag).LevelRequirement);
 	}
 	OutNextLevelDescription = FString();
 	return false;

@@ -364,10 +364,10 @@ Scans `Spec.Ability->AbilityTags` first (legacy compat), then `Spec.DynamicAbili
   ]
 }
 ```
-Loaded at runtime into `URuntimeAbilityInfo` (transient). Legacy `UAbilityInfo` / `DA_AbilityInfo` kept with deprecation warnings for backward compat.
+Loaded at runtime into `URuntimeAbilityInfo` (transient). Active runtime code and resaved Blueprints no longer reference legacy `UAbilityInfo` / `DA_AbilityInfo`; the legacy asset is retained only until the ordered cleanup/deletion step.
 
 ### 7.5 Save / load
-`FSavedAbility.GameplayAbility` is legacy. Data abilities always use `UAuraDataAbility::StaticClass()`. On load, `InitializeDefaultAttributesFromSaveData` uses C++ GEs with SetByCaller magnitudes from save data + GameplayEffects.json.
+Ability saves persist stable tag, slot, status, and level fields only. On load, the active XML/role definition or live runtime source resolves the implementation class by tag. `InitializeDefaultAttributesFromSaveData` uses C++ GEs with SetByCaller magnitudes from save data + GameplayEffects.json.
 
 ---
 

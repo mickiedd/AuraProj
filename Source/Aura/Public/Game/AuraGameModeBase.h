@@ -11,7 +11,6 @@ class ULootTiers;
 class ULoadScreenSaveGame;
 class USaveGame;
 class UMVVM_LoadSlot;
-class UAbilityInfo;
 class URuntimeAbilityInfo;
 class UCharacterClassInfo;
 class URoleInfo;
@@ -136,10 +135,6 @@ public:
 	/** Runtime ability UI metadata. Built on-demand from Content/Config/AbilityInfo.json (replaces DA_AbilityInfo UAsset). */
 	UPROPERTY(Transient)
 	TObjectPtr<URuntimeAbilityInfo> RuntimeAbilityInfo;
-
-	/** DEPRECATED: Legacy UAsset-based ability info. Kept for backward compatibility. New code uses RuntimeAbilityInfo. */
-	UPROPERTY(EditDefaultsOnly, Category = "Ability Info", meta=(DeprecatedProperty, DeprecationMessage="Use RuntimeAbilityInfo (loaded from JSON) instead"))
-	TObjectPtr<UAbilityInfo> AbilityInfo;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Loot Tiers")
 	TObjectPtr<ULootTiers> LootTiers;

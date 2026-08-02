@@ -24,6 +24,11 @@
       },
       "startupAbilities": [],
       "startupPassiveAbilities": [],
+      "unlockableAbilities": [
+        "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_HaloOfProtection.GA_HaloOfProtection_C",
+        "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_LifeSiphon.GA_LifeSiphon_C",
+        "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_ManaSiphon.GA_ManaSiphon_C"
+      ],
       "startupAbilityDefinitions": [
         "/Game/AbilityDefinitions/FireBlast.xml",
         "/Game/AbilityDefinitions/ArcaneShards.xml",
@@ -56,6 +61,11 @@
       },
       "startupAbilities": [],
       "startupPassiveAbilities": [],
+      "unlockableAbilities": [
+        "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_HaloOfProtection.GA_HaloOfProtection_C",
+        "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_LifeSiphon.GA_LifeSiphon_C",
+        "/Game/Blueprints/AbilitySystem/Aura/Abilities/PassiveSpells/GA_ManaSiphon.GA_ManaSiphon_C"
+      ],
       "startupAbilityDefinitions": [],
       "startupPassiveAbilityDefinitions": [],
       "lmbAbility": "",

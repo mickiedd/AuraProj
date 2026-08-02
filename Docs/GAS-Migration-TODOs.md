@@ -8,7 +8,7 @@
 
 ## Summary
 
-2026-08-02 decoupling update: active FireBolt/FireBlast/FireGun XML now uses cached native definitions from `ProjectileDefinitions.json`, and FireBall outbound/return behavior is native. Projectile package deletion remains blocked: `BP_FireBolt` is referenced by `GA_FireBolt` and `GA_EnemyFireBolt`; `BP_FireBall` is referenced by `GA_FireBlast`. The native pickup migration is complete and its eight historical Blueprint packages were deleted after reference, reload, automation, and cook gates.
+2026-08-02 decoupling update: active FireBolt/FireBlast/FireGun XML now uses cached native definitions from `ProjectileDefinitions.json`, and FireBall outbound/return behavior is native. The `AbilityInfo.json` runtime boundary is also complete: active C++ and resaved UI/GameMode Blueprints no longer depend on `GetAbilityInfo()` or `DA_AbilityInfo`; save/restore is tag-based and strict JSON validation is covered by automation tests. Projectile package deletion remains blocked: `BP_FireBolt` is referenced by `GA_FireBolt` and `GA_EnemyFireBolt`; `BP_FireBall` is referenced by `GA_FireBlast`. The native pickup migration is complete and its eight historical Blueprint packages were deleted after reference, reload, automation, and cook gates.
 
 Ordered continuation steps and acceptance gates: `Docs/Gameplay-Blueprint-Decoupling-Next-Moves.md`.
 
@@ -30,6 +30,7 @@ Ordered continuation steps and acceptance gates: `Docs/Gameplay-Blueprint-Decoup
 - [x] `UAuraAbilityDefinition` XML parsing (`LoadFromXML`)
 - [x] Build passes on UE 5.5.1
 - [x] 8/8 smoke tests pass (XML parsing, node registry, sequence execution, cooldown tag extraction, FireBolt migration, FireGun migration, RoleDefinition loading, Phase 3 file-graph validation, crash/lifecycle regression tests)
+- [x] AbilityInfo.json runtime boundary completed: runtime consumers migrated, tag-based save/restore implemented, strict metadata validation added, four active Blueprints resaved, and 5/5 focused metadata tests pass (9/9 total Aura automation tests)
 
 ---
 

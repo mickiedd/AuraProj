@@ -1,6 +1,6 @@
 # GAS-Version Abilities — Implementation Documentation
 
-> Generated: 2026-07-31. Covers all data-driven abilities implemented via the AuraAbilityGraph GAS rewrite.
+> Generated: 2026-07-31. Audited against the runtime code and current configuration on 2026-08-02. Covers all data-driven abilities implemented via the AuraAbilityGraph GAS rewrite.
 
 ---
 
@@ -12,13 +12,13 @@ The GAS-version abilities use a **data-driven architecture** with two parallel s
 
 ```
 UAuraDataAbility (instanced per actor)
-  └─ reads UAuraAbilityDefinition (transient, parsed from XML)
-       └─ executes UAuraAbilityActionTask graph (Sequence → children)
+  └─ resolves a preloaded UAuraAbilityDefinition from the ability spec
+       └─ creates and executes UAuraAbilityActionTask instances
 ```
 
 - **Ability definitions** are XML files in `Content/AbilityDefinitions/`
-- **UAuraDataAbility** (`DataAbility.h/cpp`) is the runtime activation class. It is `InstancedPerActor`, reads the XML definition at activation, builds a task graph from the `<graph>` section, and executes it.
-- **UAuraAbilityDefinition** (`AbilityDefinition.h/cpp`) is a transient UObject populated by `LoadFromXML()`. It holds all parsed XML data: tags, cost, cooldown, damage params, montage, and the root graph node.
+- **UAuraDataAbility** (`DataAbility.h/cpp`) is the runtime activation class. It is `InstancedPerActor`. At activation it resolves an already-parsed definition from the ability spec's `SourceObject` (or the replicated ability tag fallback), creates runtime tasks from the definition's node tree, and executes them.
+- **UAuraAbilityDefinition** (`AbilityDefinition.h/cpp`) is a transient UObject populated by `LoadFromXML()` while role configuration is loaded or reloaded. It holds identity tags, cost, cooldown, damage parameters, and the root graph node. Montage data belongs to `PlayMontage` nodes rather than to the definition itself.
 - **Graph execution** uses `UAuraAbilityActionTask` (base), with concrete tasks for each node type (`WaitForTargetData`, `PlayMontage`, `WaitForMontageEvent`, `SpawnProjectile`, `SpawnProjectiles`, `ApplyDamage`, `CauseDamage`, `MulticastGunFX`, `HitscanTrace`, `FaceTarget`, `SpawnShards`, `ElectrocuteBeam`, `Wait`, `Sequence`).
 - **Cost/Cooldown** are pure C++ `UGameplayEffect` subclasses (`UAuraManaCostGameplayEffect`, `UAuraCooldownGameplayEffect`) — no Blueprint UAssets needed.
 - **Damage** uses `UAuraDamageGameplayEffect` (C++ `UGameplayEffect` with `UExecCalc_Damage`) — no per-damage-type GE UAsset.
@@ -38,13 +38,14 @@ UGameplayAbility (UE5 GAS)
        └─ UAuraPassiveAbility
 ```
 
-The C++ classes provide the `BlueprintCallable` function-provider layer that graph nodes invoke (for example, `SpawnProjectiles()`, `FireGun()`, `SpawnFireBalls()`, and `CauseDamage()`). `UAuraFireBolt`, `UAuraFireGun`, `UArcaneShards`, `UAuraFireBlast`, and `UElectrocute` remain available for the traditional path while the ownership decision in `Docs/GAS-Migration-TODOs.md` remains open.
+The retained C++ classes provide `BlueprintCallable` helpers for their Blueprint ability graphs (for example, `SpawnProjectiles()`, `FireGun()`, `SpawnFireBalls()`, and `CauseDamage()`). AuraAbilityGraph nodes implement their own equivalent runtime logic; they do not call those legacy ability-class helpers. `UAuraFireBolt`, `UAuraFireGun`, `UArcaneShards`, `UAuraFireBlast`, and `UElectrocute` remain available for the traditional compatibility path.
 
 ### 3. Configuration
 
 | Source | File | Role |
 |---|---|---|
-| Ability definitions | `Content/AbilityDefinitions/*.xml` | Graph, cost, damage, montage, projectile params |
+| Ability definitions | `Content/AbilityDefinitions/*.xml` | Graph, cost, cooldown, damage, montage-node and projectile-definition selections |
+| Projectile definitions | `Content/Config/ProjectileDefinitions.json` | Native projectile class, collision, movement, lifetime, mesh scale, and FX assets |
 | UI metadata | `Content/Config/AbilityInfo.json` | Icons, materials, level requirements |
 | Role mapping | `Content/Config/RoleConfig.json` | Which abilities map to which role (Aura, BungeeMan) |
 | Gameplay tags | `Config/DefaultGameplayTags.ini` | Native tag declarations |
@@ -164,18 +165,18 @@ protected:
 - Set the Blueprint's default properties:
   - `ProjectileClass` = `BP_FireBolt` (the projectile Blueprint asset)
   - `NumProjectiles` = 5
-  - `DamageEffectClass` = `GE_Damage` (a separate GE UAsset for Fire damage)
+  - `DamageEffectClass` = shared legacy `GE_Damage`
   - `DamageType` = `Damage.Fire`
   - `Damage` = 50
-  - `KnockbackForceMagnitude` = 2000, `KnockbackChance` = 0.1
+  - `KnockbackForceMagnitude` = 2000, `KnockbackChance` = 10 for a nominal 10% chance
   - `DeathImpulseMagnitude` = 5000
 
 **Step 3: Create GE UAssets**
 
-Create three separate GE Blueprint UAssets:
+Configure the retained legacy GE assets:
 - `GE_Cost_FireBolt` — Extends `UGameplayEffect`, `Instant`, adds a `SetByCaller` modifier for Mana cost (10)
 - `GE_Cooldown_FireBolt` — Extends `UGameplayEffect`, `HasDuration`, duration = 5.0s, adds `Cooldown.Fire.FireBolt` tag
-- `GE_Damage_FireBolt` — Extends `UGameplayEffect`, `Instant`, uses `ExecCalc_Damage`, sets Fire damage type
+- `GE_Damage` — The repository's shared legacy instant damage GE using `ExecCalc_Damage`; the ability supplies the Fire damage tag and magnitude
 
 **Step 4: Build the Blueprint Ability Graph**
 
@@ -183,7 +184,7 @@ Wire up the ability tasks in the Blueprint graph:
 
 ```
 [Event Activate] → WaitTargetData (targeting) → FaceTarget → PlayMontage (AM_Cast_FireBolt)
-  → WaitGameplayEvent (Event.Montage.FireBolt) → SpawnProjectile (x5, spread=90°, homing)
+  → WaitGameplayEvent (Event.Montage.FireBolt) → SpawnProjectiles (up to 5, level-scaled, spread=90°, homing)
 ```
 
 Each task uses the standard GAS ability task nodes:
@@ -195,18 +196,18 @@ Each task uses the standard GAS ability task nodes:
 
 **Step 5: Register in RoleConfig**
 
-In `Content/Config/RoleConfig.json`, add the Blueprint class reference to the Aura role:
+In `Content/Config/RoleConfig.json`, use `startupAbilities` for traditional Blueprint/C++ ability classes and `lmbAbility` for the traditional LMB class. The `startupAbilityDefinitions` and `lmbAbilityDefinition` fields are reserved for data-driven definitions:
 ```json
 {
   "role": "Aura",
-  "startupAbilityDefinitions": ["/Game/Blueprints/.../GA_FireBolt.GA_FireBolt_C"],
+  "startupAbilities": [],
   "lmbAbility": "/Game/Blueprints/.../GA_FireBolt.GA_FireBolt_C"
 }
 ```
 
 **Step 6: Create the Projectile Blueprint**
 
-Create `BP_FireBolt` extending `AAuraProjectile`. Set its `DamageEffectParams` in the overlap handler using `MakeDamageEffectParamsFromClassDefaults()`.
+Create/configure `BP_FireBolt` extending `AAuraProjectile`. The legacy ability writes `DamageEffectParams` onto the deferred projectile before `FinishSpawning()`; native `AAuraProjectile` resolves the impacted target ASC and applies the effect on overlap.
 
 ---
 
@@ -231,9 +232,11 @@ Cost uses `UAuraManaCostGameplayEffect` (C++), cooldown uses `UAuraCooldownGamep
 
 The graph is defined in XML and executed by `UAuraDataAbility`, not by a Blueprint ability graph.
 
-**Step 4: No projectile Blueprint asset reference needed in the ability**
+**Step 4: Select a named projectile definition**
 
-The `ProjectileClass` property in SpawnProjectiles references the projectile BP path as a string in XML, not as a UAsset reference.
+The active graph uses `<property name="ProjectileDefinition" value="fireBolt"/>`. The name resolves through `Content/Config/ProjectileDefinitions.json`, where `fireBolt` selects native `AAuraProjectile` and its movement and FX configuration. `ProjectileClass` remains only as a compatibility fallback for graphs that do not use a named definition.
+
+**Level-scaling note:** the traditional `UAuraFireBolt::SpawnProjectiles()` uses `Min(AbilityLevel, NumProjectiles)`. The current data-driven node uses the XML `Count` directly, so FireBolt currently spawns five projectiles at every ability level.
 
 ---
 
@@ -247,11 +250,11 @@ The `ProjectileClass` property in SpawnProjectiles references the projectile BP 
 | **Cooldown GE** | Separate `GE_Cooldown_FireBolt` Blueprint UAsset | C++ `UAuraCooldownGameplayEffect` — no UAsset |
 | **Damage GE** | Separate `GE_Damage` Blueprint UAsset (or per-type) | C++ `UAuraDamageGameplayEffect` with exec calc — no UAsset |
 | **Parameter changes** | Edit in Blueprint editor | Edit XML file |
-| **Hot reload** | Recompile BP | Re-parse XML at runtime |
-| **Projectile reference** | Class pointer in BP defaults | String path in XML |
+| **Reload behavior** | Recompile/reload BP | Re-parsed when role configuration is loaded or explicitly reloaded; existing granted specs can retain their previous definition object |
+| **Projectile reference** | Class pointer in BP defaults | Named entry in `ProjectileDefinitions.json` |
 | **Montage reference** | Object pointer in BP defaults | String path in XML (loaded via `LoadObject`) |
 | **Targeting** | Blueprint task nodes | `<graph>` XML nodes |
-| **File count per ability** | ~6 files (GA, 3 GEs, BP class, Projectile BP) | ~1 file (XML) + shared C++ GEs |
+| **Ability-specific definition** | Blueprint GA plus supporting assets | One XML definition, plus shared native nodes/GEs and shared projectile/VFX configuration |
 | **Designer-friendly** | Yes (visual BP graph) | Yes (XML, editor tooling) |
 | **New node types needed** | N/A | `SpawnProjectiles`, `SpawnShards`, `ElectrocuteBeam` |
 
@@ -293,54 +296,51 @@ protected:
 
 **Step 3: Create GE UAssets**
 
-- `GE_Cost_FireGun` — Instant, mana cost = 0 (trivial/no-op)
+- No cost GE is required for the current zero-mana FireGun; the repository has no `GE_Cost_FireGun` asset
 - `GE_Cooldown_FireGun` — HasDuration, duration = 0.2s, Cooldown.Gun.Fire tag
-- `GE_Damage_Physical` — Instant physical damage GE (shared with other physical damage abilities)
+- `GE_Damage` — the repository's shared legacy damage GE
 
-**Step 4: Build the Blueprint Ability Graph (6 nodes)**
+**Step 4: Build the Blueprint Ability Graph**
 
 ```
 Event Activate → WaitTargetData → FaceTarget → PlayMontage (AM_FireGun)
-  → WaitGameplayEvent (Event.Montage.FireGun) → SpawnProjectile (single, toward cursor)
-  → MulticastGunFX (play muzzle flash + fire sound)
+  → WaitGameplayEvent (Event.Montage.FireGun) → FireGun(CursorHitResult)
 ```
 
-The 6th node (`MulticastGunFX`) is a custom Blueprint node that fires the muzzle effect on all clients. In the legacy system, this had to be implemented as a custom GraphNode or a call to a static function library.
+The Blueprint calls the native `UAuraFireGun::FireGun()` helper. On authority that helper calls `SpawnProjectile()` and then `AAuraCharacterBase::MulticastPlayGunFireFX()`; there is no separate legacy `MulticastGunFX` Blueprint graph node.
 
 **Step 5: Register in RoleConfig**
 
 In `RoleConfig.json`, set BungeeMan's `lmbAbility` to the `GA_FireGun` Blueprint class path. Set `weaponTipSocket = "Muzzle"` so the gun spawns from the correct socket.
 
-**Step 6: Implement MulticastGunFX**
+**Step 6: Configure muzzle FX**
 
-In the legacy system, muzzle FX multicast requires either:
-- A custom Blueprint GraphNode
-- Or C++ with `UFUNCTION(NetMulticast)` on the character class (`MulticastPlayGunFX`)
-- The data-driven version handles this via the `MulticastGunFX` graph node built into the system
+Set `MuzzleEffect` and `FireSound` on the legacy GA Blueprint. `UAuraFireGun::FireGun()` invokes the character's native `MulticastPlayGunFireFX()` RPC. The data-driven version invokes the same character RPC through its `MulticastGunFX` graph node.
 
 ---
 
 #### AuraAbilityGraph (Data-Driven) Flow
 
-`Content/AbilityDefinitions/FireGun.xml` replaces the entire Blueprint ability + 3 GE assets:
+`Content/AbilityDefinitions/FireGun.xml` replaces the Blueprint ability graph and its cooldown/damage GE dependencies for this path. Because mana cost is zero, `UAuraDataAbility::ApplyCost()` returns without creating a cost spec:
 
 ```xml
 <ability name="FireGun" abilityTag="Abilities.Gun.Fire" inputTag="InputTag.LMB" type="Abilities.Type.Offensive">
   <cost mana="0"/>
   <cooldown tag="Cooldown.Gun.Fire" duration="0.2"/>
   <damage effectClass="" type="Damage.Physical" base="5" deathImpulseMagnitude="1000" knockbackChance="0"/>
-  <montage path="..." eventTag="Event.Montage.FireGun"/>
   <graph>
     <node class="Sequence">
       <node class="WaitForTargetData"/>
       <node class="FaceTarget"/>
-      <node class="PlayMontage"/>
+      <node class="PlayMontage">
+        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun"/>
+      </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.FireGun"/>
       </node>
       <node class="SpawnProjectile">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
-        <property name="ProjectileClass" value="/Script/Aura.AuraProjectile"/>
+        <property name="ProjectileDefinition" value="fireGunBullet"/>
       </node>
       <node class="MulticastGunFX">
         <property name="MuzzleSocketTag" value="CombatSocket.Weapon"/>
@@ -352,7 +352,7 @@ In the legacy system, muzzle FX multicast requires either:
 </ability>
 ```
 
-No GE Blueprint UAssets, no Blueprint ability — just the XML file. The `MulticastGunFX` node is a built-in graph node in the AuraAbilityGraph plugin that handles the netmulticast call to `AAuraCharacterBase::MulticastPlayGunFX()` automatically.
+No GE Blueprint UAssets or Blueprint ability are required by the active data-driven path. The XML also depends on the shared `fireGunBullet` entry in `ProjectileDefinitions.json` and the referenced montage/FX assets. The `MulticastGunFX` node calls `AAuraCharacterBase::MulticastPlayGunFireFX()`.
 
 ---
 
@@ -361,15 +361,15 @@ No GE Blueprint UAssets, no Blueprint ability — just the XML file. The `Multic
 | Aspect | GAS-Version (Traditional) | AuraAbilityGraph (Data-Driven) |
 |---|---|---|
 | **Ability class** | Blueprint `GA_FireGun` extending `UAuraFireGun` | No Blueprint; generic `UAuraDataAbility` |
-| **Graph wiring** | 6 BP task nodes wired visually | 6 XML graph nodes in `<graph>` |
-| **Cost GE** | `GE_Cost_FireGun` Blueprint (mana=0, no-op) | C++ `UAuraManaCostGameplayEffect` |
+| **Graph wiring** | BP targeting/montage/event flow ending in native `FireGun()` | 6 XML action nodes in `<graph>` |
+| **Cost GE** | None required for the current zero cost | `ApplyCost()` skips zero mana; shared C++ cost GE is used only for positive costs |
 | **Cooldown GE** | `GE_Cooldown_FireGun` Blueprint (0.2s) | C++ `UAuraCooldownGameplayEffect` + XML duration |
-| **Damage GE** | `GE_Damage_Physical` Blueprint UAsset | C++ `UAuraDamageGameplayEffect` (shared) |
-| **Muzzle FX** | Custom `MulticastGunFX` BP node or C++ net multicast | Built-in `MulticastGunFX` XML graph node |
+| **Damage GE** | Shared `GE_Damage` Blueprint UAsset | C++ `UAuraDamageGameplayEffect` (shared) |
+| **Muzzle FX** | Native `FireGun()` helper calls the character multicast | Built-in `MulticastGunFX` XML graph node calls the same character multicast |
 | **Projectile spawn** | `SpawnProjectile` BP function call | `SpawnProjectile` XML graph node |
-| **File count** | ~6 files (GA + 3 GEs + Projectile BP + character FX) | ~1 file (XML) |
+| **Ability-specific definition** | GA Blueprint plus supporting assets | One XML definition plus shared projectile/FX configuration |
 | **Muzzle socket** | Hardcoded per-role in BP or `RoleConfig` | `CombatSocket.Weapon` tag via XML property |
-| **Adding new gun variant** | Duplicate BA, duplicate GEs, modify BP | Add new XML file, reference new projectile class |
+| **Adding new gun variant** | Duplicate GA and adjust supporting assets | Add XML and select or add a named projectile definition |
 
 ---
 
@@ -399,14 +399,14 @@ public:
 **Step 2: Create the Legacy Blueprint GA**
 
 - Blueprint `GA_ArcaneShards` extending `UArcaneShards`
-- Default properties: `Damage = 30`, `DamageType = Damage.Arcane`, `DebuffChance = 0.3`
+- Default properties: `Damage = 30`, `DamageType = Damage.Arcane`; use `DebuffChance = 30` for a nominal 30% chance because the runtime uses percentage points, not a 0–1 fraction
 - No `ProjectileClass` or `ProjectileSpell` inheritance — direct damage ability
 
 **Step 3: Create GE UAssets**
 
 - `GE_Cost_ArcaneShards` — Instant, mana cost = 20
 - `GE_Cooldown_ArcaneShards` — HasDuration, 8.0s, tag `Cooldown.Arcane.ArcaneShards`
-- `GE_Damage_Arcane` — Instant, Arcane damage type with debuff (stun)
+- `GE_Damage` — Shared legacy instant damage GE; Arcane damage/debuff values come from the ability defaults
 
 **Step 4: Build the Blueprint Ability Graph (5 nodes)**
 
@@ -415,18 +415,16 @@ Event Activate → WaitTargetData → FaceTarget → PlayMontage (AM_Cast_Arcane
   → WaitGameplayEvent (Event.Montage.ArcaneShards) → SpawnActors (arcane shards)
 ```
 
-The `SpawnActors` step in the Blueprint was the most complex part — you had to:
+The retained `GA_ArcaneShards` Blueprint contains the targeting, point sampling, actor spawning, cue, and damage wiring. At a high level it must:
 1. Use a `SpawnActor` task or loop
-2. Spawn `MaxNumShards` (11) actor instances
+2. Spawn up to `MaxNumShards` (11) actor instances, scaled by ability level
 3. Each shard needs its own damage application (radial)
 4. Each shard needs a gameplay cue for the visual effect (`GameplayCue.ArcaneShards`)
-5. Each shard needs a return-to-owner behavior (they orbit and explode)
-
-In the legacy system, this required a custom Blueprint Library function or multiple Blueprint nodes to spawn, configure, and track each shard actor.
+5. Sequence those effects for the selected ground points
 
 **Step 5: Register in RoleConfig**
 
-Add to Aura's `startupAbilityDefinitions`.
+Add a traditional `GA_ArcaneShards` class path to Aura's `startupAbilities`. Use `startupAbilityDefinitions` only for the XML version.
 
 ---
 
@@ -440,12 +438,13 @@ Add to Aura's `startupAbilityDefinitions`.
   <cost mana="20"/>
   <cooldown tag="Cooldown.Arcane.ArcaneShards" duration="8"/>
   <damage ... type="Damage.Arcane" base="30" debuffChance="0.3" .../>
-  <montage path="..." eventTag="Event.Montage.ArcaneShards"/>
   <graph>
     <node class="Sequence">
       <node class="WaitForTargetData"/>
       <node class="FaceTarget"/>
-      <node class="PlayMontage"/>
+      <node class="PlayMontage">
+        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_ArcaneShards.AM_Cast_ArcaneShards"/>
+      </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.ArcaneShards"/>
       </node>
@@ -457,13 +456,14 @@ Add to Aura's `startupAbilityDefinitions`.
 </ability>
 ```
 
-The `SpawnShards` node is a **new XML node type** added in Phase 3. It's implemented as `USpawnShardsNode` in C++ and handles:
-- Spawning up to `MaxNumShards` (11) shard actors
-- Applying radial arcane damage at each shard origin
-- Firing the `GameplayCue.ArcaneShards` gameplay cue for VFX
-- Automatically scales shard count with ability level
+The `SpawnShards` node is implemented as `USpawnShardsNode` in C++. Its current behavior is:
+- Spawn one configured `APointCollection` actor at the cursor location
+- Sample `Min(MaxShards, Max(1, AbilityLevel))` ground-point locations
+- Execute `GameplayCue.ArcaneShards` locally at each location
+- Apply radial arcane damage at each location
+- Destroy the temporary point collection when the task exits
 
-**Key Diff:** In the traditional GAS path, spawning 11 shards with damage + VFX required custom Blueprint logic (spawn loop + per-shard damage setup + gameplay cue). In the data-driven path, it's a single `<node class="SpawnShards"/>` in the XML.
+`ShardClass` is parsed but is not currently loaded or spawned by `USpawnShardsTask`. Also, the cue uses `ExecuteGameplayCue_NonReplicated` after the server-authority check; a dedicated server therefore does not replicate that cue to clients. The XML node currently represents timed damage origins, not spawned shard actors with independent behavior.
 
 ---
 
@@ -472,12 +472,12 @@ The `SpawnShards` node is a **new XML node type** added in Phase 3. It's impleme
 | Aspect | GAS-Version (Traditional) | AuraAbilityGraph (Data-Driven) |
 |---|---|---|
 | **Ability class** | Blueprint `GA_ArcaneShards` extending `UArcaneShards` | No Blueprint; `UAuraDataAbility` generic |
-| **Shards spawn** | Custom BP logic: loop + spawn + per-shard setup | Single `SpawnShards` XML graph node |
+| **Shards spawn** | Blueprint spawns/configures shard visuals | Current C++ node samples locations but does not use `ShardClass` to spawn shard actors |
 | **Radial damage per shard** | Manual in BP (spawn loop applies GE to each) | Handled by C++ `USpawnShardsNode` implementation |
-| **Gameplay cue** | Manual `K2_SpawnEmitterAtLocation` or BP task | `GameplayCueTag` XML property on SpawnShards node |
+| **Gameplay cue** | Blueprint-controlled cue/VFX | XML tag executed non-replicated on the authority path; dedicated-server clients need a replication fix |
 | **Shards count scaling** | Manual Blueprint logic (`Min(Level, MaxNumShards)`) | Automatic in C++ `USpawnShardsNode` |
-| **GE UAssets** | 3 separate GE BPs needed | 0 — uses shared C++ GEs |
-| **File count** | ~5 files (GA + 3 GEs + custom shard logic) | ~1 file (XML) |
+| **GE UAssets** | Legacy cost/cooldown plus shared damage GE | 0 for the data-driven path — uses shared C++ GEs |
+| **Ability-specific definition** | GA Blueprint plus supporting assets | One XML definition plus shared native node and existing point/cue assets |
 | **Adding new shard ability** | Duplicate + custom shard BP | Duplicate XML + adjust properties |
 
 ---
@@ -516,14 +516,14 @@ private:
 **Step 2: Create the Legacy Blueprint GA**
 
 - Blueprint `GA_FireBlast` extending `UAuraFireBlast`
-- Default properties: `Damage = 60`, `DamageType = Damage.Fire`, `DebuffChance = 0.5`
+- Default properties: `Damage = 60`, `DamageType = Damage.Fire`; use `DebuffChance = 50` for a nominal 50% chance because the runtime uses percentage points
 - `NumFireBalls = 12`, `FireBallClass = BP_FireBall`
 
 **Step 3: Create GE UAssets**
 
 - `GE_Cost_FireBlast` — Instant, mana cost = 25
 - `GE_Cooldown_FireBlast` — HasDuration, 10.0s, tag `Cooldown.Fire.FireBlast`
-- `GE_Damage_Fire` — Shared fire damage GE
+- `GE_Damage` — Shared legacy damage GE; Fire damage/debuff values come from the ability defaults
 
 **Step 4: Build the Blueprint Ability Graph (1 root node)**
 
@@ -545,7 +545,7 @@ In the traditional BP approach, the `SpawnFireBalls()` function had to be implem
 
 **Step 5: Register in RoleConfig**
 
-Add to Aura's `startupAbilityDefinitions` (not `lmbAbility` — this is a startup ability).
+Add a traditional `GA_FireBlast` class path to Aura's `startupAbilities` (not `lmbAbility`). Use `startupAbilityDefinitions` only for the XML version.
 
 ---
 
@@ -563,7 +563,7 @@ Add to Aura's `startupAbilityDefinitions` (not `lmbAbility` — this is a startu
     <node class="Sequence" id="1">
       <node class="SpawnProjectiles" id="2">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
-        <property name="ProjectileClass" value="/Game/.../BP_FireBall.BP_FireBall_C"/>
+        <property name="ProjectileDefinition" value="fireBall"/>
         <property name="Count" value="12"/>
         <property name="Spread" value="360"/>
         <property name="bHoming" value="false"/>
@@ -574,7 +574,7 @@ Add to Aura's `startupAbilityDefinitions` (not `lmbAbility` — this is a startu
 </ability>
 ```
 
-**Key Diff:** The `bSetReturnToOwner` property on `SpawnProjectiles` is a **new XML property** added in Phase 3. In the traditional GAS path, this logic was baked into the C++ `SpawnFireBalls()` function (`FireBall->ReturnToActor = AvatarActor`). In the data-driven path, it's a configurable XML property.
+**Key Diff:** `ProjectileDefinition="fireBall"` resolves to native `AAuraFireBall` through `ProjectileDefinitions.json`. The `bSetReturnToOwner` property sets `ReturnToActor` and `Owner`; outbound distance/duration and return speed/distance come from the named projectile definition.
 
 Also notable: **no `<montage>` element** — FireBlast has no cast animation. No targeting nodes either (no WaitForTargetData/FaceTarget). The simplest graph in the system.
 
@@ -589,9 +589,9 @@ Also notable: **no `<montage>` element** — FireBlast has no cast animation. No
 | **No targeting** | Must remember to omit WaitForTargetData/FaceTarget | XML naturally omits these nodes |
 | **360° spread** | Hardcoded in `UAuraAbilitySystemLibrary::EvenlySpacedRotators` call | XML property `Spread="360"` |
 | **Return-to-owner** | C++ code: `FireBall->ReturnToActor = AvatarActor` | XML property `bSetReturnToOwner="true"` |
-| **Fireball BP reference** | `TSubclassOf<AAuraFireBall>` in C++ defaults | String path in XML `ProjectileClass` property |
-| **GE UAssets** | 3 separate GE BPs | 0 — uses shared C++ GEs |
-| **File count** | ~5 files (GA + 3 GEs + FireBallBP) | ~1 file (XML) |
+| **Fireball reference** | `TSubclassOf<AAuraFireBall>` in C++ defaults | Named `fireBall` definition selecting native `AAuraFireBall` |
+| **GE UAssets** | Legacy cost/cooldown plus shared damage GE | 0 for the data-driven path — uses shared C++ GEs |
+| **Ability-specific definition** | GA Blueprint plus supporting assets | One XML definition plus shared projectile/FX configuration |
 
 ---
 
@@ -619,14 +619,14 @@ public:
 
 - Blueprint `GA_Electrocute` extending `UElectrocute`
 - Default properties: `Damage = 10`, `DamageType = Damage.Lightning`
-- `DebuffChance = 0.5`, `DebuffDamage = 2`, `DebuffDuration = 3`, `DebuffFrequency = 0.5` (stun)
+- `DebuffChance = 50`, `DebuffDamage = 2`, `DebuffDuration = 3`, `DebuffFrequency = 0.5` for a nominal 50% stun chance
 - `MaxNumShockTargets = 5`
 
 **Step 3: Create GE UAssets**
 
 - `GE_Cost_Electrocute` — Instant, mana cost = 5
 - `GE_Cooldown_Electrocute` — HasDuration, 3.0s, tag `Cooldown.Lightning.Electrocute`
-- `GE_Damage_Lightning` — Lightning damage with stun debuff
+- `GE_Damage` — Shared legacy damage GE; Lightning damage/debuff values come from the ability defaults
 
 **Step 4: Build the Blueprint Ability Graph (5 nodes)**
 
@@ -642,7 +642,7 @@ The `ElectrocuteBeam` step is the most complex — a **channeled ability** that:
 4. Chains to up to 5 additional nearby targets (`MaxNumShockTargets = 5`)
 5. Each chain target gets a secondary beam segment
 6. Continues channeling for `ChannelDuration` seconds (2.0s)
-7. At `TickInterval` (0.2s), re-evaluates targets
+7. At `TickInterval` (0.2s), refreshes beam endpoints and damages the initially selected target set
 
 In the traditional BP approach, this required:
 - A custom Beam Actor or Component BP
@@ -653,7 +653,7 @@ In the traditional BP approach, this required:
 
 **Step 5: Register in RoleConfig**
 
-Add to Aura's `startupAbilityDefinitions`.
+Add a traditional `GA_Electrocute` class path to Aura's `startupAbilities`. Use `startupAbilityDefinitions` only for the XML version.
 
 **Step 6: Create beam VFX assets**
 
@@ -672,12 +672,13 @@ The beam Niagara system (`NS_ElectricBeam`), the ShockBurst GameplayCue, and the
   <cooldown tag="Cooldown.Lightning.Electrocute" duration="3"/>
   <damage type="Damage.Lightning" base="10" debuffChance="0.5" debuffDamage="2"
           debuffDuration="3" debuffFrequency="0.5" .../>
-  <montage path="..." eventTag="Event.Montage.Electrocute"/>
   <graph>
     <node class="Sequence">
       <node class="WaitForTargetData"/>
       <node class="FaceTarget"/>
-      <node class="PlayMontage"/>
+      <node class="PlayMontage">
+        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_Electrocute.AM_Cast_Electrocute"/>
+      </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.Electrocute"/>
       </node>
@@ -687,9 +688,9 @@ The beam Niagara system (`NS_ElectricBeam`), the ShockBurst GameplayCue, and the
 </ability>
 ```
 
-The `ElectrocuteBeam` node is a **new XML node type** added in Phase 3. It channels a lightning beam with chain targets. All the complex logic (beam VFX, tick-based damage, target chaining, Niagara parameter updates) is handled by the C++ `UElectrocuteBeamNode` + `UElectrocuteBeamTask` implementation.
+The `ElectrocuteBeam` node channels a lightning beam with chain targets. `FindBeamTargets()` runs once when the node starts. It selects a primary target and up to `Min(MaxChainTargets, AbilityLevel - 1)` additional targets. Each server tick updates endpoints, removes invalid actor references, and applies damage to the remaining array; it does not search for replacement targets. A non-enemy cursor hit can receive a visual primary beam but has no ASC and therefore receives no damage or chain targets.
 
-**Key Diff:** The traditional BP required ~500 lines of custom Blueprint logic for the beam channeling. In the data-driven path, it's a single `<node class="ElectrocuteBeam"/>` in the XML.
+**Key Diff:** In the data-driven path, the orchestration is represented by a single `<node class="ElectrocuteBeam"/>`; the target selection, timers, damage, and Niagara logic live in the shared C++ task.
 
 ---
 
@@ -698,33 +699,26 @@ The `ElectrocuteBeam` node is a **new XML node type** added in Phase 3. It chann
 | Aspect | GAS-Version (Traditional) | AuraAbilityGraph (Data-Driven) |
 |---|---|---|
 | **Ability class** | Blueprint `GA_Electrocute` extending `UElectrocute` | No Blueprint; `UAuraDataAbility` generic |
-| **Channeled beam** | ~500 lines of custom BP logic (ticks, chains, VFX) | Single `ElectrocuteBeam` XML node |
+| **Channeled beam** | Blueprint graph logic for ticks, chains, and VFX | Single XML node backed by a shared C++ task |
 | **Beam VFX** | Niagara system + custom BP actor | Handled by `ElectrocuteBeamTask` C++ class |
-| **Target chaining** | Manual trace + target selection in BP | Hardcoded in C++ (`MaxChainTargets=5`, `ChainRadius=850`) |
-| **Tick-based damage** | Timer + loop in Blueprint | Handled by `ElectrocuteBeamTask::OnTick()` |
-| **Stun debuff** | Applied via GE spec in BP | Damage params in XML (debuffChance=0.5, debuffDamage=2, debuffDuration=3) |
-| **GE UAssets** | 3 separate GE BPs | 0 — uses shared C++ GEs |
-| **File count** | ~7 files (GA + 3 GEs + BeamActor + Niagara + SoundCue) | ~1 file (XML) |
+| **Target chaining** | Manual trace + target selection in BP | Initial selection in C++ (`MaxChainTargets=5`, `ChainRadius=850`); no per-tick reacquisition |
+| **Tick-based damage** | Timer + loop in Blueprint | Handled by `UElectrocuteBeamTask::TickDamage()` |
+| **Stun debuff** | Applied via GE spec in BP | Damage params come from XML, subject to the percentage-point issue documented below |
+| **GE UAssets** | Legacy cost/cooldown plus shared damage GE | 0 for the data-driven path — uses shared C++ GEs |
+| **Ability-specific definition** | GA Blueprint plus supporting assets | One XML definition plus the existing Niagara asset and shared C++ task |
 | **Designer changes** | Editable in BP but complex to modify chain logic | Edit XML property values |
 
 ---
 
 ## Comparison Summary: Traditional GAS vs. AuraAbilityGraph
 
-### Files per Ability
+### Ability-Specific Definitions
 
-| | Traditional GAS | AuraAbilityGraph | Savings |
-|---|---|---|---|
-| **FireBolt** | ~6 files | 1 XML | ~83% |
-| **FireGun** | ~6 files | 1 XML | ~83% |
-| **ArcaneShards** | ~5 files | 1 XML | ~80% |
-| **FireBlast** | ~5 files | 1 XML | ~80% |
-| **Electrocute** | ~7 files | 1 XML | ~86% |
-| **Total (5 abilities)** | ~29 files | 5 XML | ~83% |
+The active data-driven setup replaces five GA Blueprint definitions with five XML files. This should not be interpreted as each ability depending on only one physical file: the runtime also depends on shared C++ graph nodes and GameplayEffects, `ProjectileDefinitions.json`, role/UI configuration, montages, Niagara/particle systems, sounds, and meshes. Exact percentage-based file savings are therefore not meaningful.
 
-### GE UAssets Eliminated
+### Legacy GE UAssets Avoided by the Active Data Path
 
-The AuraAbilityGraph approach eliminates **15 GE Blueprint UAssets** (3 per ability × 5 abilities) by using C++ `UGameplayEffect` subclasses:
+The current repository contains **10 relevant legacy GE Blueprint UAssets**: four `GE_Cost_*` assets, five `GE_Cooldown_*` assets, and one shared `GE_Damage`. There is no `GE_Cost_FireGun`, and damage is not represented by five separate per-ability assets. The active data-driven abilities do not require those legacy assets because they use the classes below. This does not prove every legacy asset is safe to delete while traditional and enemy abilities remain:
 - `UAuraManaCostGameplayEffect` — shared by all mana-cost abilities
 - `UAuraCooldownGameplayEffect` — shared by all cooldown abilities
 - `UAuraDamageGameplayEffect` — shared by all damage abilities (with exec calc)
@@ -735,11 +729,11 @@ The AuraAbilityGraph approach eliminates **15 GE Blueprint UAssets** (3 per abil
 |---|---|---|
 | **Edit ability params** | Open Blueprint editor, find the right property | Edit XML text file |
 | **Add new ability variant** | Create new GA BP + duplicate GEs + wire new graph | Copy XML, change values |
-| **Balance changes** | Edit BP properties → recompile → test | Edit XML → reload in game (or restart) |
+| **Balance changes** | Edit BP properties → recompile → test | Edit XML → explicitly reload role configuration or restart; verify newly granted specs use the new definition |
 | **Designer access** | Needs UE Editor access + BP knowledge | Can edit XML in any text editor |
-| **Runtime reload** | Requires recompile/reload | XML re-parsed at load time |
-| **Type safety** | Blueprint compile-time checking | XML validated at parse time (manual) |
-| **IDE support** | Full UE editor | Text editor + XML schema |
+| **Runtime reload** | Requires recompile/reload | XML is parsed when role configuration loads/reloads, not on every activation |
+| **Type safety** | Blueprint compile-time checking | Manual XML parsing with limited structural/property validation |
+| **IDE support** | Full UE editor | Text editor; parsing is manual and no XML schema is currently enforced by the runtime |
 | **Version control diffs** | Binary .uasset files (unreadable) | Plain text XML (human-readable) |
 | **New node types** | C++ + Blueprint node registration | Add C++ node class + register in NodeRegistry |
 
@@ -755,7 +749,7 @@ These passives are **not yet ported** to the data-driven XML system. They remain
 | LifeSiphon | UAuraPassiveAbility | `Abilities.Passive.LifeSiphon` |
 | ManaSiphon | UAuraPassiveAbility | `Abilities.Passive.ManaSiphon` |
 
-Reason: Passives have the wrong archetype (passive GameplayEffect, not action graph), so they cannot be expressed with the current AuraAbilityGraph node types.
+Reason: the current node registry has no nodes for the long-lived activation/deactivation and event-driven behavior used by these passive GameplayAbilities. They remain `UAuraPassiveAbility`-based Blueprint abilities; they are not themselves merely passive GameplayEffects.
 
 ---
 
@@ -774,16 +768,20 @@ Still using legacy Blueprints. Not yet migrated:
 
 ## Known Issues (Relevant to Abilities)
 
-From the pending plan (verified 2026-07-30):
+Verified against the current implementation on 2026-08-02:
 
-| # | Issue | Affected Abilities |
+| Severity | Issue | Actual scope |
 |---|---|---|
-| H2 | Inconsistent knockback force direction (Direction vs UpVector) in `ApplyDamageNode`, `HitscanTraceNode`, `SpawnProjectileNode` | All |
-| M7 | PlayMontage returns Success when no montage | FireBlast (no montage) |
-| M9 | Two damage paths with different context setup (`ApplyDamageNode` vs `CauseDamageNode`) | FireBolt, FireGun, ArcaneShards, FireBlast, Electrocute |
-| L14 | CooldownDuration doesn't scale from XML | All |
-| L21 | Projectiles hardcode `TargetASC=nullptr` | FireBolt (homing projectiles), FireGun |
-| L19 | `ApplyDamage` hardcodes `bIsRadialDamage=false` | All |
+| High | XML uses fractional `debuffChance`/`knockbackChance`, while runtime rolls percentage points from 1 to 100 with a strict `<` comparison | Values below 1 currently never succeed. Debuffs are affected on ArcaneShards, FireBlast, and Electrocute; nonzero projectile knockback values below 1 are also ineffective. |
+| High | `SpawnShards` parses `ShardClass` but never spawns it; its cue is non-replicated on an authority-only path | ArcaneShards visuals, particularly on a dedicated server |
+| Medium | Knockback direction differs by node: some use target direction while projectile/hitscan/beam paths initially use `UpVector` | Behavior varies by the active damage path; `SpawnProjectiles` and `ElectrocuteBeam` must also be included in any standardization work |
+| Medium | FireBolt projectile count does not scale with ability level in the data-driven path | FireBolt; XML `Count=5` is always used, unlike legacy `Min(Level, NumProjectiles)` |
+| Medium | Electrocute selects chain targets once and removes only invalid actor references | Electrocute does not reacquire targets each tick and does not explicitly test the combat dead state during cleanup |
+| Low | XML cooldown parsing supports only a constant, although runtime calls `GetValueAtLevel()` | All five definitions if level-scaled cooldowns are desired |
+| Low | `PlayMontage` treats an empty montage as a successful no-op and a nonempty unloadable path as failure | Only graphs containing `PlayMontage`; FireBlast has no such node and is unaffected |
+| Low | `ApplyDamage` and `CauseDamage` construct different damage contexts; `ApplyDamage` forces non-radial damage | Currently dormant for these five XML graphs because none uses either node |
+
+`TargetAbilitySystemComponent = nullptr` at projectile spawn is intentional deferred targeting, not by itself a defect: `AAuraProjectile::OnSphereOverlap()` assigns the impacted target ASC before applying the effect.
 
 ---
 

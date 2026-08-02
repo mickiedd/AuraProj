@@ -16,7 +16,7 @@ class AAuraPlayerController;
 class AAuraPlayerState;
 class UAuraAbilitySystemComponent;
 class UAuraAttributeSet;
-class UAbilityInfo;
+class URuntimeAbilityInfo;
 
 USTRUCT(BlueprintType)
 struct FWidgetControllerParams
@@ -61,8 +61,8 @@ public:
 	void BroadcastAbilityInfo();
 protected:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data")
-	TObjectPtr<UAbilityInfo> AbilityInfo;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Widget Data")
+	TObjectPtr<URuntimeAbilityInfo> AbilityInfo;
 
 	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
 	TObjectPtr<APlayerController> PlayerController;

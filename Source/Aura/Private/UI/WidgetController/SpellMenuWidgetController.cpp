@@ -40,12 +40,9 @@ void USpellMenuWidgetController::BindCallbacksToDependencies()
 			SpellGlobeSelectedDelegate.Broadcast(bEnableSpendPoints, bEnableEquip, Description, NextLevelDescription);
 		}
 		
-		if (AbilityInfo)
-		{
-			FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AbilityTag);
-			Info.StatusTag = StatusTag;
-			AbilityInfoDelegate.Broadcast(Info);
-		}
+		FAuraAbilityInfo Info = GetAuraASC()->GetRuntimeAbilityInfoForTag(AbilityTag);
+		Info.StatusTag = StatusTag;
+		AbilityInfoDelegate.Broadcast(Info);
 	});
 
 	GetAuraASC()->AbilityEquipped.AddUObject(this, &USpellMenuWidgetController::OnAbilityEquipped);
@@ -69,7 +66,7 @@ void USpellMenuWidgetController::SpellGlobeSelected(const FGameplayTag& AbilityT
 {
 	if (bWaitingForEquipSelection)
 	{
-		const FGameplayTag SelectedAbilityType = AbilityInfo->FindAbilityInfoForTag(AbilityTag).AbilityType;
+		const FGameplayTag SelectedAbilityType = GetAuraASC()->GetRuntimeAbilityInfoForTag(AbilityTag).AbilityType;
 		StopWaitingForEquipDelegate.Broadcast(SelectedAbilityType);
 		bWaitingForEquipSelection = false;
 	}
@@ -114,7 +111,7 @@ void USpellMenuWidgetController::GlobeDeselect()
 {
 	if (bWaitingForEquipSelection)
 	{
-		const FGameplayTag SelectedAbilityType = AbilityInfo->FindAbilityInfoForTag(SelectedAbility.Ability).AbilityType;
+		const FGameplayTag SelectedAbilityType = GetAuraASC()->GetRuntimeAbilityInfoForTag(SelectedAbility.Ability).AbilityType;
 		StopWaitingForEquipDelegate.Broadcast(SelectedAbilityType);
 		bWaitingForEquipSelection = false;
 	}
@@ -127,7 +124,7 @@ void USpellMenuWidgetController::GlobeDeselect()
 
 void USpellMenuWidgetController::EquipButtonPressed()
 {
-	const FGameplayTag AbilityType = AbilityInfo->FindAbilityInfoForTag(SelectedAbility.Ability).AbilityType;
+	const FGameplayTag AbilityType = GetAuraASC()->GetRuntimeAbilityInfoForTag(SelectedAbility.Ability).AbilityType;
 
 	WaitForEquipDelegate.Broadcast(AbilityType);
 	bWaitingForEquipSelection = true;
@@ -144,7 +141,7 @@ void USpellMenuWidgetController::SpellRowGlobePressed(const FGameplayTag& SlotTa
 	if (!bWaitingForEquipSelection) return;
 	// Check selected ability against the slot's ability type.
 	// (don't equip an offensive spell in a passive slot and vice versa)
-	const FGameplayTag& SelectedAbilityType = AbilityInfo->FindAbilityInfoForTag(SelectedAbility.Ability).AbilityType;
+	const FGameplayTag SelectedAbilityType = GetAuraASC()->GetRuntimeAbilityInfoForTag(SelectedAbility.Ability).AbilityType;
 	if (!SelectedAbilityType.MatchesTagExact(AbilityType)) return;
 
 	GetAuraASC()->ServerEquipAbility(SelectedAbility.Ability, SlotTag);
@@ -163,12 +160,12 @@ void USpellMenuWidgetController::OnAbilityEquipped(const FGameplayTag& AbilityTa
 	// Broadcast empty info if PreviousSlot is a valid slot. Only if equipping an already-equipped spell
 	AbilityInfoDelegate.Broadcast(LastSlotInfo);
 
-	FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AbilityTag);
+	FAuraAbilityInfo Info = GetAuraASC()->GetRuntimeAbilityInfoForTag(AbilityTag);
 	Info.StatusTag = Status;
 	Info.InputTag = Slot;
 	AbilityInfoDelegate.Broadcast(Info);
 
-	StopWaitingForEquipDelegate.Broadcast(AbilityInfo->FindAbilityInfoForTag(AbilityTag).AbilityType);
+	StopWaitingForEquipDelegate.Broadcast(Info.AbilityType);
 	SpellGlobeReassignedDelegate.Broadcast(AbilityTag);
 	GlobeDeselect();
 }

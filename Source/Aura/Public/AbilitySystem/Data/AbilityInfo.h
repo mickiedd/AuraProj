@@ -79,6 +79,9 @@ public:
 	 */
 	bool LoadFromJSON(const FString& JSONContent);
 
+	/** Stable, tag-sorted UI metadata used by status/grant iteration. */
+	TArray<FAuraAbilityInfo> GetAllAbilityInfo() const;
+
 	/**
 	 * Look up UI metadata for an ability by its tag. Returns empty struct if not found.
 	 * Note: InputTag, StatusTag, CooldownTag, AbilityType are NOT stored in JSON - they

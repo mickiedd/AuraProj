@@ -50,6 +50,8 @@ public:
 	static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	static FGameplayTag GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+	FAuraAbilityInfo GetRuntimeAbilityInfoForSpec(const FGameplayAbilitySpec& AbilitySpec) const;
+	FAuraAbilityInfo GetRuntimeAbilityInfoForTag(const FGameplayTag& AbilityTag) const;
 	FGameplayTag GetStatusFromAbilityTag(const FGameplayTag& AbilityTag);
 	FGameplayTag GetSlotFromAbilityTag(const FGameplayTag& AbilityTag);
 	bool SlotIsEmpty(const FGameplayTag& Slot);

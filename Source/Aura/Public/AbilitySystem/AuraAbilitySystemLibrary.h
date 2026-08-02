@@ -10,7 +10,6 @@
 
 class ULootTiers;
 class ULoadScreenSaveGame;
-class UAbilityInfo;
 class URuntimeAbilityInfo;
 class URoleInfo;
 class USpellMenuWidgetController;
@@ -73,14 +72,9 @@ public:
 	 * Get ability UI metadata (icons, materials, level requirements) for all abilities.
 	 * Loads from Content/Config/AbilityInfo.json on first access. Server: cached on GameMode.
 	 * Client: process-lifetime static cache. Automatically hot-reloads if JSON changes.
-	 * DEPRECATED: Legacy GetAbilityInfo() returns UAbilityInfo (UAsset-based), kept for BP compatibility.
 	 */
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static URuntimeAbilityInfo* GetRuntimeAbilityInfo(const UObject* WorldContextObject);
-
-	/** DEPRECATED: Legacy UAsset-based ability info. Use GetRuntimeAbilityInfo() for JSON-driven system. */
-	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta=(DeprecatedFunction, DeprecationMessage="Use GetRuntimeAbilityInfo instead"))
-	static UAbilityInfo* GetAbilityInfo(const UObject* WorldContextObject);
 
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static URoleInfo* GetRoleInfo(const UObject* WorldContextObject);

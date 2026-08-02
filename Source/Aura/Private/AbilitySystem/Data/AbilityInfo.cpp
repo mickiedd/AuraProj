@@ -11,6 +11,8 @@
 
 bool URuntimeAbilityInfo::LoadFromJSON(const FString& JSONContent)
 {
+	AbilityInfoMap.Empty();
+
 	TSharedPtr<FJsonObject> RootObject;
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JSONContent);
 
@@ -27,15 +29,14 @@ bool URuntimeAbilityInfo::LoadFromJSON(const FString& JSONContent)
 		return false;
 	}
 
-	AbilityInfoMap.Empty();
-
 	for (const TSharedPtr<FJsonValue>& AbilityValue : *AbilitiesArray)
 	{
 		const TSharedPtr<FJsonObject> AbilityObj = AbilityValue->AsObject();
 		if (!AbilityObj.IsValid())
 		{
-			UE_LOG(LogAura, Warning, TEXT("[RuntimeAbilityInfo] Skipping invalid ability entry"));
-			continue;
+			UE_LOG(LogAura, Error, TEXT("[RuntimeAbilityInfo] Ability entry is not an object"));
+			AbilityInfoMap.Empty();
+			return false;
 		}
 
 		FAuraAbilityInfo Info;
@@ -47,14 +48,23 @@ bool URuntimeAbilityInfo::LoadFromJSON(const FString& JSONContent)
 			Info.AbilityTag = FGameplayTag::RequestGameplayTag(FName(*AbilityTagStr), false);
 			if (!Info.AbilityTag.IsValid())
 			{
-				UE_LOG(LogAura, Warning, TEXT("[RuntimeAbilityInfo] Invalid gameplay tag: %s"), *AbilityTagStr);
-				continue;
+				UE_LOG(LogAura, Error, TEXT("[RuntimeAbilityInfo] Invalid gameplay tag: %s"), *AbilityTagStr);
+				AbilityInfoMap.Empty();
+				return false;
 			}
 		}
 		else
 		{
-			UE_LOG(LogAura, Warning, TEXT("[RuntimeAbilityInfo] Ability entry missing 'abilityTag'"));
-			continue;
+			UE_LOG(LogAura, Error, TEXT("[RuntimeAbilityInfo] Ability entry missing 'abilityTag'"));
+			AbilityInfoMap.Empty();
+			return false;
+		}
+
+		if (AbilityInfoMap.Contains(Info.AbilityTag))
+		{
+			UE_LOG(LogAura, Error, TEXT("[RuntimeAbilityInfo] Duplicate abilityTag: %s"), *Info.AbilityTag.ToString());
+			AbilityInfoMap.Empty();
+			return false;
 		}
 
 		// Parse icon (optional)
@@ -97,6 +107,17 @@ bool URuntimeAbilityInfo::LoadFromJSON(const FString& JSONContent)
 
 	UE_LOG(LogAura, Log, TEXT("[RuntimeAbilityInfo] Loaded %d abilities from JSON"), AbilityInfoMap.Num());
 	return AbilityInfoMap.Num() > 0;
+}
+
+TArray<FAuraAbilityInfo> URuntimeAbilityInfo::GetAllAbilityInfo() const
+{
+	TArray<FAuraAbilityInfo> Result;
+	AbilityInfoMap.GenerateValueArray(Result);
+	Result.Sort([](const FAuraAbilityInfo& Left, const FAuraAbilityInfo& Right)
+	{
+		return Left.AbilityTag.ToString() < Right.AbilityTag.ToString();
+	});
+	return Result;
 }
 
 FAuraAbilityInfo URuntimeAbilityInfo::FindAbilityInfoForTag(const FGameplayTag& AbilityTag, bool bLogNotFound) const

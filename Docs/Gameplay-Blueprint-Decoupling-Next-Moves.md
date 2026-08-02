@@ -3,11 +3,13 @@
 Date: 2026-08-02  
 Starting point: native projectile and pickup runtime is implemented; pickup Blueprint deletion is complete.
 
+Implementation status: Step 1 completed on 2026-08-02. Steps 2-7 remain open.
+
 This document is the ordered implementation handoff for the remaining narrow migration. Do not delete legacy player or projectile packages out of order: the current Asset Registry manifest proves they still have consumers.
 
-## 1. Finish the `AbilityInfo.json` runtime boundary
+## 1. [x] Finish the `AbilityInfo.json` runtime boundary
 
-The principal cleanup blocker is not the active ability grant path; it is the legacy metadata API. Several UI, save, status, and debug paths still call `UAuraAbilitySystemLibrary::GetAbilityInfo()` and therefore keep `DA_AbilityInfo` and its legacy `GA_*` class references alive.
+The principal cleanup blocker was the legacy metadata API. This step migrated the UI, save, status, and grant paths away from `UAuraAbilitySystemLibrary::GetAbilityInfo()`; the legacy asset remains only for the later deletion/cleanup step.
 
 Migrate these consumers to `URuntimeAbilityInfo` and the active role/ability definitions:
 
@@ -34,6 +36,16 @@ Acceptance:
 - level eligibility, equip/unequip, passive classification, descriptions, save, and restore work from tag/definition data;
 - malformed or missing `AbilityInfo.json` fails predictably;
 - an Asset Registry report shows that active maps/game modes no longer require `DA_AbilityInfo`.
+
+Completed implementation record:
+
+- Runtime ability sources now resolve from registered XML definitions, live specs, or role-owned unlock catalogs.
+- `AbilityInfo.json` is metadata-only; missing, malformed, duplicate, or invalid entries fail with actionable errors and no silent empty fallback.
+- Save data now persists only ability tag, slot, status, and level; restore resolves the runtime class/definition by tag.
+- Widget controllers, passive classification, status updates, grant/equip, descriptions, and slot selection use the runtime resolver.
+- `BP_AuraGameMode`, `BP_SpellMenuWidgetController`, `BP_OverlayWidgetController`, and `BP_AttributeMenuWidgetController` were resaved to remove serialized `DA_AbilityInfo` references.
+- Validation: AuraEditor Development build passed; all 5 `Aura.Abilities.Metadata.*` tests passed (9 total `Aura.*` tests when combined with the existing suites); JSON and diff checks passed. The only remaining binary `DA_AbilityInfo` reference is inside the legacy asset itself.
+- The older `AuraAbilityGraphSmokeTest` remains useful for graph/XML regressions but is not sufficient for this boundary because its node-registry and sequence checks are not assertion-based. The focused metadata suite now covers strict JSON validation, runtime spec/definition merging, role unlock catalogs, and active Blueprint serialization.
 
 ## 2. Remove stale player Blueprint references
 

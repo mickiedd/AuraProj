@@ -7,6 +7,7 @@
 #include "Player/AuraPlayerState.h"
 #include "Aura/AuraLogChannels.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 
@@ -16,6 +17,10 @@ void UAuraWidgetController::SetWidgetControllerParams(const FWidgetControllerPar
 	PlayerState = WCParams.PlayerState;
 	AbilitySystemComponent = WCParams.AbilitySystemComponent;
 	AttributeSet = WCParams.AttributeSet;
+	const UObject* WorldContext = AbilitySystemComponent && AbilitySystemComponent->GetAvatarActor()
+		? static_cast<const UObject*>(AbilitySystemComponent->GetAvatarActor())
+		: static_cast<const UObject*>(PlayerController);
+	AbilityInfo = UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(WorldContext);
 }
 
 void UAuraWidgetController::BroadcastInitialValues()
@@ -38,7 +43,7 @@ void UAuraWidgetController::BroadcastAbilityInfo()
 
 	if (AbilityInfo == nullptr)
 	{
-		UE_LOG(LogAura, Warning, TEXT("BroadcastAbilityInfo failed for widget controller %s because AbilityInfo asset is null"), *GetNameSafe(this));
+		UE_LOG(LogAura, Error, TEXT("BroadcastAbilityInfo failed for widget controller %s because AbilityInfo.json is unavailable"), *GetNameSafe(this));
 		return;
 	}
 
@@ -47,8 +52,7 @@ void UAuraWidgetController::BroadcastAbilityInfo()
 	FForEachAbility BroadcastDelegate;
 	BroadcastDelegate.BindLambda([this, &BroadcastCount](const FGameplayAbilitySpec& AbilitySpec)
 	{
-		FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AuraAbilitySystemComponent->GetAbilityTagFromSpec(AbilitySpec));
-		Info.InputTag = AuraAbilitySystemComponent->GetInputTagFromSpec(AbilitySpec);
+		FAuraAbilityInfo Info = AuraAbilitySystemComponent->GetRuntimeAbilityInfoForSpec(AbilitySpec);
 		Info.StatusTag = AuraAbilitySystemComponent->GetStatusFromSpec(AbilitySpec);
 		AbilityInfoDelegate.Broadcast(Info);
 		UE_LOG(LogAura, Log, TEXT("BroadcastAbilityInfo widget=%s ability=%s status=%s slot=%s level=%d"),
