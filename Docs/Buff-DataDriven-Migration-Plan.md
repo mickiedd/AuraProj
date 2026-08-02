@@ -180,7 +180,7 @@ They validate:
 & 'C:\Git\UE_5.5\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'C:\Git\AuraProj\Aura.uproject' -unattended -nop4 -nullrhi -DisablePlugins=RiderLink '-ExecCmds=Automation RunTests Aura.Buffs' '-TestExit=Automation Test Queue Empty'
 ```
 
-Expected result: two tests complete with `Result={Success}`.
+Expected result: three tests complete with `Result={Success}` (including cached pickup-definition cross-validation).
 
 ### Ability graph smoke suite
 
@@ -189,6 +189,14 @@ Expected result: two tests complete with `Result={Success}`.
 ```
 
 Validated result on 2026-08-02: `18 passed, 0 failed`.
+
+## Native pickup actor migration (2026-08-02)
+
+`Content/Config/PickupDefinitions.json` now owns pickup collision, presentation, movement, effect mapping, and enemy-loot rates. `AAuraEffectActor` creates and binds its collision, mesh, and Niagara components natively and reads immutable cached definitions. `GameplayEffects.json` remains the source of effect behavior and magnitudes.
+
+`StartupMap` was migrated and reloaded with 20 native configured actors: four each of the health/mana potions and crystals, three fire areas, and one test-attribute actor. Per-instance actor-level overrides were retained. Enemy loot now spawns the native class by definition name; `DA_LootTiers` no longer contains Blueprint class rows.
+
+The eight historical pickup Blueprint packages (including both duplicate Potion/Crystal paths) were deleted after Asset Registry showed no outside referencers and a Windows cook succeeded. Presentation meshes, materials, sounds, and Niagara systems remain allowed UAsset dependencies.
 
 ## Corrections to the Original Plan
 

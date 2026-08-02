@@ -1,0 +1,47 @@
+{
+  "pickups": {
+    "healthPotion": {
+      "nativeClass": "/Script/Aura.AuraEffectActor", "effect": "healthPotion",
+      "destroyOnApplication": true, "collisionShape": "sphere", "collisionSize": [32, 32, 32],
+      "mesh": "/Game/Assets/Pickups/Potions/SM_PotionBottle.SM_PotionBottle", "meshScale": [0.2, 0.2, 0.2],
+      "materials": ["/Game/Assets/Pickups/Potions/Liquid/MI_RedLiquid.MI_RedLiquid"],
+      "sinusoidalMovement": true, "sineAmplitude": 8, "sinePeriodConstant": 4
+    },
+    "manaPotion": {
+      "nativeClass": "/Script/Aura.AuraEffectActor", "effect": "manaPotion",
+      "destroyOnApplication": true, "collisionShape": "box", "collisionSize": [32, 32, 32],
+      "mesh": "/Game/Assets/Pickups/Potions/SM_PotionBottle.SM_PotionBottle", "meshScale": [0.2, 0.2, 0.2],
+      "materials": ["/Game/Assets/Pickups/Potions/Liquid/MI_BlueLiquid.MI_BlueLiquid"],
+      "sinusoidalMovement": true, "sineAmplitude": 8, "sinePeriodConstant": 4
+    },
+    "healthCrystal": {
+      "nativeClass": "/Script/Aura.AuraEffectActor", "effect": "healthCrystal",
+      "destroyOnApplication": true, "collisionShape": "capsule", "collisionSize": [32, 60, 32],
+      "mesh": "/Game/Assets/Pickups/HealthCrystal/SM_HealthCrystal.SM_HealthCrystal", "meshOffset": [-2.138359, 3.375287, 1.079471], "meshScale": [0.2, 0.2, 0.2],
+      "materials": ["/Game/Assets/Pickups/HealthCrystal/Materials/MI_HealthCrystal.MI_HealthCrystal"],
+      "sinusoidalMovement": true, "sineAmplitude": 8, "sinePeriodConstant": 4
+    },
+    "manaCrystal": {
+      "nativeClass": "/Script/Aura.AuraEffectActor", "effect": "manaCrystal",
+      "destroyOnApplication": true, "collisionShape": "sphere", "collisionSize": [32, 32, 32],
+      "mesh": "/Game/Assets/Spells/Shards/SM_Shard_debris.SM_Shard_debris", "meshScale": [1, 1, 1],
+      "sinusoidalMovement": true, "sineAmplitude": 8, "sinePeriodConstant": 4
+    },
+    "fireArea": {
+      "nativeClass": "/Script/Aura.AuraEffectActor", "effect": "fireArea",
+      "removeOnEndOverlap": true, "applyToEnemies": true, "collisionShape": "box", "collisionSize": [70.316978, 31.684589, 32],
+      "vfx": "/Game/Assets/Effects/Fire/NS_Fire.NS_Fire", "vfxOffset": [-36.308246, 0, 0],
+      "secondaryVfx": "/Game/Assets/Effects/Fire/NS_Fire.NS_Fire", "secondaryVfxOffset": [38.048649, 0, 0]
+    },
+    "testAttribute": {
+      "nativeClass": "/Script/Aura.AuraEffectActor", "effect": "testAttribute",
+      "collisionShape": "box", "collisionSize": [32, 32, 32]
+    }
+  },
+  "loot": [
+    {"pickup": "healthPotion", "chanceToSpawn": 20, "maxNumberToSpawn": 3, "lootLevelOverride": true},
+    {"pickup": "manaPotion", "chanceToSpawn": 20, "maxNumberToSpawn": 3, "lootLevelOverride": true},
+    {"pickup": "healthCrystal", "chanceToSpawn": 5, "maxNumberToSpawn": 2, "lootLevelOverride": true},
+    {"pickup": "manaCrystal", "chanceToSpawn": 5, "maxNumberToSpawn": 2, "lootLevelOverride": true}
+  ]
+}

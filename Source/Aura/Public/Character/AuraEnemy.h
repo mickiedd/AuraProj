@@ -79,4 +79,5 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnLoot();
+	void SpawnDataDrivenLoot();
 };

@@ -2,6 +2,8 @@
 
 
 #include "Character/AuraEnemy.h"
+#include "Actor/AuraEffectActor.h"
+#include "Data/AuraGameplayConfig.h"
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
@@ -112,8 +114,36 @@ void AAuraEnemy::Die(const FVector& DeathImpulse)
 {
 	SetLifeSpan(LifeSpan);
 	if (AuraAIController) AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"), true);
-	SpawnLoot();
+	SpawnDataDrivenLoot();
 	Super::Die(DeathImpulse);
+}
+
+void AAuraEnemy::SpawnDataDrivenLoot()
+{
+	if (!HasAuthority() || !GetWorld()) return;
+	int32 SpawnIndex = 0;
+	for (const FAuraLootDefinition& Loot : FAuraGameplayConfig::GetLootDefinitions())
+	{
+		const FAuraPickupDefinition* PickupDefinition = FAuraGameplayConfig::FindPickup(Loot.PickupDefinition);
+		if (!PickupDefinition) continue;
+		for (int32 Attempt = 0; Attempt < Loot.MaxNumberToSpawn; ++Attempt)
+		{
+			if (FMath::FRandRange(1.f, 100.f) >= Loot.ChanceToSpawn) continue;
+			const float Angle = FMath::DegreesToRadians(static_cast<float>(SpawnIndex++ * 137));
+			const FVector Offset(FMath::Cos(Angle) * 45.f, FMath::Sin(Angle) * 45.f, 25.f);
+			const FTransform Transform(GetActorRotation(), GetActorLocation() + Offset);
+			AAuraEffectActor* Pickup = GetWorld()->SpawnActorDeferred<AAuraEffectActor>(
+				PickupDefinition->NativeClass, Transform, this, nullptr,
+				ESpawnActorCollisionHandlingMethod::AlwaysSpawn, ESpawnActorScaleMethod::MultiplyWithRoot);
+			if (!Pickup || !Pickup->ConfigureFromDefinition(Loot.PickupDefinition))
+			{
+				if (Pickup) Pickup->Destroy();
+				continue;
+			}
+			Pickup->SetConfiguredActorLevel(Loot.bLootLevelOverride ? Level : PickupDefinition->ActorLevel);
+			Pickup->FinishSpawning(Transform);
+		}
+	}
 }
 
 void AAuraEnemy::SetCombatTarget_Implementation(AActor* InCombatTarget)

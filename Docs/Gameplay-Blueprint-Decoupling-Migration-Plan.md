@@ -1,6 +1,6 @@
 # AuraAbilityGraph and Buff Blueprint-Decoupling Migration Plan
 
-> Status: **Not started**  
+> Status: **In progress — native projectile/pickup runtime implemented; legacy ability cleanup remains**
 > Prepared: 2026-08-02  
 > Audience: a new implementation agent  
 > Read first: `Buff-DataDriven-Migration-Plan.md`, `GAS-DataDriven-Rewrite-Plan.md`, and `GAS-Migration-TODOs.md`

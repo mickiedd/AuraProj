@@ -20,6 +20,11 @@ class AURA_API AAuraProjectile : public AActor
 	
 public:	
 	AAuraProjectile();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	bool ConfigureFromDefinition(FName InDefinitionName);
+
+	UPROPERTY(ReplicatedUsing = OnRep_ProjectileDefinition, BlueprintReadOnly, Category = "Projectile|DataDriven")
+	FName ProjectileDefinitionName;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
@@ -45,6 +50,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnDefinitionConfigured(const struct FAuraProjectileDefinition& Definition);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnHit();
@@ -79,6 +85,8 @@ protected:
 
 	void StopLoopingSound();
 private:
+	UFUNCTION()
+	void OnRep_ProjectileDefinition();
 
 	UPROPERTY(EditDefaultsOnly)
 	float LifeSpan = 15.f;

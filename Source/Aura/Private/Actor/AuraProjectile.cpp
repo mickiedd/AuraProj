@@ -15,7 +15,9 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Aura/AuraLogChannels.h"
+#include "Data/AuraGameplayConfig.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 #include "WorldCollision.h"
 
 AAuraProjectile::AAuraProjectile()
@@ -49,9 +51,60 @@ AAuraProjectile::AAuraProjectile()
 	ProjectileMovement->ProjectileGravityScale = 0.f;
 }
 
+void AAuraProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AAuraProjectile, ProjectileDefinitionName);
+}
+
+bool AAuraProjectile::ConfigureFromDefinition(FName InDefinitionName)
+{
+	const FAuraProjectileDefinition* Definition = FAuraGameplayConfig::FindProjectile(InDefinitionName);
+	if (!Definition)
+	{
+		UE_LOG(LogAura, Error, TEXT("[Projectile] Unknown projectile definition '%s'"), *InDefinitionName.ToString());
+		return false;
+	}
+	if (!GetClass()->IsChildOf(Definition->NativeClass))
+	{
+		UE_LOG(LogAura, Error, TEXT("[Projectile] Definition '%s' requires %s, got %s"), *InDefinitionName.ToString(), *GetNameSafe(Definition->NativeClass), *GetNameSafe(GetClass()));
+		return false;
+	}
+
+	ProjectileDefinitionName = InDefinitionName;
+	LifeSpan = Definition->LifeSpan;
+	Sphere->SetSphereRadius(Definition->CollisionRadius);
+	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Sphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, Definition->WorldStaticResponse);
+	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	ProjectileMovement->InitialSpeed = Definition->InitialSpeed;
+	ProjectileMovement->MaxSpeed = Definition->MaxSpeed;
+	ProjectileMovement->ProjectileGravityScale = Definition->GravityScale;
+	ProjectileMesh->SetStaticMesh(Cast<UStaticMesh>(Definition->Mesh.IsNull() ? nullptr : Definition->Mesh.TryLoad()));
+	ProjectileMesh->SetRelativeScale3D(Definition->MeshScale);
+	FlightTrail = Cast<UNiagaraSystem>(Definition->FlightTrail.IsNull() ? nullptr : Definition->FlightTrail.TryLoad());
+	ImpactEffect = Cast<UNiagaraSystem>(Definition->ImpactEffect.IsNull() ? nullptr : Definition->ImpactEffect.TryLoad());
+	ImpactSound = Cast<USoundBase>(Definition->ImpactSound.IsNull() ? nullptr : Definition->ImpactSound.TryLoad());
+	LoopingSound = Cast<USoundBase>(Definition->LoopingSound.IsNull() ? nullptr : Definition->LoopingSound.TryLoad());
+	OnDefinitionConfigured(*Definition);
+	return true;
+}
+
+void AAuraProjectile::OnRep_ProjectileDefinition()
+{
+	ConfigureFromDefinition(ProjectileDefinitionName);
+}
+
+void AAuraProjectile::OnDefinitionConfigured(const FAuraProjectileDefinition& Definition)
+{
+}
+
 void AAuraProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!ProjectileDefinitionName.IsNone()) ConfigureFromDefinition(ProjectileDefinitionName);
 	UE_LOG(LogAura, Log, TEXT("[Projectile] BeginPlay: Actor=%s Role=%d RemoteRole=%d Loc=%s"),
 		*GetNameSafe(this), (int32)GetLocalRole(), (int32)GetRemoteRole(), *GetActorLocation().ToCompactString());
 
@@ -78,7 +131,7 @@ void AAuraProjectile::BeginPlay()
 	// enabling from frame 0 is safe.
 	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-	Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	if (ProjectileDefinitionName.IsNone()) Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraProjectile::OnSphereOverlap);
@@ -205,7 +258,8 @@ void AAuraProjectile::ApplyImpactAndDestroy(AActor* OtherActor)
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 		{
-			if (UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor(), OtherActor))
+			AActor* SourceActor = DamageEffectParams.SourceAbilitySystemComponent ? DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor() : nullptr;
+			if (SourceActor && UAuraAbilitySystemLibrary::IsNotFriend(SourceActor, OtherActor))
 			{
 				const FVector DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
 				DamageEffectParams.DeathImpulse = DeathImpulse;

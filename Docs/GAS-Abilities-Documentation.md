@@ -53,6 +53,8 @@ The C++ classes provide the `BlueprintCallable` function-provider layer that gra
 
 ---
 
+> 2026-08-02 update: active projectile graph nodes use named entries in `Content/Config/ProjectileDefinitions.json`. FireBolt resolves to native `AAuraProjectile`; FireBlast resolves to native `AAuraFireBall`, whose outbound/return movement no longer requires a Blueprint timeline. Legacy projectile/GA descriptions below document the retained compatibility path only; see `Gameplay-Blueprint-Decoupling-Migration-Report.md` for deletion blockers.
+
 ## Buff and Pickup Effects
 
 `AAuraEffectActor` applies named entries from `Content/Config/GameplayEffects.json` through native `UGameplayEffect` classes. Blueprint pickup instances select an entry with `InstantEffectName`, `DurationEffectName`, or `InfiniteEffectName`; effect magnitudes no longer require a Gameplay Effect Blueprint asset.

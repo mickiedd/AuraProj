@@ -20,7 +20,7 @@
       </node>
       <node class="SpawnProjectiles">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
-        <property name="ProjectileClass" value="/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/BP_FireBolt.BP_FireBolt_C"/>
+        <property name="ProjectileDefinition" value="fireBolt"/>
         <property name="Count" value="5"/>
         <property name="Spread" value="90"/>
         <property name="bHoming" value="true"/>

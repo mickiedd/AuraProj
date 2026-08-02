@@ -23,6 +23,9 @@ public:
     FString ProjectileClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectile")
+    FName ProjectileDefinition;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectile")
     FString TargetFromContext;
 };
 

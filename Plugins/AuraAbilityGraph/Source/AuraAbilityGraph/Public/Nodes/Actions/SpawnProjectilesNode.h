@@ -23,6 +23,9 @@ public:
     FString ProjectileClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectiles")
+    FName ProjectileDefinition;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectiles")
     int32 Count = 5;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectiles")

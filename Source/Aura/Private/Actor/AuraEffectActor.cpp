@@ -5,6 +5,11 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Data/AuraGameplayConfig.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "AuraGameplayTags.h"
 #include "AuraAttributeGameplayEffect.h"
@@ -12,6 +17,8 @@
 #include "JsonUtilities.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 namespace AuraEffectActorPrivate
 {
@@ -31,21 +38,125 @@ namespace AuraEffectActorPrivate
 
 AAuraEffectActor::AAuraEffectActor()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>("SceneRoot"));
+	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollision->SetupAttachment(GetRootComponent());
+	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
+	BoxCollision->SetupAttachment(GetRootComponent());
+	CapsuleCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
+	CapsuleCollision->SetupAttachment(GetRootComponent());
+	PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PickupMesh"));
+	PickupMesh->SetupAttachment(GetRootComponent());
+	PickupMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PickupVfx = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PickupVfx"));
+	PickupVfx->SetupAttachment(GetRootComponent());
+	SecondaryPickupVfx = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SecondaryPickupVfx"));
+	SecondaryPickupVfx->SetupAttachment(GetRootComponent());
+
+	for (UShapeComponent* Shape : { static_cast<UShapeComponent*>(SphereCollision), static_cast<UShapeComponent*>(BoxCollision), static_cast<UShapeComponent*>(CapsuleCollision) })
+	{
+		Shape->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Shape->SetCollisionObjectType(ECC_WorldDynamic);
+		Shape->SetCollisionResponseToAllChannels(ECR_Overlap);
+		Shape->OnComponentBeginOverlap.AddDynamic(this, &AAuraEffectActor::OnCollisionBegin);
+		Shape->OnComponentEndOverlap.AddDynamic(this, &AAuraEffectActor::OnCollisionEnd);
+	}
+}
+
+AAuraEffectActor* AAuraEffectActor::SpawnConfiguredPickup(UObject* WorldContextObject, FName InDefinitionName, const FTransform& Transform, float InActorLevel)
+{
+	if (!WorldContextObject || !WorldContextObject->GetWorld()) return nullptr;
+	const FAuraPickupDefinition* Definition = FAuraGameplayConfig::FindPickup(InDefinitionName);
+	if (!Definition) return nullptr;
+	AAuraEffectActor* Actor = WorldContextObject->GetWorld()->SpawnActorDeferred<AAuraEffectActor>(
+		Definition->NativeClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn,
+		ESpawnActorScaleMethod::MultiplyWithRoot);
+	if (!Actor || !Actor->ConfigureFromDefinition(InDefinitionName))
+	{
+		if (Actor) Actor->Destroy();
+		return nullptr;
+	}
+	Actor->ActorLevel = InActorLevel;
+	Actor->FinishSpawning(Transform);
+	return Actor;
+}
+
+void AAuraEffectActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	if (!PickupDefinitionName.IsNone()) ConfigureFromDefinition(PickupDefinitionName);
+}
+
+bool AAuraEffectActor::ConfigureFromDefinition(FName InDefinitionName)
+{
+	const FAuraPickupDefinition* Definition = FAuraGameplayConfig::FindPickup(InDefinitionName);
+	if (!Definition)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[AuraEffectActor] Unknown pickup definition '%s'"), *InDefinitionName.ToString());
+		return false;
+	}
+	PickupDefinitionName = InDefinitionName;
+	bDestroyOnEffectApplication = Definition->bDestroyOnApplication;
+	bApplyEffectsToEnemies = Definition->bApplyToEnemies;
+	bRotates = Definition->bRotates;
+	RotationRate = Definition->RotationRate;
+	bSinusoidalMovement = Definition->bSinusoidalMovement;
+	SineAmplitude = Definition->SineAmplitude;
+	SinePeriodConstant = Definition->SinePeriodConstant;
+	PrimaryActorTick.SetTickFunctionEnable(bRotates || bSinusoidalMovement);
+
+	InstantEffectName.Empty(); DurationEffectName.Empty(); InfiniteEffectName.Empty();
+	InstantEffectApplicationPolicy = DurationEffectApplicationPolicy = InfiniteEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
+	if (const FAuraPickupEffectDefinition* Effect = FAuraGameplayConfig::FindPickupEffect(Definition->EffectName))
+	{
+		const EEffectApplicationPolicy Policy = Definition->bApplyOnEndOverlap ? EEffectApplicationPolicy::ApplyOnEndOverlap : EEffectApplicationPolicy::ApplyOnOverlap;
+		if (Effect->DurationType == TEXT("instant")) { InstantEffectName = Definition->EffectName.ToString(); InstantEffectApplicationPolicy = Policy; }
+		else if (Effect->DurationType == TEXT("duration")) { DurationEffectName = Definition->EffectName.ToString(); DurationEffectApplicationPolicy = Policy; }
+		else { InfiniteEffectName = Definition->EffectName.ToString(); InfiniteEffectApplicationPolicy = Policy; }
+	}
+	InfiniteEffectRemovalPolicy = Definition->bRemoveOnEndOverlap ? EEffectRemovalPolicy::RemoveOnEndOverlap : EEffectRemovalPolicy::DoNotRemove;
+
+	SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	BoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (Definition->CollisionShape == EAuraConfiguredCollisionShape::Sphere) { SphereCollision->SetSphereRadius(Definition->CollisionSize.X); SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly); }
+	else if (Definition->CollisionShape == EAuraConfiguredCollisionShape::Box) { BoxCollision->SetBoxExtent(Definition->CollisionSize); BoxCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly); }
+	else { CapsuleCollision->SetCapsuleSize(Definition->CollisionSize.X, Definition->CollisionSize.Y); CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly); }
+
+	PickupMesh->SetStaticMesh(Cast<UStaticMesh>(Definition->Mesh.IsNull() ? nullptr : Definition->Mesh.TryLoad()));
+	PickupMesh->SetRelativeLocation(Definition->MeshOffset); PickupMesh->SetRelativeRotation(Definition->MeshRotation); PickupMesh->SetRelativeScale3D(Definition->MeshScale);
+	for (int32 Index = 0; Index < Definition->Materials.Num(); ++Index) PickupMesh->SetMaterial(Index, Cast<UMaterialInterface>(Definition->Materials[Index].TryLoad()));
+	PickupVfx->SetAsset(Cast<UNiagaraSystem>(Definition->Vfx.IsNull() ? nullptr : Definition->Vfx.TryLoad())); PickupVfx->SetRelativeLocation(Definition->VfxOffset);
+	SecondaryPickupVfx->SetAsset(Cast<UNiagaraSystem>(Definition->SecondaryVfx.IsNull() ? nullptr : Definition->SecondaryVfx.TryLoad())); SecondaryPickupVfx->SetRelativeLocation(Definition->SecondaryVfxOffset);
+	return true;
+}
+
+void AAuraEffectActor::OnCollisionBegin(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int32, bool, const FHitResult&)
+{
+	OnOverlap(OtherActor);
+}
+
+void AAuraEffectActor::OnCollisionEnd(UPrimitiveComponent*, AActor* OtherActor, UPrimitiveComponent*, int32)
+{
+	OnEndOverlap(OtherActor);
 }
 
 void AAuraEffectActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (!bRotates && !bSinusoidalMovement) return;
 	RunningTime += DeltaTime;
-	const float SinePeriod = 2 * PI / SinePeriodConstant;
+	const float SafePeriodConstant = FMath::Max(FMath::Abs(SinePeriodConstant), UE_KINDA_SMALL_NUMBER);
+	const float SinePeriod = 2 * PI / SafePeriodConstant;
 	if (RunningTime > SinePeriod)
 	{
 		RunningTime = 0.f;
 	}
 	ItemMovement(DeltaTime);
+	SetActorLocationAndRotation(CalculatedLocation, CalculatedRotation);
 }
 
 void AAuraEffectActor::ItemMovement(float DeltaTime)
@@ -57,7 +168,7 @@ void AAuraEffectActor::ItemMovement(float DeltaTime)
 	}
 	if (bSinusoidalMovement)
 	{
-		const float Sine = SineAmplitude * FMath::Sin(RunningTime * SinePeriodConstant);
+		const float Sine = SineAmplitude * FMath::Sin(RunningTime * FMath::Max(FMath::Abs(SinePeriodConstant), UE_KINDA_SMALL_NUMBER));
 		CalculatedLocation = InitialLocation + FVector(0.f, 0.f, Sine);
 	}
 }
@@ -66,6 +177,7 @@ void AAuraEffectActor::ItemMovement(float DeltaTime)
 void AAuraEffectActor::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!PickupDefinitionName.IsNone()) ConfigureFromDefinition(PickupDefinitionName);
 	InitialLocation = GetActorLocation();
 	CalculatedLocation = InitialLocation;
 	CalculatedRotation = GetActorRotation();
@@ -92,6 +204,38 @@ void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString&
 
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 	if (TargetASC == nullptr) return;
+
+	const FAuraPickupEffectDefinition* EffectDefinition = FAuraGameplayConfig::FindPickupEffect(FName(*EffectName));
+	if (!EffectDefinition)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Unknown cached pickup effect '%s'"), *EffectName);
+		return;
+	}
+
+	TSubclassOf<UGameplayEffect> EffectClass;
+	if (EffectDefinition->DurationType == TEXT("instant")) EffectClass = UAuraPickupGameplayEffect::StaticClass();
+	else if (EffectDefinition->DurationType == TEXT("duration")) EffectClass = EffectDefinition->bExecuteOnApplication ? UAuraPickupGameplayEffect_Duration::StaticClass() : UAuraPickupGameplayEffect_DurationDelayed::StaticClass();
+	else EffectClass = EffectDefinition->bExecuteOnApplication ? UAuraPickupGameplayEffect_Infinite::StaticClass() : UAuraPickupGameplayEffect_InfiniteDelayed::StaticClass();
+
+	FGameplayEffectContextHandle CachedContext = TargetASC->MakeEffectContext();
+	CachedContext.AddSourceObject(this);
+	const FGameplayEffectSpecHandle CachedSpec = TargetASC->MakeOutgoingSpec(EffectClass, ActorLevel, CachedContext);
+	if (!CachedSpec.IsValid()) return;
+	for (const FGameplayModifierInfo& Modifier : EffectClass->GetDefaultObject<UGameplayEffect>()->Modifiers)
+	{
+		const FGameplayTag DataTag = Modifier.ModifierMagnitude.GetSetByCallerFloat().DataTag;
+		if (DataTag.IsValid()) UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(CachedSpec, DataTag, EffectDefinition->Magnitudes.FindRef(DataTag));
+	}
+	if (EffectDefinition->DurationType == TEXT("duration")) CachedSpec.Data->SetDuration(EffectDefinition->Duration, false);
+	if (EffectDefinition->Period > 0.f) CachedSpec.Data->Period = EffectDefinition->Period;
+	CachedSpec.Data->AppendDynamicAssetTags(EffectDefinition->AssetTags);
+	const FActiveGameplayEffectHandle CachedHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*CachedSpec.Data.Get());
+	const bool bCachedInfinite = EffectDefinition->DurationType == TEXT("infinite");
+	if (bCachedInfinite && InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap) ActiveEffectHandles.Add(CachedHandle, TargetASC);
+	if (!bCachedInfinite && bDestroyOnEffectApplication) Destroy();
+	return;
+
+#if 0 // Retained temporarily for migration comparison; the cached path above is authoritative.
 
 	// Load GameplayEffects.json
 	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("GameplayEffects.json"));
@@ -273,6 +417,7 @@ void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString&
 	{
 		Destroy();
 	}
+#endif
 }
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)

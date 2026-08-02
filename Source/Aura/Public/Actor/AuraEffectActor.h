@@ -8,6 +8,11 @@
 #include "AuraEffectActor.generated.h"
 
 class UAbilitySystemComponent;
+class UBoxComponent;
+class UCapsuleComponent;
+class UNiagaraComponent;
+class USphereComponent;
+class UStaticMeshComponent;
 
 UENUM(BlueprintType)
 enum class EEffectApplicationPolicy : uint8
@@ -32,6 +37,19 @@ class AURA_API AAuraEffectActor : public AActor
 public:	
 	AAuraEffectActor();
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnConstruction(const FTransform& Transform) override;
+	bool ConfigureFromDefinition(FName InDefinitionName);
+	void SetConfiguredActorLevel(float InActorLevel) { ActorLevel = InActorLevel; }
+
+	UFUNCTION(BlueprintCallable, Category = "Pickup|DataDriven", meta = (WorldContext = "WorldContextObject"))
+	static AAuraEffectActor* SpawnConfiguredPickup(UObject* WorldContextObject, FName InDefinitionName, const FTransform& Transform, float InActorLevel = 1.f);
+	USphereComponent* GetSphereCollision() const { return SphereCollision; }
+	UBoxComponent* GetBoxCollision() const { return BoxCollision; }
+	UCapsuleComponent* GetCapsuleCollision() const { return CapsuleCollision; }
+	UStaticMeshComponent* GetPickupMesh() const { return PickupMesh; }
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Pickup|DataDriven", meta = (ExposeOnSpawn = true))
+	FName PickupDefinitionName;
 protected:
 	virtual void BeginPlay() override;
 
@@ -113,7 +131,24 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Applied Effects")
 	float ActorLevel = 1.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup|Components")
+	TObjectPtr<USphereComponent> SphereCollision;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup|Components")
+	TObjectPtr<UBoxComponent> BoxCollision;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup|Components")
+	TObjectPtr<UCapsuleComponent> CapsuleCollision;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup|Components")
+	TObjectPtr<UStaticMeshComponent> PickupMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup|Components")
+	TObjectPtr<UNiagaraComponent> PickupVfx;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup|Components")
+	TObjectPtr<UNiagaraComponent> SecondaryPickupVfx;
+
 private:
+	UFUNCTION()
+	void OnCollisionBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnCollisionEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	float RunningTime = 0.f;
 	void ItemMovement(float DeltaTime);

@@ -1,12 +1,14 @@
 # GAS → AuraAbilityGraph Migration TODOs
 
 > Status tracker for migrating the remaining old-GAS-version (Blueprint/GE-UAsset) abilities to the new data-driven AuraAbilityGraph system.
-> Last updated: 2026-07-31.
+> Last updated: 2026-08-02.
 > Reference plan: `Docs/GAS-DataDriven-Rewrite-Plan-Pending.md`.
 
 ---
 
 ## Summary
+
+2026-08-02 decoupling update: active FireBolt/FireBlast/FireGun XML now uses cached native definitions from `ProjectileDefinitions.json`, and FireBall outbound/return behavior is native. Projectile package deletion remains blocked: `BP_FireBolt` is referenced by `GA_FireBolt` and `GA_EnemyFireBolt`; `BP_FireBall` is referenced by `GA_FireBlast`. The native pickup migration is complete and its eight historical Blueprint packages were deleted after reference, reload, automation, and cook gates.
 
 | Status | Count | Items |
 |---|---|---|

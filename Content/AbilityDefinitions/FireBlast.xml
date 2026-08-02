@@ -6,7 +6,7 @@
     <node class="Sequence" id="1">
       <node class="SpawnProjectiles" id="2">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
-        <property name="ProjectileClass" value="/Game/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBlast/BP_FireBall.BP_FireBall_C"/>
+        <property name="ProjectileDefinition" value="fireBall"/>
         <property name="Count" value="12"/>
         <property name="Spread" value="360"/>
         <property name="bHoming" value="false"/>

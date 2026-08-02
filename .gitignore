@@ -23,6 +23,10 @@
 !/Content/Config/
 !/Content/BehaviorTrees/
 !/Content/AbilityDefinitions/
+# StartupMap contains the checked-in native pickup migration. Other project maps remain local.
+!/Content/Maps/
+/Content/Maps/*
+!/Content/Maps/StartupMap.umap
 # Transient reload-sentinel written by the editor "Reload Role Config" mending tool.
 /Content/Config/.RoleConfig.reload
 /Platforms/

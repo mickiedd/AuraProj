@@ -11,6 +11,7 @@
 #include "Interaction/CombatInterface.h"
 #include "AuraAbilityGraphLogChannels.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Data/AuraGameplayConfig.h"
 
 UAuraAbilityActionTask* USpawnProjectilesNode::CreateTask(UObject* Outer) const
 {
@@ -29,6 +30,10 @@ void USpawnProjectilesNode::LoadFromProperties(int32 Version, const TArray<FAura
         else if (Property.Name == TEXT("ProjectileClass"))
         {
             ProjectileClass = Property.Value;
+        }
+        else if (Property.Name == TEXT("ProjectileDefinition"))
+        {
+            ProjectileDefinition = FName(*Property.Value);
         }
         else if (Property.Name == TEXT("Count"))
         {
@@ -69,6 +74,7 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnProjectiles] OnStart abort: missing OwnerAbility or AvatarActor"));
         return EAuraAbilityActionStatus::Failure;
     }
+    if (!Ctx.AvatarActor->HasAuthority()) return EAuraAbilityActionStatus::Success;
 
     const USpawnProjectilesNode* Node = Cast<USpawnProjectilesNode>(NodeDef);
     if (!Node)
@@ -93,7 +99,10 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart Count=%d EffectiveCount=%d Spread=%.1f"), Node->Count, EffectiveCount, Node->Spread);
     TArray<FRotator> Rotations = UAuraAbilitySystemLibrary::EvenlySpacedRotators(Forward, FVector::UpVector, Node->Spread, EffectiveCount);
 
-    TSubclassOf<AAuraProjectile> ProjectileClass = LoadClass<AAuraProjectile>(nullptr, *Node->ProjectileClass);
+    const FAuraProjectileDefinition* ProjectileDefinition = Node->ProjectileDefinition.IsNone() ? nullptr : FAuraGameplayConfig::FindProjectile(Node->ProjectileDefinition);
+    TSubclassOf<AAuraProjectile> ProjectileClass;
+    if (ProjectileDefinition) ProjectileClass = ProjectileDefinition->NativeClass;
+    else ProjectileClass = LoadClass<AAuraProjectile>(nullptr, *Node->ProjectileClass);
     if (!ProjectileClass)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnProjectiles] OnStart LoadClass failed for '%s', trying StaticLoadClass"), *Node->ProjectileClass);
@@ -119,6 +128,21 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
             Cast<APawn>(OwnerAbility->GetOwningActorFromActorInfo()),
             ESpawnActorCollisionHandlingMethod::AlwaysSpawn,
             ESpawnActorScaleMethod::MultiplyWithRoot);
+        if (!Projectile || (!Node->ProjectileDefinition.IsNone() && !Projectile->ConfigureFromDefinition(Node->ProjectileDefinition)))
+        {
+            if (Projectile) Projectile->Destroy();
+            UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SpawnProjectiles] Invalid ProjectileDefinition='%s'"), *Node->ProjectileDefinition.ToString());
+            return EAuraAbilityActionStatus::Failure;
+        }
+
+        if (Node->bSetReturnToOwner)
+        {
+            if (AAuraFireBall* FireBall = Cast<AAuraFireBall>(Projectile))
+            {
+                FireBall->ReturnToActor = Ctx.AvatarActor;
+                FireBall->SetOwner(Ctx.AvatarActor);
+            }
+        }
 
         if (const UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
         {
@@ -166,22 +190,6 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
         }
 
         Projectile->FinishSpawning(SpawnTransform);
-
-        // If this is an AAuraFireBall and bSetReturnToOwner is enabled, set ReturnToActor
-        // so the fireball flies back to the owner after spawning (FireBlast mechanic).
-        if (Node->bSetReturnToOwner)
-        {
-            if (AAuraFireBall* FireBall = Cast<AAuraFireBall>(Projectile))
-            {
-                FireBall->ReturnToActor = Ctx.AvatarActor;
-                FireBall->SetOwner(Ctx.AvatarActor);
-                // TryStartOutgoingTimeline is called from BeginPlay when ReturnToActor
-                // is already set. If BeginPlay already ran (deferred spawn), we need
-                // to trigger it manually. Since OnRep_ReturnToActor is protected, we
-                // rely on the Blueprint's BeginPlay having already called it, or the
-                // replicated property triggering OnRep on clients.
-            }
-        }
 
         UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectiles] OnStart spawned projectile[%d] class=%s"), i, *ProjectileClass->GetName());
     }

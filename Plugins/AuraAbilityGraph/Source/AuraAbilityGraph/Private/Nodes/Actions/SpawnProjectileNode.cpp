@@ -10,6 +10,7 @@
 #include "Interaction/CombatInterface.h"
 #include "Engine/EngineTypes.h"
 #include "AuraAbilityGraphLogChannels.h"
+#include "Data/AuraGameplayConfig.h"
 
 UAuraAbilityActionTask* USpawnProjectileNode::CreateTask(UObject* Outer) const
 {
@@ -29,6 +30,10 @@ void USpawnProjectileNode::LoadFromProperties(int32 Version, const TArray<FAuraA
         {
             ProjectileClass = Property.Value;
         }
+        else if (Property.Name == TEXT("ProjectileDefinition"))
+        {
+            ProjectileDefinition = FName(*Property.Value);
+        }
         else if (Property.Name == TEXT("TargetFromContext"))
         {
             TargetFromContext = Property.Value;
@@ -44,6 +49,7 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnProjectile] OnStart abort: missing OwnerAbility or AvatarActor"));
         return EAuraAbilityActionStatus::Failure;
     }
+    if (!Ctx.AvatarActor->HasAuthority()) return EAuraAbilityActionStatus::Success;
 
     const USpawnProjectileNode* Node = Cast<USpawnProjectileNode>(NodeDef);
     if (!Node)
@@ -67,7 +73,10 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
     SpawnTransform.SetLocation(SocketLocation);
     SpawnTransform.SetRotation(Rotation.Quaternion());
 
-    TSubclassOf<AAuraProjectile> ProjectileClass = LoadClass<AAuraProjectile>(nullptr, *Node->ProjectileClass);
+    const FAuraProjectileDefinition* ProjectileDefinition = Node->ProjectileDefinition.IsNone() ? nullptr : FAuraGameplayConfig::FindProjectile(Node->ProjectileDefinition);
+    TSubclassOf<AAuraProjectile> ProjectileClass;
+    if (ProjectileDefinition) ProjectileClass = ProjectileDefinition->NativeClass;
+    else ProjectileClass = LoadClass<AAuraProjectile>(nullptr, *Node->ProjectileClass);
     if (!ProjectileClass)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnProjectile] OnStart LoadClass failed for '%s', trying StaticLoadClass"), *Node->ProjectileClass);
@@ -86,6 +95,12 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
         Cast<APawn>(OwnerAbility->GetOwningActorFromActorInfo()),
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn,
         ESpawnActorScaleMethod::MultiplyWithRoot);
+    if (!Projectile || (!Node->ProjectileDefinition.IsNone() && !Projectile->ConfigureFromDefinition(Node->ProjectileDefinition)))
+    {
+        if (Projectile) Projectile->Destroy();
+        UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SpawnProjectile] Invalid ProjectileDefinition='%s'"), *Node->ProjectileDefinition.ToString());
+        return EAuraAbilityActionStatus::Failure;
+    }
 
     if (const UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
