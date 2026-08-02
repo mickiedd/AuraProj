@@ -10,6 +10,8 @@
 
 2026-08-02 decoupling update: active FireBolt/FireBlast/FireGun XML now uses cached native definitions from `ProjectileDefinitions.json`, and FireBall outbound/return behavior is native. Projectile package deletion remains blocked: `BP_FireBolt` is referenced by `GA_FireBolt` and `GA_EnemyFireBolt`; `BP_FireBall` is referenced by `GA_FireBlast`. The native pickup migration is complete and its eight historical Blueprint packages were deleted after reference, reload, automation, and cook gates.
 
+Ordered continuation steps and acceptance gates: `Docs/Gameplay-Blueprint-Decoupling-Next-Moves.md`.
+
 | Status | Count | Items |
 |---|---|---|
 | ✅ Done | 5 | FireBolt, FireGun, ArcaneShards, FireBlast, Electrocute |

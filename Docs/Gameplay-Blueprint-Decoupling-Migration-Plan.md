@@ -4,6 +4,7 @@
 > Prepared: 2026-08-02  
 > Audience: a new implementation agent  
 > Read first: `Buff-DataDriven-Migration-Plan.md`, `GAS-DataDriven-Rewrite-Plan.md`, and `GAS-Migration-TODOs.md`
+> Continue with: `Gameplay-Blueprint-Decoupling-Next-Moves.md`
 
 ## Objective
 
