@@ -23,7 +23,6 @@ See `.claude/ability-logic-issues.md` for the full catalog (including fixed item
 
 | # | Issue | Severity | Location | Notes |
 |---|-------|----------|----------|-------|
-| 3 | Unused XML properties — `TargetFromContext` parsed but ignored; `ScatterRadius` parsed but unused | Medium | Multiple node `.cpp` files | Either implement or remove from schema + `LoadFromProperties`. |
 
 ### Lower-priority unfixed items (from ability-logic-issues.md)
 

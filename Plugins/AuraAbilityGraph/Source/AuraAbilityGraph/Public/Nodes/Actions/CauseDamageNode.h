@@ -14,10 +14,6 @@ class AURAABILITYGRAPH_API UCauseDamageNode : public UAuraAbilityActionNode
 
 public:
     virtual UAuraAbilityActionTask* CreateTask(UObject* Outer) const override;
-    virtual void LoadFromProperties(int32 Version, const TArray<FAuraAbilityGraphProperty>& Properties) override;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CauseDamage")
-    FString TargetFromContext;
 };
 
 UCLASS()

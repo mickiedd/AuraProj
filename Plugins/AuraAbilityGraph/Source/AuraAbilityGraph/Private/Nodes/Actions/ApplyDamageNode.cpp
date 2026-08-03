@@ -15,18 +15,6 @@ UAuraAbilityActionTask* UApplyDamageNode::CreateTask(UObject* Outer) const
     return NewObject<UApplyDamageTask>(Outer);
 }
 
-void UApplyDamageNode::LoadFromProperties(int32 Version, const TArray<FAuraAbilityGraphProperty>& Properties)
-{
-    Super::LoadFromProperties(Version, Properties);
-    for (const FAuraAbilityGraphProperty& Property : Properties)
-    {
-        if (Property.Name == TEXT("TargetFromContext"))
-        {
-            TargetFromContext = Property.Value;
-        }
-    }
-}
-
 EAuraAbilityActionStatus UApplyDamageTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[ApplyDamage] OnStart"));

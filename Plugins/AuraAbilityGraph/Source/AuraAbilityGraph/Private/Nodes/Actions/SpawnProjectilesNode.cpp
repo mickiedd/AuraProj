@@ -55,10 +55,6 @@ void USpawnProjectilesNode::LoadFromProperties(int32 Version, const TArray<FAura
         {
             HomingAccelerationMax = FCString::Atof(*Property.Value);
         }
-        else if (Property.Name == TEXT("TargetFromContext"))
-        {
-            TargetFromContext = Property.Value;
-        }
         else if (Property.Name == TEXT("bSetReturnToOwner"))
         {
             bSetReturnToOwner = Property.Value.ToBool();

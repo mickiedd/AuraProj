@@ -9,7 +9,6 @@
         <property name="SocketTag" value="CombatSocket.Weapon"/>
         <property name="SocketFromContext" value="true"/>
         <property name="ProjectileClass" value="/Game/Blueprints/AbilitySystem/Enemy/Abilities/BP_SlingshotRock.BP_SlingshotRock_C"/>
-        <property name="TargetFromContext" value="CombatTarget"/>
       </node>
     </node>
   </graph>

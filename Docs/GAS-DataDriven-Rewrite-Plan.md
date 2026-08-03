@@ -182,7 +182,6 @@ Mirror BehaviorU's element conventions exactly (`<node class="…">` with `<prop
       <node class="SpawnProjectile" id="5">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
         <property name="ProjectileClass" value="/Script/Aura.AuraProjectile"/>
-        <property name="TargetFromContext" value="CursorHit.ImpactPoint"/>
       </node>
       <node class="MulticastGunFX" id="6">
         <property name="MuzzleSocketTag" value="CombatSocket.Weapon"/>
@@ -313,12 +312,12 @@ Runtime state. `Execute` driver calls `OnEnter → OnStart → OnExit`. Async no
 | `WaitForTargetData` | `UTargetDataUnderMouse` | (none) | Spawns the task; on `ValidData` caches `FHitResult` into `Ctx.CursorHit` and returns `Success`. Async. |
 | `PlayMontage` | `UAbilityTask_PlayMontageAndWait` | (none — reads from Definition) | Plays `Definition->Montage`; returns `Success` immediately. |
 | `WaitForMontageEvent` | `UAbilityTask_WaitGameplayEvent` | `EventTag` | Returns `Running` until the event fires, then `Success`. Async. |
-| `SpawnProjectile` | `SpawnActorDeferred<AAuraProjectile>` | `SocketTag`, `ProjectileClass`, `TargetFromContext` | Spawns one projectile from socket toward cursor. Instant. |
+| `SpawnProjectile` | `SpawnActorDeferred<AAuraProjectile>` | `SocketTag`, `ProjectileClass` | Spawns one projectile from socket toward the target in `Ctx.CursorHit`. Instant. |
 | `SpawnProjectiles` | `EvenlySpacedRotators` + spawn loop | `SocketTag`, `ProjectileClass`, `Count`, `Spread`, `bHoming`, `HomingAccelerationMin/Max` | Multi-projectile + homing. Instant. |
-| `ApplyDamage` | `UAuraAbilitySystemLibrary::ApplyDamageEffect` | `TargetFromContext` | Build `FDamageEffectParams` from Definition + target, apply. Instant. |
-| `CauseDamage` | `MakeOutgoingGameplayEffectSpec` directly | `TargetFromContext` | Direct GE to target ASC (beam/melee path). Instant. |
+| `ApplyDamage` | `UAuraAbilitySystemLibrary::ApplyDamageEffect` | (none) | Build `FDamageEffectParams` from Definition + the actor in `Ctx.CursorHit`, apply. Instant. |
+| `CauseDamage` | `MakeOutgoingGameplayEffectSpec` directly | (none) | Direct GE to the actor in `Ctx.CursorHit` (beam/melee path). Instant. |
 | `MulticastGunFX` | `AAuraCharacterBase::MulticastPlayGunFireFX` | `MuzzleSocketTag`, `MuzzleEffect`, `FireSound` | Call the avatar's muzzle-FX NetMulticast. Instant. |
-| `HitscanTrace` | `LineTraceSingleByChannel` + `ApplyDamageEffect` | `SocketTag`, `TraceRange`, `ScatterRadius` | Line trace + damage. Instant. |
+| `HitscanTrace` | `LineTraceSingleByChannel` + `ApplyDamageEffect` | `SocketTag`, `TraceRange` | Straight line trace + damage. Instant. |
 | `FaceTarget` | `SetControlRotation` / `SetActorRotation` | `bSetControllerRotation`, `bSetActorRotation`, `bYawOnly` | Turn avatar toward cursor/target. Instant. |
 
 ---
@@ -510,7 +509,7 @@ Move projectile mesh/FX/impact params into a data asset so `BP_FireBolt`/`BP_Aur
 
 1. **PlayMontage delegates not wired** — `UPlayMontageTask::OnStart` creates `PlayMontageAndWait` but doesn't bind `OnInterrupted`/`OnCompleted`. If the montage is interrupted before the gameplay event fires, the graph hangs in `Running`. `OnMontageInterrupted` exists on `UAuraDataAbility` but is never called from C++.
 2. **Dead declarations (resolved 2026-08-03)** — removed the unused `CreateNodeByClassName` and `BuildAndExecuteGraph` declarations; the XML loader keeps its file-local registry helper.
-3. **Unused XML properties** — `TargetFromContext` on SpawnProjectile/SpawnProjectiles/ApplyDamage/CauseDamage is parsed but always ignored (uses `Ctx.CursorHit`). `HitscanTraceNode::ScatterRadius` parsed but trace is straight line.
+3. **Unused XML properties (resolved 2026-08-03)** — removed the ignored `TargetFromContext` and `ScatterRadius` properties from runtime/editor schemas, authored definitions, smoke fixtures, and documentation. Target actions continue to use `Ctx.CursorHit`; hitscan remains a straight line trace.
 4. **Smoke-test coverage (resolved 2026-08-03)** — `SmokeTest_NodeRegistry` validates all concrete registrations and rejects unknown names; `SmokeTest_SequenceExecution` parses and executes a real two-child sequence.
 5. **GC** — `AbilityDefinition.h` `Montage` and `DamageEffectClass` have no UPROPERTY on the Transient UObject.
 6. **SourceObject replication** — `FGameplayAbilitySpec::SourceObject` doesn't replicate. Clients may get null from `GetDefinition()`. Needs a fallback (DA_AbilityInfo lookup by tag) for multiplayer.

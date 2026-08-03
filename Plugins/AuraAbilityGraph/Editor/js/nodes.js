@@ -33,13 +33,11 @@ const NODE_PROPS = {
     { key:'Spread', label:'Spread', type:'string', default:'90' },
     { key:'bHoming', label:'Homing', type:'bool', default:false },
     { key:'HomingAccelerationMin', label:'Homing Accel Min', type:'string', default:'0' },
-    { key:'HomingAccelerationMax', label:'Homing Accel Max', type:'string', default:'0' },
-    { key:'TargetFromContext', label:'Target From Context', type:'string', default:'' }
+    { key:'HomingAccelerationMax', label:'Homing Accel Max', type:'string', default:'0' }
   ],
   HitscanTrace: [
     { key:'SocketTag', label:'Socket Tag', type:'string', default:'' },
-    { key:'TraceRange', label:'Trace Range', type:'string', default:'10000' },
-    { key:'ScatterRadius', label:'Scatter Radius', type:'string', default:'50' }
+    { key:'TraceRange', label:'Trace Range', type:'string', default:'10000' }
   ],
   FaceTarget: [
     { key:'bSetControllerRotation', label:'Set Controller Rotation', type:'bool', default:true },
@@ -49,12 +47,8 @@ const NODE_PROPS = {
   Wait: [
     { key:'Seconds', label:'Seconds', type:'string', default:'0.5' }
   ],
-  ApplyDamage: [
-    { key:'TargetFromContext', label:'Target From Context', type:'string', default:'' }
-  ],
-  CauseDamage: [
-    { key:'TargetFromContext', label:'Target From Context', type:'string', default:'' }
-  ],
+  ApplyDamage: [],
+  CauseDamage: [],
   MulticastGunFX: [
     { key:'MuzzleSocketTag', label:'Muzzle Socket Tag', type:'string', default:'' },
     { key:'MuzzleEffect', label:'Muzzle Effect', type:'string', default:'' },

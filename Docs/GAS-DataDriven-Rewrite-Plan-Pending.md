@@ -30,7 +30,6 @@
 
 | # | Issue | Severity | Location |
 |---|-------|----------|----------|
-| 3 | Unused XML properties — `TargetFromContext`, `ScatterRadius` | Medium | Multiple node `.cpp` files |
 | H2 | Inconsistent knockback force direction (Direction vs UpVector) | Medium | `ApplyDamageNode`, `HitscanTraceNode`, `SpawnProjectileNode` |
 | M7 | PlayMontage returns Success when no montage | Medium | `PlayMontageNode.cpp:29` |
 | M8 | WaitForMontageEvent no EventTag validation | Medium | `WaitForMontageEventNode.cpp` |
@@ -56,6 +55,7 @@
 |---|-------|-----------|
 | 1 | PlayMontage delegates not wired | `OnInterrupted` + `OnBlendOut` bound in `PlayMontageNode.cpp` |
 | 2 | Dead declarations | Removed the unused `CreateNodeByClassName` and `BuildAndExecuteGraph` declarations |
+| 3 | Unused XML properties | Removed the ignored `TargetFromContext` and `ScatterRadius` properties from runtime/editor schemas and authored definitions |
 | 4 | Fake smoke tests | `SmokeTest_NodeRegistry` validates all concrete registrations; `SmokeTest_SequenceExecution` executes a real two-child sequence |
 | 5 | GC risk (Montage/DamageEffectClass) | By design — `UCLASS(Transient)`, GC-scanned via owner. Not a bug. |
 | 6 | SourceObject doesn't replicate | `FindAbilityDefinitionByTag` registry fallback in `DataAbility.cpp` |

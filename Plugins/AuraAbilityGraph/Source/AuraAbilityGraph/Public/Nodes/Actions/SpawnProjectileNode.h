@@ -26,9 +26,6 @@ public:
     FName ProjectileDefinition;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectile")
-    FString TargetFromContext;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectile")
     bool bSocketFromContext = false;
 };
 

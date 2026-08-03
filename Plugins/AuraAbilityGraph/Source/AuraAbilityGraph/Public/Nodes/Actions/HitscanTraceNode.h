@@ -22,8 +22,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitscanTrace")
     float TraceRange = 10000.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitscanTrace")
-    float ScatterRadius = 50.f;
 };
 
 UCLASS()

@@ -61,11 +61,9 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 - Removed the unused `CreateNodeByClassName` and `BuildAndExecuteGraph` declarations from the public headers
 - The XML loader continues using its file-local registry helper in `AbilityDefinition.cpp`
 
-#### M5. Parsed-but-unused XML properties — UNFIXED
-- `TargetFromContext` on `SpawnProjectileNode`, `SpawnProjectilesNode`, `ApplyDamageNode`, `CauseDamageNode` — parsed from XML but `OnStart` always uses `Ctx.CursorHit.ImpactPoint` / `Ctx.CursorHit.GetActor()` — the property is never consulted
-- `HitscanTraceNode::ScatterRadius` — parsed from XML but the trace is a straight `LineTraceSingleByChannel` with no scatter applied
-- **Impact**: XML authors get the illusion of configurability that doesn't actually work
-- **Fix**: Either implement the properties or remove them from the schema and `LoadFromProperties`
+#### M5. Parsed-but-unused XML properties — FIXED (2026-08-03)
+- Removed `TargetFromContext` from the projectile/damage node schemas, XML definitions, editor metadata, and smoke fixtures; target actions continue using `Ctx.CursorHit`
+- Removed `ScatterRadius` from `HitscanTraceNode` and its editor schema; hitscan remains an explicit straight line trace
 
 #### M6. Fake smoke tests — FIXED (2026-08-03)
 - `SmokeTest_NodeRegistry` now creates and type-checks all 17 registered node classes, and verifies an unknown name is rejected

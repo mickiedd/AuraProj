@@ -9,7 +9,6 @@
         <property name="SocketTag" value="CombatSocket.Weapon"/>
         <property name="SocketFromContext" value="true"/>
         <property name="ProjectileDefinition" value="fireBolt"/>
-        <property name="TargetFromContext" value="CombatTarget"/>
       </node>
     </node>
   </graph>

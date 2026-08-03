@@ -40,9 +40,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectiles")
     float HomingAccelerationMax = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectiles")
-    FString TargetFromContext;
-
     /** When true, sets ReturnToActor = avatar on spawned AAuraFireBall actors so they fly back. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpawnProjectiles")
     bool bSetReturnToOwner = false;

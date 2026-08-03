@@ -30,10 +30,6 @@ void UHitscanTraceNode::LoadFromProperties(int32 Version, const TArray<FAuraAbil
         {
             TraceRange = FCString::Atof(*Property.Value);
         }
-        else if (Property.Name == TEXT("ScatterRadius"))
-        {
-            ScatterRadius = FCString::Atof(*Property.Value);
-        }
     }
 }
 
@@ -60,7 +56,7 @@ EAuraAbilityActionStatus UHitscanTraceTask::OnStart(FAuraAbilityExecutionContext
     {
         TargetLocation = Ctx.AvatarActor->GetActorLocation() + Ctx.AvatarActor->GetActorForwardVector() * Node->TraceRange;
     }
-    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart Target=%s TraceRange=%.1f Scatter=%.1f"), *TargetLocation.ToString(), Node->TraceRange, Node->ScatterRadius);
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart Target=%s TraceRange=%.1f"), *TargetLocation.ToString(), Node->TraceRange);
 
     const FVector Direction = (TargetLocation - SocketLocation).GetSafeNormal();
     const FVector TraceEnd = SocketLocation + Direction * Node->TraceRange;

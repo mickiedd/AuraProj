@@ -443,7 +443,6 @@ static bool SmokeTest_FireGunMigration()
 		"      <node class=\"SpawnProjectile\" id=\"5\">"
 		"        <property name=\"SocketTag\" value=\"CombatSocket.Weapon\"/>"
 		"        <property name=\"ProjectileClass\" value=\"/Script/Aura.AuraProjectile\"/>"
-		"        <property name=\"TargetFromContext\" value=\"CursorHit.ImpactPoint\"/>"
 		"      </node>"
 		"      <node class=\"MulticastGunFX\" id=\"6\">"
 		"        <property name=\"MuzzleSocketTag\" value=\"CombatSocket.Weapon\"/>"
@@ -583,11 +582,6 @@ static bool SmokeTest_FireGunMigration()
 		if (SpawnNode->ProjectileClass != TEXT("/Script/Aura.AuraProjectile"))
 		{
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SpawnProjectile ProjectileClass mismatch: got '%s'"), *SpawnNode->ProjectileClass);
-			return false;
-		}
-		if (SpawnNode->TargetFromContext != TEXT("CursorHit.ImpactPoint"))
-		{
-			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SpawnProjectile TargetFromContext mismatch: got '%s'"), *SpawnNode->TargetFromContext);
 			return false;
 		}
 	}

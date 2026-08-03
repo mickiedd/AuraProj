@@ -34,10 +34,6 @@ void USpawnProjectileNode::LoadFromProperties(int32 Version, const TArray<FAuraA
         {
             ProjectileDefinition = FName(*Property.Value);
         }
-        else if (Property.Name == TEXT("TargetFromContext"))
-        {
-            TargetFromContext = Property.Value;
-        }
         else if (Property.Name == TEXT("SocketFromContext"))
         {
             bSocketFromContext = Property.Value.ToBool();

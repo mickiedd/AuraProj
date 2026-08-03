@@ -257,12 +257,6 @@ class GraphRenderer {
         add('socket', p.SocketTag, '#7ec8e3');
         add('range', p.TraceRange || '10000', '#c3e88d');
         break;
-      case 'ApplyDamage':
-        add('target', p.TargetFromContext, '#ffd580');
-        break;
-      case 'CauseDamage':
-        add('target', p.TargetFromContext, '#ffd580');
-        break;
       case 'MulticastGunFX':
         add('socket', p.MuzzleSocketTag, '#7ec8e3');
         add('effect', p.MuzzleEffect, '#b5cea8');

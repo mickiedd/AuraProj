@@ -136,7 +136,7 @@ Current-status note: M7, M10, and M11 are resolved in the current implementation
 | # | Issue | Description | Fix |
 |---|---|---|---|
 | 2 | Dead declarations **(resolved 2026-08-03)** | `CreateNodeByClassName`, `BuildAndExecuteGraph` were declared but unused/dead | Removed both declarations; the XML loader retains its file-local registry helper |
-| 3 | Unused XML properties | `TargetFromContext`, `ScatterRadius` in XML but not used by nodes | Either implement support for these properties or remove them from XML schema and docs |
+| 3 | Unused XML properties **(resolved 2026-08-03)** | `TargetFromContext`, `ScatterRadius` were parsed but ignored | Removed the dead properties from node schemas, XML definitions, editor metadata, smoke fixtures, and documentation |
 | 4 | Fake smoke tests **(resolved 2026-08-03)** | Log-only tests with no assertions in `AuraAbilityGraphModule.cpp` | `SmokeTest_NodeRegistry` now validates all 17 concrete registrations and rejects unknown names; `SmokeTest_SequenceExecution` parses and executes a real two-child sequence |
 | M7 | PlayMontage missing montage behavior | Resolved: configured load failures return Failure; an intentionally empty montage remains a successful no-op | Keep regression coverage |
 | M8 | WaitForMontageEvent no authored-tag validation | The node rejects an empty/invalid `EventTag`, but does not verify that the tag exists on the authored montage/AnimNotify | Add validation against authored montage event metadata, or document runtime gameplay-event ownership |
@@ -228,6 +228,7 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 
 - [x] H2: Knockback direction consistent across all damage node types
 - [x] #4: Node registry and sequence smoke tests use real assertions
+- [x] #3: Unused XML properties removed from runtime/editor schemas and authored definitions
 - [x] M7: `PlayMontage` handles missing montage configuration safely (configured load failures return Failure)
 - [ ] M9: `ApplyDamageNode` and `CauseDamageNode` produce identical `FDamageEffectParams` context
 - [x] L14: `CooldownDuration` scales correctly with ability level from XML
