@@ -108,38 +108,126 @@ static bool SmokeTest_XMLParsing()
 
 static bool SmokeTest_NodeRegistry()
 {
-	const TArray<FString> Expected = {
-		TEXT("Sequence"),
-		TEXT("WaitForTargetData"),
-		TEXT("PlayMontage"),
-		TEXT("WaitForMontageEvent"),
-		TEXT("SpawnProjectile"),
-		TEXT("SpawnProjectiles"),
-		TEXT("ApplyDamage"),
-		TEXT("CauseDamage"),
-		TEXT("MulticastGunFX"),
-		TEXT("HitscanTrace"),
-		TEXT("FaceTarget"),
-		TEXT("Wait"),
-		TEXT("SpawnShards"),
-		TEXT("ElectrocuteBeam"),
+	struct FExpectedNode
+	{
+		const TCHAR* Name;
+		UClass* Class;
 	};
 
-	for (const FString& ClassName : Expected)
+	const FExpectedNode Expected[] = {
+		{ TEXT("Sequence"),            UAuraSequenceNode::StaticClass() },
+		{ TEXT("WaitForTargetData"),   UWaitForTargetDataNode::StaticClass() },
+		{ TEXT("PlayMontage"),         UPlayMontageNode::StaticClass() },
+		{ TEXT("WaitForMontageEvent"), UWaitForMontageEventNode::StaticClass() },
+		{ TEXT("SpawnProjectile"),     USpawnProjectileNode::StaticClass() },
+		{ TEXT("SpawnProjectiles"),    USpawnProjectilesNode::StaticClass() },
+		{ TEXT("ApplyDamage"),         UApplyDamageNode::StaticClass() },
+		{ TEXT("CauseDamage"),         UCauseDamageNode::StaticClass() },
+		{ TEXT("MulticastGunFX"),      UMulticastGunFXNode::StaticClass() },
+		{ TEXT("HitscanTrace"),        UHitscanTraceNode::StaticClass() },
+		{ TEXT("FaceTarget"),          UFaceTargetNode::StaticClass() },
+		{ TEXT("Wait"),                UWaitNode::StaticClass() },
+		{ TEXT("SpawnShards"),         USpawnShardsNode::StaticClass() },
+		{ TEXT("ElectrocuteBeam"),     UElectrocuteBeamNode::StaticClass() },
+		{ TEXT("EnemyCombatMontage"),  UEnemyCombatMontageNode::StaticClass() },
+		{ TEXT("EnemyMeleeDamage"),    UEnemyMeleeDamageNode::StaticClass() },
+		{ TEXT("EnemyHitReact"),       UEnemyHitReactNode::StaticClass() },
+	};
+
+	for (const FExpectedNode& Item : Expected)
 	{
-		if (!ClassName.IsEmpty() && ClassName != TEXT("None"))
+		UAuraAbilityActionNode* Node = FAuraAbilityNodeRegistry::Get().Create(Item.Name, GetTransientPackage());
+		if (!Node)
 		{
-			UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Registry node: '%s'"), *ClassName);
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] Node registry did not create '%s'."), Item.Name);
+			return false;
 		}
+
+		if (!Node->IsA(Item.Class))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] Node registry created '%s' as '%s'; expected '%s'."),
+				Item.Name, *Node->GetClass()->GetName(), *Item.Class->GetName());
+			return false;
+		}
+
+		UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Registry node '%s' -> %s."), Item.Name, *Node->GetClass()->GetName());
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Node registry PASSED."));
+	if (FAuraAbilityNodeRegistry::Get().Create(TEXT("NotARegisteredAbilityNode"), GetTransientPackage()) != nullptr)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] Node registry created an unknown node name."));
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Node registry PASSED (%d concrete registrations verified)."), UE_ARRAY_COUNT(Expected));
 	return true;
 }
 
 static bool SmokeTest_SequenceExecution()
 {
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Sequence execution verified (graph runtime available)."), TEXT("Sequence execution PASSED."));
+	const FString SampleXML = TEXT(
+		"<ability name=\"SequenceSmokeTest\" abilityTag=\"Abilities.Test.SequenceSmokeTest\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Damage\">"
+		"  <graph>"
+		"    <node class=\"Sequence\" id=\"1\">"
+		"      <node class=\"PlayMontage\" id=\"2\"/>"
+		"      <node class=\"PlayMontage\" id=\"3\"/>"
+		"    </node>"
+		"  </graph>"
+		"</ability>"
+	);
+
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	if (!Definition || !Definition->LoadFromXML(SampleXML))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceExecution: failed to parse the sequence graph."));
+		return false;
+	}
+
+	UAuraSequenceNode* SequenceNode = Cast<UAuraSequenceNode>(Definition->RootNode);
+	if (!SequenceNode || SequenceNode->Children.Num() != 2)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceExecution: expected a Sequence with 2 children."));
+		return false;
+	}
+
+	// An empty PlayMontage is an intentional no-op. It gives this smoke test two
+	// concrete, immediately-successful action tasks without requiring a live ASC,
+	// world, or animation asset.
+	UTestDataAbility* TestAbility = NewObject<UTestDataAbility>(GetTransientPackage());
+	UAuraSequenceTask* SequenceTask = NewObject<UAuraSequenceTask>(GetTransientPackage());
+	if (!TestAbility || !SequenceTask)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceExecution: failed to create runtime test objects."));
+		return false;
+	}
+
+	SequenceTask->Init(SequenceNode, TestAbility);
+	if (SequenceTask->ChildTasks.Num() != 2)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceExecution: task tree contains %d children; expected 2."), SequenceTask->ChildTasks.Num());
+		return false;
+	}
+
+	FAuraAbilityExecutionContext Context;
+	Context.Definition = Definition;
+	const EAuraAbilityActionStatus Status = SequenceTask->Execute(Context);
+	if (Status != EAuraAbilityActionStatus::Success)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceExecution: expected Success, got %s."),
+			*StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+		return false;
+	}
+
+	for (int32 Index = 0; Index < SequenceTask->ChildTasks.Num(); ++Index)
+	{
+		if (!SequenceTask->ChildTasks[Index] || SequenceTask->ChildTasks[Index]->HasEntered)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceExecution: child[%d] was not exited after sequence success."), Index);
+			return false;
+		}
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Sequence execution PASSED (2 real action tasks returned Success and exited)."));
 	return true;
 }
 

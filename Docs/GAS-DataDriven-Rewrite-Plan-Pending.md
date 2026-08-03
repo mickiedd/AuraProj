@@ -1,6 +1,6 @@
 # Data-Driven GAS Rewrite — Pending Phases & Known Issues
 
-> Last verified: 2026-07-30. See `.claude/memory/gas-rewrite-pending.md` for the authoritative status.
+> Last verified: 2026-08-03. See `.claude/memory/gas-rewrite-pending.md` for the authoritative status.
 
 ## Phases NOT Started (from Plan §10)
 
@@ -32,7 +32,6 @@
 |---|-------|----------|----------|
 | 2 | Dead declarations — `CreateNodeByClassName`, `BuildAndExecuteGraph` | Medium | `AbilityDefinition.h`, `DataAbility.h` |
 | 3 | Unused XML properties — `TargetFromContext`, `ScatterRadius` | Medium | Multiple node `.cpp` files |
-| 4 | Fake smoke tests — log-only, no assertions | Medium | `AuraAbilityGraphModule.cpp` |
 | H2 | Inconsistent knockback force direction (Direction vs UpVector) | Medium | `ApplyDamageNode`, `HitscanTraceNode`, `SpawnProjectileNode` |
 | M7 | PlayMontage returns Success when no montage | Medium | `PlayMontageNode.cpp:29` |
 | M8 | WaitForMontageEvent no EventTag validation | Medium | `WaitForMontageEventNode.cpp` |
@@ -57,6 +56,7 @@
 | # | Issue | How Fixed |
 |---|-------|-----------|
 | 1 | PlayMontage delegates not wired | `OnInterrupted` + `OnBlendOut` bound in `PlayMontageNode.cpp` |
+| 4 | Fake smoke tests | `SmokeTest_NodeRegistry` validates all concrete registrations; `SmokeTest_SequenceExecution` executes a real two-child sequence |
 | 5 | GC risk (Montage/DamageEffectClass) | By design — `UCLASS(Transient)`, GC-scanned via owner. Not a bug. |
 | 6 | SourceObject doesn't replicate | `FindAbilityDefinitionByTag` registry fallback in `DataAbility.cpp` |
 | 7 | Binary/cache files in git | Launcher artifacts removed, WebView2 cache gitignored |

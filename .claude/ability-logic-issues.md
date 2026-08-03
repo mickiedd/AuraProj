@@ -68,11 +68,9 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 - **Impact**: XML authors get the illusion of configurability that doesn't actually work
 - **Fix**: Either implement the properties or remove them from the schema and `LoadFromProperties`
 
-#### M6. Fake smoke tests — UNFIXED
-- `SmokeTest_NodeRegistry` (`AuraAbilityGraphModule.cpp:92-117`) iterates a hardcoded string array and logs — never calls `FAuraAbilityNodeRegistry::Get().Create()`. Always returns true
-- `SmokeTest_SequenceExecution` (`AuraAbilityGraphModule.cpp:119-123`) logs a message and returns true — no execution is tested
-- Expected node list in `SmokeTest_NodeRegistry` is missing `FaceTarget` even though it's registered (line 614)
-- **Fix**: Replace with real tests or mark as stubs explicitly
+#### M6. Fake smoke tests — FIXED (2026-08-03)
+- `SmokeTest_NodeRegistry` now creates and type-checks all 17 registered node classes, and verifies an unknown name is rejected
+- `SmokeTest_SequenceExecution` now parses a two-child graph, builds the real task tree, executes it, and checks the Success/cleanup result
 
 #### M7. `PlayMontageTask::OnStart` returns `Success` when no montage — UNFIXED
 - `PlayMontageNode.cpp:29` — returns `EAuraAbilityActionStatus::Success` instead of `Failure` when `Definition->Montage` is null

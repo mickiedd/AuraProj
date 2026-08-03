@@ -1,6 +1,6 @@
 # GAS Data-Driven Rewrite — Memory: Pending Phases
 
-> Last verified against codebase: 2026-07-30.
+> Last verified against codebase: 2026-08-03.
 > Core architecture (Phases 1, 2, 5) is **implemented**.
 > This file records only what is **not yet started** and issues that are **still open**.
 
@@ -25,7 +25,6 @@ See `.claude/ability-logic-issues.md` for the full catalog (including fixed item
 |---|-------|----------|----------|-------|
 | 2 | Dead declarations — `CreateNodeByClassName` (declared not defined), `BuildAndExecuteGraph` (declared not called) | Medium | `AbilityDefinition.h:64`, `DataAbility.h:66` | Remove both declarations. Quick fix. |
 | 3 | Unused XML properties — `TargetFromContext` parsed but ignored; `ScatterRadius` parsed but unused | Medium | Multiple node `.cpp` files | Either implement or remove from schema + `LoadFromProperties`. |
-| 4 | Fake smoke tests — `SmokeTest_NodeRegistry`, `SmokeTest_SequenceExecution` log only, no assertions | Medium | `AuraAbilityGraphModule.cpp:95-123` | Replace with real tests or mark as stubs. |
 
 ### Lower-priority unfixed items (from ability-logic-issues.md)
 

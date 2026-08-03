@@ -1,7 +1,7 @@
 # GAS → AuraAbilityGraph Migration TODOs
 
 > Status tracker for migrating the remaining old-GAS-version (Blueprint/GE-UAsset) abilities to the new data-driven AuraAbilityGraph system.
-> Last updated: 2026-08-02.
+> Last updated: 2026-08-03.
 > Reference plan: `Docs/GAS-DataDriven-Rewrite-Plan-Pending.md`.
 
 ---
@@ -110,10 +110,10 @@ After all abilities are migrated, remove these files from the repo:
 
 ### 4.3 Clean Up Source Code (Remove Old Compatibility Code)
 
-- [ ] Remove `UAuraFireBolt`, `UAuraGun`, `UArcaneShards`, `UAauraFireBlast`, `UElectrocute` C++ classes **or** repurpose them as the C++ function libraries called by `UAuraDataAbility` graph nodes (the C++ classes are currently kept as the class hierarchy for the traditional path — decide which path they belong to after full migration)
-- [ ] Remove any `#include` / references to legacy GE UAsset paths in C++ code
+- [ ] Remove `UAuraFireBolt`, `UAuraFireGun`, `UArcaneShards`, `UAuraFireBlast`, `UElectrocute` C++ classes **or** repurpose them as the C++ function libraries called by `UAuraDataAbility` graph nodes (the C++ classes are currently kept as the class hierarchy for the traditional path — decide which path they belong to after full migration)
+- [x] Remove any `#include` / references to legacy GE UAsset paths in C++ code (no runtime legacy GE references remain; only smoke-test sample XML and a comment mention `GE_Damage`)
 - [ ] Remove any Blueprint-specific `UPROPERTY(EditDefaultsOnly)` that only served the legacy BP path
-- [ ] Audit and remove any `GE_Cost_*` or `GE_Cooldown_*` references from C++ code that are now handled by shared C++ GEs
+- [x] Audit and remove any `GE_Cost_*` or `GE_Cooldown_*` references from C++ code that are now handled by shared C++ GEs (none remain in runtime C++)
 
 ---
 
@@ -126,17 +126,18 @@ These are the known issues from `GAS-DataDriven-Rewrite-Plan-Pending.md` that sh
 | # | Issue | Description | Fix |
 |---|---|---|---|
 | H2 | Knockback force direction inconsistent | Resolved: all damage nodes use their calculated target/projectile direction for knockback | Keep regression coverage |
-| H3 | CheckCost client bypass | `AuraGameplayAbility.cpp` returns `true` for non-authoritative clients | Verify this is intentional; add comment if so; consider adding a server-side validation callback |
+
+> **H3 — CheckCost client bypass: verified intentional.** `AuraGameplayAbility.cpp` returns `true` for non-authoritative clients by design (cost is enforced server-side). No action; retained here as a note rather than an open item.
 
 ### Medium Priority
 
-Current-status note: M7 and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. M8 is only partially resolved: empty node tags are rejected, but authored montage tags are not inspected. M10 remains open because the wait task still advances the graph directly instead of routing through `OnMontageEventReceived`.
+Current-status note: M7 and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. Issue #4 is resolved: `SmokeTest_NodeRegistry` and `SmokeTest_SequenceExecution` now carry real assertions (verified 2026-08-03). M8 is only partially resolved: empty node tags are rejected, but authored montage tags are not inspected. M10 remains open because the wait task still advances the graph directly instead of routing through `OnMontageEventReceived`.
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
 | 2 | Dead declarations | `CreateNodeByClassName`, `BuildAndExecuteGraph` declared but unused/dead | Remove dead declarations or implement their intended functionality |
 | 3 | Unused XML properties | `TargetFromContext`, `ScatterRadius` in XML but not used by nodes | Either implement support for these properties or remove them from XML schema and docs |
-| 4 | Fake smoke tests | Log-only tests with no assertions in `AuraAbilityGraphModule.cpp` | Convert to real unit tests with assertions |
+| 4 | Fake smoke tests **(resolved 2026-08-03)** | Log-only tests with no assertions in `AuraAbilityGraphModule.cpp` | `SmokeTest_NodeRegistry` now validates all 17 concrete registrations and rejects unknown names; `SmokeTest_SequenceExecution` parses and executes a real two-child sequence |
 | M7 | PlayMontage missing montage behavior | Resolved: configured load failures return Failure; an intentionally empty montage remains a successful no-op | Keep regression coverage |
 | M8 | WaitForMontageEvent no authored-tag validation | The node rejects an empty/invalid `EventTag`, but does not verify that the tag exists on the authored montage/AnimNotify | Add validation against authored montage event metadata, or document runtime gameplay-event ownership |
 | M9 | Two damage paths with different context setup | `ApplyDamageNode` vs `CauseDamageNode` set up `FDamageEffectParams` differently | Unify the context setup, or document the difference and make it intentional |
@@ -156,7 +157,7 @@ Current-status note: L17 now has a null-check and warning for non-`AAuraCharacte
 | L17 | MulticastGunFX lacks fallback for non-Aura characters | The `AAuraCharacterBase` cast is null-checked and logs a warning, but non-Aura avatars still receive no fallback FX | Add an interface-based or generic FX fallback if non-Aura avatars are supported |
 | L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Resolved: hitscan knockback now follows its directional death impulse | Keep regression coverage |
 | L19 | ApplyDamage hardcodes `bIsRadialDamage=false` | `ApplyDamageNode.cpp:69` | Make configurable or remove the hardcoded override |
-| L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode.cpp:44` | Unify with ApplyDamage pattern |
+| L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode.cpp:45` | Unify with ApplyDamage pattern |
 | L21 | Projectiles hardcode `TargetASC=nullptr` | `SpawnProjectileNode.cpp`, `SpawnProjectilesNode.cpp` | Pass the actual TargetASC to projectiles |
 | L22 | WaitForTargetData no OnStart validation | `WaitForTargetDataNode.cpp` | Add valid range/actor check on `OnStart` |
 
@@ -216,16 +217,17 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 
 - [ ] All 4 enemy ability XMLs parse correctly (`UAuraAbilityDefinition::LoadFromXML` returns `true`)
 - [ ] Enemy ability graph structures validated (correct node types, valid property values)
-- [ ] New enemy roles defined in `RoleConfig.json` with correct `lmbAbilityDefinition` or `startupAbilityDefinitions`
-- [ ] Enemy ability tags added to `DefaultGameplayTags.ini`
-- [ ] Enemy ability UI metadata added to `AbilityInfo.json`
+- [ ] New enemy roles defined in `EnemyAbilityConfig.json` with correct grants by `ECharacterClass` (player roles live separately in `RoleConfig.json`)
+- [x] Enemy ability tags added to `DefaultGameplayTags.ini` (`Abilities.Melee`, `Abilities.Ranged`; `Effects.HitReact` and `Abilities.Attack` are natively registered in `AuraGameplayTags.cpp` rather than the ini)
+- [ ] Enemy ability UI metadata added to `AbilityInfo.json` — **N/A**: UI metadata is not applicable to AI-only abilities (see 4.1 step 5)
 - [ ] Build passes after enemy ability additions
-- [ ] Smoke tests added for each new enemy ability XML
+- [x] Smoke tests added for each new enemy ability XML (`SmokeTest_EnemyAbilityFiles` in `AuraAbilityGraphModule.cpp`)
 - [ ] All old BP assets verified unused (no references in remaining code)
 
 ### Phase 5 Verification Steps (Issue Fixes)
 
 - [x] H2: Knockback direction consistent across all damage node types
+- [x] #4: Node registry and sequence smoke tests use real assertions
 - [x] M7: `PlayMontage` handles missing montage configuration safely (configured load failures return Failure)
 - [ ] M9: `ApplyDamageNode` and `CauseDamageNode` produce identical `FDamageEffectParams` context
 - [x] L14: `CooldownDuration` scales correctly with ability level from XML
@@ -283,9 +285,9 @@ When adding a new ability (e.g., an enemy ability or a new player spell), follow
 ### Step 1: Determine the C++ class hierarchy
 - Active XML abilities use `UAuraDataAbility` and registered graph nodes. The legacy spell/passive classes below describe the traditional path and should not be selected for a new XML definition unless a deliberate compatibility path is required.
 - Projectile-based → `UAuraProjectileSpell` → `UAuraDamageGameplayAbility`
-- Beam-based → `UAauraBeamSpell` → `UAauraDamageGameplayAbility`
-- Direct damage → `UAauraDamageGameplayAbility` (no subclass needed if basic)
-- Summon → `UAauraSummonAbility`
+- Beam-based → `UAuraBeamSpell` → `UAuraDamageGameplayAbility`
+- Direct damage → `UAuraDamageGameplayAbility` (no subclass needed if basic)
+- Summon → `UAuraSummonAbility`
 - Passive → `UAuraPassiveAbility` (not data-driven yet)
 
 ### Step 2: Write the XML definition

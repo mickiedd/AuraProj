@@ -10,13 +10,13 @@
 
 A prior audit of the migration TODO and pending-plan produced 12 findings. Re-verification confirms the **code-level findings** (knockback direction, world-context population, montage-event callback wiring, and the low/medium known issues) and **two of the three internal TODO contradictions**. The audit is **wrong in substance** on the "missing `Effects.HitReact` tag" (the tag is natively registered) and **reversed on 3 of 4** stale-status claims (M7/M11/L14 are marked resolved in the TODO — correctly — while the Pending doc still lists them open).
 
-The one confirmed functional bug (H2 knockback direction) has **since been fixed in the working tree but is not yet committed**.
+The one confirmed functional bug (H2 knockback direction) has **since been fixed and committed** (`4286f6e` "Use target direction for knockback").
 
 ---
 
 ## 1. Confirmed code issues
 
-### 1.1 H2 — Knockback direction inconsistent → FIXED (uncommitted)
+### 1.1 H2 — Knockback direction inconsistent → FIXED (committed `4286f6e`)
 
 At audit time, `KnockbackForce` used `FVector::UpVector` in the projectile/spread nodes while direct-damage nodes used the target `Direction`:
 
@@ -29,7 +29,7 @@ At audit time, `KnockbackForce` used `FVector::UpVector` in the projectile/sprea
 | `ApplyDamageNode.cpp` | `Direction * Mag` | `:67` |
 | `EnemyMeleeDamageNode.cpp` | `Direction * Mag` | `:77` |
 
-The working tree now uses `Direction`/`Forward` uniformly in all seven producers (including `SpawnShardsNode.cpp:244`), so knockback and death impulse are consistent. **These edits are uncommitted** (`git diff` shows 4 node files + the TODO modified). L18 (DeathImpulse vs Knockback mismatch within a node) is resolved by the same change.
+The tree now uses `Direction`/`Forward` uniformly in all seven producers (including `SpawnShardsNode.cpp:244`), so knockback and death impulse are consistent. This was committed in `4286f6e` "Use target direction for knockback", which touched the 4 nodes that were still using `UpVector` (SpawnProjectile, SpawnProjectiles, HitscanTrace, ElectrocuteBeam) plus the TODO; ApplyDamage, EnemyMeleeDamage, and SpawnShards were already on `Direction`. L18 (DeathImpulse vs Knockback mismatch within a node) is resolved by the same change.
 
 **Caveat:** for projectiles the per-node value is functionally dead — on impact `AuraProjectile.cpp:264-274` overwrites both `DeathImpulse` and `KnockbackForce` with the projectile's own forward (knockback pitched 45°). Only the direct-damage nodes' values reach `LaunchCharacter` (`AuraAttributeSet.cpp:195-198`).
 
@@ -98,7 +98,7 @@ Verification step 4 says *"New enemy roles defined in `RoleConfig.json`"*; enemy
 1. **"Missing `Effects.HitReact` tag"** — the tag is natively registered (see §2.3); not missing.
 2. **"M7/M11/L14 marked FIXED in Pending"** — reversed; Pending lists them open while the TODO correctly marks them resolved (§3).
 3. **"All 4 enemy XMLs reference `CT_Damage`"** — only the 3 damage-bearing XMLs have a `<damage>` element, and `CT_Damage` is a CurveTable **data asset** (data-driven, not a legacy Blueprint). The real legacy dependency is `EnemyRangedAttack.xml:11` → `ProjectileClass="BP_SlingshotRock.BP_SlingshotRock_C"`, which is also inconsistent with `EnemyFireBolt.xml` using native `ProjectileDefinition="fireBolt"`.
-4. **"Smoke tests are fake" / "they have assertions"** — both overstated. 17 of 19 have real assertions; exactly two are log-only stubs: `SmokeTest_NodeRegistry` (`AuraAbilityGraphModule.cpp:109-138`) and `SmokeTest_SequenceExecution` (`:140-144`). TODO issue #4 is not fully resolved.
+4. **"Smoke tests are fake" / "they have assertions"** — this was true of exactly two stubs at audit time. Issue #4 is now resolved: `SmokeTest_NodeRegistry` validates all concrete registrations and rejects unknown names, while `SmokeTest_SequenceExecution` parses and executes a real two-child sequence.
 5. **"Phase 4.3 blocks Phase 6"** — unsupported. Phase 6 needs projectile actor classes (`AAuraProjectile` / `AAuraFireBall` already exist); removing legacy ability classes does not block it.
 6. Minor: the legacy class is `UAuraFireGun`, not `UAuraGun`; the TODO also typos it as `UAauraFireBlast`.
 
@@ -106,9 +106,8 @@ Verification step 4 says *"New enemy roles defined in `RoleConfig.json`"*; enemy
 
 ## 6. Recommended actions (prioritized)
 
-1. **Commit the H2/L18 knockback fix** already in the working tree (4 node files + TODO), or review it first.
+1. **H2/L18 knockback fix** is already committed (`4286f6e`); add regression coverage to lock in the `Direction`/`Forward` behavior (the commit message recommends this).
 2. **M10** — wire `DataAbility::OnMontageEventReceived` or delete it (it is dead code).
-3. **Issue #4** — convert `NodeRegistry` + `SequenceExecution` smoke tests into real assertions.
-4. **Docs** — fix TODO verification steps 4/5 (§2.1, §2.2); tick the enemy smoke-test box (§4); reword step 6 (§2.3); reconcile H3/M7/M11/L14 across TODO, Pending.md, and memory (§3); resolve the memory file's L14 self-contradiction.
-5. **EnemyRangedAttack** — decide `ProjectileClass` (BP_SlingshotRock) vs native `ProjectileDefinition`, matching EnemyFireBolt.
-6. **Build gate** — run a real build to close the last unverified item, then decide 4.3 remove-vs-repurpose for the 5 legacy classes (`UAuraFireBolt`, `UAuraFireGun`, `UArcaneShards`, `UAuraFireBlast`, `UElectrocute`).
+3. **Docs** — fix TODO verification steps 4/5 (§2.1, §2.2); tick the enemy smoke-test box (§4); reword step 6 (§2.3); reconcile H3/M7/M11/L14 across TODO, Pending.md, and memory (§3); resolve the memory file's L14 self-contradiction.
+4. **EnemyRangedAttack** — decide `ProjectileClass` (BP_SlingshotRock) vs native `ProjectileDefinition`, matching EnemyFireBolt.
+5. **Build gate** — run a real build to close the last unverified item, then decide 4.3 remove-vs-repurpose for the 5 legacy classes (`UAuraFireBolt`, `UAuraFireGun`, `UArcaneShards`, `UAuraFireBlast`, `UElectrocute`).
