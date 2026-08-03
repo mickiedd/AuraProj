@@ -26,14 +26,13 @@
 
 ---
 
-## Known Issues — Still Open (verified 2026-07-30)
+## Known Issues — Still Open (verified 2026-08-03)
 
 | # | Issue | Severity | Location |
 |---|-------|----------|----------|
 | H2 | Inconsistent knockback force direction (Direction vs UpVector) | Medium | `ApplyDamageNode`, `HitscanTraceNode`, `SpawnProjectileNode` |
 | M7 | PlayMontage returns Success when no montage | Medium | `PlayMontageNode.cpp:29` |
 | M8 | WaitForMontageEvent no EventTag validation | Medium | `WaitForMontageEventNode.cpp` |
-| M9 | Two damage paths with different context setup | Medium | `ApplyDamageNode` vs `CauseDamageNode` |
 | M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | `WaitForMontageEventNode.cpp` |
 | M11 | WaitForTargetData no active-graph check | Medium | `WaitForTargetDataNode.cpp` |
 | L13 | Hardcoded Python path in launcher | Low | `AuraAbilityGraphLauncher.cpp:193` |
@@ -43,13 +42,12 @@
 | L17 | MulticastGunFX no fallback for non-Aura characters | Low | `MulticastGunFXNode.cpp` |
 | L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Low | `HitscanTraceNode.cpp` |
 | L19 | ApplyDamage hardcodes bIsRadialDamage=false | Low | `ApplyDamageNode.cpp:69` |
-| L20 | CauseDamage vs ApplyDamage ASC access pattern | Low | `CauseDamageNode.cpp:44` |
 | L21 | Projectiles hardcode TargetASC=nullptr | Low | `SpawnProjectileNode.cpp`, `SpawnProjectilesNode.cpp` |
 | L22 | WaitForTargetData no OnStart validation | Low | `WaitForTargetDataNode.cpp` |
 
 ---
 
-## Known Issues — FIXED (verified 2026-07-30)
+## Known Issues — FIXED (verified 2026-08-03)
 
 | # | Issue | How Fixed |
 |---|-------|-----------|
@@ -57,6 +55,7 @@
 | 2 | Dead declarations | Removed the unused `CreateNodeByClassName` and `BuildAndExecuteGraph` declarations |
 | 3 | Unused XML properties | Removed the ignored `TargetFromContext` and `ScatterRadius` properties from runtime/editor schemas and authored definitions |
 | 4 | Fake smoke tests | `SmokeTest_NodeRegistry` validates all concrete registrations; `SmokeTest_SequenceExecution` executes a real two-child sequence |
+| M9 | Two damage paths with different context setup | `CauseDamageNode` now matches `ApplyDamageNode`'s `FDamageEffectParams` and shared `ApplyDamageEffect` path |
 | 5 | GC risk (Montage/DamageEffectClass) | By design — `UCLASS(Transient)`, GC-scanned via owner. Not a bug. |
 | 6 | SourceObject doesn't replicate | `FindAbilityDefinitionByTag` registry fallback in `DataAbility.cpp` |
 | 7 | Binary/cache files in git | Launcher artifacts removed, WebView2 cache gitignored |
@@ -65,6 +64,7 @@
 | C1 | WebView2 cache + launcher binaries in git | Cleaned in commits `2918713`/`144d96b`/`a47c56e` |
 | C2 | Path traversal in Python server | `_confine_to_content` + loopback bind |
 | C3 | SourceObject replication null on clients | Process-lifetime definition registry keyed by AbilityTag |
+| L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode` now uses `Ctx.ASC`, matching `ApplyDamageNode` |
 
 ---
 

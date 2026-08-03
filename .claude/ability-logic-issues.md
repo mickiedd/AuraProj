@@ -79,10 +79,9 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 - **Impact**: Ability graph could hang indefinitely waiting for an event that never fires
 - Note: current XML definitions always set `eventTag`, so this is a defensive concern
 
-#### M9. Two separate damage application paths with different context setup — UNFIXED
-- `ApplyDamageNode` uses `UAuraAbilitySystemLibrary::ApplyDamageEffect(Params)` which internally creates its own GE spec and context
-- `CauseDamageNode` uses `DataAbility->MakeOutgoingGameplayEffectSpec` + `SourceASC->ApplyGameplayEffectSpecToTarget` directly
-- **Impact**: These two paths could produce different results if the GE context setup differs
+#### M9. Two separate damage application paths with different context setup — FIXED (2026-08-03)
+- `CauseDamageNode` now builds the same `FDamageEffectParams` fields as `ApplyDamageNode` and routes through `UAuraAbilitySystemLibrary::ApplyDamageEffect(Params)`
+- Both nodes use `Ctx.ASC` as the source ASC, with the same damage, impulse, knockback, and non-radial context values
 
 #### M10. `WaitForMontageEventTask::OnEventReceived` bypasses `OnMontageEventReceived` — UNFIXED
 - `WaitForMontageEventNode.cpp:70-79` — `OnEventReceived` calls `AdvanceGraph` directly, bypassing `DataAbility::OnMontageEventReceived`
@@ -129,10 +128,9 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 - `ApplyDamageNode.cpp:69` — radial damage parameters hardcoded to zero. No XML attribute to enable radial damage
 - **Impact**: Cannot create radial damage abilities using the `ApplyDamage` node
 
-#### L20. `CauseDamageNode` uses `GetAbilitySystemComponentFromActorInfo()` while `ApplyDamageNode` uses `Ctx.ASC` — UNFIXED
-- `CauseDamageNode.cpp:44` — `SourceASC = DataAbility->GetAbilitySystemComponentFromActorInfo()`
-- `ApplyDamageNode.cpp:54` — `SourceASC = Ctx.ASC`
-- **Impact**: Should be the same ASC, but using different access patterns could lead to subtle differences
+#### L20. `CauseDamageNode` uses `GetAbilitySystemComponentFromActorInfo()` while `ApplyDamageNode` uses `Ctx.ASC` — FIXED (2026-08-03)
+- `CauseDamageNode` now uses `Ctx.ASC`, matching `ApplyDamageNode`
+- Both nodes pass that ASC through the shared `FDamageEffectParams` / `ApplyDamageEffect` path
 
 #### L21. Projectiles hardcode `TargetAbilitySystemComponent = nullptr` — UNFIXED
 - `SpawnProjectileNode.cpp:97` and `SpawnProjectilesNode.cpp:123` set `TargetAbilitySystemComponent = nullptr`

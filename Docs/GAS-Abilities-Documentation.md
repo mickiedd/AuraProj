@@ -779,7 +779,7 @@ Verified against the current implementation on 2026-08-02:
 | Medium | Electrocute selects chain targets once and removes only invalid actor references | Electrocute does not reacquire targets each tick and does not explicitly test the combat dead state during cleanup |
 | Low | XML cooldown parsing supports only a constant, although runtime calls `GetValueAtLevel()` | All five definitions if level-scaled cooldowns are desired |
 | Low | `PlayMontage` treats an empty montage as a successful no-op and a nonempty unloadable path as failure | Only graphs containing `PlayMontage`; FireBlast has no such node and is unaffected |
-| Low | `ApplyDamage` and `CauseDamage` construct different damage contexts; `ApplyDamage` forces non-radial damage | Currently dormant for these five XML graphs because none uses either node |
+| Low | `ApplyDamage` and `CauseDamage` construct different damage contexts; `ApplyDamage` forces non-radial damage | Resolved 2026-08-03: both nodes now share `FDamageEffectParams` construction and `ApplyDamageEffect`; both remain non-radial |
 
 `TargetAbilitySystemComponent = nullptr` at projectile spawn is intentional deferred targeting, not by itself a defect: `AAuraProjectile::OnSphereOverlap()` assigns the impacted target ASC before applying the effect.
 

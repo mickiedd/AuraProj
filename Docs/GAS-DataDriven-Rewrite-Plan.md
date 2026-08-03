@@ -315,7 +315,7 @@ Runtime state. `Execute` driver calls `OnEnter → OnStart → OnExit`. Async no
 | `SpawnProjectile` | `SpawnActorDeferred<AAuraProjectile>` | `SocketTag`, `ProjectileClass` | Spawns one projectile from socket toward the target in `Ctx.CursorHit`. Instant. |
 | `SpawnProjectiles` | `EvenlySpacedRotators` + spawn loop | `SocketTag`, `ProjectileClass`, `Count`, `Spread`, `bHoming`, `HomingAccelerationMin/Max` | Multi-projectile + homing. Instant. |
 | `ApplyDamage` | `UAuraAbilitySystemLibrary::ApplyDamageEffect` | (none) | Build `FDamageEffectParams` from Definition + the actor in `Ctx.CursorHit`, apply. Instant. |
-| `CauseDamage` | `MakeOutgoingGameplayEffectSpec` directly | (none) | Direct GE to the actor in `Ctx.CursorHit` (beam/melee path). Instant. |
+| `CauseDamage` | `UAuraAbilitySystemLibrary::ApplyDamageEffect` | (none) | Builds `FDamageEffectParams` like `ApplyDamage` and applies it to the actor in `Ctx.CursorHit` (beam/melee path). Instant. |
 | `MulticastGunFX` | `AAuraCharacterBase::MulticastPlayGunFireFX` | `MuzzleSocketTag`, `MuzzleEffect`, `FireSound` | Call the avatar's muzzle-FX NetMulticast. Instant. |
 | `HitscanTrace` | `LineTraceSingleByChannel` + `ApplyDamageEffect` | `SocketTag`, `TraceRange` | Straight line trace + damage. Instant. |
 | `FaceTarget` | `SetControlRotation` / `SetActorRotation` | `bSetControllerRotation`, `bSetActorRotation`, `bYawOnly` | Turn avatar toward cursor/target. Instant. |

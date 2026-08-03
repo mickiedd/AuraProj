@@ -45,12 +45,13 @@ The tree now uses `Direction`/`Forward` uniformly in all seven producers (includ
 
 Empty/invalid `EventTag` is rejected (`WaitForMontageEventNode.cpp:44-52`), but the tag is not validated against the authored montage/AnimNotify metadata. Matches the TODO's own status.
 
-### 1.5 L17 / L19 / L20 / L21 — confirmed open
+### 1.5 L17 / L19 / L21 — confirmed open; M9/L20 resolved
 
 - **L17** — `MulticastGunFXNode.cpp:59-67`: `AAuraCharacterBase` cast; non-Aura avatars get a warning and no FX fallback.
 - **L19** — `ApplyDamageNode.cpp:69`: `bIsRadialDamage = false` hardcoded (no XML attribute).
-- **L20** — `CauseDamageNode.cpp:45` uses `GetAbilitySystemComponentFromActorInfo()` vs ApplyDamage's `Ctx.ASC`.
 - **L21** — `TargetAbilitySystemComponent = nullptr` at spawn in `SpawnProjectileNode.cpp:118` and `SpawnProjectilesNode.cpp:153`.
+
+**M9/L20 resolved 2026-08-03:** `CauseDamageNode` now uses `Ctx.ASC`, constructs the same `FDamageEffectParams` values as `ApplyDamageNode`, and routes through `UAuraAbilitySystemLibrary::ApplyDamageEffect`.
 
 ---
 

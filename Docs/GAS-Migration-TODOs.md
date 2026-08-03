@@ -140,7 +140,7 @@ Current-status note: M7, M10, and M11 are resolved in the current implementation
 | 4 | Fake smoke tests **(resolved 2026-08-03)** | Log-only tests with no assertions in `AuraAbilityGraphModule.cpp` | `SmokeTest_NodeRegistry` now validates all 17 concrete registrations and rejects unknown names; `SmokeTest_SequenceExecution` parses and executes a real two-child sequence |
 | M7 | PlayMontage missing montage behavior | Resolved: configured load failures return Failure; an intentionally empty montage remains a successful no-op | Keep regression coverage |
 | M8 | WaitForMontageEvent no authored-tag validation | The node rejects an empty/invalid `EventTag`, but does not verify that the tag exists on the authored montage/AnimNotify | Add validation against authored montage event metadata, or document runtime gameplay-event ownership |
-| M9 | Two damage paths with different context setup | `ApplyDamageNode` vs `CauseDamageNode` set up `FDamageEffectParams` differently | Unify the context setup, or document the difference and make it intentional |
+| M9 | Two damage paths with different context setup **(resolved 2026-08-03)** | `ApplyDamageNode` vs `CauseDamageNode` set up `FDamageEffectParams` differently | `CauseDamageNode` now matches `ApplyDamageNode`: `Ctx.ASC`, identical params, and shared `ApplyDamageEffect` path |
 | M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Resolved: the wait task now routes through `UAuraDataAbility::OnMontageEventReceived`, which applies the `bGraphActive` guard before advancing (verified 2026-08-03, smoke 19/19) | Keep regression coverage |
 | M11 | WaitForTargetData callback lifecycle | Resolved centrally: `OnTargetDataReady`, `AdvanceGraph`, and montage callbacks ignore events after `bGraphActive` becomes false | Keep regression coverage |
 
@@ -157,7 +157,7 @@ Current-status note: L17 now has a null-check and warning for non-`AAuraCharacte
 | L17 | MulticastGunFX lacks fallback for non-Aura characters | The `AAuraCharacterBase` cast is null-checked and logs a warning, but non-Aura avatars still receive no fallback FX | Add an interface-based or generic FX fallback if non-Aura avatars are supported |
 | L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Resolved: hitscan knockback now follows its directional death impulse | Keep regression coverage |
 | L19 | ApplyDamage hardcodes `bIsRadialDamage=false` | `ApplyDamageNode.cpp:69` | Make configurable or remove the hardcoded override |
-| L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode.cpp:45` | Unify with ApplyDamage pattern |
+| L20 | CauseDamage vs ApplyDamage ASC access pattern **(resolved 2026-08-03)** | `CauseDamageNode.cpp` used a different source ASC | `CauseDamageNode` now uses `Ctx.ASC` and the shared `FDamageEffectParams` path |
 | L21 | Projectiles hardcode `TargetASC=nullptr` | `SpawnProjectileNode.cpp`, `SpawnProjectilesNode.cpp` | Pass the actual TargetASC to projectiles |
 | L22 | WaitForTargetData no OnStart validation | `WaitForTargetDataNode.cpp` | Add valid range/actor check on `OnStart` |
 
@@ -230,7 +230,8 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 - [x] #4: Node registry and sequence smoke tests use real assertions
 - [x] #3: Unused XML properties removed from runtime/editor schemas and authored definitions
 - [x] M7: `PlayMontage` handles missing montage configuration safely (configured load failures return Failure)
-- [ ] M9: `ApplyDamageNode` and `CauseDamageNode` produce identical `FDamageEffectParams` context
+- [x] M9: `ApplyDamageNode` and `CauseDamageNode` produce identical `FDamageEffectParams` context
+- [x] L20: `CauseDamageNode` uses the same `Ctx.ASC` source pattern as `ApplyDamageNode`
 - [x] L14: `CooldownDuration` scales correctly with ability level from XML
 
 ### Phase 6 Verification Steps (Optional)

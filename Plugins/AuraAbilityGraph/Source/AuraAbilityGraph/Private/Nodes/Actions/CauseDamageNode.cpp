@@ -5,10 +5,10 @@
 #include "Nodes/AbilityActionTask.h"
 #include "AbilityDefinition.h"
 #include "DataAbility.h"
-#include "AbilitySystem/Abilities/AuraDamageGameplayAbility.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "AuraAbilityGraphLogChannels.h"
-#include "AuraDamageGameplayEffect.h"
+#include "AuraAbilityTypes.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 UAuraAbilityActionTask* UCauseDamageNode::CreateTask(UObject* Outer) const
 {
@@ -30,32 +30,37 @@ EAuraAbilityActionStatus UCauseDamageTask::OnStart(FAuraAbilityExecutionContext&
     {
         if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
         {
-            UAbilitySystemComponent* SourceASC = DataAbility->GetAbilitySystemComponentFromActorInfo();
             UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-
-            const TSubclassOf<UGameplayEffect> EffectiveGEClass = Definition->DamageEffectClass
-                ? TSubclassOf<UGameplayEffect>(Definition->DamageEffectClass)
-                : TSubclassOf<UGameplayEffect>(UAuraDamageGameplayEffect::StaticClass());
-
-            if (SourceASC && TargetASC && Definition->DamageType.IsValid())
+            if (Ctx.ASC && TargetASC && Definition->DamageType.IsValid())
             {
-            	FGameplayEffectSpecHandle SpecHandle = DataAbility->MakeOutgoingGameplayEffectSpec(EffectiveGEClass, DataAbility->GetAbilityLevel());
-                if (SpecHandle.IsValid())
-                {
-                    const float ScaledDamage = Definition->Damage.GetValueAtLevel(DataAbility->GetAbilityLevel());
-                    UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Definition->DamageType, ScaledDamage);
-                    SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
-                    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[CauseDamage] OnStart applied damage %.1f type=%s"), ScaledDamage, *Definition->DamageType.ToString());
-                }
-                else
-                {
-                    UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[CauseDamage] OnStart abort: SpecHandle invalid"));
-                }
+                const FVector Direction = (TargetActor->GetActorLocation() - Ctx.AvatarActor->GetActorLocation()).GetSafeNormal();
+                FDamageEffectParams Params;
+                Params.SourceAbilitySystemComponent = Ctx.ASC;
+                Params.TargetAbilitySystemComponent = TargetASC;
+                Params.AbilityLevel = DataAbility->GetAbilityLevel();
+                Params.DamageGameplayEffectClass = Definition->DamageEffectClass;
+                Params.DamageType = Definition->DamageType;
+                Params.BaseDamage = Definition->Damage.GetValueAtLevel(DataAbility->GetAbilityLevel());
+                Params.DebuffChance = Definition->DebuffChance;
+                Params.DebuffDamage = Definition->DebuffDamage;
+                Params.DebuffDuration = Definition->DebuffDuration;
+                Params.DebuffFrequency = Definition->DebuffFrequency;
+                Params.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
+                Params.DeathImpulse = Direction * Definition->DeathImpulseMagnitude;
+                Params.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
+                Params.KnockbackForce = Direction * Definition->KnockbackForceMagnitude;
+                Params.KnockbackChance = Definition->KnockbackChance;
+                Params.bIsRadialDamage = false;
+                Params.RadialDamageInnerRadius = 0.f;
+                Params.RadialDamageOuterRadius = 0.f;
+                Params.RadialDamageOrigin = FVector::ZeroVector;
+                UE_LOG(LogAuraAbilityGraph, Log, TEXT("[CauseDamage] OnStart applying damage base=%.1f type=%s"), Params.BaseDamage, *Params.DamageType.ToString());
+                UAuraAbilitySystemLibrary::ApplyDamageEffect(Params);
             }
             else
             {
                 UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[CauseDamage] OnStart abort: missing SourceASC=%s TargetASC=%s DamageTypeValid=%s"),
-                    *GetNameSafe(SourceASC), *GetNameSafe(TargetASC), Definition->DamageType.IsValid() ? TEXT("true") : TEXT("false"));
+                    *GetNameSafe(Ctx.ASC), *GetNameSafe(TargetASC), Definition->DamageType.IsValid() ? TEXT("true") : TEXT("false"));
             }
         }
         else

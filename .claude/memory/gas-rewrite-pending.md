@@ -18,7 +18,7 @@
 
 ## Known Issues — Still Open
 
-Only issues confirmed unfixed as of 2026-07-30 are listed here.
+Only issues confirmed unfixed as of 2026-08-03 are listed here.
 See `.claude/ability-logic-issues.md` for the full catalog (including fixed items).
 
 | # | Issue | Severity | Location | Notes |
@@ -31,7 +31,6 @@ See `.claude/ability-logic-issues.md` for the full catalog (including fixed item
 | H2 | Inconsistent knockback force direction | Medium | ApplyDamage uses `Direction * Mag`, Hitscan/Projectile use `UpVector * Mag`. Data/tuning decision, not clear bug. |
 | M7 | PlayMontage returns Success when no montage | Medium | Should return Failure. One-liner fix. |
 | M8 | WaitForMontageEvent no EventTag validation | Medium | Defensive — current XML always sets eventTag. |
-| M9 | Two damage paths with different context setup | Medium | ApplyDamage vs CauseDamage code smell. |
 | M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | Double AdvanceGraph call risk. |
 | M11 | WaitForTargetData no active-graph check | Medium | PendingStatus set unconditionally. |
 | L13 | Hardcoded Python path in launcher | Low | Fallback to PATH works; cosmetic. |
@@ -40,13 +39,12 @@ See `.claude/ability-logic-issues.md` for the full catalog (including fixed item
 | L17 | MulticastGunFX no fallback for non-Aura characters | Low | FX silently dropped. |
 | L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Low | Same as H2, different angle. |
 | L19 | ApplyDamage hardcodes bIsRadialDamage=false | Low | No XML attribute for radial damage. |
-| L20 | CauseDamage vs ApplyDamage ASC access pattern | Low | Should be same ASC, different access. |
 | L21 | Projectiles hardcode TargetASC=nullptr | Low | Projectile must resolve ASC on hit. |
 | L22 | WaitForTargetData no OnStart validation | Low | Silent hang risk if task creation fails. |
 
 ---
 
-## Known Issues — FIXED (verified 2026-07-30)
+## Known Issues — FIXED (verified 2026-08-03)
 
 These were listed as open in the original pending file but are now confirmed fixed:
 
@@ -62,6 +60,8 @@ These were listed as open in the original pending file but are now confirmed fix
 | C2 | Path traversal in Python server | `_confine_to_content` + loopback bind |
 | C3 | SourceObject replication null on clients | Process-lifetime definition registry keyed by AbilityTag |
 | L14 | CooldownDuration doesn't scale from XML | `DataAbility.cpp:240` now calls `GetValueAtLevel()` |
+| M9 | Two damage paths with different context setup | `CauseDamageNode` now matches `ApplyDamageNode`'s `FDamageEffectParams` and shared `ApplyDamageEffect` path |
+| L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode` now uses `Ctx.ASC`, matching `ApplyDamageNode` |
 
 ---
 
