@@ -476,7 +476,7 @@ void UElectrocuteBeamTask::TickDamage()
             Params.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
             Params.DeathImpulse = Direction * Definition->DeathImpulseMagnitude;
             Params.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
-            Params.KnockbackForce = FVector::UpVector * Definition->KnockbackForceMagnitude;
+            Params.KnockbackForce = Direction * Definition->KnockbackForceMagnitude;
             Params.KnockbackChance = Definition->KnockbackChance;
             Params.bIsRadialDamage = false;
             Params.RadialDamageInnerRadius = 0.f;

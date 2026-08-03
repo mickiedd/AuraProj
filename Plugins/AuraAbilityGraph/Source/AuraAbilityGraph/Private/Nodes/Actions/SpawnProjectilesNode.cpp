@@ -162,7 +162,7 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
                 Params.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
                 Params.DeathImpulse = Forward * Definition->DeathImpulseMagnitude;
                 Params.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
-                Params.KnockbackForce = FVector::UpVector * Definition->KnockbackForceMagnitude;
+                Params.KnockbackForce = Forward * Definition->KnockbackForceMagnitude;
                 Params.KnockbackChance = Definition->KnockbackChance;
                 Params.bIsRadialDamage = false;
                 Params.RadialDamageInnerRadius = 0.f;

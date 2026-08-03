@@ -93,7 +93,7 @@ EAuraAbilityActionStatus UHitscanTraceTask::OnStart(FAuraAbilityExecutionContext
                 DamageParams.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
                 DamageParams.DeathImpulse = Direction * Definition->DeathImpulseMagnitude;
                 DamageParams.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
-                DamageParams.KnockbackForce = FVector::UpVector * Definition->KnockbackForceMagnitude;
+                DamageParams.KnockbackForce = Direction * Definition->KnockbackForceMagnitude;
                 DamageParams.KnockbackChance = Definition->KnockbackChance;
                 DamageParams.bIsRadialDamage = false;
                 DamageParams.RadialDamageInnerRadius = 0.f;

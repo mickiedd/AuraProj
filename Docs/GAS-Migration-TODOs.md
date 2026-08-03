@@ -125,7 +125,7 @@ These are the known issues from `GAS-DataDriven-Rewrite-Plan-Pending.md` that sh
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
-| H2 | Knockback force direction inconsistent | `ApplyDamageNode`, `HitscanTraceNode`, `SpawnProjectileNode` use Direction vs UpVector inconsistently | Standardize knockback direction to use `ToTarget` vector (Direction) or make it configurable in XML |
+| H2 | Knockback force direction inconsistent | Resolved: all damage nodes use their calculated target/projectile direction for knockback | Keep regression coverage |
 | H3 | CheckCost client bypass | `AuraGameplayAbility.cpp` returns `true` for non-authoritative clients | Verify this is intentional; add comment if so; consider adding a server-side validation callback |
 
 ### Medium Priority
@@ -145,7 +145,7 @@ Current-status note: M7 and M11 are resolved in the current implementation, and 
 
 ### Low Priority
 
-Current-status note: L17 now has a null-check and warning for non-`AAuraCharacterBase` avatars, but no fallback FX path. L13, L15, L16, and L18-L22 remain open unless otherwise noted below.
+Current-status note: L17 now has a null-check and warning for non-`AAuraCharacterBase` avatars, but no fallback FX path. L13, L15, L16, and L19-L22 remain open unless otherwise noted below.
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
@@ -154,7 +154,7 @@ Current-status note: L17 now has a null-check and warning for non-`AAuraCharacte
 | L15 | WorldContextObject never populated | `AuraAbilityTypes.h:16` | Populate in `MakeDamageEffectParamsFromClassDefaults` and nodes |
 | L16 | ImportFactory CanReimport always false | `AbilityDefinitionImportFactory.cpp` | Implement proper reimport support |
 | L17 | MulticastGunFX lacks fallback for non-Aura characters | The `AAuraCharacterBase` cast is null-checked and logs a warning, but non-Aura avatars still receive no fallback FX | Add an interface-based or generic FX fallback if non-Aura avatars are supported |
-| L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | `HitscanTraceNode.cpp` | Align directions with the standard pattern |
+| L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Resolved: hitscan knockback now follows its directional death impulse | Keep regression coverage |
 | L19 | ApplyDamage hardcodes `bIsRadialDamage=false` | `ApplyDamageNode.cpp:69` | Make configurable or remove the hardcoded override |
 | L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode.cpp:44` | Unify with ApplyDamage pattern |
 | L21 | Projectiles hardcode `TargetASC=nullptr` | `SpawnProjectileNode.cpp`, `SpawnProjectilesNode.cpp` | Pass the actual TargetASC to projectiles |
@@ -225,7 +225,7 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 
 ### Phase 5 Verification Steps (Issue Fixes)
 
-- [ ] H2: Knockback direction consistent across all damage node types
+- [x] H2: Knockback direction consistent across all damage node types
 - [x] M7: `PlayMontage` handles missing montage configuration safely (configured load failures return Failure)
 - [ ] M9: `ApplyDamageNode` and `CauseDamageNode` produce identical `FDamageEffectParams` context
 - [x] L14: `CooldownDuration` scales correctly with ability level from XML
