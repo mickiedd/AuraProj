@@ -5,7 +5,9 @@
   <damage effectClass="" type="Damage.Lightning" base="10" debuffChance="0.5" debuffDamage="2" debuffDuration="3" debuffFrequency="0.5" deathImpulseMagnitude="1000" knockbackForceMagnitude="500" knockbackChance="0.1"/>
   <graph>
     <node class="Sequence">
-      <node class="WaitForTargetData"/>
+      <node class="WaitForTargetData">
+        <property name="MaxTargetDistance" value="3000"/>
+      </node>
       <node class="FaceTarget">
         <property name="bSetControllerRotation" value="false"/>
         <property name="bSetActorRotation" value="true"/>
@@ -17,7 +19,11 @@
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.Electrocute"/>
       </node>
-      <node class="ElectrocuteBeam"/>
+      <node class="ElectrocuteBeam">
+        <property name="MaxBeamRange" value="3000"/>
+        <property name="BeamStartParameter" value="User.Beam Start"/>
+        <property name="BeamEndParameter" value="User.Beam End"/>
+      </node>
     </node>
   </graph>
 </ability>

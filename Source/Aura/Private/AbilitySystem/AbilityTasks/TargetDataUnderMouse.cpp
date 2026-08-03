@@ -51,20 +51,18 @@ void UTargetDataUnderMouse::SendMouseCursorData()
 
 	// Headless / no-cursor contexts (e.g. the AutoTest stress harness under -nullrhi) never
 	// produce a blocking cursor hit, which would leave the target data pointing at the world
-	// origin and make projectile spells fire toward (0,0,0). Fall back to a random spot in a
-	// forward-facing cone in front of the controlled pawn so the ability still gets a sensible
-	// target. This only triggers when there is no blocking hit — normal play (cursor over
+	// origin and make projectile spells fire toward (0,0,0). Fall back to a deterministic
+	// point in front of the controlled pawn so the ability still gets a sensible target.
+	// This only triggers when there is no blocking hit — normal play (cursor over
 	// ground/walls/enemies) is unaffected; a player aiming at open sky now fires forward
-	// instead of at the origin.
+	// instead of at a random point or the origin.
 	if (!CursorHit.bBlockingHit && PC)
 	{
 		if (APawn* ControlledPawn = PC->GetPawn())
 		{
 			const FVector PawnLoc = ControlledPawn->GetActorLocation();
-			const float RandomYaw = FMath::FRandRange(-45.f, 45.f);
-			const float Distance = FMath::FRandRange(1500.f, 3000.f);
-			const FQuat YawQuat(FVector::UpVector, FMath::DegreesToRadians(RandomYaw));
-			const FVector FallbackTarget = PawnLoc + YawQuat.RotateVector(ControlledPawn->GetActorForwardVector()) * Distance;
+			const float Distance = 3000.f;
+			const FVector FallbackTarget = PawnLoc + ControlledPawn->GetActorForwardVector() * Distance;
 
 			CursorHit.bBlockingHit = true;
 			CursorHit.ImpactPoint = FallbackTarget;

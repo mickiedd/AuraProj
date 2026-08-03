@@ -17,6 +17,82 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 
+namespace ElectrocuteBeamPrivate
+{
+    static FVector GetSocketLocation(AActor* Avatar, const FGameplayTag& SocketTag)
+    {
+        if (!Avatar || !Avatar->Implements<UCombatInterface>())
+        {
+            return FVector::ZeroVector;
+        }
+
+        // Native-only test avatars and native C++ characters can have a multiple-
+        // inheritance interface layout. Calling Execute_ on those objects can land
+        // in the interface base implementation instead of the derived override. Use
+        // the native interface directly when available; Blueprint-only implementations
+        // still go through the generated Execute_ dispatch.
+        if (ICombatInterface* NativeCombat = Cast<ICombatInterface>(Avatar))
+        {
+            return NativeCombat->GetCombatSocketLocation_Implementation(SocketTag);
+        }
+
+        return ICombatInterface::Execute_GetCombatSocketLocation(Avatar, SocketTag);
+    }
+
+    static float GetBeamRange(const UElectrocuteBeamNode* Node)
+    {
+        return Node && FMath::IsFinite(Node->MaxBeamRange) ? FMath::Max(1.f, Node->MaxBeamRange) : 3000.f;
+    }
+
+    static FVector ClampEndpointToRange(const FVector& Start, const FVector& Candidate, const FVector& FallbackDirection, float MaxRange)
+    {
+        FVector Direction = Candidate - Start;
+        float CandidateDistance = Direction.Size();
+        if (Direction.ContainsNaN() || !FMath::IsFinite(CandidateDistance) || Direction.IsNearlyZero())
+        {
+            Direction = FallbackDirection;
+            CandidateDistance = MaxRange;
+        }
+
+        Direction = Direction.GetSafeNormal();
+        if (Direction.IsNearlyZero())
+        {
+            Direction = FVector::ForwardVector;
+        }
+
+        return Start + Direction * FMath::Min(MaxRange, FMath::Max(1.f, CandidateDistance));
+    }
+
+    static void SetBeamPosition(UNiagaraComponent* Beam, const FString& ParameterName, const FVector& Position)
+    {
+        if (!Beam || ParameterName.IsEmpty())
+        {
+            return;
+        }
+
+        // The shipped Niagara system exposes the parameters as "User.Beam Start"
+        // and "User.Beam End" (the spaces are part of the parameter names). Keep
+        // the authored name working as well, because older graph definitions used
+        // BeamStart/BeamEnd without the Niagara User namespace.
+        Beam->SetVariablePosition(FName(*ParameterName), Position);
+
+        FString CompactName = ParameterName;
+        CompactName.RemoveFromStart(TEXT("User."));
+        CompactName.ReplaceInline(TEXT(" "), TEXT(""));
+        if (CompactName.Equals(TEXT("BeamStart"), ESearchCase::IgnoreCase))
+        {
+            Beam->SetVariablePosition(FName(TEXT("User.Beam Start")), Position);
+            Beam->SetVariablePosition(FName(TEXT("BeamStart")), Position);
+        }
+        else if (CompactName.Equals(TEXT("BeamEnd"), ESearchCase::IgnoreCase))
+        {
+            Beam->SetVariablePosition(FName(TEXT("User.Beam End")), Position);
+            Beam->SetVariablePosition(FName(TEXT("BeamEnd")), Position);
+        }
+    }
+
+}
+
 UAuraAbilityActionTask* UElectrocuteBeamNode::CreateTask(UObject* Outer) const
 {
     return NewObject<UElectrocuteBeamTask>(Outer);
@@ -34,6 +110,10 @@ void UElectrocuteBeamNode::LoadFromProperties(int32 Version, const TArray<FAuraA
         else if (Property.Name == TEXT("TraceRadius"))
         {
             TraceRadius = FCString::Atof(*Property.Value);
+        }
+        else if (Property.Name == TEXT("MaxBeamRange"))
+        {
+            MaxBeamRange = FCString::Atof(*Property.Value);
         }
         else if (Property.Name == TEXT("MaxChainTargets"))
         {
@@ -192,11 +272,15 @@ void UElectrocuteBeamTask::FindBeamTargets(const FAuraAbilityExecutionContext& C
 {
     BeamTargets.Empty();
 
-    // Get socket location
-    const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->SocketTag);
+    // Get socket location. All endpoint calculations use this same launch point.
+    const FVector SocketLocation = ElectrocuteBeamPrivate::GetSocketLocation(Ctx.AvatarActor, Node->SocketTag);
+    const FVector BeamDirection = Ctx.AvatarActor->GetActorForwardVector().GetSafeNormal();
+    const float MaxRange = ElectrocuteBeamPrivate::GetBeamRange(Node);
 
     AActor* PrimaryTarget = nullptr;
     bool bPrimaryIsEnemy = false;
+    bool bPrimaryVisualOnly = false;
+    bool bHasPrimaryEndpoint = false;
     FVector PrimaryImpactPoint = FVector::ZeroVector;
 
     // Prefer the cursor-hit actor as the primary target. The original Electrocute
@@ -210,11 +294,101 @@ void UElectrocuteBeamTask::FindBeamTargets(const FAuraAbilityExecutionContext& C
         AActor* HitActor = Ctx.CursorHit.GetActor();
         if (HitActor && HitActor != Ctx.AvatarActor)
         {
-            PrimaryTarget = HitActor;
-            PrimaryImpactPoint = Ctx.CursorHit.ImpactPoint;
-            bPrimaryIsEnemy = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PrimaryTarget) != nullptr;
-            UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Primary target (cursor): %s (enemy=%s) impact=%s"),
-                *PrimaryTarget->GetName(), bPrimaryIsEnemy ? TEXT("true") : TEXT("false"), *PrimaryImpactPoint.ToString());
+            const FVector CursorPoint = Ctx.CursorHit.ImpactPoint.IsNearlyZero()
+                ? Ctx.CursorHit.Location
+                : Ctx.CursorHit.ImpactPoint;
+            const FVector ClampedCursorPoint = ElectrocuteBeamPrivate::ClampEndpointToRange(
+                SocketLocation, CursorPoint, BeamDirection, MaxRange);
+            UAbilitySystemComponent* HitASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
+
+            // Landscape and static meshes are not valid Electrocute targets. Try the
+            // same weapon-to-cursor path once to catch an enemy in front of the hit
+            // surface; never fall through to an unrelated forward target.
+            if (HitASC || HitActor->Implements<UCombatInterface>())
+            {
+                PrimaryTarget = HitActor;
+                bPrimaryIsEnemy = HitASC != nullptr;
+                const FVector CursorImpactPoint = Ctx.CursorHit.ImpactPoint.IsNearlyZero()
+                    ? HitActor->GetActorLocation()
+                    : FVector(Ctx.CursorHit.ImpactPoint);
+                PrimaryImpactPoint = ElectrocuteBeamPrivate::ClampEndpointToRange(
+                    SocketLocation,
+                    CursorImpactPoint,
+                    BeamDirection,
+                    MaxRange);
+                bHasPrimaryEndpoint = true;
+            }
+            else
+            {
+                TArray<AActor*> TraceIgnore;
+                TraceIgnore.Add(Ctx.AvatarActor);
+                FHitResult TargetTrace;
+                UKismetSystemLibrary::SphereTraceSingle(
+                    Ctx.AvatarActor,
+                    SocketLocation,
+                    ClampedCursorPoint,
+                    Node->TraceRadius,
+                    UEngineTypes::ConvertToTraceType(ECC_Visibility),
+                    false,
+                    TraceIgnore,
+                    EDrawDebugTrace::None,
+                    TargetTrace,
+                    true);
+
+                AActor* TracedActor = TargetTrace.GetActor();
+                if (TracedActor && TracedActor != Ctx.AvatarActor && TracedActor->Implements<UCombatInterface>())
+                {
+                    PrimaryTarget = TracedActor;
+                    bPrimaryIsEnemy = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TracedActor) != nullptr;
+                    PrimaryImpactPoint = ElectrocuteBeamPrivate::ClampEndpointToRange(
+                        SocketLocation,
+                        TargetTrace.ImpactPoint,
+                        BeamDirection,
+                        MaxRange);
+                    bHasPrimaryEndpoint = true;
+                }
+            }
+
+            if (PrimaryTarget)
+            {
+                UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Primary target (cursor/trace): %s (enemy=%s) socket=%s endpoint=%s distance=%.1f"),
+                    *PrimaryTarget->GetName(),
+                    bPrimaryIsEnemy ? TEXT("true") : TEXT("false"),
+                    *SocketLocation.ToString(),
+                    *PrimaryImpactPoint.ToString(),
+                    FVector::Dist(SocketLocation, PrimaryImpactPoint));
+            }
+            else
+            {
+                // Keep a world hit as a visual-only endpoint. It must not become a
+                // damage target or a chain origin, but the beam should still render
+                // toward the point under the cursor as the legacy ability did.
+                bPrimaryVisualOnly = true;
+                PrimaryImpactPoint = ClampedCursorPoint;
+                bHasPrimaryEndpoint = true;
+                UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Cursor endpoint is visual-only actor='%s' socket=%s point=%s"),
+                    *GetNameSafe(HitActor),
+                    *SocketLocation.ToString(),
+                    *PrimaryImpactPoint.ToString());
+            }
+        }
+        else
+        {
+            // TargetDataUnderMouse can provide a deterministic point without an
+            // actor when the cursor is over open sky/headless test input.
+            const FVector CursorPoint = Ctx.CursorHit.ImpactPoint.IsNearlyZero()
+                ? FVector(Ctx.CursorHit.Location)
+                : FVector(Ctx.CursorHit.ImpactPoint);
+            PrimaryImpactPoint = ElectrocuteBeamPrivate::ClampEndpointToRange(
+                SocketLocation,
+                CursorPoint,
+                BeamDirection,
+                MaxRange);
+            bPrimaryVisualOnly = true;
+            bHasPrimaryEndpoint = true;
+            UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Cursor endpoint is visual-only actor='<none>' socket=%s point=%s"),
+                *SocketLocation.ToString(),
+                *PrimaryImpactPoint.ToString());
         }
     }
 
@@ -222,10 +396,9 @@ void UElectrocuteBeamTask::FindBeamTargets(const FAuraAbilityExecutionContext& C
     // hit (best-effort visual).
     TArray<AActor*> ActorsToIgnore;
     ActorsToIgnore.Add(Ctx.AvatarActor);
-    if (!PrimaryTarget)
+    if (!bHasPrimaryEndpoint)
     {
-        const FVector BeamDirection = Ctx.AvatarActor->GetActorForwardVector();
-        const FVector TargetLocation = SocketLocation + BeamDirection * 1000.f;
+        const FVector TargetLocation = SocketLocation + BeamDirection * MaxRange;
 
         FHitResult HitResult;
         UKismetSystemLibrary::SphereTraceSingle(
@@ -242,15 +415,37 @@ void UElectrocuteBeamTask::FindBeamTargets(const FAuraAbilityExecutionContext& C
 
         if (HitResult.bBlockingHit && HitResult.GetActor())
         {
-            PrimaryTarget = HitResult.GetActor();
-            PrimaryImpactPoint = HitResult.ImpactPoint;
-            bPrimaryIsEnemy = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PrimaryTarget) != nullptr;
-            UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Primary target (trace): %s (enemy=%s) impact=%s"),
-                *PrimaryTarget->GetName(), bPrimaryIsEnemy ? TEXT("true") : TEXT("false"), *PrimaryImpactPoint.ToString());
+            AActor* TracedActor = HitResult.GetActor();
+            if (TracedActor->Implements<UCombatInterface>())
+            {
+                PrimaryTarget = TracedActor;
+                PrimaryImpactPoint = ElectrocuteBeamPrivate::ClampEndpointToRange(
+                    SocketLocation,
+                    HitResult.ImpactPoint,
+                    BeamDirection,
+                    MaxRange);
+                bPrimaryIsEnemy = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PrimaryTarget) != nullptr;
+                bHasPrimaryEndpoint = true;
+                UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Primary target (forward trace): %s (enemy=%s) socket=%s endpoint=%s distance=%.1f"),
+                    *PrimaryTarget->GetName(),
+                    bPrimaryIsEnemy ? TEXT("true") : TEXT("false"),
+                    *SocketLocation.ToString(),
+                    *PrimaryImpactPoint.ToString(),
+                FVector::Dist(SocketLocation, PrimaryImpactPoint));
+            }
+        }
+
+        if (!bHasPrimaryEndpoint)
+        {
+            PrimaryImpactPoint = TargetLocation;
+            bPrimaryVisualOnly = true;
+            bHasPrimaryEndpoint = true;
+            UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Forward endpoint is visual-only point=%s"),
+                *PrimaryImpactPoint.ToString());
         }
     }
 
-    if (!PrimaryTarget)
+    if (!bHasPrimaryEndpoint)
     {
         UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] No primary target found"));
         return;
@@ -262,6 +457,8 @@ void UElectrocuteBeamTask::FindBeamTargets(const FAuraAbilityExecutionContext& C
     // the impact point is on its body (where the mouse aimed); for a ground/wall hit the
     // impact point is at the cursor.
     PrimaryEntry.BeamEndLocation = PrimaryImpactPoint;
+    PrimaryEntry.bVisualOnly = bPrimaryVisualOnly || !bPrimaryIsEnemy;
+    PrimaryEntry.bDamageTarget = bPrimaryIsEnemy;
 
     // Only chain lightning off a real enemy. A ground/wall primary has no meaningful
     // origin to chain from, so chains would arc to random enemies near (0,0,0).
@@ -302,6 +499,7 @@ void UElectrocuteBeamTask::FindBeamTargets(const FAuraAbilityExecutionContext& C
         FAuraBeamTarget& Entry = BeamTargets.AddDefaulted_GetRef();
         Entry.Actor = Target;
         Entry.BeamEndLocation = Target->GetActorLocation();
+        Entry.bDamageTarget = true;
         UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Chain target: %s"), *Target->GetName());
     }
 }
@@ -326,41 +524,53 @@ void UElectrocuteBeamTask::SpawnBeamFX(const FAuraAbilityExecutionContext& Ctx, 
         return;
     }
 
-    const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->SocketTag);
+    const FVector SocketLocation = ElectrocuteBeamPrivate::GetSocketLocation(Ctx.AvatarActor, Node->SocketTag);
 
+    int32 SpawnedBeamCount = 0;
     for (FAuraBeamTarget& Entry : BeamTargets)
     {
         AActor* TargetActor = Entry.Actor.Get();
-        if (!TargetActor)
+        if (!TargetActor && !Entry.bVisualOnly)
         {
             continue;
         }
 
-        // Spawn at the socket location (world space). The beam renderer reads
-        // BeamStart/BeamEnd as absolute world positions, so attachment is not needed.
+        // NS_ElectricBeam's beam emitter uses absolute world-space start/end positions.
+        // Keep the component at world origin so a local-space emitter (the asset has
+        // shipped in that mode in some cooked versions) cannot apply the muzzle location
+        // a second time to the positions we pass below. The component is only a Niagara
+        // host; the actual endpoints are the User.Beam Start/End values.
         UNiagaraComponent* Beam = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
             World,
             BeamSystem,
-            SocketLocation,
+            FVector::ZeroVector,
             FRotator::ZeroRotator,
             FVector::OneVector,
             /*bAutoDestroy=*/true,
-            /*bAutoActivate=*/true,
+            /*bAutoActivate=*/false,
             ENCPoolMethod::None,
             /*bAutoDestroyWhenDeactivated=*/true);
 
         if (!Beam)
         {
-            UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[ElectrocuteBeam] Failed to spawn beam component for target %s"), *TargetActor->GetName());
+            UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[ElectrocuteBeam] Failed to spawn beam component for target %s"), *GetNameSafe(TargetActor));
             continue;
         }
 
-        Beam->SetNiagaraVariablePosition(Node->BeamStartParameter, SocketLocation);
-        Beam->SetNiagaraVariablePosition(Node->BeamEndParameter, Entry.BeamEndLocation);
+        ElectrocuteBeamPrivate::SetBeamPosition(Beam, Node->BeamStartParameter, SocketLocation);
+        ElectrocuteBeamPrivate::SetBeamPosition(Beam, Node->BeamEndParameter, Entry.BeamEndLocation);
+        Beam->Activate(true);
         Entry.Beam = Beam;
+        ++SpawnedBeamCount;
+
+        UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Beam endpoints start=%s end=%s component=%s target=%s"),
+            *SocketLocation.ToString(),
+            *Entry.BeamEndLocation.ToString(),
+            *Beam->GetComponentLocation().ToString(),
+            *GetNameSafe(TargetActor));
     }
 
-    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Spawned %d beam arc(s) from '%s'"), BeamTargets.Num(), *Node->BeamEffect);
+    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ElectrocuteBeam] Spawned %d beam arc(s) from '%s'"), SpawnedBeamCount, *Node->BeamEffect);
 }
 
 void UElectrocuteBeamTask::RefreshBeamFX(const FAuraAbilityExecutionContext& Ctx, const UElectrocuteBeamNode* Node)
@@ -370,7 +580,7 @@ void UElectrocuteBeamTask::RefreshBeamFX(const FAuraAbilityExecutionContext& Ctx
         return;
     }
 
-    const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->SocketTag);
+    const FVector SocketLocation = ElectrocuteBeamPrivate::GetSocketLocation(Ctx.AvatarActor, Node->SocketTag);
 
     for (FAuraBeamTarget& Entry : BeamTargets)
     {
@@ -379,17 +589,20 @@ void UElectrocuteBeamTask::RefreshBeamFX(const FAuraAbilityExecutionContext& Ctx
         {
             continue;
         }
-        Beam->SetNiagaraVariablePosition(Node->BeamStartParameter, SocketLocation);
+        ElectrocuteBeamPrivate::SetBeamPosition(Beam, Node->BeamStartParameter, SocketLocation);
         // Track a real enemy's current location; for a non-enemy (ground/wall) keep the
         // stored impact point so the arc stays where the cursor aimed.
-        if (AActor* TargetActor = Entry.Actor.Get())
+        if (Entry.bDamageTarget)
         {
-            if (UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+            if (AActor* TargetActor = Entry.Actor.Get())
             {
-                Entry.BeamEndLocation = TargetActor->GetActorLocation();
+                if (UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor))
+                {
+                    Entry.BeamEndLocation = TargetActor->GetActorLocation();
+                }
             }
         }
-        Beam->SetNiagaraVariablePosition(Node->BeamEndParameter, Entry.BeamEndLocation);
+        ElectrocuteBeamPrivate::SetBeamPosition(Beam, Node->BeamEndParameter, Entry.BeamEndLocation);
     }
 }
 
@@ -404,7 +617,7 @@ void UElectrocuteBeamTask::TickDamage()
     const int32 Before = BeamTargets.Num();
     for (int32 i = BeamTargets.Num() - 1; i >= 0; --i)
     {
-        if (!BeamTargets[i].Actor.IsValid())
+        if (!BeamTargets[i].Actor.IsValid() && !BeamTargets[i].bVisualOnly)
         {
             if (UNiagaraComponent* Beam = BeamTargets[i].Beam.Get())
             {
@@ -449,6 +662,11 @@ void UElectrocuteBeamTask::TickDamage()
     {
         AActor* TargetActor = Entry.Actor.Get();
         if (!TargetActor)
+        {
+            continue;
+        }
+
+        if (!Entry.bDamageTarget)
         {
             continue;
         }
@@ -556,6 +774,28 @@ FVector UElectrocuteBeamTask::GetBeamEndLocationForTest(int32 Index) const
     if (BeamTargets.IsValidIndex(Index))
     {
         return BeamTargets[Index].BeamEndLocation;
+    }
+    return FVector::ZeroVector;
+}
+
+FVector UElectrocuteBeamTask::GetBeamStartLocationForTest() const
+{
+    const UElectrocuteBeamNode* Node = Cast<UElectrocuteBeamNode>(NodeDef);
+    if (Node && CachedCtx.AvatarActor && CachedCtx.AvatarActor->Implements<UCombatInterface>())
+    {
+        return ElectrocuteBeamPrivate::GetSocketLocation(CachedCtx.AvatarActor, Node->SocketTag);
+    }
+    return FVector::ZeroVector;
+}
+
+FVector UElectrocuteBeamTask::GetBeamComponentLocationForTest(int32 Index) const
+{
+    if (BeamTargets.IsValidIndex(Index))
+    {
+        if (const UNiagaraComponent* Beam = BeamTargets[Index].Beam.Get())
+        {
+            return Beam->GetComponentLocation();
+        }
     }
     return FVector::ZeroVector;
 }

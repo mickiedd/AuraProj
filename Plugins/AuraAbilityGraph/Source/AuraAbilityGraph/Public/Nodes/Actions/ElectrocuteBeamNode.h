@@ -12,9 +12,10 @@ class UNiagaraComponent;
 /**
  * ElectrocuteBeam node — encapsulates the Electrocute channeled beam ability.
  *
- * Traces from the weapon socket along the pawn's facing direction to find the
- * primary target (the player's look input already aims the pawn, so no cursor
- * target data is used). Then finds additional nearby enemies (chain lightning)
+ * Uses the cursor target data to find the primary target, with a forward
+ * sphere-trace fallback when no cursor hit is available. World geometry can be
+ * used as a visual-only endpoint, while combat actors receive damage and chain
+ * lightning.
  * up to MaxChainTargets. Sets up a repeating timer that ticks damage on all
  * targets every TickInterval seconds. The beam ends after ChannelDuration (or
  * early if all targets die), so the ability completes and can be re-triggered.
@@ -38,8 +39,8 @@ class UNiagaraComponent;
  *                        can't be re-triggered. The beam still ends early if all
  *                        targets die first.
  *   BeamEffect         — NiagaraSystem asset path for the beam arc (optional)
- *   BeamStartParameter — Niagara variable name for the beam source (default: BeamStart)
- *   BeamEndParameter    — Niagara variable name for the beam target (default: BeamEnd)
+ *   BeamStartParameter — Niagara variable name for the beam source (default: User.Beam Start)
+ *   BeamEndParameter    — Niagara variable name for the beam target (default: User.Beam End)
  */
 UCLASS(DisplayName = "ElectrocuteBeam")
 class AURAABILITYGRAPH_API UElectrocuteBeamNode : public UAuraAbilityActionNode
@@ -55,6 +56,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ElectrocuteBeam")
     float TraceRadius = 10.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ElectrocuteBeam")
+    float MaxBeamRange = 3000.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ElectrocuteBeam")
     int32 MaxChainTargets = 5;
@@ -79,10 +83,10 @@ public:
     FString BeamEffect = TEXT("/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam");
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ElectrocuteBeam")
-    FString BeamStartParameter = TEXT("BeamStart");
+    FString BeamStartParameter = TEXT("User.Beam Start");
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ElectrocuteBeam")
-    FString BeamEndParameter = TEXT("BeamEnd");
+    FString BeamEndParameter = TEXT("User.Beam End");
 };
 
 // One beam target paired with the Niagara arc component drawn to it.
@@ -101,6 +105,15 @@ struct FAuraBeamTarget
     // instead of at the hit actor's pivot (which for landscape is the world origin).
     UPROPERTY()
     FVector BeamEndLocation = FVector::ZeroVector;
+
+    // A cursor point on world geometry has no actor to damage, but must remain
+    // alive for the duration of the visual channel. This is also used for the
+    // deterministic open-sky fallback target.
+    UPROPERTY()
+    bool bVisualOnly = false;
+
+    UPROPERTY()
+    bool bDamageTarget = false;
 
     // WEAK on purpose: a strong UPROPERTY ref here would root the NiagaraComponent,
     // and (via the task -> ability -> ASC -> PlayerState -> World Outer chain) keep it
@@ -131,6 +144,15 @@ public:
     // Test accessor: the desired world-space beam end point for target Index (zero if
     // out of range), so the smoke test can assert "spawned to the right location".
     FVector GetBeamEndLocationForTest(int32 Index) const;
+
+    // Test accessor: the world-space launch point currently used by the beam (zero if
+    // the task has no valid avatar/socket). This guards the muzzle-side endpoint.
+    FVector GetBeamStartLocationForTest() const;
+
+    // Test accessor: the Niagara component transform. NS_ElectricBeam consumes absolute
+    // world positions, so its component must remain at world origin even when the muzzle
+    // is elsewhere in the level.
+    FVector GetBeamComponentLocationForTest(int32 Index) const;
 
 private:
     FTimerHandle TickTimerHandle;

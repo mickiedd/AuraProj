@@ -1050,6 +1050,14 @@ static bool SmokeTest_ElectrocuteFileGraph()
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[0] is '%s', expected WaitForTargetData"), *ClassOf(0));
 		return false;
 	}
+	if (UWaitForTargetDataNode* TargetNode = Cast<UWaitForTargetDataNode>(Children[0]))
+	{
+		if (!FMath::IsNearlyEqual(TargetNode->MaxTargetDistance, 3000.f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: MaxTargetDistance mismatch: expected 3000, got %.1f"), TargetNode->MaxTargetDistance);
+			return false;
+		}
+	}
 	if (ClassOf(1) != TEXT("FaceTarget"))
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[1] is '%s', expected FaceTarget"), *ClassOf(1));
@@ -1092,7 +1100,7 @@ static bool SmokeTest_ElectrocuteFileGraph()
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: BeamEffect mismatch: got '%s'"), *BeamNode->BeamEffect);
 			return false;
 		}
-		if (BeamNode->BeamStartParameter != TEXT("BeamStart") || BeamNode->BeamEndParameter != TEXT("BeamEnd"))
+		if (BeamNode->BeamStartParameter != TEXT("User.Beam Start") || BeamNode->BeamEndParameter != TEXT("User.Beam End"))
 		{
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: beam param mismatch: start='%s' end='%s'"), *BeamNode->BeamStartParameter, *BeamNode->BeamEndParameter);
 			return false;
@@ -1105,6 +1113,11 @@ static bool SmokeTest_ElectrocuteFileGraph()
 		if (!FMath::IsNearlyEqual(BeamNode->ChainRadius, 850.f))
 		{
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: ChainRadius mismatch: expected 850, got %.1f"), BeamNode->ChainRadius);
+			return false;
+		}
+		if (!FMath::IsNearlyEqual(BeamNode->MaxBeamRange, 3000.f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: MaxBeamRange mismatch: expected 3000, got %.1f"), BeamNode->MaxBeamRange);
 			return false;
 		}
 		if (!FMath::IsNearlyEqual(BeamNode->TickInterval, 0.2f))
@@ -1561,7 +1574,10 @@ static bool SmokeTest_ProjectileWallImpact()
 // the pawn's facing direction.
 static bool SmokeTest_ElectrocuteBeamSpawnEndpoints()
 {
-	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	// Use a non-origin avatar so an accidental local-space/component transform offset
+	// cannot hide the muzzle-end regression.
+	const FVector AvatarLocation(10000.f, -2000.f, 300.f);
+	FSpawnTestEnv Env = CreateSpawnTestEnv(AvatarLocation, FRotator::ZeroRotator);
 	if (!Env.World || !Env.Avatar || !Env.Ability)
 	{
 		DestroySpawnTestEnv(Env);
@@ -1588,8 +1604,8 @@ static bool SmokeTest_ElectrocuteBeamSpawnEndpoints()
 	UElectrocuteBeamNode* Node = NewObject<UElectrocuteBeamNode>(GetTransientPackage());
 	Node->SocketTag = FGameplayTag::RequestGameplayTag(FName("CombatSocket.Weapon"), false);
 	Node->BeamEffect = TEXT("/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam");
-	Node->BeamStartParameter = TEXT("BeamStart");
-	Node->BeamEndParameter = TEXT("BeamEnd");
+	Node->BeamStartParameter = TEXT("User.Beam Start");
+	Node->BeamEndParameter = TEXT("User.Beam End");
 	Node->TraceRadius = TraceRadius;
 	Node->MaxChainTargets = 0;
 	Node->ChannelDuration = 0.f; // no channel timer
@@ -1663,6 +1679,27 @@ static bool SmokeTest_ElectrocuteBeamSpawnEndpoints()
 		return false;
 	}
 
+	const FVector BeamStart = Task->GetBeamStartLocationForTest();
+	if (!BeamStart.Equals(SocketLoc, 0.1f))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamEndpoints: beam start %s does not match muzzle/socket %s"), *BeamStart.ToString(), *SocketLoc.ToString());
+		Task->Cancel(Ctx);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	if (bHasComponent)
+	{
+		const FVector ComponentLocation = Task->GetBeamComponentLocationForTest(0);
+		if (!ComponentLocation.IsNearlyZero(0.1f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamEndpoints: Niagara component at %s; expected world origin for absolute beam parameters"), *ComponentLocation.ToString());
+			Task->Cancel(Ctx);
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+	}
+
 	Task->Cancel(Ctx); // clears tick/channel timers + cleans up beams
 	DestroySpawnTestEnv(Env);
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteBeamSpawnEndpoints PASSED (target found, BeamEffect loaded, end on target; component=%s)."), bHasComponent ? TEXT("yes") : TEXT("no(nullrhi)"));
@@ -1720,6 +1757,85 @@ static bool SmokeTest_ElectrocuteBeamEmptyEffectNoSpawn()
 	}
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteBeamEmptyEffectNoSpawn PASSED (empty BeamEffect -> target found, no Niagara)."));
+	return true;
+}
+
+// Regression guard for cursor hits that contain a point but no actor. This is the
+// shape produced by TargetDataUnderMouse's open-sky fallback and must still render
+// a visual-only beam instead of returning zero targets before SpawnBeamFX.
+static bool SmokeTest_ElectrocuteBeamVisualEndpoint()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar || !Env.Ability)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	const FVector SocketLoc = Env.Avatar->GetActorLocation() + Env.Avatar->SocketOffset;
+	const FVector ExpectedEndpoint = SocketLoc + FVector(600.f, 300.f, 0.f);
+
+	UElectrocuteBeamNode* Node = NewObject<UElectrocuteBeamNode>(GetTransientPackage());
+	Node->SocketTag = FGameplayTag::RequestGameplayTag(FName("CombatSocket.Weapon"), false);
+	Node->BeamEffect = TEXT("/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam");
+	Node->BeamStartParameter = TEXT("User.Beam Start");
+	Node->BeamEndParameter = TEXT("User.Beam End");
+	Node->MaxBeamRange = 1000.f;
+	Node->MaxChainTargets = 0;
+	Node->ChannelDuration = 0.f;
+
+	UElectrocuteBeamTask* Task = Cast<UElectrocuteBeamTask>(Node->CreateTask(Env.Ability));
+	if (!Task)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamVisualEndpoint: CreateTask returned null"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	Task->Init(Node, Env.Ability);
+
+	FAuraAbilityExecutionContext Ctx;
+	Ctx.AvatarActor = Env.Avatar;
+	Ctx.CursorHit.bBlockingHit = true;
+	Ctx.CursorHit.ImpactPoint = ExpectedEndpoint;
+	Ctx.CursorHit.Location = ExpectedEndpoint;
+
+	const EAuraAbilityActionStatus Status = Task->OnStart(Ctx);
+	if (Status != EAuraAbilityActionStatus::Running)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamVisualEndpoint: OnStart returned %s, expected Running"),
+			*StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+		Task->Cancel(Ctx);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	if (Task->GetBeamTargetCountForTest() != 1)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamVisualEndpoint: targets=%d, expected 1 visual-only target"), Task->GetBeamTargetCountForTest());
+		Task->Cancel(Ctx);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	const FVector BeamEnd = Task->GetBeamEndLocationForTest(0);
+	if (!BeamEnd.Equals(ExpectedEndpoint, 1.f))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamVisualEndpoint: endpoint=%s expected=%s"), *BeamEnd.ToString(), *ExpectedEndpoint.ToString());
+		Task->Cancel(Ctx);
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	Task->Cancel(Ctx);
+	const bool bCleanedUp = Task->GetBeamTargetCountForTest() == 0;
+	DestroySpawnTestEnv(Env);
+	if (!bCleanedUp)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamVisualEndpoint: Cancel did not clear visual target"));
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteBeamVisualEndpoint PASSED (actorless cursor point spawned visual endpoint and cleaned up)."));
 	return true;
 }
 
@@ -1840,6 +1956,7 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("ProjectileWallImpact"), SmokeTest_ProjectileWallImpact);
 	Run(TEXT("ElectrocuteBeamSpawnEndpoints"), SmokeTest_ElectrocuteBeamSpawnEndpoints);
 	Run(TEXT("ElectrocuteBeamEmptyEffectNoSpawn"), SmokeTest_ElectrocuteBeamEmptyEffectNoSpawn);
+	Run(TEXT("ElectrocuteBeamVisualEndpoint"), SmokeTest_ElectrocuteBeamVisualEndpoint);
 	Run(TEXT("EnemyAbilityFiles"), SmokeTest_EnemyAbilityFiles);
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("========================================"));
