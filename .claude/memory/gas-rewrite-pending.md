@@ -23,7 +23,6 @@ See `.claude/ability-logic-issues.md` for the full catalog (including fixed item
 
 | # | Issue | Severity | Location | Notes |
 |---|-------|----------|----------|-------|
-| 2 | Dead declarations — `CreateNodeByClassName` (declared not defined), `BuildAndExecuteGraph` (declared not called) | Medium | `AbilityDefinition.h:64`, `DataAbility.h:66` | Remove both declarations. Quick fix. |
 | 3 | Unused XML properties — `TargetFromContext` parsed but ignored; `ScatterRadius` parsed but unused | Medium | Multiple node `.cpp` files | Either implement or remove from schema + `LoadFromProperties`. |
 
 ### Lower-priority unfixed items (from ability-logic-issues.md)

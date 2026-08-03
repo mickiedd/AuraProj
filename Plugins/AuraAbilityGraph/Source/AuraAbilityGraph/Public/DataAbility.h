@@ -71,8 +71,6 @@ protected:
     // guard makes the recursive call a no-op.
     bool bIsEndingAbility = false;
 
-    void BuildAndExecuteGraph(FAuraAbilityExecutionContext& Ctx);
-
     mutable FGameplayTagContainer CachedCooldownTags;
 
     FAuraAbilityExecutionContext PersistentCtx;

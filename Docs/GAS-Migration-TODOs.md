@@ -131,17 +131,17 @@ These are the known issues from `GAS-DataDriven-Rewrite-Plan-Pending.md` that sh
 
 ### Medium Priority
 
-Current-status note: M7 and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. Issue #4 is resolved: `SmokeTest_NodeRegistry` and `SmokeTest_SequenceExecution` now carry real assertions (verified 2026-08-03). M8 is only partially resolved: empty node tags are rejected, but authored montage tags are not inspected. M10 remains open because the wait task still advances the graph directly instead of routing through `OnMontageEventReceived`.
+Current-status note: M7, M10, and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. Issue #4 is resolved: `SmokeTest_NodeRegistry` and `SmokeTest_SequenceExecution` now carry real assertions (verified 2026-08-03). M10's fix (2026-08-03, smoke 19/19): the wait task now routes through the canonical `OnMontageEventReceived`, so the wait path shares the `bGraphActive` guard with `OnMontageCompleted`/`OnTargetDataReady` instead of advancing the graph directly. M8 is only partially resolved: empty node tags are rejected, but authored montage tags are not inspected.
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
-| 2 | Dead declarations | `CreateNodeByClassName`, `BuildAndExecuteGraph` declared but unused/dead | Remove dead declarations or implement their intended functionality |
+| 2 | Dead declarations **(resolved 2026-08-03)** | `CreateNodeByClassName`, `BuildAndExecuteGraph` were declared but unused/dead | Removed both declarations; the XML loader retains its file-local registry helper |
 | 3 | Unused XML properties | `TargetFromContext`, `ScatterRadius` in XML but not used by nodes | Either implement support for these properties or remove them from XML schema and docs |
 | 4 | Fake smoke tests **(resolved 2026-08-03)** | Log-only tests with no assertions in `AuraAbilityGraphModule.cpp` | `SmokeTest_NodeRegistry` now validates all 17 concrete registrations and rejects unknown names; `SmokeTest_SequenceExecution` parses and executes a real two-child sequence |
 | M7 | PlayMontage missing montage behavior | Resolved: configured load failures return Failure; an intentionally empty montage remains a successful no-op | Keep regression coverage |
 | M8 | WaitForMontageEvent no authored-tag validation | The node rejects an empty/invalid `EventTag`, but does not verify that the tag exists on the authored montage/AnimNotify | Add validation against authored montage event metadata, or document runtime gameplay-event ownership |
 | M9 | Two damage paths with different context setup | `ApplyDamageNode` vs `CauseDamageNode` set up `FDamageEffectParams` differently | Unify the context setup, or document the difference and make it intentional |
-| M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Directly calls `AdvanceGraph` instead of going through the standard callback | Fix to use `OnMontageEventReceived` path |
+| M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Resolved: the wait task now routes through `UAuraDataAbility::OnMontageEventReceived`, which applies the `bGraphActive` guard before advancing (verified 2026-08-03, smoke 19/19) | Keep regression coverage |
 | M11 | WaitForTargetData callback lifecycle | Resolved centrally: `OnTargetDataReady`, `AdvanceGraph`, and montage callbacks ignore events after `bGraphActive` becomes false | Keep regression coverage |
 
 ### Low Priority

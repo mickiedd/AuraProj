@@ -509,7 +509,7 @@ Move projectile mesh/FX/impact params into a data asset so `BP_FireBolt`/`BP_Aur
 ## 11. Known issues
 
 1. **PlayMontage delegates not wired** — `UPlayMontageTask::OnStart` creates `PlayMontageAndWait` but doesn't bind `OnInterrupted`/`OnCompleted`. If the montage is interrupted before the gameplay event fires, the graph hangs in `Running`. `OnMontageInterrupted` exists on `UAuraDataAbility` but is never called from C++.
-2. **Dead declarations** — `AbilityDefinition.h` declares `static CreateNodeByClassName` (never defined). `DataAbility.h` declares `BuildAndExecuteGraph` (never defined/called).
+2. **Dead declarations (resolved 2026-08-03)** — removed the unused `CreateNodeByClassName` and `BuildAndExecuteGraph` declarations; the XML loader keeps its file-local registry helper.
 3. **Unused XML properties** — `TargetFromContext` on SpawnProjectile/SpawnProjectiles/ApplyDamage/CauseDamage is parsed but always ignored (uses `Ctx.CursorHit`). `HitscanTraceNode::ScatterRadius` parsed but trace is straight line.
 4. **Smoke-test coverage (resolved 2026-08-03)** — `SmokeTest_NodeRegistry` validates all concrete registrations and rejects unknown names; `SmokeTest_SequenceExecution` parses and executes a real two-child sequence.
 5. **GC** — `AbilityDefinition.h` `Montage` and `DamageEffectClass` have no UPROPERTY on the Transient UObject.

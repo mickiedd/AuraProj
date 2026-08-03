@@ -120,8 +120,12 @@ void UWaitForMontageEventTask::OnEventReceived(FGameplayEventData EventData)
     PendingStatus = EAuraAbilityActionStatus::Success;
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
-        DataAbility->PendingMontageEventTask.Reset();
-        DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Success);
+        // Route through the canonical UAuraDataAbility::OnMontageEventReceived so the
+        // graph advance follows the same bGraphActive lifecycle guard as
+        // OnMontageCompleted/OnTargetDataReady (it also resets PendingMontageEventTask).
+        // Previously this duplicated the reset + AdvanceGraph and bypassed the guard —
+        // a stray event after the graph ended could double-advance a dead graph.
+        DataAbility->OnMontageEventReceived(EventData);
     }
 }
 

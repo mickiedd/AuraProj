@@ -57,6 +57,4 @@ public:
 
     /** Parse XML content and populate all fields. Called by LoadAbilityDefinitionFromXMLFile. */
     bool LoadFromXML(const FString& XMLContent);
-
-    static UAuraAbilityActionNode* CreateNodeByClassName(const FString& ClassName, UObject* Outer);
 };

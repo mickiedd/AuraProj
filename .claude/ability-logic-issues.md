@@ -57,10 +57,9 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 
 ### MEDIUM — Dead Code / Unused Features
 
-#### M4. Dead declarations — UNFIXED
-- `AbilityDefinition.h:62` declares `static UAuraAbilityActionNode* CreateNodeByClassName(const FString& ClassName, UObject* Outer)` — never defined. A file-scope function with the same name exists in `AbilityDefinition.cpp` but the member function is missing
-- `DataAbility.h:66` declares `void BuildAndExecuteGraph(FAuraAbilityExecutionContext& Ctx)` — never defined, never called
-- **Fix**: Remove both declarations
+#### M4. Dead declarations — FIXED (2026-08-03)
+- Removed the unused `CreateNodeByClassName` and `BuildAndExecuteGraph` declarations from the public headers
+- The XML loader continues using its file-local registry helper in `AbilityDefinition.cpp`
 
 #### M5. Parsed-but-unused XML properties — UNFIXED
 - `TargetFromContext` on `SpawnProjectileNode`, `SpawnProjectilesNode`, `ApplyDamageNode`, `CauseDamageNode` — parsed from XML but `OnStart` always uses `Ctx.CursorHit.ImpactPoint` / `Ctx.CursorHit.GetActor()` — the property is never consulted
