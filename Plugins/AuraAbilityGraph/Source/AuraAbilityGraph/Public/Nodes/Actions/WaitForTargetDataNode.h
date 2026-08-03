@@ -16,6 +16,13 @@ class AURAABILITYGRAPH_API UWaitForTargetDataNode : public UAuraAbilityActionNod
 
 public:
     virtual UAuraAbilityActionTask* CreateTask(UObject* Outer) const override;
+    virtual void LoadFromProperties(int32 Version, const TArray<FAuraAbilityGraphProperty>& Properties) override;
+
+    // Target data is supplied by the client, so the received hit must be checked
+    // against the avatar before the graph consumes it.  The authored abilities
+    // currently use the default 10,000-unit range; XML can override it per node.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WaitForTargetData", meta = (ClampMin = "1.0"))
+    float MaxTargetDistance = 10000.f;
 };
 
 UCLASS()

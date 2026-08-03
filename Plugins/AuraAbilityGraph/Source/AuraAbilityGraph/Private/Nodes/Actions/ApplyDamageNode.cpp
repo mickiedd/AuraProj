@@ -39,6 +39,7 @@ EAuraAbilityActionStatus UApplyDamageTask::OnStart(FAuraAbilityExecutionContext&
         {
             const FVector Direction = (TargetActor->GetActorLocation() - Ctx.AvatarActor->GetActorLocation()).GetSafeNormal();
             FDamageEffectParams Params;
+            Params.WorldContextObject = Ctx.AvatarActor;
             Params.SourceAbilitySystemComponent = Ctx.ASC;
             Params.TargetAbilitySystemComponent = TargetASC;
             Params.AbilityLevel = DataAbility->GetAbilityLevel();
@@ -54,10 +55,6 @@ EAuraAbilityActionStatus UApplyDamageTask::OnStart(FAuraAbilityExecutionContext&
             Params.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
             Params.KnockbackForce = Direction * Definition->KnockbackForceMagnitude;
             Params.KnockbackChance = Definition->KnockbackChance;
-            Params.bIsRadialDamage = false;
-            Params.RadialDamageInnerRadius = 0.f;
-            Params.RadialDamageOuterRadius = 0.f;
-            Params.RadialDamageOrigin = FVector::ZeroVector;
             UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ApplyDamage] OnStart applying damage base=%.1f type=%s"), Params.BaseDamage, *Params.DamageType.ToString());
             UAuraAbilitySystemLibrary::ApplyDamageEffect(Params);
         }

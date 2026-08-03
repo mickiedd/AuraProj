@@ -131,7 +131,7 @@ These are the known issues from `GAS-DataDriven-Rewrite-Plan-Pending.md` that sh
 
 ### Medium Priority
 
-Current-status note: M7, M10, and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. Issue #4 is resolved: `SmokeTest_NodeRegistry` and `SmokeTest_SequenceExecution` now carry real assertions (verified 2026-08-03). M10's fix (2026-08-03, smoke 19/19): the wait task now routes through the canonical `OnMontageEventReceived`, so the wait path shares the `bGraphActive` guard with `OnMontageCompleted`/`OnTargetDataReady` instead of advancing the graph directly. M8 is only partially resolved: empty node tags are rejected, but authored montage tags are not inspected.
+Current-status note: M7, M8, M10, and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. Issue #4 is resolved: `SmokeTest_NodeRegistry` and `SmokeTest_SequenceExecution` now carry real assertions (verified 2026-08-03). M8 now validates the requested tag against the loaded montage's authored AnimNotify metadata. M10's fix (2026-08-03, smoke 19/19): the wait task now routes through the canonical `OnMontageEventReceived`, so the wait path shares the `bGraphActive` guard with `OnMontageCompleted`/`OnTargetDataReady` instead of advancing the graph directly.
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
@@ -139,27 +139,27 @@ Current-status note: M7, M10, and M11 are resolved in the current implementation
 | 3 | Unused XML properties **(resolved 2026-08-03)** | `TargetFromContext`, `ScatterRadius` were parsed but ignored | Removed the dead properties from node schemas, XML definitions, editor metadata, smoke fixtures, and documentation |
 | 4 | Fake smoke tests **(resolved 2026-08-03)** | Log-only tests with no assertions in `AuraAbilityGraphModule.cpp` | `SmokeTest_NodeRegistry` now validates all 17 concrete registrations and rejects unknown names; `SmokeTest_SequenceExecution` parses and executes a real two-child sequence |
 | M7 | PlayMontage missing montage behavior | Resolved: configured load failures return Failure; an intentionally empty montage remains a successful no-op | Keep regression coverage |
-| M8 | WaitForMontageEvent no authored-tag validation | The node rejects an empty/invalid `EventTag`, but does not verify that the tag exists on the authored montage/AnimNotify | Add validation against authored montage event metadata, or document runtime gameplay-event ownership |
+| M8 | WaitForMontageEvent no authored-tag validation **(resolved 2026-08-03)** | The node rejected an empty/invalid `EventTag`, but did not verify that the tag existed on the authored montage/AnimNotify | `WaitForMontageEvent` now finds the graph's `PlayMontage` node and validates the tag against reflected `EventTag` metadata on its montage notifies |
 | M9 | Two damage paths with different context setup **(resolved 2026-08-03)** | `ApplyDamageNode` vs `CauseDamageNode` set up `FDamageEffectParams` differently | `CauseDamageNode` now matches `ApplyDamageNode`: `Ctx.ASC`, identical params, and shared `ApplyDamageEffect` path |
 | M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Resolved: the wait task now routes through `UAuraDataAbility::OnMontageEventReceived`, which applies the `bGraphActive` guard before advancing (verified 2026-08-03, smoke 19/19) | Keep regression coverage |
 | M11 | WaitForTargetData callback lifecycle | Resolved centrally: `OnTargetDataReady`, `AdvanceGraph`, and montage callbacks ignore events after `bGraphActive` becomes false | Keep regression coverage |
 
 ### Low Priority
 
-Current-status note: L17 now has a null-check and warning for non-`AAuraCharacterBase` avatars, but no fallback FX path. L13, L15, L16, and L19-L22 remain open unless otherwise noted below.
+Current-status note: L13, L16, and L17 are resolved in the current implementation. L15, L19, L20, and L21 remain resolved, and L22 now validates client target data against the configured avatar range.
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
-| L13 | Hardcoded Python path in launcher | `AuraAbilityGraphLauncher.cpp:193` | Make path configurable |
+| L13 | Hardcoded Python path in launcher **(resolved 2026-08-03)** | Launcher used machine-specific absolute Python paths | Launcher now resolves `python.exe`, `python3.exe`, or `py.exe` through Windows `PATH` with `SearchPathW` |
 | L14 | CooldownDuration scaling | Resolved: XML duration is evaluated with `CooldownDuration.GetValueAtLevel(GetAbilityLevel())` before the cooldown spec is applied | Keep regression coverage |
-| L15 | WorldContextObject never populated | `AuraAbilityTypes.h:16` | Populate in `MakeDamageEffectParamsFromClassDefaults` and nodes |
-| L16 | ImportFactory CanReimport always false | `AbilityDefinitionImportFactory.cpp` | Implement proper reimport support |
-| L17 | MulticastGunFX lacks fallback for non-Aura characters | The `AAuraCharacterBase` cast is null-checked and logs a warning, but non-Aura avatars still receive no fallback FX | Add an interface-based or generic FX fallback if non-Aura avatars are supported |
+| L15 | WorldContextObject never populated **(resolved 2026-08-03)** | Damage-param producers left it null | Data-driven damage nodes now set it to `Ctx.AvatarActor` |
+| L16 | ImportFactory CanReimport always false **(resolved 2026-08-03)** | XML import did not retain a source path and always returned false | Import stores `SourceFilePath`, exposes it through `CanReimport`, and reloads/parses the same object in `Reimport` |
+| L17 | MulticastGunFX lacks fallback for non-Aura characters **(resolved 2026-08-03)** | Non-`AAuraCharacterBase` avatars received no FX | The node now uses a generic local emitter/sound fallback and safely uses actor location when no combat-socket interface is present |
 | L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Resolved: hitscan knockback now follows its directional death impulse | Keep regression coverage |
-| L19 | ApplyDamage hardcodes `bIsRadialDamage=false` | `ApplyDamageNode.cpp:69` | Make configurable or remove the hardcoded override |
+| L19 | ApplyDamage hardcodes `bIsRadialDamage=false` **(resolved 2026-08-03)** | `ApplyDamageNode.cpp` redundantly assigned the radial defaults | Removed the redundant assignments; `FDamageEffectParams` owns the non-radial default |
 | L20 | CauseDamage vs ApplyDamage ASC access pattern **(resolved 2026-08-03)** | `CauseDamageNode.cpp` used a different source ASC | `CauseDamageNode` now uses `Ctx.ASC` and the shared `FDamageEffectParams` path |
-| L21 | Projectiles hardcode `TargetASC=nullptr` | `SpawnProjectileNode.cpp`, `SpawnProjectilesNode.cpp` | Pass the actual TargetASC to projectiles |
-| L22 | WaitForTargetData no OnStart validation | `WaitForTargetDataNode.cpp` | Add valid range/actor check on `OnStart` |
+| L21 | Projectiles hardcode `TargetASC=nullptr` **(resolved 2026-08-03)** | Projectile params discarded the known cursor target ASC | Projectile nodes now seed `TargetAbilitySystemComponent` from `Ctx.CursorHit` |
+| L22 | WaitForTargetData range validation **(resolved 2026-08-03)** | Client-supplied target data was consumed without validating its hit, actor, or distance | `WaitForTargetData` now validates blocking hit data, rejects self/invalid actors, and enforces configurable `MaxTargetDistance` (default 10,000) before advancing |
 
 ---
 
@@ -232,6 +232,9 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 - [x] M7: `PlayMontage` handles missing montage configuration safely (configured load failures return Failure)
 - [x] M9: `ApplyDamageNode` and `CauseDamageNode` produce identical `FDamageEffectParams` context
 - [x] L20: `CauseDamageNode` uses the same `Ctx.ASC` source pattern as `ApplyDamageNode`
+- [x] L15: Damage-param producers populate `WorldContextObject`
+- [x] L19: `ApplyDamageNode` no longer redundantly hardcodes radial defaults
+- [x] L21: Projectile damage params carry the known cursor target ASC
 - [x] L14: `CooldownDuration` scales correctly with ability level from XML
 
 ### Phase 6 Verification Steps (Optional)

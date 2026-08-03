@@ -781,7 +781,7 @@ Verified against the current implementation on 2026-08-02:
 | Low | `PlayMontage` treats an empty montage as a successful no-op and a nonempty unloadable path as failure | Only graphs containing `PlayMontage`; FireBlast has no such node and is unaffected |
 | Low | `ApplyDamage` and `CauseDamage` construct different damage contexts; `ApplyDamage` forces non-radial damage | Resolved 2026-08-03: both nodes now share `FDamageEffectParams` construction and `ApplyDamageEffect`; both remain non-radial |
 
-`TargetAbilitySystemComponent = nullptr` at projectile spawn is intentional deferred targeting, not by itself a defect: `AAuraProjectile::OnSphereOverlap()` assigns the impacted target ASC before applying the effect.
+Projectile damage params now carry the cursor target's ASC when one is known; `AAuraProjectile::ApplyImpactAndDestroy()` still replaces it with the actual collided target ASC before applying the effect.
 
 ---
 

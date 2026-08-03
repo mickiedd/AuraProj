@@ -3,12 +3,75 @@
 #include "Nodes/Actions/WaitForMontageEventNode.h"
 #include "Nodes/AbilityActionNode.h"
 #include "Nodes/AbilityActionTask.h"
+#include "Nodes/Actions/PlayMontageNode.h"
+#include "AbilityDefinition.h"
 #include "DataAbility.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AuraAbilityGraphLogChannels.h"
 #include "Engine/World.h"
+#include "Animation/AnimMontage.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
+#include "GameplayTagContainer.h"
+#include "UObject/UnrealType.h"
 #include "TimerManager.h"
+
+static const UPlayMontageNode* FindPlayMontageNode(const UAuraAbilityActionNode* Node)
+{
+    if (!Node)
+    {
+        return nullptr;
+    }
+
+    if (const UPlayMontageNode* PlayMontageNode = Cast<UPlayMontageNode>(Node))
+    {
+        return PlayMontageNode;
+    }
+
+    for (const UAuraAbilityActionNode* Child : Node->Children)
+    {
+        if (const UPlayMontageNode* PlayMontageNode = FindPlayMontageNode(Child))
+        {
+            return PlayMontageNode;
+        }
+    }
+
+    return nullptr;
+}
+
+static bool MontageContainsGameplayEventTag(const UAnimMontage* Montage, const FGameplayTag& EventTag)
+{
+    if (!Montage)
+    {
+        return false;
+    }
+
+    for (const FAnimNotifyEvent& NotifyEvent : Montage->Notifies)
+    {
+        const UObject* NotifyObject = NotifyEvent.Notify
+            ? static_cast<const UObject*>(NotifyEvent.Notify)
+            : static_cast<const UObject*>(NotifyEvent.NotifyStateClass);
+        if (!NotifyObject)
+        {
+            continue;
+        }
+
+        const FStructProperty* EventTagProperty = CastField<FStructProperty>(
+            NotifyObject->GetClass()->FindPropertyByName(TEXT("EventTag")));
+        if (!EventTagProperty || EventTagProperty->Struct != FGameplayTag::StaticStruct())
+        {
+            continue;
+        }
+
+        const FGameplayTag* AuthoredTag = EventTagProperty->ContainerPtrToValuePtr<FGameplayTag>(NotifyObject);
+        if (AuthoredTag && *AuthoredTag == EventTag)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 UAuraAbilityActionTask* UWaitForMontageEventNode::CreateTask(UObject* Outer) const
 {
@@ -50,6 +113,29 @@ EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecution
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForMontageEvent] OnStart abort: no EventTag set on node"));
         return EAuraAbilityActionStatus::Failure;
     }
+
+    const UAuraAbilityDefinition* Definition = Ctx.Definition;
+    if (!Definition)
+    {
+        if (const UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+        {
+            Definition = DataAbility->GetDefinition();
+        }
+    }
+
+    const UPlayMontageNode* PlayMontageNode = Definition ? FindPlayMontageNode(Definition->RootNode) : nullptr;
+    if (!PlayMontageNode || !PlayMontageNode->Montage)
+    {
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForMontageEvent] OnStart abort: no authored montage found for EventTag=%s"), *EventTag.ToString());
+        return EAuraAbilityActionStatus::Failure;
+    }
+
+    if (!MontageContainsGameplayEventTag(PlayMontageNode->Montage, EventTag))
+    {
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForMontageEvent] OnStart abort: EventTag=%s is not authored on montage %s"), *EventTag.ToString(), *GetNameSafe(PlayMontageNode->Montage));
+        return EAuraAbilityActionStatus::Failure;
+    }
+
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart EventTag=%s"), *EventTag.ToString());
 
     UAbilityTask_WaitGameplayEvent* Task = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(OwnerAbility, EventTag, nullptr, false, true);

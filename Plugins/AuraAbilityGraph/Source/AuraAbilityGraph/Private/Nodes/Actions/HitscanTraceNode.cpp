@@ -76,6 +76,7 @@ EAuraAbilityActionStatus UHitscanTraceTask::OnStart(FAuraAbilityExecutionContext
             if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
             {
                 FDamageEffectParams DamageParams;
+                DamageParams.WorldContextObject = Ctx.AvatarActor;
                 DamageParams.SourceAbilitySystemComponent = Ctx.ASC;
                 DamageParams.TargetAbilitySystemComponent = TargetASC;
                 DamageParams.AbilityLevel = OwnerAbility->GetAbilityLevel();

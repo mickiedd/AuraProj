@@ -9,6 +9,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Sound/SoundBase.h"
 #include "AuraAbilityGraphLogChannels.h"
+#include "Kismet/GameplayStatics.h"
 
 UAuraAbilityActionTask* UMulticastGunFXNode::CreateTask(UObject* Outer) const
 {
@@ -53,7 +54,9 @@ EAuraAbilityActionStatus UMulticastGunFXTask::OnStart(FAuraAbilityExecutionConte
         return EAuraAbilityActionStatus::Failure;
     }
 
-    const FVector MuzzleLocation = ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->MuzzleSocketTag);
+    const FVector MuzzleLocation = Ctx.AvatarActor->Implements<UCombatInterface>()
+        ? ICombatInterface::Execute_GetCombatSocketLocation(Ctx.AvatarActor, Node->MuzzleSocketTag)
+        : Ctx.AvatarActor->GetActorLocation();
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[MulticastGunFX] OnStart MuzzleSocketTag=%s MuzzleLoc=%s"), *Node->MuzzleSocketTag.ToString(), *MuzzleLocation.ToString());
 
     if (AAuraCharacterBase* AuraCharacter = Cast<AAuraCharacterBase>(Ctx.AvatarActor))
@@ -63,7 +66,18 @@ EAuraAbilityActionStatus UMulticastGunFXTask::OnStart(FAuraAbilityExecutionConte
     }
     else
     {
-        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[MulticastGunFX] OnStart abort: AvatarActor is not AAuraCharacterBase"));
+        UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[MulticastGunFX] OnStart using generic local FX fallback for AvatarActor=%s"), *GetNameSafe(Ctx.AvatarActor));
+        if (UWorld* World = Ctx.AvatarActor->GetWorld())
+        {
+            if (Node->LoadedMuzzleEffect)
+            {
+                UGameplayStatics::SpawnEmitterAtLocation(World, Node->LoadedMuzzleEffect, MuzzleLocation);
+            }
+            if (Node->LoadedFireSound)
+            {
+                UGameplayStatics::PlaySoundAtLocation(World, Node->LoadedFireSound, MuzzleLocation);
+            }
+        }
     }
 
     return EAuraAbilityActionStatus::Success;

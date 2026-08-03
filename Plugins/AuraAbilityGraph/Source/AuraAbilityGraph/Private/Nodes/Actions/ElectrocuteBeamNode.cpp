@@ -463,6 +463,7 @@ void UElectrocuteBeamTask::TickDamage()
         {
             const FVector Direction = (TargetActor->GetActorLocation() - CachedCtx.AvatarActor->GetActorLocation()).GetSafeNormal();
             FDamageEffectParams Params;
+            Params.WorldContextObject = CachedCtx.AvatarActor;
             Params.SourceAbilitySystemComponent = CachedCtx.ASC;
             Params.TargetAbilitySystemComponent = TargetASC;
             Params.AbilityLevel = DataAbility->GetAbilityLevel();

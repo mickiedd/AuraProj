@@ -30,17 +30,9 @@ See `.claude/ability-logic-issues.md` for the full catalog (including fixed item
 |---|-------|----------|-------|
 | H2 | Inconsistent knockback force direction | Medium | ApplyDamage uses `Direction * Mag`, Hitscan/Projectile use `UpVector * Mag`. Data/tuning decision, not clear bug. |
 | M7 | PlayMontage returns Success when no montage | Medium | Should return Failure. One-liner fix. |
-| M8 | WaitForMontageEvent no EventTag validation | Medium | Defensive — current XML always sets eventTag. |
 | M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | Double AdvanceGraph call risk. |
 | M11 | WaitForTargetData no active-graph check | Medium | PendingStatus set unconditionally. |
-| L13 | Hardcoded Python path in launcher | Low | Fallback to PATH works; cosmetic. |
-| L15 | FDamageEffectParams::WorldContextObject never populated | Low | Declared, always nullptr, never read. |
-| L16 | ImportFactory CanReimport always false | Low | Must delete + re-import XML assets. |
-| L17 | MulticastGunFX no fallback for non-Aura characters | Low | FX silently dropped. |
 | L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Low | Same as H2, different angle. |
-| L19 | ApplyDamage hardcodes bIsRadialDamage=false | Low | No XML attribute for radial damage. |
-| L21 | Projectiles hardcode TargetASC=nullptr | Low | Projectile must resolve ASC on hit. |
-| L22 | WaitForTargetData no OnStart validation | Low | Silent hang risk if task creation fails. |
 
 ---
 
@@ -62,6 +54,14 @@ These were listed as open in the original pending file but are now confirmed fix
 | L14 | CooldownDuration doesn't scale from XML | `DataAbility.cpp:240` now calls `GetValueAtLevel()` |
 | M9 | Two damage paths with different context setup | `CauseDamageNode` now matches `ApplyDamageNode`'s `FDamageEffectParams` and shared `ApplyDamageEffect` path |
 | L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode` now uses `Ctx.ASC`, matching `ApplyDamageNode` |
+| L15 | FDamageEffectParams::WorldContextObject never populated | Data-driven damage producers now set it to the ability avatar |
+| L19 | ApplyDamage hardcodes bIsRadialDamage=false | Removed redundant radial-default assignments; the params struct owns the default and radial nodes set explicit values |
+| L21 | Projectiles hardcode TargetASC=nullptr | Projectile nodes now seed the target ASC from `Ctx.CursorHit`; impact handling updates it to the collided actor |
+| M8 | WaitForMontageEvent authored-tag validation | Validates the requested tag against reflected metadata on the loaded montage notifies |
+| L13 | Hardcoded Python path in launcher | Resolves Python executables through Windows `PATH` with `SearchPathW` |
+| L16 | ImportFactory CanReimport always false | Stores `SourceFilePath` and reloads the existing definition during reimport |
+| L17 | MulticastGunFX no fallback for non-Aura characters | Generic local emitter/sound fallback for non-Aura avatars |
+| L22 | WaitForTargetData range validation | Validates hit/actor data and configurable target distance before advancing |
 
 ---
 

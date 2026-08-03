@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Factories/Factory.h"
 #include "AssetToolsModule.h"
 #include "EditorReimportHandler.h"
 #include "AbilityDefinitionImportFactory.generated.h"
@@ -16,14 +17,15 @@ class AURAABILITYGRAPHEDITOR_API UAbilityDefinitionImportFactory : public UFacto
 public:
     UAbilityDefinitionImportFactory();
 
-    virtual UObject* FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const FString& Filename, const TCHAR* Parms, FFeedbackContext* Warn, bool& bOutOperationCanceled);
-    virtual UObject* FactoryCreateText(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const TCHAR* InBuffer, FFeedbackContext* Warn, bool& bOutOperationCanceled);
+    virtual UObject* FactoryCreateFile(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, const FString& Filename, const TCHAR* Parms, FFeedbackContext* Warn, bool& bOutOperationCanceled) override;
+    virtual UObject* FactoryCreateText(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const TCHAR*& Buffer, const TCHAR* BufferEnd, FFeedbackContext* Warn) override;
+    virtual UObject* FactoryCreateText(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, const TCHAR* Type, const TCHAR*& Buffer, const TCHAR* BufferEnd, FFeedbackContext* Warn, bool& bOutOperationCanceled) override;
 
-    virtual bool CanReimport(UObject* Obj, TArray<FString>& OutFilenames);
-    virtual void SetReimportPaths(UObject* Obj, const TArray<FString>& NewReimportPaths);
-    virtual EReimportResult::Type Reimport(UObject* Obj);
+    virtual bool CanReimport(UObject* Obj, TArray<FString>& OutFilenames) override;
+    virtual void SetReimportPaths(UObject* Obj, const TArray<FString>& NewReimportPaths) override;
+    virtual EReimportResult::Type Reimport(UObject* Obj) override;
 
-    virtual uint32 GetMenuCategories() const;
-    virtual FText GetDisplayName() const;
-    bool FactoryCanImport(const FString& Filename) const;
+    virtual uint32 GetMenuCategories() const override;
+    virtual FText GetDisplayName() const override;
+    virtual bool FactoryCanImport(const FString& Filename) override;
 };

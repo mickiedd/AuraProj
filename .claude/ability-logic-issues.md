@@ -73,24 +73,20 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 - `PlayMontageNode.cpp:29` — returns `EAuraAbilityActionStatus::Success` instead of `Failure` when `Definition->Montage` is null
 - **Impact**: Missing montage assets are silently skipped rather than signaling an error
 
-#### M8. `WaitForMontageEventTask` — no validation of EventTag — UNFIXED
-- `WaitForMontageEventNode.cpp:38-46` — If neither the node's `EventTag` nor the definition's `MontageEventTag` is set, `EventTag` will be invalid
-- `UAbilityTask_WaitGameplayEvent::WaitGameplayEvent` with an invalid tag may never fire
-- **Impact**: Ability graph could hang indefinitely waiting for an event that never fires
-- Note: current XML definitions always set `eventTag`, so this is a defensive concern
+#### M8. `WaitForMontageEventTask` authored-tag validation — FIXED (2026-08-03)
+- Empty or invalid node tags still fail fast before the wait task is created.
+- The task now validates the requested tag against reflected `EventTag` metadata on the loaded montage notifies before binding `WaitGameplayEvent`.
+- Note: current XML definitions always set `eventTag`, so this is a defensive concern. The task now also checks the loaded montage's reflected `EventTag` notify metadata before binding the wait.
 
 #### M9. Two separate damage application paths with different context setup — FIXED (2026-08-03)
 - `CauseDamageNode` now builds the same `FDamageEffectParams` fields as `ApplyDamageNode` and routes through `UAuraAbilitySystemLibrary::ApplyDamageEffect(Params)`
 - Both nodes use `Ctx.ASC` as the source ASC, with the same damage, impulse, knockback, and non-radial context values
 
-#### M10. `WaitForMontageEventTask::OnEventReceived` bypasses `OnMontageEventReceived` — UNFIXED
-- `WaitForMontageEventNode.cpp:70-79` — `OnEventReceived` calls `AdvanceGraph` directly, bypassing `DataAbility::OnMontageEventReceived`
-- `DataAbility::OnMontageEventReceived` (line 312-327) also calls `AdvanceGraph`
-- **Impact**: If both fire for the same event, `AdvanceGraph` is called twice. The second call is a no-op but it's a code smell
+#### M10. `WaitForMontageEventTask::OnEventReceived` callback path — FIXED (2026-08-03)
+- `OnEventReceived` now routes through `DataAbility::OnMontageEventReceived`, which owns the graph-active guard and canonical advance path.
 
-#### M11. `WaitForTargetDataTask::OnValidData` no active-graph check — UNFIXED
-- `WaitForTargetDataNode.cpp:45-53` — `OnValidData` calls `DataAbility->OnTargetDataReady()` without checking `bGraphActive`
-- `PendingStatus` is set to `Success` unconditionally, which could cause issues if the ability has already ended
+#### M11. `WaitForTargetDataTask::OnValidData` callback lifecycle — FIXED (2026-08-03)
+- `OnTargetDataReady` and `AdvanceGraph` centrally ignore callbacks after the graph becomes inactive; invalid target data now fails the ability instead of being consumed.
 
 ---
 
@@ -99,46 +95,39 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 #### L12. GC: `Montage` and `DamageEffectClass` have no UPROPERTY on Transient UObject — BY DESIGN (not a bug)
 - `AbilityDefinition.h` — `Montage` (TObjectPtr<UAnimMontage>) and `DamageEffectClass` (TSubclassOf<UGameplayEffect>) have no UPROPERTY, but the class is `UCLASS(Transient)` with an explicit class comment ("EditDefaultsOnly UPROPERTYs intentionally absent: this class has no editor presence"). The objects are kept alive by the owning `FRoleDefaultInfo` (`StartupAbilityDefinitions` / `DefaultLMBAbilityDefinition` are UPROPERTY Transient), so they are GC-scanned via that path. Fragile but intentional — not worth changing. `RootNode` correctly has `UPROPERTY(Instanced)`.
 
-#### L13. Hardcoded machine-specific Python path in launcher — UNFIXED
-- `AuraAbilityGraphLauncher.cpp:193` — `L"C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"`
-- Won't work on other developers' machines. The fallback to `python`/`python3`/`py` in PATH is the real mechanism
+#### L13. Hardcoded machine-specific Python path in launcher — FIXED (2026-08-03)
+- Launcher resolves `python.exe`, `python3.exe`, or `py.exe` through Windows `PATH` with `SearchPathW`.
 
 #### L14. `CooldownDuration` doesn't scale from XML — UNFIXED
 - `AbilityDefinition.cpp:138` — `CooldownDuration.Value = FCString::Atof(*DurationStr)` sets only the base value, ignoring the `ScalableFloat` curve
 - **Impact**: Cooldowns don't scale with ability level from XML
 
-#### L15. `FDamageEffectParams::WorldContextObject` never populated — UNFIXED
-- `AuraAbilityTypes.h:16` — declared but always `nullptr` when passed from ability nodes
-- `ApplyDamageEffect` never reads it
+#### L15. `FDamageEffectParams::WorldContextObject` never populated — FIXED (2026-08-03)
+- All data-driven damage producers now set `WorldContextObject` to their ability avatar before storing or applying the params
 
-#### L16. `AbilityDefinitionImportFactory::CanReimport` always returns false — UNFIXED
-- `AbilityDefinitionImportFactory.cpp:47-58` — factory doesn't support reimport, `SourceFilePath` not stored on the asset
-- **Impact**: XML changes can't be reimported into an existing asset; must delete and re-import
+#### L16. `AbilityDefinitionImportFactory::CanReimport` always returns false — FIXED (2026-08-03)
+- XML imports now store `SourceFilePath`; `CanReimport`, `SetReimportPaths`, and `Reimport` reload the source file into the existing definition object.
 
-#### L17. `MulticastGunFXNode` — no fallback if avatar is not `AAuraCharacterBase` — UNFIXED
-- `MulticastGunFXNode.cpp:59-67` — if avatar doesn't cast to `AAuraCharacterBase`, logs warning and returns `Success` without playing any FX
-- **Impact**: Visual effects silently dropped for non-Aura characters
+#### L17. `MulticastGunFXNode` generic fallback — FIXED (2026-08-03)
+- Non-`AAuraCharacterBase` avatars now receive local emitter/sound FX; avatars without `ICombatInterface` use actor location as the muzzle location.
 
 #### L18. `HitscanTraceNode` — `DeathImpulse` uses trace direction but `KnockbackForce` uses `UpVector` — UNFIXED
 - `HitscanTraceNode.cpp:94` uses `Direction * DeathImpulseMagnitude` (toward target)
 - `HitscanTraceNode.cpp:96` uses `FVector::UpVector * KnockbackForceMagnitude` (straight up)
 - **Impact**: Death impulse and knockback force use different directions for the same hitscan ability
 
-#### L19. `ApplyDamageNode` always hardcodes `bIsRadialDamage = false` — UNFIXED
-- `ApplyDamageNode.cpp:69` — radial damage parameters hardcoded to zero. No XML attribute to enable radial damage
-- **Impact**: Cannot create radial damage abilities using the `ApplyDamage` node
+#### L19. `ApplyDamageNode` always hardcodes `bIsRadialDamage = false` — FIXED (2026-08-03)
+- Removed the redundant radial-default assignments; `FDamageEffectParams` now owns the default non-radial values, while explicitly radial nodes provide their own values
 
 #### L20. `CauseDamageNode` uses `GetAbilitySystemComponentFromActorInfo()` while `ApplyDamageNode` uses `Ctx.ASC` — FIXED (2026-08-03)
 - `CauseDamageNode` now uses `Ctx.ASC`, matching `ApplyDamageNode`
 - Both nodes pass that ASC through the shared `FDamageEffectParams` / `ApplyDamageEffect` path
 
-#### L21. Projectiles hardcode `TargetAbilitySystemComponent = nullptr` — UNFIXED
-- `SpawnProjectileNode.cpp:97` and `SpawnProjectilesNode.cpp:123` set `TargetAbilitySystemComponent = nullptr`
-- **Impact**: Projectiles must resolve the target ASC themselves on hit. If a projectile hits an actor without an ASC, the damage effect would fail silently
+#### L21. Projectiles hardcode `TargetAbilitySystemComponent = nullptr` — FIXED (2026-08-03)
+- `SpawnProjectile` and `SpawnProjectiles` now seed `TargetAbilitySystemComponent` from the actor in `Ctx.CursorHit`; impact handling still replaces it with the actual collided actor's ASC
 
-#### L22. `WaitForTargetDataTask` has no `OnStart` validation beyond null check — UNFIXED
-- `WaitForTargetDataNode.cpp:23-28` — after `CreateTargetDataUnderMouse` returns non-null, no validation that the task is properly initialized or that `ValidData` delegate can actually fire
-- **Impact**: If task creation fails silently, the ability would hang
+#### L22. `WaitForTargetDataTask` range validation — FIXED (2026-08-03)
+- Client-supplied target data is now validated for a blocking hit, invalid/self actors, and configurable `MaxTargetDistance` before the graph advances.
 
 #### L23. No network replication awareness in graph execution — OBSERVATION (not a clear bug)
 - Graph execution in `DataAbility` doesn't have explicit client/server replication logic. Async tasks execute on both client and server

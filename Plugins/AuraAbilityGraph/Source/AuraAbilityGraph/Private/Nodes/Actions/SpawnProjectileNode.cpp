@@ -7,6 +7,7 @@
 #include "DataAbility.h"
 #include "Actor/AuraProjectile.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Interaction/CombatInterface.h"
 #include "Engine/EngineTypes.h"
 #include "AuraAbilityGraphLogChannels.h"
@@ -69,6 +70,7 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
         TargetLocation = Ctx.AvatarActor->GetActorLocation() + Ctx.AvatarActor->GetActorForwardVector() * 1000.f;
         UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart using fallback target=%s"), *TargetLocation.ToString());
     }
+    UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Ctx.CursorHit.GetActor());
 
     FRotator Rotation = (TargetLocation - SocketLocation).Rotation();
     FTransform SpawnTransform;
@@ -110,8 +112,9 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
         {
             const FVector Direction = (TargetLocation - SocketLocation).GetSafeNormal();
             FDamageEffectParams Params;
+            Params.WorldContextObject = Ctx.AvatarActor;
             Params.SourceAbilitySystemComponent = Ctx.ASC;
-            Params.TargetAbilitySystemComponent = nullptr;
+            Params.TargetAbilitySystemComponent = TargetASC;
             Params.AbilityLevel = DataAbility->GetAbilityLevel();
             Params.DamageGameplayEffectClass = Definition->DamageEffectClass;
             Params.DamageType = Definition->DamageType;

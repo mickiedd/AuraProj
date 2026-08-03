@@ -55,6 +55,10 @@ public:
     // Cached source XML for debugging / log output
     FString SourceXML;
 
+    // Original XML path used by the editor import factory for reimporting.
+    UPROPERTY()
+    FString SourceFilePath;
+
     /** Parse XML content and populate all fields. Called by LoadAbilityDefinitionFromXMLFile. */
     bool LoadFromXML(const FString& XMLContent);
 };

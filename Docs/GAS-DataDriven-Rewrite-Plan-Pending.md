@@ -9,7 +9,7 @@
 - Passives (HaloOfProtection, LifeSiphon, ManaSiphon) left as legacy — wrong archetype (passive GE, not action graph)
 - 3 new XML node types added: `SpawnShards`, `ElectrocuteBeam`, + `bSetReturnToOwner` property on `SpawnProjectiles`
 - RoleConfig.json updated: Aura role now has FireBlast, ArcaneShards, Electrocute in `startupAbilityDefinitions`
-- Build passes, 8/8 smoke tests pass
+- Build passes, full headless smoke suite passes (19/19 on 2026-08-03)
 
 ### Phase 4 — Enemy abilities + cleanup 🟨 IN PROGRESS (2026-08-03)
 - Four enemy XML definitions, class-based JSON grants, native enemy graph nodes, and focused validation tests are implemented and pass compile-only validation.
@@ -32,18 +32,10 @@
 |---|-------|----------|----------|
 | H2 | Inconsistent knockback force direction (Direction vs UpVector) | Medium | `ApplyDamageNode`, `HitscanTraceNode`, `SpawnProjectileNode` |
 | M7 | PlayMontage returns Success when no montage | Medium | `PlayMontageNode.cpp:29` |
-| M8 | WaitForMontageEvent no EventTag validation | Medium | `WaitForMontageEventNode.cpp` |
 | M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | `WaitForMontageEventNode.cpp` |
 | M11 | WaitForTargetData no active-graph check | Medium | `WaitForTargetDataNode.cpp` |
-| L13 | Hardcoded Python path in launcher | Low | `AuraAbilityGraphLauncher.cpp:193` |
 | L14 | CooldownDuration doesn't scale from XML | Low | `AbilityDefinition.cpp:138` |
-| L15 | WorldContextObject never populated | Low | `AuraAbilityTypes.h:16` |
-| L16 | ImportFactory CanReimport always false | Low | `AbilityDefinitionImportFactory.cpp` |
-| L17 | MulticastGunFX no fallback for non-Aura characters | Low | `MulticastGunFXNode.cpp` |
 | L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Low | `HitscanTraceNode.cpp` |
-| L19 | ApplyDamage hardcodes bIsRadialDamage=false | Low | `ApplyDamageNode.cpp:69` |
-| L21 | Projectiles hardcode TargetASC=nullptr | Low | `SpawnProjectileNode.cpp`, `SpawnProjectilesNode.cpp` |
-| L22 | WaitForTargetData no OnStart validation | Low | `WaitForTargetDataNode.cpp` |
 
 ---
 
@@ -65,12 +57,20 @@
 | C2 | Path traversal in Python server | `_confine_to_content` + loopback bind |
 | C3 | SourceObject replication null on clients | Process-lifetime definition registry keyed by AbilityTag |
 | L20 | CauseDamage vs ApplyDamage ASC access pattern | `CauseDamageNode` now uses `Ctx.ASC`, matching `ApplyDamageNode` |
+| L15 | WorldContextObject never populated | Data-driven damage producers now set it to the ability avatar |
+| L19 | ApplyDamage hardcodes bIsRadialDamage=false | Removed redundant radial-default assignments; the params struct owns the default and radial nodes set explicit values |
+| L21 | Projectiles hardcode TargetASC=nullptr | Projectile nodes now seed the target ASC from `Ctx.CursorHit`; impact handling updates it to the collided actor |
+| M8 | WaitForMontageEvent authored-tag validation | `WaitForMontageEvent` now validates the node tag against reflected `EventTag` metadata on the graph's loaded montage notifies |
+| L13 | Hardcoded Python path in launcher | Launcher resolves `python.exe`, `python3.exe`, or `py.exe` through `PATH` with `SearchPathW` |
+| L16 | ImportFactory CanReimport always false | XML import stores `SourceFilePath` and reimports into the existing definition object |
+| L17 | MulticastGunFX fallback | Non-Aura avatars use generic local emitter/sound FX and actor location when no combat-socket interface is present |
+| L22 | WaitForTargetData range validation | Client target data is validated for blocking hit, actor validity/self-targeting, and configurable maximum distance |
 
 ---
 
 ## Verification Notes
 - Core architecture: ✅ IMPLEMENTED (Phases 1, 2, 5 complete)
 - Build passes on UE 5.5.1
-- Smoke test: `AuraAbilityGraphSmokeTest` (8 tests, all passing)
+- Smoke test: `AuraAbilityGraphSmokeTest` (19 tests, all passing on 2026-08-03)
 - Two abilities fully ported: `FireBolt.xml`, `FireGun.xml` in `Content/AbilityDefinitions/`
 - RoleConfig.json references XML definitions for Aura (FireBolt) and BungeeMan (FireGun)

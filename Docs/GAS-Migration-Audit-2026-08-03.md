@@ -33,9 +33,9 @@ The tree now uses `Direction`/`Forward` uniformly in all seven producers (includ
 
 **Caveat:** for projectiles the per-node value is functionally dead — on impact `AuraProjectile.cpp:264-274` overwrites both `DeathImpulse` and `KnockbackForce` with the projectile's own forward (knockback pitched 45°). Only the direct-damage nodes' values reach `LaunchCharacter` (`AuraAttributeSet.cpp:195-198`).
 
-### 1.2 L15 — WorldContextObject nearly never populated
+### 1.2 L15 — WorldContextObject nearly never populated → FIXED (2026-08-03)
 
-`FDamageEffectParams::WorldContextObject` (`AuraAbilityTypes.h:16`) defaults to `nullptr` and is only set by `EnemyMeleeDamageNode.cpp:63`. `ApplyDamageNode`, `HitscanTraceNode`, `SpawnProjectileNode`, `SpawnProjectilesNode`, and `CauseDamageNode` all leave it null.
+All data-driven damage producers now populate `FDamageEffectParams::WorldContextObject` with their ability avatar, matching the legacy `MakeDamageEffectParamsFromClassDefaults` path.
 
 ### 1.3 M10 — WaitForMontageEvent bypasses the standard callback → FIXED (2026-08-03)
 
@@ -43,15 +43,19 @@ The tree now uses `Direction`/`Forward` uniformly in all seven producers (includ
 
 ### 1.4 M8 — only partially fixed
 
-Empty/invalid `EventTag` is rejected (`WaitForMontageEventNode.cpp:44-52`), but the tag is not validated against the authored montage/AnimNotify metadata. Matches the TODO's own status.
+Empty/invalid `EventTag` is rejected, and `WaitForMontageEvent` now finds the graph's loaded `PlayMontage` node and validates the tag against reflected `EventTag` metadata on its authored montage notifies. Verified by build + smoke (`Result: 19 passed, 0 failed`).
 
-### 1.5 L17 / L19 / L21 — confirmed open; M9/L20 resolved
+### 1.5 L17, L19/L21, M9/L20 — verified status
 
-- **L17** — `MulticastGunFXNode.cpp:59-67`: `AAuraCharacterBase` cast; non-Aura avatars get a warning and no FX fallback.
-- **L19** — `ApplyDamageNode.cpp:69`: `bIsRadialDamage = false` hardcoded (no XML attribute).
-- **L21** — `TargetAbilitySystemComponent = nullptr` at spawn in `SpawnProjectileNode.cpp:118` and `SpawnProjectilesNode.cpp:153`.
+- **L17 resolved 2026-08-03:** non-Aura avatars now use a generic local emitter/sound fallback; avatars without `ICombatInterface` use actor location for the muzzle.
+
+**L19 resolved 2026-08-03:** `ApplyDamageNode` no longer redundantly assigns the default non-radial values; radial producers set their values explicitly.
+
+**L21 resolved 2026-08-03:** projectile nodes now seed `TargetAbilitySystemComponent` from the actor in `Ctx.CursorHit`, while impact handling replaces it with the actual collision target.
 
 **M9/L20 resolved 2026-08-03:** `CauseDamageNode` now uses `Ctx.ASC`, constructs the same `FDamageEffectParams` values as `ApplyDamageNode`, and routes through `UAuraAbilitySystemLibrary::ApplyDamageEffect`.
+
+**L13/L16/L22 resolved 2026-08-03:** the launcher resolves Python from `PATH`; the XML import factory stores `SourceFilePath` and reimports in place; and `WaitForTargetData` validates blocking hit data, actors, and configurable maximum distance before advancing.
 
 ---
 
@@ -80,7 +84,7 @@ Verification step 4 says *"New enemy roles defined in `RoleConfig.json`"*; enemy
 | M11 | resolved | still open | unfixed | resolved centrally (`DataAbility.cpp:371`) |
 | L14 | resolved | still open | **contradictory (both tables)** | resolved (`DataAbility.cpp:310`) |
 
-- The TODO is the most accurate of the three for M7/M11/L14; `Pending.md` is stale.
+- The TODO and Pending status tables now include the 2026-08-03 fixes for M8, L13, L16, L17, and L22; the historical contradictions below are retained as audit findings.
 - The "authoritative" memory file is internally contradictory: L14 appears in both its unfixed and FIXED tables.
 - H3 should be moved out of the TODO's open High-priority table into a "verified intentional" note.
 

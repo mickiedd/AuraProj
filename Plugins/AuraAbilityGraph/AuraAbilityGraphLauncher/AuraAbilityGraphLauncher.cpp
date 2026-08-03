@@ -189,23 +189,18 @@ static bool StartPythonServer()
         return false;
     }
 
-    static const wchar_t* absolutePaths[] = {
-        L"C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
-        L"C:\\Python313\\python.exe",
-        L"C:\\Python312\\python.exe",
-        L"C:\\Python311\\python.exe",
-        L"C:\\Python310\\python.exe",
-        L"C:\\Python39\\python.exe",
-    };
-    for (const auto* path : absolutePaths)
-    {
-        if (PathExists(path) && TryLaunchPython(path)) return true;
-    }
-
-    static const wchar_t* candidates[] = { L"python", L"python3", L"py" };
+    // Resolve Python through the user's PATH so the launcher is portable across
+    // machines and Python installations.  SearchPathW also handles the Windows
+    // Python launcher (py.exe) without embedding a developer-specific path.
+    static const wchar_t* candidates[] = { L"python.exe", L"python3.exe", L"py.exe" };
     for (const auto* exe : candidates)
     {
-        if (TryLaunchPython(exe)) return true;
+        WCHAR resolvedPath[MAX_PATH] = {};
+        const DWORD ResolvedLength = SearchPathW(nullptr, exe, nullptr, MAX_PATH, resolvedPath, nullptr);
+        if (ResolvedLength > 0 && ResolvedLength < MAX_PATH && TryLaunchPython(resolvedPath))
+        {
+            return true;
+        }
     }
 
     return false;

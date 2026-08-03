@@ -21,7 +21,9 @@ const NODE_PROPS = {
   WaitForMontageEvent: [
     { key:'EventTag', label:'Event Tag', type:'string', default:'' }
   ],
-  WaitForTargetData: [],
+  WaitForTargetData: [
+    { key:'MaxTargetDistance', label:'Max Target Distance', type:'string', default:'10000' }
+  ],
   SpawnProjectile: [
     { key:'SocketTag', label:'Socket Tag', type:'string', default:'' },
     { key:'ProjectileClass', label:'Projectile Class', type:'string', default:'' }

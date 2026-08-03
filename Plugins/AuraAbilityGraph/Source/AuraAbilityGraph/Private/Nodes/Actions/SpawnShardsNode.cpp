@@ -228,6 +228,7 @@ void USpawnShardsTask::SpawnNextShard()
             {
                 const FVector Direction = (TargetActor->GetActorLocation() - ShardLocation).GetSafeNormal();
                 FDamageEffectParams Params;
+                Params.WorldContextObject = CachedCtx.AvatarActor;
                 Params.SourceAbilitySystemComponent = CachedCtx.ASC;
                 Params.TargetAbilitySystemComponent = TargetASC;
                 Params.AbilityLevel = DataAbility->GetAbilityLevel();

@@ -35,6 +35,7 @@ EAuraAbilityActionStatus UCauseDamageTask::OnStart(FAuraAbilityExecutionContext&
             {
                 const FVector Direction = (TargetActor->GetActorLocation() - Ctx.AvatarActor->GetActorLocation()).GetSafeNormal();
                 FDamageEffectParams Params;
+                Params.WorldContextObject = Ctx.AvatarActor;
                 Params.SourceAbilitySystemComponent = Ctx.ASC;
                 Params.TargetAbilitySystemComponent = TargetASC;
                 Params.AbilityLevel = DataAbility->GetAbilityLevel();
