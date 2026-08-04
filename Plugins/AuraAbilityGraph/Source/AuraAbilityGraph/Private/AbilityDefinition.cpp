@@ -3,6 +3,7 @@
 #include "AbilityDefinition.h"
 #include "AbilityNodeRegistry.h"
 #include "AuraAbilityGraphLogChannels.h"
+#include "AuraAbilityTypes.h"
 #include "Nodes/AbilityActionNode.h"
 #include "XmlFile.h"
 
@@ -228,4 +229,28 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
     }
 
     return RootNode != nullptr;
+}
+
+void UAuraAbilityDefinition::BuildDamageEffectParams(FDamageEffectParams& OutParams, UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* WorldContext, float AbilityLevel, const FVector& Direction, bool bIsRadialDamage, const FVector& RadialOrigin, float RadialInnerRadius, float RadialOuterRadius) const
+{
+    OutParams.WorldContextObject = WorldContext;
+    OutParams.SourceAbilitySystemComponent = SourceASC;
+    OutParams.TargetAbilitySystemComponent = TargetASC;
+    OutParams.AbilityLevel = AbilityLevel;
+    OutParams.DamageGameplayEffectClass = DamageEffectClass;
+    OutParams.DamageType = DamageType;
+    OutParams.BaseDamage = Damage.GetValueAtLevel(AbilityLevel);
+    OutParams.DebuffChance = DebuffChance;
+    OutParams.DebuffDamage = DebuffDamage;
+    OutParams.DebuffDuration = DebuffDuration;
+    OutParams.DebuffFrequency = DebuffFrequency;
+    OutParams.DeathImpulseMagnitude = DeathImpulseMagnitude;
+    OutParams.DeathImpulse = Direction * DeathImpulseMagnitude;
+    OutParams.KnockbackForceMagnitude = KnockbackForceMagnitude;
+    OutParams.KnockbackForce = Direction * KnockbackForceMagnitude;
+    OutParams.KnockbackChance = KnockbackChance;
+    OutParams.bIsRadialDamage = bIsRadialDamage;
+    OutParams.RadialDamageInnerRadius = RadialInnerRadius;
+    OutParams.RadialDamageOuterRadius = RadialOuterRadius;
+    OutParams.RadialDamageOrigin = RadialOrigin;
 }

@@ -147,26 +147,7 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
             if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
             {
                 FDamageEffectParams Params;
-                Params.WorldContextObject = Ctx.AvatarActor;
-                Params.SourceAbilitySystemComponent = Ctx.ASC;
-                Params.TargetAbilitySystemComponent = TargetASC;
-                Params.AbilityLevel = DataAbility->GetAbilityLevel();
-                Params.DamageGameplayEffectClass = Definition->DamageEffectClass;
-                Params.DamageType = Definition->DamageType;
-                Params.BaseDamage = Definition->Damage.GetValueAtLevel(DataAbility->GetAbilityLevel());
-                Params.DebuffChance = Definition->DebuffChance;
-                Params.DebuffDamage = Definition->DebuffDamage;
-                Params.DebuffDuration = Definition->DebuffDuration;
-                Params.DebuffFrequency = Definition->DebuffFrequency;
-                Params.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
-                Params.DeathImpulse = Forward * Definition->DeathImpulseMagnitude;
-                Params.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
-                Params.KnockbackForce = Forward * Definition->KnockbackForceMagnitude;
-                Params.KnockbackChance = Definition->KnockbackChance;
-                Params.bIsRadialDamage = false;
-                Params.RadialDamageInnerRadius = 0.f;
-                Params.RadialDamageOuterRadius = 0.f;
-                Params.RadialDamageOrigin = FVector::ZeroVector;
+                Definition->BuildDamageEffectParams(Params, Ctx.ASC, TargetASC, Ctx.AvatarActor, DataAbility->GetAbilityLevel(), Forward);
                 Projectile->DamageEffectParams = Params;
 
                 if (Node->bHoming)

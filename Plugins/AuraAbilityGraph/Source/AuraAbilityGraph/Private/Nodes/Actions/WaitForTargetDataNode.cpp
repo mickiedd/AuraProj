@@ -7,7 +7,7 @@
 #include "AuraAbilityGraphLogChannels.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
 
-static bool IsValidTargetData(const FGameplayAbilityTargetDataHandle& DataHandle, const AActor* AvatarActor, float MaxTargetDistance, FString& OutReason)
+bool UWaitForTargetDataNode::IsValidTargetData(const FGameplayAbilityTargetDataHandle& DataHandle, const AActor* AvatarActor, float MaxTargetDistance, FString& OutReason)
 {
     if (DataHandle.Num() == 0)
     {
@@ -131,7 +131,7 @@ void UWaitForTargetDataTask::OnValidData(const FGameplayAbilityTargetDataHandle&
     const FGameplayAbilityActorInfo* ActorInfo = OwnerAbility ? OwnerAbility->GetCurrentActorInfo() : nullptr;
     const AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
     FString ValidationReason;
-    if (!Node || !IsValidTargetData(DataHandle, AvatarActor, Node->MaxTargetDistance, ValidationReason))
+    if (!Node || !UWaitForTargetDataNode::IsValidTargetData(DataHandle, AvatarActor, Node->MaxTargetDistance, ValidationReason))
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForTargetData] OnValidData rejected client target: %s"), *ValidationReason);
         PendingStatus = EAuraAbilityActionStatus::Failure;

@@ -228,26 +228,7 @@ void USpawnShardsTask::SpawnNextShard()
             {
                 const FVector Direction = (TargetActor->GetActorLocation() - ShardLocation).GetSafeNormal();
                 FDamageEffectParams Params;
-                Params.WorldContextObject = CachedCtx.AvatarActor;
-                Params.SourceAbilitySystemComponent = CachedCtx.ASC;
-                Params.TargetAbilitySystemComponent = TargetASC;
-                Params.AbilityLevel = DataAbility->GetAbilityLevel();
-                Params.DamageGameplayEffectClass = CachedCtx.Definition->DamageEffectClass;
-                Params.DamageType = CachedCtx.Definition->DamageType;
-                Params.BaseDamage = CachedCtx.Definition->Damage.GetValueAtLevel(DataAbility->GetAbilityLevel());
-                Params.DebuffChance = CachedCtx.Definition->DebuffChance;
-                Params.DebuffDamage = CachedCtx.Definition->DebuffDamage;
-                Params.DebuffDuration = CachedCtx.Definition->DebuffDuration;
-                Params.DebuffFrequency = CachedCtx.Definition->DebuffFrequency;
-                Params.DeathImpulseMagnitude = CachedCtx.Definition->DeathImpulseMagnitude;
-                Params.DeathImpulse = Direction * CachedCtx.Definition->DeathImpulseMagnitude;
-                Params.KnockbackForceMagnitude = CachedCtx.Definition->KnockbackForceMagnitude;
-                Params.KnockbackForce = Direction * CachedCtx.Definition->KnockbackForceMagnitude;
-                Params.KnockbackChance = CachedCtx.Definition->KnockbackChance;
-                Params.bIsRadialDamage = true;
-                Params.RadialDamageOrigin = ShardLocation;
-                Params.RadialDamageInnerRadius = 0.f;
-                Params.RadialDamageOuterRadius = Node->RadialDamageRadius;
+                CachedCtx.Definition->BuildDamageEffectParams(Params, CachedCtx.ASC, TargetASC, CachedCtx.AvatarActor, DataAbility->GetAbilityLevel(), Direction, /*bIsRadialDamage=*/true, ShardLocation, 0.f, Node->RadialDamageRadius);
                 UAuraAbilitySystemLibrary::ApplyDamageEffect(Params);
             }
         }

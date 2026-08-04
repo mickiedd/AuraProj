@@ -125,13 +125,13 @@ These are the known issues from `GAS-DataDriven-Rewrite-Plan-Pending.md` that sh
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
-| H2 | Knockback force direction inconsistent | Resolved: all damage nodes use their calculated target/projectile direction for knockback | Keep regression coverage |
+| H2 | Knockback force direction inconsistent | Resolved: all damage nodes use their calculated target/projectile direction for knockback | Covered by `SmokeTest_DamageEffectParams` (2026-08-04) |
 
 > **H3 — CheckCost client bypass: verified intentional.** `AuraGameplayAbility.cpp` returns `true` for non-authoritative clients by design (cost is enforced server-side). No action; retained here as a note rather than an open item.
 
 ### Medium Priority
 
-Current-status note: M7, M8, M10, and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. Issue #4 is resolved: `SmokeTest_NodeRegistry` and `SmokeTest_SequenceExecution` now carry real assertions (verified 2026-08-03). M8 now validates the requested tag against the loaded montage's authored AnimNotify metadata. M10's fix (2026-08-03, smoke 19/19): the wait task now routes through the canonical `OnMontageEventReceived`, so the wait path shares the `bGraphActive` guard with `OnMontageCompleted`/`OnTargetDataReady` instead of advancing the graph directly.
+Current-status note: M7, M8, M10, and M11 are resolved in the current implementation, and L14 is resolved by level-evaluating the XML cooldown duration. Issue #4 is resolved: `SmokeTest_NodeRegistry` and `SmokeTest_SequenceExecution` now carry real assertions (verified 2026-08-03). M8 now validates the requested tag against the loaded montage's authored AnimNotify metadata. M10's fix (2026-08-03): the wait task now routes through the canonical `OnMontageEventReceived`, so the wait path shares the `bGraphActive` guard with `OnMontageCompleted`/`OnTargetDataReady` instead of advancing the graph directly. Smoke suite is now 22 checks, 0 failed (2026-08-04).
 
 | # | Issue | Description | Fix |
 |---|---|---|---|
@@ -141,12 +141,12 @@ Current-status note: M7, M8, M10, and M11 are resolved in the current implementa
 | M7 | PlayMontage missing montage behavior | Resolved: configured load failures return Failure; an intentionally empty montage remains a successful no-op | Keep regression coverage |
 | M8 | WaitForMontageEvent no authored-tag validation **(resolved 2026-08-03)** | The node rejected an empty/invalid `EventTag`, but did not verify that the tag existed on the authored montage/AnimNotify | `WaitForMontageEvent` now finds the graph's `PlayMontage` node and validates the tag against reflected `EventTag` metadata on its montage notifies |
 | M9 | Two damage paths with different context setup **(resolved 2026-08-03)** | `ApplyDamageNode` vs `CauseDamageNode` set up `FDamageEffectParams` differently | `CauseDamageNode` now matches `ApplyDamageNode`: `Ctx.ASC`, identical params, and shared `ApplyDamageEffect` path |
-| M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Resolved: the wait task now routes through `UAuraDataAbility::OnMontageEventReceived`, which applies the `bGraphActive` guard before advancing (verified 2026-08-03, smoke 19/19) | Keep regression coverage |
+| M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Resolved: the wait task now routes through `UAuraDataAbility::OnMontageEventReceived`, which applies the `bGraphActive` guard before advancing (verified 2026-08-03, smoke 22/22) | Keep regression coverage |
 | M11 | WaitForTargetData callback lifecycle | Resolved centrally: `OnTargetDataReady`, `AdvanceGraph`, and montage callbacks ignore events after `bGraphActive` becomes false | Keep regression coverage |
 
 ### Low Priority
 
-Current-status note: L13, L16, and L17 are resolved in the current implementation. L15, L19, L20, and L21 remain resolved, and L22 now validates client target data against the configured avatar range.
+Current-status note: L13, L16, and L17 are resolved in the current implementation. L15, L19, L20, and L21 remain resolved, and L22 now validates client target data against the configured avatar range. Regression coverage added 2026-08-04: `SmokeTest_TargetDataValidation` (L22) and `SmokeTest_DamageEffectParams` (H2/L15/L19/L21); the seven damage nodes now share `UAuraAbilityDefinition::BuildDamageEffectParams`.
 
 | # | Issue | Description | Fix |
 |---|---|---|---|

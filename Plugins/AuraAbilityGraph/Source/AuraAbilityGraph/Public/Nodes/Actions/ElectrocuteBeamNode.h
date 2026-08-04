@@ -23,9 +23,8 @@ class UNiagaraComponent;
  * The beam visual (NS_ElectricBeam) is spawned as a UNiagaraComponent on every
  * machine — server + casting client — so the lightning arc is visible. Each
  * component's BeamStart/BeamEnd Niagara variables are driven to the weapon socket
- * and the trace impact point. On the server the endpoints are refreshed every
- * damage tick so the arc tracks moving enemies; on the client the arc is drawn
- * once at spawn and cleaned up when the ability ends.
+ * and the live cursor impact point. The cursor endpoint is refreshed throughout
+ * the channel and cleaned up when the ability ends.
  *
  * XML properties:
  *   SocketTag          — combat socket to trace from (default: CombatSocket.Weapon)
@@ -115,6 +114,11 @@ struct FAuraBeamTarget
     UPROPERTY()
     bool bDamageTarget = false;
 
+    // The primary arc remains cursor-driven for the whole channel. Chain arcs keep
+    // their target-driven endpoint and follow the chained actor instead.
+    UPROPERTY()
+    bool bCursorDriven = false;
+
     // WEAK on purpose: a strong UPROPERTY ref here would root the NiagaraComponent,
     // and (via the task -> ability -> ASC -> PlayerState -> World Outer chain) keep it
     // alive past EndPlayMap, tripping the editor's stale-reference ensure / teardown
@@ -154,9 +158,14 @@ public:
     // is elsewhere in the level.
     FVector GetBeamComponentLocationForTest(int32 Index) const;
 
+    // Test hook: simulate a new cursor hit and run the same live endpoint refresh used
+    // by the channel timer.
+    void UpdateCursorForTest(const FHitResult& CursorHit);
+
 private:
     FTimerHandle TickTimerHandle;
     FTimerHandle ChannelTimerHandle;
+    FTimerHandle BeamRefreshTimerHandle;
     TArray<FAuraBeamTarget> BeamTargets;
     FAuraAbilityExecutionContext CachedCtx;
 
@@ -164,5 +173,6 @@ private:
     void FindBeamTargets(const FAuraAbilityExecutionContext& Ctx, const UElectrocuteBeamNode* Node);
     void SpawnBeamFX(const FAuraAbilityExecutionContext& Ctx, const UElectrocuteBeamNode* Node);
     void RefreshBeamFX(const FAuraAbilityExecutionContext& Ctx, const UElectrocuteBeamNode* Node);
+    bool ResolveLiveCursorEndpoint(const FAuraAbilityExecutionContext& Ctx, const UElectrocuteBeamNode* Node, FVector& OutEndpoint) const;
     void CleanupBeams();
 };

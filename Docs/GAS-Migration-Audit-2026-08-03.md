@@ -39,11 +39,11 @@ All data-driven damage producers now populate `FDamageEffectParams::WorldContext
 
 ### 1.3 M10 — WaitForMontageEvent bypasses the standard callback → FIXED (2026-08-03)
 
-`UWaitForMontageEventTask::OnEventReceived` (`WaitForMontageEventNode.cpp:116-126`) called `DataAbility->AdvanceGraph(Success)` directly. The canonical `UAuraDataAbility::OnMontageEventReceived` (`DataAbility.cpp:411`) existed but was **never bound anywhere — dead code**. **Resolved 2026-08-03:** the wait task now calls `OnMontageEventReceived`, which applies the `bGraphActive` guard before advancing; the duplicate direct `AdvanceGraph`/`PendingMontageEventTask.Reset()` is removed. Verified by build + smoke (`Result: 19 passed, 0 failed`).
+`UWaitForMontageEventTask::OnEventReceived` (`WaitForMontageEventNode.cpp:116-126`) called `DataAbility->AdvanceGraph(Success)` directly. The canonical `UAuraDataAbility::OnMontageEventReceived` (`DataAbility.cpp:411`) existed but was **never bound anywhere — dead code**. **Resolved 2026-08-03:** the wait task now calls `OnMontageEventReceived`, which applies the `bGraphActive` guard before advancing; the duplicate direct `AdvanceGraph`/`PendingMontageEventTask.Reset()` is removed. Verified by build + smoke (now `Result: 22 passed, 0 failed` as of 2026-08-04).
 
 ### 1.4 M8 — only partially fixed
 
-Empty/invalid `EventTag` is rejected, and `WaitForMontageEvent` now finds the graph's loaded `PlayMontage` node and validates the tag against reflected `EventTag` metadata on its authored montage notifies. Verified by build + smoke (`Result: 19 passed, 0 failed`).
+Empty/invalid `EventTag` is rejected, and `WaitForMontageEvent` now finds the graph's loaded `PlayMontage` node and validates the tag against reflected `EventTag` metadata on its authored montage notifies. Verified by build + smoke (now `Result: 22 passed, 0 failed` as of 2026-08-04).
 
 ### 1.5 L17, L19/L21, M9/L20 — verified status
 
@@ -112,7 +112,7 @@ Verification step 4 says *"New enemy roles defined in `RoleConfig.json`"*; enemy
 ## 6. Recommended actions (prioritized)
 
 1. **H2/L18 knockback fix** is already committed (`4286f6e`); add regression coverage to lock in the `Direction`/`Forward` behavior (the commit message recommends this).
-2. **M10** — done: the wait task now routes through `DataAbility::OnMontageEventReceived` (dead code eliminated, `bGraphActive` guard applied); verified 2026-08-03, smoke 19/19.
+2. **M10** — done: the wait task now routes through `DataAbility::OnMontageEventReceived` (dead code eliminated, `bGraphActive` guard applied); verified 2026-08-03, smoke 22/22 (2026-08-04).
 3. **Docs** — fix TODO verification steps 4/5 (§2.1, §2.2); tick the enemy smoke-test box (§4); reword step 6 (§2.3); reconcile H3/M7/M11/L14 across TODO, Pending.md, and memory (§3); resolve the memory file's L14 self-contradiction.
 4. **EnemyRangedAttack** — decide `ProjectileClass` (BP_SlingshotRock) vs native `ProjectileDefinition`, matching EnemyFireBolt.
 5. **Build gate** — run a real build to close the last unverified item, then decide 4.3 remove-vs-repurpose for the 5 legacy classes (`UAuraFireBolt`, `UAuraFireGun`, `UArcaneShards`, `UAuraFireBlast`, `UElectrocute`).

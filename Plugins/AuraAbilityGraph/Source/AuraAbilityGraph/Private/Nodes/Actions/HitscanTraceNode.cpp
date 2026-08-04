@@ -76,26 +76,7 @@ EAuraAbilityActionStatus UHitscanTraceTask::OnStart(FAuraAbilityExecutionContext
             if (const UAuraAbilityDefinition* Definition = Ctx.Definition)
             {
                 FDamageEffectParams DamageParams;
-                DamageParams.WorldContextObject = Ctx.AvatarActor;
-                DamageParams.SourceAbilitySystemComponent = Ctx.ASC;
-                DamageParams.TargetAbilitySystemComponent = TargetASC;
-                DamageParams.AbilityLevel = OwnerAbility->GetAbilityLevel();
-                DamageParams.DamageGameplayEffectClass = Definition->DamageEffectClass;
-                DamageParams.DamageType = Definition->DamageType;
-                DamageParams.BaseDamage = Definition->Damage.GetValueAtLevel(OwnerAbility->GetAbilityLevel());
-                DamageParams.DebuffChance = Definition->DebuffChance;
-                DamageParams.DebuffDamage = Definition->DebuffDamage;
-                DamageParams.DebuffDuration = Definition->DebuffDuration;
-                DamageParams.DebuffFrequency = Definition->DebuffFrequency;
-                DamageParams.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
-                DamageParams.DeathImpulse = Direction * Definition->DeathImpulseMagnitude;
-                DamageParams.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
-                DamageParams.KnockbackForce = Direction * Definition->KnockbackForceMagnitude;
-                DamageParams.KnockbackChance = Definition->KnockbackChance;
-                DamageParams.bIsRadialDamage = false;
-                DamageParams.RadialDamageInnerRadius = 0.f;
-                DamageParams.RadialDamageOuterRadius = 0.f;
-                DamageParams.RadialDamageOrigin = FVector::ZeroVector;
+                Definition->BuildDamageEffectParams(DamageParams, Ctx.ASC, TargetASC, Ctx.AvatarActor, OwnerAbility->GetAbilityLevel(), Direction);
                 UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart applying damage base=%.1f type=%s"), DamageParams.BaseDamage, *DamageParams.DamageType.ToString());
                 UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageParams);
             }

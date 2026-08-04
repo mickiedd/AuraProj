@@ -25,6 +25,8 @@
 #include "Tests/TestCombatAvatar.h"
 #include "Tests/TestDataAbility.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AuraAbilityTypes.h"
+#include "Abilities/GameplayAbilityTargetTypes.h"
 #include "AuraGameplayTags.h"
 #include "Actor/AuraProjectile.h"
 #include "Components/SphereComponent.h"
@@ -1818,15 +1820,32 @@ static bool SmokeTest_ElectrocuteBeamVisualEndpoint()
 	}
 
 	const FVector BeamEnd = Task->GetBeamEndLocationForTest(0);
-	if (!BeamEnd.Equals(ExpectedEndpoint, 1.f))
-	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamVisualEndpoint: endpoint=%s expected=%s"), *BeamEnd.ToString(), *ExpectedEndpoint.ToString());
-		Task->Cancel(Ctx);
-		DestroySpawnTestEnv(Env);
-		return false;
-	}
+    if (!BeamEnd.Equals(ExpectedEndpoint, 1.f))
+    {
+        UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamVisualEndpoint: endpoint=%s expected=%s"), *BeamEnd.ToString(), *ExpectedEndpoint.ToString());
+        Task->Cancel(Ctx);
+        DestroySpawnTestEnv(Env);
+        return false;
+    }
 
-	Task->Cancel(Ctx);
+    // Move the cursor while the channel is still running. The primary endpoint must
+    // change even though the original target data was captured at activation time.
+    const FVector MovedEndpoint = SocketLoc + FVector(-250.f, 450.f, 125.f);
+    FHitResult MovedCursor;
+    MovedCursor.bBlockingHit = true;
+    MovedCursor.ImpactPoint = MovedEndpoint;
+    MovedCursor.Location = MovedEndpoint;
+    Task->UpdateCursorForTest(MovedCursor);
+    const FVector UpdatedBeamEnd = Task->GetBeamEndLocationForTest(0);
+    if (!UpdatedBeamEnd.Equals(MovedEndpoint, 1.f))
+    {
+        UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] BeamVisualEndpoint: live endpoint=%s expected moved point=%s"), *UpdatedBeamEnd.ToString(), *MovedEndpoint.ToString());
+        Task->Cancel(Ctx);
+        DestroySpawnTestEnv(Env);
+        return false;
+    }
+
+    Task->Cancel(Ctx);
 	const bool bCleanedUp = Task->GetBeamTargetCountForTest() == 0;
 	DestroySpawnTestEnv(Env);
 	if (!bCleanedUp)
@@ -1835,7 +1854,7 @@ static bool SmokeTest_ElectrocuteBeamVisualEndpoint()
 		return false;
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteBeamVisualEndpoint PASSED (actorless cursor point spawned visual endpoint and cleaned up)."));
+    UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteBeamVisualEndpoint PASSED (cursor endpoint moved during channel and cleaned up)."));
 	return true;
 }
 
@@ -1918,6 +1937,209 @@ static bool SmokeTest_EnemyAbilityFiles()
 	return true;
 }
 
+// L22 regression: client-supplied target data must be rejected when the handle is
+// empty, the hit is missing or non-blocking, the location is non-finite, the actor
+// is self, or the target is beyond MaxTargetDistance; a valid in-range blocking hit
+// against a distinct actor must pass.
+static bool SmokeTest_TargetDataValidation()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	constexpr float MaxDist = 1000.f;
+	FString Reason;
+
+	auto MakeHitHandle = [](AActor* Target, const FVector& ImpactPoint, bool bBlocking)
+	{
+		FGameplayAbilityTargetDataHandle Handle;
+		FGameplayAbilityTargetData_SingleTargetHit* Data = new FGameplayAbilityTargetData_SingleTargetHit();
+		Data->HitResult = FHitResult(Target, nullptr, ImpactPoint, FVector::ZeroVector);
+		Data->HitResult.bBlockingHit = bBlocking;
+		Handle.Add(Data);
+		return Handle;
+	};
+
+	// Empty handle.
+	FGameplayAbilityTargetDataHandle EmptyHandle;
+	if (UWaitForTargetDataNode::IsValidTargetData(EmptyHandle, Env.Avatar, MaxDist, Reason))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: empty handle was accepted"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// Target data with no hit result (actor-array style data).
+	FGameplayAbilityTargetDataHandle NoHitHandle;
+	NoHitHandle.Add(new FGameplayAbilityTargetData_ActorArray());
+	if (UWaitForTargetDataNode::IsValidTargetData(NoHitHandle, Env.Avatar, MaxDist, Reason))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: actor-array data was accepted"));
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// Non-blocking hit.
+	{
+		FGameplayAbilityTargetDataHandle H = MakeHitHandle(nullptr, Env.Avatar->GetActorLocation() + FVector(200.f, 0.f, 0.f), false);
+		if (UWaitForTargetDataNode::IsValidTargetData(H, Env.Avatar, MaxDist, Reason))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: non-blocking hit was accepted"));
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+	}
+
+	// Non-finite location.
+	{
+		const float NaNValue = FMath::Sqrt(-1.f); // IEEE NaN at runtime
+		FGameplayAbilityTargetDataHandle H = MakeHitHandle(nullptr, FVector(NaNValue, 0.f, 0.f), true);
+		if (UWaitForTargetDataNode::IsValidTargetData(H, Env.Avatar, MaxDist, Reason))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: NaN location was accepted"));
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+	}
+
+	// Null avatar.
+	{
+		FGameplayAbilityTargetDataHandle H = MakeHitHandle(nullptr, FVector(200.f, 0.f, 0.f), true);
+		if (UWaitForTargetDataNode::IsValidTargetData(H, nullptr, MaxDist, Reason))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: null avatar was accepted"));
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+	}
+
+	// Self-target.
+	{
+		FGameplayAbilityTargetDataHandle H = MakeHitHandle(Env.Avatar, Env.Avatar->GetActorLocation(), true);
+		if (UWaitForTargetDataNode::IsValidTargetData(H, Env.Avatar, MaxDist, Reason))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: self-target was accepted"));
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+	}
+
+	// Out of range.
+	{
+		FGameplayAbilityTargetDataHandle H = MakeHitHandle(nullptr, Env.Avatar->GetActorLocation() + FVector(2000.f, 0.f, 0.f), true);
+		if (UWaitForTargetDataNode::IsValidTargetData(H, Env.Avatar, MaxDist, Reason))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: out-of-range target was accepted"));
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+	}
+
+	// Valid in-range blocking hit against a distinct actor.
+	{
+		FActorSpawnParameters SP;
+		SP.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ATestCombatAvatar* Target = Env.World->SpawnActor<ATestCombatAvatar>(ATestCombatAvatar::StaticClass(), FTransform(FRotator::ZeroRotator, Env.Avatar->GetActorLocation() + FVector(300.f, 0.f, 0.f)), SP);
+		if (!Target)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: failed to spawn target actor"));
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+		FGameplayAbilityTargetDataHandle H = MakeHitHandle(Target, Target->GetActorLocation(), true);
+		if (!UWaitForTargetDataNode::IsValidTargetData(H, Env.Avatar, MaxDist, Reason))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] TargetDataValidation: valid target rejected: %s"), *Reason);
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] TargetDataValidation PASSED (empty/no-hit/non-blocking/NaN/null-avatar/self/out-of-range rejected; valid target accepted)."));
+	DestroySpawnTestEnv(Env);
+	return true;
+}
+
+// H2/L15/L21 regression: the shared damage-param builder used by all seven damage
+// nodes must populate WorldContextObject (L15), carry the caller's source/target
+// ASCs (L21), and produce direction-aligned knockback/death impulse at the authored
+// magnitudes (H2). Non-radial is the default (L19).
+static bool SmokeTest_DamageEffectParams()
+{
+	const FString SampleXML = TEXT(
+		"<ability name=\"DamageParamSmoke\" abilityTag=\"Abilities.Test.DamageParamSmoke\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Damage\">"
+		"  <damage type=\"Damage.Fire\" base=\"100\" deathImpulseMagnitude=\"500\" knockbackForceMagnitude=\"750\" knockbackChance=\"50\"/>"
+		"  <graph><node class=\"Sequence\"/></graph>"
+		"</ability>"
+	);
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	if (!Definition || !Definition->LoadFromXML(SampleXML))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] DamageEffectParams: failed to parse sample XML"));
+		return false;
+	}
+
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	UAbilitySystemComponent* SourceASC = NewObject<UAbilitySystemComponent>(GetTransientPackage());
+	UAbilitySystemComponent* TargetASC = NewObject<UAbilitySystemComponent>(GetTransientPackage());
+	const FVector Direction = FVector::ForwardVector;
+
+	FDamageEffectParams Params;
+	Definition->BuildDamageEffectParams(Params, SourceASC, TargetASC, Env.Avatar, 1, Direction);
+
+	bool bOk = true;
+	if (Params.WorldContextObject != Env.Avatar)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] DamageEffectParams: WorldContextObject not populated (L15)"));
+		bOk = false;
+	}
+	if (Params.SourceAbilitySystemComponent != SourceASC || Params.TargetAbilitySystemComponent != TargetASC)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] DamageEffectParams: source/target ASC not carried through (L21)"));
+		bOk = false;
+	}
+	if (Params.BaseDamage != 100.f)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] DamageEffectParams: BaseDamage=%.1f expected 100.0"), Params.BaseDamage);
+		bOk = false;
+	}
+	const FVector ExpectedDeathImpulse = Direction * Definition->DeathImpulseMagnitude;
+	const FVector ExpectedKnockback = Direction * Definition->KnockbackForceMagnitude;
+	if (!Params.DeathImpulse.Equals(ExpectedDeathImpulse, 1.f) || !Params.KnockbackForce.Equals(ExpectedKnockback, 1.f))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] DamageEffectParams: impulse/knockback not direction-aligned (H2)"));
+		bOk = false;
+	}
+	if (Params.KnockbackForceMagnitude != Definition->KnockbackForceMagnitude || Params.DeathImpulseMagnitude != Definition->DeathImpulseMagnitude)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] DamageEffectParams: impulse/knockback magnitude mismatch"));
+		bOk = false;
+	}
+	if (Params.bIsRadialDamage)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] DamageEffectParams: radial damage should default to false"));
+		bOk = false;
+	}
+
+	DestroySpawnTestEnv(Env);
+	if (!bOk)
+	{
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] DamageEffectParams PASSED (WorldContextObject, ASCs, direction-aligned knockback, non-radial default)."));
+	return true;
+}
+
 // ===================================================================
 // Console command handler
 // ===================================================================
@@ -1958,6 +2180,8 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("ElectrocuteBeamEmptyEffectNoSpawn"), SmokeTest_ElectrocuteBeamEmptyEffectNoSpawn);
 	Run(TEXT("ElectrocuteBeamVisualEndpoint"), SmokeTest_ElectrocuteBeamVisualEndpoint);
 	Run(TEXT("EnemyAbilityFiles"), SmokeTest_EnemyAbilityFiles);
+	Run(TEXT("TargetDataValidation"), SmokeTest_TargetDataValidation);
+	Run(TEXT("DamageEffectParams"), SmokeTest_DamageEffectParams);
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("========================================"));
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Result: %d passed, %d failed."), Passed, Failed);
@@ -2028,4 +2252,3 @@ void FAuraAbilityGraphModule::ShutdownModule()
 #undef LOCTEXT_NAMESPACE
 
 IMPLEMENT_MODULE(FAuraAbilityGraphModule, AuraAbilityGraph)
-

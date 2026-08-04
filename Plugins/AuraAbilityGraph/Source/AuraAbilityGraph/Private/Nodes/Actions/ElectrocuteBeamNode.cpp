@@ -5,12 +5,14 @@
 #include "Nodes/AbilityActionTask.h"
 #include "AbilityDefinition.h"
 #include "DataAbility.h"
+#include "Aura/Aura.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraAbilityTypes.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraAbilityGraphLogChannels.h"
 #include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "NiagaraSystem.h"
@@ -197,6 +199,10 @@ EAuraAbilityActionStatus UElectrocuteBeamTask::OnStart(FAuraAbilityExecutionCont
     // Spawn the beam arc on every machine so the casting player sees the lightning.
     SpawnBeamFX(Ctx, Node);
 
+    // The target-data hit is only the activation-time snapshot. Refresh immediately
+    // from the current cursor too, then keep doing so for the entire channel.
+    RefreshBeamFX(CachedCtx, Node);
+
     UWorld* World = Ctx.AvatarActor->GetWorld();
     if (!World)
     {
@@ -230,6 +236,32 @@ EAuraAbilityActionStatus UElectrocuteBeamTask::OnStart(FAuraAbilityExecutionCont
             }
         });
         World->GetTimerManager().SetTimer(ChannelTimerHandle, EndDel, Node->ChannelDuration, false);
+    }
+
+    // Cursor movement is a visual concern and must be refreshed on the casting client,
+    // where the local PlayerController owns the real cursor. The server also refreshes
+    // when it has a local controller (standalone/listen-server), while dedicated-server
+    // instances safely retain the activation snapshot for damage authority.
+    {
+        FTimerDelegate RefreshDel;
+        RefreshDel.BindWeakLambda(OwnerAbility, [ThisObj = TWeakObjectPtr<UElectrocuteBeamTask>(this)]()
+        {
+            UElectrocuteBeamTask* Task = ThisObj.Get();
+            if (!Task || !Task->OwnerAbility)
+            {
+                return;
+            }
+
+            if (const UElectrocuteBeamNode* TaskNode = Cast<UElectrocuteBeamNode>(Task->NodeDef))
+            {
+                Task->RefreshBeamFX(Task->CachedCtx, TaskNode);
+            }
+        });
+        World->GetTimerManager().SetTimer(
+            BeamRefreshTimerHandle,
+            RefreshDel,
+            FMath::Max(0.01f, Node->TickInterval),
+            true);
     }
 
     // Non-authority machines stop here: visual only, no damage. Stay Running so the
@@ -459,6 +491,7 @@ void UElectrocuteBeamTask::FindBeamTargets(const FAuraAbilityExecutionContext& C
     PrimaryEntry.BeamEndLocation = PrimaryImpactPoint;
     PrimaryEntry.bVisualOnly = bPrimaryVisualOnly || !bPrimaryIsEnemy;
     PrimaryEntry.bDamageTarget = bPrimaryIsEnemy;
+    PrimaryEntry.bCursorDriven = true;
 
     // Only chain lightning off a real enemy. A ground/wall primary has no meaningful
     // origin to chain from, so chains would arc to random enemies near (0,0,0).
@@ -584,15 +617,17 @@ void UElectrocuteBeamTask::RefreshBeamFX(const FAuraAbilityExecutionContext& Ctx
 
     for (FAuraBeamTarget& Entry : BeamTargets)
     {
-        UNiagaraComponent* Beam = Entry.Beam.Get();
-        if (!Beam)
+        if (Entry.bCursorDriven)
         {
-            continue;
+            FVector LiveCursorEndpoint;
+            if (ResolveLiveCursorEndpoint(Ctx, Node, LiveCursorEndpoint))
+            {
+                Entry.BeamEndLocation = LiveCursorEndpoint;
+            }
         }
-        ElectrocuteBeamPrivate::SetBeamPosition(Beam, Node->BeamStartParameter, SocketLocation);
-        // Track a real enemy's current location; for a non-enemy (ground/wall) keep the
-        // stored impact point so the arc stays where the cursor aimed.
-        if (Entry.bDamageTarget)
+        // Chain arcs are target-driven and track the chained actor. The primary arc is
+        // deliberately cursor-driven even when its initial cursor hit was an enemy.
+        else if (Entry.bDamageTarget)
         {
             if (AActor* TargetActor = Entry.Actor.Get())
             {
@@ -602,8 +637,80 @@ void UElectrocuteBeamTask::RefreshBeamFX(const FAuraAbilityExecutionContext& Ctx
                 }
             }
         }
+
+        UNiagaraComponent* Beam = Entry.Beam.Get();
+        if (!Beam)
+        {
+            continue;
+        }
+        ElectrocuteBeamPrivate::SetBeamPosition(Beam, Node->BeamStartParameter, SocketLocation);
         ElectrocuteBeamPrivate::SetBeamPosition(Beam, Node->BeamEndParameter, Entry.BeamEndLocation);
     }
+}
+
+bool UElectrocuteBeamTask::ResolveLiveCursorEndpoint(
+    const FAuraAbilityExecutionContext& Ctx,
+    const UElectrocuteBeamNode* Node,
+    FVector& OutEndpoint) const
+{
+    if (!Ctx.AvatarActor || !Node)
+    {
+        return false;
+    }
+
+    const FVector SocketLocation = ElectrocuteBeamPrivate::GetSocketLocation(Ctx.AvatarActor, Node->SocketTag);
+    const FVector BeamDirection = Ctx.AvatarActor->GetActorForwardVector().GetSafeNormal();
+    const float MaxRange = ElectrocuteBeamPrivate::GetBeamRange(Node);
+
+    // Only a local controller can query the live mouse. On a dedicated server use the
+    // activation snapshot; the casting client owns the visual cursor update.
+    APlayerController* LocalPC = nullptr;
+    if (OwnerAbility)
+    {
+        if (const FGameplayAbilityActorInfo* ActorInfo = OwnerAbility->GetCurrentActorInfo())
+        {
+            LocalPC = ActorInfo->PlayerController.Get();
+        }
+    }
+
+    if (LocalPC && LocalPC->IsLocalController())
+    {
+        FHitResult LiveCursorHit;
+        LocalPC->GetHitResultUnderCursor(ECC_Target, false, LiveCursorHit);
+        if (LiveCursorHit.bBlockingHit)
+        {
+            const FVector CursorPoint = LiveCursorHit.ImpactPoint.IsNearlyZero()
+                ? LiveCursorHit.Location
+                : LiveCursorHit.ImpactPoint;
+            OutEndpoint = ElectrocuteBeamPrivate::ClampEndpointToRange(
+                SocketLocation,
+                CursorPoint,
+                BeamDirection,
+                MaxRange);
+            return true;
+        }
+
+        // Match TargetDataUnderMouse's deterministic open-sky fallback rather than
+        // retaining a stale activation point when the cursor leaves world geometry.
+        OutEndpoint = SocketLocation + BeamDirection * MaxRange;
+        return true;
+    }
+
+    if (Ctx.CursorHit.bBlockingHit)
+    {
+        const FVector CursorPoint = Ctx.CursorHit.ImpactPoint.IsNearlyZero()
+            ? Ctx.CursorHit.Location
+            : Ctx.CursorHit.ImpactPoint;
+        OutEndpoint = ElectrocuteBeamPrivate::ClampEndpointToRange(
+            SocketLocation,
+            CursorPoint,
+            BeamDirection,
+            MaxRange);
+        return true;
+    }
+
+    OutEndpoint = SocketLocation + BeamDirection * MaxRange;
+    return true;
 }
 
 void UElectrocuteBeamTask::TickDamage()
@@ -653,11 +760,6 @@ void UElectrocuteBeamTask::TickDamage()
 
     // Refresh the beam arcs so they track moving targets each tick (server only —
     // the client has no timer, so its arc is static at spawn).
-    if (Node)
-    {
-        RefreshBeamFX(CachedCtx, Node);
-    }
-
     for (const FAuraBeamTarget& Entry : BeamTargets)
     {
         AActor* TargetActor = Entry.Actor.Get();
@@ -681,26 +783,7 @@ void UElectrocuteBeamTask::TickDamage()
         {
             const FVector Direction = (TargetActor->GetActorLocation() - CachedCtx.AvatarActor->GetActorLocation()).GetSafeNormal();
             FDamageEffectParams Params;
-            Params.WorldContextObject = CachedCtx.AvatarActor;
-            Params.SourceAbilitySystemComponent = CachedCtx.ASC;
-            Params.TargetAbilitySystemComponent = TargetASC;
-            Params.AbilityLevel = DataAbility->GetAbilityLevel();
-            Params.DamageGameplayEffectClass = Definition->DamageEffectClass;
-            Params.DamageType = Definition->DamageType;
-            Params.BaseDamage = Definition->Damage.GetValueAtLevel(DataAbility->GetAbilityLevel());
-            Params.DebuffChance = Definition->DebuffChance;
-            Params.DebuffDamage = Definition->DebuffDamage;
-            Params.DebuffDuration = Definition->DebuffDuration;
-            Params.DebuffFrequency = Definition->DebuffFrequency;
-            Params.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
-            Params.DeathImpulse = Direction * Definition->DeathImpulseMagnitude;
-            Params.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
-            Params.KnockbackForce = Direction * Definition->KnockbackForceMagnitude;
-            Params.KnockbackChance = Definition->KnockbackChance;
-            Params.bIsRadialDamage = false;
-            Params.RadialDamageInnerRadius = 0.f;
-            Params.RadialDamageOuterRadius = 0.f;
-            Params.RadialDamageOrigin = FVector::ZeroVector;
+            Definition->BuildDamageEffectParams(Params, CachedCtx.ASC, TargetASC, CachedCtx.AvatarActor, DataAbility->GetAbilityLevel(), Direction);
             UAuraAbilitySystemLibrary::ApplyDamageEffect(Params);
         }
     }
@@ -737,6 +820,7 @@ void UElectrocuteBeamTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilit
     {
         World->GetTimerManager().ClearTimer(TickTimerHandle);
         World->GetTimerManager().ClearTimer(ChannelTimerHandle);
+        World->GetTimerManager().ClearTimer(BeamRefreshTimerHandle);
     }
 
     CleanupBeams();
@@ -751,6 +835,7 @@ void UElectrocuteBeamTask::Cancel(FAuraAbilityExecutionContext& Ctx)
     {
         World->GetTimerManager().ClearTimer(TickTimerHandle);
         World->GetTimerManager().ClearTimer(ChannelTimerHandle);
+        World->GetTimerManager().ClearTimer(BeamRefreshTimerHandle);
     }
 
     CleanupBeams();
@@ -798,4 +883,13 @@ FVector UElectrocuteBeamTask::GetBeamComponentLocationForTest(int32 Index) const
         }
     }
     return FVector::ZeroVector;
+}
+
+void UElectrocuteBeamTask::UpdateCursorForTest(const FHitResult& CursorHit)
+{
+    CachedCtx.CursorHit = CursorHit;
+    if (const UElectrocuteBeamNode* Node = Cast<UElectrocuteBeamNode>(NodeDef))
+    {
+        RefreshBeamFX(CachedCtx, Node);
+    }
 }

@@ -39,22 +39,7 @@ EAuraAbilityActionStatus UApplyDamageTask::OnStart(FAuraAbilityExecutionContext&
         {
             const FVector Direction = (TargetActor->GetActorLocation() - Ctx.AvatarActor->GetActorLocation()).GetSafeNormal();
             FDamageEffectParams Params;
-            Params.WorldContextObject = Ctx.AvatarActor;
-            Params.SourceAbilitySystemComponent = Ctx.ASC;
-            Params.TargetAbilitySystemComponent = TargetASC;
-            Params.AbilityLevel = DataAbility->GetAbilityLevel();
-            Params.DamageGameplayEffectClass = Definition->DamageEffectClass;
-            Params.DamageType = Definition->DamageType;
-            Params.BaseDamage = Definition->Damage.GetValueAtLevel(DataAbility->GetAbilityLevel());
-            Params.DebuffChance = Definition->DebuffChance;
-            Params.DebuffDamage = Definition->DebuffDamage;
-            Params.DebuffDuration = Definition->DebuffDuration;
-            Params.DebuffFrequency = Definition->DebuffFrequency;
-            Params.DeathImpulseMagnitude = Definition->DeathImpulseMagnitude;
-            Params.DeathImpulse = Direction * Definition->DeathImpulseMagnitude;
-            Params.KnockbackForceMagnitude = Definition->KnockbackForceMagnitude;
-            Params.KnockbackForce = Direction * Definition->KnockbackForceMagnitude;
-            Params.KnockbackChance = Definition->KnockbackChance;
+            Definition->BuildDamageEffectParams(Params, Ctx.ASC, TargetASC, Ctx.AvatarActor, DataAbility->GetAbilityLevel(), Direction);
             UE_LOG(LogAuraAbilityGraph, Log, TEXT("[ApplyDamage] OnStart applying damage base=%.1f type=%s"), Params.BaseDamage, *Params.DamageType.ToString());
             UAuraAbilitySystemLibrary::ApplyDamageEffect(Params);
         }

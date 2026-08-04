@@ -10,6 +10,7 @@
 
 class UAuraAbilityActionNode;
 class UAuraDataAbility;
+struct FDamageEffectParams;
 
 /**
  * Runtime ability definition loaded from an XML file on disk.
@@ -61,4 +62,13 @@ public:
 
     /** Parse XML content and populate all fields. Called by LoadAbilityDefinitionFromXMLFile. */
     bool LoadFromXML(const FString& XMLContent);
+
+    /**
+     * Builds a fully-populated FDamageEffectParams from this definition's damage
+     * data (type/base, debuffs, death impulse, knockback). All seven damage-producing
+     * nodes (ApplyDamage, CauseDamage, HitscanTrace, SpawnProjectile, SpawnProjectiles,
+     * ElectrocuteBeam, SpawnShards) route through this so the direction-based
+     * impulse/knockback contract lives in one place and is directly testable.
+     */
+    void BuildDamageEffectParams(FDamageEffectParams& OutParams, UAbilitySystemComponent* SourceASC, UAbilitySystemComponent* TargetASC, AActor* WorldContext, float AbilityLevel, const FVector& Direction, bool bIsRadialDamage = false, const FVector& RadialOrigin = FVector::ZeroVector, float RadialInnerRadius = 0.f, float RadialOuterRadius = 0.f) const;
 };

@@ -18,6 +18,14 @@ public:
     virtual UAuraAbilityActionTask* CreateTask(UObject* Outer) const override;
     virtual void LoadFromProperties(int32 Version, const TArray<FAuraAbilityGraphProperty>& Properties) override;
 
+    /**
+     * Validates client-supplied target data before the graph consumes it. Rejects
+     * empty handles, missing/non-blocking hits, non-finite locations, invalid or
+     * self-targets, and out-of-range targets. Static so the smoke suite can
+     * regression-test each rejection branch directly.
+     */
+    static bool IsValidTargetData(const FGameplayAbilityTargetDataHandle& DataHandle, const AActor* AvatarActor, float MaxTargetDistance, FString& OutReason);
+
     // Target data is supplied by the client, so the received hit must be checked
     // against the avatar before the graph consumes it.  The authored abilities
     // currently use the default 10,000-unit range; XML can override it per node.
