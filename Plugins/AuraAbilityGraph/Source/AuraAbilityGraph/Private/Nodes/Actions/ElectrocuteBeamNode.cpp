@@ -690,10 +690,10 @@ bool UElectrocuteBeamTask::ResolveLiveCursorEndpoint(
             return true;
         }
 
-        // Match TargetDataUnderMouse's deterministic open-sky fallback rather than
-        // retaining a stale activation point when the cursor leaves world geometry.
-        OutEndpoint = SocketLocation + BeamDirection * MaxRange;
-        return true;
+        // Keep the activation-time endpoint when the cursor is temporarily over no
+        // traceable world geometry. Losing a live cursor hit must not teleport a
+        // selected beam target to max range.
+        return false;
     }
 
     if (Ctx.CursorHit.bBlockingHit)
@@ -709,8 +709,9 @@ bool UElectrocuteBeamTask::ResolveLiveCursorEndpoint(
         return true;
     }
 
-    OutEndpoint = SocketLocation + BeamDirection * MaxRange;
-    return true;
+    // No activation hit and no live cursor hit means there is no new endpoint to
+    // apply. The caller retains the endpoint acquired during setup.
+    return false;
 }
 
 void UElectrocuteBeamTask::TickDamage()

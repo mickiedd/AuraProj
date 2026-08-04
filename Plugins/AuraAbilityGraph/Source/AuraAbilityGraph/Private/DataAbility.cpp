@@ -149,6 +149,8 @@ void UAuraDataAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
     PersistentCtx.NodeDef = nullptr;
     PersistentCtx.TargetDataHandle.Clear();
     PersistentCtx.CursorHit = FHitResult();
+    PersistentCtx.BeamState.Reset();
+    PersistentCtx.bStopCurrentTimedLoop = false;
 
     if (const UAuraAbilityDefinition* Definition = GetDefinition())
     {
@@ -219,6 +221,7 @@ void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const
         CancelCtx.ASC = ActorInfo->AbilitySystemComponent.Get();
         CancelCtx.AvatarActor = ActorInfo->AvatarActor.Get();
         CancelCtx.SpecHandle = Handle;
+        CancelCtx.BeamState = PersistentCtx.BeamState;
 
         RootTask->Cancel(CancelCtx);
         RootTask = nullptr;
@@ -245,6 +248,8 @@ void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
     PersistentCtx.TargetDataHandle.Clear();
     PersistentCtx.CursorHit = FHitResult();
+    PersistentCtx.BeamState.Reset();
+    PersistentCtx.bStopCurrentTimedLoop = false;
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] EndAbility END"));
     bIsEndingAbility = false;
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

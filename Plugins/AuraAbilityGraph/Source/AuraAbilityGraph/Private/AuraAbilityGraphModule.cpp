@@ -19,6 +19,7 @@
 #include "Nodes/Actions/WaitNode.h"
 #include "Nodes/Actions/SpawnShardsNode.h"
 #include "Nodes/Actions/ElectrocuteBeamNode.h"
+#include "Nodes/Actions/ModularBeamNodes.h"
 #include "Nodes/Actions/EnemyCombatMontageNode.h"
 #include "Nodes/Actions/EnemyMeleeDamageNode.h"
 #include "Nodes/Actions/EnemyHitReactNode.h"
@@ -131,6 +132,16 @@ static bool SmokeTest_NodeRegistry()
 		{ TEXT("Wait"),                UWaitNode::StaticClass() },
 		{ TEXT("SpawnShards"),         USpawnShardsNode::StaticClass() },
 		{ TEXT("ElectrocuteBeam"),     UElectrocuteBeamNode::StaticClass() },
+		{ TEXT("ResolveBeamOrigin"),   UResolveBeamOriginNode::StaticClass() },
+		{ TEXT("AcquirePrimaryBeamTarget"), UAcquirePrimaryBeamTargetNode::StaticClass() },
+		{ TEXT("SelectBeamChainTargets"), USelectBeamChainTargetsNode::StaticClass() },
+		{ TEXT("SpawnBeamVisuals"),    USpawnBeamVisualsNode::StaticClass() },
+		{ TEXT("InitializeBeamEndpoints"), UInitializeBeamEndpointsNode::StaticClass() },
+		{ TEXT("TimedLoop"),            UTimedLoopNode::StaticClass() },
+		{ TEXT("PruneBeamTargets"),     UPruneBeamTargetsNode::StaticClass() },
+		{ TEXT("RefreshBeamEndpoints"), URefreshBeamEndpointsNode::StaticClass() },
+		{ TEXT("ApplyBeamDamage"),      UApplyBeamDamageNode::StaticClass() },
+		{ TEXT("DestroyBeamVisuals"),   UDestroyBeamVisualsNode::StaticClass() },
 		{ TEXT("EnemyCombatMontage"),  UEnemyCombatMontageNode::StaticClass() },
 		{ TEXT("EnemyMeleeDamage"),    UEnemyMeleeDamageNode::StaticClass() },
 		{ TEXT("EnemyHitReact"),       UEnemyHitReactNode::StaticClass() },
@@ -1040,13 +1051,14 @@ static bool SmokeTest_ElectrocuteFileGraph()
 	const auto& Children = Def->RootNode->Children;
 	auto ClassOf = [&](int32 Idx) -> FString { return Children.IsValidIndex(Idx) ? Children[Idx]->NodeClassName : FString(); };
 
-	if (Children.Num() != 5)
+	if (Children.Num() != 11)
 	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: expected 5 children, got %d"), Children.Num());
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: expected 11 children, got %d"), Children.Num());
 		return false;
 	}
 
-	// WaitForTargetData -> FaceTarget -> PlayMontage -> WaitForMontageEvent -> ElectrocuteBeam
+	// Cast -> ResolveOrigin -> AcquirePrimary -> SelectChains -> SpawnVisuals
+	// -> InitializeEndpoints -> TimedLoop(Prune -> Refresh -> Damage) -> Cleanup
 	if (ClassOf(0) != TEXT("WaitForTargetData"))
 	{
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[0] is '%s', expected WaitForTargetData"), *ClassOf(0));
@@ -1088,55 +1100,64 @@ static bool SmokeTest_ElectrocuteFileGraph()
 		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[3] is '%s', expected WaitForMontageEvent"), *ClassOf(3));
 		return false;
 	}
-	if (ClassOf(4) != TEXT("ElectrocuteBeam"))
+	if (ClassOf(4) != TEXT("ResolveBeamOrigin") || ClassOf(5) != TEXT("AcquirePrimaryBeamTarget") ||
+		ClassOf(6) != TEXT("SelectBeamChainTargets") || ClassOf(7) != TEXT("SpawnBeamVisuals") ||
+		ClassOf(8) != TEXT("InitializeBeamEndpoints") || ClassOf(9) != TEXT("TimedLoop") ||
+		ClassOf(10) != TEXT("DestroyBeamVisuals"))
 	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: child[4] is '%s', expected ElectrocuteBeam"), *ClassOf(4));
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: modular beam node order mismatch"));
 		return false;
 	}
 
-	// Validate ElectrocuteBeam node properties
-	if (UElectrocuteBeamNode* BeamNode = Cast<UElectrocuteBeamNode>(Children[4]))
+	if (UResolveBeamOriginNode* OriginNode = Cast<UResolveBeamOriginNode>(Children[4]))
 	{
-		if (BeamNode->BeamEffect != TEXT("/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam"))
+		if (OriginNode->SocketTag.ToString() != TEXT("CombatSocket.Weapon") || !FMath::IsNearlyEqual(OriginNode->MaxRange, 3000.f))
 		{
-			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: BeamEffect mismatch: got '%s'"), *BeamNode->BeamEffect);
-			return false;
-		}
-		if (BeamNode->BeamStartParameter != TEXT("User.Beam Start") || BeamNode->BeamEndParameter != TEXT("User.Beam End"))
-		{
-			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: beam param mismatch: start='%s' end='%s'"), *BeamNode->BeamStartParameter, *BeamNode->BeamEndParameter);
-			return false;
-		}
-		if (BeamNode->MaxChainTargets != 5)
-		{
-			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: MaxChainTargets mismatch: expected 5, got %d"), BeamNode->MaxChainTargets);
-			return false;
-		}
-		if (!FMath::IsNearlyEqual(BeamNode->ChainRadius, 850.f))
-		{
-			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: ChainRadius mismatch: expected 850, got %.1f"), BeamNode->ChainRadius);
-			return false;
-		}
-		if (!FMath::IsNearlyEqual(BeamNode->MaxBeamRange, 3000.f))
-		{
-			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: MaxBeamRange mismatch: expected 3000, got %.1f"), BeamNode->MaxBeamRange);
-			return false;
-		}
-		if (!FMath::IsNearlyEqual(BeamNode->TickInterval, 0.2f))
-		{
-			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: TickInterval mismatch: expected 0.2, got %.2f"), BeamNode->TickInterval);
-			return false;
-		}
-		if (!FMath::IsNearlyEqual(BeamNode->ChannelDuration, 2.0f))
-		{
-			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: ChannelDuration mismatch: expected 2.0, got %.2f"), BeamNode->ChannelDuration);
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: ResolveBeamOrigin properties mismatch"));
 			return false;
 		}
 	}
-	else
+	if (UAcquirePrimaryBeamTargetNode* AcquireNode = Cast<UAcquirePrimaryBeamTargetNode>(Children[5]))
 	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: failed to cast child[4] to UElectrocuteBeamNode"));
-		return false;
+		if (!FMath::IsNearlyEqual(AcquireNode->TraceRadius, 10.f) || !FMath::IsNearlyEqual(AcquireNode->MaxRange, 3000.f) || !AcquireNode->bAllowVisualOnlyEndpoint)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: AcquirePrimaryBeamTarget properties mismatch"));
+			return false;
+		}
+	}
+	if (USelectBeamChainTargetsNode* ChainNode = Cast<USelectBeamChainTargetsNode>(Children[6]))
+	{
+		if (!FMath::IsNearlyEqual(ChainNode->SearchRadius, 850.f) || ChainNode->MaxAdditionalTargets != 5)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: SelectBeamChainTargets properties mismatch"));
+			return false;
+		}
+	}
+	if (USpawnBeamVisualsNode* VisualNode = Cast<USpawnBeamVisualsNode>(Children[7]))
+	{
+		if (VisualNode->BeamEffect != TEXT("/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam") ||
+			VisualNode->BeamStartParameter != TEXT("User.Beam Start") || VisualNode->BeamEndParameter != TEXT("User.Beam End"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: SpawnBeamVisuals properties mismatch"));
+			return false;
+		}
+	}
+	if (UTimedLoopNode* LoopNode = Cast<UTimedLoopNode>(Children[9]))
+	{
+		if (!FMath::IsNearlyEqual(LoopNode->Duration, 2.f) || !FMath::IsNearlyEqual(LoopNode->Interval, 0.2f) ||
+			!LoopNode->bExecuteImmediately || !LoopNode->bCleanupBeamStateOnCancel || LoopNode->Children.Num() != 1)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: TimedLoop properties/children mismatch"));
+			return false;
+		}
+		if (LoopNode->Children[0]->NodeClassName != TEXT("Sequence") || LoopNode->Children[0]->Children.Num() != 3 ||
+			LoopNode->Children[0]->Children[0]->NodeClassName != TEXT("PruneBeamTargets") ||
+			LoopNode->Children[0]->Children[1]->NodeClassName != TEXT("RefreshBeamEndpoints") ||
+			LoopNode->Children[0]->Children[2]->NodeClassName != TEXT("ApplyBeamDamage"))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: TimedLoop child sequence mismatch"));
+			return false;
+		}
 	}
 
 	// Validate WaitForMontageEvent EventTag
@@ -1149,7 +1170,7 @@ static bool SmokeTest_ElectrocuteFileGraph()
 		}
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteFileGraph PASSED (WaitForTargetData->FaceTarget->PlayMontage->WaitForMontageEvent->ElectrocuteBeam)."));
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ElectrocuteFileGraph PASSED (modular beam graph)."));
 	return true;
 }
 
@@ -1189,15 +1210,15 @@ static bool SmokeTest_SequenceCancelPropagation()
 	Root->Init(Def->RootNode, /*OwnerAbility=*/nullptr);
 	Root->ParentTask = nullptr;
 
-	if (Root->ChildTasks.Num() != 5)
+	if (Root->ChildTasks.Num() != 11)
 	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: expected 5 children, got %d"), Root->ChildTasks.Num());
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: expected 11 children, got %d"), Root->ChildTasks.Num());
 		return false;
 	}
 
-	if (!Root->ChildTasks[4] || !Root->ChildTasks[4]->IsA<UElectrocuteBeamTask>())
+	if (!Root->ChildTasks[9] || !Root->ChildTasks[9]->IsA<UTimedLoopTask>())
 	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: child[4] is not UElectrocuteBeamTask"));
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] SequenceCancelPropagation: child[9] is not UTimedLoopTask"));
 		return false;
 	}
 
@@ -1230,7 +1251,7 @@ static bool SmokeTest_SequenceCancelPropagation()
 		return false;
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] SequenceCancelPropagation PASSED (Cancel propagated to 5 children, no crash)."));
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] SequenceCancelPropagation PASSED (Cancel propagated to 11 children, no crash)."));
 	return true;
 }
 
@@ -2216,6 +2237,16 @@ void FAuraAbilityGraphModule::StartupModule()
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("Wait"), [](UObject* O) { return NewObject<UWaitNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("SpawnShards"), [](UObject* O) { return NewObject<USpawnShardsNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("ElectrocuteBeam"), [](UObject* O) { return NewObject<UElectrocuteBeamNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("ResolveBeamOrigin"), [](UObject* O) { return NewObject<UResolveBeamOriginNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("AcquirePrimaryBeamTarget"), [](UObject* O) { return NewObject<UAcquirePrimaryBeamTargetNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("SelectBeamChainTargets"), [](UObject* O) { return NewObject<USelectBeamChainTargetsNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("SpawnBeamVisuals"), [](UObject* O) { return NewObject<USpawnBeamVisualsNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("InitializeBeamEndpoints"), [](UObject* O) { return NewObject<UInitializeBeamEndpointsNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("TimedLoop"), [](UObject* O) { return NewObject<UTimedLoopNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("PruneBeamTargets"), [](UObject* O) { return NewObject<UPruneBeamTargetsNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("RefreshBeamEndpoints"), [](UObject* O) { return NewObject<URefreshBeamEndpointsNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("ApplyBeamDamage"), [](UObject* O) { return NewObject<UApplyBeamDamageNode>(O); });
+	FAuraAbilityNodeRegistry::Get().Register(TEXT("DestroyBeamVisuals"), [](UObject* O) { return NewObject<UDestroyBeamVisualsNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("EnemyCombatMontage"), [](UObject* O) { return NewObject<UEnemyCombatMontageNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("EnemyMeleeDamage"), [](UObject* O) { return NewObject<UEnemyMeleeDamageNode>(O); });
 	FAuraAbilityNodeRegistry::Get().Register(TEXT("EnemyHitReact"), [](UObject* O) { return NewObject<UEnemyHitReactNode>(O); });

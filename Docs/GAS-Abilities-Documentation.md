@@ -19,7 +19,7 @@ UAuraDataAbility (instanced per actor)
 - **Ability definitions** are XML files in `Content/AbilityDefinitions/`
 - **UAuraDataAbility** (`DataAbility.h/cpp`) is the runtime activation class. It is `InstancedPerActor`. At activation it resolves an already-parsed definition from the ability spec's `SourceObject` (or the replicated ability tag fallback), creates runtime tasks from the definition's node tree, and executes them.
 - **UAuraAbilityDefinition** (`AbilityDefinition.h/cpp`) is a transient UObject populated by `LoadFromXML()` while role configuration is loaded or reloaded. It holds identity tags, cost, cooldown, damage parameters, and the root graph node. Montage data belongs to `PlayMontage` nodes rather than to the definition itself.
-- **Graph execution** uses `UAuraAbilityActionTask` (base), with concrete tasks for each node type (`WaitForTargetData`, `PlayMontage`, `WaitForMontageEvent`, `SpawnProjectile`, `SpawnProjectiles`, `ApplyDamage`, `CauseDamage`, `MulticastGunFX`, `HitscanTrace`, `FaceTarget`, `SpawnShards`, `ElectrocuteBeam`, `Wait`, `Sequence`).
+- **Graph execution** uses `UAuraAbilityActionTask` (base), with concrete tasks for each node type (`WaitForTargetData`, `PlayMontage`, `WaitForMontageEvent`, `SpawnProjectile`, `SpawnProjectiles`, `ApplyDamage`, `CauseDamage`, `MulticastGunFX`, `HitscanTrace`, `FaceTarget`, `SpawnShards`, the modular Electrocute beam nodes, `Wait`, and `Sequence`). The legacy `ElectrocuteBeam` node remains registered for compatibility.
 - **Cost/Cooldown** are pure C++ `UGameplayEffect` subclasses (`UAuraManaCostGameplayEffect`, `UAuraCooldownGameplayEffect`) — no Blueprint UAssets needed.
 - **Damage** uses `UAuraDamageGameplayEffect` (C++ `UGameplayEffect` with `UExecCalc_Damage`) — no per-damage-type GE UAsset.
 
@@ -256,7 +256,7 @@ The active graph uses `<property name="ProjectileDefinition" value="fireBolt"/>`
 | **Targeting** | Blueprint task nodes | `<graph>` XML nodes |
 | **Ability-specific definition** | Blueprint GA plus supporting assets | One XML definition, plus shared native nodes/GEs and shared projectile/VFX configuration |
 | **Designer-friendly** | Yes (visual BP graph) | Yes (XML, editor tooling) |
-| **New node types needed** | N/A | `SpawnProjectiles`, `SpawnShards`, `ElectrocuteBeam` |
+| **New node types needed** | N/A | `SpawnProjectiles`, `SpawnShards`, and the modular Electrocute beam nodes |
 
 ---
 
@@ -682,15 +682,53 @@ The beam Niagara system (`NS_ElectricBeam`), the ShockBurst GameplayCue, and the
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.Electrocute"/>
       </node>
-      <node class="ElectrocuteBeam"/>
+      <node class="ResolveBeamOrigin">
+        <property name="SocketTag" value="CombatSocket.Weapon"/>
+        <property name="MaxRange" value="3000"/>
+      </node>
+      <node class="AcquirePrimaryBeamTarget">
+        <property name="TraceRadius" value="10"/>
+        <property name="MaxRange" value="3000"/>
+        <property name="AllowVisualOnlyEndpoint" value="true"/>
+      </node>
+      <node class="SelectBeamChainTargets">
+        <property name="SearchRadius" value="850"/>
+        <property name="MaxAdditionalTargets" value="5"/>
+      </node>
+      <node class="SpawnBeamVisuals">
+        <property name="BeamEffect" value="/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam"/>
+        <property name="BeamStartParameter" value="User.Beam Start"/>
+        <property name="BeamEndParameter" value="User.Beam End"/>
+      </node>
+      <node class="InitializeBeamEndpoints">
+        <property name="BeamStartParameter" value="User.Beam Start"/>
+        <property name="BeamEndParameter" value="User.Beam End"/>
+      </node>
+      <node class="TimedLoop">
+        <property name="Duration" value="2"/>
+        <property name="Interval" value="0.2"/>
+        <property name="ExecuteImmediately" value="true"/>
+        <property name="CleanupBeamStateOnCancel" value="true"/>
+        <node class="Sequence">
+          <node class="PruneBeamTargets"/>
+          <node class="RefreshBeamEndpoints">
+            <property name="BeamStartParameter" value="User.Beam Start"/>
+            <property name="BeamEndParameter" value="User.Beam End"/>
+          </node>
+          <node class="ApplyBeamDamage">
+            <property name="AuthorityOnly" value="true"/>
+          </node>
+        </node>
+      </node>
+      <node class="DestroyBeamVisuals"/>
     </node>
   </graph>
 </ability>
 ```
 
-The `ElectrocuteBeam` node channels a lightning beam with chain targets. `FindBeamTargets()` runs once when the node starts. It selects a primary target and up to `Min(MaxChainTargets, AbilityLevel - 1)` additional targets. Each server tick updates endpoints, removes invalid actor references, and applies damage to the remaining array; it does not search for replacement targets. A non-enemy cursor hit can receive a visual primary beam but has no ASC and therefore receives no damage or chain targets.
+The modular graph channels a lightning beam with chain targets. Origin resolution, primary acquisition, chain selection, VFX creation, endpoint updates, damage, and cleanup are separate nodes. Chain selection runs once and selects up to `Min(MaxAdditionalTargets, AbilityLevel - 1)` additional targets; each timed iteration updates endpoints, prunes invalid actors, and applies authority-only damage to the retained set. A non-damageable cursor hit can receive a visual primary beam but has no ASC and therefore receives no damage or chain targets.
 
-**Key Diff:** In the data-driven path, the orchestration is represented by a single `<node class="ElectrocuteBeam"/>`; the target selection, timers, damage, and Niagara logic live in the shared C++ task.
+**Key Diff:** In the data-driven path, the orchestration is represented by a readable sequence of focused XML nodes. The legacy `<node class="ElectrocuteBeam"/>` remains available for compatibility, but is no longer used by `Electrocute.xml`.
 
 ---
 

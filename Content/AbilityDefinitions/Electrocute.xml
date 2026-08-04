@@ -19,11 +19,64 @@
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.Electrocute"/>
       </node>
+
+      <!-- Beam setup -->
+      <node class="ResolveBeamOrigin">
+        <property name="SocketTag" value="CombatSocket.Weapon"/>
+        <property name="MaxRange" value="3000"/>
+      </node>
+      <node class="AcquirePrimaryBeamTarget">
+        <!-- Uses the activation cursor hit; falls back to a forward sphere trace. -->
+        <property name="TraceRadius" value="10"/>
+        <property name="MaxRange" value="3000"/>
+        <property name="AllowVisualOnlyEndpoint" value="true"/>
+      </node>
+      <node class="SelectBeamChainTargets">
+        <!-- Selects ability-level-minus-one targets once; the channel keeps this set. -->
+        <property name="SearchRadius" value="850"/>
+        <property name="MaxAdditionalTargets" value="5"/>
+      </node>
+
+      <!-- Beam visuals -->
+      <node class="SpawnBeamVisuals">
+        <property name="BeamEffect" value="/Game/Assets/Effects/Shock/NS_ElectricBeam.NS_ElectricBeam"/>
+        <property name="BeamStartParameter" value="User.Beam Start"/>
+        <property name="BeamEndParameter" value="User.Beam End"/>
+      </node>
+      <node class="InitializeBeamEndpoints">
+        <property name="BeamStartParameter" value="User.Beam Start"/>
+        <property name="BeamEndParameter" value="User.Beam End"/>
+      </node>
+
+      <!-- Channeled execution -->
+      <node class="TimedLoop">
+        <property name="Duration" value="2"/>
+        <property name="Interval" value="0.2"/>
+        <property name="ExecuteImmediately" value="true"/>
+        <property name="CleanupBeamStateOnCancel" value="true"/>
+        <node class="Sequence">
+          <node class="PruneBeamTargets"/>
+          <node class="RefreshBeamEndpoints">
+            <property name="BeamStartParameter" value="User.Beam Start"/>
+            <property name="BeamEndParameter" value="User.Beam End"/>
+          </node>
+          <node class="ApplyBeamDamage">
+            <property name="AuthorityOnly" value="true"/>
+          </node>
+        </node>
+      </node>
+
+      <!-- Cleanup -->
+      <node class="DestroyBeamVisuals"/>
+
+      <!-- The legacy ElectrocuteBeam node is intentionally no longer used. -->
+      <!--
       <node class="ElectrocuteBeam">
         <property name="MaxBeamRange" value="3000"/>
         <property name="BeamStartParameter" value="User.Beam Start"/>
         <property name="BeamEndParameter" value="User.Beam End"/>
       </node>
+      -->
     </node>
   </graph>
 </ability>
