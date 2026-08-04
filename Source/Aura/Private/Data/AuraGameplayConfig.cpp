@@ -174,7 +174,7 @@ namespace AuraGameplayConfigPrivate
 				return false;
 			}
 			Definition.NativeClass = LoadClass<AAuraProjectile>(nullptr, *ClassPath);
-			if (!Definition.NativeClass || Definition.NativeClass->ClassGeneratedBy != nullptr)
+			if (!Definition.NativeClass || !Definition.NativeClass->IsNative())
 			{
 				OutError = FString::Printf(TEXT("Projectile '%s' nativeClass '%s' is invalid or Blueprint-generated"), *Pair.Key, *ClassPath);
 				return false;
@@ -239,7 +239,7 @@ namespace AuraGameplayConfigPrivate
 			}
 			Definition.NativeClass = LoadClass<AAuraEffectActor>(nullptr, *ClassPath);
 			Definition.EffectName = FName(*Effect);
-			if (!Definition.NativeClass || Definition.NativeClass->ClassGeneratedBy || !Target.Effects.Contains(Definition.EffectName))
+			if (!Definition.NativeClass || !Definition.NativeClass->IsNative() || !Target.Effects.Contains(Definition.EffectName))
 			{
 				OutError = FString::Printf(TEXT("Pickup '%s' has invalid nativeClass or unknown effect '%s'"), *Pair.Key, *Effect);
 				return false;

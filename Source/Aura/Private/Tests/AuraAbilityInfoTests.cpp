@@ -113,9 +113,9 @@ bool FAuraAbilityRuntimeResolutionTest::RunTest(const FString& Parameters)
 
 	UAuraAbilitySystemComponent* ASC = NewObject<UAuraAbilitySystemComponent>();
 	FGameplayAbilitySpec DataSpec(UAuraDataAbility::StaticClass(), 7);
-	DataSpec.DynamicAbilityTags.AddTag(AbilityTag);
-	DataSpec.DynamicAbilityTags.AddTag(InputTag);
-	DataSpec.DynamicAbilityTags.AddTag(StatusTag);
+	DataSpec.GetDynamicSpecSourceTags().AddTag(AbilityTag);
+	DataSpec.GetDynamicSpecSourceTags().AddTag(InputTag);
+	DataSpec.GetDynamicSpecSourceTags().AddTag(StatusTag);
 
 	const FAuraAbilityInfo Merged = ASC->GetRuntimeAbilityInfoForSpec(DataSpec);
 	TestEqual(TEXT("Runtime merge preserves the stable ability tag"), Merged.AbilityTag, AbilityTag);
