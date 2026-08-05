@@ -74,6 +74,12 @@ public:
 	UFUNCTION(Exec, Category="Aura|Cheats")
 	void AddSpellPoints(int32 InPoints);
 
+	// ---- Monster Spawn ------------------------------------------------------
+
+	/** Spawn the monster-table entry with the given numeric ID near the controlled player. */
+	UFUNCTION(Exec, Category="Aura|Cheats")
+	void AddMonster(int32 MonsterId);
+
 	// ---- Transport ----------------------------------------------------------
 
 	/**

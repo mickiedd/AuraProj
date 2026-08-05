@@ -18,6 +18,7 @@
 #include "Actor/MagicCircle.h"
 #include "Aura/Aura.h"
 #include "Aura/AuraLogChannels.h"
+#include "Character/AuraEnemy.h"
 #include "Components/DecalComponent.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -32,6 +33,7 @@
 #include "InputCoreTypes.h"
 #include "TimerManager.h"
 #include "Game/ServerTravelComponent.h"
+#include "Game/AuraGameModeBase.h"
 #include "Client/AuraClientDisconnectHandler.h"
 #include "Network/AuraHeartbeatComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -263,6 +265,71 @@ void AAuraPlayerController::RequestTransferToRandomPlayer()
 	}
 
 	ServerTransferToRandomPlayer();
+}
+
+void AAuraPlayerController::RequestAddMonster(int32 MonsterId)
+{
+	UE_LOG(LogAura, Log, TEXT("AddMonster invoked on %s. MonsterId=%d HasAuthority=%s Pawn=%s"),
+		*GetNameSafe(this),
+		MonsterId,
+		HasAuthority() ? TEXT("true") : TEXT("false"),
+		*GetNameSafe(GetPawn()));
+
+	if (HasAuthority())
+	{
+		ExecuteAddMonster(MonsterId);
+		return;
+	}
+
+	ServerAddMonster(MonsterId);
+}
+
+void AAuraPlayerController::ServerAddMonster_Implementation(int32 MonsterId)
+{
+	ExecuteAddMonster(MonsterId);
+}
+
+void AAuraPlayerController::ExecuteAddMonster(int32 MonsterId)
+{
+	APawn* MyPawn = GetPawn();
+	if (!IsValid(MyPawn))
+	{
+		UE_LOG(LogAura, Warning, TEXT("AddMonster failed: no controlled pawn for monster id %d."), MonsterId);
+		ClientMessage(TEXT("AddMonster: no controlled pawn."));
+		return;
+	}
+
+	AAuraGameModeBase* GameMode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr;
+	if (!IsValid(GameMode))
+	{
+		UE_LOG(LogAura, Warning, TEXT("AddMonster failed: no authoritative AuraGameMode for monster id %d."), MonsterId);
+		ClientMessage(TEXT("AddMonster: authoritative game mode unavailable."));
+		return;
+	}
+
+	// Keep the spawn close to the player while avoiding placement directly inside
+	// the player's capsule. The GameMode still applies the table row's level,
+	// class, scale, and respawn settings.
+	const float SpawnDistance = FMath::FRandRange(150.f, 250.f);
+	const float SpawnAngleRadians = FMath::FRandRange(0.f, UE_TWO_PI);
+	const FVector SpawnOffset(
+		FMath::Cos(SpawnAngleRadians) * SpawnDistance,
+		FMath::Sin(SpawnAngleRadians) * SpawnDistance,
+		0.f);
+	const FVector MonsterSpawnLocation = MyPawn->GetActorLocation() + SpawnOffset;
+
+	AAuraEnemy* SpawnedEnemy = GameMode->SpawnMonsterByIdAtLocation(MonsterId, MonsterSpawnLocation);
+	if (!IsValid(SpawnedEnemy))
+	{
+		ClientMessage(FString::Printf(TEXT("AddMonster: failed to spawn monster id %d."), MonsterId));
+		return;
+	}
+
+	UE_LOG(LogAura, Log, TEXT("AddMonster spawned monster id %d near %s at %s."),
+		MonsterId,
+		*GetNameSafe(MyPawn),
+		*MonsterSpawnLocation.ToCompactString());
+	ClientMessage(FString::Printf(TEXT("AddMonster: spawned monster id %d nearby."), MonsterId));
 }
 
 void AAuraPlayerController::ServerTransferToRandomPlayer_Implementation()

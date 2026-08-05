@@ -995,7 +995,11 @@ bool AAuraGameModeBase::LoadMonsterSpawnTable()
 		}
 
 		FMonsterSpawnTableRow Row;
-		RowObject->TryGetStringField(TEXT("id"), Row.Id);
+		double RowId = static_cast<double>(Row.Id);
+		if (RowObject->TryGetNumberField(TEXT("id"), RowId))
+		{
+			Row.Id = static_cast<int32>(RowId);
+		}
 		RowObject->TryGetStringField(TEXT("mapName"), Row.MapName);
 		if (Row.MapName.IsEmpty())
 		{
@@ -1128,6 +1132,36 @@ int32 AAuraGameModeBase::SpawnMonstersFromLoadedTable()
 	return SpawnedCount;
 }
 
+AAuraEnemy* AAuraGameModeBase::SpawnMonsterByIdAtLocation(int32 MonsterId, const FVector& SpawnLocation)
+{
+	if (!HasAuthority())
+	{
+		UE_LOG(LogAura, Warning, TEXT("SpawnMonsterByIdAtLocation called without authority for monster id %d."), MonsterId);
+		return nullptr;
+	}
+
+	if (!bMonsterSpawnTableLoaded && !LoadMonsterSpawnTable())
+	{
+		UE_LOG(LogAura, Warning, TEXT("SpawnMonsterByIdAtLocation failed because the monster spawn table could not be loaded."));
+		return nullptr;
+	}
+
+	const FMonsterSpawnTableRow* MonsterRow = LoadedMonsterSpawnRows.FindByPredicate(
+		[MonsterId](const FMonsterSpawnTableRow& Row)
+		{
+			return Row.Id == MonsterId;
+		});
+	if (MonsterRow == nullptr)
+	{
+		UE_LOG(LogAura, Warning, TEXT("SpawnMonsterByIdAtLocation could not find monster id %d."), MonsterId);
+		return nullptr;
+	}
+
+	FMonsterSpawnTableRow SpawnRow = *MonsterRow;
+	SpawnRow.Transform.Location = SpawnLocation;
+	return SpawnMonsterFromRow(SpawnRow);
+}
+
 bool AAuraGameModeBase::ShouldSpawnRowForCurrentMap(const FMonsterSpawnTableRow& Row, const FString& CurrentMapName) const
 {
 	if (Row.MapName.IsEmpty())
@@ -1149,7 +1183,7 @@ AAuraEnemy* AAuraGameModeBase::SpawnMonsterFromRow(const FMonsterSpawnTableRow& 
 	const TSubclassOf<AAuraEnemy> EnemyClass = ResolveMonsterClassFromPath(Row.MonsterClassPath);
 	if (!EnemyClass)
 	{
-		UE_LOG(LogAura, Warning, TEXT("Failed to load monster class '%s' for row '%s'."), *Row.MonsterClassPath, *Row.Id);
+		UE_LOG(LogAura, Warning, TEXT("Failed to load monster class '%s' for row '%d'."), *Row.MonsterClassPath, Row.Id);
 		return nullptr;
 	}
 
@@ -1159,22 +1193,22 @@ AAuraEnemy* AAuraGameModeBase::SpawnMonsterFromRow(const FMonsterSpawnTableRow& 
 
 	if (!IsValid(Enemy))
 	{
-		UE_LOG(LogAura, Warning, TEXT("Failed to spawn enemy for row '%s'."), *Row.Id);
+		UE_LOG(LogAura, Warning, TEXT("Failed to spawn enemy for row '%d'."), Row.Id);
 		return nullptr;
 	}
 
 	Enemy->SetLevel(Row.Level);
 	Enemy->SetCharacterClass(Row.CharacterClass);
 	Enemy->FinishSpawning(SpawnTransform);
-	UE_LOG(LogAura, Log, TEXT("[EnemyAI][Spawn] Spawned row=%s enemy=%s class=%s location=%s"),
-		*Row.Id,
+	UE_LOG(LogAura, Log, TEXT("[EnemyAI][Spawn] Spawned row=%d enemy=%s class=%s location=%s"),
+		Row.Id,
 		*GetNameSafe(Enemy),
 		*GetNameSafe(EnemyClass),
 		*SpawnTransform.GetLocation().ToCompactString());
 
 	Enemy->SpawnDefaultController();
-	UE_LOG(LogAura, Log, TEXT("[EnemyAI][Spawn] Controller after SpawnDefaultController: row=%s enemy=%s controller=%s"),
-		*Row.Id,
+	UE_LOG(LogAura, Log, TEXT("[EnemyAI][Spawn] Controller after SpawnDefaultController: row=%d enemy=%s controller=%s"),
+		Row.Id,
 		*GetNameSafe(Enemy),
 		*GetNameSafe(Enemy->GetController()));
 

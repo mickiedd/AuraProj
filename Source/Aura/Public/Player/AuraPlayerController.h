@@ -58,6 +58,9 @@ public:
 	 */
 	void RequestTransferToRandomPlayer();
 
+	/** Request a server-authoritative monster spawn near the controlled pawn. */
+	void RequestAddMonster(int32 MonsterId);
+
 	// ---- UGC Building Exec Commands ----------------------------------------
 
 	/**
@@ -117,6 +120,9 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerTransferToRandomPlayer();
 
+	UFUNCTION(Server, Reliable)
+	void ServerAddMonster(int32 MonsterId);
+
 	UFUNCTION(Client, Reliable)
 	void ClientRefreshAbilityUI();
 
@@ -124,6 +130,9 @@ protected:
 
 	/** Server-authoritative implementation of RequestTransferToRandomPlayer. */
 	void ExecuteTransferToRandomPlayer();
+
+	/** Server-authoritative implementation of RequestAddMonster. */
+	void ExecuteAddMonster(int32 MonsterId);
 private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputMappingContext> AuraContext;

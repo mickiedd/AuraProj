@@ -40,7 +40,7 @@ struct FMonsterSpawnTableRow
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
-	FString Id;
+	int32 Id = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Spawn")
 	FString MapName;
@@ -188,6 +188,10 @@ public:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 	void PlayerDied(ACharacter* DeadCharacter, float RespawnDelay);
+
+	/** Spawn a loaded monster-table entry at a caller-provided location. */
+	AAuraEnemy* SpawnMonsterByIdAtLocation(int32 MonsterId, const FVector& SpawnLocation);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

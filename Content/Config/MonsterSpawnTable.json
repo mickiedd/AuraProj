@@ -1,7 +1,7 @@
 {
   "spawns": [
     {
-      "id": "Dungeon1_DemonWarrior_01",
+      "id": 1,
       "mapName": "map_dungeon_level_1_dungeon",
       "monsterClassPath": "/Game/Blueprints/Character/Demon/BP_Demon_Warrior",
       "level": 1,
@@ -15,7 +15,7 @@
       }
     },
     {
-      "id": "Dungeon1_DemonRanger_01",
+      "id": 2,
       "mapName": "map_dungeon_level_1_dungeon",
       "monsterClassPath": "/Game/Blueprints/Character/Demon/BP_Demon_Ranger",
       "level": 2,
@@ -29,7 +29,7 @@
       }
     },
     {
-      "id": "Dungeon1_Ghoul_01",
+      "id": 3,
       "mapName": "map_dungeon_level_1_dungeon",
       "monsterClassPath": "/Game/Blueprints/Character/Ghoul/BP_Ghoul",
       "level": 1,
@@ -43,7 +43,7 @@
       }
     },
     {
-      "id": "Dungeon1_GoblinSpear_01",
+      "id": 4,
       "mapName": "map_dungeon_level_1_dungeon",
       "monsterClassPath": "/Game/Blueprints/Character/Goblin_Spear/BP_GoblinSpear",
       "level": 1,
@@ -57,7 +57,7 @@
       }
     },
     {
-      "id": "Dungeon1_GoblinSlingshot_01",
+      "id": 5,
       "mapName": "map_dungeon_level_1_dungeon",
       "monsterClassPath": "/Game/Blueprints/Character/Goblin_Slingshot/BP_Goblin_Slingshot",
       "level": 2,
@@ -71,7 +71,7 @@
       }
     },
     {
-      "id": "Dungeon1_Shaman_01",
+      "id": 6,
       "mapName": "map_dungeon_level_1_dungeon",
       "monsterClassPath": "/Game/Blueprints/Character/Shaman/BP_Shaman",
       "level": 3,

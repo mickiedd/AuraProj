@@ -217,6 +217,17 @@ void UAuraCheatManager::AddSpellPoints(int32 InPoints)
 	UE_LOG(LogAura, Warning, TEXT("AuraCheatManager::AddSpellPoints: no AuraPlayerState."));
 }
 
+void UAuraCheatManager::AddMonster(int32 MonsterId)
+{
+	if (AAuraPlayerController* PC = GetAuraPC())
+	{
+		PC->RequestAddMonster(MonsterId);
+		return;
+	}
+
+	UE_LOG(LogAura, Warning, TEXT("AuraCheatManager::AddMonster: no owning PlayerController."));
+}
+
 void UAuraCheatManager::TransferToRandomPlayer()
 {
 	AAuraPlayerController* PC = GetAuraPC();
