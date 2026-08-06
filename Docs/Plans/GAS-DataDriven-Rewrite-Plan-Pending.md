@@ -1,6 +1,6 @@
 # Data-Driven GAS Rewrite — Pending Phases & Known Issues
 
-> Last verified: 2026-08-03. See `.claude/memory/gas-rewrite-pending.md` for the authoritative status.
+> Last verified: 2026-08-03. See `../../.claude/memory/gas-rewrite-pending.md` for the authoritative status.
 
 ## Phases NOT Started (from Plan §10)
 

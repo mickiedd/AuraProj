@@ -2,7 +2,7 @@
 
 > Status tracker for migrating the remaining old-GAS-version (Blueprint/GE-UAsset) abilities to the new data-driven AuraAbilityGraph system.
 > Last updated: 2026-08-03.
-> Reference plan: `Docs/GAS-DataDriven-Rewrite-Plan-Pending.md`.
+> Reference plan: `../Plans/GAS-DataDriven-Rewrite-Plan-Pending.md`.
 
 ---
 
@@ -10,7 +10,7 @@
 
 2026-08-02 decoupling update: active FireBolt/FireBlast/FireGun XML now uses cached native definitions from `ProjectileDefinitions.json`, and FireBall outbound/return behavior is native. The `AbilityInfo.json` runtime boundary is complete: active C++ and resaved UI/GameMode Blueprints no longer call `GetAbilityInfo()` or serialize a `DA_AbilityInfo` dependency. The legacy `DA_AbilityInfo` asset itself remains for cleanup/deletion after reference validation. Save/restore is tag-based and strict JSON validation is covered by automation tests. Projectile package deletion remains blocked: `BP_FireBolt` is referenced by `GA_FireBolt` and `GA_EnemyFireBolt`; `BP_FireBall` is referenced by `GA_FireBlast`. The native pickup migration is complete; legacy pickup packages were removed after reference, reload, automation, and cook gates.
 
-Ordered continuation steps and acceptance gates: `Docs/Gameplay-Blueprint-Decoupling-Next-Moves.md`.
+Ordered continuation steps and acceptance gates: `Gameplay-Blueprint-Decoupling-Next-Moves.md`.
 
 | Status | Count | Items |
 |---|---|---|
@@ -119,7 +119,7 @@ After all abilities are migrated, remove these files from the repo:
 
 ## ⬜ Phase 5 — Known Issues to Fix
 
-These are the known issues from `GAS-DataDriven-Rewrite-Plan-Pending.md` that should be addressed:
+These are the known issues from `../Plans/GAS-DataDriven-Rewrite-Plan-Pending.md` that should be addressed:
 
 ### High Priority
 
@@ -248,11 +248,11 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 
 ## ⬜ Documentation Updates
 
-- [ ] Update `Docs/GAS-DataDriven-Rewrite-Plan.md` to reflect completed items and remaining TODOs
-- [ ] Update `Docs/GAS-DataDriven-Rewrite-Plan-Pending.md` with current status
-- [ ] Update `Docs/GAS-Abilities-Documentation.md` when new abilities are added
+- [ ] Update `../Plans/GAS-DataDriven-Rewrite-Plan.md` to reflect completed items and remaining TODOs
+- [ ] Update `../Plans/GAS-DataDriven-Rewrite-Plan-Pending.md` with current status
+- [ ] Update `../Reference/GAS-Abilities-Documentation.md` when new abilities are added
 - [ ] Add inline code comments in `DataAbility.cpp` for complex lifecycle logic (cancel propagation, re-entrancy guard)
-- [ ] Add XML schema reference doc (e.g., `Docs/AbilityXML-Schema.md`) for new developers
+- [ ] Add XML schema reference doc (e.g., `../Reference/AbilityXML-Schema.md`) for new developers
 
 ---
 

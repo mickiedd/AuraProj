@@ -54,7 +54,7 @@ The retained C++ classes provide `BlueprintCallable` helpers for their Blueprint
 
 ---
 
-> 2026-08-02 update: active projectile graph nodes use named entries in `Content/Config/ProjectileDefinitions.json`. FireBolt resolves to native `AAuraProjectile`; FireBlast resolves to native `AAuraFireBall`, whose outbound/return movement no longer requires a Blueprint timeline. Legacy projectile/GA descriptions below document the retained compatibility path only; see `Gameplay-Blueprint-Decoupling-Migration-Report.md` for deletion blockers.
+> 2026-08-02 update: active projectile graph nodes use named entries in `Content/Config/ProjectileDefinitions.json`. FireBolt resolves to native `AAuraProjectile`; FireBlast resolves to native `AAuraFireBall`, whose outbound/return movement no longer requires a Blueprint timeline. Legacy projectile/GA descriptions below document the retained compatibility path only; see `../Reports/Gameplay-Blueprint-Decoupling-Migration-Report.md` for deletion blockers.
 
 ## Buff and Pickup Effects
 

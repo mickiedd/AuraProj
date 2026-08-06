@@ -3,8 +3,8 @@
 > Status: **In progress — native projectile/pickup runtime implemented; legacy ability cleanup remains**
 > Prepared: 2026-08-02  
 > Audience: a new implementation agent  
-> Read first: `Buff-DataDriven-Migration-Plan.md`, `GAS-DataDriven-Rewrite-Plan.md`, and `GAS-Migration-TODOs.md`
-> Continue with: `Gameplay-Blueprint-Decoupling-Next-Moves.md`
+> Read first: `Buff-DataDriven-Migration-Plan.md`, `GAS-DataDriven-Rewrite-Plan.md`, and `../Tracking/GAS-Migration-TODOs.md`
+> Continue with: `../Tracking/Gameplay-Blueprint-Decoupling-Next-Moves.md`
 
 ## Objective
 
@@ -230,7 +230,7 @@ This phase is separate but required before claiming **all Aura gameplay** is Blu
 
 ### Enemies
 
-Port and test `GA_EnemyFireBolt`, `GA_RangedAttack`, `GA_MeleeAttack`, and `GA_HitReact` as tracked in `GAS-Migration-TODOs.md`. Verify AI integration, grants, targeting, montage events, damage/cooldown, death, and authority before deleting their assets.
+Port and test `GA_EnemyFireBolt`, `GA_RangedAttack`, `GA_MeleeAttack`, and `GA_HitReact` as tracked in `../Tracking/GAS-Migration-TODOs.md`. Verify AI integration, grants, targeting, montage events, damage/cooldown, death, and authority before deleting their assets.
 
 ### Passives
 
@@ -337,7 +337,7 @@ Narrow migration:
 - Active player abilities use no legacy player GA/cost/cooldown assets.
 - Presentation UAssets are documented as allowed dependencies.
 - focused automation, the entire AuraAbilityGraph suite, multiplayer smoke, build, cook, packaged launch, and log analysis pass cleanly.
-- `Buff-DataDriven-Migration-Plan.md`, `GAS-Abilities-Documentation.md`, and `GAS-Migration-TODOs.md` contain the final architecture, results, retained assets, and deletions.
+- `Buff-DataDriven-Migration-Plan.md`, `../Reference/GAS-Abilities-Documentation.md`, and `../Tracking/GAS-Migration-TODOs.md` contain the final architecture, results, retained assets, and deletions.
 
 Wider migration: enemy and passive Phase 4 work must pass equivalent gates before claiming all gameplay logic is Blueprint-independent.
 

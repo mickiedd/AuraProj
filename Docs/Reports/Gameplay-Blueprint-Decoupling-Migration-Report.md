@@ -49,7 +49,7 @@ Retained presentation UAssets include the potion/crystal meshes and materials, `
 
 ## Deferred gates
 
-The ordered implementation handoff is maintained in `Gameplay-Blueprint-Decoupling-Next-Moves.md`.
+The ordered implementation handoff is maintained in `../Tracking/Gameplay-Blueprint-Decoupling-Next-Moves.md`.
 
 - Migrate remaining `GetAbilityInfo()` UI/save/status consumers to `URuntimeAbilityInfo` and role/definition data.
 - Clear the `GA_FireBolt` reference in `BP_AuraCharacter`, then review legacy player GA/GE deletion as a small gated batch.

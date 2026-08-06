@@ -1,8 +1,8 @@
 # GAS Migration — Audit Findings (2026-08-03)
 
-> Corrected audit of `Docs/GAS-Migration-TODOs.md` and `Docs/GAS-DataDriven-Rewrite-Plan-Pending.md`.
+> Corrected audit of `../Tracking/GAS-Migration-TODOs.md` and `../Plans/GAS-DataDriven-Rewrite-Plan-Pending.md`.
 > Every claim below was re-verified against the current source tree on 2026-08-03.
-> Related: `Docs/GAS-Migration-TODOs.md` (status tracker), `.claude/memory/gas-rewrite-pending.md` (memory status).
+> Related: `../Tracking/GAS-Migration-TODOs.md` (status tracker), `../../.claude/memory/gas-rewrite-pending.md` (memory status).
 
 ---
 
