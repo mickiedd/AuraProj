@@ -134,7 +134,12 @@ EBehaviorUStatus UAuraBehaviorUAgentComponent::Method_MoveToWanderTarget()
 
 	// Fire-and-forget move. ResultOption on the <Action> is BT_SUCCESS, so the node
 	// succeeds immediately; the path-follow happens asynchronously on the controller.
-	AIC->MoveToLocation(Target, 50.f, /*bStopOnOverlap=*/true, /*bUsePathfinding=*/true,
+	// Levels without a NavMesh (e.g. L_showcase_level) have no navigation data, so a
+	// pathfinding move would silently fail and the NPC would never move. Detect that
+	// and fall back to a direct (non-pathfinding) move toward the target.
+	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	const bool bHasNavMesh = NavSys != nullptr && NavSys->GetDefaultNavDataInstance() != nullptr;
+	AIC->MoveToLocation(Target, 50.f, /*bStopOnOverlap=*/true, /*bUsePathfinding=*/bHasNavMesh,
 		/*bProjectDestinationToNavigation=*/false, /*bCanStrafe=*/true);
 
 	UE_LOG(LogAura, Log, TEXT("[BehaviorUTest] %s MoveToWanderTarget -> %s"),

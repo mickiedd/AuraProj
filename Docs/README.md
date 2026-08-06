@@ -37,3 +37,4 @@
 | Doc | Purpose |
 |---|---|
 | [GAS-Abilities-Documentation.md](Reference/GAS-Abilities-Documentation.md) | Implementation documentation for all data-driven abilities. |
+| [Remote-Python-Editor-Automation.md](Reference/Remote-Python-Editor-Automation.md) | Runbook: drive the editor via UE Remote Execution (`Scripts/remote_run.py`) — add navmesh, spawn actors, recook for the server. |

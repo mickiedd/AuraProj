@@ -5,6 +5,11 @@
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "Components/BrushComponent.h"
+#include "EngineUtils.h"
+#include "FileHelpers.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
+#include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BTCompositeNode.h"
 #include "BehaviorTree/BTDecorator.h"
@@ -300,6 +305,14 @@ private:
 			LOCTEXT("OpenRoleConfigTooltip", "Open Content/Config/RoleConfig.json in the default text editor to edit role assets or the defaultRole, then use 'Reload Role Config on Running Sessions' to apply."),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Edit"),
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnOpenRoleConfigClicked)));
+		MenuBuilder.EndSection();
+
+		MenuBuilder.BeginSection("AuraLevelToolsSection", LOCTEXT("AuraLevelToolsSectionLabel", "Level Tools"));
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("AddNavMeshBoundsVolumeLabel", "Add NavMeshBoundsVolume to Current Level"),
+			LOCTEXT("AddNavMeshBoundsVolumeTooltip", "Spawn a NavMeshBoundsVolume covering the current level's actor bounds, save the level, and build navigation. Fixes AI pathfinding in levels that have no NavMesh (e.g. L_showcase_level)."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Build"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnAddNavMeshBoundsVolumeClicked)));
 		MenuBuilder.EndSection();
 
 		MenuBuilder.BeginSection("AuraCheatCommandsSection", LOCTEXT("AuraCheatCommandsSectionLabel", "Cheat Commands"));
@@ -2137,6 +2150,94 @@ private:
 
 		FPlatformProcess::LaunchFileInDefaultExternalApplication(*ConfigPath);
 		UE_LOG(LogAuraEditor, Display, TEXT("Opened RoleConfig.json in default editor | Path='%s'"), *ConfigPath);
+	}
+
+	/**
+	 * Spawn a NavMeshBoundsVolume covering the current level's actor bounds, save the
+	 * level, and trigger a navigation build. Levels without a NavMesh (e.g. the desert
+	 * city L_showcase_level) leave AI pathfinding silently broken: the combat BT's
+	 * EQS->MoveTo chain and the BehaviorU wander both fail to move the NPC. This tool
+	 * gives the level a bounds volume so Build Paths has somewhere to generate a
+	 * RecastNavMesh.
+	 */
+	void OnAddNavMeshBoundsVolumeClicked() const
+	{
+		UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
+		if (!World || !World->GetCurrentLevel())
+		{
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("AddNavMeshNoWorld", "No editor world is available. Open a level first."));
+			return;
+		}
+
+		// Compute the level's actor bounds so the volume covers the playable area.
+		FBox LevelBounds(ForceInit);
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			AActor* Actor = *It;
+			if (!Actor)
+			{
+				continue;
+			}
+			const FBox ActorBox = Actor->GetComponentsBoundingBox(true);
+			if (ActorBox.IsValid)
+			{
+				LevelBounds += ActorBox;
+			}
+		}
+
+		FVector Center = FVector::ZeroVector;
+		FVector Extent(5000.f, 5000.f, 1000.f); // fallback when the level has no geometry
+		if (LevelBounds.IsValid)
+		{
+			Center = LevelBounds.GetCenter();
+			Extent = LevelBounds.GetExtent() + FVector(500.f, 500.f, 200.f);
+		}
+
+		ANavMeshBoundsVolume* Volume = World->SpawnActor<ANavMeshBoundsVolume>(
+			ANavMeshBoundsVolume::StaticClass(), Center, FRotator::ZeroRotator);
+		if (!Volume)
+		{
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("AddNavMeshSpawnFailed", "Failed to spawn the NavMeshBoundsVolume."));
+			return;
+		}
+
+		// The default brush is a unit box; scale the actor so the brush covers the desired extent.
+		const FBox BrushBox = Volume->GetBrushComponent()->Bounds.GetBox();
+		const FVector BrushExtent = BrushBox.GetExtent();
+		const FVector Scale(
+			BrushExtent.X > KINDA_SMALL_NUMBER ? Extent.X / BrushExtent.X : 1.f,
+			BrushExtent.Y > KINDA_SMALL_NUMBER ? Extent.Y / BrushExtent.Y : 1.f,
+			BrushExtent.Z > KINDA_SMALL_NUMBER ? Extent.Z / BrushExtent.Z : 1.f);
+		Volume->SetActorScale3D(Scale);
+		Volume->GetBrushComponent()->MarkRenderStateDirty();
+		Volume->MarkPackageDirty();
+		World->GetCurrentLevel()->MarkPackageDirty();
+
+		// Save the level so the volume persists.
+		const bool bSaved = FEditorFileUtils::SaveLevel(World->GetCurrentLevel());
+
+		// Build navigation so a RecastNavMesh is generated inside the new bounds.
+		bool bBuildTriggered = false;
+		if (UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(World))
+		{
+			NavSys->Build();
+			bBuildTriggered = true;
+		}
+
+		const FString LevelName = World->GetCurrentLevel()->GetOutermost()->GetName();
+		UE_LOG(LogAuraEditor, Display, TEXT("NavMeshBoundsVolume added | Level='%s' | Center=%s | Extent=%s | Saved=%s | BuildTriggered=%s"),
+			*LevelName, *Center.ToCompactString(), *Extent.ToCompactString(),
+			bSaved ? TEXT("true") : TEXT("false"), bBuildTriggered ? TEXT("true") : TEXT("false"));
+
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			FText::Format(
+				LOCTEXT("AddNavMeshResult", "NavMeshBoundsVolume added to '{0}'.\n\nCenter: {1}\nExtent: {2}\n\nLevel saved: {3}\nNavigation build triggered: {4}\n\nIf the build was not triggered (no nav system), use Build > Build Paths (Ctrl+Shift+B) to generate the NavMesh."),
+				FText::FromString(LevelName),
+				FText::FromString(Center.ToCompactString()),
+				FText::FromString(Extent.ToCompactString()),
+				bSaved ? LOCTEXT("AddNavMeshYes", "Yes") : LOCTEXT("AddNavMeshNo", "No"),
+				bBuildTriggered ? LOCTEXT("AddNavMeshYes", "Yes") : LOCTEXT("AddNavMeshNo", "No")));
 	}
 
 	FText GetDedicatedServerMenuLabel() const
