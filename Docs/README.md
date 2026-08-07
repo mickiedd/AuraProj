@@ -18,6 +18,9 @@
 | [Gameplay-Blueprint-Decoupling-Migration-Plan.md](Plans/Gameplay-Blueprint-Decoupling-Migration-Plan.md) | Plan to remove remaining Blueprint gameplay/definition UAssets (in progress). |
 | [Buff-DataDriven-Migration-Plan.md](Plans/Buff-DataDriven-Migration-Plan.md) | Data-driven buff/pickup system via `GameplayEffects.json` (implemented). |
 
+| [Role-Creation-and-Battle-System-Plan.md](Plans/Role-Creation-and-Battle-System-Plan.md) | Architecture plan for Aura Girl, BungeeMan, Civilian, combat, AI, and economy. |
+| [Role-Battle-Implementation-Index.md](Plans/Role-Battle-Implementation-Index.md) | Twenty-day implementation sequence with one executable plan per day. |
+
 ## Tracking
 
 | Doc | Purpose |
