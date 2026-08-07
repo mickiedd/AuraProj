@@ -108,9 +108,48 @@ void UAuraAbilitySystemLibrary::TopOffVitalAttributes(UAbilitySystemComponent* A
 	FGameplayEffectContextHandle Ctx = ASC->MakeEffectContext();
 	Ctx.AddSourceObject(SourceAvatar);
 	const FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(UAuraPickupGameplayEffect::StaticClass(), 1.f, Ctx);
+	AssignDefaultAttributeMagnitudes(Spec);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tags.Attributes_Vital_Health, AuraAS->GetMaxHealth());
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tags.Attributes_Vital_Mana, AuraAS->GetMaxMana());
 	ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+}
+
+void UAuraAbilitySystemLibrary::AssignDefaultAttributeMagnitudes(const FGameplayEffectSpecHandle& Spec)
+{
+	if (!Spec.IsValid()) return;
+
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	const FGameplayTag AttributeTags[] =
+	{
+		Tags.Attributes_Primary_Strength,
+		Tags.Attributes_Primary_Intelligence,
+		Tags.Attributes_Primary_Resilience,
+		Tags.Attributes_Primary_Vigor,
+		Tags.Attributes_Secondary_Armor,
+		Tags.Attributes_Secondary_ArmorPenetration,
+		Tags.Attributes_Secondary_BlockChance,
+		Tags.Attributes_Secondary_CriticalHitChance,
+		Tags.Attributes_Secondary_CriticalHitDamage,
+		Tags.Attributes_Secondary_CriticalHitResistance,
+		Tags.Attributes_Secondary_HealthRegeneration,
+		Tags.Attributes_Secondary_ManaRegeneration,
+		Tags.Attributes_Secondary_MaxHealth,
+		Tags.Attributes_Secondary_MaxMana,
+		Tags.Attributes_Resistance_Fire,
+		Tags.Attributes_Resistance_Lightning,
+		Tags.Attributes_Resistance_Arcane,
+		Tags.Attributes_Resistance_Physical,
+		Tags.Attributes_Vital_Health,
+		Tags.Attributes_Vital_Mana
+	};
+
+	for (const FGameplayTag& Tag : AttributeTags)
+	{
+		if (Tag.IsValid())
+		{
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tag, 0.f);
+		}
+	}
 }
 
 void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* WorldContextObject, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC)
@@ -123,6 +162,7 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
 	FGameplayEffectContextHandle PrimaryContext = ASC->MakeEffectContext();
 	PrimaryContext.AddSourceObject(AvatarActor);
 	const FGameplayEffectSpecHandle PrimarySpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), Level, PrimaryContext);
+	AssignDefaultAttributeMagnitudes(PrimarySpec);
 	ASC->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
 
 	// Secondary + Vital + Resistance from GameplayEffects.json
@@ -138,6 +178,7 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
 			FGameplayEffectContextHandle SecContext = ASC->MakeEffectContext();
 			SecContext.AddSourceObject(AvatarActor);
 			const FGameplayEffectSpecHandle SecSpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), Level, SecContext);
+			AssignDefaultAttributeMagnitudes(SecSpec);
 
 			auto AssignFromJson = [&SecSpec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)
 			{
@@ -184,6 +225,7 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UO
 	EffectContexthandle.AddSourceObject(SourceAvatarActor);
 
 	const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, EffectContexthandle);
+	AssignDefaultAttributeMagnitudes(SpecHandle);
 
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Strength, SaveGame->Strength);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Intelligence, SaveGame->Intelligence);
@@ -209,6 +251,7 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UO
 			FGameplayEffectContextHandle VitalContext = ASC->MakeEffectContext();
 			VitalContext.AddSourceObject(SourceAvatarActor);
 			const FGameplayEffectSpecHandle VitalSpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, VitalContext);
+			AssignDefaultAttributeMagnitudes(VitalSpec);
 
 			const TSharedPtr<FJsonObject>& Secondary = RootObj->GetObjectField(TEXT("secondaryAttributes"));
 			auto AssignFromJson = [&VitalSpec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)

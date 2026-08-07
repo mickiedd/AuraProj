@@ -58,6 +58,10 @@ public:
 	void SetAttributePoints(int32 InPoints);
 	void SetSpellPoints(int32 InPoints);
 	void SetRole(FName InRole);
+
+	/** True after the persistent ASC has received its initial attribute set. */
+	bool HasInitializedDefaultAttributes() const { return bDefaultAttributesInitialized; }
+	void MarkDefaultAttributesInitialized() { bDefaultAttributesInitialized = true; }
 	
 protected:
 	
@@ -83,6 +87,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Role)
 	FName CharacterRole = NAME_None;
+
+	/** Runtime-only guard because the ASC/attributes persist while the pawn respawns. */
+	UPROPERTY(Transient)
+	bool bDefaultAttributesInitialized = false;
 
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);

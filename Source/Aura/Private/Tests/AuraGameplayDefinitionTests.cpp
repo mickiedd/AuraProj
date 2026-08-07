@@ -28,15 +28,20 @@ bool FAuraProjectileDefinitionsTest::RunTest(const FString& Parameters)
 
 	const FAuraProjectileDefinition* FireBolt = FAuraGameplayConfig::FindProjectile(TEXT("fireBolt"));
 	const FAuraProjectileDefinition* FireBall = FAuraGameplayConfig::FindProjectile(TEXT("fireBall"));
+	const FAuraProjectileDefinition* FireGunBullet = FAuraGameplayConfig::FindProjectile(TEXT("fireGunBullet"));
 	TestNotNull(TEXT("fireBolt definition exists"), FireBolt);
 	TestNotNull(TEXT("fireBall definition exists"), FireBall);
-	if (!FireBolt || !FireBall) return false;
+	TestNotNull(TEXT("fireGunBullet definition exists"), FireGunBullet);
+	if (!FireBolt || !FireBall || !FireGunBullet) return false;
 	TestEqual(TEXT("FireBolt uses native projectile class"), FireBolt->NativeClass.Get(), AAuraProjectile::StaticClass());
 	TestEqual(TEXT("FireBolt measured speed retained"), FireBolt->InitialSpeed, 650.f);
 	TestTrue(TEXT("FireBolt measured radius retained"), FMath::IsNearlyEqual(FireBolt->CollisionRadius, 32.235878f));
 	TestEqual(TEXT("FireBall uses native fireball class"), FireBall->NativeClass.Get(), AAuraFireBall::StaticClass());
 	TestEqual(TEXT("FireBall outbound distance retained"), FireBall->OutboundDistance, 800.f);
 	TestEqual(TEXT("FireBall return threshold retained"), FireBall->ReturnDistance, 150.f);
+	TestEqual(TEXT("FireGunBullet uses native projectile class"), FireGunBullet->NativeClass.Get(), AAuraProjectile::StaticClass());
+	TestEqual(TEXT("FireGunBullet measured speed retained"), FireGunBullet->InitialSpeed, 550.f);
+	TestEqual(TEXT("FireGunBullet measured radius retained"), FireGunBullet->CollisionRadius, 15.f);
 	TestNull(TEXT("FireBall no longer exposes Blueprint timeline event"), AAuraFireBall::StaticClass()->FindFunctionByName(TEXT("StartOutgoingTimeline")));
 	TestEqual(TEXT("Repeated lookup does not reparse config"), FAuraGameplayConfig::GetLoadCount(), 1);
 

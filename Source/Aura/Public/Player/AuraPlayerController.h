@@ -25,6 +25,7 @@ class UServerTravelComponent;
 class UAuraClientDisconnectHandler;
 class UAuraHeartbeatComponent;
 class UAuraBuildingComponent;
+class AAuraCharacter;
 
 enum class ETargetingStatus : uint8
 {
@@ -284,6 +285,15 @@ private:
 
 	void AutoRun();
 
+	/** Runs the bounded Day 1 role/respawn smoke test when launched with
+	 * -AuraRoleBattleDay1SmokeTest. The test is server-authoritative and exits
+	 * after validating BungeeMan asset wiring plus two player respawns. */
+	void TickRoleBattleDay1Smoke();
+	bool ValidateRoleBattleDay1Assets(FString& OutFailure) const;
+	bool ValidateRoleBattleDay1Damage(AAuraCharacter* PlayerCharacter, FString& OutFailure) const;
+	bool ValidateRoleBattleDay1Vitals(const UAuraAttributeSet* InAttributes, FString& OutFailure) const;
+	void FinishRoleBattleDay1Smoke(bool bPassed, const FString& Message);
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
 
@@ -305,4 +315,14 @@ private:
 	TObjectPtr<AMagicCircle> MagicCircle;
 
 	void UpdateMagicCircleLocation();
+
+	FTimerHandle RoleBattleDay1SmokeTimerHandle;
+	TWeakObjectPtr<APawn> RoleBattleDay1SmokePreviousPawn;
+	float RoleBattleDay1SmokeExpectedMaxHealth = 0.f;
+	float RoleBattleDay1SmokeExpectedMaxMana = 0.f;
+	int32 RoleBattleDay1SmokeRespawns = 0;
+	bool bRoleBattleDay1SmokeEnabled = false;
+	bool bRoleBattleDay1SmokeAssetsChecked = false;
+	bool bRoleBattleDay1SmokeDamageChecked = false;
+	bool bRoleBattleDay1SmokeDeathStarted = false;
 };

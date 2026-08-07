@@ -140,7 +140,19 @@ void AAuraCharacter::LoadProgress()
 		}
 	};
 
-	auto InitializeFallbackDefaults = [this]()
+	AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState());
+	const bool bAttributesAlreadyInitialized = AuraPlayerState && AuraPlayerState->HasInitializedDefaultAttributes();
+
+	// The player ASC and AttributeSet are owned by PlayerState and survive pawn replacement.
+	// Reapplying additive default GameplayEffects here would increase MaxHealth/MaxMana on every
+	// respawn. A respawn only needs to refill the existing vital attributes.
+	if (bAttributesAlreadyInitialized)
+	{
+		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: persistent attributes already initialized; refilling vitals for respawn."));
+		UAuraAbilitySystemLibrary::TopOffVitalAttributes(AbilitySystemComponent, this);
+	}
+
+	auto InitializeFallbackDefaults = [this, AuraPlayerState, bAttributesAlreadyInitialized]()
 	{
 		// No save data (e.g. direct connect to a dedicated server with no slot): load the default
 		// role from RoleConfig.json ("defaultRole"). Replicate it via PlayerState so clients render
@@ -148,13 +160,17 @@ void AAuraCharacter::LoadProgress()
 		const FName DefaultRole = UAuraAbilitySystemLibrary::GetDefaultRole(this);
 		UE_LOG(LogAura, Log, TEXT("[Character][Server] Fallback: loading default role = '%s'."), *DefaultRole.ToString());
 
-		if (AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState()))
+		if (AuraPlayerState)
 		{
 			AuraPlayerState->SetRole(DefaultRole);
 		}
 		ApplyRole(DefaultRole);
-		InitializeDefaultAttributesForRole(DefaultRole);
-		AddCharacterAbilities();
+		if (!bAttributesAlreadyInitialized)
+		{
+			InitializeDefaultAttributesForRole(DefaultRole);
+			if (AuraPlayerState) AuraPlayerState->MarkDefaultAttributesInitialized();
+			AddCharacterAbilities();
+		}
 
 		if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
 		{
@@ -183,7 +199,10 @@ void AAuraCharacter::LoadProgress()
 				}
 			}
 
-			InitializeFallbackDefaults();
+			if (!bAttributesAlreadyInitialized)
+			{
+				InitializeFallbackDefaults();
+			}
 			return;
 		}
 
@@ -205,15 +224,16 @@ void AAuraCharacter::LoadProgress()
 		// Copying the role's DefaultPrimaryAttributes / StartupAbilities onto this character makes
 		// the InitializeDefaultAttributes() / AddCharacterAbilities() calls below consume role data.
 		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: SaveData Role='%s' — applying role + replicating via PlayerState."), *SaveData->Role.ToString());
-		if (AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState()))
+		if (AuraPlayerState)
 		{
 			AuraPlayerState->SetRole(SaveData->Role);
 		}
 		ApplyRole(SaveData->Role);
 
-		if (SaveData->bFirstTimeLoadIn)
+		if (SaveData->bFirstTimeLoadIn && !bAttributesAlreadyInitialized)
 		{
 			InitializeDefaultAttributesForRole(SaveData->Role);
+			if (AuraPlayerState) AuraPlayerState->MarkDefaultAttributesInitialized();
 			AddCharacterAbilities();
 
 			if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
@@ -222,14 +242,14 @@ void AAuraCharacter::LoadProgress()
 					AuraAS->GetHealth(), AuraAS->GetMaxHealth(), AuraAS->GetMana(), AuraAS->GetMaxMana());
 			}
 		}
-		else
+		else if (!bAttributesAlreadyInitialized)
 		{
 			if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
 			{
 				AuraASC->AddCharacterAbilitiesFromSaveData(SaveData);
 			}
 			
-			if (AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState()))
+			if (AuraPlayerState)
 			{
 				AuraPlayerState->SetLevel(SaveData->PlayerLevel);
 				AuraPlayerState->SetXP(SaveData->XP);
@@ -238,6 +258,7 @@ void AAuraCharacter::LoadProgress()
 			}
 			
 			UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(this, AbilitySystemComponent, SaveData);
+			if (AuraPlayerState) AuraPlayerState->MarkDefaultAttributesInitialized();
 
 			if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
 			{
@@ -249,7 +270,10 @@ void AAuraCharacter::LoadProgress()
 	else
 	{
 		UE_LOG(LogAura, Warning, TEXT("[Character][Server] LoadProgress: AuraGameMode is null for Character=%s. Applying fallback defaults."), *GetNameSafe(this));
-		InitializeFallbackDefaults();
+		if (!bAttributesAlreadyInitialized)
+		{
+			InitializeFallbackDefaults();
+		}
 	}
 }
 

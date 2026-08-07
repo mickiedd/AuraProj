@@ -61,6 +61,9 @@ public:
 	 * so PostGameplayEffectExecute + value-change delegates fire normally.
 	 */
 	static void TopOffVitalAttributes(UAbilitySystemComponent* ASC, const UObject* SourceAvatar);
+
+	/** Assign zero to every SetByCaller attribute tag before overriding the intended values. */
+	static void AssignDefaultAttributeMagnitudes(const FGameplayEffectSpecHandle& Spec);
 	
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static void GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ECharacterClass CharacterClass);

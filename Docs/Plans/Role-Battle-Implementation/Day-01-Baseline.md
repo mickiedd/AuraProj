@@ -6,7 +6,7 @@ Record the current behavior and create a reproducible starting point before chan
 
 ## Execution status — 2026-08-07
 
-The baseline checks have been executed against the current checkout. Results, commands, fixture details, combat-path inventory, and remaining blockers are recorded in [Docs/Reports/Role-Battle-Baseline-2026-08-07.md](../../Reports/Role-Battle-Baseline-2026-08-07.md). The available build and automation gates pass; BungeeMan presentation, clean damage attribution, and the respawn attribute-reset defect remain open because the required assets or a suitable clean fixture are not present.
+The baseline checks have been executed against the current checkout. Results, commands, fixture details, combat-path inventory, and remaining blockers are recorded in [Docs/Reports/Role-Battle-Baseline-2026-08-07.md](../../Reports/Role-Battle-Baseline-2026-08-07.md). The follow-up pass fixed the persistent-ASC respawn attribute accumulation and the unassigned SetByCaller magnitude errors. The checked-in Day 1 smoke runner now passes Login/BungeeMan asset wiring, both live damage directions, and two runtime respawns with stable vitals. Only rendered/editor visual confirmation remains open.
 
 ## Read first
 

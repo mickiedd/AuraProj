@@ -416,6 +416,7 @@ void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> Gameplay
 	FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
 	ContextHandle.AddSourceObject(this);
 	const FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(GameplayEffectClass, Level, ContextHandle);
+	UAuraAbilitySystemLibrary::AssignDefaultAttributeMagnitudes(SpecHandle);
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
 }
 
@@ -446,6 +447,7 @@ void AAuraCharacterBase::LoadAndApplySecondaryAttributes() const
 	FGameplayEffectContextHandle Context = GetAbilitySystemComponent()->MakeEffectContext();
 	Context.AddSourceObject(this);
 	const FGameplayEffectSpecHandle Spec = GetAbilitySystemComponent()->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, Context);
+	UAuraAbilitySystemLibrary::AssignDefaultAttributeMagnitudes(Spec);
 
 	auto AssignFromJson = [&Spec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)
 	{
@@ -521,6 +523,7 @@ void AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole) const
 	FGameplayEffectContextHandle PrimaryContext = GetAbilitySystemComponent()->MakeEffectContext();
 	PrimaryContext.AddSourceObject(this);
 	const FGameplayEffectSpecHandle PrimarySpec = GetAbilitySystemComponent()->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, PrimaryContext);
+	UAuraAbilitySystemLibrary::AssignDefaultAttributeMagnitudes(PrimarySpec);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Strength, Info.Strength);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Intelligence, Info.Intelligence);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Resilience, Info.Resilience);

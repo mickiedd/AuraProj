@@ -16,9 +16,11 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Actor/MagicCircle.h"
+#include "AuraAbilityTypes.h"
 #include "Aura/Aura.h"
 #include "Aura/AuraLogChannels.h"
 #include "Character/AuraEnemy.h"
+#include "Character/AuraCharacter.h"
 #include "Components/DecalComponent.h"
 #include "Components/SplineComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -31,6 +33,9 @@
 #include "UI/WidgetController/SpellMenuWidgetController.h"
 #include "UI/Widget/DamageTextComponent.h"
 #include "InputCoreTypes.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "HAL/PlatformMisc.h"
 #include "TimerManager.h"
 #include "Game/ServerTravelComponent.h"
 #include "Game/AuraGameModeBase.h"
@@ -40,6 +45,10 @@
 #include "Vehicle/AuraBroomVehicle.h"
 #include "Building/AuraBuildingComponent.h"
 #include "Player/AuraCheatManager.h"
+#include "Actor/AuraProjectile.h"
+#include "Data/AuraGameplayConfig.h"
+#include "AbilitySystem/Data/RoleInfo.h"
+#include "AuraAbilityGraph/Public/AbilityDefinition.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -889,6 +898,17 @@ void AAuraPlayerController::ClientRejectLogin_Implementation(const FString& Reas
 void AAuraPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	if (HasAuthority() && FParse::Param(FCommandLine::Get(), TEXT("AuraRoleBattleDay1SmokeTest")))
+	{
+		bRoleBattleDay1SmokeEnabled = true;
+		GetWorldTimerManager().SetTimer(
+			RoleBattleDay1SmokeTimerHandle,
+			this,
+			&ThisClass::TickRoleBattleDay1Smoke,
+			0.25f,
+			true);
+		UE_LOG(LogAura, Display, TEXT("[Day1Smoke] Scheduled role/respawn smoke test."));
+	}
 	if (!AuraContext)
 	{
 		UE_LOG(LogAura, Error, TEXT("AAuraPlayerController::BeginPlay: AuraContext (Input Mapping Context) is not set. Input will not be bound."));
@@ -933,6 +953,255 @@ void AAuraPlayerController::BeginPlay()
 	{
 		FSlateApplication::Get().SetAllUserFocusToGameViewport(EFocusCause::SetDirectly);
 	}
+}
+
+bool AAuraPlayerController::ValidateRoleBattleDay1Assets(FString& OutFailure) const
+{
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
+	const FRoleDefaultInfo* Bungee = RoleInfo ? RoleInfo->RoleInformation.Find(FName("BungeeMan")) : nullptr;
+	if (!Bungee)
+	{
+		OutFailure = TEXT("BungeeMan role is missing from RoleConfig.json.");
+		return false;
+	}
+	if (!Bungee->SkeletalMesh || !Bungee->AnimBlueprintClass || !Bungee->WeaponMesh)
+	{
+		OutFailure = TEXT("BungeeMan body mesh, animation blueprint, or weapon mesh failed to load.");
+		return false;
+	}
+	if (Bungee->WeaponTipSocketName.IsNone() || !Bungee->WeaponMesh->FindSocket(Bungee->WeaponTipSocketName))
+	{
+		OutFailure = FString::Printf(TEXT("BungeeMan weapon socket '%s' is missing."), *Bungee->WeaponTipSocketName.ToString());
+		return false;
+	}
+
+	const UAuraAbilityDefinition* FireGun = Cast<UAuraAbilityDefinition>(Bungee->DefaultLMBAbilityDefinition.Get());
+	if (!FireGun || !FireGun->RootNode || !FireGun->AbilityTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"))))
+	{
+		OutFailure = TEXT("BungeeMan FireGun ability definition failed to load.");
+		return false;
+	}
+
+	const FAuraProjectileDefinition* Bullet = FAuraGameplayConfig::FindProjectile(TEXT("fireGunBullet"));
+	if (!Bullet || Bullet->NativeClass.Get() != AAuraProjectile::StaticClass())
+	{
+		OutFailure = TEXT("FireGun fireGunBullet projectile definition failed to resolve to AAuraProjectile.");
+		return false;
+	}
+
+	UE_LOG(LogAura, Display, TEXT("[Day1Smoke] BungeeMan assets pass: mesh=%s anim=%s weapon=%s socket=%s FireGun=%s projectile=%s."),
+		*Bungee->SkeletalMesh->GetName(),
+		*GetNameSafe(Bungee->AnimBlueprintClass),
+		*Bungee->WeaponMesh->GetName(),
+		*Bungee->WeaponTipSocketName.ToString(),
+		*FireGun->AbilityTag.ToString(),
+		*Bullet->Name.ToString());
+	return true;
+}
+
+bool AAuraPlayerController::ValidateRoleBattleDay1Damage(AAuraCharacter* PlayerCharacter, FString& OutFailure) const
+{
+	if (!PlayerCharacter || !PlayerCharacter->HasAuthority())
+	{
+		OutFailure = TEXT("Damage smoke test has no authoritative player avatar.");
+		return false;
+	}
+
+	AAuraEnemy* Enemy = nullptr;
+	UAuraAbilitySystemComponent* EnemyASC = nullptr;
+	for (TActorIterator<AAuraEnemy> It(GetWorld()); It; ++It)
+	{
+		if (AAuraEnemy* Candidate = *It)
+		{
+			if (UAuraAbilitySystemComponent* CandidateASC = Cast<UAuraAbilitySystemComponent>(Candidate->GetAbilitySystemComponent()))
+			{
+				Enemy = Candidate;
+				EnemyASC = CandidateASC;
+				break;
+			}
+		}
+	}
+
+	UAuraAbilitySystemComponent* PlayerASC = const_cast<AAuraPlayerController*>(this)->GetASC();
+	const UAuraAttributeSet* PlayerAttributes = PlayerASC ? PlayerASC->GetSet<UAuraAttributeSet>() : nullptr;
+	const UAuraAttributeSet* EnemyAttributes = EnemyASC ? EnemyASC->GetSet<UAuraAttributeSet>() : nullptr;
+	if (!Enemy || !PlayerASC || !PlayerAttributes || !EnemyAttributes)
+	{
+		OutFailure = TEXT("Damage smoke test could not resolve player/enemy ASCs and attributes.");
+		return false;
+	}
+
+	if (!UAuraAbilitySystemLibrary::IsNotFriend(PlayerCharacter, Enemy)
+		|| UAuraAbilitySystemLibrary::IsNotFriend(PlayerCharacter, PlayerCharacter)
+		|| UAuraAbilitySystemLibrary::IsNotFriend(Enemy, Enemy))
+	{
+		OutFailure = TEXT("Player/enemy relationship policy returned an unexpected result.");
+		return false;
+	}
+
+	const FGameplayTag PhysicalDamage = FAuraGameplayTags::Get().Damage_Physical;
+	const float EnemyHealthBefore = EnemyAttributes->GetHealth();
+	FDamageEffectParams PlayerDamage;
+	PlayerDamage.SourceAbilitySystemComponent = PlayerASC;
+	PlayerDamage.TargetAbilitySystemComponent = EnemyASC;
+	PlayerDamage.BaseDamage = 10.f;
+	PlayerDamage.AbilityLevel = 1.f;
+	PlayerDamage.DamageType = PhysicalDamage;
+	UAuraAbilitySystemLibrary::ApplyDamageEffect(PlayerDamage);
+	if (!(EnemyAttributes->GetHealth() < EnemyHealthBefore))
+	{
+		OutFailure = FString::Printf(TEXT("Player->Enemy damage did not reduce enemy health (%.1f -> %.1f)."),
+			EnemyHealthBefore, EnemyAttributes->GetHealth());
+		return false;
+	}
+
+	const float PlayerHealthBefore = PlayerAttributes->GetHealth();
+	FDamageEffectParams EnemyDamage;
+	EnemyDamage.SourceAbilitySystemComponent = EnemyASC;
+	EnemyDamage.TargetAbilitySystemComponent = PlayerASC;
+	EnemyDamage.BaseDamage = 10.f;
+	EnemyDamage.AbilityLevel = 1.f;
+	EnemyDamage.DamageType = PhysicalDamage;
+	UAuraAbilitySystemLibrary::ApplyDamageEffect(EnemyDamage);
+	if (!(PlayerAttributes->GetHealth() < PlayerHealthBefore))
+	{
+		OutFailure = FString::Printf(TEXT("Enemy->Player damage did not reduce player health (%.1f -> %.1f)."),
+			PlayerHealthBefore, PlayerAttributes->GetHealth());
+		return false;
+	}
+
+	const float EnemyHealthAfter = EnemyAttributes->GetHealth();
+	const float PlayerHealthAfter = PlayerAttributes->GetHealth();
+	UAuraAbilitySystemLibrary::TopOffVitalAttributes(PlayerASC, PlayerCharacter);
+	UE_LOG(LogAura, Display, TEXT("[Day1Smoke] Damage direction pass: Player->Enemy %.1f->%.1f, Enemy->Player %.1f->%.1f."),
+		EnemyHealthBefore, EnemyHealthAfter, PlayerHealthBefore, PlayerHealthAfter);
+	return true;
+}
+
+bool AAuraPlayerController::ValidateRoleBattleDay1Vitals(const UAuraAttributeSet* InAttributes, FString& OutFailure) const
+{
+	if (!InAttributes)
+	{
+		OutFailure = TEXT("Respawn smoke test could not resolve the player AttributeSet.");
+		return false;
+	}
+
+	const bool bHealthy = FMath::IsNearlyEqual(InAttributes->GetHealth(), InAttributes->GetMaxHealth(), 0.1f)
+		&& FMath::IsNearlyEqual(InAttributes->GetMana(), InAttributes->GetMaxMana(), 0.1f)
+		&& FMath::IsNearlyEqual(InAttributes->GetMaxHealth(), RoleBattleDay1SmokeExpectedMaxHealth, 0.1f)
+		&& FMath::IsNearlyEqual(InAttributes->GetMaxMana(), RoleBattleDay1SmokeExpectedMaxMana, 0.1f);
+	if (!bHealthy)
+	{
+		OutFailure = FString::Printf(
+			TEXT("Respawn vitals changed: Health=%.1f/%.1f Mana=%.1f/%.1f expected maxima=%.1f/%.1f."),
+			InAttributes->GetHealth(),
+			InAttributes->GetMaxHealth(),
+			InAttributes->GetMana(),
+			InAttributes->GetMaxMana(),
+			RoleBattleDay1SmokeExpectedMaxHealth,
+			RoleBattleDay1SmokeExpectedMaxMana);
+	}
+	return bHealthy;
+}
+
+void AAuraPlayerController::TickRoleBattleDay1Smoke()
+{
+	if (!bRoleBattleDay1SmokeEnabled || !HasAuthority())
+	{
+		return;
+	}
+
+	AAuraCharacter* PlayerCharacter = GetPawn<AAuraCharacter>();
+	if (!PlayerCharacter)
+	{
+		return;
+	}
+
+	if (!bRoleBattleDay1SmokeAssetsChecked)
+	{
+		FString Failure;
+		if (!ValidateRoleBattleDay1Assets(Failure))
+		{
+			FinishRoleBattleDay1Smoke(false, Failure);
+			return;
+		}
+		bRoleBattleDay1SmokeAssetsChecked = true;
+	}
+
+	if (!bRoleBattleDay1SmokeDamageChecked)
+	{
+		FString Failure;
+		if (!ValidateRoleBattleDay1Damage(PlayerCharacter, Failure))
+		{
+			FinishRoleBattleDay1Smoke(false, Failure);
+			return;
+		}
+		bRoleBattleDay1SmokeDamageChecked = true;
+	}
+
+	const UAuraAttributeSet* Attributes = GetAuraAS();
+	if (!Attributes)
+	{
+		return;
+	}
+
+	if (!bRoleBattleDay1SmokeDeathStarted)
+	{
+		RoleBattleDay1SmokeExpectedMaxHealth = Attributes->GetMaxHealth();
+		RoleBattleDay1SmokeExpectedMaxMana = Attributes->GetMaxMana();
+		FString Failure;
+		if (!ValidateRoleBattleDay1Vitals(Attributes, Failure))
+		{
+			FinishRoleBattleDay1Smoke(false, Failure);
+			return;
+		}
+
+		bRoleBattleDay1SmokeDeathStarted = true;
+		RoleBattleDay1SmokePreviousPawn = PlayerCharacter;
+		UE_LOG(LogAura, Display, TEXT("[Day1Smoke] Initial vitals pass: Health=%.1f/%.1f Mana=%.1f/%.1f. Forcing death 1/2."),
+			Attributes->GetHealth(), Attributes->GetMaxHealth(), Attributes->GetMana(), Attributes->GetMaxMana());
+		PlayerCharacter->Die(FVector::ZeroVector);
+		return;
+	}
+
+	if (RoleBattleDay1SmokePreviousPawn == PlayerCharacter)
+	{
+		return;
+	}
+
+	FString Failure;
+	if (!ValidateRoleBattleDay1Vitals(Attributes, Failure))
+	{
+		FinishRoleBattleDay1Smoke(false, Failure);
+		return;
+	}
+
+	++RoleBattleDay1SmokeRespawns;
+	UE_LOG(LogAura, Display, TEXT("[Day1Smoke] Respawn %d/2 vitals pass: Health=%.1f/%.1f Mana=%.1f/%.1f."),
+		RoleBattleDay1SmokeRespawns,
+		Attributes->GetHealth(), Attributes->GetMaxHealth(), Attributes->GetMana(), Attributes->GetMaxMana());
+
+	if (RoleBattleDay1SmokeRespawns >= 2)
+	{
+		FinishRoleBattleDay1Smoke(true, TEXT("BungeeMan asset wiring and two respawn vital checks passed."));
+		return;
+	}
+
+	RoleBattleDay1SmokePreviousPawn = PlayerCharacter;
+	UE_LOG(LogAura, Display, TEXT("[Day1Smoke] Forcing death %d/2."), RoleBattleDay1SmokeRespawns + 1);
+	PlayerCharacter->Die(FVector::ZeroVector);
+}
+
+void AAuraPlayerController::FinishRoleBattleDay1Smoke(bool bPassed, const FString& Message)
+{
+	bRoleBattleDay1SmokeEnabled = false;
+	GetWorldTimerManager().ClearTimer(RoleBattleDay1SmokeTimerHandle);
+	UE_LOG(LogAura, Display, TEXT("[Day1Smoke] %s: %s"), bPassed ? TEXT("PASS") : TEXT("FAIL"), *Message);
+	if (GLog)
+	{
+		GLog->Flush();
+	}
+	FPlatformMisc::RequestExit(false);
 }
 
 void AAuraPlayerController::SetupInputComponent()

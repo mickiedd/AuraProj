@@ -2,15 +2,18 @@
 
 ## Result
 
-The executable baseline is complete for the assets and map currently present in the checkout. The full plan gate is not green because the BungeeMan presentation assets are absent, the configured login map is absent, and a clean player-to-enemy damage attribution pass could not be established in the available headless fixture.
+The initial executable baseline recorded the assets and map state available to that run. The current-checkout follow-up now passes the complete headless Day 1 functional gate: Login and BungeeMan assets load, both damage directions reduce health, and two respawns preserve the original health/mana maxima. Only rendered/editor visual confirmation remains outside the headless smoke coverage.
 
-No gameplay source code was changed during this baseline run. The changes from this run are documentation only.
+No gameplay source code was changed during the initial baseline run. The Day 1 follow-up below contains the subsequent source fixes and verification results.
 
 ## Environment
 
-- Repository: `D:\Users\zhouzhiqiang\Documents\GitHub\AuraProj`
+- Original baseline repository: `D:\Users\zhouzhiqiang\Documents\GitHub\AuraProj`
+- Current follow-up checkout: `C:\Git\AuraProj`
 - Baseline commit: `a26d241391202cd9195bafafcb7c651e3d8c3074`
-- Engine: Unreal Engine 5.5 at `D:\UE_5.5`
+- Current follow-up commit: `f7119130ff1e0dd7744044c43a5947d38ca81c51`
+- Original baseline engine: Unreal Engine 5.5 at `D:\UE_5.5`
+- Current follow-up engine: Unreal Engine 5.5 at `C:\Git\UnrealEngine-5.5`
 - Build target: `AuraEditor Win64 Development`
 - Working tree already contained unrelated documentation changes and untracked plan documents.
 
@@ -18,15 +21,15 @@ No gameplay source code was changed during this baseline run. The changes from t
 
 `/Game/Maps/StartupMap` is the reproducible headless fixture. It contains the Aura player, `PlayerStart_1`, navigation data, `BP_Demon_Ranger_C_1`, and `BP_Shaman_C_1`. The map loaded successfully in game mode, possessed the Aura character, and possessed both enemy AI controllers.
 
-The configured editor/game startup map is `/Game/Maps/Login.Login`, but `Content/Maps/Login.umap` is not present. `Content/Maps/StartupMap.umap` is present and was used for the checks below.
+The original baseline log reported that the configured editor/game startup map `/Game/Maps/Login.Login` was unavailable. In the current follow-up checkout, `Content/Maps/Login.umap` is present; a direct load reached `/Game/Maps/Login.umap` and reported zero map-check errors and warnings. `Content/Maps/StartupMap.umap` remains the reproducible gameplay fixture used for the checks below.
 
-The BungeeMan role references are unresolved in this checkout:
+The original baseline log also reported unresolved BungeeMan role references. In the current follow-up checkout, all three configured asset paths are present:
 
 - `/Game/BungeeMan/SKM_BungeeMan.SKM_BungeeMan`
 - `/Game/BungeeMan/Blueprints/ABP_Bungee.ABP_Bungee_C`
 - `/Game/MilitaryWeapDark/Weapons/Assault_Rifle_B.Assault_Rifle_B`
 
-`FireGun.xml` is present and parses, but there is no valid BungeeMan mesh, animation blueprint, or rifle asset with which to perform the requested visual or weapon pass.
+`FireGun.xml` is present and parses. The StartupMap follow-up log loaded the BungeeMan role and its `FireGun` definition. The rendered mesh/animation, rifle socket, projectile, damage, and cooldown behavior still require the requested visual and weapon pass.
 
 ## Checks executed
 
@@ -81,6 +84,38 @@ The AutoRun pass did not provide clean damage attribution to an enemy. FireBolt 
 
 The headless run was deliberately bounded and then terminated after evidence collection. Manual visual checks were therefore not performed.
 
+## Day 1 follow-up implementation
+
+The baseline defects that were actionable in the current checkout were addressed after the initial report:
+
+- `AAuraPlayerState` now records whether its persistent Ability System Component has received initial attributes.
+- `AAuraCharacter::LoadProgress` initializes default/save attributes and startup abilities only once per persistent player state. Later pawn possessions refill current health/mana without reapplying additive default effects, preventing the observed 200/100 and 300/150 growth.
+- All aggregate SetByCaller attribute GameplayEffect specs now receive zero defaults before selective values are assigned. A fresh `StartupMap` game-mode load no longer reports the baseline `GetMagnitude ... magnitude had not yet been set by caller` errors.
+
+The checked-in `RunRoleBattleDay1Smoke.bat` driver now repeats the functional regression on `StartupMap`: it validates BungeeMan asset/FireGun wiring, applies live player-to-enemy and enemy-to-player damage, forces two server respawns, and checks the persistent ASC vitals after each replacement pawn.
+
+### Follow-up verification
+
+```powershell
+& '.\build_test.bat'
+& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' '-ExecCmds=Automation RunTests Aura; Quit' -unattended -nop4 -nullrhi -log
+& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' -AuraAbilityGraphSmokeTest -unattended -nop4 -nullrhi -log
+& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor.exe" '.\Aura.uproject' -game /Game/Maps/StartupMap -unattended -nop4 -nullrhi -nosound '-ExecCmds=Quit' -log
+& '.\RunRoleBattleDay1Smoke.bat'
+```
+
+Results: editor build passed; native automation exited `0` with all Aura tests successful, including the Day 1 role, respawn-guard, and attribute-default tests; AuraAbilityGraph smoke test exited `0` with `22 passed, 0 failed`; `StartupMap` loaded and the follow-up log contained zero unassigned SetByCaller magnitude errors. The remaining compiler/build warnings are the pre-existing plugin dependency, circular dependency, toolchain, and GameplayAbilities deprecation warnings.
+
+The current-checkout Login recheck used the configured map path and reached `LoadMap(/Game/Maps/Login.umap)`. The log reported `Map check complete: 0 Error(s), 0 Warning(s)`. The commandlet did not return within the bounded 120-second window after issuing `Cmd: Quit`, so the process was stopped after the successful load/map-check evidence was collected.
+
+### Day 1 bounded runtime smoke
+
+```powershell
+& '.\RunRoleBattleDay1Smoke.bat'
+```
+
+Result: pass. The archived log `Saved/Logs/Aura-backup-2026.08.07-15.22.15.log` records BungeeMan mesh/animation/rifle/Muzzle wiring, `FireGun` and `fireGunBullet` resolution, player-to-enemy damage `100 -> 90`, enemy-to-player damage `100 -> 90`, and two respawn checks at `Health=100/100` and `Mana=50/50`. The smoke runner exits after `[Day1Smoke] PASS`.
+
 ## Combat-path inventory
 
 The current relationship and damage paths are distributed as follows:
@@ -102,12 +137,7 @@ The current relationship and damage paths are distributed as follows:
 
 ## Remaining blockers and follow-up
 
-1. Restore or provide the BungeeMan mesh, animation blueprint, and rifle assets, then run the Bungee role load and weapon presentation checks.
-2. Restore `/Game/Maps/Login` or update the startup configuration to a valid map after confirming the intended product behavior.
-3. Fix respawn attribute initialization so health and mana reset to the intended baseline rather than accumulating.
-4. Resolve the GameplayEffect magnitude errors logged during startup/spawn (`GetMagnitude ... magnitude had not yet been set by caller`).
-5. Add or select a fixture with a valid enemy Ability System Component and run a clean player-to-enemy and enemy-to-player damage-direction pass.
-6. Repeat the combat checks with a rendered/editor session for visual confirmation of Aura and Bungee presentation.
+1. Repeat the combat checks with a rendered/editor session for visual confirmation of Aura and Bungee presentation, including the rifle muzzle FX and montage timing.
 
 ## Gate status
 
@@ -120,7 +150,7 @@ The current relationship and damage paths are distributed as follows:
 | Startup fixture load | Pass: `StartupMap` |
 | Aura ability activation | Pass: all four observed |
 | Enemy AI possession | Pass: two enemies observed |
-| Respawn | Pass: two respawns observed; attribute reset defect recorded |
-| BungeeMan load/presentation | Blocked: required assets absent |
-| Clean enemy/PvP damage attribution | Open: fixture/result insufficient |
-| Full plan completion gate | Not yet pass |
+| Respawn | Pass: bounded runtime smoke, 2/2 respawns with unchanged vitals |
+| BungeeMan load/presentation | Headless asset/config/projectile wiring: Pass; rendered presentation open |
+| Clean enemy/PvP damage attribution | Pass: live fixture, both directions reduced health |
+| Full plan completion gate | Pass for headless functional Day 1; rendered/editor visual check remains open |
