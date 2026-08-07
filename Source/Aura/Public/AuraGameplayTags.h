@@ -17,6 +17,23 @@ public:
     static const FAuraGameplayTags& Get() { return GameplayTags;}
     static void InitializeNativeGameplayTags();
 
+	FGameplayTag Faction_Player;
+	FGameplayTag Faction_Enemy;
+	FGameplayTag Faction_Civilian;
+
+	FGameplayTag Control_Player;
+	FGameplayTag Control_EnemyAI;
+	FGameplayTag Control_CivilianAI;
+
+	FGameplayTag Combat_Unassigned;
+	FGameplayTag Combat_Magic;
+	FGameplayTag Combat_Gun;
+	FGameplayTag Combat_Civilian;
+
+	FGameplayTag Death_PlayerRespawn;
+	FGameplayTag Death_EnemyLoot;
+	FGameplayTag Death_PopulationRespawn;
+
 	FGameplayTag Attributes_Primary_Strength;
 	FGameplayTag Attributes_Primary_Intelligence;
 	FGameplayTag Attributes_Primary_Resilience;

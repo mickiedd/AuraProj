@@ -4,11 +4,12 @@
 #include "AI/BTService_FindNearestPlayer.h"
 #include "AIController.h"
 #include "BehaviorTree/BTFunctionLibrary.h"
+#include "Combat/AuraCombatIdentityComponent.h"
 #include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Aura/AuraLogChannels.h"
+#include "AuraGameplayTags.h"
 
 void UBTService_FindNearestPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
@@ -29,26 +30,25 @@ void UBTService_FindNearestPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
 	float ClosestDistance = TNumericLimits<float>::Max();
 
 	TArray<AActor*> CandidateTargets;
-	TArray<AActor*> PlayerPawns;
-	UGameplayStatics::GetAllActorsOfClass(OwningPawn, APawn::StaticClass(), PlayerPawns);
-	for (AActor* Actor : PlayerPawns)
+	TArray<AActor*> AllPawns;
+	UGameplayStatics::GetAllActorsOfClass(OwningPawn, APawn::StaticClass(), AllPawns);
+	const FGameplayTag PlayerFaction = FAuraGameplayTags::Get().Faction_Player;
+	for (AActor* Actor : AllPawns)
 	{
 		APawn* CandidatePawn = Cast<APawn>(Actor);
-		if (!IsValid(CandidatePawn))
+		if (!IsValid(CandidatePawn) || CandidatePawn == OwningPawn)
 		{
 			continue;
 		}
 
-		if (IsValid(CandidatePawn->GetController()) && CandidatePawn->GetController()->IsPlayerController())
+		const UAuraCombatIdentityComponent* IdentityComponent = UAuraCombatIdentityComponent::FindForActor(CandidatePawn);
+		if (IdentityComponent
+			&& IdentityComponent->HasValidIdentity()
+			&& IdentityComponent->GetIdentity().bTargetable
+			&& IdentityComponent->GetIdentity().FactionTag.MatchesTagExact(PlayerFaction))
 		{
 			CandidateTargets.Add(CandidatePawn);
 		}
-	}
-
-	if (CandidateTargets.IsEmpty())
-	{
-		const FName TargetTag = OwningPawn->ActorHasTag(FName("Player")) ? FName("Enemy") : FName("Player");
-		UGameplayStatics::GetAllActorsWithTag(OwningPawn, TargetTag, CandidateTargets);
 	}
 
 	for (AActor* Actor : CandidateTargets)

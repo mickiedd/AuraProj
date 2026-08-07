@@ -1,6 +1,6 @@
 # Role and Battle System: Daily Implementation Index
 
-Status: Ready-to-follow implementation sequence
+Status: Days 01-02 complete; Day 03 is next
 
 This is the execution schedule for Role-Creation-and-Battle-System-Plan.md. Each day has its own file with source files, exact work items, verification steps, and a completion gate.
 

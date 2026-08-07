@@ -8,9 +8,9 @@ public class Aura : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "UMG", "OnlineSubsystemUtils", "ModelViewViewModel", "AuraAbilityGraph" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "GameplayTags", "UMG", "OnlineSubsystemUtils", "ModelViewViewModel", "AuraAbilityGraph" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayTags", "GameplayTasks", "NavigationSystem", "Niagara", "AIModule", "Slate", "SlateCore", "Json", "JsonUtilities", "Sockets", "Networking" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayTasks", "NavigationSystem", "Niagara", "AIModule", "Slate", "SlateCore", "Json", "JsonUtilities", "Sockets", "Networking" });
 		
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");

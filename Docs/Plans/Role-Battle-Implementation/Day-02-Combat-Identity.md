@@ -1,5 +1,9 @@
 # Day 02 - Add Combat Identity
 
+## Execution status - 2026-08-08
+
+Implemented and verified. The build, three focused Day 2 tests, all 17 native Aura tests, the Day 1 runtime regression, the two-process replication smoke, and all 22 AuraAbilityGraph smoke checks pass. Full evidence is recorded in [Role-Battle-Day-02-Combat-Identity-2026-08-08.md](../../Reports/Role-Battle-Day-02-Combat-Identity-2026-08-08.md).
+
 ## Goal
 
 Give every source or target combat avatar an explicit, replicated identity instead of relying on raw Player and Enemy actor tags. Transient damage carriers such as projectiles and effect actors do not own an identity; damage continues to use the source avatar's identity and attribution.
@@ -9,6 +13,7 @@ Give every source or target combat avatar an explicit, replicated identity inste
 - Source/Aura/Public/Combat/AuraCombatIdentityComponent.h
 - Source/Aura/Private/Combat/AuraCombatIdentityComponent.cpp
 - Source/Aura/Public/Combat/AuraCombatTypes.h
+- RunRoleBattleDay2NetworkSmoke.ps1
 
 ## Files to modify
 
@@ -17,7 +22,9 @@ Give every source or target combat avatar an explicit, replicated identity inste
 - Source/Aura/Private/AuraGameplayTags.cpp
 - Source/Aura/Public/Character/AuraCharacterBase.h
 - Source/Aura/Private/Character/AuraCharacterBase.cpp
+- Source/Aura/Public/Character/AuraCharacter.h
 - Source/Aura/Private/Character/AuraCharacter.cpp
+- Source/Aura/Public/Character/AuraEnemy.h
 - Source/Aura/Private/Character/AuraEnemy.cpp
 - Source/Aura/Private/AbilitySystem/AuraAbilitySystemLibrary.cpp
 - Source/Aura/Private/AI/BTService_FindNearestPlayer.cpp
@@ -60,7 +67,7 @@ Register these native tags through the existing `FAuraGameplayTags` singleton:
 
 - `UAuraCombatIdentityComponent` is created exactly once by `AAuraCharacterBase`; derived classes must not create another copy.
 - The component calls `SetIsReplicatedByDefault(true)` and replicates one `FAuraCombatIdentity Identity` property with `ReplicatedUsing=OnRep_Identity`.
-- `AAuraCharacterBase` owns an `EditDefaultsOnly` `FAuraCombatIdentity DefaultCombatIdentity`. Derived constructors configure this default, and authority copies it into the component during `BeginPlay`.
+- `AAuraCharacterBase` owns an `EditDefaultsOnly` `FAuraCombatIdentity DefaultCombatIdentity`. Derived runtime default builders resolve native tags after tag initialization, and authority copies the result into the component during `BeginPlay`.
 - Runtime mutation uses one authority-only C++ initializer/setter. Do not add a client setter or client-to-server identity RPC.
 - Expose const getters plus `HasValidIdentity()`. Add a static component lookup helper that accepts any `AActor` and uses `FindComponentByClass`; `IsNotFriend` and targeting code must not cast to a concrete character class.
 - Default-constructed identity has invalid tags and all flags false. Missing/invalid identity warnings must be rate-limited to at most once per actor per runtime.
@@ -110,9 +117,11 @@ Run, in order:
 & "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests Aura.RoleBattle.Day2; Quit' '-TestExit=Automation Test Queue Empty' -log
 
 & '.\RunRoleBattleDay1Smoke.bat'
+
+& '.\RunRoleBattleDay2NetworkSmoke.ps1'
 ```
 
-Then run a two-player PIE smoke on `StartupMap` with Net Mode set to `Play As Listen Server`:
+The Day 2 network runner starts isolated hidden server/client processes on `StartupMap`, validates the same conditions as a two-player listen-server smoke, writes separate logs, and stops only the processes it created:
 
 1. Confirm every spawned `AAuraCharacter` and `AAuraEnemy` reports a valid server identity.
 2. Confirm each client receives the same four tags and four flags through `OnRep_Identity`.
@@ -120,8 +129,8 @@ Then run a two-player PIE smoke on `StartupMap` with Net Mode set to `Play As Li
 4. Confirm Player-to-Enemy and Enemy-to-Player damage still work, existing `IsNotFriend`-guarded projectile/melee paths reject same-faction targets, and the Day 1 respawn vitals remain stable. The indirect damage paths inventoried on Day 1 remain assigned to Day 4.
 5. Confirm existing pickups still honor `bApplyEffectsToEnemies`.
 
-Record the build exit code, automation summary, Day 1 smoke result, PIE log path, and any failure. All commands/tests and the PIE smoke must pass before the completion gate is accepted.
+Record the build exit code, automation summary, Day 1 smoke result, network-smoke result/log paths, and any failure. Every command must pass before the completion gate is accepted.
 
 ## Completion gate
 
-Every source or target combat avatar has a valid server-owned identity, and clients receive the same identity. `IsNotFriend` and enemy Player acquisition no longer read Player/Enemy actor tags, all Day 2 automation tests pass, the Day 1 runtime smoke remains green, and the two-player PIE smoke passes. Transient projectiles/effect actors continue using their source avatar for identity and attribution; pickup filtering remains explicitly deferred.
+Every source or target combat avatar has a valid server-owned identity, and clients receive the same identity. `IsNotFriend` and enemy Player acquisition no longer read Player/Enemy actor tags, all Day 2 automation tests pass, the Day 1 runtime smoke remains green, and the two-process Day 2 network smoke passes. Transient projectiles/effect actors continue using their source avatar for identity and attribution; pickup filtering remains explicitly deferred.

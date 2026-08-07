@@ -16,6 +16,7 @@
 #include "AuraAttributeGameplayEffect.h"
 #include "Animation/AnimInstance.h"
 #include "Components/CapsuleComponent.h"
+#include "Combat/AuraCombatIdentityComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -28,6 +29,8 @@ AAuraCharacterBase::AAuraCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+
+	CombatIdentityComponent = CreateDefaultSubobject<UAuraCombatIdentityComponent>(TEXT("CombatIdentityComponent"));
 	
 	BurnDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("BurnDebuffComponent");
 	BurnDebuffComponent->SetupAttachment(GetRootComponent());
@@ -85,6 +88,17 @@ float AAuraCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+const FAuraCombatIdentity& AAuraCharacterBase::GetCombatIdentity() const
+{
+	check(CombatIdentityComponent);
+	return CombatIdentityComponent->GetIdentity();
+}
+
+bool AAuraCharacterBase::HasValidCombatIdentity() const
+{
+	return CombatIdentityComponent && CombatIdentityComponent->HasValidIdentity();
 }
 
 void AAuraCharacterBase::ApplyRole(FName InRole)
@@ -302,7 +316,20 @@ void AAuraCharacterBase::OnRep_Burned()
 void AAuraCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (HasAuthority())
+	{
+		DefaultCombatIdentity = BuildDefaultCombatIdentity();
+		if (!CombatIdentityComponent || !CombatIdentityComponent->InitializeIdentity(DefaultCombatIdentity))
+		{
+			UAuraCombatIdentityComponent::LogMissingIdentityOnce(this, TEXT("AAuraCharacterBase::BeginPlay"));
+		}
+	}
+}
+
+FAuraCombatIdentity AAuraCharacterBase::BuildDefaultCombatIdentity() const
+{
+	return DefaultCombatIdentity;
 }
 
 FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag)

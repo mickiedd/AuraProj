@@ -80,6 +80,21 @@ AAuraCharacter::AAuraCharacter()
 	CharacterClass = ECharacterClass::Elementalist;
 }
 
+FAuraCombatIdentity AAuraCharacter::BuildDefaultCombatIdentity() const
+{
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	FAuraCombatIdentity Identity;
+	Identity.FactionTag = GameplayTags.Faction_Player;
+	Identity.ControlTypeTag = GameplayTags.Control_Player;
+	Identity.CombatProfileTag = GameplayTags.Combat_Unassigned;
+	Identity.DeathPolicyTag = GameplayTags.Death_PlayerRespawn;
+	Identity.bTargetable = true;
+	Identity.bCanAttack = true;
+	Identity.bCanBeDamaged = true;
+	Identity.bAllowFriendlyFire = false;
+	return Identity;
+}
+
 void AAuraCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);

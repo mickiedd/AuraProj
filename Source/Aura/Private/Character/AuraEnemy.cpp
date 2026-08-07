@@ -54,6 +54,21 @@ AAuraEnemy::AAuraEnemy()
 	BehaviorUAgentComponent = CreateDefaultSubobject<UAuraBehaviorUAgentComponent>(TEXT("BehaviorUAgentComponent"));
 }
 
+FAuraCombatIdentity AAuraEnemy::BuildDefaultCombatIdentity() const
+{
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	FAuraCombatIdentity Identity;
+	Identity.FactionTag = GameplayTags.Faction_Enemy;
+	Identity.ControlTypeTag = GameplayTags.Control_EnemyAI;
+	Identity.CombatProfileTag = GameplayTags.Combat_Unassigned;
+	Identity.DeathPolicyTag = GameplayTags.Death_EnemyLoot;
+	Identity.bTargetable = true;
+	Identity.bCanAttack = true;
+	Identity.bCanBeDamaged = true;
+	Identity.bAllowFriendlyFire = false;
+	return Identity;
+}
+
 void AAuraEnemy::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

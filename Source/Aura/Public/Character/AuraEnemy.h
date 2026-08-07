@@ -57,6 +57,7 @@ public:
 	void SetLevel(int32 InLevel) { Level = InLevel; }
 protected:
 	virtual void BeginPlay() override;
+	virtual FAuraCombatIdentity BuildDefaultCombatIdentity() const override;
 	virtual void InitAbilityActorInfo() override;
 	virtual void InitializeDefaultAttributes() const override;
 	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount) override;

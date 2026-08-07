@@ -7,9 +7,11 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "AbilitySystem/Data/RoleInfo.h"
+#include "Combat/AuraCombatTypes.h"
 #include "Interaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UAuraCombatIdentityComponent;
 class UPassiveNiagaraComponent;
 class UDebuffNiagaraComponent;
 class UNiagaraSystem;
@@ -38,6 +40,11 @@ public:
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+	const UAuraCombatIdentityComponent* GetCombatIdentityComponent() const { return CombatIdentityComponent; }
+	const FAuraCombatIdentity& GetCombatIdentity() const;
+	const FAuraCombatIdentity& GetDefaultCombatIdentity() const { return DefaultCombatIdentity; }
+	FAuraCombatIdentity GetResolvedDefaultCombatIdentity() const { return BuildDefaultCombatIdentity(); }
+	bool HasValidCombatIdentity() const;
 
 	/**
 	 * Applies a player Role: swaps the body SkeletalMesh + AnimBP + weapon mesh/sockets +
@@ -114,6 +121,13 @@ public:
 	void SetCharacterClass(ECharacterClass InClass) { CharacterClass = InClass; }
 protected:
 	virtual void BeginPlay() override;
+	virtual FAuraCombatIdentity BuildDefaultCombatIdentity() const;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat Identity")
+	TObjectPtr<UAuraCombatIdentityComponent> CombatIdentityComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat Identity")
+	FAuraCombatIdentity DefaultCombatIdentity;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;

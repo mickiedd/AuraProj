@@ -9,6 +9,39 @@ FAuraGameplayTags FAuraGameplayTags::GameplayTags;
 void FAuraGameplayTags::InitializeNativeGameplayTags()
 {
 	/*
+	 * Combat identity
+	 */
+	GameplayTags.Faction_Player = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Faction.Player"), FString("Player faction"));
+	GameplayTags.Faction_Enemy = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Faction.Enemy"), FString("Enemy faction"));
+	GameplayTags.Faction_Civilian = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Faction.Civilian"), FString("Civilian faction"));
+
+	GameplayTags.Control_Player = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Control.Player"), FString("Player-controlled avatar"));
+	GameplayTags.Control_EnemyAI = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Control.EnemyAI"), FString("Enemy AI-controlled avatar"));
+	GameplayTags.Control_CivilianAI = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Control.CivilianAI"), FString("Civilian AI-controlled avatar"));
+
+	GameplayTags.Combat_Unassigned = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Combat.Unassigned"), FString("Explicit transitional combat profile"));
+	GameplayTags.Combat_Magic = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Combat.Magic"), FString("Magic combat profile"));
+	GameplayTags.Combat_Gun = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Combat.Gun"), FString("Gun combat profile"));
+	GameplayTags.Combat_Civilian = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Combat.Civilian"), FString("Non-attacking civilian combat profile"));
+
+	GameplayTags.Death_PlayerRespawn = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Death.PlayerRespawn"), FString("Player respawn death policy"));
+	GameplayTags.Death_EnemyLoot = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Death.EnemyLoot"), FString("Enemy loot death policy"));
+	GameplayTags.Death_PopulationRespawn = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Death.PopulationRespawn"), FString("Population-managed respawn death policy"));
+
+	/*
 	 * Primary Attributes
 	 */
 	GameplayTags.Attributes_Primary_Strength = UGameplayTagsManager::Get().AddNativeGameplayTag(

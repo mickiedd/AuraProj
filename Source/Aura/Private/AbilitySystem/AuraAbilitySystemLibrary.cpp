@@ -23,6 +23,7 @@
 #include "AuraAttributeGameplayEffect.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
+#include "Combat/AuraCombatIdentityComponent.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "Misc/FileHelper.h"
@@ -1201,10 +1202,45 @@ void UAuraAbilitySystemLibrary::GetClosestTargets(int32 MaxTargets, const TArray
 
 bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondActor)
 {
-	const bool bBothArePlayers = FirstActor->ActorHasTag(FName("Player")) && SecondActor->ActorHasTag(FName("Player"));
-	const bool bBothAreEnemies = FirstActor->ActorHasTag(FName("Enemy")) && SecondActor->ActorHasTag(FName("Enemy"));
-	const bool bFriends = bBothArePlayers || bBothAreEnemies;
-	return !bFriends;
+	if (!IsValid(FirstActor) || !IsValid(SecondActor))
+	{
+		if (!IsValid(FirstActor))
+		{
+			UAuraCombatIdentityComponent::LogMissingIdentityOnce(FirstActor, TEXT("IsNotFriend.FirstActor"));
+		}
+		if (!IsValid(SecondActor))
+		{
+			UAuraCombatIdentityComponent::LogMissingIdentityOnce(SecondActor, TEXT("IsNotFriend.SecondActor"));
+		}
+		return false;
+	}
+
+	if (FirstActor == SecondActor)
+	{
+		return false;
+	}
+
+	const UAuraCombatIdentityComponent* FirstIdentityComponent = UAuraCombatIdentityComponent::FindForActor(FirstActor);
+	const UAuraCombatIdentityComponent* SecondIdentityComponent = UAuraCombatIdentityComponent::FindForActor(SecondActor);
+	if (!FirstIdentityComponent || !FirstIdentityComponent->HasValidIdentity())
+	{
+		UAuraCombatIdentityComponent::LogMissingIdentityOnce(FirstActor, TEXT("IsNotFriend.FirstActor"));
+		return false;
+	}
+	if (!SecondIdentityComponent || !SecondIdentityComponent->HasValidIdentity())
+	{
+		UAuraCombatIdentityComponent::LogMissingIdentityOnce(SecondActor, TEXT("IsNotFriend.SecondActor"));
+		return false;
+	}
+
+	const FGameplayTag FirstFaction = FirstIdentityComponent->GetIdentity().FactionTag;
+	const FGameplayTag SecondFaction = SecondIdentityComponent->GetIdentity().FactionTag;
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	const bool bPlayerVersusEnemy = FirstFaction.MatchesTagExact(GameplayTags.Faction_Player)
+		&& SecondFaction.MatchesTagExact(GameplayTags.Faction_Enemy);
+	const bool bEnemyVersusPlayer = FirstFaction.MatchesTagExact(GameplayTags.Faction_Enemy)
+		&& SecondFaction.MatchesTagExact(GameplayTags.Faction_Player);
+	return bPlayerVersusEnemy || bEnemyVersusPlayer;
 }
 
 FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const FDamageEffectParams& DamageEffectParams)
