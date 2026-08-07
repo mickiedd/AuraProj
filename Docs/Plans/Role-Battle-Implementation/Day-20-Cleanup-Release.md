@@ -12,6 +12,7 @@ Remove transitional assumptions, document the completed slice, and prepare the s
 - Source/Aura/Private/Character/AuraCharacterBase.cpp
 - Source/Aura/Private/Player/AuraPlayerController.cpp
 - Source/Aura/Private/AI/BTService_FindNearestPlayer.cpp
+- Source/Aura/Private/Actor/AuraEffectActor.cpp
 - Content/Config/RoleConfig.json
 - Docs/Tracking/GAS-Migration-TODOs.md
 - Docs/README.md
@@ -20,6 +21,7 @@ Remove transitional assumptions, document the completed slice, and prepare the s
 
 1. Search for remaining direct combat checks based on Player and Enemy actor tags.
 2. Replace safe remaining cases with identity/rules access, or document them as intentional compatibility code.
+   - Resolve the deferred `AuraEffectActor` `bApplyEffectsToEnemies` Player/Enemy tag filter through an explicit pickup eligibility policy; preserve its current behavior unless that policy is deliberately changed and tested.
 3. Search for every caller of IsNotFriend and confirm it now delegates to AuraCombatRules.
 4. Search for any role application path that does not clear previous state.
 5. Search for any Civilian path that enters AAuraCharacter player respawn or AAuraEnemy loot logic.

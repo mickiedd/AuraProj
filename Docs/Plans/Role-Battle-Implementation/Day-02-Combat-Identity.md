@@ -2,7 +2,7 @@
 
 ## Goal
 
-Give every combat-capable actor an explicit, replicated identity instead of relying on raw Player and Enemy actor tags.
+Give every source or target combat avatar an explicit, replicated identity instead of relying on raw Player and Enemy actor tags. Transient damage carriers such as projectiles and effect actors do not own an identity; damage continues to use the source avatar's identity and attribution.
 
 ## New files
 
@@ -12,46 +12,116 @@ Give every combat-capable actor an explicit, replicated identity instead of rely
 
 ## Files to modify
 
+- Source/Aura/Aura.Build.cs
+- Source/Aura/Public/AuraGameplayTags.h
+- Source/Aura/Private/AuraGameplayTags.cpp
 - Source/Aura/Public/Character/AuraCharacterBase.h
 - Source/Aura/Private/Character/AuraCharacterBase.cpp
 - Source/Aura/Private/Character/AuraCharacter.cpp
 - Source/Aura/Private/Character/AuraEnemy.cpp
-- Source/Aura/Public/Player/AuraPlayerState.h
-- Source/Aura/Private/Player/AuraPlayerState.cpp
+- Source/Aura/Private/AbilitySystem/AuraAbilitySystemLibrary.cpp
+- Source/Aura/Private/AI/BTService_FindNearestPlayer.cpp
+- Source/Aura/Private/Tests/AuraRoleBattleTests.cpp
+
+## Concrete data contract
+
+Define `FAuraCombatIdentity` as a `BlueprintType` `USTRUCT` in `AuraCombatTypes.h`. It contains:
+
+- `FGameplayTag FactionTag`
+- `FGameplayTag ControlTypeTag`
+- `FGameplayTag CombatProfileTag`
+- `FGameplayTag DeathPolicyTag`
+- `bool bTargetable`
+- `bool bCanAttack`
+- `bool bCanBeDamaged`
+- `bool bAllowFriendlyFire`
+
+Every member is a reflected `UPROPERTY(EditAnywhere, BlueprintReadOnly)`. The four booleans are stored explicitly rather than inferred from faction or combat profile.
+
+Register these native tags through the existing `FAuraGameplayTags` singleton:
+
+- Faction.Player
+- Faction.Enemy
+- Faction.Civilian
+- Control.Player
+- Control.EnemyAI
+- Control.CivilianAI
+- Combat.Unassigned
+- Combat.Magic
+- Combat.Gun
+- Combat.Civilian
+- Death.PlayerRespawn
+- Death.EnemyLoot
+- Death.PopulationRespawn
+
+`IsValid()` requires all four categorical tags to be valid. `Combat.Unassigned` is an intentional valid Day 2 profile for current Player and Enemy actors; Day 5 adds the explicit role-schema value and Day 6 applies it without hardcoded Aura/BungeeMan role-name inference. Move `GameplayTags` to `PublicDependencyModuleNames` because the new public combat type exposes `FGameplayTag`.
+
+## Component and authority contract
+
+- `UAuraCombatIdentityComponent` is created exactly once by `AAuraCharacterBase`; derived classes must not create another copy.
+- The component calls `SetIsReplicatedByDefault(true)` and replicates one `FAuraCombatIdentity Identity` property with `ReplicatedUsing=OnRep_Identity`.
+- `AAuraCharacterBase` owns an `EditDefaultsOnly` `FAuraCombatIdentity DefaultCombatIdentity`. Derived constructors configure this default, and authority copies it into the component during `BeginPlay`.
+- Runtime mutation uses one authority-only C++ initializer/setter. Do not add a client setter or client-to-server identity RPC.
+- Expose const getters plus `HasValidIdentity()`. Add a static component lookup helper that accepts any `AActor` and uses `FindComponentByClass`; `IsNotFriend` and targeting code must not cast to a concrete character class.
+- Default-constructed identity has invalid tags and all flags false. Missing/invalid identity warnings must be rate-limited to at most once per actor per runtime.
+
+## Initial identities
+
+| Actor | Faction | Control | Combat profile | Death policy | Targetable | Can attack | Can be damaged | Friendly fire |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `AAuraCharacter` | Faction.Player | Control.Player | Combat.Unassigned | Death.PlayerRespawn | true | true | true | false |
+| `AAuraEnemy` | Faction.Enemy | Control.EnemyAI | Combat.Unassigned | Death.EnemyLoot | true | true | true | false |
+| Civilian test fixture | Faction.Civilian | Control.CivilianAI | Combat.Civilian | Death.PopulationRespawn | true | false | true | false |
+
+## Compatibility and scope decisions
+
+- Migrate `IsNotFriend` in `AuraAbilitySystemLibrary.cpp` but retain its signature. For Day 2 only, it is a narrow compatibility adapter: Player versus Enemy and Enemy versus Player return true; Player versus Player, Enemy versus Enemy, any pairing containing Civilian, self-targeting, null actors, and missing/invalid identities return false. Invalid identities produce the rate-limited diagnostic. Day 3 replaces this table with `AuraCombatRules`.
+- Migrate `BTService_FindNearestPlayer.cpp` to find the nearest valid, targetable `Faction.Player` pawn through combat identity. Preserve the existing blackboard target/distance keys and the current null/max-distance output when no candidate exists. Do not call the candidate "hostile" or implement a relationship matrix in this service on Day 2; Day 3 replaces the temporary Player-faction filter with `AuraCombatRules::CanTarget`.
+- Keep existing Player and Enemy actor tags temporarily for unrelated compatibility code, but do not add any new tag-based combat or targeting checks.
+- `AuraEffectActor.cpp` remains unchanged on Day 2 because it controls pickup eligibility rather than hostile targeting or damage attribution. Its `bApplyEffectsToEnemies` tag filter is explicitly deferred to the Day 20 compatibility cleanup.
+- `AuraPlayerState` is not a Day 2 change. Retain and regression-test the Day 1 persistent-ASC attribute initialization guard, but do not add combat identity to PlayerState.
 
 ## Implementation steps
 
-1. Define tags or strongly named identifiers for:
-   - Faction.Player
-   - Faction.Enemy
-   - Faction.Civilian
-   - Control.Player
-   - Control.EnemyAI
-   - Control.CivilianAI
-   - Combat.Magic
-   - Combat.Gun
-   - Combat.Civilian
-   - Death.PlayerRespawn
-   - Death.EnemyLoot
-   - Death.PopulationRespawn
-2. Add AuraCombatIdentityComponent as a replicated ActorComponent.
-3. Store faction, combat profile, control type, death policy, targetable state, can-attack, can-be-damaged, and friendly-fire policy.
-4. Add getters on AuraCharacterBase so damage and targeting code can access identity without knowing the concrete class.
-5. Attach the component to AuraCharacterBase or ensure every derived combat actor creates one in its constructor.
-6. Initialize AuraCharacter with Player faction and Player control type.
-7. Initialize AuraEnemy with Enemy faction and EnemyAI control type.
-8. Keep existing Player and Enemy actor tags temporarily for compatibility, but stop adding new code that depends on them.
-9. Replicate identity from the server. Clients may display it but may not set it.
-10. Add logging for an actor with missing identity.
+1. Add the native tags and the concrete `FAuraCombatIdentity` structure.
+2. Add the replicated identity component, authority-only initialization, `OnRep_Identity`, validation, and generic actor lookup.
+3. Create the component once in `AAuraCharacterBase` and initialize it from `DefaultCombatIdentity` on authority during `BeginPlay`.
+4. Configure the exact Player and Enemy defaults from the table above.
+5. Add const identity getters on `AAuraCharacterBase` for convenience while keeping generic consumers component-based.
+6. Migrate `IsNotFriend` to the exact Day 2 compatibility truth table above.
+7. Migrate `BTService_FindNearestPlayer` to the exact Player-identity filter above.
+8. Add automation coverage for identity defaults/validation, generic lookup, the full compatibility truth table including null/self/Civilian/missing cases, and the Civilian fixture.
+9. Add server/client identity logging through authority initialization and `OnRep_Identity`; include actor name and every replicated field.
+10. Build and run all required smoke gates below.
 
-## Verification
+## Required verification and smoke gates
 
-- Log every spawned AuraCharacter and AuraEnemy identity.
-- Confirm identity is identical on server and client.
-- Confirm the existing combat behavior has not changed.
-- Confirm a Civilian identity can be assigned in a unit test or temporary test actor even before AAuraCivilian exists.
+Add these automation tests to `AuraRoleBattleTests.cpp`:
+
+- `Aura.RoleBattle.Day2.IdentityDefaults`
+- `Aura.RoleBattle.Day2.IsNotFriendCompatibility`
+- `Aura.RoleBattle.Day2.CivilianIdentity`
+
+Run, in order:
+
+```powershell
+& '.\build_test.bat'
+
+& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests Aura.RoleBattle.Day2; Quit' '-TestExit=Automation Test Queue Empty' -log
+
+& '.\RunRoleBattleDay1Smoke.bat'
+```
+
+Then run a two-player PIE smoke on `StartupMap` with Net Mode set to `Play As Listen Server`:
+
+1. Confirm every spawned `AAuraCharacter` and `AAuraEnemy` reports a valid server identity.
+2. Confirm each client receives the same four tags and four flags through `OnRep_Identity`.
+3. Confirm Enemy AI still selects the nearest Player and writes `TargetToFollow` and `DistanceToTarget`.
+4. Confirm Player-to-Enemy and Enemy-to-Player damage still work, existing `IsNotFriend`-guarded projectile/melee paths reject same-faction targets, and the Day 1 respawn vitals remain stable. The indirect damage paths inventoried on Day 1 remain assigned to Day 4.
+5. Confirm existing pickups still honor `bApplyEffectsToEnemies`.
+
+Record the build exit code, automation summary, Day 1 smoke result, PIE log path, and any failure. All commands/tests and the PIE smoke must pass before the completion gate is accepted.
 
 ## Completion gate
 
-Every actor that can receive or cause damage has a valid identity on the server. Existing Player and Enemy gameplay still works.
-
+Every source or target combat avatar has a valid server-owned identity, and clients receive the same identity. `IsNotFriend` and enemy Player acquisition no longer read Player/Enemy actor tags, all Day 2 automation tests pass, the Day 1 runtime smoke remains green, and the two-player PIE smoke passes. Transient projectiles/effect actors continue using their source avatar for identity and attribution; pickup filtering remains explicitly deferred.

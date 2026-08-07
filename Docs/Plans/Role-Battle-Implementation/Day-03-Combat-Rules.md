@@ -2,7 +2,7 @@
 
 ## Goal
 
-Create one authoritative answer to “may this source target and damage this target?”
+Create one authoritative answer to "may this source target and damage this target?"
 
 ## New files
 
@@ -14,7 +14,9 @@ Create one authoritative answer to “may this source target and damage this tar
 - Source/Aura/Public/AbilitySystem/AuraAbilitySystemLibrary.h
 - Source/Aura/Private/AbilitySystem/AuraAbilitySystemLibrary.cpp
 - Source/Aura/Public/Combat/AuraCombatTypes.h
-- Source/Aura/Private/GameplayTags/AuraGameplayTags.cpp
+- Source/Aura/Public/AuraGameplayTags.h
+- Source/Aura/Private/AuraGameplayTags.cpp
+- Source/Aura/Private/AI/BTService_FindNearestPlayer.cpp
 
 ## Implementation steps
 
@@ -43,8 +45,9 @@ Create one authoritative answer to “may this source target and damage this tar
    - Non-damageable targets.
    - Friendly targets.
    - Protected-zone targets.
-6. Keep IsNotFriend as a compatibility wrapper temporarily, but make it call AuraCombatRules.
-7. Add a small automated test or table-driven test for every row in the relationship matrix.
+6. Replace the Day 2 `IsNotFriend` compatibility truth table with a wrapper that calls AuraCombatRules.
+7. Replace the Day 2 Player-faction filter in `BTService_FindNearestPlayer` with `AuraCombatRules::CanTarget`; keep the existing service name and blackboard contract until the later generic `FindNearestHostile` replacement.
+8. Add a small automated test or table-driven test for every row in the relationship matrix.
 
 ## Verification
 
@@ -57,8 +60,8 @@ Test the following without changing the projectile code yet:
 - Civilian cannot attack.
 - A protected civilian is rejected.
 - An unprotected civilian is accepted only when the rule allows it.
+- Enemy AI still writes the same target and distance blackboard keys after switching from the temporary Day 2 Player filter to `CanTarget`.
 
 ## Completion gate
 
-There is one relationship API that returns a reason for every accepted or rejected target. No new feature may add a direct faction comparison outside this API.
-
+There is one relationship API that returns a reason for every accepted or rejected target. `IsNotFriend` and enemy target acquisition delegate to it, and no new feature adds a direct faction comparison outside this API.
