@@ -4,6 +4,10 @@
 
 Add server-authoritative wallet and inventory state owned by `AAuraPlayerState`. The state must replicate only to that PlayerState's owning connection, survive pawn replacement, initialize new-profile currency exactly once, and remain independent of the Ability System Component.
 
+## BungeeMan Gun Skill checkpoint
+
+Keep the FireGun grant, cooldown, and role equipment independent from owner-only wallet/inventory replication. Pawn replacement must preserve the server-owned BungeeMan skill ledger without exposing another player's gun or economy state to a non-owner.
+
 ## Prerequisite gate
 
 - Day 15 has published one valid immutable authority registry with currency, stack, item-slot capacity, and item definitions.

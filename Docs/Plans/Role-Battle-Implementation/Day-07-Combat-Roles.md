@@ -6,6 +6,10 @@ Prove with automation, rendered evidence, listen-server, dedicated-server, and p
 
 The Civilian role definition already exists for schema/pre-grant testing. The Day 8 `AAuraCivilian` actor shell must not begin until this gate is fully green.
 
+## BungeeMan Gun Skill checkpoint
+
+This is the primary completion gate for the half-finished Gun Skill. Prove the configured XML path in a real activation: LMB input, target validation, face/montage/event ordering, one server projectile, physical damage and attribution, 0.2 second cooldown, replicated muzzle/impact presentation, respawn/late join, listen, dedicated, and packaged behavior. Resolve and document whether the parallel `UAuraFireGun` helper remains unused or is removed/reused; it must not create a second grant path.
+
 ## Files to inspect or adjust
 
 ### Role and ability data

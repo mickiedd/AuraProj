@@ -22,6 +22,7 @@
 #include "Engine/World.h"
 #include "Engine/SkeletalMesh.h"
 #include "GameFramework/Actor.h"
+#include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Player/AuraPlayerState.h"
@@ -759,6 +760,230 @@ bool FAuraDay3EnemyPlayerTargetingTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Player can combat-target Enemy"), FAuraCombatRules::CanCombatTarget(PlayerActor, EnemyActor, Context).bCanCombatTarget);
 	EnemyActor->Destroy();
 	PlayerActor->Destroy();
+	return true;
+}
+
+namespace AuraRoleBattleTestsPrivate
+{
+	/** One row of the Day 4 damage-producer inventory. */
+	struct FAuraDamageProducerEntry
+	{
+		const TCHAR* ProducerId;
+		const TCHAR* SourcePath;
+		const TCHAR* Category;
+		bool bProduction;
+		const TCHAR* ExpectedBoundary;
+		const TCHAR* ExpectedAuthority;
+	};
+
+	/**
+	 * Canonical Day 4 producer table. Mirrors the "Producer table" in
+	 * Docs/Reports/Role-Battle-Damage-Producer-Inventory.md; the producer test
+	 * fails when the two differ.
+	 */
+	const FAuraDamageProducerEntry DamageProducerTable[] = {
+		// Native producers (Source/Aura)
+		{ TEXT("Native.Projectile.AuraProjectile"), TEXT("Source/Aura/Private/Actor/AuraProjectile.cpp"), TEXT("Projectile"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority at impact") },
+		{ TEXT("Native.Projectile.AuraFireBall"), TEXT("Source/Aura/Private/Actor/AuraFireBall.cpp"), TEXT("Projectile"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority at overlap") },
+		{ TEXT("Native.Projectile.AuraProjectileSpell"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraProjectileSpell.cpp"), TEXT("Projectile (param builder)"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority at spawn") },
+		{ TEXT("Native.Projectile.AuraFireBolt"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraFireBolt.cpp"), TEXT("Projectile (param builder)"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority at spawn") },
+		{ TEXT("Native.Projectile.AuraFireBlast"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraFireBlast.cpp"), TEXT("Projectile (param builder)"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority at spawn") },
+		{ TEXT("Native.Direct.CauseDamage"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraDamageGameplayAbility.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("Server ability activation") },
+		{ TEXT("Native.Periodic.Debuff"), TEXT("Source/Aura/Private/AbilitySystem/AuraAttributeSet.cpp"), TEXT("Periodic"), true, TEXT("ApplyDamageEffect"), TEXT("Server attribute execution") },
+		{ TEXT("Smoke.Day1.AuraPlayerController"), TEXT("Source/Aura/Private/Player/AuraPlayerController.cpp"), TEXT("Smoke"), false, TEXT("ApplyDamageEffect"), TEXT("HasAuthority (test-only)") },
+		// AuraAbilityGraph producers (Plugins/AuraAbilityGraph)
+		{ TEXT("Graph.ApplyDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ApplyDamageNode.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("Shared boundary (node has no gate)") },
+		{ TEXT("Graph.CauseDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/CauseDamageNode.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("Shared boundary (node has no gate)") },
+		{ TEXT("Graph.ElectrocuteBeam"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ElectrocuteBeamNode.cpp"), TEXT("Beam"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority gate") },
+		{ TEXT("Graph.EnemyMeleeDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/EnemyMeleeDamageNode.cpp"), TEXT("Melee"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority gate") },
+		{ TEXT("Graph.HitscanTrace"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/HitscanTraceNode.cpp"), TEXT("Hitscan"), true, TEXT("ApplyDamageEffect"), TEXT("Shared boundary (node has no gate)") },
+		{ TEXT("Graph.ApplyBeamDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ModularBeamNodes.cpp"), TEXT("Beam"), true, TEXT("ApplyDamageEffect"), TEXT("bAuthorityOnly XML (must be enforced)") },
+		{ TEXT("Graph.SpawnProjectile"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectileNode.cpp"), TEXT("Projectile"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority gate") },
+		{ TEXT("Graph.SpawnProjectiles"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectilesNode.cpp"), TEXT("Projectile"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority gate") },
+		{ TEXT("Graph.SpawnShards"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnShardsNode.cpp"), TEXT("Radial"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority gate") },
+	};
+	const int32 DamageProducerTableCount = UE_ARRAY_COUNT(DamageProducerTable);
+
+	/**
+	 * Files that legitimately contain a damage-application symbol but are not
+	 * damage producers: they define the shared machinery, apply non-damage
+	 * gameplay effects, or are test fixtures. Kept in sync with the inventory
+	 * report's "Non-producer infrastructure" section.
+	 */
+	const TCHAR* DamageSymbolNonProducerFiles[] = {
+		// Shared damage machinery (defines the symbols)
+		TEXT("Source/Aura/Private/AbilitySystem/AuraAbilitySystemLibrary.cpp"),
+		TEXT("Source/Aura/Public/AbilitySystem/AuraAbilitySystemLibrary.h"),
+		TEXT("Source/Aura/Public/AuraAbilityTypes.h"),
+		TEXT("Source/Aura/Private/AuraAbilityTypes.cpp"),
+		TEXT("Source/Aura/Public/AbilitySystem/AuraAttributeSet.h"),
+		TEXT("Source/Aura/Private/AbilitySystem/ExecCalc/ExecCalc_Damage.cpp"),
+		TEXT("Source/Aura/Public/AbilitySystem/Abilities/AuraDamageGameplayAbility.h"),
+		TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Public/AbilityDefinition.h"),
+		TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/AbilityDefinition.cpp"),
+		TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/AuraAbilityGraphModule.cpp"),
+		TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Public/AuraDamageGameplayEffect.h"),
+		TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Public/Nodes/Actions/SpawnShardsNode.h"),
+		TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Public/Nodes/Actions/CauseDamageNode.h"),
+		// Non-damage gameplay-effect application
+		TEXT("Source/Aura/Private/Character/AuraCharacterBase.cpp"),
+		TEXT("Source/Aura/Private/Actor/AuraEffectActor.cpp"),
+		TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/DataAbility.cpp"),
+		// Test fixtures
+		TEXT("Source/Aura/Private/Tests/AuraRoleBattleTests.cpp"),
+		TEXT("Source/Aura/Private/Tests/AuraPickupGameplayEffectTests.cpp"),
+	};
+	const int32 DamageSymbolNonProducerFileCount = UE_ARRAY_COUNT(DamageSymbolNonProducerFiles);
+
+	bool IsDamageProducerId(const FString& Cell)
+	{
+		return Cell.StartsWith(TEXT("Native.")) || Cell.StartsWith(TEXT("Graph.")) || Cell.StartsWith(TEXT("Smoke."));
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4ProducerInventoryTest,
+	"Aura.RoleBattle.Day4.ProducerInventory",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4ProducerInventoryTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleTestsPrivate;
+
+	// 1. Every production producer declares a shared boundary and expected authority.
+	for (int32 i = 0; i < DamageProducerTableCount; ++i)
+	{
+		const FAuraDamageProducerEntry& Entry = DamageProducerTable[i];
+		if (Entry.bProduction)
+		{
+			TestTrue(FString::Printf(TEXT("Production producer %s declares a shared boundary"), Entry.ProducerId), FCString::Strlen(Entry.ExpectedBoundary) > 0);
+			TestTrue(FString::Printf(TEXT("Production producer %s declares expected authority"), Entry.ProducerId), FCString::Strlen(Entry.ExpectedAuthority) > 0);
+		}
+	}
+
+	// 2. The inventory report exists and matches the table in both directions.
+	const FString ReportPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Docs/Reports/Role-Battle-Damage-Producer-Inventory.md"));
+	FString ReportText;
+	if (!TestTrue(TEXT("Producer inventory report exists"), FFileHelper::LoadFileToString(ReportText, *ReportPath)))
+	{
+		return false;
+	}
+
+	// 2a. Every table entry is present in the report.
+	for (int32 i = 0; i < DamageProducerTableCount; ++i)
+	{
+		const FAuraDamageProducerEntry& Entry = DamageProducerTable[i];
+		TestTrue(FString::Printf(TEXT("Report covers producer %s"), Entry.ProducerId), ReportText.Contains(Entry.ProducerId));
+		TestTrue(FString::Printf(TEXT("Report covers producer path %s"), Entry.SourcePath), ReportText.Contains(Entry.SourcePath));
+	}
+
+	// 2b. Every producer row in the report's table is present in the compile-time table
+	//     with a matching production/test-only classification.
+	TArray<FString> ReportLines;
+	ReportText.ParseIntoArrayLines(ReportLines);
+	for (const FString& Line : ReportLines)
+	{
+		if (!Line.StartsWith(TEXT("| ")))
+		{
+			continue;
+		}
+		TArray<FString> Cells;
+		Line.ParseIntoArray(Cells, TEXT("|"), true);
+		if (Cells.Num() < 4)
+		{
+			continue;
+		}
+		const FString Cell = Cells[0].TrimStartAndEnd();
+		if (!IsDamageProducerId(Cell))
+		{
+			continue;
+		}
+
+		const FAuraDamageProducerEntry* Match = nullptr;
+		for (int32 i = 0; i < DamageProducerTableCount; ++i)
+		{
+			if (Cell == DamageProducerTable[i].ProducerId)
+			{
+				Match = &DamageProducerTable[i];
+				break;
+			}
+		}
+		TestTrue(FString::Printf(TEXT("Report producer %s is present in the compile-time table"), *Cell), Match != nullptr);
+		if (Match)
+		{
+			const FString ProdCell = Cells[3].TrimStartAndEnd();
+			const bool bReportProduction = (ProdCell == TEXT("Production"));
+			TestTrue(FString::Printf(TEXT("Report producer %s production flag matches the table"), *Cell), bReportProduction == Match->bProduction);
+		}
+	}
+
+	// 3. Every discovered damage-application site is either a known producer or a
+	//    documented non-producer. A new application site that is neither fails.
+	const TCHAR* DamageSymbols[] = {
+		TEXT("ApplyDamageEffect"),
+		TEXT("CauseDamage"),
+		TEXT("ApplyGameplayEffectSpecToTarget"),
+		TEXT("ApplyGameplayEffectSpecToSelf"),
+	};
+
+	TArray<FString> ScanRoots;
+	ScanRoots.Add(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Source/Aura")));
+	ScanRoots.Add(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Plugins/AuraAbilityGraph/Source")));
+
+	for (const FString& Root : ScanRoots)
+	{
+		TArray<FString> Files;
+		IFileManager::Get().FindFilesRecursive(Files, *Root, TEXT("*.cpp"), true, false);
+		IFileManager::Get().FindFilesRecursive(Files, *Root, TEXT("*.h"), true, false, false);
+		for (const FString& File : Files)
+		{
+			FString Content;
+			if (!FFileHelper::LoadFileToString(Content, *File))
+			{
+				continue;
+			}
+			bool bHasSymbol = false;
+			for (const TCHAR* Symbol : DamageSymbols)
+			{
+				if (Content.Contains(Symbol))
+				{
+					bHasSymbol = true;
+					break;
+				}
+			}
+			if (!bHasSymbol)
+			{
+				continue;
+			}
+
+			FString RepoRelative = File;
+			FPaths::MakePathRelativeTo(RepoRelative, *FPaths::ProjectDir());
+			FPaths::NormalizeFilename(RepoRelative);
+
+			bool bKnown = false;
+			for (int32 i = 0; i < DamageProducerTableCount; ++i)
+			{
+				if (RepoRelative == DamageProducerTable[i].SourcePath)
+				{
+					bKnown = true;
+					break;
+				}
+			}
+			if (!bKnown)
+			{
+				for (int32 i = 0; i < DamageSymbolNonProducerFileCount; ++i)
+				{
+					if (RepoRelative == DamageSymbolNonProducerFiles[i])
+					{
+						bKnown = true;
+						break;
+					}
+				}
+			}
+			TestTrue(FString::Printf(TEXT("Discovered damage-application site %s is inventoried"), *RepoRelative), bKnown);
+		}
+	}
+
 	return true;
 }
 

@@ -6,6 +6,10 @@ Persist each player's validated profile independently from one server-owned worl
 
 The existing `UAuraGameInstance::LoadSlotName/LoadSlotIndex` pair is a local menu selection, not a multiplayer player identity or a server-wide persistence key.
 
+## BungeeMan Gun Skill checkpoint
+
+Persist BungeeMan's validated role and FireGun grant provenance as part of the player profile. Restore the XML definition, one ASC ledger entry, rifle/equipment state, and cooldown-ready state in the correct order; reload and pawn replacement must never duplicate FireGun.
+
 ## Prerequisite gate
 
 - Day 13 provides canonical `PopulationMemberId` values and a deterministic server snapshot.

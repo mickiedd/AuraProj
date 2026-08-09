@@ -4,6 +4,10 @@
 
 First remove transitional gameplay/security assumptions and document intentional limitations. Only after cleanup is complete, perform the full rebuild, native/plugin automation, cook, package, staged-data validation, and packaged listen/dedicated regression required to call the vertical slice releasable.
 
+## BungeeMan Gun Skill checkpoint
+
+Close the Gun Skill before calling the slice releasable: remove or explicitly document the unused `UAuraFireGun` versus XML-path ambiguity, validate loose XML/JSON plus all rifle/montage/FX assets in the staged package, and run the final FireGun activation, damage, cooldown, presentation, listen, dedicated, and packaged checks.
+
 ## Prerequisite gate
 
 - Day 19's mandatory listen and dedicated matrices, artifacts, security/privacy assertions, and performance thresholds pass at the candidate revision.

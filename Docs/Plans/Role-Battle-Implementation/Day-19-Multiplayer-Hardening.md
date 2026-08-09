@@ -6,6 +6,10 @@ Prove the complete first vertical slice under server authority in both mandatory
 
 The checked-in `AuraServer.Target.cs` makes the dedicated matrix required. Failure to build or launch that target blocks this day; it is not an optional environment skip.
 
+## BungeeMan Gun Skill checkpoint
+
+Include FireGun in both listen and dedicated two-client matrices: server-only activation/spawn, one projectile and one damage event, cooldown enforcement, friendly-fire denial, late join/reconnect reconstruction, target-data rejection, muzzle/impact replication, and no client-authored role, grant, projectile, or damage state.
+
 ## Prerequisite gate
 
 - Every Day 02-18 completion gate, focused suite, and required network smoke is green at one recorded revision.

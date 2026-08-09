@@ -4,6 +4,10 @@
 
 Give players orthogonal target relationship, target kind, life state, and interaction-option data; keep LMB as attack/ability input; and add a distinct Interact input whose Server RPC lives on a player-owned component. Client highlights/prompts are previews, while the server re-resolves and validates the target and option at execution time.
 
+## BungeeMan Gun Skill checkpoint
+
+Keep FireGun's LMB attack path separate from the new Interact path. Target data may preview a gun target, but the server must re-resolve identity, relationship, life state, range, and zone permission before damage; an interaction highlight or merchant prompt must never grant, redirect, or bypass FireGun damage.
+
 ## Prerequisite gate
 
 - Day 03/12 `AuraCombatRules` returns structured relationship/permission results with server-resolved zone context.

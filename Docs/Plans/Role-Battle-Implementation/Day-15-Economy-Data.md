@@ -6,6 +6,10 @@ Create one versioned, immutable economy registry that validates items, offers, m
 
 The authoritative server registry is the only source of accepted item IDs, offer contents, prices, stock policy, and eligibility rules. Client JSON or UI values are presentation only and are never transaction input.
 
+## BungeeMan Gun Skill checkpoint
+
+Keep FireGun, `fireGunBullet`, cooldown, damage, and weapon definitions outside the economy registry. Merchant bindings, prices, item IDs, and currency validation must not become inputs to the gun ability or a way to mutate economy state through damage.
+
 ## Prerequisite gate
 
 - Day 09 provides versioned population rows, stable `PopulationId:SlotIndex` member IDs, and syntax-checked optional per-slot `memberOverrides[].merchantDefinitionId` values.

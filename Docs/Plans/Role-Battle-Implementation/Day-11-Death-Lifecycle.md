@@ -6,6 +6,10 @@ Extend the minimal replicated `UAuraCombatStateComponent` introduced on Day 03 i
 
 Day 11 must remove reward and respawn decisions from inheritance-driven `Die` overrides. The one GameMode-owned dispatcher publishes a server-wide neutral death event that the existing Day 09 population manager consumes now and the Day 12 battle director can subscribe to later without a direct Day 11 dependency.
 
+## BungeeMan Gun Skill checkpoint
+
+Carry FireGun's source avatar, ability tag, and damage type into the fatal-damage context. A lethal BungeeMan projectile must enter the shared `Alive -> Dying` path once, dispatch exactly one role-appropriate policy, and preserve late-join death presentation without a projectile-side respawn or reward shortcut.
+
 ## Prerequisite gate
 
 - Day 03 combat rules and the replicated combat-state component expose Alive/Dying/Dead and reject non-Alive damage targets.

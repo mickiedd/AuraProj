@@ -4,6 +4,10 @@
 
 Implement one server-only Unreal Engine Behavior Tree for the first Civilian loop: idle, wander, work, observe, flee, and shelter. Do not use BehaviorU for Civilian AI and do not create a second life/death state; AI interruption reads the replicated combat life state introduced on Day 03.
 
+## BungeeMan Gun Skill checkpoint
+
+Keep FireGun a player-owned ability; Civilian AI must never receive or activate it. Flee/threat behavior may react only to an authoritative, rule-permitted FireGun hit and must stop on `Dying`/`Dead`; client target data or a raw gun tag cannot drive AI state.
+
 ## Prerequisite gate
 
 - Day 03 exposes Alive/Dying/Dead through `UAuraCombatStateComponent` and `AuraCombatRules`.

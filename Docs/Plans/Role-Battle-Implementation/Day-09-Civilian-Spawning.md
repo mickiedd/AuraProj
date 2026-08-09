@@ -4,6 +4,10 @@
 
 Create the server-only `UAuraPopulationManager` now and make it the sole owner of Civilian population definitions, deterministic member slots, initial spawning, and the runtime registry. Day 13 extends this same manager with corpse cleanup and refill; no temporary GameMode registry is allowed.
 
+## BungeeMan Gun Skill checkpoint
+
+Ensure population spawning never inherits a player FireGun ability, rifle, or player role state. Each spawned Civilian must have its stable server-owned identity before any later FireGun target/rule query, and the population manager must not become a second owner of player skill grants.
+
 ## Prerequisite gate
 
 - Day 08 can spawn a role-derived `AAuraCivilian` through deferred spawning and set its authority-only requested role ID before `FinishSpawning`; the resulting `FAuraAppliedRoleState`, not the request, is what replicates.

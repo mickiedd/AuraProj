@@ -6,6 +6,10 @@ Create a replicated `AAuraCivilian` actor shell that reuses the common GAS, heal
 
 Day 08 consumes the validated Civilian entry produced by Day 05 and the deterministic role-application path from Day 06. It must not duplicate Civilian identity values in the actor class, add Civilian to `ECharacterClass`, or depend on the target/interaction interface introduced on Day 14.
 
+## BungeeMan Gun Skill checkpoint
+
+Keep the Civilian role empty-handed and free of FireGun grants. Add a regression that a BungeeMan FireGun hit is rejected against a Civilian under the Day 8 default-deny rules, while the new actor still exposes the common identity, health, and life-state interfaces needed by later zone policy.
+
 ## Prerequisite gate
 
 - The Day 04 final damage boundary accepts a non-enemy target without requiring a Civilian `ECharacterClass` value.

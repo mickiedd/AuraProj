@@ -4,6 +4,10 @@
 
 Route every production damage request through `AuraCombatRules`, enforce the rule again at the authoritative final application boundary, and preserve complete attribution through direct, projectile, beam, radial, hitscan, melee, and periodic/debuff damage.
 
+## BungeeMan Gun Skill checkpoint
+
+Inventory `FireGun.xml`'s `SpawnProjectile` -> `fireGunBullet` path as a production projectile producer. Verify that the projectile carries BungeeMan source ability/type/direction attribution and that impact damage reaches the shared final server boundary with the same friendly-fire, life-state, and authority checks as every other producer.
+
 Day 4 begins by completing and checking in the expanded Day 1 inventory before changing a damage path. “All producers” includes native Blueprint-callable helpers, smoke-only producers, and Blueprint assets; it does not mean only AuraAbilityGraph nodes.
 
 ## Files to modify

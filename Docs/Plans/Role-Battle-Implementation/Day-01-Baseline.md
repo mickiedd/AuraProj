@@ -4,6 +4,10 @@
 
 Record the current behavior and create a reproducible starting point before changing role, combat, or death code.
 
+## BungeeMan Gun Skill checkpoint
+
+Audit the half-finished `FireGun` path end to end: BungeeMan's `lmbAbilityDefinition`, `FireGun.xml`, `fireGunBullet`, rifle/Muzzle assets, montage/event, muzzle and impact FX, and the active `UAuraDataAbility` runtime path. Record what is proven by the catalog/smoke tests and leave explicit gaps for real activation, cooldown, damage attribution, and rendered presentation.
+
 ## Execution status — conditional, 2026-08-07
 
 The headless functional baseline has been executed against the recorded checkout. Results, commands, fixture details, the original combat-path inventory, and remaining blockers are in [Docs/Reports/Role-Battle-Baseline-2026-08-07.md](../../Reports/Role-Battle-Baseline-2026-08-07.md). The follow-up fixed persistent-ASC respawn attribute accumulation and unassigned SetByCaller magnitude errors. The checked-in Day 1 smoke runner passes Login/BungeeMan asset wiring, both live damage directions, and two runtime respawns with stable vitals.

@@ -33,6 +33,35 @@ Do not skip gates. In particular, replicated combat state and conservative facti
 - Persistence uses authenticated, provider-validated `FUniqueNetIdRepl` player identity and separates per-player saves from one authoritative world snapshot keyed by a server-owned `WorldPersistenceId`.
 - Listen-server and dedicated-server multi-process acceptance are both required before release.
 
+## Cross-cutting BungeeMan Gun Skill track
+
+The BungeeMan Gun Skill is **half-finished** in the current checkout. The configured path is present: `Content/Config/RoleConfig.json` points BungeeMan's `lmbAbilityDefinition` to `Content/AbilityDefinitions/FireGun.xml`; the XML defines the LMB input, zero mana cost, physical damage, 0.2 second cooldown, montage/event sequence, `fireGunBullet` projectile, and muzzle FX; and `Content/Config/ProjectileDefinitions.json` defines the native projectile. The Day 1 catalog test already proves the role, graph, weapon/socket, and projectile definition load.
+
+The remaining work is runtime proof and closeout: exercise the configured `UAuraDataAbility` XML path (the role does not currently point at the parallel `UAuraFireGun` helper), prove server-only spawn and shared damage-rule/attribution behavior, confirm montage/event/cooldown/muzzle/impact presentation, and repeat those checks through respawn, late join, dedicated, packaged, persistence, and release gates. Every day below carries the relevant checkpoint; a checkpoint marked regression must not introduce a second gun-grant or a new client-authority path.
+
+| Day | BungeeMan Gun Skill checkpoint |
+| --- | --- |
+| 01 | Record the FireGun wiring, active XML path, assets, projectile, and the missing activation/presentation evidence. |
+| 02 | Replicate BungeeMan's `Combat.Gun` identity and preserve it for FireGun source attribution. |
+| 03 | Make FireGun target/damage decisions use the authoritative combat rules and life-state checks; friendly targets remain rejected. |
+| 04 | Inventory and migrate FireGun projectile damage through the final server boundary with source ability/type attribution. |
+| 05 | Validate BungeeMan's `lmbAbilityDefinition` reference and the FireGun contract atomically with the role schema. |
+| 06 | Grant exactly one FireGun data ability, bind `InputTag.LMB`, equip the rifle, and keep the grant across pawn replacement. |
+| 07 | Close the functional, rendered, listen, dedicated, and packaged FireGun evidence gate. |
+| 08 | Keep Civilian empty-handed and without FireGun; verify the gun cannot damage a Civilian under the Day 8 default-deny rules. |
+| 09 | Ensure population spawning never inherits a player FireGun grant or weapon and retains stable target identity. |
+| 10 | Ensure Civilian threat/flee behavior reacts only to an authoritative permitted FireGun hit and never grants AI a player skill. |
+| 11 | Verify a lethal FireGun hit produces one attributed death transition and one policy dispatch. |
+| 12 | Resolve FireGun damage against the authoritative battle-zone/phase policy, including the explicit Civilian casualty opt-in. |
+| 13 | Verify FireGun-caused Civilian death updates one population slot and cannot trigger duplicate cleanup/refill. |
+| 14 | Keep FireGun attack targeting separate from Interact; validate target descriptors, friendly rejection, and server re-resolution. |
+| 15 | Keep FireGun and its projectile data outside economy registry ownership and transaction inputs. |
+| 16 | Keep the FireGun grant and cooldown/respawn behavior independent from owner-only wallet and inventory replication. |
+| 17 | Prove merchant interaction/transaction state cannot be mutated or bypassed by FireGun damage or input. |
+| 18 | Persist and restore BungeeMan's role and FireGun grant exactly once without duplicating the ASC ledger entry. |
+| 19 | Run FireGun authority, replication, late-join, reconnect, concurrency, privacy, and anti-cheat checks in both topologies. |
+| 20 | Package and release-test the complete FireGun XML/projectile/assets path, with no unresolved helper/path ambiguity. |
+
 ## Daily sequence
 
 | Day | Milestone | Main result |

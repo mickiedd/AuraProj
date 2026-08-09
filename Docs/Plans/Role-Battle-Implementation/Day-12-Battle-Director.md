@@ -4,6 +4,10 @@
 
 Add one server-spawned, replicated, always-relevant `AAuraBattleDirector : AInfo` that owns battle phase, validated zone policy, safe-zone precedence, and battle event identity. The final server damage boundary resolves zone context from the target’s current authoritative location; caller-supplied zone/event context is never trusted.
 
+## BungeeMan Gun Skill checkpoint
+
+Resolve FireGun damage against the authoritative target location, battle phase, safe-zone, and civilian-casualty policy. BungeeMan-versus-Enemy behavior must remain intact; BungeeMan-versus-Civilian becomes legal only through the explicit Day 12 zone-policy opt-in, never through caller-supplied FireGun context.
+
 ## Prerequisite gate
 
 - Day 11 provides exactly-once neutral `FAuraDeathEvent` publication through the one GameMode-owned dispatcher and serialized source/ability/damage attribution.

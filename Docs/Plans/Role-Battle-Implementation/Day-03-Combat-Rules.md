@@ -12,6 +12,10 @@ Combat targeting, AI threat selection, and interaction are separate contracts:
 
 Civilian damage is conservative/default-deny on Day 3. Day 12 supplies the authoritative battle-zone resolver that can opt a server query into a configured civilian-casualty rule.
 
+## BungeeMan Gun Skill checkpoint
+
+Apply the Day 3 combat-rule and life-state contract to FireGun's target and projectile impact path. A BungeeMan shot may damage only an authoritative permitted target that is still `Alive`; same-faction targets and targets already entering death remain rejected. Do not add a FireGun-specific bypass.
+
 ## Execution status — 2026-08-09
 
 Implemented and verified in this checkout. The Day 3 native suite has eight passing tests; the combined `Aura.RoleBattle.Day` suite has all fourteen Day 1–3 tests passing. Day 1 smoke and both Listen/Dedicated Day 2 and Day 3 network smokes pass. Dedicated runners prefer the packaged `AuraServer.exe` when the cooked `StartupMap` exists and otherwise use the bounded UnrealEditor `-server` fallback; this checkout currently has no cooked server map.

@@ -6,6 +6,10 @@ Apply one validated role during server login/spawn, publish its combat and non-c
 
 Live role hot-swapping remains disabled. Day 6 builds enough grant ownership metadata to support safe future work, but it does not remove/cancel a live loadout or reverse already-applied instant attributes.
 
+## BungeeMan Gun Skill checkpoint
+
+Apply BungeeMan's configured FireGun definition as exactly one server-owned `UAuraDataAbility` spec with `InputTag.LMB`, the rifle attached to the configured hand socket, and the `Muzzle` tip available to the combat-socket path. Reapplying the role or replacing the pawn must not duplicate the FireGun grant, cooldown, or equipment.
+
 ## Files to modify
 
 ### Role, identity, and replicated runtime state

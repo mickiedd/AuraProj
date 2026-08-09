@@ -4,6 +4,10 @@
 
 Extend the existing Day 09 `UAuraPopulationManager` with Civilian corpse cleanup and deterministic slot refill. The first slice deliberately leaves Enemy creation, loot, lifespan, destruction, and respawn in the existing `MonsterSpawnTable`/`AAuraGameModeBase` path so there is never a second Enemy respawn owner.
 
+## BungeeMan Gun Skill checkpoint
+
+Verify that a permitted FireGun death of a Civilian marks exactly one canonical population slot, removes the corpse once, and schedules at most one refill. A projectile impact or late replicated callback must not create a second population transition.
+
 ## Prerequisite gate
 
 - Day 09 initial population and deterministic `PopulationId:SlotIndex` registry pass in listen and dedicated modes.

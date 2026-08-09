@@ -8,6 +8,10 @@ Implemented and verified. The build, three focused Day 2 tests, all 17 native Au
 
 Give every source or target combat avatar an explicit, replicated identity instead of relying on raw Player and Enemy actor tags. Transient damage carriers such as projectiles and effect actors do not own an identity; damage continues to use the source avatar's identity and attribution.
 
+## BungeeMan Gun Skill checkpoint
+
+Carry BungeeMan's `Combat.Gun` identity through the FireGun source avatar and replicated client state. FireGun itself does not own identity; its projectile and damage context must resolve back to the BungeeMan avatar so later rule and attribution checks cannot fall back to raw Player/Enemy tags.
+
 ## New files
 
 - Source/Aura/Public/Combat/AuraCombatIdentityComponent.h

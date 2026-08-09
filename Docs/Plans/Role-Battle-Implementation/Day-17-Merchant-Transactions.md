@@ -4,6 +4,10 @@
 
 Allow a player to buy one immutable offer unit from a specifically bound Civilian merchant through a replay-safe, all-or-nothing server transaction, with an explicit owner-client result and a basic merchant UI.
 
+## BungeeMan Gun Skill checkpoint
+
+Prove merchant requests remain a separate, replay-safe transaction path: FireGun input, projectile damage, and target callbacks cannot supply item, price, stock, range, or purchase authorization, and merchant UI state cannot alter the FireGun grant or cooldown.
+
 ## Prerequisite gate
 
 - Day 14's PlayerController-owned interaction RPC and server range/line-of-sight revalidation pass in listen and dedicated modes.

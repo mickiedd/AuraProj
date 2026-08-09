@@ -6,6 +6,10 @@ Make `RoleConfig.json` an explicit, versioned, safely parsed definition of Aura,
 
 Day 5 defines data; Day 6 is the only milestone that applies the validated role identity and loadout to a runtime actor.
 
+## BungeeMan Gun Skill checkpoint
+
+Make `lmbAbilityDefinition: /Game/AbilityDefinitions/FireGun.xml` a validated BungeeMan role contract. Validation must reject a missing/unparseable definition, invalid LMB input/tag, missing projectile definition, or incompatible weapon-tip socket atomically; a bad reload must not publish a partial BungeeMan Gun Skill.
+
 ## Files to modify
 
 ### Runtime schema, parser, tags, and publication
