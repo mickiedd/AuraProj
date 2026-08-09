@@ -130,12 +130,14 @@ Run:
 
 & '.\RunSmokeTest.bat'
 & '.\RunRoleBattleDay1Smoke.bat'
-& '.\RunRoleBattleDay3NetworkSmoke.ps1'
-& '.\RunRoleBattleDay4DamageSmoke.ps1'
+& '.\RunRoleBattleDay3NetworkSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay3NetworkSmoke.ps1' -Mode Dedicated
+& '.\RunRoleBattleDay4DamageSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay4DamageSmoke.ps1' -Mode Dedicated
 ```
 
-`RunRoleBattleDay4DamageSmoke.ps1` enforces bounded startup/assertion/teardown timeouts, returns nonzero on any assertion, process, crash, timeout, or missing-artifact failure, stops only processes it created, and writes isolated `Saved/Logs/Day04-{Listen|Dedicated}-{Server|Client1|Client2}.log` plus `Saved/Reports/Day04-{Listen|Dedicated}.json`. It verifies FireBolt, FireGun, Enemy melee, beam, radial, hitscan test fixture, projectile, and periodic damage; same-faction/default-protected targets; server/client health; attribution; and one death transition.
+`RunRoleBattleDay4DamageSmoke.ps1` supports `-Mode Listen` and `-Mode Dedicated`. It enforces bounded startup/assertion/teardown timeouts, returns nonzero on any assertion, process, crash, timeout, or missing-artifact failure, stops only processes it created, and writes isolated `Saved/Logs/Day04-{Listen|Dedicated}-{Server|Client1|Client2}.log` plus `Saved/Reports/Day04-{Listen|Dedicated}.json`. It verifies FireBolt, FireGun, Enemy melee, beam, radial, hitscan test fixture, projectile, and periodic damage; same-faction/default-protected targets; server/client health; attribution; and one death transition.
 
 ## Completion gate
 
-The after-inventory contains no production damage application that bypasses `AuraCombatRules`; native `CauseDamage` is migrated; all custom context fields round-trip; accepted direct and periodic damage retain correct attribution; invalid/client/friendly/protected or any non-Alive source/target request changes no authoritative health; and existing damage math/feedback remains intact. Every named test, AuraAbilityGraph smoke, prior-day regression, and the two-process Day 4 damage smoke must pass with recorded log paths and exit codes.
+The after-inventory contains no production damage application that bypasses `AuraCombatRules`; native `CauseDamage` is migrated; all custom context fields round-trip; accepted direct and periodic damage retain correct attribution; invalid/client/friendly/protected or any non-Alive source/target request changes no authoritative health; and existing damage math/feedback remains intact. Every named test, AuraAbilityGraph smoke, prior-day regression, and both listen/dedicated Day 4 damage smokes must pass with recorded log paths and exit codes.

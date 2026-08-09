@@ -85,6 +85,14 @@ Day 1 remains **conditional**, not fully closed: rendered/editor confirmation is
 
 Every baseline command records its exit code and writes retained artifacts under `Saved/Logs/Day01-{Editor|Listen|Dedicated}-*.log` plus `Saved/Reports/Day01-Baseline.json`; an unavailable map, process crash, timeout, failed assertion, or missing artifact is a recorded nonzero/blocking result rather than a pass inferred from notes.
 
+The checked-in Day 1 runtime smoke is an explicit baseline action and must be run after the fixture is prepared:
+
+```powershell
+& '.\RunRoleBattleDay1Smoke.bat'
+```
+
+Retain its exit code and log alongside the native automation and AuraAbilityGraph smoke results; do not treat the status paragraph above as a substitute for rerunning it at the recorded baseline revision.
+
 ## Deliverables
 
 - Baseline test notes.

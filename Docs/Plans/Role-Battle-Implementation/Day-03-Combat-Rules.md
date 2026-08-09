@@ -115,6 +115,8 @@ Add to `Source/Aura/Private/Tests/AuraRoleBattleTests.cpp`:
 
 The table tests must cover both directions of every matrix pair, null/missing/invalid identity, self, every identity flag, and `Alive`, `Dying`, `Dead`, and `Respawning` on both the source and target. They also cover an invalid/untrusted permissive snapshot. The test-only trusted factory must prove candidate-to-observer direction and must be inaccessible outside authority-side automation fixtures; production Day 3 runtime code must never produce a permissive Civilian snapshot.
 
+`RunRoleBattleDay3NetworkSmoke.ps1` supports `-Mode Listen` and `-Mode Dedicated`; run both modes explicitly.
+
 Run:
 
 ```powershell
@@ -124,7 +126,8 @@ Run:
 
 & '.\RunRoleBattleDay1Smoke.bat'
 & '.\RunRoleBattleDay2NetworkSmoke.ps1'
-& '.\RunRoleBattleDay3NetworkSmoke.ps1'
+& '.\RunRoleBattleDay3NetworkSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay3NetworkSmoke.ps1' -Mode Dedicated
 ```
 
 The Day 3 network runner must verify server-owned state transitions replicate to a client, a client cannot mutate state or policy, Enemy AI still writes `TargetToFollow`/`DistanceToTarget` for a Player, and all Civilian combat queries remain denied without a server policy resolver. It enforces bounded startup/assertion/teardown timeouts, returns nonzero on any assertion, child-process, crash, timeout, or missing-artifact failure, stops only processes it starts, and writes `Saved/Logs/Day03-{Listen|Dedicated}-{Server|Client1|Client2}.log` plus `Saved/Reports/Day03-{Listen|Dedicated}.json`.

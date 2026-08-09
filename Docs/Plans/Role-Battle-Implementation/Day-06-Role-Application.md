@@ -139,12 +139,15 @@ Run:
 
 & "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests Aura.RoleBattle.Day6; Quit' '-TestExit=Automation Test Queue Empty' '-abslog=Saved/Logs/Day6Automation.log'
 
-& '.\RunRoleBattleDay4DamageSmoke.ps1'
-& '.\RunRoleBattleDay5ConfigSmoke.ps1'
-& '.\RunRoleBattleDay6NetworkSmoke.ps1'
+& '.\RunRoleBattleDay4DamageSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay4DamageSmoke.ps1' -Mode Dedicated
+& '.\RunRoleBattleDay5ConfigSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay5ConfigSmoke.ps1' -Mode Dedicated
+& '.\RunRoleBattleDay6NetworkSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay6NetworkSmoke.ps1' -Mode Dedicated
 ```
 
-The Day 6 runner uses isolated server/client save data, enforces bounded startup/assertion/respawn/teardown timeouts, returns nonzero on any assertion, process, crash, timeout, or missing-artifact failure, stops only processes it created, and writes `Saved/Logs/Day06-{Listen|Dedicated}-{Server|Client1|Client2}.log` plus `Saved/Reports/Day06-{Listen|Dedicated}.json`. It verifies Aura and BungeeMan final profiles (`Combat.Magic`/`Combat.Gun`), applied role/economy/interaction state, client presentation, server-only grants, two same-role respawns, an existing-save restore, client mutation rejection, and unsupported live-switch rejection. It restores or removes only fixtures it created.
+The Day 6 runner supports `-Mode Listen` and `-Mode Dedicated`, uses isolated server/client save data, enforces bounded startup/assertion/respawn/teardown timeouts, returns nonzero on any assertion, process, crash, timeout, or missing-artifact failure, stops only processes it created, and writes `Saved/Logs/Day06-{Listen|Dedicated}-{Server|Client1|Client2}.log` plus `Saved/Reports/Day06-{Listen|Dedicated}.json`. It verifies Aura and BungeeMan final profiles (`Combat.Magic`/`Combat.Gun`), applied role/economy/interaction state, client presentation, server-only grants, two same-role respawns, an existing-save restore, client mutation rejection, and unsupported live-switch rejection. It restores or removes only fixtures it created.
 
 ## Completion gate
 

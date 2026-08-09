@@ -141,7 +141,7 @@ The Day 2 network runner starts isolated hidden server/client processes on `Star
 2. Confirm each client receives the same four tags and four flags through `OnRep_Identity`.
 3. Confirm Enemy AI still selects the nearest Player and writes `TargetToFollow` and `DistanceToTarget`.
 4. Confirm Player-to-Enemy and Enemy-to-Player damage still work, existing `IsNotFriend`-guarded projectile/melee paths reject same-faction targets, and the Day 1 respawn vitals remain stable. The Day 1 smoke and focused automation own these checks; the indirect damage paths inventoried on Day 1 remain assigned to Day 4.
-5. Confirm existing pickups still honor `bApplyEffectsToEnemies` through the dedicated pickup compatibility check; this is not inferred from the network runner's identity log assertions.
+5. Do not claim a Day 2 pickup smoke result. `AuraEffectActor::bApplyEffectsToEnemies` remains unchanged and explicitly deferred to the Day 20 compatibility cleanup; record that deferral rather than inventing a passing pickup assertion here.
 
 Record the build exit code, automation summary, Day 1 smoke result, network-smoke result/log paths, and any failure. Every command must pass before the completion gate is accepted.
 

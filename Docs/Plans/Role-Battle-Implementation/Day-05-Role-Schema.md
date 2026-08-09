@@ -165,11 +165,13 @@ Run:
 
 & "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests Aura.RoleBattle.Day5; Quit' '-TestExit=Automation Test Queue Empty' '-abslog=Saved/Logs/Day5Automation.log'
 
-& '.\RunRoleBattleDay4DamageSmoke.ps1'
-& '.\RunRoleBattleDay5ConfigSmoke.ps1'
+& '.\RunRoleBattleDay4DamageSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay4DamageSmoke.ps1' -Mode Dedicated
+& '.\RunRoleBattleDay5ConfigSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay5ConfigSmoke.ps1' -Mode Dedicated
 ```
 
-The config smoke enforces bounded startup/reload/assertion/teardown timeouts, returns nonzero on any assertion, process, crash, timeout, or missing-artifact failure, stops only processes it created, and writes `Saved/Logs/Day05-{Listen|Dedicated}-{Server|Client1|Client2}.log` plus `Saved/Reports/Day05-{Listen|Dedicated}.json`. It verifies `InitGame` publication before `PreLogin`, valid startup, rejected invalid startup, failed sentinel reload retaining the prior config, successful sentinel reload publishing atomically, two simultaneous connections retaining different accepted role IDs, invalid-role login rejection, and saved/default role validation without a new picker. It restores the original RoleConfig and sentinel state in a `finally` block and edits no user save permanently.
+The Day 5 config smoke supports `-Mode Listen` and `-Mode Dedicated`. It enforces bounded startup/reload/assertion/teardown timeouts, returns nonzero on any assertion, process, crash, timeout, or missing-artifact failure, stops only processes it created, and writes `Saved/Logs/Day05-{Listen|Dedicated}-{Server|Client1|Client2}.log` plus `Saved/Reports/Day05-{Listen|Dedicated}.json`. It verifies `InitGame` publication before `PreLogin`, valid startup, rejected invalid startup, failed sentinel reload retaining the prior config, successful sentinel reload publishing atomically, two simultaneous connections retaining different accepted role IDs, invalid-role login rejection, and saved/default role validation without a new picker. It restores the original RoleConfig and sentinel state in a `finally` block and edits no user save permanently.
 
 ## Completion gate
 

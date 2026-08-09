@@ -165,6 +165,22 @@ Test infrastructure and fixtures:
    The runner returns nonzero on any assertion/process/crash/timeout/missing-artifact failure and writes `Saved/Logs/Day19-{Listen|Dedicated}-{Server|Client1|Client2}.log`, `Saved/Reports/Day19-{Listen|Dedicated}.json`, and `Docs/Reports/Role-Battle-Day-19-Multiplayer.md`.
 8. Repeat replay, last-stock contention, and result-correlation cases under a recorded network-emulation profile of 100 ms packet lag, 20 ms variance, and 2 percent packet loss. The test must eventually terminate with the same authoritative invariants and no duplicate commit.
 
+## Exact execution commands
+
+Run from the repository root after the Day 18 prerequisite gate is recorded:
+
+```powershell
+& '.\build_test.bat'
+& '.\BuildDedicatedServer.bat'
+
+& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests Aura; Quit' '-TestExit=Automation Test Queue Empty' '-abslog=Saved/Logs/Day19Automation.log'
+
+& '.\RunRoleBattleDay19Multiplayer.ps1' -Mode Listen
+& '.\RunRoleBattleDay19Multiplayer.ps1' -Mode Dedicated
+```
+
+The two mode invocations are mandatory; a single topology pass, an in-process-only AutoTest run, or a log-only result does not satisfy the Day 19 gate.
+
 ## Functional fixture
 
 Each topology contains:
