@@ -4,9 +4,11 @@
 
 Record the current behavior and create a reproducible starting point before changing role, combat, or death code.
 
-## Execution status — 2026-08-07
+## Execution status — conditional, 2026-08-07
 
-The baseline checks have been executed against the current checkout. Results, commands, fixture details, combat-path inventory, and remaining blockers are recorded in [Docs/Reports/Role-Battle-Baseline-2026-08-07.md](../../Reports/Role-Battle-Baseline-2026-08-07.md). The follow-up pass fixed the persistent-ASC respawn attribute accumulation and the unassigned SetByCaller magnitude errors. The checked-in Day 1 smoke runner now passes Login/BungeeMan asset wiring, both live damage directions, and two runtime respawns with stable vitals. Only rendered/editor visual confirmation remains open.
+The headless functional baseline has been executed against the recorded checkout. Results, commands, fixture details, the original combat-path inventory, and remaining blockers are in [Docs/Reports/Role-Battle-Baseline-2026-08-07.md](../../Reports/Role-Battle-Baseline-2026-08-07.md). The follow-up fixed persistent-ASC respawn attribute accumulation and unassigned SetByCaller magnitude errors. The checked-in Day 1 smoke runner passes Login/BungeeMan asset wiring, both live damage directions, and two runtime respawns with stable vitals.
+
+Day 1 remains **conditional**, not fully closed: rendered/editor confirmation is still open, and the original report inventory omitted several direct/native and parameter-construction paths listed below. These are known baseline follow-ups, not permission to treat the omitted paths as migrated. The expanded enumerable inventory must close as Day 04's entry gate before migration starts; only rendered presentation evidence carries to Day 07.
 
 ## Read first
 
@@ -24,11 +26,16 @@ The baseline checks have been executed against the current checkout. Results, co
 - Source/Aura/Private/AbilitySystem/AuraAbilitySystemLibrary.cpp
 - Source/Aura/Private/AbilitySystem/AuraAttributeSet.cpp
 - Source/Aura/Private/AbilitySystem/ExecCalc/ExecCalc_Damage.cpp
+- Source/Aura/Public/AuraAbilityTypes.h
+- Source/Aura/Private/AuraAbilityTypes.cpp
+- Source/Aura/Public/AbilitySystem/Abilities/AuraDamageGameplayAbility.h
+- Source/Aura/Private/AbilitySystem/Abilities/AuraDamageGameplayAbility.cpp
 - Source/Aura/Private/Actor/AuraProjectile.cpp
 - Source/Aura/Private/Actor/AuraFireBall.cpp
 - Source/Aura/Private/AI/BTService_FindNearestPlayer.cpp
 - Source/Aura/Private/Actor/AuraEffectActor.cpp
 - Source/Aura/Private/Game/AuraGameModeBase.cpp
+- Source/Aura/Private/Player/AuraPlayerController.cpp
 - Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ApplyDamageNode.cpp
 - Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/CauseDamageNode.cpp
 - Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ElectrocuteBeamNode.cpp
@@ -38,6 +45,13 @@ The baseline checks have been executed against the current checkout. Results, co
 - Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectileNode.cpp
 - Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectilesNode.cpp
 - Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnShardsNode.cpp
+- Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Public/AbilityDefinition.h
+- Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/AbilityDefinition.cpp
+- Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/AuraAbilityGraphModule.cpp
+- Content/Blueprints/AbilitySystem/Enemy/Abilities/GA_MeleeAttack.uasset
+- Content/Blueprints/AbilitySystem/Aura/Abilities/Lightning/GA_Electrocute.uasset
+- Content/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBlast/BP_FireBall.uasset
+- Content/Blueprints/AbilitySystem/Aura/Abilities/Arcane/ArcaneShards/GA_ArcaneShards.uasset
 
 ## Preconditions
 
@@ -61,17 +75,26 @@ The baseline checks have been executed against the current checkout. Results, co
    - Confirm Muzzle socket.
    - Confirm FireGun projectile, damage, and cooldown.
 7. Test existing Player versus Enemy damage and Enemy versus Player damage using the fixture. Record source actor, target actor, ability, authority mode, pre/post health, and whether death/loot/respawn side effects occurred.
-8. Run a source inventory with `rg` for `IsNotFriend`, `ActorHasTag`, `GetAllActorsWithTag`, `ApplyDamageEffect`, and `FDamageEffectParams` across `Source` and `Plugins/AuraAbilityGraph`. For every result, record the file, function, path category (projectile, beam, radial, hitscan, melee, AI targeting, pickup/effect filtering), whether the relationship check is direct or indirect, and whether it runs on the server.
+8. Run a source inventory with `rg` for `IsNotFriend`, `ActorHasTag`, `GetAllActorsWithTag`, `ApplyDamageEffect`, `FDamageEffectParams`, `CauseDamage`, `ApplyGameplayEffectSpecToTarget`, `ApplyGameplayEffectSpecToSelf`, and `BuildDamageEffectParams` across `Source` and `Plugins/AuraAbilityGraph`. For every result, record the file, function, path category (projectile, beam, radial, hitscan, melee, AI targeting, pickup/effect filtering, test-only), whether the relationship check is direct or indirect, and whether it runs on the server. The inventory must explicitly include:
+   - `UAuraDamageGameplayAbility::CauseDamage` and `MakeDamageEffectParamsFromClassDefaults`.
+   - `UAuraAbilityDefinition::BuildDamageEffectParams`.
+   - `SpawnProjectileNode`, `SpawnProjectilesNode`, and `SpawnShardsNode`.
+   - Direct Blueprint call sites for `CauseDamage` or `ApplyDamageEffect`; use checked-in Blueprint snapshots and an Unreal Asset Registry/reference scan because `rg` cannot inspect `.uasset` bytecode.
+   - Day 1 smoke-only producers in `AuraPlayerController.cpp`, categorized as test-only rather than production combat.
 9. Record the exact map and fixture manifest used for the baseline, including asset paths, actor names/classes, transforms, role configuration, test mode, engine version, and log locations.
+
+Every baseline command records its exit code and writes retained artifacts under `Saved/Logs/Day01-{Editor|Listen|Dedicated}-*.log` plus `Saved/Reports/Day01-Baseline.json`; an unavailable map, process crash, timeout, failed assertion, or missing artifact is a recorded nonzero/blocking result rather than a pass inferred from notes.
 
 ## Deliverables
 
 - Baseline test notes.
 - A list of pre-existing failures.
-- A complete combat-path inventory: every direct `IsNotFriend` or actor-tag check, every `ApplyDamageEffect` producer, the relationship-check location, and the authority boundary.
+- A complete combat-path inventory: every direct `IsNotFriend` or actor-tag check, every shared or direct GameplayEffect damage application, every `FDamageEffectParams` builder/producer, Blueprint call sites, the relationship-check location, and the authority boundary.
+- A checked-in `Docs/Reports/Role-Battle-Damage-Producer-Inventory.md` plus the corresponding compile-time producer table used by Day 04 automation; prose hidden only in the baseline report is not an enumerable gate artifact.
+- A rendered/editor follow-up for Aura and BungeeMan body, animation, weapon attachment, muzzle/montage timing, or an explicit dated blocker and owner.
 - A repeatable map/setup manifest for later regression tests, or an explicit missing-map blocker with the exact configured and available map paths.
 - Test commands, environment details, and log paths sufficient for another developer to reproduce the baseline.
 
 ## Completion gate
 
-Do not continue until the map/setup is reproducible and Aura, BungeeMan, existing Enemy combat, player respawn, and the available automation suites are either working or their failures are explicitly recorded. This prevents later changes from hiding unrelated regressions.
+The headless functional gate may be accepted when the map/setup is reproducible and Aura, BungeeMan, existing Enemy combat, player respawn, and the available automation suites are either working or their failures are explicitly recorded. The overall Day 1 status remains conditional until both debts close. Day 04 is blocked until the expanded checked-in inventory/table is complete and uses it as the migration checklist; Day 07 must close the rendered follow-up before its gate can pass.
