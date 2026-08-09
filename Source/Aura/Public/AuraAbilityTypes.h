@@ -1,6 +1,9 @@
 #pragma once
 
+#include "Combat/AuraCombatRuleContext.h"
 #include "GameplayEffectTypes.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/PlayerState.h"
 #include "AuraAbilityTypes.generated.h"
 
 class UGameplayEffect;
@@ -32,6 +35,14 @@ struct FDamageEffectParams
 
 	UPROPERTY(BlueprintReadWrite)
 	FGameplayTag DamageType = FGameplayTag();
+
+	/** Stable ability identity carried into the effect context for attribution. */
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayTag AbilityTag = FGameplayTag();
+
+	/** Server-resolved combat policy inputs. Actor pointers are replaced from the ASCs at the boundary. */
+	UPROPERTY(BlueprintReadWrite)
+	FAuraCombatRuleContext CombatRuleContext;
 
 	UPROPERTY(BlueprintReadWrite)
 	float DebuffChance = 0.f;
@@ -88,6 +99,12 @@ public:
 	float GetDebuffDuration() const { return DebuffDuration; }
 	float GetDebuffFrequency() const { return DebuffFrequency; }
 	TSharedPtr<FGameplayTag> GetDamageType() const { return DamageType; }
+	FGameplayTag GetAbilityTag() const { return AbilityTag; }
+	FName GetSourceRoleId() const { return SourceRoleId; }
+	AController* GetSourceController() const { return SourceController.Get(); }
+	APlayerState* GetSourcePlayerState() const { return SourcePlayerState.Get(); }
+	FName GetBattleZoneId() const { return BattleZoneId; }
+	FName GetBattleEventId() const { return BattleEventId; }
 	FVector GetDeathImpulse() const { return DeathImpulse; }
 	FVector GetKnockbackForce() const { return KnockbackForce; }
 	bool IsRadialDamage() const { return bIsRadialDamage; }
@@ -102,6 +119,12 @@ public:
 	void SetDebuffDuration(float InDuration) { DebuffDuration = InDuration; }
 	void SetDebuffFrequency(float InFrequency) { DebuffFrequency = InFrequency; }
 	void SetDamageType(TSharedPtr<FGameplayTag> InDamageType) { DamageType = InDamageType; }
+	void SetAbilityTag(const FGameplayTag& InAbilityTag) { AbilityTag = InAbilityTag; }
+	void SetSourceRoleId(FName InSourceRoleId) { SourceRoleId = InSourceRoleId; }
+	void SetSourceController(AController* InSourceController) { SourceController = InSourceController; }
+	void SetSourcePlayerState(APlayerState* InSourcePlayerState) { SourcePlayerState = InSourcePlayerState; }
+	void SetBattleZoneId(FName InBattleZoneId) { BattleZoneId = InBattleZoneId; }
+	void SetBattleEventId(FName InBattleEventId) { BattleEventId = InBattleEventId; }
 	void SetDeathImpulse(const FVector& InImpulse) { DeathImpulse = InImpulse; }
 	void SetKnockbackForce(const FVector& InForce) { KnockbackForce = InForce; }
 	void SetIsRadialDamage(bool bInIsRadialDamage) { bIsRadialDamage = bInIsRadialDamage; }
@@ -152,6 +175,13 @@ protected:
 	float DebuffFrequency = 0.f;
 
 	TSharedPtr<FGameplayTag> DamageType;
+
+	FGameplayTag AbilityTag;
+	FName SourceRoleId = NAME_None;
+	TWeakObjectPtr<AController> SourceController;
+	TWeakObjectPtr<APlayerState> SourcePlayerState;
+	FName BattleZoneId = NAME_None;
+	FName BattleEventId = NAME_None;
 
 	UPROPERTY()
 	FVector DeathImpulse = FVector::ZeroVector;

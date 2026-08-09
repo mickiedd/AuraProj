@@ -9,7 +9,9 @@
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 #include "AuraGameplayTags.h"
+#include "Aura/AuraLogChannels.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "Combat/AuraCombatRules.h"
 #include "Interaction/CombatInterface.h"
 #include "Interaction/PlayerInterface.h"
 #include "Player/AuraPlayerController.h"
@@ -144,6 +146,25 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 
 	if(Props.TargetCharacter->Implements<UCombatInterface>() && ICombatInterface::Execute_IsDead(Props.TargetCharacter)) return;
 
+	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
+	{
+		FAuraCombatRuleContext RuleContext;
+		RuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+		RuleContext.TrustedWorldContext = Props.TargetAvatarActor;
+		RuleContext.SourceActor = Props.SourceAvatarActor;
+		RuleContext.TargetActor = Props.TargetAvatarActor;
+		const bool bDamageAllowed = IsValid(Props.SourceAvatarActor)
+			&& IsValid(Props.TargetAvatarActor)
+			&& FAuraCombatRules::CanDamage(Props.SourceAvatarActor, Props.TargetAvatarActor, RuleContext).bCanDamage;
+		if (!bDamageAllowed)
+		{
+			UE_LOG(LogAura, Verbose, TEXT("[DamageBoundary] Final attribute validation rejected damage Source=%s Target=%s"),
+				*GetNameSafe(Props.SourceAvatarActor), *GetNameSafe(Props.TargetAvatarActor));
+			SetIncomingDamage(0.f);
+			return;
+		}
+	}
+
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
@@ -212,7 +233,27 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props)
 void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
 {
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-	FGameplayEffectContextHandle EffectContext = Props.SourceASC->MakeEffectContext();
+	if (!IsValid(Props.SourceASC) || !IsValid(Props.TargetASC)
+		|| !IsValid(Props.SourceAvatarActor) || !IsValid(Props.TargetAvatarActor))
+	{
+		return;
+	}
+
+	FAuraCombatRuleContext RuleContext;
+	RuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+	RuleContext.TrustedWorldContext = Props.TargetAvatarActor;
+	RuleContext.SourceActor = Props.SourceAvatarActor;
+	RuleContext.TargetActor = Props.TargetAvatarActor;
+	if (!FAuraCombatRules::CanDamage(Props.SourceAvatarActor, Props.TargetAvatarActor, RuleContext).bCanDamage)
+	{
+		UE_LOG(LogAura, Verbose, TEXT("[DamageBoundary] Debuff creation rejected by current combat rules Source=%s Target=%s"),
+			*GetNameSafe(Props.SourceAvatarActor), *GetNameSafe(Props.TargetAvatarActor));
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = Props.EffectContextHandle.IsValid()
+		? FGameplayEffectContextHandle(Props.EffectContextHandle.Get()->Duplicate())
+		: Props.SourceASC->MakeEffectContext();
 	EffectContext.AddSourceObject(Props.SourceAvatarActor);
 
 	const FGameplayTag DamageType = UAuraAbilitySystemLibrary::GetDamageType(Props.EffectContextHandle);
@@ -252,9 +293,8 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
 	
 	if (FGameplayEffectSpec* MutableSpec = new FGameplayEffectSpec(Effect, EffectContext, 1.f))
 	{
-		FAuraGameplayEffectContext* AuraContext = static_cast<FAuraGameplayEffectContext*>(MutableSpec->GetContext().Get());
-		TSharedPtr<FGameplayTag> DebuffDamageType = MakeShareable(new FGameplayTag(DamageType));
-		AuraContext->SetDamageType(DebuffDamageType);
+		FGameplayEffectContextHandle MutableContext = MutableSpec->GetContext();
+		UAuraAbilitySystemLibrary::SetDamageType(MutableContext, DamageType);
 
 		Props.TargetASC->ApplyGameplayEffectSpecToSelf(*MutableSpec);
 	}

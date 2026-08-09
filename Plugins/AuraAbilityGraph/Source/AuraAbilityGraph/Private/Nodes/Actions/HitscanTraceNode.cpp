@@ -41,6 +41,11 @@ EAuraAbilityActionStatus UHitscanTraceTask::OnStart(FAuraAbilityExecutionContext
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[HitscanTrace] OnStart abort: missing OwnerAbility or AvatarActor"));
         return EAuraAbilityActionStatus::Failure;
     }
+    if (!Ctx.AvatarActor->HasAuthority())
+    {
+        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[HitscanTrace] OnStart skipped: damage is authority-only"));
+        return EAuraAbilityActionStatus::Success;
+    }
 
     const UHitscanTraceNode* Node = Cast<UHitscanTraceNode>(NodeDef);
     if (!Node)

@@ -34,6 +34,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetDamageAtLevel() const;
 protected:
+	FGameplayTag GetDamageAbilityTag() const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> DamageEffectClass;

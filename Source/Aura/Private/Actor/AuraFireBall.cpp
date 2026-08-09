@@ -95,14 +95,14 @@ void AAuraFireBall::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AA
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 		{
-			AActor* SourceActor = DamageEffectParams.SourceAbilitySystemComponent ? DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor() : nullptr;
-			if (!SourceActor || !UAuraAbilitySystemLibrary::IsNotFriend(SourceActor, OtherActor)) return;
-			DamagedActors.Add(OtherActor);
 			const FVector DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
 			DamageEffectParams.DeathImpulse = DeathImpulse;
 			
 			DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
-			UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
+			if (UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams).IsValid())
+			{
+				DamagedActors.Add(OtherActor);
+			}
 		}
 	}
 }

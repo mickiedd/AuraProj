@@ -136,6 +136,10 @@ protected:
 	void StartDay3NetworkProbe();
 	void ExecuteDay3NetworkProbe();
 
+	/** Client-originated Day 4 request used by the bounded network smoke. */
+	UFUNCTION(Server, Reliable)
+	void ServerRoleBattleDay4InvalidDamageProbe();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat Identity")
 	TObjectPtr<UAuraCombatIdentityComponent> CombatIdentityComponent;
 
@@ -165,6 +169,7 @@ protected:
 
 	FTimerHandle Day3NetworkProbeTimerHandle;
 	bool bDay3NetworkProbeStarted = false;
+	bool bDay4NetworkProbeStarted = false;
 
 	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 

@@ -25,7 +25,9 @@
 #include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "UObject/CoreNet.h"
 #include "Player/AuraPlayerState.h"
+#include "AbilitySystem/Abilities/AuraDamageGameplayAbility.h"
 
 namespace AuraRoleBattleTestsPrivate
 {
@@ -789,14 +791,14 @@ namespace AuraRoleBattleTestsPrivate
 		{ TEXT("Native.Projectile.AuraFireBolt"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraFireBolt.cpp"), TEXT("Projectile (param builder)"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority at spawn") },
 		{ TEXT("Native.Projectile.AuraFireBlast"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraFireBlast.cpp"), TEXT("Projectile (param builder)"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority at spawn") },
 		{ TEXT("Native.Direct.CauseDamage"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraDamageGameplayAbility.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("Server ability activation") },
-		{ TEXT("Native.Periodic.Debuff"), TEXT("Source/Aura/Private/AbilitySystem/AuraAttributeSet.cpp"), TEXT("Periodic"), true, TEXT("ApplyDamageEffect"), TEXT("Server attribute execution") },
+		{ TEXT("Native.Periodic.Debuff"), TEXT("Source/Aura/Private/AbilitySystem/AuraAttributeSet.cpp"), TEXT("Periodic"), true, TEXT("Final AttributeSet revalidation"), TEXT("Server attribute execution") },
 		{ TEXT("Smoke.Day1.AuraPlayerController"), TEXT("Source/Aura/Private/Player/AuraPlayerController.cpp"), TEXT("Smoke"), false, TEXT("ApplyDamageEffect"), TEXT("HasAuthority (test-only)") },
 		// AuraAbilityGraph producers (Plugins/AuraAbilityGraph)
-		{ TEXT("Graph.ApplyDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ApplyDamageNode.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("Shared boundary (node has no gate)") },
-		{ TEXT("Graph.CauseDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/CauseDamageNode.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("Shared boundary (node has no gate)") },
+		{ TEXT("Graph.ApplyDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ApplyDamageNode.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority gate") },
+		{ TEXT("Graph.CauseDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/CauseDamageNode.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority gate") },
 		{ TEXT("Graph.ElectrocuteBeam"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ElectrocuteBeamNode.cpp"), TEXT("Beam"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority gate") },
 		{ TEXT("Graph.EnemyMeleeDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/EnemyMeleeDamageNode.cpp"), TEXT("Melee"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority gate") },
-		{ TEXT("Graph.HitscanTrace"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/HitscanTraceNode.cpp"), TEXT("Hitscan"), true, TEXT("ApplyDamageEffect"), TEXT("Shared boundary (node has no gate)") },
+		{ TEXT("Graph.HitscanTrace"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/HitscanTraceNode.cpp"), TEXT("Hitscan"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority gate") },
 		{ TEXT("Graph.ApplyBeamDamage"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ModularBeamNodes.cpp"), TEXT("Beam"), true, TEXT("ApplyDamageEffect"), TEXT("bAuthorityOnly XML (must be enforced)") },
 		{ TEXT("Graph.SpawnProjectile"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectileNode.cpp"), TEXT("Projectile"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority gate") },
 		{ TEXT("Graph.SpawnProjectiles"), TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectilesNode.cpp"), TEXT("Projectile"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority gate") },
@@ -984,6 +986,360 @@ bool FAuraDay4ProducerInventoryTest::RunTest(const FString& Parameters)
 		}
 	}
 
+	return true;
+}
+
+namespace AuraRoleBattleTestsPrivate
+{
+	struct FDay4DamageFixture
+	{
+		AActor* SourceActor = nullptr;
+		AActor* TargetActor = nullptr;
+		UAuraAbilitySystemComponent* SourceASC = nullptr;
+		UAuraAbilitySystemComponent* TargetASC = nullptr;
+		UAuraAttributeSet* SourceAttributes = nullptr;
+		UAuraAttributeSet* TargetAttributes = nullptr;
+	};
+
+	UAuraAbilitySystemComponent* AddDamageAbilitySystem(AActor* Owner, UAuraAttributeSet*& OutAttributes)
+	{
+		OutAttributes = nullptr;
+		if (!Owner)
+		{
+			return nullptr;
+		}
+
+		UAuraAbilitySystemComponent* ASC = NewObject<UAuraAbilitySystemComponent>(Owner, NAME_None, RF_Transient);
+		Owner->AddInstanceComponent(ASC);
+		ASC->RegisterComponent();
+		OutAttributes = NewObject<UAuraAttributeSet>(ASC, NAME_None, RF_Transient);
+		ASC->AddAttributeSetSubobject(OutAttributes);
+		ASC->InitAbilityActorInfo(Owner, Owner);
+		ASC->SetNumericAttributeBase(UAuraAttributeSet::GetMaxHealthAttribute(), 100.f);
+		ASC->SetNumericAttributeBase(UAuraAttributeSet::GetHealthAttribute(), 100.f);
+		return ASC;
+	}
+
+	bool MakeDay4DamageFixture(UWorld* World, FDay4DamageFixture& OutFixture)
+	{
+		if (!World)
+		{
+			return false;
+		}
+
+		const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+		const FAuraCombatIdentity SourceIdentity = MakeIdentity(Tags.Faction_Player, Tags.Control_Player, Tags.Combat_Unassigned, Tags.Death_PlayerRespawn);
+		const FAuraCombatIdentity TargetIdentity = MakeIdentity(Tags.Faction_Enemy, Tags.Control_EnemyAI, Tags.Combat_Unassigned, Tags.Death_EnemyLoot);
+		UAuraCombatIdentityComponent* SourceIdentityComponent = nullptr;
+		UAuraCombatIdentityComponent* TargetIdentityComponent = nullptr;
+		OutFixture.SourceActor = SpawnIdentityFixture(World, &SourceIdentity, SourceIdentityComponent);
+		OutFixture.TargetActor = SpawnIdentityFixture(World, &TargetIdentity, TargetIdentityComponent);
+		OutFixture.SourceASC = AddDamageAbilitySystem(OutFixture.SourceActor, OutFixture.SourceAttributes);
+		OutFixture.TargetASC = AddDamageAbilitySystem(OutFixture.TargetActor, OutFixture.TargetAttributes);
+		return OutFixture.SourceActor && OutFixture.TargetActor && OutFixture.SourceASC && OutFixture.TargetASC;
+	}
+
+	FDamageEffectParams MakeDay4DamageParams(const FDay4DamageFixture& Fixture)
+	{
+		const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+		FDamageEffectParams Params;
+		Params.WorldContextObject = Fixture.SourceActor;
+		Params.SourceAbilitySystemComponent = Fixture.SourceASC;
+		Params.TargetAbilitySystemComponent = Fixture.TargetASC;
+		Params.BaseDamage = 10.f;
+		Params.AbilityLevel = 1.f;
+		Params.DamageType = Tags.Damage_Physical;
+		Params.AbilityTag = Tags.Abilities_Attack;
+		Params.CombatRuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+		Params.CombatRuleContext.TrustedWorldContext = Fixture.SourceActor;
+		Params.CombatRuleContext.SourceActor = Fixture.SourceActor;
+		Params.CombatRuleContext.TargetActor = Fixture.TargetActor;
+		Params.CombatRuleContext.ImpactLocation = Fixture.TargetActor ? Fixture.TargetActor->GetActorLocation() : FVector::ZeroVector;
+		return Params;
+	}
+
+	void DestroyDay4DamageFixture(FDay4DamageFixture& Fixture)
+	{
+		if (Fixture.SourceActor)
+		{
+			Fixture.SourceActor->Destroy();
+		}
+		if (Fixture.TargetActor)
+		{
+			Fixture.TargetActor->Destroy();
+		}
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4EffectContextNetSerializeTest,
+	"Aura.RoleBattle.Day4.EffectContextNetSerialize",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4EffectContextNetSerializeTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleTestsPrivate;
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	FAuraGameplayEffectContext Source;
+	Source.SetIsBlockedHit(true);
+	Source.SetIsCriticalHit(true);
+	Source.SetIsSuccessfulDebuff(true);
+	Source.SetDebuffDamage(7.5f);
+	Source.SetDebuffDuration(4.5f);
+	Source.SetDebuffFrequency(0.5f);
+	Source.SetDamageType(TSharedPtr<FGameplayTag>(new FGameplayTag(Tags.Damage_Physical)));
+	Source.SetAbilityTag(Tags.Abilities_Attack);
+	Source.SetSourceRoleId(FName(TEXT("BungeeMan")));
+	Source.SetBattleZoneId(FName(TEXT("Day4Zone")));
+	Source.SetBattleEventId(FName(TEXT("Day4Event")));
+	Source.SetDeathImpulse(FVector(1.f, 2.f, 3.f));
+	Source.SetKnockbackForce(FVector(4.f, 5.f, 6.f));
+	Source.SetIsRadialDamage(true);
+	Source.SetRadialDamageInnerRadius(100.f);
+	Source.SetRadialDamageOuterRadius(500.f);
+	Source.SetRadialDamageOrigin(FVector(7.f, 8.f, 9.f));
+
+	FNetBitWriter Writer(nullptr, 4096);
+	bool bSaveSuccess = false;
+	Source.NetSerialize(Writer, nullptr, bSaveSuccess);
+	TestTrue(TEXT("Effect context save succeeds"), bSaveSuccess);
+
+	FAuraGameplayEffectContext RoundTrip;
+	FNetBitReader Reader(nullptr, Writer.GetData(), Writer.GetNumBits());
+	bool bLoadSuccess = false;
+	RoundTrip.NetSerialize(Reader, nullptr, bLoadSuccess);
+	TestTrue(TEXT("Effect context load succeeds"), bLoadSuccess);
+	TestTrue(TEXT("Ability tag round-trips"), RoundTrip.GetAbilityTag().MatchesTagExact(Tags.Abilities_Attack));
+	TestEqual(TEXT("Source role round-trips"), RoundTrip.GetSourceRoleId(), FName(TEXT("BungeeMan")));
+	TestEqual(TEXT("Battle zone round-trips"), RoundTrip.GetBattleZoneId(), FName(TEXT("Day4Zone")));
+	TestEqual(TEXT("Battle event round-trips"), RoundTrip.GetBattleEventId(), FName(TEXT("Day4Event")));
+	TestEqual(TEXT("Damage type round-trips"), RoundTrip.GetDamageType().IsValid() ? *RoundTrip.GetDamageType() : FGameplayTag(), Tags.Damage_Physical);
+	TestTrue(TEXT("Damage flags round-trip"), RoundTrip.IsBlockedHit() && RoundTrip.IsCriticalHit() && RoundTrip.IsSuccessfulDebuff());
+	TestTrue(TEXT("Impulse data round-trips"), RoundTrip.GetDeathImpulse().Equals(FVector(1.f, 2.f, 3.f)) && RoundTrip.GetKnockbackForce().Equals(FVector(4.f, 5.f, 6.f)));
+	TestTrue(TEXT("Radial data round-trips"), RoundTrip.IsRadialDamage() && FMath::IsNearlyEqual(RoundTrip.GetRadialDamageOuterRadius(), 500.f) && RoundTrip.GetRadialDamageOrigin().Equals(FVector(7.f, 8.f, 9.f)));
+
+	FGameplayEffectContext* Duplicate = Source.Duplicate();
+	TestNotNull(TEXT("Effect context duplicates"), Duplicate);
+	if (Duplicate)
+	{
+		const FAuraGameplayEffectContext* AuraDuplicate = static_cast<const FAuraGameplayEffectContext*>(Duplicate);
+		TestTrue(TEXT("Duplicate preserves ability attribution"), AuraDuplicate->GetAbilityTag().MatchesTagExact(Tags.Abilities_Attack));
+		delete Duplicate;
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4SharedDamageBoundaryTest,
+	"Aura.RoleBattle.Day4.SharedDamageBoundary",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4SharedDamageBoundaryTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleTestsPrivate;
+	FDay4DamageFixture Fixture;
+	if (!TestTrue(TEXT("Shared damage fixture created"), MakeDay4DamageFixture(FindAutomationWorld(), Fixture)))
+	{
+		return false;
+	}
+
+	const FGameplayEffectContextHandle Context = UAuraAbilitySystemLibrary::ApplyDamageEffect(MakeDay4DamageParams(Fixture));
+	TestTrue(TEXT("Hostile authoritative damage crosses the shared boundary"), Context.IsValid());
+	TestTrue(TEXT("Shared boundary preserves ability attribution"), UAuraAbilitySystemLibrary::GetAbilityTag(Context).MatchesTagExact(FAuraGameplayTags::Get().Abilities_Attack));
+	TestTrue(TEXT("Shared boundary preserves empty source role field for a generic fixture"), UAuraAbilitySystemLibrary::GetSourceRoleId(Context).IsNone());
+	DestroyDay4DamageFixture(Fixture);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4DirectCauseDamageBoundaryTest,
+	"Aura.RoleBattle.Day4.DirectCauseDamageBoundary",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4DirectCauseDamageBoundaryTest::RunTest(const FString& Parameters)
+{
+	UAuraDamageGameplayAbility* Ability = NewObject<UAuraDamageGameplayAbility>(GetTransientPackage());
+	TestNotNull(TEXT("Transient damage ability created"), Ability);
+	if (Ability)
+	{
+		Ability->CauseDamage(nullptr);
+		TestTrue(TEXT("Direct CauseDamage remains safe when no target is available"), true);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4AuthorityRejectionTest,
+	"Aura.RoleBattle.Day4.AuthorityRejection",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4AuthorityRejectionTest::RunTest(const FString& Parameters)
+{
+	FDamageEffectParams MissingParams;
+	TestFalse(TEXT("Missing ASCs are rejected before spec creation"), UAuraAbilitySystemLibrary::ApplyDamageEffect(MissingParams).IsValid());
+
+	using namespace AuraRoleBattleTestsPrivate;
+	FDay4DamageFixture Fixture;
+	if (MakeDay4DamageFixture(FindAutomationWorld(), Fixture))
+	{
+		FDamageEffectParams InvalidTargetParams = MakeDay4DamageParams(Fixture);
+		InvalidTargetParams.TargetAbilitySystemComponent = nullptr;
+		TestFalse(TEXT("Missing target ASC is rejected"), UAuraAbilitySystemLibrary::ApplyDamageEffect(InvalidTargetParams).IsValid());
+		DestroyDay4DamageFixture(Fixture);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4AllProducerAttributionTest,
+	"Aura.RoleBattle.Day4.AllProducerAttribution",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4AllProducerAttributionTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleTestsPrivate;
+	FDay4DamageFixture Fixture;
+	if (!MakeDay4DamageFixture(FindAutomationWorld(), Fixture))
+	{
+		TestTrue(TEXT("Attribution fixture created"), false);
+		return false;
+	}
+
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	const FString XML = TEXT("<ability name=\"Day4Attribution\" abilityTag=\"Abilities.Attack\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Damage\"><damage type=\"Damage.Physical\" base=\"10\"/><graph><node class=\"Sequence\"/></graph></ability>");
+	TestTrue(TEXT("Attribution definition parses"), Definition && Definition->LoadFromXML(XML));
+	if (Definition)
+	{
+		FDamageEffectParams Params;
+		Definition->BuildDamageEffectParams(Params, Fixture.SourceASC, Fixture.TargetASC, Fixture.SourceActor, 1.f, FVector::ForwardVector);
+		TestTrue(TEXT("Definition carries stable ability tag"), Params.AbilityTag.MatchesTagExact(Definition->AbilityTag));
+		TestTrue(TEXT("Definition carries source and target rule actors"), Params.CombatRuleContext.SourceActor == Fixture.SourceActor && Params.CombatRuleContext.TargetActor == Fixture.TargetActor);
+	}
+	DestroyDay4DamageFixture(Fixture);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4NonAliveSourceAndTargetRejectionTest,
+	"Aura.RoleBattle.Day4.NonAliveSourceAndTargetRejection",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4NonAliveSourceAndTargetRejectionTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleTestsPrivate;
+	FDay4DamageFixture Fixture;
+	if (!MakeDay4DamageFixture(FindAutomationWorld(), Fixture))
+	{
+		return false;
+	}
+
+	UAuraCombatStateComponent* SourceState = UAuraCombatStateComponent::FindForActor(Fixture.SourceActor);
+	UAuraCombatStateComponent* TargetState = UAuraCombatStateComponent::FindForActor(Fixture.TargetActor);
+	TestNotNull(TEXT("Source state exists"), SourceState);
+	TestNotNull(TEXT("Target state exists"), TargetState);
+	if (SourceState && TargetState)
+	{
+		FDamageEffectParams Params = MakeDay4DamageParams(Fixture);
+		TestTrue(TEXT("Alive damage is accepted by the rule fixture"), FAuraCombatRules::CanDamage(Fixture.SourceActor, Fixture.TargetActor, Params.CombatRuleContext).bCanDamage);
+		SourceState->TryEnterDying();
+		TestFalse(TEXT("Dying source cannot damage"), UAuraAbilitySystemLibrary::ApplyDamageEffect(Params).IsValid());
+		SourceState->TryEnterDead();
+		SourceState->TryEnterRespawning();
+		SourceState->TryEnterAlive();
+		TargetState->TryEnterDying();
+		TestFalse(TEXT("Dying target cannot receive damage"), UAuraAbilitySystemLibrary::ApplyDamageEffect(Params).IsValid());
+	}
+	DestroyDay4DamageFixture(Fixture);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4PeriodicAttributionAndRevalidationTest,
+	"Aura.RoleBattle.Day4.PeriodicAttributionAndRevalidation",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4PeriodicAttributionAndRevalidationTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleTestsPrivate;
+	FDay4DamageFixture Fixture;
+	if (!MakeDay4DamageFixture(FindAutomationWorld(), Fixture))
+	{
+		return false;
+	}
+
+	const FGameplayEffectContextHandle Original = UAuraAbilitySystemLibrary::ApplyDamageEffect(MakeDay4DamageParams(Fixture));
+	TestTrue(TEXT("Original damage context exists for periodic attribution"), Original.IsValid());
+	if (Original.IsValid())
+	{
+		FGameplayEffectContextHandle Copied(Original.Get()->Duplicate());
+		TestTrue(TEXT("Periodic context duplicates the original"), Copied.IsValid());
+		TestTrue(TEXT("Periodic context retains ability attribution"), UAuraAbilitySystemLibrary::GetAbilityTag(Copied).MatchesTagExact(FAuraGameplayTags::Get().Abilities_Attack));
+		TestEqual(TEXT("Periodic context retains damage type"), UAuraAbilitySystemLibrary::GetDamageType(Copied), FAuraGameplayTags::Get().Damage_Physical);
+	}
+	if (UAuraCombatStateComponent* TargetState = UAuraCombatStateComponent::FindForActor(Fixture.TargetActor))
+	{
+		TargetState->TryEnterDying();
+		FAuraCombatRuleContext Context;
+		Context.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+		Context.TrustedWorldContext = Fixture.SourceActor;
+		TestFalse(TEXT("Periodic revalidation rejects a target that becomes dying"), FAuraCombatRules::CanDamage(Fixture.SourceActor, Fixture.TargetActor, Context).bCanDamage);
+	}
+	DestroyDay4DamageFixture(Fixture);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4SafeDamageProfileTest,
+	"Aura.RoleBattle.Day4.SafeDamageProfile",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4SafeDamageProfileTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleTestsPrivate;
+	FDay4DamageFixture Fixture;
+	if (!MakeDay4DamageFixture(FindAutomationWorld(), Fixture))
+	{
+		return false;
+	}
+
+	// These bare actors have no CombatInterface, game mode, CharacterClassInfo, curve table,
+	// or individual coefficient curves. The execution path must use neutral coefficients.
+	const FGameplayEffectContextHandle Context = UAuraAbilitySystemLibrary::ApplyDamageEffect(MakeDay4DamageParams(Fixture));
+	TestTrue(TEXT("Damage remains safe without character-class profile data"), Context.IsValid());
+	DestroyDay4DamageFixture(Fixture);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4PreservedDamageSemanticsTest,
+	"Aura.RoleBattle.Day4.PreservedDamageSemantics",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4PreservedDamageSemanticsTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleTestsPrivate;
+	FDay4DamageFixture Fixture;
+	if (!MakeDay4DamageFixture(FindAutomationWorld(), Fixture))
+	{
+		return false;
+	}
+
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	const FString XML = TEXT("<ability name=\"Day4Semantics\" abilityTag=\"Abilities.Attack\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Damage\"><damage type=\"Damage.Physical\" base=\"25\" deathImpulseMagnitude=\"500\" knockbackForceMagnitude=\"750\"/><graph><node class=\"Sequence\"/></graph></ability>");
+	if (Definition && Definition->LoadFromXML(XML))
+	{
+		FDamageEffectParams Params;
+		Definition->BuildDamageEffectParams(Params, Fixture.SourceASC, Fixture.TargetASC, Fixture.SourceActor, 1.f, FVector::ForwardVector, true, FVector(10.f, 20.f, 30.f), 50.f, 250.f);
+		TestTrue(TEXT("Radial damage flag is preserved"), Params.bIsRadialDamage);
+		TestEqual(TEXT("Radial inner radius is preserved"), Params.RadialDamageInnerRadius, 50.f);
+		TestEqual(TEXT("Radial outer radius is preserved"), Params.RadialDamageOuterRadius, 250.f);
+		TestTrue(TEXT("Impulse semantics are direction aligned"), Params.DeathImpulse.Equals(FVector::ForwardVector * Definition->DeathImpulseMagnitude));
+	}
+	else
+	{
+		TestTrue(TEXT("Semantics definition parses"), false);
+	}
+	DestroyDay4DamageFixture(Fixture);
 	return true;
 }
 

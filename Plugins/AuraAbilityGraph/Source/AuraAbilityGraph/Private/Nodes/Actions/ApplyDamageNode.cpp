@@ -18,6 +18,12 @@ UAuraAbilityActionTask* UApplyDamageNode::CreateTask(UObject* Outer) const
 EAuraAbilityActionStatus UApplyDamageTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[ApplyDamage] OnStart"));
+    if (!Ctx.AvatarActor || !Ctx.AvatarActor->HasAuthority())
+    {
+        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[ApplyDamage] OnStart skipped: damage is authority-only"));
+        return EAuraAbilityActionStatus::Success;
+    }
+
     AActor* TargetActor = Ctx.CursorHit.GetActor();
     if (!TargetActor)
     {

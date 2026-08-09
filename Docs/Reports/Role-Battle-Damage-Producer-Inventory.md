@@ -34,13 +34,13 @@ production producer declares no shared boundary.
 | Native.Projectile.AuraFireBolt | Source/Aura/Private/AbilitySystem/Abilities/AuraFireBolt.cpp | Projectile (param builder) | Production | ApplyDamageEffect via projectile impact | HasAuthority at spawn |
 | Native.Projectile.AuraFireBlast | Source/Aura/Private/AbilitySystem/Abilities/AuraFireBlast.cpp | Projectile (param builder) | Production | ApplyDamageEffect via projectile impact | HasAuthority at spawn |
 | Native.Direct.CauseDamage | Source/Aura/Private/AbilitySystem/Abilities/AuraDamageGameplayAbility.cpp | Direct | Production | ApplyDamageEffect | Server ability activation |
-| Native.Periodic.Debuff | Source/Aura/Private/AbilitySystem/AuraAttributeSet.cpp | Periodic | Production | ApplyDamageEffect | Server attribute execution |
+| Native.Periodic.Debuff | Source/Aura/Private/AbilitySystem/AuraAttributeSet.cpp | Periodic | Production | Final AttributeSet revalidation | Server attribute execution |
 | Smoke.Day1.AuraPlayerController | Source/Aura/Private/Player/AuraPlayerController.cpp | Smoke | Test-only | ApplyDamageEffect | HasAuthority (test-only) |
-| Graph.ApplyDamage | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ApplyDamageNode.cpp | Direct | Production | ApplyDamageEffect | Shared boundary (node has no gate) |
-| Graph.CauseDamage | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/CauseDamageNode.cpp | Direct | Production | ApplyDamageEffect | Shared boundary (node has no gate) |
+| Graph.ApplyDamage | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ApplyDamageNode.cpp | Direct | Production | ApplyDamageEffect | HasAuthority gate |
+| Graph.CauseDamage | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/CauseDamageNode.cpp | Direct | Production | ApplyDamageEffect | HasAuthority gate |
 | Graph.ElectrocuteBeam | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ElectrocuteBeamNode.cpp | Beam | Production | ApplyDamageEffect | HasAuthority gate |
 | Graph.EnemyMeleeDamage | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/EnemyMeleeDamageNode.cpp | Melee | Production | ApplyDamageEffect | HasAuthority gate |
-| Graph.HitscanTrace | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/HitscanTraceNode.cpp | Hitscan | Production | ApplyDamageEffect | Shared boundary (node has no gate) |
+| Graph.HitscanTrace | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/HitscanTraceNode.cpp | Hitscan | Production | ApplyDamageEffect | HasAuthority gate |
 | Graph.ApplyBeamDamage | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ModularBeamNodes.cpp | Beam | Production | ApplyDamageEffect | bAuthorityOnly XML (must be enforced) |
 | Graph.SpawnProjectile | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectileNode.cpp | Projectile | Production | ApplyDamageEffect via projectile impact | HasAuthority gate |
 | Graph.SpawnProjectiles | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectilesNode.cpp | Projectile | Production | ApplyDamageEffect via projectile impact | HasAuthority gate |
@@ -72,7 +72,7 @@ sync with the compile-time allowlist in `AuraRoleBattleTests.cpp`.
 | Source/Aura/Private/Tests/AuraRoleBattleTests.cpp | test fixture |
 | Source/Aura/Private/Tests/AuraPickupGameplayEffectTests.cpp | test fixture |
 
-## Migration status (baseline)
+## Before-migration baseline
 
 All producers are **not migrated** at this baseline:
 
@@ -88,8 +88,30 @@ All producers are **not migrated** at this baseline:
 - `FDamageEffectParams` and `FAuraGameplayEffectContext` lack the Day 4 ability-tag / attribution /
   rule-context fields.
 
+## After-migration status
+
+- `ApplyDamageEffect` now rejects invalid ASCs/avatars, non-authority requests, invalid specs, and
+  requests denied by `FAuraCombatRules::CanDamage` before creating a spec.
+- `UAuraDamageGameplayAbility::CauseDamage`, native projectile impacts, AuraAbilityGraph direct,
+  beam, melee, hitscan, radial producers, and the BungeeMan gun projectile path now retain stable
+  ability/context attribution and enter through the shared server boundary.
+- `ExecCalc_Damage` and `UAuraAttributeSet` revalidate current source/target authority, identity,
+  relationship, and life state; missing profiles/tables/curves use neutral coefficients.
+- Periodic/debuff application duplicates the original custom effect context and performs current
+  combat-rule validation before applying a tick.
+- The compile-time producer table and this report are checked by
+  `Aura.RoleBattle.Day4.ProducerInventory`.
+
 ## Evidence log
 
 - Inventory searches re-run 2026-08-09 (see Methodology).
 - Compile-time table + `Aura.RoleBattle.Day4.ProducerInventory` test added to
   `Source/Aura/Private/Tests/AuraRoleBattleTests.cpp`.
+- `build_test.bat`: passed on 2026-08-10.
+- `Aura.RoleBattle.Day4` automation: 10/10 tests passed; log at
+  `Saved/Logs/Day4Automation.log`.
+- `RunRoleBattleDay4DamageSmoke.ps1 -Mode Listen`: passed; artifacts at
+  `Saved/Reports/Day04-Listen.json` and `Saved/Logs/Day04-Listen-{Server|Client1|Client2}.log`.
+- `RunRoleBattleDay4DamageSmoke.ps1 -Mode Dedicated`: passed using the editor-server fallback
+  because no cooked `StartupMap`/packaged server was available; artifacts at
+  `Saved/Reports/Day04-Dedicated.json` and `Saved/Logs/Day04-Dedicated-{Server|Client1|Client2}.log`.

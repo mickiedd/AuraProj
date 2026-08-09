@@ -7,10 +7,14 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraAbilityTypes.h"
 #include "AuraGameplayTags.h"
+#include "Character/AuraCharacterBase.h"
+#include "Combat/AuraCombatRules.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/OverlapResult.h"
 #include "Game/AuraGameModeBase.h"
 #include "Game/LoadScreenSaveGame.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/PlayerState.h"
 #include "Interaction/CombatInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/AuraPlayerState.h"
@@ -972,6 +976,60 @@ FGameplayTag UAuraAbilitySystemLibrary::GetDamageType(const FGameplayEffectConte
 	return FGameplayTag();
 }
 
+FGameplayTag UAuraAbilitySystemLibrary::GetAbilityTag(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraEffectContext->GetAbilityTag();
+	}
+	return FGameplayTag();
+}
+
+FName UAuraAbilitySystemLibrary::GetSourceRoleId(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraEffectContext->GetSourceRoleId();
+	}
+	return NAME_None;
+}
+
+AController* UAuraAbilitySystemLibrary::GetSourceController(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraEffectContext->GetSourceController();
+	}
+	return nullptr;
+}
+
+APlayerState* UAuraAbilitySystemLibrary::GetSourcePlayerState(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraEffectContext->GetSourcePlayerState();
+	}
+	return nullptr;
+}
+
+FName UAuraAbilitySystemLibrary::GetBattleZoneId(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraEffectContext->GetBattleZoneId();
+	}
+	return NAME_None;
+}
+
+FName UAuraAbilitySystemLibrary::GetBattleEventId(const FGameplayEffectContextHandle& EffectContextHandle)
+{
+	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		return AuraEffectContext->GetBattleEventId();
+	}
+	return NAME_None;
+}
+
 FVector UAuraAbilitySystemLibrary::GetDeathImpulse(const FGameplayEffectContextHandle& EffectContextHandle)
 {
 	if (const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
@@ -1095,6 +1153,55 @@ void UAuraAbilitySystemLibrary::SetDamageType(FGameplayEffectContextHandle& Effe
 	}
 }
 
+void UAuraAbilitySystemLibrary::SetAbilityTag(FGameplayEffectContextHandle& EffectContextHandle,
+	const FGameplayTag& InAbilityTag)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraEffectContext->SetAbilityTag(InAbilityTag);
+	}
+}
+
+void UAuraAbilitySystemLibrary::SetSourceRoleId(FGameplayEffectContextHandle& EffectContextHandle, FName InSourceRoleId)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraEffectContext->SetSourceRoleId(InSourceRoleId);
+	}
+}
+
+void UAuraAbilitySystemLibrary::SetSourceController(FGameplayEffectContextHandle& EffectContextHandle, AController* InSourceController)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraEffectContext->SetSourceController(InSourceController);
+	}
+}
+
+void UAuraAbilitySystemLibrary::SetSourcePlayerState(FGameplayEffectContextHandle& EffectContextHandle, APlayerState* InSourcePlayerState)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraEffectContext->SetSourcePlayerState(InSourcePlayerState);
+	}
+}
+
+void UAuraAbilitySystemLibrary::SetBattleZoneId(FGameplayEffectContextHandle& EffectContextHandle, FName InBattleZoneId)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraEffectContext->SetBattleZoneId(InBattleZoneId);
+	}
+}
+
+void UAuraAbilitySystemLibrary::SetBattleEventId(FGameplayEffectContextHandle& EffectContextHandle, FName InBattleEventId)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(EffectContextHandle.Get()))
+	{
+		AuraEffectContext->SetBattleEventId(InBattleEventId);
+	}
+}
+
 void UAuraAbilitySystemLibrary::SetDeathImpulse(FGameplayEffectContextHandle& EffectContextHandle,
 	const FVector& InImpulse)
 {
@@ -1215,10 +1322,77 @@ bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondAc
 FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const FDamageEffectParams& DamageEffectParams)
 {
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-	const AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
+	FGameplayEffectContextHandle InvalidContext;
+
+	UAbilitySystemComponent* SourceASC = DamageEffectParams.SourceAbilitySystemComponent;
+	UAbilitySystemComponent* TargetASC = DamageEffectParams.TargetAbilitySystemComponent;
+	if (!IsValid(SourceASC) || !IsValid(TargetASC))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[DamageBoundary] Rejected damage: source or target ASC is invalid."));
+		return InvalidContext;
+	}
+
+	const AActor* SourceAvatarActor = SourceASC->GetAvatarActor();
+	const AActor* TargetAvatarActor = TargetASC->GetAvatarActor();
+	if (!IsValid(SourceAvatarActor) || !IsValid(TargetAvatarActor)
+		|| !SourceAvatarActor->HasAuthority() || !TargetAvatarActor->HasAuthority())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[DamageBoundary] Rejected damage: source/target avatar is invalid or non-authoritative. Source=%s Target=%s"),
+			*GetNameSafe(SourceAvatarActor), *GetNameSafe(TargetAvatarActor));
+		return InvalidContext;
+	}
+
+	FAuraCombatRuleContext RuleContext = DamageEffectParams.CombatRuleContext;
+	RuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+	RuleContext.TrustedWorldContext = SourceAvatarActor;
+	RuleContext.SourceActor = SourceAvatarActor;
+	RuleContext.TargetActor = TargetAvatarActor;
+	const FAuraCombatRuleResult RuleResult = FAuraCombatRules::CanDamage(SourceAvatarActor, TargetAvatarActor, RuleContext);
+	if (!RuleResult.bCanDamage)
+	{
+		UE_LOG(LogAura, Verbose, TEXT("[DamageBoundary] Rejected damage Source=%s Target=%s Reason=%s Ability=%s"),
+			*GetNameSafe(SourceAvatarActor),
+			*GetNameSafe(TargetAvatarActor),
+			*StaticEnum<EAuraCombatRuleRejectionReason>()->GetValueAsString(RuleResult.RejectionReason),
+			*DamageEffectParams.AbilityTag.ToString());
+		return InvalidContext;
+	}
+
+	FName SourceRoleId = NAME_None;
+	if (const AAuraCharacterBase* SourceCharacter = Cast<AAuraCharacterBase>(SourceAvatarActor))
+	{
+		SourceRoleId = SourceCharacter->GetCharacterRole();
+	}
+
+	AController* SourceController = nullptr;
+	if (const APawn* SourcePawn = Cast<APawn>(SourceAvatarActor))
+	{
+		SourceController = SourcePawn->GetController();
+	}
+	if (!SourceController && SourceASC->AbilityActorInfo.IsValid())
+	{
+		SourceController = SourceASC->AbilityActorInfo->PlayerController.Get();
+	}
+	APlayerState* SourcePlayerState = SourceController
+		? SourceController->PlayerState.Get()
+		: Cast<APlayerState>(const_cast<AActor*>(SourceAvatarActor));
 	
-	FGameplayEffectContextHandle EffectContexthandle = DamageEffectParams.SourceAbilitySystemComponent->MakeEffectContext();
+	FGameplayEffectContextHandle EffectContexthandle = SourceASC->MakeEffectContext();
 	EffectContexthandle.AddSourceObject(SourceAvatarActor);
+	SetAbilityTag(EffectContexthandle, DamageEffectParams.AbilityTag);
+	SetDamageType(EffectContexthandle, DamageEffectParams.DamageType);
+	SetSourceRoleId(EffectContexthandle, SourceRoleId);
+	SetSourceController(EffectContexthandle, SourceController);
+	SetSourcePlayerState(EffectContexthandle, SourcePlayerState);
+	FName BattleZoneId = RuleContext.BattleZoneId;
+	FName BattleEventId = RuleContext.BattleEventId;
+	if (RuleContext.HasPolicySnapshot())
+	{
+		if (BattleZoneId.IsNone()) BattleZoneId = RuleContext.GetPolicySnapshot().GetBattleZoneId();
+		if (BattleEventId.IsNone()) BattleEventId = RuleContext.GetPolicySnapshot().GetBattleEventId();
+	}
+	SetBattleZoneId(EffectContexthandle, BattleZoneId);
+	SetBattleEventId(EffectContexthandle, BattleEventId);
 	SetDeathImpulse(EffectContexthandle, DamageEffectParams.DeathImpulse);
 	SetKnockbackForce(EffectContexthandle, DamageEffectParams.KnockbackForce);
 
@@ -1231,7 +1405,13 @@ FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const 
 		? TSubclassOf<UGameplayEffect>(DamageEffectParams.DamageGameplayEffectClass)
 		: TSubclassOf<UGameplayEffect>(UAuraDamageGameplayEffect::StaticClass());
 
-	const FGameplayEffectSpecHandle SpecHandle = DamageEffectParams.SourceAbilitySystemComponent->MakeOutgoingSpec(EffectiveGEClass, DamageEffectParams.AbilityLevel, EffectContexthandle);
+	const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(EffectiveGEClass, DamageEffectParams.AbilityLevel, EffectContexthandle);
+	if (!SpecHandle.IsValid() || !SpecHandle.Data.IsValid())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[DamageBoundary] Rejected damage: failed to create gameplay effect spec. Ability=%s"),
+			*DamageEffectParams.AbilityTag.ToString());
+		return InvalidContext;
+	}
 
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageEffectParams.DamageType, DamageEffectParams.BaseDamage);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Debuff_Chance, DamageEffectParams.DebuffChance);
@@ -1239,7 +1419,7 @@ FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const 
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Debuff_Duration, DamageEffectParams.DebuffDuration);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Debuff_Frequency, DamageEffectParams.DebuffFrequency);
 	
-	DamageEffectParams.TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+	TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 	return EffectContexthandle;
 }
 

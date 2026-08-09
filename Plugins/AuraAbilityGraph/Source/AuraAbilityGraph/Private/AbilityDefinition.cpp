@@ -239,6 +239,12 @@ void UAuraAbilityDefinition::BuildDamageEffectParams(FDamageEffectParams& OutPar
     OutParams.AbilityLevel = AbilityLevel;
     OutParams.DamageGameplayEffectClass = DamageEffectClass;
     OutParams.DamageType = DamageType;
+    OutParams.AbilityTag = AbilityTag;
+    OutParams.CombatRuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+    OutParams.CombatRuleContext.TrustedWorldContext = WorldContext;
+    OutParams.CombatRuleContext.SourceActor = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
+    OutParams.CombatRuleContext.TargetActor = TargetASC ? TargetASC->GetAvatarActor() : nullptr;
+    OutParams.CombatRuleContext.ImpactLocation = RadialOrigin;
     OutParams.BaseDamage = Damage.GetValueAtLevel(AbilityLevel);
     OutParams.DebuffChance = DebuffChance;
     OutParams.DebuffDamage = DebuffDamage;

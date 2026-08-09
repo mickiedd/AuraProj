@@ -3,30 +3,73 @@
 
 #include "AbilitySystem/Abilities/AuraDamageGameplayAbility.h"
 
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "Aura/AuraLogChannels.h"
 
 void UAuraDamageGameplayAbility::CauseDamage(AActor* TargetActor)
 {
-	FGameplayEffectSpecHandle DamageSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);
-	const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(DamageSpecHandle, DamageType, ScaledDamage);
-	GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor));
+	FDamageEffectParams Params = MakeDamageEffectParamsFromClassDefaults(TargetActor);
+	UAuraAbilitySystemLibrary::ApplyDamageEffect(Params);
+}
+
+FGameplayTag UAuraDamageGameplayAbility::GetDamageAbilityTag() const
+{
+	if (CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid())
+	{
+		const UAbilitySystemComponent* ASC = CurrentActorInfo->AbilitySystemComponent.Get();
+		if (const FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(CurrentSpecHandle))
+		{
+			if (const FGameplayTag AbilityTag = UAuraAbilitySystemComponent::GetAbilityTagFromSpec(*Spec); AbilityTag.IsValid())
+			{
+				return AbilityTag;
+			}
+		}
+	}
+
+	const FGameplayTag AbilitiesRoot = FGameplayTag::RequestGameplayTag(FName(TEXT("Abilities")), false);
+	for (const FGameplayTag& Tag : AbilityTags)
+	{
+		if (Tag.IsValid() && (!AbilitiesRoot.IsValid() || Tag.MatchesTag(AbilitiesRoot)))
+		{
+			return Tag;
+		}
+	}
+	return FGameplayTag();
 }
 
 FDamageEffectParams UAuraDamageGameplayAbility::MakeDamageEffectParamsFromClassDefaults(AActor* TargetActor,
 	FVector InRadialDamageOrigin, bool bOverrideKnockbackDirection, FVector KnockbackDirectionOverride,
 	bool bOverrideDeathImpulse, FVector DeathImpulseDirectionOverride, bool bOverridePitch, float PitchOverride) const
 {
+	AActor* SourceAvatarActor = CurrentActorInfo && CurrentActorInfo->AvatarActor.IsValid()
+		? CurrentActorInfo->AvatarActor.Get()
+		: nullptr;
+	UAbilitySystemComponent* SourceASC = CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid()
+		? CurrentActorInfo->AbilitySystemComponent.Get()
+		: nullptr;
+	const int32 AbilityLevel = CurrentActorInfo ? GetAbilityLevel() : 1;
+
 	FDamageEffectParams Params;
-	Params.WorldContextObject = GetAvatarActorFromActorInfo();
+	Params.WorldContextObject = SourceAvatarActor;
 	Params.DamageGameplayEffectClass = DamageEffectClass;
-	Params.SourceAbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
+	Params.SourceAbilitySystemComponent = SourceASC;
 	Params.TargetAbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-	Params.BaseDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-	Params.AbilityLevel = GetAbilityLevel();
+	Params.BaseDamage = Damage.GetValueAtLevel(AbilityLevel);
+	Params.AbilityLevel = AbilityLevel;
 	Params.DamageType = DamageType;
+	Params.AbilityTag = GetDamageAbilityTag();
+	Params.CombatRuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+	Params.CombatRuleContext.TrustedWorldContext = Params.WorldContextObject;
+	Params.CombatRuleContext.SourceActor = SourceAvatarActor;
+	Params.CombatRuleContext.TargetActor = TargetActor;
+	if (TargetActor)
+	{
+		Params.CombatRuleContext.ImpactLocation = TargetActor->GetActorLocation();
+	}
 	Params.DebuffChance = DebuffChance;
 	Params.DebuffDamage = DebuffDamage;
 	Params.DebuffDuration = DebuffDuration;
@@ -35,9 +78,9 @@ FDamageEffectParams UAuraDamageGameplayAbility::MakeDamageEffectParamsFromClassD
 	Params.KnockbackForceMagnitude = KnockbackForceMagnitude;
 	Params.KnockbackChance = KnockbackChance;
 
-	if (IsValid(TargetActor))
+	if (IsValid(TargetActor) && IsValid(SourceAvatarActor))
 	{
-		FRotator Rotation = (TargetActor->GetActorLocation() - GetAvatarActorFromActorInfo()->GetActorLocation()).Rotation();
+		FRotator Rotation = (TargetActor->GetActorLocation() - SourceAvatarActor->GetActorLocation()).Rotation();
 		if (bOverridePitch)
 		{
 			Rotation.Pitch = PitchOverride;

@@ -7,6 +7,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
@@ -27,6 +28,7 @@
 #include "Sound/SoundBase.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
+#include "AuraAbilityTypes.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
@@ -352,6 +354,12 @@ void AAuraCharacterBase::BeginPlay()
 			bClientStateMutationAccepted,
 			bClientPolicyAccepted);
 	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay4DamageProbe")) && !HasAuthority() && !bDay4NetworkProbeStarted)
+	{
+		bDay4NetworkProbeStarted = true;
+		UE_LOG(LogAura, Display, TEXT("[Day4DamageProbe][Client] InvalidDamageRequestSent=1"));
+		ServerRoleBattleDay4InvalidDamageProbe();
+	}
 #endif
 
 	if (HasAuthority())
@@ -494,6 +502,41 @@ void AAuraCharacterBase::ExecuteDay3NetworkProbe()
 		}
 	});
 	GetWorldTimerManager().SetTimer(Day3NetworkProbeTimerHandle, CompleteDeathDelegate, 0.75f, false);
+#endif
+}
+
+void AAuraCharacterBase::ServerRoleBattleDay4InvalidDamageProbe_Implementation()
+{
+#if !UE_BUILD_SHIPPING
+	if (!HasAuthority() || !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay4DamageProbe")))
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	const UAuraAttributeSet* Attributes = Cast<UAuraAttributeSet>(GetAttributeSet());
+	const float HealthBefore = Attributes ? Attributes->GetHealth() : 0.f;
+
+	FDamageEffectParams InvalidParams;
+	InvalidParams.WorldContextObject = this;
+	InvalidParams.SourceAbilitySystemComponent = ASC;
+	InvalidParams.TargetAbilitySystemComponent = ASC;
+	InvalidParams.BaseDamage = 25.f;
+	InvalidParams.AbilityLevel = 1.f;
+	InvalidParams.DamageType = FAuraGameplayTags::Get().Damage_Physical;
+	InvalidParams.AbilityTag = FAuraGameplayTags::Get().Abilities_Attack;
+	InvalidParams.CombatRuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+	InvalidParams.CombatRuleContext.TrustedWorldContext = this;
+	InvalidParams.CombatRuleContext.SourceActor = this;
+	InvalidParams.CombatRuleContext.TargetActor = this;
+
+	const FGameplayEffectContextHandle Result = UAuraAbilitySystemLibrary::ApplyDamageEffect(InvalidParams);
+	const UAuraAttributeSet* AttributesAfter = Cast<UAuraAttributeSet>(GetAttributeSet());
+	const float HealthAfter = AttributesAfter ? AttributesAfter->GetHealth() : HealthBefore;
+	const bool bHealthChanged = !FMath::IsNearlyEqual(HealthBefore, HealthAfter);
+	UE_LOG(LogAura, Display,
+		TEXT("[Day4DamageProbe][Server] ClientInvalidDamageRequestReceived=1 InvalidDamageRejected=%d HealthChanged=%d"),
+		!Result.IsValid(), bHealthChanged);
 #endif
 }
 

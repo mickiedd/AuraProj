@@ -3,6 +3,7 @@
 
 bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
 {
+	bOutSuccess = true;
 	uint32 RepBits = 0;
 	if (Ar.IsSaving())
 	{
@@ -87,10 +88,65 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 				RepBits |= 1 << 19;
 			}
 		}
+		if (AbilityTag.IsValid())
+		{
+			RepBits |= 1 << 20;
+		}
+		if (!SourceRoleId.IsNone())
+		{
+			RepBits |= 1 << 21;
+		}
+		if (SourceController.IsValid())
+		{
+			RepBits |= 1 << 22;
+		}
+		if (SourcePlayerState.IsValid())
+		{
+			RepBits |= 1 << 23;
+		}
+		if (!BattleZoneId.IsNone())
+		{
+			RepBits |= 1 << 24;
+		}
+		if (!BattleEventId.IsNone())
+		{
+			RepBits |= 1 << 25;
+		}
 		
 	}
 
-	Ar.SerializeBits(&RepBits, 20);
+	if (Ar.IsLoading())
+	{
+		Instigator.Reset();
+		EffectCauser.Reset();
+		AbilityCDO.Reset();
+		SourceObject.Reset();
+		Actors.Reset();
+		HitResult.Reset();
+		bHasWorldOrigin = false;
+		WorldOrigin = FVector::ZeroVector;
+		bIsBlockedHit = false;
+		bIsCriticalHit = false;
+		bIsSuccessfulDebuff = false;
+		DebuffDamage = 0.f;
+		DebuffDuration = 0.f;
+		DebuffFrequency = 0.f;
+		DamageType.Reset();
+		AbilityTag = FGameplayTag();
+		SourceRoleId = NAME_None;
+		SourceController.Reset();
+		SourcePlayerState.Reset();
+		BattleZoneId = NAME_None;
+		BattleEventId = NAME_None;
+		DeathImpulse = FVector::ZeroVector;
+		KnockbackForce = FVector::ZeroVector;
+		bIsRadialDamage = false;
+		RadialDamageInnerRadius = 0.f;
+		RadialDamageOuterRadius = 0.f;
+		RadialDamageOrigin = FVector::ZeroVector;
+	}
+
+	Ar.SerializeBits(&RepBits, 26);
 
 	if (RepBits & (1 << 0))
 	{
@@ -187,18 +243,41 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 		{
 			Ar << RadialDamageOuterRadius;
 		}
-		if (RepBits & (1 << 19))
+	if (RepBits & (1 << 19))
 		{
 			RadialDamageOrigin.NetSerialize(Ar, Map, bOutSuccess);
 		}
 	}
+	if (RepBits & (1 << 20))
+	{
+		AbilityTag.NetSerialize(Ar, Map, bOutSuccess);
+	}
+	if (RepBits & (1 << 21))
+	{
+		Ar << SourceRoleId;
+	}
+	if (RepBits & (1 << 22))
+	{
+		Ar << SourceController;
+	}
+	if (RepBits & (1 << 23))
+	{
+		Ar << SourcePlayerState;
+	}
+	if (RepBits & (1 << 24))
+	{
+		Ar << BattleZoneId;
+	}
+	if (RepBits & (1 << 25))
+	{
+		Ar << BattleEventId;
+	}
 	
 
-	if (Ar.IsLoading())
+	if (Ar.IsLoading() && bOutSuccess)
 	{
 		AddInstigator(Instigator.Get(), EffectCauser.Get()); // Just to initialize InstigatorAbilitySystemComponent
-	}	
+	}
 	
-	bOutSuccess = true;
-	return true;
+	return bOutSuccess;
 }
