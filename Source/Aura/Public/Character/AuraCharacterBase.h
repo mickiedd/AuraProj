@@ -12,6 +12,7 @@
 #include "AuraCharacterBase.generated.h"
 
 class UAuraCombatIdentityComponent;
+class UAuraCombatStateComponent;
 class UPassiveNiagaraComponent;
 class UDebuffNiagaraComponent;
 class UNiagaraSystem;
@@ -41,6 +42,9 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 	const UAuraCombatIdentityComponent* GetCombatIdentityComponent() const { return CombatIdentityComponent; }
+	const UAuraCombatStateComponent* GetCombatStateComponent() const { return CombatStateComponent; }
+	EAuraCombatLifeState GetCombatLifeState() const;
+	bool IsCombatAlive() const;
 	const FAuraCombatIdentity& GetCombatIdentity() const;
 	const FAuraCombatIdentity& GetDefaultCombatIdentity() const { return DefaultCombatIdentity; }
 	FAuraCombatIdentity GetResolvedDefaultCombatIdentity() const { return BuildDefaultCombatIdentity(); }
@@ -123,8 +127,20 @@ protected:
 	virtual void BeginPlay() override;
 	virtual FAuraCombatIdentity BuildDefaultCombatIdentity() const;
 
+	/** Returns true only to the caller that won Alive -> Dying. */
+	bool TryBeginCombatDeath();
+	/** Completes normal avatar initialization by transitioning Respawning -> Alive. */
+	bool MarkCombatReady();
+
+	void HandleCombatLifeStateChanged(EAuraCombatLifeState NewState);
+	void StartDay3NetworkProbe();
+	void ExecuteDay3NetworkProbe();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat Identity")
 	TObjectPtr<UAuraCombatIdentityComponent> CombatIdentityComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat State")
+	TObjectPtr<UAuraCombatStateComponent> CombatStateComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat Identity")
 	FAuraCombatIdentity DefaultCombatIdentity;
@@ -146,6 +162,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bDead = false;
+
+	FTimerHandle Day3NetworkProbeTimerHandle;
+	bool bDay3NetworkProbeStarted = false;
 
 	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 

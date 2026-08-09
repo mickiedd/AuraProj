@@ -41,11 +41,17 @@ bool UAuraCombatIdentityComponent::InitializeIdentity(const FAuraCombatIdentity&
 	}
 
 	Identity = InIdentity;
+	Owner->ForceNetUpdate();
 	LogIdentity(TEXT("Server"));
 	return true;
 }
 
-UAuraCombatIdentityComponent* UAuraCombatIdentityComponent::FindForActor(const AActor* Actor)
+UAuraCombatIdentityComponent* UAuraCombatIdentityComponent::FindForActor(AActor* Actor)
+{
+	return IsValid(Actor) ? Actor->FindComponentByClass<UAuraCombatIdentityComponent>() : nullptr;
+}
+
+const UAuraCombatIdentityComponent* UAuraCombatIdentityComponent::FindForActor(const AActor* Actor)
 {
 	return IsValid(Actor) ? Actor->FindComponentByClass<UAuraCombatIdentityComponent>() : nullptr;
 }

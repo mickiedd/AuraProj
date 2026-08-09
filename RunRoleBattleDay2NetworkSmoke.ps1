@@ -29,6 +29,7 @@ if ([string]::IsNullOrWhiteSpace($EngineRoot)) {
 }
 
 $editorExe = Join-Path $EngineRoot 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe'
+$cookedStartupMap = Join-Path $projectRoot 'Saved\Cooked\WindowsServer\Aura\Content\Maps\StartupMap.umap'
 if (-not (Test-Path -LiteralPath $editorExe)) {
     Write-Error "UnrealEditor-Cmd.exe was not found. Set UE_ENGINE_ROOT to the Unreal Engine root."
     exit 1
@@ -218,6 +219,7 @@ foreach ($selectedMode in $selectedModes) {
         SchemaVersion = 1
         Revision = $revision
         Mode = $selectedMode
+        ServerRuntime = 'EditorServer'
         Port = $port
         StartedUtc = [DateTime]::UtcNow.ToString('o')
         CompletedUtc = $null
@@ -244,20 +246,39 @@ foreach ($selectedMode in $selectedModes) {
         $serverMap = if ($selectedMode -eq 'Listen') { '/Game/Maps/StartupMap?listen' } else { '/Game/Maps/StartupMap' }
         if ($selectedMode -eq 'Dedicated') {
             $serverExecutable = Get-DedicatedServerExecutable
-            if ([string]::IsNullOrWhiteSpace($serverExecutable)) {
-                throw 'AuraServer executable was not found. Run BuildDedicatedServer.bat with a source-built Unreal Engine before the dedicated smoke.'
+            if (Test-Path -LiteralPath $cookedStartupMap) {
+                if ([string]::IsNullOrWhiteSpace($serverExecutable)) {
+                    throw 'The cooked StartupMap exists but AuraServer executable was not found. Run BuildDedicatedServer.bat.'
+                }
+                $modeResult.ServerRuntime = 'PackagedDedicated'
+                $serverArguments = @(
+                    $serverMap,
+                    '-server',
+                    '-unattended',
+                    '-nop4',
+                    '-nullrhi',
+                    '-nosound',
+                    '-NoSplash',
+                    "-port=$port",
+                    "-abslog=$serverLog"
+                )
             }
-            $serverArguments = @(
-                $serverMap,
-                '-server',
-                '-unattended',
-                '-nop4',
-                '-nullrhi',
-                '-nosound',
-                '-NoSplash',
-                "-port=$port",
-                "-abslog=$serverLog"
-            )
+            else {
+                Write-Warning 'Cooked StartupMap is unavailable; using UnrealEditor-Cmd.exe -server for the Day 2 Dedicated smoke.'
+                $serverExecutable = $editorExe
+                $serverArguments = @(
+                    $projectFile,
+                    $serverMap,
+                    '-server',
+                    '-unattended',
+                    '-nop4',
+                    '-nullrhi',
+                    '-nosound',
+                    '-NoSplash',
+                    "-port=$port",
+                    "-abslog=$serverLog"
+                )
+            }
         }
         else {
             $serverExecutable = $editorExe

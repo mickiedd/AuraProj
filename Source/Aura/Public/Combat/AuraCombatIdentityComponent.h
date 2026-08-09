@@ -33,7 +33,8 @@ public:
 	bool HasValidIdentity() const { return Identity.IsValid(); }
 
 	/** Generic lookup used by AActor-based damage and targeting APIs. */
-	static UAuraCombatIdentityComponent* FindForActor(const AActor* Actor);
+	static UAuraCombatIdentityComponent* FindForActor(AActor* Actor);
+	static const UAuraCombatIdentityComponent* FindForActor(const AActor* Actor);
 
 	/** Emits a warning no more than once for a given actor during the process lifetime. */
 	static void LogMissingIdentityOnce(const AActor* Actor, const TCHAR* Context);

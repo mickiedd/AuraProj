@@ -24,6 +24,7 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 #include "Combat/AuraCombatIdentityComponent.h"
+#include "Combat/AuraCombatRules.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "Misc/FileHelper.h"
@@ -1202,45 +1203,13 @@ void UAuraAbilitySystemLibrary::GetClosestTargets(int32 MaxTargets, const TArray
 
 bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondActor)
 {
-	if (!IsValid(FirstActor) || !IsValid(SecondActor))
-	{
-		if (!IsValid(FirstActor))
-		{
-			UAuraCombatIdentityComponent::LogMissingIdentityOnce(FirstActor, TEXT("IsNotFriend.FirstActor"));
-		}
-		if (!IsValid(SecondActor))
-		{
-			UAuraCombatIdentityComponent::LogMissingIdentityOnce(SecondActor, TEXT("IsNotFriend.SecondActor"));
-		}
-		return false;
-	}
-
-	if (FirstActor == SecondActor)
-	{
-		return false;
-	}
-
-	const UAuraCombatIdentityComponent* FirstIdentityComponent = UAuraCombatIdentityComponent::FindForActor(FirstActor);
-	const UAuraCombatIdentityComponent* SecondIdentityComponent = UAuraCombatIdentityComponent::FindForActor(SecondActor);
-	if (!FirstIdentityComponent || !FirstIdentityComponent->HasValidIdentity())
-	{
-		UAuraCombatIdentityComponent::LogMissingIdentityOnce(FirstActor, TEXT("IsNotFriend.FirstActor"));
-		return false;
-	}
-	if (!SecondIdentityComponent || !SecondIdentityComponent->HasValidIdentity())
-	{
-		UAuraCombatIdentityComponent::LogMissingIdentityOnce(SecondActor, TEXT("IsNotFriend.SecondActor"));
-		return false;
-	}
-
-	const FGameplayTag FirstFaction = FirstIdentityComponent->GetIdentity().FactionTag;
-	const FGameplayTag SecondFaction = SecondIdentityComponent->GetIdentity().FactionTag;
-	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-	const bool bPlayerVersusEnemy = FirstFaction.MatchesTagExact(GameplayTags.Faction_Player)
-		&& SecondFaction.MatchesTagExact(GameplayTags.Faction_Enemy);
-	const bool bEnemyVersusPlayer = FirstFaction.MatchesTagExact(GameplayTags.Faction_Enemy)
-		&& SecondFaction.MatchesTagExact(GameplayTags.Faction_Player);
-	return bPlayerVersusEnemy || bEnemyVersusPlayer;
+	FAuraCombatRuleContext Context;
+	Context.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+	Context.TrustedWorldContext = FirstActor;
+	Context.SourceActor = FirstActor;
+	Context.TargetActor = SecondActor;
+	const FAuraCombatRuleResult Result = FAuraCombatRules::CanDamage(FirstActor, SecondActor, Context);
+	return Result.bCanDamage;
 }
 
 FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const FDamageEffectParams& DamageEffectParams)

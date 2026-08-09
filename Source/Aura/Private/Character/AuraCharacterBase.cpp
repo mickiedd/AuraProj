@@ -17,9 +17,12 @@
 #include "Animation/AnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Combat/AuraCombatIdentityComponent.h"
+#include "Combat/AuraCombatRules.h"
+#include "Combat/AuraCombatStateComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Misc/Parse.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Sound/SoundBase.h"
 
@@ -31,6 +34,8 @@ AAuraCharacterBase::AAuraCharacterBase()
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 
 	CombatIdentityComponent = CreateDefaultSubobject<UAuraCombatIdentityComponent>(TEXT("CombatIdentityComponent"));
+	CombatStateComponent = CreateDefaultSubobject<UAuraCombatStateComponent>(TEXT("CombatStateComponent"));
+	CombatStateComponent->OnLifeStateChanged.AddUObject(this, &AAuraCharacterBase::HandleCombatLifeStateChanged);
 	
 	BurnDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("BurnDebuffComponent");
 	BurnDebuffComponent->SetupAttachment(GetRootComponent());
@@ -245,8 +250,25 @@ UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
 
 void AAuraCharacterBase::Die(const FVector& DeathImpulse)
 {
+	if (!HasAuthority() || !CombatStateComponent)
+	{
+		return;
+	}
+
+	if (CombatStateComponent->GetLifeState() == EAuraCombatLifeState::Alive
+		&& !CombatStateComponent->TryEnterDying())
+	{
+		return;
+	}
+
+	if (CombatStateComponent->GetLifeState() != EAuraCombatLifeState::Dying)
+	{
+		return;
+	}
+
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
 	MulticastHandleDeath(DeathImpulse);
+	CombatStateComponent->TryEnterDead();
 }
 
 FOnDeathSignature& AAuraCharacterBase::GetOnDeathDelegate()
@@ -316,6 +338,21 @@ void AAuraCharacterBase::OnRep_Burned()
 void AAuraCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+	bDead = !IsCombatAlive();
+
+#if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay3NetworkProbe")) && !HasAuthority())
+	{
+		bDay3NetworkProbeStarted = true;
+		const bool bClientStateMutationAccepted = TryBeginCombatDeath();
+		FAuraCombatPolicySnapshot DefaultPolicy;
+		const bool bClientPolicyAccepted = DefaultPolicy.IsTrustedFor(this);
+		UE_LOG(LogAura, Display,
+			TEXT("[Day3NetworkProbe][Client] ClientStateMutationAccepted=%d ClientPolicyMutationAccepted=%d"),
+			bClientStateMutationAccepted,
+			bClientPolicyAccepted);
+	}
+#endif
 
 	if (HasAuthority())
 	{
@@ -325,6 +362,139 @@ void AAuraCharacterBase::BeginPlay()
 			UAuraCombatIdentityComponent::LogMissingIdentityOnce(this, TEXT("AAuraCharacterBase::BeginPlay"));
 		}
 	}
+}
+
+EAuraCombatLifeState AAuraCharacterBase::GetCombatLifeState() const
+{
+	return CombatStateComponent ? CombatStateComponent->GetLifeState() : EAuraCombatLifeState::Dead;
+}
+
+bool AAuraCharacterBase::IsCombatAlive() const
+{
+	return CombatStateComponent && CombatStateComponent->IsAlive();
+}
+
+bool AAuraCharacterBase::TryBeginCombatDeath()
+{
+	return HasAuthority() && CombatStateComponent && CombatStateComponent->TryEnterDying();
+}
+
+bool AAuraCharacterBase::MarkCombatReady()
+{
+	if (!HasAuthority() || !CombatStateComponent)
+	{
+		return false;
+	}
+
+	const bool bReady = CombatStateComponent->TryEnterAlive();
+	if (bReady)
+	{
+		bDead = false;
+		UE_LOG(LogAura, Log, TEXT("[CombatState][Server] Actor=%s transitioned to Alive after gameplay initialization."), *GetNameSafe(this));
+		StartDay3NetworkProbe();
+	}
+	return bReady;
+}
+
+void AAuraCharacterBase::HandleCombatLifeStateChanged(EAuraCombatLifeState NewState)
+{
+	bDead = NewState != EAuraCombatLifeState::Alive;
+
+#if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay3NetworkProbe")) && !HasAuthority()
+		&& NewState != EAuraCombatLifeState::Alive)
+	{
+		UE_LOG(LogAura, Display, TEXT("[Day3NetworkProbe][Client] ReplicatedState=%s"),
+			NewState == EAuraCombatLifeState::Dying ? TEXT("Dying")
+			: NewState == EAuraCombatLifeState::Dead ? TEXT("Dead")
+			: TEXT("Respawning"));
+	}
+#endif
+}
+
+void AAuraCharacterBase::StartDay3NetworkProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (bDay3NetworkProbeStarted || !HasAuthority() || !IsCombatAlive()
+		|| !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay3NetworkProbe")))
+	{
+		return;
+	}
+
+	TWeakObjectPtr<AAuraCharacterBase> WeakThis(this);
+	FTimerDelegate DelayedProbeDelegate;
+	DelayedProbeDelegate.BindLambda([WeakThis]()
+	{
+		if (AAuraCharacterBase* Character = WeakThis.Get())
+		{
+			Character->ExecuteDay3NetworkProbe();
+		}
+	});
+	GetWorldTimerManager().SetTimer(Day3NetworkProbeTimerHandle, DelayedProbeDelegate, 12.f, false);
+#endif
+}
+
+void AAuraCharacterBase::ExecuteDay3NetworkProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (bDay3NetworkProbeStarted || !HasAuthority() || !IsCombatAlive()
+		|| !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay3NetworkProbe")))
+	{
+		return;
+	}
+
+	const UAuraCombatIdentityComponent* IdentityComponent = GetCombatIdentityComponent();
+	if (!IdentityComponent || !IdentityComponent->HasValidIdentity()
+		|| !IdentityComponent->GetIdentity().FactionTag.MatchesTagExact(FAuraGameplayTags::Get().Faction_Player))
+	{
+		return;
+	}
+
+	bDay3NetworkProbeStarted = true;
+
+	AActor* CivilianFixture = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity);
+	if (CivilianFixture)
+	{
+		UAuraCombatIdentityComponent* CivilianIdentity = NewObject<UAuraCombatIdentityComponent>(CivilianFixture);
+		CivilianFixture->AddInstanceComponent(CivilianIdentity);
+		CivilianIdentity->RegisterComponent();
+		FAuraCombatIdentity Identity;
+		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		Identity.FactionTag = GameplayTags.Faction_Civilian;
+		Identity.ControlTypeTag = GameplayTags.Control_CivilianAI;
+		Identity.CombatProfileTag = GameplayTags.Combat_Civilian;
+		Identity.DeathPolicyTag = GameplayTags.Death_PopulationRespawn;
+		Identity.bTargetable = true;
+		Identity.bCanBeDamaged = true;
+		CivilianIdentity->InitializeIdentity(Identity);
+
+		UAuraCombatStateComponent* CivilianState = NewObject<UAuraCombatStateComponent>(CivilianFixture);
+		CivilianFixture->AddInstanceComponent(CivilianState);
+		CivilianState->RegisterComponent();
+		CivilianState->TryEnterAlive();
+
+		FAuraCombatRuleContext Context;
+		Context.TrustedWorldContext = this;
+		const bool bCivilianAccepted = FAuraCombatRules::CanDamage(this, CivilianFixture, Context).bCanDamage;
+		UE_LOG(LogAura, Display, TEXT("[Day3NetworkProbe][Server] CivilianDefaultPolicyDenied=%d"), !bCivilianAccepted);
+		CivilianFixture->Destroy();
+	}
+
+	const bool bEnteredDying = CombatStateComponent && CombatStateComponent->TryEnterDying();
+	UE_LOG(LogAura, Display, TEXT("[Day3NetworkProbe][Server] StateTransitionDying=%d"), bEnteredDying);
+
+	TWeakObjectPtr<AAuraCharacterBase> WeakThis(this);
+	FTimerDelegate CompleteDeathDelegate;
+	CompleteDeathDelegate.BindLambda([WeakThis]()
+	{
+		if (AAuraCharacterBase* Character = WeakThis.Get())
+		{
+			const bool bEnteredDead = Character->CombatStateComponent && Character->CombatStateComponent->TryEnterDead();
+			UE_LOG(LogAura, Display, TEXT("[Day3NetworkProbe][Server] StateTransitionDead=%d"), bEnteredDead);
+		}
+	});
+	GetWorldTimerManager().SetTimer(Day3NetworkProbeTimerHandle, CompleteDeathDelegate, 0.75f, false);
+#endif
 }
 
 FAuraCombatIdentity AAuraCharacterBase::BuildDefaultCombatIdentity() const
@@ -356,7 +526,7 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGamepl
 
 bool AAuraCharacterBase::IsDead_Implementation() const
 {
-	return bDead;
+	return CombatStateComponent ? !CombatStateComponent->IsAlive() : bDead;
 }
 
 AActor* AAuraCharacterBase::GetAvatar_Implementation()

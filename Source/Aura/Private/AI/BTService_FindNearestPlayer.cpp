@@ -5,6 +5,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BTFunctionLibrary.h"
 #include "Combat/AuraCombatIdentityComponent.h"
+#include "Combat/AuraCombatRules.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -44,10 +45,18 @@ void UBTService_FindNearestPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
 		const UAuraCombatIdentityComponent* IdentityComponent = UAuraCombatIdentityComponent::FindForActor(CandidatePawn);
 		if (IdentityComponent
 			&& IdentityComponent->HasValidIdentity()
-			&& IdentityComponent->GetIdentity().bTargetable
 			&& IdentityComponent->GetIdentity().FactionTag.MatchesTagExact(PlayerFaction))
 		{
-			CandidateTargets.Add(CandidatePawn);
+			FAuraCombatRuleContext RuleContext;
+			RuleContext.QueryPurpose = EAuraCombatQueryPurpose::CombatTargeting;
+			RuleContext.TrustedWorldContext = OwningPawn;
+			RuleContext.SourceActor = OwningPawn;
+			RuleContext.TargetActor = CandidatePawn;
+			const FAuraCombatRuleResult RuleResult = FAuraCombatRules::CanCombatTarget(OwningPawn, CandidatePawn, RuleContext);
+			if (RuleResult.bCanCombatTarget)
+			{
+				CandidateTargets.Add(CandidatePawn);
+			}
 		}
 	}
 

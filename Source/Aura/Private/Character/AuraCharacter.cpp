@@ -126,7 +126,10 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 
 	// Init ability actor info for the Server
 	InitAbilityActorInfo();
-	LoadProgress();
+	if (LoadProgress())
+	{
+		MarkCombatReady();
+	}
 
 	if (AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this)))
 	{
@@ -134,7 +137,7 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 	}
 }
 
-void AAuraCharacter::LoadProgress()
+bool AAuraCharacter::LoadProgress()
 {
 	UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress enter: Character=%s HasAuthority=%s"),
 		*GetNameSafe(this), HasAuthority() ? TEXT("true") : TEXT("false"));
@@ -210,7 +213,7 @@ void AAuraCharacter::LoadProgress()
 				{
 					RejectLogin(FString::Printf(TEXT("Default role '%s' is not fully configured in RoleConfig.json (empty mesh or animation). Login refused."),
 						*DefaultRole.ToString()));
-					return;
+					return false;
 				}
 			}
 
@@ -218,7 +221,7 @@ void AAuraCharacter::LoadProgress()
 			{
 				InitializeFallbackDefaults();
 			}
-			return;
+			return true;
 		}
 
 		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: SaveData found FirstTime=%s Level=%d"),
@@ -231,7 +234,7 @@ void AAuraCharacter::LoadProgress()
 			{
 				RejectLogin(FString::Printf(TEXT("Role '%s' is not fully configured in RoleConfig.json (empty mesh or animation). Login refused."),
 					*SaveData->Role.ToString()));
-				return;
+				return false;
 			}
 		}
 
@@ -290,6 +293,8 @@ void AAuraCharacter::LoadProgress()
 			InitializeFallbackDefaults();
 		}
 	}
+
+	return true;
 }
 
 void AAuraCharacter::OnRep_PlayerState()
@@ -497,7 +502,7 @@ int32 AAuraCharacter::GetPlayerLevel_Implementation()
 
 void AAuraCharacter::Die(const FVector& DeathImpulse)
 {
-	if (bDead)
+	if (!HasAuthority() || !TryBeginCombatDeath())
 	{
 		return;
 	}
@@ -505,9 +510,12 @@ void AAuraCharacter::Die(const FVector& DeathImpulse)
 	ResetFatalFallState();
 	Super::Die(DeathImpulse);
 
-	if (AAuraGameModeBase* AuraGM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	if (GetCombatLifeState() == EAuraCombatLifeState::Dead)
 	{
-		AuraGM->PlayerDied(this, DeathTime);
+		if (AAuraGameModeBase* AuraGM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this)))
+		{
+			AuraGM->PlayerDied(this, DeathTime);
+		}
 	}
 
 	TopDownCameraComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
@@ -515,7 +523,7 @@ void AAuraCharacter::Die(const FVector& DeathImpulse)
 
 void AAuraCharacter::UpdateFatalFallState(float DeltaSeconds)
 {
-	if (!HasAuthority() || bDead || !bEnableFallDeath)
+	if (!HasAuthority() || !IsCombatAlive() || !bEnableFallDeath)
 	{
 		return;
 	}

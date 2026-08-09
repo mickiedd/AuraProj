@@ -12,6 +12,10 @@ Combat targeting, AI threat selection, and interaction are separate contracts:
 
 Civilian damage is conservative/default-deny on Day 3. Day 12 supplies the authoritative battle-zone resolver that can opt a server query into a configured civilian-casualty rule.
 
+## Execution status — 2026-08-09
+
+Implemented and verified in this checkout. The Day 3 native suite has eight passing tests; the combined `Aura.RoleBattle.Day` suite has all fourteen Day 1–3 tests passing. Day 1 smoke and both Listen/Dedicated Day 2 and Day 3 network smokes pass. Dedicated runners prefer the packaged `AuraServer.exe` when the cooked `StartupMap` exists and otherwise use the bounded UnrealEditor `-server` fallback; this checkout currently has no cooked server map.
+
 ## New files
 
 - Source/Aura/Public/Combat/AuraCombatRuleContext.h
@@ -121,11 +125,12 @@ Run:
 
 ```powershell
 & '.\build_test.bat'
+& '.\BuildDedicatedServer.bat'
 
-& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests Aura.RoleBattle.Day3; Quit' '-TestExit=Automation Test Queue Empty' '-abslog=Saved/Logs/Day3Automation.log'
+& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" '.\Aura.uproject' -unattended -nop4 -nullrhi '-ExecCmds="Automation RunTests Aura.RoleBattle.Day; Quit"' '-abslog=Saved/Logs/Day3Automation.log'
 
 & '.\RunRoleBattleDay1Smoke.bat'
-& '.\RunRoleBattleDay2NetworkSmoke.ps1'
+& '.\RunRoleBattleDay2NetworkSmoke.ps1' -Mode Both
 & '.\RunRoleBattleDay3NetworkSmoke.ps1' -Mode Listen
 & '.\RunRoleBattleDay3NetworkSmoke.ps1' -Mode Dedicated
 ```

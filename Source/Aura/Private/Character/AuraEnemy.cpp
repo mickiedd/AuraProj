@@ -127,6 +127,11 @@ int32 AAuraEnemy::GetPlayerLevel_Implementation()
 
 void AAuraEnemy::Die(const FVector& DeathImpulse)
 {
+	if (!HasAuthority() || !TryBeginCombatDeath())
+	{
+		return;
+	}
+
 	SetLifeSpan(LifeSpan);
 	if (AuraAIController) AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"), true);
 	SpawnDataDrivenLoot();
@@ -226,6 +231,8 @@ void AAuraEnemy::BeginPlay()
 		OnHealthChanged.Broadcast(AuraAS->GetHealth());
 		OnMaxHealthChanged.Broadcast(AuraAS->GetMaxHealth());
 	}
+
+	MarkCombatReady();
 	
 }
 

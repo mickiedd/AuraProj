@@ -74,7 +74,7 @@ public:
 	virtual void OnRep_Stunned() override;
 	virtual void OnRep_Burned() override;
 
-	void LoadProgress();
+	bool LoadProgress();
 
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
