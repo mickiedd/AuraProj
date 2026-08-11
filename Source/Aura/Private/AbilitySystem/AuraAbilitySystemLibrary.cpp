@@ -1267,13 +1267,32 @@ void UAuraAbilitySystemLibrary::GetLivePlayersWithinRadius(const UObject* WorldC
 	{
 		TArray<FOverlapResult> Overlaps;
 		World->OverlapMultiByObjectType(Overlaps, SphereOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::InitType::AllDynamicObjects), FCollisionShape::MakeSphere(Radius), SphereParams);
-		for (FOverlapResult& Overlap : Overlaps)
-		{
-			if (Overlap.GetActor()->Implements<UCombatInterface>() && !ICombatInterface::Execute_IsDead(Overlap.GetActor()))
+			for (FOverlapResult& Overlap : Overlaps)
 			{
-				OutOverlappingActors.AddUnique(ICombatInterface::Execute_GetAvatar(Overlap.GetActor()));
+				AActor* OverlapActor = Overlap.GetActor();
+				if (!OverlapActor || !OverlapActor->Implements<UCombatInterface>())
+				{
+					continue;
+				}
+
+				AActor* AvatarActor = nullptr;
+				if (OverlapActor->GetClass()->IsNative())
+				{
+					if (ICombatInterface* NativeCombat = Cast<ICombatInterface>(OverlapActor))
+					{
+						AvatarActor = NativeCombat->GetAvatar_Implementation();
+					}
+				}
+				else
+				{
+					AvatarActor = ICombatInterface::Execute_GetAvatar(OverlapActor);
+				}
+
+				if (AvatarActor && !ICombatInterface::Execute_IsDead(OverlapActor))
+				{
+					OutOverlappingActors.AddUnique(AvatarActor);
+				}
 			}
-		}
 	}
 }
 
@@ -1319,6 +1338,16 @@ bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondAc
 	return Result.bCanDamage;
 }
 
+AActor* UAuraAbilitySystemLibrary::GetSafeAvatarActor(const UAbilitySystemComponent* AbilitySystemComponent)
+{
+	if (!IsValid(AbilitySystemComponent) || !AbilitySystemComponent->AbilityActorInfo.IsValid())
+	{
+		return nullptr;
+	}
+
+	return AbilitySystemComponent->AbilityActorInfo->AvatarActor.Get();
+}
+
 FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const FDamageEffectParams& DamageEffectParams)
 {
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
@@ -1332,8 +1361,8 @@ FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const 
 		return InvalidContext;
 	}
 
-	const AActor* SourceAvatarActor = SourceASC->GetAvatarActor();
-	const AActor* TargetAvatarActor = TargetASC->GetAvatarActor();
+	const AActor* SourceAvatarActor = GetSafeAvatarActor(SourceASC);
+	const AActor* TargetAvatarActor = GetSafeAvatarActor(TargetASC);
 	if (!IsValid(SourceAvatarActor) || !IsValid(TargetAvatarActor)
 		|| !SourceAvatarActor->HasAuthority() || !TargetAvatarActor->HasAuthority())
 	{

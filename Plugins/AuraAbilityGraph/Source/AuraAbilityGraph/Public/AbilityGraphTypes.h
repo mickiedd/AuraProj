@@ -36,6 +36,15 @@ struct FAuraBeamExecutionState
     float MaxRange = 3000.f;
     FVector Origin = FVector::ZeroVector;
     TArray<FAuraBeamTargetState> Targets;
+
+    // Selection settings retained so the channel can optionally replace a
+    // target that dies after the initial chain is built.
+    int32 MaxAdditionalTargets = 0;
+    float SearchRadius = 0.f;
+    bool bReplaceInvalidTargets = false;
+    FString BeamEffect;
+    FString BeamStartParameter;
+    FString BeamEndParameter;
 };
 
 UENUM(BlueprintType)

@@ -144,8 +144,8 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	const UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
 	const UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 
-	AActor* SourceAvatar = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
-	AActor* TargetAvatar = TargetASC ? TargetASC->GetAvatarActor() : nullptr;
+	AActor* SourceAvatar = UAuraAbilitySystemLibrary::GetSafeAvatarActor(SourceASC);
+	AActor* TargetAvatar = UAuraAbilitySystemLibrary::GetSafeAvatarActor(TargetASC);
 	if (!SourceASC || !TargetASC || !SourceAvatar || !TargetAvatar ||
 		!SourceAvatar->HasAuthority() || !TargetAvatar->HasAuthority())
 	{

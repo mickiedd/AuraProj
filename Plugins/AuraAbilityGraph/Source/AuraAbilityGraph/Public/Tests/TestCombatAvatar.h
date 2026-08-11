@@ -36,10 +36,17 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Test")
     FVector SocketOffset = FVector(0.f, 0.f, 50.f);
 
+    // Lets lifecycle smoke tests keep the actor valid while transitioning it to
+    // the combat dead state, matching the runtime death/respawn lifecycle.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Test")
+    bool bTestDead = false;
+
     // Sphere radius for the collision component (set before spawning/registration).
     float SphereRadius = 50.f;
 
     virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
+    virtual bool IsDead_Implementation() const override;
+    virtual AActor* GetAvatar_Implementation() override;
 
     // --- ICombatInterface pure-virtual stubs (unused by spawn nodes) ---
     virtual void Die(const FVector& DeathImpulse) override {}

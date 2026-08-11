@@ -27,3 +27,13 @@ FVector ATestCombatAvatar::GetCombatSocketLocation_Implementation(const FGamepla
 {
     return GetActorLocation() + SocketOffset;
 }
+
+bool ATestCombatAvatar::IsDead_Implementation() const
+{
+    return bTestDead;
+}
+
+AActor* ATestCombatAvatar::GetAvatar_Implementation()
+{
+    return this;
+}

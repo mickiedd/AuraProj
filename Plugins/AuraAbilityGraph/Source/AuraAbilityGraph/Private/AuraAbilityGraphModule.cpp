@@ -29,6 +29,9 @@
 #include "AuraAbilityTypes.h"
 #include "Abilities/GameplayAbilityTargetTypes.h"
 #include "AuraGameplayTags.h"
+#include "Combat/AuraCombatIdentityComponent.h"
+#include "Combat/AuraCombatStateComponent.h"
+#include "Combat/AuraCombatTypes.h"
 #include "Actor/AuraProjectile.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -1329,7 +1332,42 @@ static void DestroySpawnTestEnv(FSpawnTestEnv& Env)
 		Env.World->RemoveFromRoot();
 		Env.World->DestroyWorld(/*bInformEngineOfWorld=*/false);
 		Env.World = nullptr;
+    }
+}
+
+static bool ConfigureSmokeCombatIdentity(
+	AActor* Actor,
+	const FGameplayTag& FactionTag,
+	const FGameplayTag& ControlTypeTag,
+	const FGameplayTag& DeathPolicyTag)
+{
+	if (!Actor)
+	{
+		return false;
 	}
+
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	FAuraCombatIdentity Identity;
+	Identity.FactionTag = FactionTag;
+	Identity.ControlTypeTag = ControlTypeTag;
+	Identity.CombatProfileTag = Tags.Combat_Unassigned;
+	Identity.DeathPolicyTag = DeathPolicyTag;
+	Identity.bTargetable = true;
+	Identity.bCanAttack = true;
+	Identity.bCanBeDamaged = true;
+
+	UAuraCombatIdentityComponent* IdentityComponent = NewObject<UAuraCombatIdentityComponent>(Actor);
+	UAuraCombatStateComponent* StateComponent = NewObject<UAuraCombatStateComponent>(Actor);
+	if (!IdentityComponent || !StateComponent)
+	{
+		return false;
+	}
+
+	Actor->AddInstanceComponent(IdentityComponent);
+	Actor->AddInstanceComponent(StateComponent);
+	IdentityComponent->RegisterComponent();
+	StateComponent->RegisterComponent();
+	return StateComponent->TryEnterAlive() && IdentityComponent->InitializeIdentity(Identity);
 }
 
 // Pure math: locks EvenlySpacedRotators so the spawn-direction assertions below rest on
@@ -2151,6 +2189,14 @@ static bool SmokeTest_DamageEffectParams()
 		bOk = false;
 	}
 
+	// Bare ASCs have no initialized AbilityActorInfo. The damage boundary must
+	// reject them cleanly instead of asserting inside GetAvatarActor().
+	if (UAuraAbilitySystemLibrary::ApplyDamageEffect(Params).IsValid())
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] DamageEffectParams: uninitialized ASCs were not rejected by the damage boundary"));
+		bOk = false;
+	}
+
 	DestroySpawnTestEnv(Env);
 	if (!bOk)
 	{
@@ -2159,6 +2205,221 @@ static bool SmokeTest_DamageEffectParams()
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] DamageEffectParams PASSED (WorldContextObject, ASCs, direction-aligned knockback, non-radial default)."));
 	return true;
+}
+
+// Regression: beam targets can remain valid actors while their combat state is
+// already dead (for example during the death/respawn window). PruneBeamTargets
+// must remove those entries instead of waiting for actor destruction.
+static bool SmokeTest_ModularBeamTargetPruning()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar || !Env.Ability)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATestCombatAvatar* DeadTarget = Env.World->SpawnActor<ATestCombatAvatar>(
+		ATestCombatAvatar::StaticClass(),
+		FTransform(FRotator::ZeroRotator, FVector(250.f, 0.f, 0.f)),
+		SpawnParams);
+	if (!DeadTarget)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	DeadTarget->bTestDead = true;
+
+	FAuraAbilityExecutionContext Context;
+	Context.AvatarActor = Env.Avatar;
+	Context.BeamState = MakeShared<FAuraBeamExecutionState>();
+	FAuraBeamTargetState& TargetEntry = Context.BeamState->Targets.AddDefaulted_GetRef();
+	TargetEntry.Actor = DeadTarget;
+	TargetEntry.bDamageTarget = true;
+
+	UPruneBeamTargetsNode* Node = NewObject<UPruneBeamTargetsNode>(GetTransientPackage());
+	UPruneBeamTargetsTask* Task = NewObject<UPruneBeamTargetsTask>(GetTransientPackage());
+	if (!Node || !Task)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	Task->Init(Node, Env.Ability);
+
+	const EAuraAbilityActionStatus Status = Task->OnStart(Context);
+	const bool bPassed = Status == EAuraAbilityActionStatus::Success &&
+		Context.BeamState->Targets.Num() == 0 && Context.bStopCurrentTimedLoop;
+	if (!bPassed)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error,
+			TEXT("[SmokeTest] ModularBeamTargetPruning: dead valid actor was retained (status=%s targets=%d stop=%s)"),
+			*StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status),
+			Context.BeamState->Targets.Num(),
+			Context.bStopCurrentTimedLoop ? TEXT("true") : TEXT("false"));
+	}
+
+	DestroySpawnTestEnv(Env);
+	if (bPassed)
+	{
+		UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ModularBeamTargetPruning PASSED (dead valid actor removed and loop stopped)."));
+	}
+	return bPassed;
+}
+
+// Regression: chain selection must apply combat eligibility before consuming a
+// chain slot. A friendly player in the search radius should not be selected just
+// because it implements the combat interface.
+static bool SmokeTest_ModularBeamTargetEligibility()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar || !Env.Ability)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATestCombatAvatar* PrimaryTarget = Env.World->SpawnActor<ATestCombatAvatar>(
+		ATestCombatAvatar::StaticClass(),
+		FTransform(FRotator::ZeroRotator, FVector(250.f, 0.f, 0.f)),
+		SpawnParams);
+	ATestCombatAvatar* FriendlyCandidate = Env.World->SpawnActor<ATestCombatAvatar>(
+		ATestCombatAvatar::StaticClass(),
+		FTransform(FRotator::ZeroRotator, FVector(400.f, 0.f, 0.f)),
+		SpawnParams);
+	const bool bFixturesReady = PrimaryTarget && FriendlyCandidate
+		&& ConfigureSmokeCombatIdentity(Env.Avatar, Tags.Faction_Player, Tags.Control_Player, Tags.Death_PlayerRespawn)
+		&& ConfigureSmokeCombatIdentity(PrimaryTarget, Tags.Faction_Enemy, Tags.Control_EnemyAI, Tags.Death_EnemyLoot)
+		&& ConfigureSmokeCombatIdentity(FriendlyCandidate, Tags.Faction_Player, Tags.Control_Player, Tags.Death_PlayerRespawn);
+	if (!bFixturesReady)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	// Ability level 2 allows one additional chain target.
+	Env.Ability->InitTestOwner(Env.Avatar, 2);
+	FAuraAbilityExecutionContext Context;
+	Context.AvatarActor = Env.Avatar;
+	Context.BeamState = MakeShared<FAuraBeamExecutionState>();
+	FAuraBeamTargetState& PrimaryEntry = Context.BeamState->Targets.AddDefaulted_GetRef();
+	PrimaryEntry.Actor = PrimaryTarget;
+	PrimaryEntry.bDamageTarget = true;
+
+	USelectBeamChainTargetsNode* Node = NewObject<USelectBeamChainTargetsNode>(GetTransientPackage());
+	USelectBeamChainTargetsTask* Task = NewObject<USelectBeamChainTargetsTask>(GetTransientPackage());
+	if (!Node || !Task)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	Node->SearchRadius = 300.f;
+	Node->MaxAdditionalTargets = 1;
+	Task->Init(Node, Env.Ability);
+
+	const EAuraAbilityActionStatus Status = Task->OnStart(Context);
+	const bool bPassed = Status == EAuraAbilityActionStatus::Success
+		&& Context.BeamState->Targets.Num() == 1
+		&& Context.BeamState->Targets[0].Actor.Get() == PrimaryTarget;
+	if (!bPassed)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error,
+			TEXT("[SmokeTest] ModularBeamTargetEligibility: friendly candidate consumed a chain slot (status=%s targets=%d)"),
+			*StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status),
+			Context.BeamState->Targets.Num());
+	}
+
+	DestroySpawnTestEnv(Env);
+	if (bPassed)
+	{
+		UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ModularBeamTargetEligibility PASSED (friendly candidate filtered before chain selection)."));
+	}
+	return bPassed;
+}
+
+// Regression: when replacement is enabled, pruning a dead chain target should
+// refill that slot with the nearest eligible live target.
+static bool SmokeTest_ModularBeamTargetReplacement()
+{
+	FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+	if (!Env.World || !Env.Avatar)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATestCombatAvatar* PrimaryTarget = Env.World->SpawnActor<ATestCombatAvatar>(
+		ATestCombatAvatar::StaticClass(),
+		FTransform(FRotator::ZeroRotator, FVector(250.f, 0.f, 0.f)),
+		SpawnParams);
+	ATestCombatAvatar* DeadTarget = Env.World->SpawnActor<ATestCombatAvatar>(
+		ATestCombatAvatar::StaticClass(),
+		FTransform(FRotator::ZeroRotator, FVector(400.f, 0.f, 0.f)),
+		SpawnParams);
+	ATestCombatAvatar* ReplacementTarget = Env.World->SpawnActor<ATestCombatAvatar>(
+		ATestCombatAvatar::StaticClass(),
+		FTransform(FRotator::ZeroRotator, FVector(500.f, 0.f, 0.f)),
+		SpawnParams);
+	const bool bFixturesReady = PrimaryTarget && DeadTarget && ReplacementTarget
+		&& ConfigureSmokeCombatIdentity(Env.Avatar, Tags.Faction_Player, Tags.Control_Player, Tags.Death_PlayerRespawn)
+		&& ConfigureSmokeCombatIdentity(PrimaryTarget, Tags.Faction_Enemy, Tags.Control_EnemyAI, Tags.Death_EnemyLoot)
+		&& ConfigureSmokeCombatIdentity(DeadTarget, Tags.Faction_Enemy, Tags.Control_EnemyAI, Tags.Death_EnemyLoot)
+		&& ConfigureSmokeCombatIdentity(ReplacementTarget, Tags.Faction_Enemy, Tags.Control_EnemyAI, Tags.Death_EnemyLoot);
+	if (!bFixturesReady)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	DeadTarget->bTestDead = true;
+
+	FAuraAbilityExecutionContext Context;
+	Context.AvatarActor = Env.Avatar;
+	Context.BeamState = MakeShared<FAuraBeamExecutionState>();
+	Context.BeamState->MaxAdditionalTargets = 1;
+	Context.BeamState->SearchRadius = 300.f;
+	Context.BeamState->bReplaceInvalidTargets = true;
+	FAuraBeamTargetState& PrimaryEntry = Context.BeamState->Targets.AddDefaulted_GetRef();
+	PrimaryEntry.Actor = PrimaryTarget;
+	PrimaryEntry.bDamageTarget = true;
+	FAuraBeamTargetState& DeadEntry = Context.BeamState->Targets.AddDefaulted_GetRef();
+	DeadEntry.Actor = DeadTarget;
+	DeadEntry.bDamageTarget = true;
+
+	UPruneBeamTargetsNode* Node = NewObject<UPruneBeamTargetsNode>(GetTransientPackage());
+	UPruneBeamTargetsTask* Task = NewObject<UPruneBeamTargetsTask>(GetTransientPackage());
+	if (!Node || !Task)
+	{
+		DestroySpawnTestEnv(Env);
+		return false;
+	}
+	Task->Init(Node, Env.Ability);
+
+	const EAuraAbilityActionStatus Status = Task->OnStart(Context);
+	const bool bPassed = Status == EAuraAbilityActionStatus::Success
+		&& Context.BeamState->Targets.Num() == 2
+		&& Context.BeamState->Targets[0].Actor.Get() == PrimaryTarget
+		&& Context.BeamState->Targets[1].Actor.Get() == ReplacementTarget;
+	if (!bPassed)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error,
+			TEXT("[SmokeTest] ModularBeamTargetReplacement: replacement target was not selected (status=%s targets=%d)"),
+			*StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status),
+			Context.BeamState->Targets.Num());
+	}
+
+	DestroySpawnTestEnv(Env);
+	if (bPassed)
+	{
+		UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ModularBeamTargetReplacement PASSED (dead slot refilled with eligible target)."));
+	}
+	return bPassed;
 }
 
 // ===================================================================
@@ -2203,6 +2464,9 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("EnemyAbilityFiles"), SmokeTest_EnemyAbilityFiles);
 	Run(TEXT("TargetDataValidation"), SmokeTest_TargetDataValidation);
 	Run(TEXT("DamageEffectParams"), SmokeTest_DamageEffectParams);
+	Run(TEXT("ModularBeamTargetPruning"), SmokeTest_ModularBeamTargetPruning);
+	Run(TEXT("ModularBeamTargetEligibility"), SmokeTest_ModularBeamTargetEligibility);
+	Run(TEXT("ModularBeamTargetReplacement"), SmokeTest_ModularBeamTargetReplacement);
 
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("========================================"));
 	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Result: %d passed, %d failed."), Passed, Failed);
