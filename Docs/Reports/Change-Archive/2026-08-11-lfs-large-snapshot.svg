@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Large Control Rig snapshot moved from a Git blob to Git LFS</title>
+  <desc id="desc">Before and after flow showing GitHub rejecting a 193 megabyte ordinary Git blob, then accepting a small Git LFS pointer while the full snapshot remains in LFS storage and in the local working tree.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#1d2939"/>
+    </linearGradient>
+    <linearGradient id="before" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3b1f2b"/>
+      <stop offset="1" stop-color="#5b2631"/>
+    </linearGradient>
+    <linearGradient id="after" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#123b3b"/>
+      <stop offset="1" stop-color="#14534b"/>
+    </linearGradient>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#f87171"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#5eead4"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Segoe UI, Arial, sans-serif; fill: #f8fafc; }
+      .section { font: 700 20px Segoe UI, Arial, sans-serif; fill: #f8fafc; }
+      .label { font: 600 16px Segoe UI, Arial, sans-serif; fill: #e2e8f0; }
+      .body { font: 14px Segoe UI, Arial, sans-serif; fill: #cbd5e1; }
+      .mono { font: 13px Consolas, monospace; fill: #dbeafe; }
+      .small { font: 12px Segoe UI, Arial, sans-serif; fill: #94a3b8; }
+      .box { stroke: #475569; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" rx="18" fill="url(#bg)"/>
+  <text x="56" y="58" class="title">Push guard fix: oversized snapshot stored through Git LFS</text>
+  <text x="56" y="88" class="body">Content/BungeeMan/CR_BungeeMan.snapshot.json remains available locally, but no longer travels as a regular Git blob.</text>
+
+  <rect x="48" y="120" width="1104" height="220" rx="14" fill="url(#before)" class="box"/>
+  <text x="76" y="158" class="section">Before — rejected by GitHub</text>
+  <rect x="76" y="184" width="300" height="102" rx="10" fill="#172033" class="box"/>
+  <text x="96" y="214" class="label">Working tree</text>
+  <text x="96" y="240" class="mono">CR_BungeeMan.snapshot.json</text>
+  <text x="96" y="265" class="body">192,874,753 bytes / 183.94 MB</text>
+  <line x1="390" y1="235" x2="560" y2="235" stroke="#f87171" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <rect x="580" y="184" width="280" height="102" rx="10" fill="#172033" class="box"/>
+  <text x="600" y="214" class="label">Ordinary Git blob</text>
+  <text x="600" y="240" class="body">Stored in commit history</text>
+  <text x="600" y="265" class="body">GitHub limit: 100 MB</text>
+  <line x1="874" y1="235" x2="1015" y2="235" stroke="#f87171" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <rect x="1030" y="184" width="94" height="102" rx="10" fill="#7f1d1d" class="box"/>
+  <text x="1047" y="217" class="label">PUSH</text>
+  <text x="1044" y="242" class="body">blocked</text>
+  <text x="1044" y="263" class="small">file too large</text>
+
+  <rect x="48" y="364" width="1104" height="236" rx="14" fill="url(#after)" class="box"/>
+  <text x="76" y="402" class="section">After — pointer in Git, full object in LFS</text>
+  <rect x="76" y="428" width="250" height="118" rx="10" fill="#172033" class="box"/>
+  <text x="96" y="458" class="label">Working tree</text>
+  <text x="96" y="483" class="mono">same 183.94 MB file</text>
+  <text x="96" y="509" class="body">restored by git lfs checkout</text>
+  <line x1="340" y1="487" x2="462" y2="487" stroke="#5eead4" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="480" y="428" width="250" height="118" rx="10" fill="#172033" class="box"/>
+  <text x="500" y="458" class="label">Git history</text>
+  <text x="500" y="483" class="mono">134-byte LFS pointer</text>
+  <text x="500" y="509" class="body">path rule in .gitattributes</text>
+  <line x1="744" y1="487" x2="866" y2="487" stroke="#5eead4" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="884" y="428" width="240" height="118" rx="10" fill="#172033" class="box"/>
+  <text x="904" y="458" class="label">Git LFS storage</text>
+  <text x="904" y="483" class="mono">oid sha256:4e75695b...</text>
+  <text x="904" y="509" class="body">full object, 192,874,753 B</text>
+  <text x="76" y="578" class="body">Guard changed: the 100 MB Git blob limit is avoided while the asset content and checkout behavior are preserved.</text>
+
+  <rect x="48" y="624" width="1104" height="94" rx="14" fill="#172033" class="box"/>
+  <text x="76" y="654" class="section">Validation</text>
+  <text x="76" y="682" class="mono">migrate info (&gt;100 MB, main excluding origin/main): none</text>
+  <text x="620" y="682" class="mono">git lfs fsck --objects: OK</text>
+  <text x="76" y="704" class="small">origin/main remains an ancestor · local full snapshot restored · regular push invokes the LFS pre-push upload</text>
+</svg>
