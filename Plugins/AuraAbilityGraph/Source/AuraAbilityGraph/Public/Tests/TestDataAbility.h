@@ -7,6 +7,7 @@
 #include "TestDataAbility.generated.h"
 
 class AActor;
+class UAbilitySystemComponent;
 
 /**
  * Test-only subclass of UAuraDataAbility used to drive spawn nodes headlessly without a
@@ -30,8 +31,11 @@ public:
     // Point the ability's actor info at the test avatar so GetOwningActorFromActorInfo()
     // returns it and GetAbilityLevel() returns 1. The ActorInfo member must outlive the
     // ability's use of it, so it is held on this object.
-    void InitTestOwner(AActor* Owner);
+    void InitTestOwner(AActor* Owner, int32 AbilityLevel = 1);
 
 private:
     FGameplayAbilityActorInfo ActorInfo;
+
+    UPROPERTY()
+    TObjectPtr<UAbilitySystemComponent> TestAbilitySystemComponent;
 };

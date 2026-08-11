@@ -226,7 +226,7 @@ void AAuraProjectile::Destroyed()
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent ? DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor() : nullptr;
+	AActor* SourceAvatarActor = UAuraAbilitySystemLibrary::GetSafeAvatarActor(DamageEffectParams.SourceAbilitySystemComponent);
 	if (SourceAvatarActor == OtherActor) return;
 	if (bHit) return;
 
@@ -239,7 +239,7 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 
 void AAuraProjectile::OnSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent ? DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor() : nullptr;
+	AActor* SourceAvatarActor = UAuraAbilitySystemLibrary::GetSafeAvatarActor(DamageEffectParams.SourceAbilitySystemComponent);
 	if (SourceAvatarActor == OtherActor) return;
 	if (bHit) return;
 
@@ -282,7 +282,7 @@ void AAuraProjectile::ApplyImpactAndDestroy(AActor* OtherActor)
 bool AAuraProjectile::IsValidOverlap(AActor* OtherActor)
 {
 	if (DamageEffectParams.SourceAbilitySystemComponent == nullptr) return false;
-	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
+	AActor* SourceAvatarActor = UAuraAbilitySystemLibrary::GetSafeAvatarActor(DamageEffectParams.SourceAbilitySystemComponent);
 	if (SourceAvatarActor == OtherActor) return false;
 
 	return true;

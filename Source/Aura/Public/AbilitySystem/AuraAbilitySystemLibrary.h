@@ -292,6 +292,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "AuraAbilitySystemLibrary|GameplayMechanics", meta = (DeprecatedFunction, DeprecationMessage = "Use FAuraCombatRules::CanDamage instead."))
 	static bool IsNotFriend(AActor* FirstActor, AActor* SecondActor);
 
+	/**
+	 * Returns an ASC's avatar without asserting when the ASC has not received
+	 * valid actor info yet. Damage entry points use this for defensive boundary
+	 * validation; callers must still validate the returned actor.
+	 */
+	static AActor* GetSafeAvatarActor(const UAbilitySystemComponent* AbilitySystemComponent);
+
 	UFUNCTION(BlueprintCallable, Category = "AuraAbilitySystemLibrary|DamageEffect")
 	static FGameplayEffectContextHandle ApplyDamageEffect(const FDamageEffectParams& DamageEffectParams);
 

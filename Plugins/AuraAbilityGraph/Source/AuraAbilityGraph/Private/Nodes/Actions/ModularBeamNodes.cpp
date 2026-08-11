@@ -9,6 +9,7 @@
 #include "Aura/Aura.h"
 #include "AuraAbilityTypes.h"
 #include "AuraAbilityGraphLogChannels.h"
+#include "Combat/AuraCombatRules.h"
 #include "DataAbility.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/World.h"
@@ -190,6 +191,82 @@ namespace ModularBeamPrivate
                 SetBeamPosition(Beam, BeamEndParameter, Entry.BeamEndLocation);
             }
         }
+    }
+
+    static void SpawnBeamVisual(
+        UWorld* World,
+        FAuraBeamExecutionState& State,
+        FAuraBeamTargetState& Entry)
+    {
+        if (!World || State.BeamEffect.IsEmpty())
+        {
+            return;
+        }
+
+        UNiagaraSystem* BeamSystem = LoadObject<UNiagaraSystem>(nullptr, *State.BeamEffect);
+        if (!BeamSystem)
+        {
+            return;
+        }
+
+        UNiagaraComponent* Beam = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            World,
+            BeamSystem,
+            FVector::ZeroVector,
+            FRotator::ZeroRotator,
+            FVector::OneVector,
+            true,
+            false,
+            ENCPoolMethod::None,
+            true);
+        if (!Beam)
+        {
+            return;
+        }
+
+        SetBeamPosition(Beam, State.BeamStartParameter, State.Origin);
+        SetBeamPosition(Beam, State.BeamEndParameter, Entry.BeamEndLocation);
+        Beam->Activate(true);
+        Entry.Beam = Beam;
+    }
+
+    static bool IsActorDead(AActor* Actor)
+    {
+        if (!Actor)
+        {
+            return true;
+        }
+
+        // Native C++ actors with multiple inheritance can dispatch the
+        // generated Execute_ wrapper to the interface stub instead of the
+        // concrete implementation. Blueprint subclasses still use the
+        // generated wrapper so Blueprint overrides remain respected.
+        if (Actor->GetClass()->IsNative())
+        {
+            if (ICombatInterface* NativeCombat = Cast<ICombatInterface>(Actor))
+            {
+                return NativeCombat->IsDead_Implementation();
+            }
+        }
+
+        return ICombatInterface::Execute_IsDead(Actor);
+    }
+
+    static bool IsDamageTargetEligible(AActor* SourceActor, AActor* TargetActor)
+    {
+        if (!SourceActor || !TargetActor || SourceActor == TargetActor ||
+            !TargetActor->Implements<UCombatInterface>() ||
+            IsActorDead(TargetActor))
+        {
+            return false;
+        }
+
+        FAuraCombatRuleContext RuleContext;
+        RuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+        RuleContext.TrustedWorldContext = SourceActor;
+        RuleContext.SourceActor = SourceActor;
+        RuleContext.TargetActor = TargetActor;
+        return FAuraCombatRules::CanDamage(SourceActor, TargetActor, RuleContext).bCanDamage;
     }
 }
 
@@ -402,6 +479,15 @@ EAuraAbilityActionStatus UAcquirePrimaryBeamTargetTask::OnStart(FAuraAbilityExec
         return EAuraAbilityActionStatus::Failure;
     }
 
+    // An ASC alone is not enough to make a target damageable. Apply the same
+    // combat-policy gate used by the damage boundary so friendly, protected,
+    // dead, or otherwise invalid actors remain visual-only endpoints and do
+    // not open the chain-selection path.
+    if (bPrimaryIsDamageable && !ModularBeamPrivate::IsDamageTargetEligible(Ctx.AvatarActor, PrimaryTarget))
+    {
+        bPrimaryIsDamageable = false;
+    }
+
     FAuraBeamTargetState& PrimaryEntry = State->Targets.AddDefaulted_GetRef();
     PrimaryEntry.Actor = PrimaryTarget;
     PrimaryEntry.BeamEndLocation = PrimaryImpactPoint;
@@ -459,6 +545,11 @@ EAuraAbilityActionStatus USelectBeamChainTargetsTask::OnStart(FAuraAbilityExecut
     const int32 NumAdditional = FMath::Min(
         FMath::Max(0, OwnerAbility->GetAbilityLevel() - 1),
         FMath::Max(0, Node->MaxAdditionalTargets));
+
+    Ctx.BeamState->MaxAdditionalTargets = NumAdditional;
+    Ctx.BeamState->SearchRadius = Node->SearchRadius;
+    Ctx.BeamState->bReplaceInvalidTargets = Node->bReplaceInvalidTargets;
+
     if (NumAdditional <= 0)
     {
         return EAuraAbilityActionStatus::Success;
@@ -475,6 +566,11 @@ EAuraAbilityActionStatus USelectBeamChainTargetsTask::OnStart(FAuraAbilityExecut
         ActorsToIgnore,
         Node->SearchRadius,
         PrimaryTarget->GetActorLocation());
+
+    OverlappingActors.RemoveAll([&Ctx](AActor* Target)
+    {
+        return !ModularBeamPrivate::IsDamageTargetEligible(Ctx.AvatarActor, Target);
+    });
 
     TArray<AActor*> ClosestTargets;
     UAuraAbilitySystemLibrary::GetClosestTargets(
@@ -532,6 +628,10 @@ EAuraAbilityActionStatus USpawnBeamVisualsTask::OnStart(FAuraAbilityExecutionCon
     {
         return EAuraAbilityActionStatus::Success;
     }
+
+    Ctx.BeamState->BeamEffect = Node->BeamEffect;
+    Ctx.BeamState->BeamStartParameter = Node->BeamStartParameter;
+    Ctx.BeamState->BeamEndParameter = Node->BeamEndParameter;
 
     UWorld* World = Ctx.AvatarActor->GetWorld();
     UNiagaraSystem* BeamSystem = World ? LoadObject<UNiagaraSystem>(nullptr, *Node->BeamEffect) : nullptr;
@@ -841,10 +941,80 @@ EAuraAbilityActionStatus UPruneBeamTargetsTask::OnStart(FAuraAbilityExecutionCon
     for (int32 Index = Ctx.BeamState->Targets.Num() - 1; Index >= 0; --Index)
     {
         FAuraBeamTargetState& Entry = Ctx.BeamState->Targets[Index];
-        if (!Entry.Actor.IsValid() && !Entry.bVisualOnly)
+        AActor* TargetActor = Entry.Actor.Get();
+        const bool bDeadDamageTarget = Entry.bDamageTarget && TargetActor &&
+            TargetActor->Implements<UCombatInterface>() &&
+            ModularBeamPrivate::IsActorDead(TargetActor);
+        if ((!Entry.Actor.IsValid() || bDeadDamageTarget) && !Entry.bVisualOnly)
         {
             ModularBeamPrivate::DestroyBeam(Entry);
             Ctx.BeamState->Targets.RemoveAt(Index, EAllowShrinking::No);
+        }
+    }
+
+    if (Ctx.BeamState->bReplaceInvalidTargets && Ctx.AvatarActor &&
+        Ctx.BeamState->Targets.Num() > 0 && Ctx.BeamState->MaxAdditionalTargets > 0)
+    {
+        AActor* PrimaryTarget = Ctx.BeamState->Targets[0].Actor.Get();
+        if (ModularBeamPrivate::IsDamageTargetEligible(Ctx.AvatarActor, PrimaryTarget))
+        {
+            int32 CurrentAdditionalTargets = 0;
+            TArray<AActor*> ActorsToIgnore;
+            ActorsToIgnore.Add(Ctx.AvatarActor);
+            ActorsToIgnore.Add(PrimaryTarget);
+
+            for (int32 Index = 1; Index < Ctx.BeamState->Targets.Num(); ++Index)
+            {
+                FAuraBeamTargetState& Entry = Ctx.BeamState->Targets[Index];
+                if (AActor* ExistingTarget = Entry.Actor.Get())
+                {
+                    ActorsToIgnore.AddUnique(ExistingTarget);
+                    if (Entry.bDamageTarget)
+                    {
+                        ++CurrentAdditionalTargets;
+                    }
+                }
+            }
+
+            const int32 MissingTargets = Ctx.BeamState->MaxAdditionalTargets - CurrentAdditionalTargets;
+            if (MissingTargets > 0)
+            {
+                TArray<AActor*> OverlappingActors;
+                UAuraAbilitySystemLibrary::GetLivePlayersWithinRadius(
+                    Ctx.AvatarActor,
+                    OverlappingActors,
+                    ActorsToIgnore,
+                    Ctx.BeamState->SearchRadius,
+                    PrimaryTarget->GetActorLocation());
+                OverlappingActors.RemoveAll([&Ctx](AActor* Target)
+                {
+                    return !ModularBeamPrivate::IsDamageTargetEligible(Ctx.AvatarActor, Target);
+                });
+
+                TArray<AActor*> ReplacementTargets;
+                UAuraAbilitySystemLibrary::GetClosestTargets(
+                    MissingTargets,
+                    OverlappingActors,
+                    ReplacementTargets,
+                    PrimaryTarget->GetActorLocation());
+                for (AActor* ReplacementTarget : ReplacementTargets)
+                {
+                    if (!ReplacementTarget)
+                    {
+                        continue;
+                    }
+
+                    FAuraBeamTargetState& Entry = Ctx.BeamState->Targets.AddDefaulted_GetRef();
+                    Entry.Actor = ReplacementTarget;
+                    Entry.BeamEndLocation = ReplacementTarget->GetActorLocation();
+                    Entry.bDamageTarget = true;
+                    Entry.bCursorDriven = false;
+                    ModularBeamPrivate::SpawnBeamVisual(
+                        Ctx.AvatarActor->GetWorld(),
+                        *Ctx.BeamState,
+                        Entry);
+                }
+            }
         }
     }
 
