@@ -4,4 +4,5 @@
 # Unreal Engine binary assets -> Git LFS
 *.uasset filter=lfs diff=lfs merge=lfs -text
 *.umap filter=lfs diff=lfs merge=lfs -text
+# The Control Rig snapshot is an editor export larger than GitHub's 100 MB Git blob limit.
 Content/BungeeMan/CR_BungeeMan.snapshot.json filter=lfs diff=lfs merge=lfs -text
