@@ -23,10 +23,14 @@
 !/Content/Config/
 !/Content/BehaviorTrees/
 !/Content/AbilityDefinitions/
-# StartupMap contains the checked-in native pickup migration. Other project maps remain local.
+# Project maps (Login is the GameDefaultMap and must be shared so others can run).
 !/Content/Maps/
-/Content/Maps/*
-!/Content/Maps/StartupMap.umap
+# Assets referenced by RoleConfig.json / C++ code and required to run roles, the car, and levels.
+!/Content/BungeeMan/
+!/Content/MilitaryWeapDark/
+!/Content/Cartoon_City_Free/
+!/Content/Fantastic_Dungeon_Pack/
+!/Content/Scifi_desert_city/
 # Transient reload-sentinel written by the editor "Reload Role Config" mending tool.
 /Content/Config/.RoleConfig.reload
 /Platforms/
