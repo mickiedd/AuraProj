@@ -40,6 +40,7 @@ This report is a manually written explanation of the `main` branch history for a
 - [August 2026](Git-Daily-Mind-Maps-2026-08.md) — data-driven pickups/projectiles/enemies, modular Electrocute, Role/Battle combat rules and damage hardening, LFS merge.
 - [Full calendar coverage](Git-Daily-Calendar-Coverage-2026-04-17-to-2026-08-11.md) — explicitly accounts for the 46 dates with no `main` commits and therefore no jobs/diffs.
 - [Last-seven-days supplement](Git-Daily-Changes-2026-08-06-to-2026-08-12.md) - manually expands 2026-08-06 through 2026-08-12, including the quiet 2026-08-12 row.
+- [July 11-August 5 daily SVG supplement](Git-Daily-Changes-2026-07-11-to-2026-08-05.md) - adds one standalone illustration for every date, including eight quiet dates.
 
 ## How a newcomer should follow a feature
 
