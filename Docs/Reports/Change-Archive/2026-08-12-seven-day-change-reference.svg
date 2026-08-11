@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1240" viewBox="0 0 1800 1240" role="img" aria-labelledby="title desc">
+  <title id="title">AuraProj last seven days change reference</title>
+  <desc id="desc">A manually authored seven-day mind map for main from August 6 through August 12 2026. Six active dates contain seventeen commits, while August 12 is explicitly quiet.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fbfdff"/><stop offset="1" stop-color="#eaf2f9"/></linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#17324d" flood-opacity="0.16"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#2d668f"/></marker>
+    <style>
+      .title { font: 700 30px Segoe UI, Arial, sans-serif; fill: #17324d; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #47657e; }
+      .hub { font: 700 20px Segoe UI, Arial, sans-serif; fill: #17324d; }
+      .card-title { font: 700 19px Segoe UI, Arial, sans-serif; fill: #17324d; }
+      .body { font: 400 15px Segoe UI, Arial, sans-serif; fill: #25475f; }
+      .small { font: 400 13px Segoe UI, Arial, sans-serif; fill: #47657e; }
+      .label { font: 700 12px Segoe UI, Arial, sans-serif; fill: white; letter-spacing: 1px; }
+      .line { stroke: #2d668f; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1240" fill="url(#bg)"/>
+  <text x="70" y="58" class="title">Last seven days: detailed change reference</text>
+  <text x="70" y="88" class="subtitle">AuraProj main | 2026-08-06 through 2026-08-12 | manually reconstructed from reachable Git history</text>
+
+  <rect x="70" y="120" width="1660" height="118" rx="18" fill="white" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <text x="98" y="154" class="hub">Calendar guard</text>
+  <text x="98" y="184" class="body">Inspect each date, group only commits actually on main, and record silence as silence.</text>
+  <rect x="780" y="139" width="250" height="70" rx="12" fill="#f2f8ff" stroke="#7aa5c2"/>
+  <text x="805" y="166" class="small">WINDOW</text>
+  <text x="805" y="191" class="card-title">7 dates</text>
+  <rect x="1060" y="139" width="280" height="70" rx="12" fill="#f5fbf7" stroke="#6ca887"/>
+  <text x="1085" y="166" class="small">ACTIVE</text>
+  <text x="1085" y="191" class="card-title">6 days / 17 commits</text>
+  <rect x="1370" y="139" width="330" height="70" rx="12" fill="#fffdf7" stroke="#d3a44f"/>
+  <text x="1395" y="166" class="small">QUIET-DAY GUARD</text>
+  <text x="1395" y="191" class="card-title">08-12: no commit, no diff</text>
+
+  <path d="M900 238 L900 270" class="line"/>
+  <text x="70" y="270" class="small">Daily branches: focus -> behavior change -> evidence</text>
+
+  <rect x="70" y="290" width="385" height="350" rx="18" fill="white" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="290" width="385" height="42" rx="18" fill="#2d668f"/>
+  <text x="94" y="317" class="label">2026-08-06 | 2 COMMITS</text>
+  <text x="94" y="366" class="card-title">Debug spawning + docs</text>
+  <text x="94" y="399" class="body">Numeric monster IDs 1-6</text>
+  <text x="94" y="424" class="body">authority-safe AddMonster path</text>
+  <text x="94" y="449" class="body">Plans / Reference / Reports / Tracking</text>
+  <text x="94" y="492" class="small">Before: string IDs and flat docs</text>
+  <text x="94" y="515" class="small">After: table-driven debug spawn and</text>
+  <text x="94" y="536" class="small">intent-revealing documentation layout</text>
+  <text x="94" y="586" class="small">4c15782 | 57fe4b6</text>
+
+  <rect x="485" y="290" width="385" height="350" rx="18" fill="white" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="485" y="290" width="385" height="42" rx="18" fill="#2d668f"/>
+  <text x="509" y="317" class="label">2026-08-07 | 3 COMMITS</text>
+  <text x="509" y="366" class="card-title">Navigation + Day 1</text>
+  <text x="509" y="399" class="body">NavMesh bounds menu and Python tool</text>
+  <text x="509" y="424" class="body">direct move fallback without NavMesh</text>
+  <text x="509" y="449" class="body">20-day Role/Battle implementation plan</text>
+  <text x="509" y="482" class="body">bounded respawn and damage smoke</text>
+  <text x="509" y="532" class="small">Guard: persistent ASC defaults apply once</text>
+  <text x="509" y="553" class="small">Evidence: build, 22/22 graph smoke,</text>
+  <text x="509" y="574" class="small">two stable respawns, both damage directions</text>
+  <text x="509" y="606" class="small">a26d241 | f711913 | 098d7be</text>
+
+  <rect x="900" y="290" width="385" height="350" rx="18" fill="white" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="900" y="290" width="385" height="42" rx="18" fill="#2d668f"/>
+  <text x="924" y="317" class="label">2026-08-08 | 2 COMMITS</text>
+  <text x="924" y="366" class="card-title">Combat identity</text>
+  <text x="924" y="399" class="body">replicated server-owned component</text>
+  <text x="924" y="424" class="body">faction / control / profile / death tags</text>
+  <text x="924" y="449" class="body">explicit target and damage flags</text>
+  <text x="924" y="482" class="body">identity-based AI target selection</text>
+  <text x="924" y="532" class="small">Guard: no Player/Enemy tag fallback</text>
+  <text x="924" y="553" class="small">Evidence: 3/3 focused, 17/17 full,</text>
+  <text x="924" y="574" class="small">server/client replication smoke</text>
+  <text x="924" y="606" class="small">2abcfcb | 8721069</text>
+
+  <rect x="1315" y="290" width="415" height="350" rx="18" fill="white" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1315" y="290" width="415" height="42" rx="18" fill="#2d668f"/>
+  <text x="1339" y="317" class="label">2026-08-09 | 4 COMMITS</text>
+  <text x="1339" y="366" class="card-title">Rules, state, inventory</text>
+  <text x="1339" y="399" class="body">Alive / Dying / Dead / Respawning</text>
+  <text x="1339" y="424" class="body">trusted rule context and rejection reason</text>
+  <text x="1339" y="449" class="body">default-deny Civilian and friendly paths</text>
+  <text x="1339" y="482" class="body">producer inventory plus Day 3 smoke</text>
+  <text x="1339" y="532" class="small">Guard: authority owns policy and state</text>
+  <text x="1339" y="553" class="small">Evidence: Day 3 suite and Listen/Dedicated</text>
+  <text x="1339" y="574" class="small">network gates recorded as passing</text>
+  <text x="1339" y="606" class="small">da4b6e1 | 60d68d0 | 43f95bd | 679fe3a</text>
+
+  <path d="M900 640 L900 674" class="line"/>
+  <rect x="70" y="690" width="525" height="320" rx="18" fill="#f5fbf7" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="690" width="525" height="42" rx="18" fill="#39845d"/>
+  <text x="94" y="717" class="label">2026-08-10 | 1 COMMIT</text>
+  <text x="94" y="766" class="card-title">One safe damage boundary</text>
+  <text x="94" y="799" class="body">validate ASCs, avatars, authority, combat rules, and specs</text>
+  <text x="94" y="824" class="body">carry ability, role, controller, player, zone, and event context</text>
+  <text x="94" y="849" class="body">recheck relationship and life state at execution and debuff ticks</text>
+  <text x="94" y="895" class="small">Evidence: Day 4 automation 10/10; Listen/Dedicated damage smoke</text>
+  <text x="94" y="918" class="small">38763af | producer -> boundary -> context -> execution -> attributes</text>
+
+  <rect x="635" y="690" width="625" height="320" rx="18" fill="#fffdf7" stroke="#d3a44f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="635" y="690" width="625" height="42" rx="18" fill="#b27a1d"/>
+  <text x="659" y="717" class="label">2026-08-11 | 5 COMMITS</text>
+  <text x="659" y="766" class="card-title">Beam safety + LFS merge</text>
+  <text x="659" y="799" class="body">Code: safe avatar lookup, eligible beam targets, dead pruning, replacement</text>
+  <text x="659" y="824" class="body">Storage: 2,745 runtime assets plus .gitattributes and .gitignore</text>
+  <text x="659" y="849" class="body">Merge: runtime behavior and repository transport stay distinct</text>
+  <text x="659" y="895" class="small">Evidence: 25 beam/avatar tests passed; LFS fsck OK; snapshot restored</text>
+  <text x="659" y="918" class="small">fb10b85 | 22573dc | 5fe427a | 9588a92 | 1c32b8e</text>
+
+  <rect x="1300" y="690" width="430" height="320" rx="18" fill="#fffdf7" stroke="#d3a44f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1300" y="690" width="430" height="42" rx="18" fill="#8d7a4a"/>
+  <text x="1324" y="717" class="label">2026-08-12 | 0 COMMITS</text>
+  <text x="1324" y="766" class="card-title">Quiet-day guard</text>
+  <text x="1324" y="805" class="body">No commit on main</text>
+  <text x="1324" y="830" class="body">No daily diff to compare</text>
+  <text x="1324" y="855" class="body">No job or test inferred</text>
+  <text x="1324" y="905" class="small">Silence is a covered result, not</text>
+  <text x="1324" y="926" class="small">an unfinished documentation row.</text>
+
+  <rect x="70" y="1060" width="1660" height="120" rx="18" fill="#f2f8ff" stroke="#7aa5c2" stroke-width="2"/>
+  <text x="98" y="1100" class="card-title">Newcomer reading path</text>
+  <text x="98" y="1130" class="body">Debugability and docs -> Role/Battle baseline -> identity -> rules/state -> safe damage -> beam/LFS separation -> explicit quiet date.</text>
+  <text x="98" y="1157" class="small">Detailed reference: Docs/Reports/Git-Daily-Changes-2026-08-06-to-2026-08-12.md | Calendar model: 2026-08-11-daily-calendar-coverage.svg</text>
+</svg>

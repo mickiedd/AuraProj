@@ -12,3 +12,7 @@ Then append the entry to `.claude/memory/visual-change-archive.md`. Existing ent
 The first archive record is linked below.
 
 - [2026-08-11 — Aura damage and modular beam fixes](2026-08-11-aura-damage-beam-fixes.md)
+- [2026-08-11 – Manual daily Git diff and newcomer mind maps](2026-08-11-git-daily-mind-maps.md)
+- [2026-08-11 – Full daily calendar coverage](2026-08-11-daily-calendar-coverage.md)
+- [2026-08-12 – Last-seven-days change reference](2026-08-12-seven-day-change-reference.md)
+- [2026-08-12 – Seven separate daily SVG references](2026-08-12-seven-daily-svg-references.md)

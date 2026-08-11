@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+  <title id="title">AuraProj daily Git diff and mind-map archive</title>
+  <desc id="desc">A before and after flow showing raw main-branch history becoming monthly newcomer-friendly daily mind maps, with guards for duplicate refs and inactive dates and validation results.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#eef4fb"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#17324d" flood-opacity="0.16"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#2d668f"/>
+    </marker>
+    <style>
+      .title { font: 700 29px Segoe UI, Arial, sans-serif; fill: #17324d; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #47657e; }
+      .box-title { font: 700 19px Segoe UI, Arial, sans-serif; fill: #17324d; }
+      .body { font: 400 15px Segoe UI, Arial, sans-serif; fill: #25475f; }
+      .small { font: 400 14px Segoe UI, Arial, sans-serif; fill: #47657e; }
+      .label { font: 700 13px Segoe UI, Arial, sans-serif; fill: #ffffff; letter-spacing: 1px; }
+      .line { stroke: #2d668f; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #6b8295; stroke-width: 2; stroke-dasharray: 7 7; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="760" fill="url(#bg)"/>
+  <text x="70" y="64" class="title">Daily Git diff → newcomer mind-map archive</text>
+  <text x="70" y="94" class="subtitle">AuraProj main · 2026-04-17 through 2026-08-11 · hand-authored, no generation script</text>
+
+  <rect x="70" y="140" width="300" height="205" rx="18" fill="#ffffff" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="140" width="300" height="38" rx="18" fill="#2d668f"/>
+  <text x="92" y="165" class="label">BEFORE</text>
+  <text x="92" y="213" class="box-title">Raw branch history</text>
+  <text x="92" y="242" class="body">• 172 reachable commits</text>
+  <text x="92" y="268" class="body">• subjects, hashes, patch stats</text>
+  <text x="92" y="294" class="body">• repeated refs visible via --all</text>
+  <text x="92" y="320" class="body">• large asset/snapshot noise</text>
+
+  <path d="M370 242 C430 242 430 242 486 242" class="line"/>
+  <text x="390" y="222" class="small">inspect + compare</text>
+
+  <rect x="486" y="128" width="400" height="245" rx="18" fill="#fffdf7" stroke="#d3a44f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="486" y="128" width="400" height="38" rx="18" fill="#b27a1d"/>
+  <text x="508" y="153" class="label">GUARDS</text>
+  <text x="508" y="201" class="box-title">Daily diff interpretation</text>
+  <text x="508" y="230" class="body">• scope authoritative main branch</text>
+  <text x="508" y="256" class="body">• group by active calendar day</text>
+  <text x="508" y="282" class="body">• compare each day’s final tree</text>
+  <text x="508" y="308" class="body">• retain the real 08-11 merge</text>
+  <text x="508" y="334" class="body">• exclude mirrored, unreachable refs</text>
+  <text x="508" y="360" class="body">• explain assets by their job</text>
+
+  <path d="M886 242 C946 242 946 242 1002 242" class="line"/>
+  <text x="907" y="222" class="small">hand-author</text>
+
+  <rect x="1002" y="140" width="328" height="205" rx="18" fill="#ffffff" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1002" y="140" width="328" height="38" rx="18" fill="#39845d"/>
+  <text x="1024" y="165" class="label">AFTER</text>
+  <text x="1024" y="213" class="box-title">Monthly mind maps</text>
+  <text x="1024" y="242" class="body">• April: foundation/login</text>
+  <text x="1024" y="268" class="body">• May: travel/broom baseline</text>
+  <text x="1024" y="294" class="body">• June: BehaviorU/vehicles</text>
+  <text x="1024" y="320" class="body">• July: graph migration</text>
+  <text x="1024" y="346" class="body">• August: Role/Battle hardening</text>
+
+  <path d="M1166 345 L1166 428" class="line"/>
+
+  <rect x="70" y="438" width="400" height="218" rx="18" fill="#f2f8ff" stroke="#7aa5c2" stroke-width="2"/>
+  <text x="96" y="480" class="box-title">Newcomer navigation</text>
+  <text x="96" y="511" class="body">Login/travel → May 10–13, 25–26</text>
+  <text x="96" y="539" class="body">Broom → May 18, June 21–28</text>
+  <text x="96" y="567" class="body">Ability graph → July 26–31, Aug 1–5</text>
+  <text x="96" y="595" class="body">Role/Battle → Aug 7–10</text>
+  <text x="96" y="631" class="small">Each branch names owners, data, tests, and behavior.</text>
+
+  <path d="M1002 560 C850 560 850 548 470 548" class="dash"/>
+
+  <rect x="518" y="438" width="400" height="218" rx="18" fill="#f5fbf7" stroke="#6ca887" stroke-width="2"/>
+  <text x="544" y="480" class="box-title">Validation recorded</text>
+  <text x="544" y="511" class="body">71 active calendar days present</text>
+  <text x="544" y="539" class="body">172 main-reachable commits accounted for</text>
+  <text x="544" y="567" class="body">Working tree clean before documentation</text>
+  <text x="544" y="595" class="body">Master index links all five month files</text>
+  <text x="544" y="631" class="small">Archive SVG + Markdown record + memory index added.</text>
+
+  <rect x="966" y="438" width="364" height="218" rx="18" fill="#fff8f4" stroke="#c58c72" stroke-width="2"/>
+  <text x="992" y="480" class="box-title">Important behavior guard</text>
+  <text x="992" y="511" class="body">Raw history is not presented as one</text>
+  <text x="992" y="535" class="body">flat list: mirrored/unreachable commits</text>
+  <text x="992" y="559" class="body">are excluded, while the true 08-11</text>
+  <text x="992" y="583" class="body">merge preserves both code and LFS work.</text>
+  <text x="992" y="631" class="small">This prevents duplicate jobs and lost merge work.</text>
+</svg>

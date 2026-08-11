@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">AuraProj full daily calendar coverage</title>
+  <desc id="desc">A before and after diagram showing 71 active commit days becoming full 117-day calendar coverage with 46 explicit no-commit days.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fbfdff"/><stop offset="1" stop-color="#edf4fb"/></linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#17324d" flood-opacity="0.16"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#2d668f"/></marker>
+    <style>
+      .title { font: 700 28px Segoe UI, Arial, sans-serif; fill: #17324d; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #47657e; }
+      .box-title { font: 700 20px Segoe UI, Arial, sans-serif; fill: #17324d; }
+      .body { font: 400 16px Segoe UI, Arial, sans-serif; fill: #25475f; }
+      .small { font: 400 14px Segoe UI, Arial, sans-serif; fill: #47657e; }
+      .label { font: 700 13px Segoe UI, Arial, sans-serif; fill: white; letter-spacing: 1px; }
+      .line { stroke: #2d668f; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="620" fill="url(#bg)"/>
+  <text x="60" y="60" class="title">Daily job maps with explicit quiet-day coverage</text>
+  <text x="60" y="90" class="subtitle">AuraProj main - 2026-04-17 through 2026-08-11 - manually recorded</text>
+
+  <rect x="60" y="145" width="315" height="190" rx="18" fill="white" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="60" y="145" width="315" height="38" rx="18" fill="#2d668f"/>
+  <text x="82" y="170" class="label">BEFORE</text>
+  <text x="82" y="220" class="box-title">Active-day maps</text>
+  <text x="82" y="252" class="body">71 dates with commits mapped</text>
+  <text x="82" y="280" class="body">46 calendar gaps omitted</text>
+  <text x="82" y="308" class="small">A reader could mistake gaps for unfinished work.</text>
+
+  <path d="M375 240 C440 240 440 240 500 240" class="line"/>
+  <text x="394" y="218" class="small">complete calendar audit</text>
+
+  <rect x="500" y="125" width="360" height="230" rx="18" fill="#fffdf7" stroke="#d3a44f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="500" y="125" width="360" height="38" rx="18" fill="#b27a1d"/>
+  <text x="522" y="150" class="label">GUARD</text>
+  <text x="522" y="200" class="box-title">Do not invent work</text>
+  <text x="522" y="232" class="body">For every empty date, record:</text>
+  <text x="522" y="260" class="body">- no commit on main</text>
+  <text x="522" y="288" class="body">- no daily diff to compare</text>
+  <text x="522" y="316" class="body">- no job or mind map to infer</text>
+  <text x="522" y="344" class="small">Silence is a result, not a missing feature.</text>
+
+  <path d="M860 240 C920 240 920 240 980 240" class="line"/>
+  <text x="876" y="218" class="small">append calendar record</text>
+
+  <rect x="980" y="145" width="160" height="190" rx="18" fill="#f5fbf7" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="980" y="145" width="160" height="38" rx="18" fill="#39845d"/>
+  <text x="1002" y="170" class="label">AFTER</text>
+  <text x="1002" y="220" class="box-title">117 days</text>
+  <text x="1002" y="253" class="body">71 active</text>
+  <text x="1002" y="281" class="body">46 quiet</text>
+  <text x="1002" y="313" class="small">all accounted</text>
+
+  <rect x="60" y="415" width="1080" height="120" rx="18" fill="#f2f8ff" stroke="#7aa5c2" stroke-width="2"/>
+  <text x="88" y="455" class="box-title">Newcomer result</text>
+  <text x="88" y="486" class="body">Use monthly reports for actual jobs; use the calendar appendix to separate quiet days from unfinished docs.</text>
+  <text x="88" y="514" class="small">Validation: 117 calendar days are accounted for, including 46 no-commit rows.</text>
+</svg>
