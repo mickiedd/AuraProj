@@ -82,4 +82,3 @@ void AAuraHUD::DrawHUD()
 	const float PosY = Canvas ? Canvas->SizeY * 0.5f : 40.f;
 	DrawText(LocText, FColor::Yellow, PosX, PosY, GEngine->GetLargeFont(), 1.f);
 }
-

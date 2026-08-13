@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Login level Web UI migration</title>
+  <desc id="desc">The Login level presentation moves from WBP_LoginMenu and a connecting widget to a native AuraWebUI widget and login HTML page, while the LoginPlayerController remains authoritative for level targets, validation, GSM queries, fallback, and travel.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.title{font:700 28px Arial,sans-serif;fill:#0f172a}.sub{font:16px Arial,sans-serif;fill:#475569}.section{font:700 18px Arial,sans-serif;fill:#0f172a}.label{font:700 15px Arial,sans-serif;fill:#0f172a}.body{font:14px Arial,sans-serif;fill:#334155}.mono{font:13px Consolas,monospace;fill:#1e293b}.old{fill:#fef2f2;stroke:#ef4444;stroke-width:2}.new{fill:#eff6ff;stroke:#2563eb;stroke-width:2}.good{fill:#f0fdf4;stroke:#16a34a;stroke-width:2}.guard{fill:#fff7ed;stroke:#f97316;stroke-width:2}.arrow{fill:none;stroke:#334155;stroke-width:2.5;marker-end:url(#arrow)}.dash{stroke-dasharray:8 7}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="48" y="52">Login level Web UI migration</text>
+  <text class="sub" x="48" y="82">The selector and connection status move to HTML; native LoginPlayerController remains the authority for all network decisions.</text>
+
+  <text class="section" x="48" y="130">Before</text>
+  <rect class="old" x="48" y="150" width="300" height="190" rx="12"/>
+  <text class="label" x="70" y="184">WBP_LoginMenu</text>
+  <text class="body" x="70" y="216">ComboBoxList reads LevelConfig</text>
+  <text class="body" x="70" y="238">ConnectBtn calls native widget</text>
+  <text class="body" x="70" y="270">Separate ULoginConnectingWidget</text>
+  <text class="body" x="70" y="292">renders status messages</text>
+  <rect class="old" x="400" y="150" width="300" height="190" rx="12"/>
+  <text class="label" x="422" y="184">Native controller</text>
+  <text class="body" x="422" y="216">Owns validation and travel</text>
+  <text class="body" x="422" y="238">but UI events are UMG-bound</text>
+  <text class="body" x="422" y="280">Selection and status split across</text>
+  <text class="body" x="422" y="302">two widget layers.</text>
+  <path class="arrow dash" d="M348 245 L400 245"/>
+
+  <text class="section" x="48" y="390">After</text>
+  <rect class="new" x="48" y="410" width="300" height="210" rx="12"/>
+  <text class="label" x="70" y="444">AuraWebUI login.html</text>
+  <text class="body" x="70" y="476">Server level selector</text>
+  <text class="body" x="70" y="498">Connect button and live status</text>
+  <text class="body" x="70" y="520">Bridge connection indicator</text>
+  <text class="mono" x="70" y="556">login_select_level</text>
+  <text class="mono" x="70" y="578">login_connect</text>
+  <rect class="guard" x="400" y="410" width="300" height="210" rx="12"/>
+  <text class="label" x="422" y="444">ALoginPlayerController</text>
+  <text class="body" x="422" y="476">Loads validated LevelConfig targets</text>
+  <text class="body" x="422" y="498">Resolves levelId and port</text>
+  <text class="body" x="422" y="520">Runs role validation and GSM query</text>
+  <text class="body" x="422" y="542">Preserves fallback and travel flow</text>
+  <text class="mono" x="422" y="578">login_state / login_status</text>
+  <path class="arrow" d="M348 515 L400 515"/>
+  <rect class="good" x="752" y="410" width="400" height="210" rx="12"/>
+  <text class="label" x="774" y="444">Existing gameplay flow preserved</text>
+  <text class="body" x="774" y="476">Login → Loading → GSM endpoint</text>
+  <text class="body" x="774" y="498">→ dedicated server travel</text>
+  <text class="body" x="774" y="536">Invalid web payloads are rejected.</text>
+  <text class="body" x="774" y="558">Native methods remain the only</text>
+  <text class="body" x="774" y="580">path to initiate connection.</text>
+  <path class="arrow" d="M700 515 L752 515"/>
+
+  <rect class="good" x="48" y="660" width="1104" height="38" rx="10"/>
+  <text class="label" x="70" y="685">Validation: AuraServer build passed; AuraWebUI WebSocket, bridge, and content-contract tests passed.</text>
+</svg>

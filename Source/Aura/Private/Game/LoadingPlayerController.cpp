@@ -4,24 +4,15 @@
 #include "Game/GameServerClient.h"
 #include "Game/ServerTravelComponent.h"
 #include "Game/AuraGameInstance.h"
-#include "Blueprint/UserWidget.h"
-#include "Components/TextBlock.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Serialization/JsonSerializer.h"
+#include "UI/WebUI/WebUIBridgeSubsystem.h"
+#include "UI/WebUI/WebUIWidget.h"
 
 ALoadingPlayerController::ALoadingPlayerController()
 {
 	ServerTravelComponent = CreateDefaultSubobject<UServerTravelComponent>(TEXT("ServerTravelComponent"));
-
-	const FSoftClassPath DefaultLoadingWidgetPath(TEXT("/Game/Blueprints/UI/Loading/WBP_LoadingUI.WBP_LoadingUI_C"));
-	if (UClass* DefaultLoadingWidgetClass = DefaultLoadingWidgetPath.TryLoadClass<UUserWidget>())
-	{
-		LoadingWidgetClass = DefaultLoadingWidgetClass;
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoadingPC] Constructor: failed to load default Loading widget class from %s"), *DefaultLoadingWidgetPath.ToString());
-	}
 	UE_LOG(LogTemp, Display, TEXT("[LoadingPC] Constructor: ALoadingPlayerController created"));
 }
 
@@ -197,6 +188,10 @@ void ALoadingPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(LoadingProgressTimerHandle);
+		if (UWebUIBridgeSubsystem* Bridge = World->GetSubsystem<UWebUIBridgeSubsystem>())
+		{
+			Bridge->OnConnectionChanged.RemoveDynamic(this, &ALoadingPlayerController::HandleWebUIConnectionChanged);
+		}
 	}
 	DestroyLoadingWidget();
 
@@ -214,35 +209,23 @@ void ALoadingPlayerController::EnsureLoadingWidget()
 		return;
 	}
 
-	if (!LoadingWidgetClass)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoadingPC] EnsureLoadingWidget: LoadingWidgetClass is null"));
-		return;
-	}
-
-	LoadingWidget = CreateWidget<UUserWidget>(this, LoadingWidgetClass);
+	LoadingWidget = CreateWidget<UWebUIWidget>(this, UWebUIWidget::StaticClass());
 	if (!LoadingWidget)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[LoadingPC] EnsureLoadingWidget: failed to create loading widget from class %s"), *GetNameSafe(LoadingWidgetClass));
+		UE_LOG(LogTemp, Error, TEXT("[LoadingPC] EnsureLoadingWidget: failed to create AuraWebUI loading widget"));
 		return;
 	}
 
+	LoadingWidget->HtmlAssetPath = TEXT("WebUI/loading.html");
+	if (UWorld* World = GetWorld())
+	{
+		if (UWebUIBridgeSubsystem* Bridge = World->GetSubsystem<UWebUIBridgeSubsystem>())
+		{
+			Bridge->OnConnectionChanged.AddDynamic(this, &ALoadingPlayerController::HandleWebUIConnectionChanged);
+		}
+	}
 	LoadingWidget->AddToViewport(0);
-	UE_LOG(LogTemp, Display, TEXT("[LoadingPC] EnsureLoadingWidget: created and shown %s"), *GetNameSafe(LoadingWidget));
-	BindLoadingTipsText();
-	UpdateLoadingTipsText();
-}
-
-void ALoadingPlayerController::BindLoadingTipsText()
-{
-	TipsTextBlock = nullptr;
-	if (!LoadingWidget)
-	{
-		return;
-	}
-
-	TipsTextBlock = Cast<UTextBlock>(LoadingWidget->GetWidgetFromName(TEXT("TipsText")));
-	UE_LOG(LogTemp, Display, TEXT("[LoadingPC] BindLoadingTipsText: TipsTextBlock=%s"), *GetNameSafe(TipsTextBlock));
+	UE_LOG(LogTemp, Display, TEXT("[LoadingPC] EnsureLoadingWidget: created and shown AuraWebUI loading page"));
 }
 
 void ALoadingPlayerController::SetLoadingProgressTarget(float InTargetPercent, const FString& InMessage)
@@ -258,20 +241,42 @@ void ALoadingPlayerController::SetLoadingProgressTarget(float InTargetPercent, c
 		}
 	}
 
-	UpdateLoadingTipsText();
+	SendLoadingProgress();
 }
 
-void ALoadingPlayerController::UpdateLoadingTipsText()
+void ALoadingPlayerController::SendLoadingProgress()
 {
-	if (!TipsTextBlock)
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	UWebUIBridgeSubsystem* Bridge = World->GetSubsystem<UWebUIBridgeSubsystem>();
+	if (!Bridge || !Bridge->IsServerRunning())
 	{
 		return;
 	}
 
 	const int32 DisplayPercent = FMath::Clamp(FMath::RoundToInt(LoadingDisplayedPercent), 0, 100);
-	const FString DisplayText = FString::Printf(TEXT("%s (%d%%)"), *LoadingProgressMessage, DisplayPercent);
-	TipsTextBlock->SetText(FText::FromString(DisplayText));
-	UE_LOG(LogTemp, Display, TEXT("[LoadingPC] TipsText updated: %s"), *DisplayText);
+	TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	Payload->SetNumberField(TEXT("percent"), DisplayPercent);
+	Payload->SetStringField(TEXT("message"), LoadingProgressMessage);
+
+	FString PayloadJson;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&PayloadJson);
+	FJsonSerializer::Serialize(Payload, Writer);
+	Writer->Close();
+	Bridge->SendEvent(TEXT("loading_progress"), PayloadJson);
+	UE_LOG(LogTemp, Display, TEXT("[LoadingPC] Web UI progress updated: %s (%d%%)"), *LoadingProgressMessage, DisplayPercent);
+}
+
+void ALoadingPlayerController::HandleWebUIConnectionChanged(bool bConnected)
+{
+	if (bConnected)
+	{
+		SendLoadingProgress();
+	}
 }
 
 void ALoadingPlayerController::AdvanceLoadingProgress()
@@ -280,7 +285,7 @@ void ALoadingPlayerController::AdvanceLoadingProgress()
 	if (LoadingDisplayedPercent < LoadingTargetPercent)
 	{
 		LoadingDisplayedPercent = FMath::Min(LoadingDisplayedPercent + Step, LoadingTargetPercent);
-		UpdateLoadingTipsText();
+		SendLoadingProgress();
 		return;
 	}
 

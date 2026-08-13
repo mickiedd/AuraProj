@@ -12,10 +12,9 @@
  */
 
 class UGameServerClient;
-class ULoginConnectingWidget;
-class ULoginMenuWidget;
 class UServerTravelComponent;
 struct FGameServerResponse;
+class UWebUIWidget;
 
 /**
  * Player controller for the Login map.
@@ -106,14 +105,33 @@ protected:
 	UFUNCTION()
 	void ExecuteClientConnect();
 
-	void UpdateConnectingStatus(const FString& InMessage) const;
+	void UpdateConnectingStatus(const FString& InMessage);
 	void HandleServerTravelStatusMessage(const FString& InMessage);
-	void EnsureConnectingWidget();
-	void EnsureLoginScreenWidget();
+	void EnsureLoginWebUIWidget();
+	void DestroyLoginWebUIWidget();
+	void SendLoginState();
+	void SendLoginStatus(const FString& InMessage);
+	UFUNCTION()
+	void HandleWebUICommand(const FString& Command, const FString& PayloadJson);
+
+	UFUNCTION()
+	void HandleWebUIConnectionChanged(bool bConnected);
+
+	struct FLoginServerTarget
+	{
+		FString DisplayName;
+		FString LevelId;
+		FString MapPath;
+		int32 ServerPort = 0;
+		int32 QueryPort = 0;
+	};
+
+	bool LoadLoginServerTargets();
+	const FLoginServerTarget* FindLoginServerTarget(const FString& LevelId) const;
 
 	/** If the GameInstance carries a mid-game server-lost message (set by
 	 *  UAuraClientDisconnectHandler before traveling here), surface it on the
-	 *  Login screen via the connecting-status widget and clear it. */
+	 *  Login screen via the Web UI status region and clear it. */
 	void SurfacePendingServerLostMessage();
 
 	/** Callback from UGameServerClient fired on the game thread. */
@@ -133,8 +151,8 @@ protected:
 	 * (e.g. from RunClientNullRHI.bat in -nullrhi mode), this replays the exact menu sequence —
 	 * HandleLoginMenuSelectionChanged then a delayed RequestLoginMenuConnect — so the client
 	 * drives the full Login -> Loading -> cross-server travel -> battleground flow without a
-	 * human clicking WBP_LoginMenu.  Inert when the flag is absent: the normal menu flow is
-	 * unchanged.
+	 * human clicking the Login Web UI.  Inert when the flag is absent: the normal Web UI
+	 * flow is unchanged.
 	 */
 	void TryAutoLoginFromCommandLine();
 
@@ -161,29 +179,15 @@ protected:
 	/** Fallback port from LevelConfig, used if the game server is unreachable. */
 	int32 SelectedFallbackPort = 0;
 
-	/**
-	 * Widget class to display connection status.
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Connection")
-	TSubclassOf<ULoginConnectingWidget> ConnectingWidgetClass;
-
-	/**
-	 * Widget class shown for the Login level (for example WBP_MainMenu).
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|UI")
-	TSubclassOf<ULoginMenuWidget> LoginScreenWidgetClass;
-
-	/**
-	 * Runtime instance of the Login screen widget.
-	 */
+	/** Native web UI host for the Login level. */
 	UPROPERTY()
-	TObjectPtr<ULoginMenuWidget> LoginScreenWidget;
+	TObjectPtr<UWebUIWidget> LoginWebUIWidget;
 
-	/**
-	 * Instance of the connecting widget.
-	 */
-	UPROPERTY()
-	TObjectPtr<ULoginConnectingWidget> ConnectingWidget;
+	/** Level targets loaded from Content/Config/LevelConfig.json for the web page. */
+	TArray<FLoginServerTarget> AvailableLoginServerTargets;
+
+	/** Last status sent to the Login web page, replayed when the browser reconnects. */
+	FString LoginStatusMessage;
 
 	/** Active game server TCP query client. Replaced on each connect attempt. */
 	UPROPERTY()

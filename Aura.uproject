@@ -46,6 +46,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "AuraWebUI",
+			"Enabled": true
+		},
+		{
 			"Name": "Fab",
 			"Enabled": false
 		},

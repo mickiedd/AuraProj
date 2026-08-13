@@ -1,0 +1,35 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "Aura Web UI",
+  "Description": "Opt-in in-game HTML/CSS/JavaScript UI hosted by Unreal UMG with a loopback WebSocket bridge.",
+  "Category": "UI",
+  "CreatedBy": "Druid Mechanics",
+  "CanContainContent": true,
+  "EnabledByDefault": false,
+  "IsExperimentalVersion": true,
+  "Plugins": [
+    {
+      "Name": "WebBrowserWidget",
+      "Enabled": true
+    }
+  ],
+  "Modules": [
+    {
+      "Name": "AuraWebUI",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux"
+      ],
+      "AdditionalDependencies": [
+        "Engine",
+        "UMG",
+        "WebBrowserWidget"
+      ]
+    }
+  ]
+}

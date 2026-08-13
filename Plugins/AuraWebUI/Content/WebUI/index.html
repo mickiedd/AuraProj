@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aura Web UI</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, Segoe UI, sans-serif; }
+    body { margin: 0; min-height: 100vh; background: rgba(11, 16, 28, .96); color: #e8eefc; }
+    main { box-sizing: border-box; min-height: 100vh; padding: 28px; display: grid; place-content: center; }
+    .panel { width: min(720px, calc(100vw - 56px)); border: 1px solid #34415f; border-radius: 16px; padding: 24px; background: #151d31; box-shadow: 0 18px 60px #0008; }
+    h1 { margin: 0 0 8px; font-size: 26px; } p { color: #aab7d4; }
+    .status { display: flex; align-items: center; gap: 10px; margin: 18px 0; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #e05b6f; } .dot.online { background: #5de39c; }
+    button { border: 0; border-radius: 8px; padding: 10px 14px; margin: 4px; color: #07101d; background: #83b7ff; cursor: pointer; font-weight: 700; }
+    button.secondary { color: #dbe7ff; background: #2b3857; }
+    pre { min-height: 90px; margin: 18px 0 0; padding: 14px; overflow: auto; border-radius: 8px; background: #0b1020; color: #b9c8e8; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="panel">
+      <h1>Aura Web UI bridge</h1>
+      <p>This page is hosted by UMG's built-in WebBrowser widget and talks to the game through a loopback WebSocket.</p>
+      <div class="status"><span id="dot" class="dot"></span><strong id="status">Connecting...</strong></div>
+      <div>
+        <button id="ping">Ping native code</button>
+        <button id="state" class="secondary">Request state</button>
+      </div>
+      <pre id="log">Waiting for bridge messages...</pre>
+    </section>
+  </main>
+  <script>
+    const socketUrl = "__AURA_WEBSOCKET_URL__";
+    const status = document.getElementById('status');
+    const dot = document.getElementById('dot');
+    const log = document.getElementById('log');
+    let socket;
+    function write(value) { log.textContent = typeof value === 'string' ? value : JSON.stringify(value, null, 2); }
+    function command(name, payload = {}) {
+      if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'command', command: name, payload }));
+    }
+    function connect() {
+      socket = new WebSocket(socketUrl);
+      socket.onopen = () => { dot.classList.add('online'); status.textContent = 'Connected'; command('ready'); };
+      socket.onclose = () => { dot.classList.remove('online'); status.textContent = 'Disconnected'; setTimeout(connect, 1000); };
+      socket.onerror = () => { status.textContent = 'Connection error'; };
+      socket.onmessage = event => {
+        const message = JSON.parse(event.data);
+        write(message);
+      };
+    }
+    document.getElementById('ping').onclick = () => command('ping', { source: 'sample-page' });
+    document.getElementById('state').onclick = () => command('get_state');
+    connect();
+  </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aura - Loading</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, Segoe UI, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; overflow: hidden; background: radial-gradient(circle at 50% 35%, #263c68 0, #10182b 46%, #070b15 100%); color: #eef4ff; }
+    main { min-height: 100vh; display: grid; place-items: center; padding: 32px; }
+    .panel { width: min(720px, 100%); padding: 42px 46px; border: 1px solid #435a86; border-radius: 22px; background: rgba(13, 21, 39, .88); box-shadow: 0 24px 80px #0009; }
+    .eyebrow { margin: 0 0 12px; color: #86b7ff; font-size: 13px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(30px, 5vw, 52px); line-height: 1.05; }
+    #message { min-height: 28px; margin: 18px 0 26px; color: #b7c8e7; font-size: 18px; }
+    .track { height: 14px; overflow: hidden; border: 1px solid #3b527e; border-radius: 999px; background: #09101f; }
+    #bar { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6c9fff, #82e6c2); transition: width .18s ease-out; }
+    .footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 14px; color: #8fa3c7; font-size: 14px; }
+    #status.online { color: #72e1ae; }
+    #percent { color: #e8f0ff; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="panel" aria-live="polite">
+      <p class="eyebrow">Aura Web UI</p>
+      <h1>Preparing your world</h1>
+      <p id="message">Connecting to the loading bridge...</p>
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="bar"></div></div>
+      <div class="footer"><span id="status">Connecting...</span><span id="percent">0%</span></div>
+    </section>
+  </main>
+  <script>
+    const socketUrl = "__AURA_WEBSOCKET_URL__";
+    const message = document.getElementById('message');
+    const bar = document.getElementById('bar');
+    const percent = document.getElementById('percent');
+    const status = document.getElementById('status');
+    const progress = document.querySelector('[role="progressbar"]');
+    let socket;
+    function updateLoading(payload = {}) {
+      const value = Math.max(0, Math.min(100, Number(payload.percent) || 0));
+      bar.style.width = `${value}%`;
+      percent.textContent = `${Math.round(value)}%`;
+      progress.setAttribute('aria-valuenow', String(Math.round(value)));
+      if (payload.message) message.textContent = payload.message;
+    }
+    function connect() {
+      socket = new WebSocket(socketUrl);
+      socket.onopen = () => {
+        status.textContent = 'Connected';
+        status.classList.add('online');
+        socket.send(JSON.stringify({ type: 'ready' }));
+      };
+      socket.onclose = () => {
+        status.textContent = 'Reconnecting...';
+        status.classList.remove('online');
+        setTimeout(connect, 250);
+      };
+      socket.onerror = () => { status.textContent = 'Bridge unavailable'; };
+      socket.onmessage = event => {
+        const packet = JSON.parse(event.data);
+        if (packet.type === 'event' && packet.event === 'loading_progress') updateLoading(packet.payload);
+        if (packet.type === 'event' && packet.event === 'bridge_ready') status.textContent = 'Connected';
+      };
+    }
+    connect();
+  </script>
+</body>
+</html>

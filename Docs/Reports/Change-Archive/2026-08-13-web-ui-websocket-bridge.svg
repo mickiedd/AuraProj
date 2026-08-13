@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Aura in-game Web UI WebSocket bridge</title>
+  <desc id="desc">Before and after architecture showing existing UMG retained, built-in WebBrowserWidget host, loopback WebSocket bridge, and validation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0b1020"/><stop offset="1" stop-color="#151d31"/></linearGradient>
+    <linearGradient id="after" x1="0" x2="1"><stop stop-color="#1d3650"/><stop offset="1" stop-color="#173f45"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity=".3"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#83b7ff"/></marker>
+    <style>
+      .title{font:700 30px Segoe UI,Arial;fill:#f1f5ff}.sub{font:400 15px Segoe UI,Arial;fill:#aab7d4}.head{font:700 19px Segoe UI,Arial;fill:#e8eefc}.body{font:400 15px Segoe UI,Arial;fill:#d2dcf2}.small{font:400 13px Segoe UI,Arial;fill:#aab7d4}.code{font:600 14px Consolas,monospace;fill:#b9c8e8}.box{stroke:#34415f;stroke-width:1.5;rx:14;filter:url(#shadow)}.before{fill:#20283a}.after{fill:url(#after)}.test{fill:#203b36;stroke:#4fa77d;stroke-width:1.5;rx:12}
+    </style>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="52" y="58" class="title">Aura UI evolution: UMG stays, Web UI becomes an opt-in surface</text>
+  <text x="52" y="86" class="sub">Unreal Engine 5.5 built-in WebBrowserWidget + a loopback-only JSON WebSocket bridge</text>
+
+  <rect x="52" y="122" width="328" height="255" class="box before"/>
+  <text x="78" y="160" class="head">Before</text>
+  <text x="78" y="188" class="body">Native UMG / Blueprint screens</text>
+  <rect x="78" y="214" width="276" height="58" rx="9" fill="#151d31" stroke="#4c5d80"/>
+  <text x="98" y="249" class="code">HUD → UUserWidget</text>
+  <rect x="78" y="288" width="276" height="58" rx="9" fill="#151d31" stroke="#4c5d80"/>
+  <text x="98" y="323" class="code">GAS WidgetControllers</text>
+  <text x="78" y="366" class="small">No HTML/CSS authoring path in-game</text>
+
+  <path d="M398 250 H454" stroke="#83b7ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="394" y="230" class="small">additive path</text>
+
+  <rect x="478" y="122" width="670" height="458" class="box after"/>
+  <text x="506" y="160" class="head">After</text>
+  <text x="506" y="188" class="body">UMG hosts a native web surface; gameplay receives explicit JSON commands</text>
+
+  <rect x="506" y="218" width="244" height="104" rx="10" fill="#142638" stroke="#5a98c2"/>
+  <text x="528" y="249" class="head">UMG host</text>
+  <text x="528" y="275" class="code">UWebUIWidget</text>
+  <text x="528" y="298" class="small">UWebBrowser + index.html</text>
+
+  <rect x="786" y="218" width="300" height="104" rx="10" fill="#142638" stroke="#5a98c2"/>
+  <text x="808" y="249" class="head">Web UI</text>
+  <text x="808" y="275" class="code">HTML / CSS / JavaScript</text>
+  <text x="808" y="298" class="small">WebSocket client, ping, state</text>
+
+  <path d="M750 270 H786" stroke="#83b7ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M786 304 H750" stroke="#83b7ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="747" y="346" class="small">ws://127.0.0.1:18765</text>
+
+  <rect x="506" y="368" width="244" height="124" rx="10" fill="#172d3a" stroke="#5ec9aa"/>
+  <text x="528" y="399" class="head">Bridge</text>
+  <text x="528" y="425" class="code">UWebUIBridgeSubsystem</text>
+  <text x="528" y="449" class="small">World tick + JSON contract</text>
+  <text x="528" y="471" class="small">OnCommand / SendEvent</text>
+
+  <rect x="786" y="368" width="300" height="124" rx="10" fill="#172d3a" stroke="#5ec9aa"/>
+  <text x="808" y="399" class="head">Native transport</text>
+  <text x="808" y="425" class="code">FWebUIWebSocketServer</text>
+  <text x="808" y="449" class="small">RFC 6455 text frames</text>
+  <text x="808" y="471" class="small">loopback only; browser masking</text>
+
+  <path d="M628 322 V368" stroke="#83b7ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M964 322 V368" stroke="#83b7ff" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="506" y="518" width="580" height="38" rx="8" fill="#0d1828"/>
+  <text x="528" y="543" class="code">{ type: "command", command: "ping", payload: {...} }</text>
+
+  <rect x="52" y="620" width="1096" height="86" class="test"/>
+  <text x="78" y="651" class="head">Validation / guardrails</text>
+  <text x="78" y="679" class="body">AuraEditor Win64 Development build passed  •  AuraServer Win64 Development build passed  •  HTML placeholder/WebSocket checks passed</text>
+  <text x="78" y="700" class="small">Dedicated-server worlds do not create the bridge; the page is staged as non-UFS for packaged file loading; existing UMG remains unchanged.</text>
+</svg>

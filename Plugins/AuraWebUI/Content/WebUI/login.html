@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aura Login</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, Segoe UI, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: #eef4ff; background: radial-gradient(circle at 20% 10%, #263d6c 0, transparent 42%), #080d18; }
+    main { min-height: 100vh; display: grid; place-items: center; padding: 28px; }
+    .panel { width: min(560px, 100%); padding: 34px; border: 1px solid #34486c; border-radius: 22px; background: rgba(16, 26, 48, .94); box-shadow: 0 24px 80px #0009; }
+    h1 { margin: 0 0 8px; font-size: 34px; letter-spacing: .02em; }
+    .subtitle { margin: 0 0 28px; color: #a9b9d8; }
+    label { display: block; margin: 0 0 9px; color: #c8d6f2; font-weight: 700; }
+    select, button { width: 100%; min-height: 46px; border: 0; border-radius: 10px; font: inherit; }
+    select { padding: 0 13px; color: #eef4ff; background: #0b1427; border: 1px solid #3c527a; }
+    button { margin-top: 18px; color: #07101d; background: #83b7ff; cursor: pointer; font-weight: 800; }
+    button:disabled { cursor: wait; opacity: .55; }
+    .status { min-height: 24px; margin-top: 20px; color: #a9b9d8; }
+    .status.error { color: #ff9eae; }
+    .status.ok { color: #71e4ad; }
+    .connection { display: flex; align-items: center; gap: 8px; margin-top: 20px; color: #93a5c9; font-size: 13px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #eb667c; }
+    .dot.online { background: #62dfa3; }
+    .hint { margin-top: 24px; color: #7184aa; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="panel" aria-labelledby="title">
+      <h1 id="title">Enter Aura</h1>
+      <p class="subtitle">Choose a world, then connect to its dedicated server.</p>
+      <label for="levels">Server level</label>
+      <select id="levels" aria-label="Server level"></select>
+      <button id="connect" type="button">Connect</button>
+      <div id="status" class="status" role="status" aria-live="polite">Loading available servers...</div>
+      <div class="connection"><span id="dot" class="dot"></span><span id="connection">Connecting to native UI bridge...</span></div>
+      <div class="hint">The Login page uses the local in-game Web UI bridge. Your existing server selection and travel flow remains native.</div>
+    </section>
+  </main>
+  <script>
+    const socketUrl = "__AURA_WEBSOCKET_URL__";
+    const levels = document.getElementById('levels');
+    const connectButton = document.getElementById('connect');
+    const status = document.getElementById('status');
+    const connection = document.getElementById('connection');
+    const dot = document.getElementById('dot');
+    let socket;
+    let selectedLevelId = '';
+
+    function setStatus(message, kind = '') {
+      status.textContent = message || '';
+      status.className = `status ${kind}`.trim();
+    }
+
+    function command(name, payload = {}) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'command', command: name, payload }));
+      }
+    }
+
+    function renderState(payload = {}) {
+      const entries = Array.isArray(payload.levels) ? payload.levels : [];
+      const previous = payload.selectedLevelId || selectedLevelId;
+      levels.replaceChildren();
+      entries.forEach(entry => {
+        const option = document.createElement('option');
+        option.value = entry.levelId || '';
+        option.textContent = `${entry.displayName || entry.levelId}  (${entry.port || 'auto'})`;
+        levels.appendChild(option);
+      });
+      if (entries.length) {
+        const preferred = entries.some(entry => entry.levelId === previous) ? previous : entries[0].levelId;
+        levels.value = preferred;
+        selectedLevelId = preferred;
+        connectButton.disabled = Boolean(payload.connecting);
+      } else {
+        selectedLevelId = '';
+        connectButton.disabled = true;
+        setStatus('No dedicated server levels are configured.', 'error');
+      }
+      if (payload.status) setStatus(payload.status);
+    }
+
+    function connect() {
+      socket = new WebSocket(socketUrl);
+      socket.onopen = () => {
+        dot.classList.add('online');
+        connection.textContent = 'Connected to native UI bridge';
+        command('ready');
+      };
+      socket.onclose = () => {
+        dot.classList.remove('online');
+        connection.textContent = 'Disconnected; retrying...';
+        setTimeout(connect, 1000);
+      };
+      socket.onerror = () => { connection.textContent = 'UI bridge connection error'; };
+      socket.onmessage = event => {
+        const message = JSON.parse(event.data);
+        if (message.event === 'login_state') renderState(message.payload);
+        if (message.event === 'login_status') setStatus(message.payload?.message || '');
+        if (message.event === 'bridge_ready') command('get_state');
+      };
+    }
+
+    levels.addEventListener('change', () => {
+      selectedLevelId = levels.value;
+      command('login_select_level', { levelId: selectedLevelId });
+    });
+
+    connectButton.addEventListener('click', () => {
+      if (!selectedLevelId) return;
+      connectButton.disabled = true;
+      setStatus('Starting connection...', 'ok');
+      command('login_connect', { levelId: selectedLevelId });
+    });
+
+    connect();
+  </script>
+</body>
+</html>

@@ -9,8 +9,7 @@
 class UServerTravelComponent;
 class UAuraGameInstance;
 class UGameServerClient;
-class UUserWidget;
-class UTextBlock;
+class UWebUIWidget;
 
 /**
  * Player controller used by the intermediate Loading level.
@@ -39,10 +38,12 @@ protected:
 private:
 	void EnsureLoadingWidget();
 	void DestroyLoadingWidget();
-	void BindLoadingTipsText();
 	void SetLoadingProgressTarget(float InTargetPercent, const FString& InMessage);
-	void UpdateLoadingTipsText();
+	void SendLoadingProgress();
 	void AdvanceLoadingProgress();
+
+	UFUNCTION()
+	void HandleWebUIConnectionChanged(bool bConnected);
 
 	/** Called by UAuraGameInstance::OnCrossServerTravelReady when the login-flow GSM query resolves. */
 	void OnCrossServerTravelReady(const FString& Endpoint, const FString& PlayerName);
@@ -61,17 +62,9 @@ private:
 	UPROPERTY()
 	TObjectPtr<UGameServerClient> GameServerClient;
 
-	/** Widget displayed while the Loading level is active. */
-	UPROPERTY(EditDefaultsOnly, Category = "Loading|UI")
-	TSubclassOf<UUserWidget> LoadingWidgetClass;
-
-	/** Runtime instance of the Loading widget. */
+	/** Web UI displayed while the Loading level is active. */
 	UPROPERTY()
-	TObjectPtr<UUserWidget> LoadingWidget;
-
-	/** Optional text block named TipsText inside WBP_LoadingUI. */
-	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> TipsTextBlock;
+	TObjectPtr<UWebUIWidget> LoadingWidget;
 
 	FTimerHandle LoadingProgressTimerHandle;
 	float LoadingDisplayedPercent = 0.f;

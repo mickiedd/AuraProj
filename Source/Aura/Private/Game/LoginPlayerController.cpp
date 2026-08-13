@@ -3,7 +3,6 @@
 #include "Game/LoginPlayerController.h"
 #include "Game/GameServerClient.h"
 #include "Game/ServerTravelComponent.h"
-#include "UObject/SoftObjectPath.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "HAL/PlatformProcess.h"
@@ -17,26 +16,13 @@
 #include "Game/AuraGameInstance.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
-#include "UI/Widget/LoginConnectingWidget.h"
-#include "UI/Widget/LoginMenuWidget.h"
+#include "UI/WebUI/WebUIBridgeSubsystem.h"
+#include "UI/WebUI/WebUIWidget.h"
 
 ALoginPlayerController::ALoginPlayerController()
 {
 	ServerTravelComponent = CreateDefaultSubobject<UServerTravelComponent>(TEXT("ServerTravelComponent"));
 
-	// Use a native fallback so connection status can always render.
-	ConnectingWidgetClass = ULoginConnectingWidget::StaticClass();
-
-	// Prefer the dedicated login menu widget on the Login map unless overridden in BP.
-	const FSoftClassPath DefaultLoginScreenPath(TEXT("/Game/Blueprints/UI/LoginMenu/WBP_LoginMenu.WBP_LoginMenu_C"));
-	if (UClass* DefaultLoginScreenClass = DefaultLoginScreenPath.TryLoadClass<ULoginMenuWidget>())
-	{
-		LoginScreenWidgetClass = DefaultLoginScreenClass;
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Default WBP_LoginMenu must inherit ULoginMenuWidget to be used as LoginScreenWidgetClass"));
-	}
 }
 
 void ALoginPlayerController::BeginPlay()
@@ -44,12 +30,11 @@ void ALoginPlayerController::BeginPlay()
 	Super::BeginPlay();
 	LoadServerConnectionFromJson();
 
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: PC=%s Local=%d AutoConnect=%d Attempted=%d WidgetClass=%s World=%s"),
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] BeginPlay: PC=%s Local=%d AutoConnect=%d Attempted=%d World=%s"),
 		*GetNameSafe(this),
 		IsLocalPlayerController() ? 1 : 0,
 		bAutoConnectToServer ? 1 : 0,
 		bConnectionAttempted ? 1 : 0,
-		*GetNameSafe(ConnectingWidgetClass),
 		*GetNameSafe(GetWorld()));
 
 	if (IsLocalPlayerController())
@@ -60,7 +45,13 @@ void ALoginPlayerController::BeginPlay()
 			ServerTravelComponent->OnStatusMessage.RemoveAll(this);
 			ServerTravelComponent->OnStatusMessage.AddUObject(this, &ALoginPlayerController::HandleServerTravelStatusMessage);
 		}
-		EnsureLoginScreenWidget();
+		LoadLoginServerTargets();
+		EnsureLoginWebUIWidget();
+		if (AvailableLoginServerTargets.IsEmpty())
+		{
+			UpdateConnectingStatus(TEXT("No dedicated server levels are configured in LevelConfig.json."));
+		}
+		SendLoginState();
 		SurfacePendingServerLostMessage();
 		TryAutoLoginFromCommandLine();
 	}
@@ -80,7 +71,7 @@ void ALoginPlayerController::OnPossess(APawn* InPawn)
 
 	if (IsLocalPlayerController())
 	{
-		EnsureLoginScreenWidget();
+		EnsureLoginWebUIWidget();
 	}
 
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] OnPossess: manual connect mode ready (Local=%d)"),
@@ -89,10 +80,8 @@ void ALoginPlayerController::OnPossess(APawn* InPawn)
 
 void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] EndPlay: reason=%d waiting=%d widget=%s"),
-		static_cast<int32>(EndPlayReason),
-		0,
-		*GetNameSafe(ConnectingWidget));
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] EndPlay: reason=%d"),
+		static_cast<int32>(EndPlayReason));
 
 	bQueryingGameServer = false;
 	if (IsValid(ServerTravelComponent))
@@ -100,65 +89,248 @@ void ALoginPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		ServerTravelComponent->OnStatusMessage.RemoveAll(this);
 	}
 
-	if (ConnectingWidget && IsValid(ConnectingWidget))
-	{
-		ConnectingWidget->RemoveFromParent();
-		ConnectingWidget = nullptr;
-	}
-
-	if (LoginScreenWidget && IsValid(LoginScreenWidget))
-	{
-		LoginScreenWidget->RemoveFromParent();
-		LoginScreenWidget = nullptr;
-	}
+	DestroyLoginWebUIWidget();
 
 	Super::EndPlay(EndPlayReason);
 }
 
-void ALoginPlayerController::EnsureLoginScreenWidget()
+void ALoginPlayerController::EnsureLoginWebUIWidget()
 {
 	if (!IsLocalPlayerController())
 	{
 		return;
 	}
 
-	if (LoginScreenWidget && IsValid(LoginScreenWidget))
+	if (LoginWebUIWidget && IsValid(LoginWebUIWidget))
 	{
 		return;
 	}
 
-	if (!LoginScreenWidgetClass)
+	LoginWebUIWidget = CreateWidget<UWebUIWidget>(this, UWebUIWidget::StaticClass());
+	if (!LoginWebUIWidget)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] LoginScreenWidgetClass is null, Login level UI will not be shown"));
+		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Failed to create AuraWebUI Login widget"));
 		return;
 	}
 
-	LoginScreenWidget = CreateWidget<ULoginMenuWidget>(this, LoginScreenWidgetClass);
-	if (!LoginScreenWidget)
+	LoginWebUIWidget->HtmlAssetPath = TEXT("WebUI/login.html");
+	if (UWorld* World = GetWorld())
 	{
-		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Failed to create Login screen widget from class %s"), *GetNameSafe(LoginScreenWidgetClass));
-		return;
+		if (UWebUIBridgeSubsystem* Bridge = World->GetSubsystem<UWebUIBridgeSubsystem>())
+		{
+			Bridge->OnCommand.AddDynamic(this, &ALoginPlayerController::HandleWebUICommand);
+			Bridge->OnConnectionChanged.AddDynamic(this, &ALoginPlayerController::HandleWebUIConnectionChanged);
+		}
 	}
-
-	LoginScreenWidget->AddToViewport(0);
+	LoginWebUIWidget->AddToViewport(0);
 
 	bShowMouseCursor = true;
 	FInputModeUIOnly InputMode;
-	InputMode.SetWidgetToFocus(LoginScreenWidget->TakeWidget());
+	InputMode.SetWidgetToFocus(LoginWebUIWidget->TakeWidget());
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetInputMode(InputMode);
 
-	if (!LoginScreenWidget->InitializeForPlayerController(this))
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] AuraWebUI Login page created and shown"));
+}
+
+void ALoginPlayerController::DestroyLoginWebUIWidget()
+{
+	if (UWorld* World = GetWorld())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Login menu widget initialization did not fully bind required UI controls"));
+		if (UWebUIBridgeSubsystem* Bridge = World->GetSubsystem<UWebUIBridgeSubsystem>())
+		{
+			Bridge->OnCommand.RemoveDynamic(this, &ALoginPlayerController::HandleWebUICommand);
+			Bridge->OnConnectionChanged.RemoveDynamic(this, &ALoginPlayerController::HandleWebUIConnectionChanged);
+		}
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Login screen widget created and shown: %s"), *GetNameSafe(LoginScreenWidget));
+	if (LoginWebUIWidget && IsValid(LoginWebUIWidget))
+	{
+		LoginWebUIWidget->RemoveFromParent();
+	}
+	LoginWebUIWidget = nullptr;
 }
 
 void ALoginPlayerController::ShowLoginMenuStatusMessage(const FString& InMessage)
 {
 	UpdateConnectingStatus(InMessage);
+}
+
+void ALoginPlayerController::SendLoginStatus(const FString& InMessage)
+{
+	LoginStatusMessage = InMessage;
+	if (UWorld* World = GetWorld())
+	{
+		if (UWebUIBridgeSubsystem* Bridge = World->GetSubsystem<UWebUIBridgeSubsystem>())
+		{
+			TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+			Payload->SetStringField(TEXT("message"), LoginStatusMessage);
+			FString PayloadJson;
+			const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&PayloadJson);
+			FJsonSerializer::Serialize(Payload, Writer);
+			Writer->Close();
+			Bridge->SendEvent(TEXT("login_status"), PayloadJson);
+		}
+	}
+}
+
+void ALoginPlayerController::SendLoginState()
+{
+	if (UWorld* World = GetWorld())
+	{
+		if (UWebUIBridgeSubsystem* Bridge = World->GetSubsystem<UWebUIBridgeSubsystem>())
+		{
+			TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+			Payload->SetStringField(TEXT("selectedLevelId"), SelectedLevelId);
+			Payload->SetStringField(TEXT("status"), LoginStatusMessage);
+			Payload->SetBoolField(TEXT("connecting"), bQueryingGameServer || bConnectionAttempted);
+
+			TArray<TSharedPtr<FJsonValue>> Levels;
+			for (const FLoginServerTarget& Target : AvailableLoginServerTargets)
+			{
+				TSharedRef<FJsonObject> Level = MakeShared<FJsonObject>();
+				Level->SetStringField(TEXT("displayName"), Target.DisplayName);
+				Level->SetStringField(TEXT("levelId"), Target.LevelId);
+				Level->SetNumberField(TEXT("port"), Target.ServerPort);
+				Levels.Add(MakeShared<FJsonValueObject>(Level));
+			}
+			Payload->SetArrayField(TEXT("levels"), Levels);
+
+			FString PayloadJson;
+			const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&PayloadJson);
+			FJsonSerializer::Serialize(Payload, Writer);
+			Writer->Close();
+			Bridge->SendEvent(TEXT("login_state"), PayloadJson);
+		}
+	}
+}
+
+void ALoginPlayerController::HandleWebUIConnectionChanged(bool bConnected)
+{
+	if (bConnected)
+	{
+		SendLoginState();
+		if (!LoginStatusMessage.IsEmpty())
+		{
+			SendLoginStatus(LoginStatusMessage);
+		}
+	}
+}
+
+void ALoginPlayerController::HandleWebUICommand(const FString& Command, const FString& PayloadJson)
+{
+	if (Command == TEXT("get_state"))
+	{
+		SendLoginState();
+		return;
+	}
+
+	if (Command != TEXT("login_select_level") && Command != TEXT("login_connect"))
+	{
+		return;
+	}
+
+	TSharedPtr<FJsonObject> Payload;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(PayloadJson);
+	if (!FJsonSerializer::Deserialize(Reader, Payload) || !Payload.IsValid())
+	{
+		UpdateConnectingStatus(TEXT("The Login page sent an invalid request."));
+		return;
+	}
+
+	FString LevelId;
+	Payload->TryGetStringField(TEXT("levelId"), LevelId);
+	const FLoginServerTarget* Target = FindLoginServerTarget(LevelId);
+	if (!Target)
+	{
+		UpdateConnectingStatus(TEXT("Select a valid server level before connecting."));
+		return;
+	}
+
+	if (Command == TEXT("login_select_level"))
+	{
+		HandleLoginMenuSelectionChanged(Target->DisplayName, Target->LevelId, Target->ServerPort);
+	}
+	else
+	{
+		RequestLoginMenuConnect(Target->DisplayName, Target->LevelId, Target->ServerPort);
+	}
+}
+
+bool ALoginPlayerController::LoadLoginServerTargets()
+{
+	AvailableLoginServerTargets.Reset();
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("LevelConfig.json"));
+	FString JsonContent;
+	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to read level config file: %s"), *ConfigPath);
+		return false;
+	}
+
+	TSharedPtr<FJsonObject> RootObject;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
+	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] Failed to parse level config JSON: %s"), *ConfigPath);
+		return false;
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* LevelsArray = nullptr;
+	if (!RootObject->TryGetArrayField(TEXT("levels"), LevelsArray) || !LevelsArray)
+	{
+		return false;
+	}
+
+	for (const TSharedPtr<FJsonValue>& LevelValue : *LevelsArray)
+	{
+		const TSharedPtr<FJsonObject>* LevelObject = nullptr;
+		if (!LevelValue.IsValid() || !LevelValue->TryGetObject(LevelObject) || !LevelObject || !LevelObject->IsValid())
+		{
+			continue;
+		}
+
+		FLoginServerTarget Target;
+		if (!(*LevelObject)->TryGetStringField(TEXT("displayName"), Target.DisplayName) || Target.DisplayName.IsEmpty())
+		{
+			continue;
+		}
+		(*LevelObject)->TryGetStringField(TEXT("id"), Target.LevelId);
+		if (Target.LevelId.IsEmpty())
+		{
+			Target.LevelId = Target.DisplayName;
+		}
+		(*LevelObject)->TryGetStringField(TEXT("mapPath"), Target.MapPath);
+		double PortValue = 0.0;
+		if ((*LevelObject)->TryGetNumberField(TEXT("port"), PortValue))
+		{
+			Target.ServerPort = static_cast<int32>(PortValue);
+		}
+		double QueryPortValue = 0.0;
+		if ((*LevelObject)->TryGetNumberField(TEXT("queryPort"), QueryPortValue))
+		{
+			Target.QueryPort = static_cast<int32>(QueryPortValue);
+		}
+		if (Target.ServerPort >= 1 && Target.ServerPort <= 65535)
+		{
+			AvailableLoginServerTargets.Add(Target);
+		}
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Loaded %d Login server targets for Web UI"), AvailableLoginServerTargets.Num());
+	return !AvailableLoginServerTargets.IsEmpty();
+}
+
+const ALoginPlayerController::FLoginServerTarget* ALoginPlayerController::FindLoginServerTarget(const FString& LevelId) const
+{
+	for (const FLoginServerTarget& Target : AvailableLoginServerTargets)
+	{
+		if (Target.LevelId.Equals(LevelId, ESearchCase::IgnoreCase))
+		{
+			return &Target;
+		}
+	}
+	return nullptr;
 }
 
 void ALoginPlayerController::SurfacePendingServerLostMessage()
@@ -172,8 +344,7 @@ void ALoginPlayerController::SurfacePendingServerLostMessage()
 	const FString Message = GI->PendingServerLostMessage;
 	GI->ClearPendingServerLostMessage();
 
-	// Show it in the bottom-right connecting-status widget (non-blocking; the login menu stays usable).
-	EnsureConnectingWidget();
+	// Show it in the Login page status region; the level selector remains usable.
 	ShowLoginMenuStatusMessage(Message);
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Surfacing mid-game server-lost message on Login screen: %s"), *Message);
 }
@@ -196,6 +367,7 @@ void ALoginPlayerController::HandleLoginMenuSelectionChanged(const FString& Sele
 	SelectedFallbackPort = FallbackPort;
 	ServerPort = FallbackPort;
 	UpdateConnectingStatus(FString::Printf(TEXT("Selected server: %s (%s)"), *SelectedDisplayName, *BuildServerEndpoint()));
+	SendLoginState();
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Selected server target: %s -> levelId=%s fallbackPort=%d"),
 		*SelectedDisplayName, *InSelectedLevelId, FallbackPort);
 }
@@ -209,7 +381,6 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 
 	if (SelectedDisplayName.IsEmpty() || InSelectedLevelId.IsEmpty() || FallbackPort < 1 || FallbackPort > 65535)
 	{
-		EnsureConnectingWidget();
 		UpdateConnectingStatus(TEXT("Select a level before connecting."));
 		return;
 	}
@@ -223,6 +394,7 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 	// Update SelectedLevelId, SelectedFallbackPort, and ServerPort before we capture anything.
 	HandleLoginMenuSelectionChanged(SelectedDisplayName, InSelectedLevelId, FallbackPort);
 	bConnectionAttempted = true;
+	SendLoginState();
 
 	// Capture all values needed in the GSM callback BY VALUE before any level transition.
 	// 'this' (LoginPlayerController) is destroyed when the Loading level finishes loading,
@@ -232,7 +404,6 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 	const FName ResolvedRole = ResolveRequestedRole(RoleError);
 	if (ResolvedRole.IsNone())
 	{
-		EnsureConnectingWidget();
 		UpdateConnectingStatus(RoleError);
 		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Role validation failed before connect: %s"), *RoleError);
 		return;
@@ -323,31 +494,6 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 		}));
 }
 
-void ALoginPlayerController::EnsureConnectingWidget()
-{
-	if (ConnectingWidget && IsValid(ConnectingWidget))
-	{
-		return;
-	}
-
-	if (!ConnectingWidgetClass)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] ConnectingWidgetClass is null, no UI status will be shown"));
-		return;
-	}
-
-	ConnectingWidget = CreateWidget<ULoginConnectingWidget>(this, ConnectingWidgetClass);
-	if (!ConnectingWidget)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Failed to create connecting widget from class %s"), *GetNameSafe(ConnectingWidgetClass));
-		return;
-	}
-
-	ConnectingWidget->AddToViewport(1);
-	ConnectingWidget->ShowConnecting(BuildConnectingStatusMessage());
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] connecting widget created and shown: %s"), *GetNameSafe(ConnectingWidget));
-}
-
 void ALoginPlayerController::ExecuteClientConnect()
 {
 	const FString ServerEndpoint = BuildServerEndpoint();
@@ -365,7 +511,6 @@ void ALoginPlayerController::ExecuteClientConnect()
 			return;
 		}
 
-		EnsureConnectingWidget();
 		UpdateConnectingStatus(BuildConnectingStatusMessage());
 
 		// Execute the travel command to connect to the dedicated server
@@ -409,7 +554,6 @@ void ALoginPlayerController::OnGameServerResponse(const FGameServerResponse& Res
 		UE_LOG(LogTemp, Display, TEXT("[LoginConn] Game server assigned DS at %s:%d for levelId='%s'"),
 			*ServerAddress, ServerPort, *SelectedLevelId);
 
-		EnsureConnectingWidget();
 		ExecuteClientConnect();
 	}
 	else
@@ -427,7 +571,6 @@ void ALoginPlayerController::OnGameServerResponse(const FGameServerResponse& Res
 				TEXT("Game server unavailable (%s). Connecting with fixed port %d..."),
 				*Response.ErrorMessage, SelectedFallbackPort);
 
-			EnsureConnectingWidget();
 			UpdateConnectingStatus(FallbackMsg);
 			ExecuteClientConnect();
 		}
@@ -436,7 +579,6 @@ void ALoginPlayerController::OnGameServerResponse(const FGameServerResponse& Res
 			UE_LOG(LogTemp, Error,
 				TEXT("[LoginConn] Game server query failed and no valid fallback port: %s"), *Response.ErrorMessage);
 
-			EnsureConnectingWidget();
 			UpdateConnectingStatus(FString::Printf(
 				TEXT("Could not reach game server: %s"), *Response.ErrorMessage));
 		}
@@ -651,22 +793,17 @@ FString ALoginPlayerController::BuildConnectingStatusMessage() const
 	return FString::Printf(TEXT("Connecting to %s..."), *ServerEndpoint);
 }
 
-void ALoginPlayerController::UpdateConnectingStatus(const FString& InMessage) const
+void ALoginPlayerController::UpdateConnectingStatus(const FString& InMessage)
 {
-	if (ConnectingWidget && IsValid(ConnectingWidget))
-	{
-		ConnectingWidget->ShowConnecting(InMessage);
-		UE_LOG(LogTemp, Display, TEXT("[LoginConn] status updated on widget: %s"), *InMessage);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[LoginConn] status update requested but ConnectingWidget is invalid. Message=%s"), *InMessage);
+	LoginStatusMessage = InMessage;
+	EnsureLoginWebUIWidget();
+	SendLoginStatus(InMessage);
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] status updated on Login Web UI: %s"), *InMessage);
 
-		if (GEngine && IsLocalPlayerController())
-		{
-			const uint64 MessageKey = static_cast<uint64>(reinterpret_cast<UPTRINT>(this));
-			GEngine->AddOnScreenDebugMessage(MessageKey, 6.0f, FColor::Yellow, InMessage);
-		}
+	if (GEngine && IsLocalPlayerController())
+	{
+		const uint64 MessageKey = static_cast<uint64>(reinterpret_cast<UPTRINT>(this));
+		GEngine->AddOnScreenDebugMessage(MessageKey, 6.0f, FColor::Yellow, InMessage);
 	}
 }
 
@@ -683,7 +820,7 @@ void ALoginPlayerController::TryAutoLoginFromCommandLine()
 	FString RequestedLevelId;
 	if (!FParse::Value(CmdLine, TEXT("AutoLoginLevel="), RequestedLevelId))
 	{
-		// No auto-login requested — the normal WBP_LoginMenu flow is fully in charge.
+		// No auto-login requested — the normal Login Web UI flow is fully in charge.
 		return;
 	}
 
