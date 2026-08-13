@@ -1,6 +1,6 @@
 # Data-Driven GAS Rewrite — Implementation Status
 
-> **STATUS: IMPLEMENTED.** This document was originally a pre-implementation plan. The system is now built and compiling on UE 5.5. This document has been updated to reflect the actual implementation, including the GameplayEffect data-driven rewrite that eliminated all GE UAsset dependencies.
+> **STATUS: CORE IMPLEMENTED; MIGRATION CLEANUP IN PROGRESS.** This document was originally a pre-implementation plan. The data-driven runtime is built and compiling on UE 5.5; enemy legacy-asset/source cleanup, optional projectile conversion, passive migration, and final verification remain tracked separately.
 
 > **Audience:** developers maintaining or extending the data-driven ability system. File:line references are to the current working tree.
 
@@ -429,7 +429,7 @@ Added to `AuraGameplayTags.cpp`:
 - `Attributes.Vital.Health` — SetByCaller tag for direct Health modification (pickup GEs)
 - `Attributes.Vital.Mana` — SetByCaller tag for direct Mana modification (pickup GEs)
 
-### 8.8 GE application call sites (all converted to C++ GEs)
+### 8.8 GE application call sites (data-driven path status)
 
 | Call site | Before | After |
 |---|---|---|
@@ -484,12 +484,14 @@ The AuraAbilityGraph editor (WebView2-based, launched from the UE toolbar) has f
 - `GetAbilityTagFromSpec` / `GetInputTagFromSpec` updated to scan `DynamicAbilityTags`
 - `FaceTarget` node added (not in original plan — improves ability aiming)
 
-### Phase 3 — Port remaining player abilities ⬜ NOT STARTED
-- ArcaneShards, FireBlast, Electrocute, Passives still use legacy BP abilities
+### Phase 3 — Port remaining player abilities ✅ COMPLETE (2026-07-30)
+- ArcaneShards, FireBlast, and Electrocute are defined in `Content/AbilityDefinitions/` and granted through `RoleConfig.json`.
+- Passive abilities remain intentionally outside the action-graph migration because they are passive GameplayEffect archetypes; see the future passive phase in `Docs/Tracking/GAS-Migration-TODOs.md`.
 
-### Phase 4 — Enemy abilities + cleanup ⬜ NOT STARTED
-- Enemy abilities still use legacy BPs
-- Legacy `GE_Cost_*` / `GE_Cooldown_*` BPs still on disk (dead code for DataAbility path)
+### Phase 4 — Enemy abilities + cleanup 🟨 IN PROGRESS (2026-08-03)
+- Four enemy XML definitions, native graph nodes, class-based `EnemyAbilityConfig.json` grants, and focused validation tests are implemented.
+- Legacy enemy ability packages and other replaced Blueprint assets remain on disk until Asset Registry, reload, automation, and gameplay reference gates pass.
+- Source cleanup and final verification remain tracked in `Docs/Tracking/GAS-Migration-TODOs.md`.
 
 ### Phase 5 — GameplayEffect UAsset elimination ✅ DONE
 - `UAuraDamageGameplayEffect` replaces `GE_Damage` BP
@@ -498,30 +500,30 @@ The AuraAbilityGraph editor (WebView2-based, launched from the UE toolbar) has f
 - `UAuraManaCostGameplayEffect` + `UAuraCooldownGameplayEffect` replace per-ability cost/cooldown BPs
 - `GameplayEffects.json` configures all default values
 - Web editor GE Config tab implemented
-- All 15 GE application call sites converted to C++ GEs (one legacy path remains: `AuraDamageGameplayAbility::CauseDamage`)
+- Migrated GE application call sites use the shared C++ GE classes; `AuraDamageGameplayAbility::CauseDamage` remains as a legacy compatibility path pending final source cleanup.
 
 ### Phase 6 (optional, future) — Projectile data-driven ⬜ NOT STARTED
-Move projectile mesh/FX/impact params into a data asset so `BP_FireBolt`/`BP_AuraBullet`/`BP_FireBall` also disappear.
+Move projectile mesh/FX/impact params into a data asset so `BP_FireBolt`/`BP_FireBall` also disappear. `BP_AuraBullet` has already been removed; the remaining projectile work is optional and tracked separately.
 
 ---
 
 ## 11. Known issues
 
-1. **PlayMontage delegates not wired** — `UPlayMontageTask::OnStart` creates `PlayMontageAndWait` but doesn't bind `OnInterrupted`/`OnCompleted`. If the montage is interrupted before the gameplay event fires, the graph hangs in `Running`. `OnMontageInterrupted` exists on `UAuraDataAbility` but is never called from C++.
+1. **PlayMontage interruption handling** — RESOLVED. `PlayMontageNode` binds interruption/blend-out callbacks and the data ability guards late callbacks before failing/ending the graph.
 2. **Dead declarations (resolved 2026-08-03)** — removed the unused `CreateNodeByClassName` and `BuildAndExecuteGraph` declarations; the XML loader keeps its file-local registry helper.
 3. **Unused XML properties (resolved 2026-08-03)** — removed the ignored `TargetFromContext` and `ScatterRadius` properties from runtime/editor schemas, authored definitions, smoke fixtures, and documentation. Target actions continue to use `Ctx.CursorHit`; hitscan remains a straight line trace.
 4. **Smoke-test coverage (resolved 2026-08-03)** — `SmokeTest_NodeRegistry` validates all concrete registrations and rejects unknown names; `SmokeTest_SequenceExecution` parses and executes a real two-child sequence.
 5. **GC** — `AbilityDefinition.h` `Montage` and `DamageEffectClass` have no UPROPERTY on the Transient UObject.
-6. **SourceObject replication** — `FGameplayAbilitySpec::SourceObject` doesn't replicate. Clients may get null from `GetDefinition()`. Needs a fallback (DA_AbilityInfo lookup by tag) for multiplayer.
-7. **Binary/cache files in git** — 162 WebView2UserData cache files + .exe/.pdb committed to git. Need .gitignore cleanup.
-8. **Server security** — `ability_graph_server.py` `/load` and `/save` endpoints have path traversal vulnerabilities. Server binds to `0.0.0.0` instead of `127.0.0.1`.
+6. **SourceObject replication** — RESOLVED. Clients use the process-lifetime ability-definition registry keyed by replicated dynamic ability tags when `SourceObject` is null.
+7. **Binary/cache files in git** — RESOLVED. Launcher artifacts were removed from tracking and WebView2 cache/build outputs are ignored.
+8. **Server security** — RESOLVED. The editor server binds to loopback and confines file access to project/plugin Content roots.
 
 ---
 
 ## 12. Verification
 
 - **Build:** `"/d/UE_5.5/Engine/Build/BatchFiles/Build.bat" Aura Win64 Development -Project="..." -WaitMutex` — EXIT_CODE=0, no compile errors, only pre-existing deprecation warnings.
-- **Smoke test:** console command `AuraAbilityGraph.SmokeTest` runs 7 tests (XML parsing, node registry, sequence execution, cooldown extraction, FireBolt/FireGun migration, role definition loading).
+- **Smoke test:** the AuraAbilityGraph smoke suite reports 22 checks with 0 failures (verified 2026-08-04), covering XML parsing, node registration, sequence execution, cooldown extraction, player/enemy migration, role/config loading, and regression guards.
 - **PIE:** `defaultRole: BungeeMan`; press LMB; confirm bullet spawns, damage applies, cooldown gates, FX replicate.
 - **GE Config:** open the web editor GE Config tab, modify values, save, verify `Content/Config/GameplayEffects.json` updated.
 
@@ -538,7 +540,7 @@ Move projectile mesh/FX/impact params into a data asset so `BP_FireBolt`/`BP_Aur
 - `Plugins/AuraAbilityGraph/Editor/` — web editor (HTML/JS/Python)
 - `Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/` — Win32 launcher
 - `Content/Config/GameplayEffects.json` — GE config
-- `Content/AbilityDefinitions/FireBolt.xml`, `FireGun.xml` — ability definitions
+- `Content/AbilityDefinitions/FireBolt.xml`, `FireGun.xml`, `ArcaneShards.xml`, `FireBlast.xml`, `Electrocute.xml` — player ability definitions
 
 **Existing files modified:**
 - `Source/Aura/Public/Character/AuraCharacterBase.h` — added `LoadAndApplySecondaryAttributes()`, data-driven definition fields
@@ -559,4 +561,4 @@ Move projectile mesh/FX/impact params into a data asset so `BP_FireBolt`/`BP_Aur
 
 ## 14. One-paragraph summary
 
-The `AuraAbilityGraph` plugin mirrors BehaviorU's XML→transient→registry→node-tree pattern: `UAuraAbilityDefinition` is loaded from XML at runtime as a transient object and holds the ability's tags, cost, cooldown, damage, montage, and action-node tree; `FAuraAbilityNodeRegistry` lets modules register C++ action nodes; `UAuraAbilityActionNode`/`UAuraAbilityActionTask` are the definition/runtime base classes; a single `UAuraDataAbility` drives the node tree on activation, advancing through 11 node types that wrap existing GAS primitives. **All GameplayEffects are now C++ classes + JSON config** — six C++ GE classes (`UAuraDamageGameplayEffect`, `UAuraManaCostGameplayEffect`, `UAuraCooldownGameplayEffect`, `UAuraAttributeGameplayEffect`, `UAuraAttributeGameplayEffect_Infinite`, `UAuraPickupGameplayEffect`) replace every GE UAsset. `GameplayEffects.json` configures attribute defaults, resistances, and pickup effect magnitudes. The web editor has a GE Config tab for editing these values. Two abilities (FireGun, FireBolt) are fully ported and working; the remaining abilities are pending migration. Build passes on UE 5.5.1.
+The `AuraAbilityGraph` plugin mirrors BehaviorU's XML→transient→registry→node-tree pattern: `UAuraAbilityDefinition` is loaded from XML at runtime as a transient object and holds the ability's tags, cost, cooldown, damage, montage, and action-node tree; `FAuraAbilityNodeRegistry` lets modules register C++ action nodes; `UAuraAbilityActionNode`/`UAuraAbilityActionTask` are the definition/runtime base classes; a single `UAuraDataAbility` drives the node tree on activation, advancing through the built-in nodes that wrap existing GAS primitives. **All GameplayEffects are now C++ classes + JSON config** — six C++ GE classes replace every runtime GE UAsset. Five active player abilities (FireGun, FireBolt, ArcaneShards, FireBlast, and Electrocute) are ported to XML. Enemy XML/config migration is implemented, while legacy asset/source cleanup, optional projectile conversion, passive migration, and final verification remain open in `Docs/Tracking/GAS-Migration-TODOs.md`. Build and smoke validation pass on UE 5.5.1.

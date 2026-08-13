@@ -1,5 +1,7 @@
 # Ability Logic Issues — AuraProj
 
+> **Historical catalog — superseded for current status.** This file preserves the original issue investigation. For current open work and regression status, use `Docs/Tracking/GAS-Migration-TODOs.md`. H2, M7, L14, and L18 below were resolved after this catalog was written; M10 and M11 were also resolved. New issues must be added to the canonical tracker first.
+
 Analysis date: 2026-07-29 (initial), 2026-07-29 (updated with GE audit findings)
 Scope: `Plugins/AuraAbilityGraph`, `Source/Aura/AbilitySystem`, `Plugins/AuraAbilityGraph/Editor`
 
@@ -45,10 +47,9 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 #### H1. PlayMontage delegates not wired — FIXED
 - `PlayMontageNode.cpp` now binds `UAbilityTask_PlayMontageAndWait::OnInterrupted` and `OnBlendOut` to `UAuraDataAbility::OnMontageInterrupted` in `OnStart` (before `ReadyForActivation`), so an interrupted/early-blended montage advances the graph with `Failure` and ends the ability instead of hanging in `Running` forever. The `bGraphActive` guard in `OnMontageInterrupted` makes late callbacks (after a normal event-driven completion) a safe no-op. `OnComplete` is intentionally left unbound — completion flows through the `WaitForMontageEvent` node.
 
-#### H2. Inconsistent knockback force direction — UNFIXED
-- `ApplyDamageNode.cpp:67` uses `Direction * KnockbackForceMagnitude` (toward target)
-- `HitscanTraceNode.cpp:96`, `SpawnProjectileNode.cpp:109`, `SpawnProjectilesNode.cpp:135` all use `FVector::UpVector * KnockbackForceMagnitude` (straight up)
-- **Impact**: Hitscan and projectile abilities knock targets upward while direct apply damage knocks them away from the source
+#### H2. Inconsistent knockback force direction — FIXED (2026-08-04)
+- Damage-producing nodes now use the resolved directional impulse for knockback.
+- Regression coverage: `SmokeTest_DamageEffectParams`.
 
 #### H3. `CheckCost` comment claims client bypass but implementation doesn't do it — FIXED
 - `AuraGameplayAbility.cpp` now implements the bypass the header documented: when `!HasAuthority(ActorInfo)` it returns `true` (non-authoritative clients skip the cost check since attributes like Mana may not have replicated yet), and otherwise delegates to `Super::CheckCost`. The server still performs the authoritative check and applies the cost. The contradictory `.cpp` comment is gone.
@@ -69,9 +70,8 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 - `SmokeTest_NodeRegistry` now creates and type-checks all 17 registered node classes, and verifies an unknown name is rejected
 - `SmokeTest_SequenceExecution` now parses a two-child graph, builds the real task tree, executes it, and checks the Success/cleanup result
 
-#### M7. `PlayMontageTask::OnStart` returns `Success` when no montage — UNFIXED
-- `PlayMontageNode.cpp:29` — returns `EAuraAbilityActionStatus::Success` instead of `Failure` when `Definition->Montage` is null
-- **Impact**: Missing montage assets are silently skipped rather than signaling an error
+#### M7. `PlayMontageTask::OnStart` returns `Success` when no montage — FIXED (2026-08-04)
+- Configured montage load failures return `Failure`; an intentionally empty montage remains a successful no-op.
 
 #### M8. `WaitForMontageEventTask` authored-tag validation — FIXED (2026-08-03)
 - Empty or invalid node tags still fail fast before the wait task is created.
@@ -98,9 +98,8 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 #### L13. Hardcoded machine-specific Python path in launcher — FIXED (2026-08-03)
 - Launcher resolves `python.exe`, `python3.exe`, or `py.exe` through Windows `PATH` with `SearchPathW`.
 
-#### L14. `CooldownDuration` doesn't scale from XML — UNFIXED
-- `AbilityDefinition.cpp:138` — `CooldownDuration.Value = FCString::Atof(*DurationStr)` sets only the base value, ignoring the `ScalableFloat` curve
-- **Impact**: Cooldowns don't scale with ability level from XML
+#### L14. `CooldownDuration` doesn't scale from XML — FIXED (2026-08-03)
+- XML cooldown duration is evaluated with `CooldownDuration.GetValueAtLevel(GetAbilityLevel())` before applying the cooldown spec.
 
 #### L15. `FDamageEffectParams::WorldContextObject` never populated — FIXED (2026-08-03)
 - All data-driven damage producers now set `WorldContextObject` to their ability avatar before storing or applying the params
@@ -111,10 +110,8 @@ The ability system is a data-driven, XML-parsed, node-graph architecture:
 #### L17. `MulticastGunFXNode` generic fallback — FIXED (2026-08-03)
 - Non-`AAuraCharacterBase` avatars now receive local emitter/sound FX; avatars without `ICombatInterface` use actor location as the muzzle location.
 
-#### L18. `HitscanTraceNode` — `DeathImpulse` uses trace direction but `KnockbackForce` uses `UpVector` — UNFIXED
-- `HitscanTraceNode.cpp:94` uses `Direction * DeathImpulseMagnitude` (toward target)
-- `HitscanTraceNode.cpp:96` uses `FVector::UpVector * KnockbackForceMagnitude` (straight up)
-- **Impact**: Death impulse and knockback force use different directions for the same hitscan ability
+#### L18. `HitscanTraceNode` — `DeathImpulse` uses trace direction but `KnockbackForce` uses `UpVector` — FIXED (2026-08-04)
+- Hitscan knockback now follows the same directional death impulse used by the hit result.
 
 #### L19. `ApplyDamageNode` always hardcodes `bIsRadialDamage = false` — FIXED (2026-08-03)
 - Removed the redundant radial-default assignments; `FDamageEffectParams` now owns the default non-radial values, while explicitly radial nodes provide their own values
@@ -170,11 +167,11 @@ These issues were found and fixed during the GameplayEffect data-driven rewrite 
 |---|---|---|---|
 | Critical (infrastructure/security) | 3 | 3 (C1, C2, C3) | 0 |
 | High (logic bugs) | 3 | 3 (H1, H2, H3) | 0 |
-| Medium (dead code/unused) | 8 | 0 | 8 |
-| Low (code quality) | 13 | 0 | 12 + L24 removed (incorrect) |
+| Medium (dead code/unused) | 8 | 8 | 0 |
+| Low (code quality) | 13 | 10 | 2 + L24 removed (incorrect) |
 | Fixed (from GE rewrite) | 5 | 5 | 0 |
-| **Total** | **32** | **11** | 20 unfixed + 1 removed + 1 by-design |
+| **Total** | **32** | **29** | 2 historical observations/by-design + 1 removed |
 
-**Fixed in this pass**: C1 (git hygiene), C2 (server security), C3 (SourceObject replication), H1 (PlayMontage delegates), H3 (CheckCost client bypass). H2 (knockback direction) and the Medium/Low items remain open.
+**Fixed in this pass**: C1 (git hygiene), C2 (server security), C3 (SourceObject replication), H1 (PlayMontage delegates), H2 (knockback direction), H3 (CheckCost client bypass), M7 (missing montage behavior), M10/M11 (callback lifecycle), L14 (cooldown scaling), and L18 (hitscan direction).
 
-**Note**: H2 (knockback direction inconsistency) was confirmed but not fixed this pass — it's a data/tuning decision (which direction should be canonical) rather than an obvious bug. L24 was removed (verification refuted it). L12 is by-design, not a bug.
+**Note**: L24 was removed (verification refuted it). L12 is by-design, not a bug. This historical catalog is not an active backlog.

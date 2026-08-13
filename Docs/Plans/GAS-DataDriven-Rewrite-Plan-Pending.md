@@ -1,22 +1,22 @@
 # Data-Driven GAS Rewrite — Pending Phases & Known Issues
 
-> Last verified: 2026-08-03. See `../../.claude/memory/gas-rewrite-pending.md` for the authoritative status.
+> Last synchronized: 2026-08-14. The canonical status is `../../Docs/Tracking/GAS-Migration-TODOs.md`; this file is a compact compatibility summary.
 
-## Phases NOT Started (from Plan §10)
+## Pending and Recently Completed Phases
 
 ### Phase 3 — Port remaining player abilities ✅ COMPLETED (2026-07-30)
 - ArcaneShards, FireBlast, Electrocute ported to XML definitions in `Content/AbilityDefinitions/`
 - Passives (HaloOfProtection, LifeSiphon, ManaSiphon) left as legacy — wrong archetype (passive GE, not action graph)
 - 3 new XML node types added: `SpawnShards`, `ElectrocuteBeam`, + `bSetReturnToOwner` property on `SpawnProjectiles`
 - RoleConfig.json updated: Aura role now has FireBlast, ArcaneShards, Electrocute in `startupAbilityDefinitions`
-- Build passes, full headless smoke suite passes (19/19 on 2026-08-03)
+- Build passes, full headless smoke suite passes (22 checks, 0 failures; verified 2026-08-04)
 
 ### Phase 4 — Enemy abilities + cleanup 🟨 IN PROGRESS (2026-08-03)
-- Four enemy XML definitions, class-based JSON grants, native enemy graph nodes, and focused validation tests are implemented and pass compile-only validation.
+- Four enemy XML definitions, class-based JSON grants, native enemy graph nodes, and focused validation tests are implemented; the current tracker records the parse/config/build gates as complete.
 - Legacy BPs (GA_EnemyFireBolt, GA_RangedAttack, GA_MeleeAttack, GA_HitReact) remain pending Asset Registry, reload, automation, and gameplay gates.
 - Legacy `GE_Cost_*` / `GE_Cooldown_*` BPs still on disk (dead code for DataAbility path)
-- Depends on Phase 3 completing first
-- Remove unused GE Blueprint assets after migration complete
+- Phase 3 is complete; remaining work is Asset Registry/reference/reload/automation/gameplay verification, legacy package removal, and source cleanup.
+- Remove unused GE Blueprint assets after migration gates complete.
 
 ### Phase 6 (optional, future) — Projectile data-driven ⬜ NOT STARTED
 - Move projectile mesh/FX/impact params into a data asset
@@ -26,16 +26,16 @@
 
 ---
 
-## Known Issues — Still Open (verified 2026-08-03)
+## Known Issues — Resolved (verified 2026-08-04)
 
-| # | Issue | Severity | Location |
+| # | Issue | Severity | Resolution |
 |---|-------|----------|----------|
-| H2 | Inconsistent knockback force direction (Direction vs UpVector) | Medium | `ApplyDamageNode`, `HitscanTraceNode`, `SpawnProjectileNode` |
-| M7 | PlayMontage returns Success when no montage | Medium | `PlayMontageNode.cpp:29` |
-| M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | `WaitForMontageEventNode.cpp` |
-| M11 | WaitForTargetData no active-graph check | Medium | `WaitForTargetDataNode.cpp` |
-| L14 | CooldownDuration doesn't scale from XML | Low | `AbilityDefinition.cpp:138` |
-| L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Low | `HitscanTraceNode.cpp` |
+| H2 | Inconsistent knockback force direction | Medium | Directional knockback unified; covered by `SmokeTest_DamageEffectParams` |
+| M7 | PlayMontage missing montage behavior | Medium | Configured load failures return Failure; intentional empty montage remains a no-op |
+| M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | Callback routes through the canonical guarded path |
+| M11 | WaitForTargetData callback lifecycle | Medium | Inactive graph callbacks are ignored; invalid target data fails |
+| L14 | CooldownDuration doesn't scale from XML | Low | Cooldown duration is evaluated at the active ability level |
+| L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Low | Hitscan knockback follows its directional death impulse |
 
 ---
 
@@ -71,6 +71,6 @@
 ## Verification Notes
 - Core architecture: ✅ IMPLEMENTED (Phases 1, 2, 5 complete)
 - Build passes on UE 5.5.1
-- Smoke test: `AuraAbilityGraphSmokeTest` (19 tests, all passing on 2026-08-03)
-- Two abilities fully ported: `FireBolt.xml`, `FireGun.xml` in `Content/AbilityDefinitions/`
-- RoleConfig.json references XML definitions for Aura (FireBolt) and BungeeMan (FireGun)
+- Smoke test: `AuraAbilityGraphSmokeTest` (22 checks, 0 failures; verified 2026-08-04)
+- Five active player abilities are ported: `FireBolt.xml`, `FireGun.xml`, `ArcaneShards.xml`, `FireBlast.xml`, and `Electrocute.xml` in `Content/AbilityDefinitions/`
+- `RoleConfig.json` references the active player XML definitions; `EnemyAbilityConfig.json` references the four enemy definitions

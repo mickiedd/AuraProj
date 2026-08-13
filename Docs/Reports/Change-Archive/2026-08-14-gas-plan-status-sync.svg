@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">GAS plan status synchronization</title>
+  <desc id="desc">Before and after diagram showing stale GAS planning records consolidated around the canonical migration tracker.</desc>
+  <style>
+    .bg { fill: #101827; }
+    .panel { fill: #172338; stroke: #38506f; stroke-width: 2; }
+    .good { fill: #123d36; stroke: #39c6a3; stroke-width: 2; }
+    .warn { fill: #49351a; stroke: #e4aa4f; stroke-width: 2; }
+    .title { fill: #f4f7fb; font: 700 28px Arial, sans-serif; }
+    .head { fill: #ffffff; font: 700 19px Arial, sans-serif; }
+    .body { fill: #d6e0ed; font: 15px Arial, sans-serif; }
+    .small { fill: #a9bad0; font: 13px Arial, sans-serif; }
+    .label { fill: #101827; font: 700 14px Arial, sans-serif; }
+    .arrow { stroke: #7f9fbe; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7f9fbe"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1280" height="720"/>
+  <text class="title" x="48" y="54">GAS planning status synchronization</text>
+  <text class="small" x="48" y="80">2026-08-14 documentation update • current runtime behavior remains unchanged</text>
+
+  <rect class="panel" x="48" y="120" width="350" height="500" rx="14"/>
+  <text class="head" x="76" y="158">Before: conflicting records</text>
+  <rect class="warn" x="76" y="185" width="294" height="92" rx="10"/>
+  <text class="label" x="94" y="212">Implementation plan</text>
+  <text class="body" x="94" y="237">Phase 3: not started</text>
+  <text class="body" x="94" y="258">Only two abilities ported</text>
+  <rect class="warn" x="76" y="299" width="294" height="112" rx="10"/>
+  <text class="label" x="94" y="326">Memory / pending plan</text>
+  <text class="body" x="94" y="351">Phase 4: not started</text>
+  <text class="body" x="94" y="372">H2, M7, L14, L18 open</text>
+  <text class="body" x="94" y="393">Old smoke count: 19</text>
+  <rect class="warn" x="76" y="433" width="294" height="146" rx="10"/>
+  <text class="label" x="94" y="460">Issue catalog</text>
+  <text class="body" x="94" y="485">Historical fixes presented</text>
+  <text class="body" x="94" y="506">as active defects</text>
+  <text class="body" x="94" y="541">No clear canonical owner</text>
+
+  <path class="arrow" d="M420 370 C470 370 470 370 520 370"/>
+  <text class="small" x="430" y="346">synchronize against</text>
+
+  <rect class="good" x="520" y="120" width="710" height="500" rx="14"/>
+  <text class="head" x="550" y="158">After: one current status model</text>
+  <rect class="panel" x="550" y="185" width="650" height="106" rx="10"/>
+  <text class="head" x="574" y="216">Canonical tracker</text>
+  <text class="body" x="574" y="243">GAS-Migration-TODOs.md owns current phase, cleanup,</text>
+  <text class="body" x="574" y="266">verification, and regression status.</text>
+  <rect class="panel" x="550" y="313" width="310" height="142" rx="10"/>
+  <text class="head" x="574" y="344">Completed</text>
+  <text class="body" x="574" y="371">5 player XML abilities</text>
+  <text class="body" x="574" y="394">Phase 5 issue coverage</text>
+  <text class="body" x="574" y="417">Enemy parse/config/build gates</text>
+  <rect class="panel" x="890" y="313" width="310" height="142" rx="10"/>
+  <text class="head" x="914" y="344">Still open</text>
+  <text class="body" x="914" y="371">Legacy asset/source cleanup</text>
+  <text class="body" x="914" y="394">Optional projectile phase</text>
+  <text class="body" x="914" y="417">Passives and final gates</text>
+  <rect class="panel" x="550" y="477" width="650" height="102" rx="10"/>
+  <text class="head" x="574" y="508">Validation</text>
+  <text class="body" x="574" y="535">22 smoke checks / 0 failures recorded; documentation diff checked</text>
+  <text class="small" x="574" y="560">Role/Battle and Blueprint-decoupling schedules remain unchanged.</text>
+</svg>

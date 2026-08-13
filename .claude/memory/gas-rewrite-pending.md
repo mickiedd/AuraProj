@@ -1,8 +1,8 @@
 # GAS Data-Driven Rewrite — Memory: Pending Phases
 
-> Last verified against codebase: 2026-08-03.
-> Core architecture (Phases 1, 2, 5) is **implemented**.
-> This file records only what is **not yet started** and issues that are **still open**.
+> Last synchronized: 2026-08-14.
+> Canonical status tracker: `../../Docs/Tracking/GAS-Migration-TODOs.md`.
+> This memory file is a compact pointer for agents; it records remaining cleanup/future work and completed milestones, not a separate defect ledger.
 
 ---
 
@@ -11,28 +11,27 @@
 | Phase | Description | Status | Notes |
 |-------|-------------|--------|-------|
 | **3** | Port remaining player abilities (ArcaneShards, FireBlast, Electrocute, Passives) | ✅ COMPLETED (2026-07-30) | ArcaneShards, FireBlast, Electrocute ported to XML. Passives left as legacy (wrong archetype — passive GE, not action graph). 3 new node types added: SpawnShards, ElectrocuteBeam, + bSetReturnToOwner on SpawnProjectiles. |
-| **4** | Enemy abilities + cleanup (legacy `GE_Cost_*` / `GE_Cooldown_*` BPs still on disk) | ⬜ NOT STARTED | Depends on Phase 3. Enemy BPs: GA_EnemyFireBolt, GA_RangedAttack, GA_MeleeAttack, GA_HitReact. |
+| **4** | Enemy abilities + cleanup (legacy `GE_Cost_*` / `GE_Cooldown_*` BPs still on disk) | 🟨 IN PROGRESS | Four enemy XML definitions, native nodes, config grants, and focused validation exist. Legacy packages and source cleanup remain. |
 | **6** | Projectile data-driven (eliminate `BP_FireBolt` / `BP_FireBall`) | ⬜ OPTIONAL, NOT STARTED | `BP_AuraBullet` already gone. High effort — projectile actors are heavily BP-bound. Correctly optional. |
 
 ---
 
-## Known Issues — Still Open
+## Known Issues — Resolved
 
-Only issues confirmed unfixed as of 2026-08-03 are listed here.
-See `.claude/ability-logic-issues.md` for the full catalog (including fixed items).
+The previously listed graph issues are resolved in the current implementation. See `Docs/Tracking/GAS-Migration-TODOs.md` for the canonical regression status. The legacy issue catalog is historical and explicitly marked below.
 
 | # | Issue | Severity | Location | Notes |
 |---|-------|----------|----------|-------|
 
-### Lower-priority unfixed items (from ability-logic-issues.md)
+### Former lower-priority items
 
 | # | Issue | Severity | Notes |
 |---|-------|----------|-------|
-| H2 | Inconsistent knockback force direction | Medium | ApplyDamage uses `Direction * Mag`, Hitscan/Projectile use `UpVector * Mag`. Data/tuning decision, not clear bug. |
-| M7 | PlayMontage returns Success when no montage | Medium | Should return Failure. One-liner fix. |
-| M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | Double AdvanceGraph call risk. |
-| M11 | WaitForTargetData no active-graph check | Medium | PendingStatus set unconditionally. |
-| L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Low | Same as H2, different angle. |
+| H2 | Inconsistent knockback force direction | Medium | Resolved; directional damage parameters are covered by `SmokeTest_DamageEffectParams`. |
+| M7 | PlayMontage returns Success when no montage | Medium | Resolved; configured montage load failures return Failure. |
+| M10 | WaitForMontageEvent bypasses OnMontageEventReceived | Medium | Resolved; callback uses the canonical guarded path. |
+| M11 | WaitForTargetData no active-graph check | Medium | Resolved; inactive callbacks are ignored and invalid data fails. |
+| L18 | HitscanTrace DeathImpulse vs Knockback direction mismatch | Low | Resolved; knockback follows the directional death impulse. |
 
 ---
 
@@ -69,4 +68,5 @@ These were listed as open in the original pending file but are now confirmed fix
 
 - Phase 1 — Framework ✅ (registry, nodes, driver, import factory)
 - Phase 2 — MVP port: `FireGun` + `FireBolt` ✅ (XML defs in `Content/AbilityDefinitions/`)
+- Phase 3 — Remaining active player abilities ✅ (`ArcaneShards`, `FireBlast`, `Electrocute`; passive migration remains future work)
 - Phase 5 — GE UAsset elimination ✅ (6 C++ GE classes + `GameplayEffects.json`)

@@ -1,8 +1,8 @@
 # GAS → AuraAbilityGraph Migration TODOs
 
 > Status tracker for migrating the remaining old-GAS-version (Blueprint/GE-UAsset) abilities to the new data-driven AuraAbilityGraph system.
-> Last updated: 2026-08-03.
-> Reference plan: `../Plans/GAS-DataDriven-Rewrite-Plan-Pending.md`.
+> Last synchronized: 2026-08-14 against the current working tree.
+> Canonical status tracker for the data-driven GAS migration. The implementation narrative is maintained in `../Plans/GAS-DataDriven-Rewrite-Plan.md`; the pending-plan file is a compatibility summary.
 
 ---
 
@@ -10,12 +10,14 @@
 
 2026-08-02 decoupling update: active FireBolt/FireBlast/FireGun XML now uses cached native definitions from `ProjectileDefinitions.json`, and FireBall outbound/return behavior is native. The `AbilityInfo.json` runtime boundary is complete: active C++ and resaved UI/GameMode Blueprints no longer call `GetAbilityInfo()` or serialize a `DA_AbilityInfo` dependency. The legacy `DA_AbilityInfo` asset itself remains for cleanup/deletion after reference validation. Save/restore is tag-based and strict JSON validation is covered by automation tests. Projectile package deletion remains blocked: `BP_FireBolt` is referenced by `GA_FireBolt` and `GA_EnemyFireBolt`; `BP_FireBall` is referenced by `GA_FireBlast`. The native pickup migration is complete; legacy pickup packages were removed after reference, reload, automation, and cook gates.
 
+The remaining scope is cleanup and future work: enemy legacy package/source removal, optional projectile data-driven conversion, passive migration, and final verification gates. The previously tracked graph issues are resolved and recorded below.
+
 Ordered continuation steps and acceptance gates: `Gameplay-Blueprint-Decoupling-Next-Moves.md`.
 
 | Status | Count | Items |
 |---|---|---|
 | ✅ Done | 5 | FireBolt, FireGun, ArcaneShards, FireBlast, Electrocute |
-| ⬜ Remaining | — | Enemy abilities, legacy asset cleanup, unresolved graph issues, optional Phase 6, and passives |
+| ⬜ Remaining | — | Enemy legacy package/source cleanup, optional projectile Phase 6, passives, and final verification gates |
 
 ---
 
@@ -36,7 +38,7 @@ Ordered continuation steps and acceptance gates: `Gameplay-Blueprint-Decoupling-
 
 ## 🟨 Phase 4 — Enemy Abilities + Cleanup (IN PROGRESS)
 
-Implementation update (2026-08-03): all four enemy definitions now exist and enemy startup grants load through `EnemyAbilityConfig.json`. Native graph nodes preserve combat-target selection, per-enemy tagged montages and sockets, montage-event timing, server-authoritative projectile/melee damage, and hit-react tag lifetime. Compile-only validation passes. Legacy packages remain until the active editor is closed and the reference/reload/automation gates can be run.
+Implementation update (2026-08-03): all four enemy definitions now exist and enemy startup grants load through `EnemyAbilityConfig.json`. Native graph nodes preserve combat-target selection, per-enemy tagged montages and sockets, montage-event timing, server-authoritative projectile/melee damage, and hit-react tag lifetime. Parse/config/build and focused validation gates pass. Legacy packages remain until the active editor is closed and the reference/reload/automation/gameplay gates can be run.
 
 ### 4.1 Port Enemy Abilities to XML
 
@@ -101,7 +103,7 @@ After all abilities are migrated, remove these files from the repo:
 - [ ] `GA_LifeSiphon.uasset`
 - [ ] `GA_ManaSiphon.uasset`
 - [ ] All `.snapshot.json` files
-- *Note: Passives are not yet data-driven (wrong archetype) — keep until Phase 5 or later*
+- *Note: Passives are not yet data-driven (wrong archetype) — keep until the future passive phase or an explicitly approved replacement path.*
 
 **Passive_Startup directory** (`Content/Blueprints/AbilitySystem/Aura/Abilities/Passive_Startup/`):
 - [ ] `GA_ListenForEvent.uasset`
@@ -117,9 +119,9 @@ After all abilities are migrated, remove these files from the repo:
 
 ---
 
-## ⬜ Phase 5 — Known Issues to Fix
+## ✅ Phase 5 — Known Issues and Regression Coverage (COMPLETE)
 
-These are the known issues from `../Plans/GAS-DataDriven-Rewrite-Plan-Pending.md` that should be addressed:
+The issue IDs below are retained for traceability. The current implementation has resolved the tracked H2, M7, M8, M10, M11, L14, and L18 issues; this section is no longer an open defect backlog. Keep new defects in this tracker rather than reopening the historical catalogs.
 
 ### High Priority
 
@@ -215,12 +217,12 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 
 ### Phase 4 Verification Steps
 
-- [ ] All 4 enemy ability XMLs parse correctly (`UAuraAbilityDefinition::LoadFromXML` returns `true`)
-- [ ] Enemy ability graph structures validated (correct node types, valid property values)
-- [ ] New enemy roles defined in `EnemyAbilityConfig.json` with correct grants by `ECharacterClass` (player roles live separately in `RoleConfig.json`)
+- [x] All 4 enemy ability XMLs parse correctly (`UAuraAbilityDefinition::LoadFromXML` returns `true`)
+- [x] Enemy ability graph structures validated (correct node types, valid property values)
+- [x] New enemy roles defined in `EnemyAbilityConfig.json` with correct grants by `ECharacterClass` (player roles live separately in `RoleConfig.json`)
 - [x] Enemy ability tags added to `DefaultGameplayTags.ini` (`Abilities.Melee`, `Abilities.Ranged`; `Effects.HitReact` and `Abilities.Attack` are natively registered in `AuraGameplayTags.cpp` rather than the ini)
-- [ ] Enemy ability UI metadata added to `AbilityInfo.json` — **N/A**: UI metadata is not applicable to AI-only abilities (see 4.1 step 5)
-- [ ] Build passes after enemy ability additions
+- [x] Enemy ability UI metadata added to `AbilityInfo.json` — **N/A**: UI metadata is not applicable to AI-only abilities (see 4.1 step 5)
+- [x] Build passes after enemy ability additions
 - [x] Smoke tests added for each new enemy ability XML (`SmokeTest_EnemyAbilityFiles` in `AuraAbilityGraphModule.cpp`)
 - [ ] All old BP assets verified unused (no references in remaining code)
 
