@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle Day 04 authoritative damage boundary mind map</title>
+  <desc id="desc">A manually authored detailed mind map showing all damage producers entering a shared authority boundary, attribution serialization, double validation, periodic revalidation, rejection guards, and test evidence.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fbfcff"/><stop offset="1" stop-color="#f4ecea"/></linearGradient>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#4d2924" flood-opacity="0.16"/></filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#a34e3e"/></marker>
+    <style>
+      .title{font:700 32px Segoe UI,Arial,sans-serif;fill:#4d2924}.subtitle{font:400 16px Segoe UI,Arial,sans-serif;fill:#765f5b}
+      .hubtitle{font:700 22px Segoe UI,Arial,sans-serif;fill:#fff}.hubbody{font:400 15px Segoe UI,Arial,sans-serif;fill:#fff0ed}
+      .cardtitle{font:700 19px Segoe UI,Arial,sans-serif;fill:#4d2924}.body{font:400 15px Segoe UI,Arial,sans-serif;fill:#63433d}.small{font:400 13px Segoe UI,Arial,sans-serif;fill:#78625e}
+      .badge{font:700 12px Segoe UI,Arial,sans-serif;fill:#fff;letter-spacing:1px}.line{stroke:#a34e3e;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1800" height="1320" fill="url(#bg)"/>
+  <text x="70" y="58" class="title">Day 04 — route every damage path through authority</text>
+  <text x="70" y="88" class="subtitle">2026-08-10 | producer inventory → shared request boundary → serialized attribution → execution recheck → Health</text>
+
+  <rect x="610" y="120" width="580" height="160" rx="24" fill="#8d4033" filter="url(#shadow)"/>
+  <text x="650" y="160" class="hubtitle">ONE AUTHORITATIVE DAMAGE PIPELINE</text>
+  <text x="650" y="194" class="hubbody">Every producer requests damage; none grants itself permission.</text>
+  <text x="650" y="220" class="hubbody">Rules run before the spec and again before IncomingDamage.</text>
+  <rect x="650" y="238" width="220" height="25" rx="12" fill="#b86656"/><text x="670" y="255" class="badge">DAY 04 COMPLETE</text>
+
+  <path d="M610 180 C470 180 470 220 445 260" class="line"/><path d="M610 220 C500 300 490 480 445 520" class="line"/><path d="M700 280 C610 500 545 735 445 790" class="line"/>
+  <path d="M1190 180 C1330 180 1330 220 1355 260" class="line"/><path d="M1190 220 C1300 300 1310 480 1355 520" class="line"/><path d="M1100 280 C1190 500 1255 735 1355 790" class="line"/>
+
+  <rect x="70" y="250" width="500" height="235" rx="20" fill="#fffdf7" stroke="#d3a44f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="250" width="500" height="40" rx="20" fill="#a87320"/><text x="94" y="276" class="badge">STARTING RISK: DISTRIBUTED AUTHORITY</text>
+  <text x="94" y="326" class="cardtitle">Some producers could bypass relationship policy</text>
+  <text x="94" y="359" class="body">Projectile and melee paths prefiltered locally</text>
+  <text x="94" y="384" class="body">Graph direct, beam, radial, and hitscan paths varied</text>
+  <text x="94" y="409" class="body">Shared ApplyDamageEffect did not enforce permission</text>
+  <text x="94" y="444" class="small">Risk: client, friendly, protected, dead, or unattributed damage</text>
+  <text x="94" y="464" class="small">could reach Health through an indirect route.</text>
+
+  <rect x="70" y="510" width="500" height="245" rx="20" fill="#fff" stroke="#bd7e72" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="510" width="500" height="40" rx="20" fill="#a34e3e"/><text x="94" y="536" class="badge">ENUMERABLE PRODUCER INVENTORY</text>
+  <text x="94" y="586" class="cardtitle">No “all paths” claim without a checked list</text>
+  <text x="94" y="619" class="body">Native CauseDamage • projectile • FireBall</text>
+  <text x="94" y="644" class="body">FireBolt • FireGun • Enemy melee</text>
+  <text x="94" y="669" class="body">Apply/Cause graph nodes • beam • hitscan • shards</text>
+  <text x="94" y="699" class="body">Blueprint snapshots and test-only producers classified</text>
+  <text x="94" y="734" class="small">The Markdown report and compile-time table must agree.</text>
+
+  <rect x="70" y="780" width="500" height="275" rx="20" fill="#fff4f1" stroke="#bd7e72" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="780" width="500" height="40" rx="20" fill="#a34e3e"/><text x="94" y="806" class="badge">ATTRIBUTION CONTRACT</text>
+  <text x="94" y="856" class="cardtitle">The effect context explains who caused damage</text>
+  <text x="94" y="889" class="body">Ability tag • damage type • source role ID</text>
+  <text x="94" y="914" class="body">Source controller and PlayerState</text>
+  <text x="94" y="939" class="body">Future battle zone and battle event IDs</text>
+  <text x="94" y="964" class="body">Duplicate and NetSerialize preserve optional fields</text>
+  <text x="94" y="1005" class="small">Existing base context holds instigator, causer, source object,</text>
+  <text x="94" y="1025" class="small">actors, and hit result; identities are re-resolved live.</text>
+
+  <rect x="1230" y="250" width="500" height="235" rx="20" fill="#fff4f1" stroke="#bd7e72" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="250" width="500" height="40" rx="20" fill="#a34e3e"/><text x="1254" y="276" class="badge">REQUEST BOUNDARY</text>
+  <text x="1254" y="326" class="cardtitle">ApplyDamageEffect validates before spec creation</text>
+  <text x="1254" y="359" class="body">Resolve source and target avatars from ASCs</text>
+  <text x="1254" y="384" class="body">Require server authority and valid ownership/profile</text>
+  <text x="1254" y="409" class="body">Call AuraCombatRules::CanDamage using trusted context</text>
+  <text x="1254" y="444" class="small">Rejected request returns an empty result, creates no spec,</text>
+  <text x="1254" y="464" class="small">and never dereferences a missing ASC or avatar.</text>
+
+  <rect x="1230" y="510" width="500" height="245" rx="20" fill="#fff" stroke="#bd7e72" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="510" width="500" height="40" rx="20" fill="#a34e3e"/><text x="1254" y="536" class="badge">SECOND SERVER CHECK</text>
+  <text x="1254" y="586" class="cardtitle">Execution revalidates current truth</text>
+  <text x="1254" y="619" class="body">ExecCalc_Damage rechecks identity, state, and rules</text>
+  <text x="1254" y="644" class="body">Only accepted output becomes IncomingDamage</text>
+  <text x="1254" y="669" class="body">AttributeSet preserves one fatal state transition</text>
+  <text x="1254" y="699" class="body">Periodic ticks recheck protection and life state</text>
+  <text x="1254" y="734" class="small">A valid request cannot become stale permission later.</text>
+
+  <rect x="1230" y="780" width="500" height="275" rx="20" fill="#f5fbf7" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="780" width="500" height="40" rx="20" fill="#39845d"/><text x="1254" y="806" class="badge">GUARDS AND VALIDATION</text>
+  <text x="1254" y="850" class="cardtitle">Invalid damage leaves authoritative</text>
+  <text x="1254" y="875" class="cardtitle">Health unchanged</text>
+  <text x="1254" y="910" class="body">✓ 10/10 Day 04 native tests</text>
+  <text x="1254" y="935" class="body">✓ Context serialization and all-producer attribution</text>
+  <text x="1254" y="960" class="body">✓ Preserved block/critical/resistance/knockback/debuff</text>
+  <text x="1254" y="985" class="body">✓ Listen and Dedicated client-forgery rejection</text>
+  <text x="1254" y="1010" class="body">✓ Request sent → received → rejected → no Health delta</text>
+  <text x="1254" y="1038" class="small">2026-08-13: all 35 Aura tests exited 0, including Day 04.</text>
+
+  <rect x="70" y="1100" width="1660" height="155" rx="20" fill="#fff4f1" stroke="#bd7e72" stroke-width="2"/>
+  <text x="98" y="1140" class="cardtitle">Protected behavior and future extension</text>
+  <text x="98" y="1174" class="body">Accepted damage still preserves critical, block, resistance, radial falloff, knockback, debuff, and hit-react semantics. Day 12 may populate trusted battle IDs,</text>
+  <text x="98" y="1199" class="body">but it must enter through the same boundary. Every new producer must update the inventory and compile-time table.</text>
+  <rect x="1360" y="1132" width="330" height="72" rx="14" fill="#8d4033"/><text x="1390" y="1160" class="badge">NON-BYPASS RULE</text><text x="1390" y="1187" class="hubbody">Prefiltering never replaces validation</text>
+  <text x="70" y="1290" class="small">Every producer → trusted parameters → boundary check → serialized context → execution recheck → authoritative Health</text>
+</svg>

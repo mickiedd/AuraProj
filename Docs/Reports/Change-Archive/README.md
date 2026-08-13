@@ -17,3 +17,4 @@ The first archive record is linked below.
 - [2026-08-12 – Last-seven-days change reference](2026-08-12-seven-day-change-reference.md)
 - [2026-08-12 – Seven separate daily SVG references](2026-08-12-seven-daily-svg-references.md)
 - [2026-08-12 – July 11-August 5 daily SVG reference set](2026-08-12-july-11-to-august-05-daily-svg-set.md)
+- [2026-08-13 — Finished DayPlan mind-map archive](2026-08-13-finished-dayplan-mind-maps.md)

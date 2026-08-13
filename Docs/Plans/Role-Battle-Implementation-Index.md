@@ -1,8 +1,10 @@
 # Role and Battle System: Daily Implementation Index
 
-Status: Revised execution schedule; Day 01's headless gate was executed conditionally, Day 02 is complete, and Day 03 is next. Day 01's expanded damage inventory closes at the start of Day 04; only its rendered presentation follow-up carries into Day 07.
+Status: Revised execution schedule; Day 01's headless gate was executed conditionally, Days 02–04 are implemented and verified, and Day 05 is next. Day 01's expanded damage inventory closed at the start of Day 04; only its rendered presentation follow-up carries into Day 07.
 
 This is the execution schedule for `Role-Creation-and-Battle-System-Plan.md`. Each day file is an implementation contract: it identifies prerequisites, source/content/test scope, exact work, verification commands or fixtures, evidence to retain, and a completion gate.
+
+Finished milestone mind maps are archived in [Docs/Reports/DayPlan-Archive](../Reports/DayPlan-Archive/README.md).
 
 The schedule assumes one developer working in a stable Unreal project branch. A “day” is a logical milestone; it may take more or less than one calendar day.
 

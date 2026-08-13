@@ -34,6 +34,8 @@
 |---|---|
 | [GAS-Migration-Audit-2026-08-03.md](Reports/GAS-Migration-Audit-2026-08-03.md) | Corrected audit of the TODO/pending-plan against the source tree. |
 | [Gameplay-Blueprint-Decoupling-Migration-Report.md](Reports/Gameplay-Blueprint-Decoupling-Migration-Report.md) | Implementation report for the decoupling phases. |
+| [DayPlan-Archive](Reports/DayPlan-Archive/README.md) | Detailed, manually authored mind maps for every finished Role/Battle day plan. |
+| [Change-Archive](Reports/Change-Archive/README.md) | Calendar-day and job-level visual change records. |
 
 ## Reference
 

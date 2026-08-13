@@ -1,5 +1,9 @@
 # Day 04 - Migrate Every Damage Boundary
 
+## Execution status — 2026-08-10
+
+Implemented and verified. The checked-in producer inventory and ten Day 04 native tests pass, prior-day regressions remain green, and the Listen/Dedicated runners reject a client-originated invalid damage request without changing authoritative Health. The retained 2026-08-13 full `Aura` rerun found 35 tests and exited `0`, including all Day 04 tests; both retained Day 04 topology reports record `Passed: true`.
+
 ## Goal
 
 Route every production damage request through `AuraCombatRules`, enforce the rule again at the authoritative final application boundary, and preserve complete attribution through direct, projectile, beam, radial, hitscan, melee, and periodic/debuff damage.

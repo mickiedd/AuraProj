@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle Day 03 combat rules and life state mind map</title>
+  <desc id="desc">A manually authored detailed mind map of the central combat permission service, authoritative rule context, replicated life-state machine, fail-closed policy, consumers, tests, and future handoffs.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fbfcff"/><stop offset="1" stop-color="#eeeef8"/></linearGradient>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#262b52" flood-opacity="0.16"/></filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#55539a"/></marker>
+    <style>
+      .title{font:700 32px Segoe UI,Arial,sans-serif;fill:#24294e}.subtitle{font:400 16px Segoe UI,Arial,sans-serif;fill:#656887}
+      .hubtitle{font:700 22px Segoe UI,Arial,sans-serif;fill:#fff}.hubbody{font:400 15px Segoe UI,Arial,sans-serif;fill:#f0efff}
+      .cardtitle{font:700 19px Segoe UI,Arial,sans-serif;fill:#24294e}.body{font:400 15px Segoe UI,Arial,sans-serif;fill:#3f4569}.small{font:400 13px Segoe UI,Arial,sans-serif;fill:#676b88}
+      .badge{font:700 12px Segoe UI,Arial,sans-serif;fill:#fff;letter-spacing:1px}.line{stroke:#55539a;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1800" height="1320" fill="url(#bg)"/>
+  <text x="70" y="58" class="title">Day 03 — one combat rule surface and one life-state truth</text>
+  <text x="70" y="88" class="subtitle">2026-08-09 | identity + trusted context + current state → structured relationship, permission, and rejection reason</text>
+
+  <rect x="610" y="120" width="580" height="160" rx="24" fill="#4b498f" filter="url(#shadow)"/>
+  <text x="650" y="160" class="hubtitle">AURA COMBAT RULES</text>
+  <text x="650" y="194" class="hubbody">CanCombatTarget and CanDamage answer permission.</text>
+  <text x="650" y="220" class="hubbody">Interaction remains separate; authority owns policy and state.</text>
+  <rect x="650" y="238" width="220" height="25" rx="12" fill="#716fb0"/><text x="670" y="255" class="badge">DAY 03 COMPLETE</text>
+
+  <path d="M610 180 C470 180 470 220 445 260" class="line"/><path d="M610 220 C500 300 490 480 445 520" class="line"/><path d="M700 280 C610 500 545 735 445 790" class="line"/>
+  <path d="M1190 180 C1330 180 1330 220 1355 260" class="line"/><path d="M1190 220 C1300 300 1310 480 1355 520" class="line"/><path d="M1100 280 C1190 500 1255 735 1355 790" class="line"/>
+
+  <rect x="70" y="250" width="500" height="235" rx="20" fill="#fff" stroke="#8f8dc2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="250" width="500" height="40" rx="20" fill="#55539a"/><text x="94" y="276" class="badge">DECISION INPUTS</text>
+  <text x="94" y="326" class="cardtitle">Current server facts, not caller claims</text>
+  <text x="94" y="359" class="body">Source and target combat identities</text>
+  <text x="94" y="384" class="body">Source and target life state</text>
+  <text x="94" y="409" class="body">Query purpose and server world context</text>
+  <text x="94" y="434" class="body">Optional authoritative policy snapshot</text>
+  <text x="94" y="464" class="small">Client target data cannot supply permission booleans.</text>
+
+  <rect x="70" y="510" width="500" height="245" rx="20" fill="#fffdf7" stroke="#d3a44f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="510" width="500" height="40" rx="20" fill="#aa7620"/><text x="94" y="536" class="badge">CONSERVATIVE POLICY</text>
+  <text x="94" y="586" class="cardtitle">Missing resolver means deny, never allow</text>
+  <text x="94" y="619" class="body">Player ↔ Enemy: hostile and conditionally allowed</text>
+  <text x="94" y="644" class="body">Same faction: friendly and denied</text>
+  <text x="94" y="669" class="body">Player/Enemy → Civilian: protected and denied</text>
+  <text x="94" y="694" class="body">Civilian source: cannot target or damage</text>
+  <text x="94" y="734" class="small">PvP and Civilian damage remain denied until Day 12 resolves</text>
+  <text x="94" y="751" class="small">a trusted battle-zone policy.</text>
+
+  <rect x="70" y="780" width="500" height="275" rx="20" fill="#f4f3ff" stroke="#8f8dc2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="780" width="500" height="40" rx="20" fill="#55539a"/><text x="94" y="806" class="badge">STRUCTURED OUTPUT</text>
+  <text x="94" y="856" class="cardtitle">Explain the answer, not only true or false</text>
+  <text x="94" y="889" class="body">Relationship: Friendly / Hostile / Neutral / Protected</text>
+  <text x="94" y="914" class="body">Separate target and damage permission flags</text>
+  <text x="94" y="939" class="body">Stable reason: invalid, self, friendly, protected, policy</text>
+  <text x="94" y="964" class="body">or life state such as Dying / Dead / Respawning</text>
+  <text x="94" y="1005" class="small">Distance and threat score may rank permitted candidates;</text>
+  <text x="94" y="1025" class="small">they never redefine the relationship.</text>
+
+  <rect x="1230" y="250" width="500" height="235" rx="20" fill="#f4f3ff" stroke="#8f8dc2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="250" width="500" height="40" rx="20" fill="#55539a"/><text x="1254" y="276" class="badge">LIFE-STATE MACHINE</text>
+  <text x="1254" y="326" class="cardtitle">Replicated and authority-only</text>
+  <text x="1254" y="359" class="body">Alive → Dying → Dead</text>
+  <text x="1254" y="389" class="body">Replacement pawn: Respawning → initialized → Alive</text>
+  <text x="1254" y="419" class="body">Old pawn remains Dead; it is never revived</text>
+  <text x="1254" y="449" class="small">Repeated TryEnterDying returns false and publishes no second</text>
+  <text x="1254" y="469" class="small">death notification.</text>
+
+  <rect x="1230" y="510" width="500" height="245" rx="20" fill="#fff" stroke="#8f8dc2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="510" width="500" height="40" rx="20" fill="#55539a"/><text x="1254" y="536" class="badge">CONSUMERS</text>
+  <text x="1254" y="586" class="cardtitle">One policy, different query purposes</text>
+  <text x="1254" y="619" class="body">IsNotFriend becomes a deprecated rules wrapper</text>
+  <text x="1254" y="644" class="body">Enemy AI: Player identity → CanCombatTarget → nearest</text>
+  <text x="1254" y="669" class="body">FireGun impact: permitted target and still Alive</text>
+  <text x="1254" y="694" class="body">Interaction: deliberately not a combat-rule query</text>
+  <text x="1254" y="734" class="small">Threat direction is candidate-to-observer damage eligibility.</text>
+
+  <rect x="1230" y="780" width="500" height="275" rx="20" fill="#f5fbf7" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="780" width="500" height="40" rx="20" fill="#39845d"/><text x="1254" y="806" class="badge">GUARDS AND VALIDATION</text>
+  <text x="1254" y="856" class="cardtitle">Authority controls state and permissive context</text>
+  <text x="1254" y="889" class="body">✓ Client state mutation denied</text>
+  <text x="1254" y="914" class="body">✓ Client policy mutation denied</text>
+  <text x="1254" y="939" class="body">✓ 8/8 Day 03 tests; 14/14 Day 01–03 suite</text>
+  <text x="1254" y="964" class="body">✓ Listen and Dedicated two-client reports pass</text>
+  <text x="1254" y="989" class="body">✓ Civilian default denial and Enemy targeting pass</text>
+  <text x="1254" y="1024" class="small">2026-08-13 rerun: all 35 Aura tests exited 0, including Day 03.</text>
+
+  <rect x="70" y="1100" width="1660" height="155" rx="20" fill="#f4f3ff" stroke="#8f8dc2" stroke-width="2"/>
+  <text x="98" y="1140" class="cardtitle">Locked handoff</text>
+  <text x="98" y="1174" class="body">Day 11 may add role-specific death dispatch on top of this state truth; it must not replace it. Day 12 is the only production owner of permissive zone policy.</text>
+  <text x="98" y="1199" class="body">Until then, protected and untrusted cases stay denied, and interaction stays orthogonal to combat permission.</text>
+  <rect x="1390" y="1132" width="300" height="72" rx="14" fill="#4b498f"/><text x="1420" y="1160" class="badge">FAIL-CLOSED RULE</text><text x="1420" y="1187" class="hubbody">No trusted policy → no permission</text>
+  <text x="70" y="1290" class="small">Identity + state + trusted context → relationship → permission → stable reason → replicated evidence</text>
+</svg>

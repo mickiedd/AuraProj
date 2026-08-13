@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle Day 01 baseline mind map</title>
+  <desc id="desc">A manually authored detailed mind map of the conditional Day 01 headless baseline, its respawn attribute fix, runtime evidence, damage inventory, and rendered presentation carryover.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f8fbff"/><stop offset="1" stop-color="#e9f1f8"/></linearGradient>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#17324d" flood-opacity="0.16"/></filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#39749d"/></marker>
+    <style>
+      .title{font:700 32px Segoe UI,Arial,sans-serif;fill:#17324d}.subtitle{font:400 16px Segoe UI,Arial,sans-serif;fill:#557086}
+      .hubtitle{font:700 22px Segoe UI,Arial,sans-serif;fill:#fff}.hubbody{font:400 15px Segoe UI,Arial,sans-serif;fill:#e9f6ff}
+      .cardtitle{font:700 19px Segoe UI,Arial,sans-serif;fill:#17324d}.body{font:400 15px Segoe UI,Arial,sans-serif;fill:#294c64}.small{font:400 13px Segoe UI,Arial,sans-serif;fill:#557086}
+      .badge{font:700 12px Segoe UI,Arial,sans-serif;fill:#fff;letter-spacing:1px}.line{stroke:#39749d;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1800" height="1320" fill="url(#bg)"/>
+  <text x="70" y="58" class="title">Day 01 — establish a reproducible Role/Battle baseline</text>
+  <text x="70" y="88" class="subtitle">2026-08-07 | manually reconstructed from the plan, baseline report, runtime runner, and retained test evidence</text>
+
+  <rect x="610" y="120" width="580" height="160" rx="24" fill="#28658e" filter="url(#shadow)"/>
+  <text x="650" y="160" class="hubtitle">CONDITIONAL HEADLESS GATE PASSED</text>
+  <text x="650" y="194" class="hubbody">Know the fixture, roles, damage directions, and respawn behavior</text>
+  <text x="650" y="220" class="hubbody">before changing combat architecture.</text>
+  <rect x="650" y="238" width="205" height="25" rx="12" fill="#4d8db7"/><text x="670" y="255" class="badge">DAY 01 BASELINE</text>
+
+  <path d="M610 180 C470 180 470 220 445 260" class="line"/>
+  <path d="M610 220 C500 300 490 480 445 520" class="line"/>
+  <path d="M700 280 C610 500 545 735 445 790" class="line"/>
+  <path d="M1190 180 C1330 180 1330 220 1355 260" class="line"/>
+  <path d="M1190 220 C1300 300 1310 480 1355 520" class="line"/>
+  <path d="M1100 280 C1190 500 1255 735 1355 790" class="line"/>
+
+  <rect x="70" y="250" width="500" height="235" rx="20" fill="#fff" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="250" width="500" height="40" rx="20" fill="#39749d"/><text x="94" y="276" class="badge">INTENT AND FIXTURE</text>
+  <text x="94" y="326" class="cardtitle">A repeatable place to measure behavior</text>
+  <text x="94" y="359" class="body">• StartupMap: Aura player, PlayerStart, NavMesh</text>
+  <text x="94" y="384" class="body">• Two possessed Enemy AI actors</text>
+  <text x="94" y="409" class="body">• Login map separately loaded and map-checked</text>
+  <text x="94" y="444" class="small">Guard: no silent fixture substitution; map, engine, revision,</text>
+  <text x="94" y="464" class="small">topology, commands, and log locations were recorded.</text>
+
+  <rect x="70" y="510" width="500" height="245" rx="20" fill="#fffdf7" stroke="#d3a44f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="510" width="500" height="40" rx="20" fill="#ad7922"/><text x="94" y="536" class="badge">BASELINE DEFECTS</text>
+  <text x="94" y="586" class="cardtitle">Persistent ASC was initialized repeatedly</text>
+  <text x="94" y="619" class="body">Initial Health/Mana: 100/100 and 50/50</text>
+  <text x="94" y="644" class="body">Respawn 1: 200/200 and 100/100</text>
+  <text x="94" y="669" class="body">Respawn 2: 300/300 and 150/150</text>
+  <text x="94" y="704" class="body">Aggregate SetByCaller values also logged unset</text>
+  <text x="94" y="733" class="small">Damage policy was distributed across tag checks and producers.</text>
+
+  <rect x="70" y="780" width="500" height="275" rx="20" fill="#f5fbf7" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="780" width="500" height="40" rx="20" fill="#39845d"/><text x="94" y="806" class="badge">FOLLOW-UP IMPLEMENTATION</text>
+  <text x="94" y="856" class="cardtitle">Initialize defaults once; refill on replacement</text>
+  <text x="94" y="889" class="body">PlayerState remembers ASC attribute initialization</text>
+  <text x="94" y="914" class="body">LoadProgress applies defaults and grants once</text>
+  <text x="94" y="939" class="body">Replacement pawn rebinds ASC and refills vitals</text>
+  <text x="94" y="964" class="body">SetByCaller aggregate magnitudes start at zero</text>
+  <text x="94" y="1005" class="small">Result: two respawns remain 100/100 Health and</text>
+  <text x="94" y="1025" class="small">50/50 Mana; no additive maximum accumulation.</text>
+
+  <rect x="1230" y="250" width="500" height="235" rx="20" fill="#fff" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="250" width="500" height="40" rx="20" fill="#39749d"/><text x="1254" y="276" class="badge">ROLE AND ABILITY CATALOG</text>
+  <text x="1254" y="326" class="cardtitle">Both combat roles resolve in headless runtime</text>
+  <text x="1254" y="359" class="body">Aura: FireBolt, FireBlast, ArcaneShards, Electrocute</text>
+  <text x="1254" y="384" class="body">BungeeMan: mesh, animation, rifle, Muzzle socket</text>
+  <text x="1254" y="409" class="body">FireGun.xml → fireGunBullet native projectile</text>
+  <text x="1254" y="444" class="small">The XML/config wiring was proved; rendered montage, muzzle,</text>
+  <text x="1254" y="464" class="small">impact, and cooldown presentation was not inferred.</text>
+
+  <rect x="1230" y="510" width="500" height="245" rx="20" fill="#f4f9fd" stroke="#7aa5c2" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="510" width="500" height="40" rx="20" fill="#39749d"/><text x="1254" y="536" class="badge">RUNTIME PROOF FLOW</text>
+  <text x="1254" y="582" class="body">Role/config load</text><text x="1400" y="582" class="body">→ ability activation</text>
+  <text x="1254" y="617" class="body">Player → Enemy: Health 100 → 90</text>
+  <text x="1254" y="647" class="body">Enemy → Player: Health 100 → 90</text>
+  <text x="1254" y="677" class="body">Death → five-second delay → replacement pawn</text>
+  <text x="1254" y="707" class="body">Repeat twice → stable Health and Mana</text>
+  <text x="1254" y="735" class="small">Bounded runner exits only after its explicit Day1Smoke PASS.</text>
+
+  <rect x="1230" y="780" width="500" height="275" rx="20" fill="#f5fbf7" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="780" width="500" height="40" rx="20" fill="#39845d"/><text x="1254" y="806" class="badge">VALIDATION AND EVIDENCE</text>
+  <text x="1254" y="856" class="cardtitle">The headless baseline is reproducible</text>
+  <text x="1254" y="889" class="body">✓ AuraEditor Development build — exit 0</text>
+  <text x="1254" y="914" class="body">✓ Native Aura automation — exit 0</text>
+  <text x="1254" y="939" class="body">✓ AuraAbilityGraph — 22 passed, 0 failed</text>
+  <text x="1254" y="964" class="body">✓ Live damage in both directions</text>
+  <text x="1254" y="989" class="body">✓ Two stable replacement-pawn respawns</text>
+  <text x="1254" y="1024" class="small">Evidence: dated report, smoke runner, fixture details, commands,</text>
+  <text x="1254" y="1044" class="small">exit codes, and archived log references.</text>
+
+  <path d="M900 280 L900 1090" stroke="#9db8ca" stroke-width="2" stroke-dasharray="8 10"/>
+  <rect x="70" y="1100" width="1660" height="155" rx="20" fill="#fff8e8" stroke="#d3a44f" stroke-width="2"/>
+  <text x="98" y="1140" class="cardtitle">Honest completion boundary</text>
+  <text x="98" y="1174" class="body">Headless functional work is complete. The expanded damage inventory was closed at Day 04; rendered Aura/BungeeMan body, montage, rifle/muzzle,</text>
+  <text x="98" y="1199" class="body">projectile, and FX confirmation remains a Day 07 gate. This archive therefore labels Day 01 conditional rather than fully closed.</text>
+  <rect x="1360" y="1132" width="330" height="72" rx="14" fill="#ad7922"/><text x="1390" y="1160" class="badge">CARRYOVER GUARD</text><text x="1390" y="1187" class="hubbody">Do not turn missing visuals into a pass</text>
+  <text x="70" y="1290" class="small">Plan → fixture → measured defect → guarded fix → runtime proof → explicit carryover</text>
+</svg>

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1320" viewBox="0 0 1800 1320" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle Day 02 combat identity mind map</title>
+  <desc id="desc">A manually authored detailed mind map showing the change from raw actor tags to a replicated server-owned combat identity, its consumers, authority guards, validation, and future handoffs.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f8fbff"/><stop offset="1" stop-color="#e8f3f1"/></linearGradient>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="124%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#17324d" flood-opacity="0.16"/></filter>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="9" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 z" fill="#2f7481"/></marker>
+    <style>
+      .title{font:700 32px Segoe UI,Arial,sans-serif;fill:#17324d}.subtitle{font:400 16px Segoe UI,Arial,sans-serif;fill:#557086}
+      .hubtitle{font:700 22px Segoe UI,Arial,sans-serif;fill:#fff}.hubbody{font:400 15px Segoe UI,Arial,sans-serif;fill:#e8fbfb}
+      .cardtitle{font:700 19px Segoe UI,Arial,sans-serif;fill:#17324d}.body{font:400 15px Segoe UI,Arial,sans-serif;fill:#294c64}.small{font:400 13px Segoe UI,Arial,sans-serif;fill:#557086}
+      .badge{font:700 12px Segoe UI,Arial,sans-serif;fill:#fff;letter-spacing:1px}.line{stroke:#2f7481;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1800" height="1320" fill="url(#bg)"/>
+  <text x="70" y="58" class="title">Day 02 — replace actor-tag guesses with combat identity</text>
+  <text x="70" y="88" class="subtitle">2026-08-08 | server-owned data contract → replication → generic consumers → fail-closed validation</text>
+
+  <rect x="610" y="120" width="580" height="160" rx="24" fill="#266c78" filter="url(#shadow)"/>
+  <text x="650" y="160" class="hubtitle">REPLICATED COMBAT IDENTITY</text>
+  <text x="650" y="194" class="hubbody">Every combat avatar states what it is and what it may do.</text>
+  <text x="650" y="220" class="hubbody">Clients observe; authority initializes and mutates.</text>
+  <rect x="650" y="238" width="220" height="25" rx="12" fill="#4b929c"/><text x="670" y="255" class="badge">DAY 02 COMPLETE</text>
+
+  <path d="M610 180 C470 180 470 220 445 260" class="line"/><path d="M610 220 C500 300 490 480 445 520" class="line"/><path d="M700 280 C610 500 545 735 445 790" class="line"/>
+  <path d="M1190 180 C1330 180 1330 220 1355 260" class="line"/><path d="M1190 220 C1300 300 1310 480 1355 520" class="line"/><path d="M1100 280 C1190 500 1255 735 1355 790" class="line"/>
+
+  <rect x="70" y="250" width="500" height="235" rx="20" fill="#fffdf7" stroke="#d3a44f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="250" width="500" height="40" rx="20" fill="#a87320"/><text x="94" y="276" class="badge">BEFORE</text>
+  <text x="94" y="326" class="cardtitle">Combat meaning lived in raw actor tags</text>
+  <text x="94" y="359" class="body">Player and Enemy tags drove IsNotFriend</text>
+  <text x="94" y="384" class="body">AI acquisition had Player-specific fallback logic</text>
+  <text x="94" y="409" class="body">Civilian had no explicit common identity contract</text>
+  <text x="94" y="444" class="small">Risk: new roles could be misclassified, and clients had no</text>
+  <text x="94" y="464" class="small">single replicated view of combat capabilities.</text>
+
+  <rect x="70" y="510" width="500" height="245" rx="20" fill="#fff" stroke="#72a3ab" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="510" width="500" height="40" rx="20" fill="#2f7481"/><text x="94" y="536" class="badge">DATA CONTRACT</text>
+  <text x="94" y="586" class="cardtitle">FAuraCombatIdentity = four tags + four flags</text>
+  <text x="94" y="619" class="body">Faction • Control • Combat profile • Death policy</text>
+  <text x="94" y="649" class="body">Targetable • Can attack • Can be damaged</text>
+  <text x="94" y="679" class="body">Allow friendly fire</text>
+  <text x="94" y="714" class="small">All categories must be valid. Flags are explicit; they are not</text>
+  <text x="94" y="734" class="small">silently inferred from faction or profile.</text>
+
+  <rect x="70" y="780" width="500" height="275" rx="20" fill="#f5fbf7" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="780" width="500" height="40" rx="20" fill="#39845d"/><text x="94" y="806" class="badge">DEFAULT IDENTITIES</text>
+  <text x="94" y="856" class="cardtitle">Concrete, bounded Day 02 values</text>
+  <text x="94" y="889" class="body">Player: Faction.Player / Control.Player</text>
+  <text x="94" y="914" class="body">Enemy: Faction.Enemy / Control.EnemyAI</text>
+  <text x="94" y="939" class="body">Civilian fixture: cannot attack; can be damaged</text>
+  <text x="94" y="964" class="body">Player and Enemy: Combat.Unassigned transitionally</text>
+  <text x="94" y="1005" class="small">Death policies: PlayerRespawn, EnemyLoot, and</text>
+  <text x="94" y="1025" class="small">PopulationRespawn are carried as identity data.</text>
+
+  <rect x="1230" y="250" width="500" height="235" rx="20" fill="#f4f9fd" stroke="#72a3ab" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="250" width="500" height="40" rx="20" fill="#2f7481"/><text x="1254" y="276" class="badge">OWNERSHIP AND REPLICATION</text>
+  <text x="1254" y="326" class="cardtitle">One component on the common character base</text>
+  <text x="1254" y="359" class="body">Authority resolves defaults after tag initialization</text>
+  <text x="1254" y="384" class="body">Component stores one replicated identity property</text>
+  <text x="1254" y="409" class="body">Clients receive all fields through OnRep_Identity</text>
+  <text x="1254" y="444" class="small">Generic FindComponentByClass lookup works for any actor;</text>
+  <text x="1254" y="464" class="small">consumers do not cast to a concrete character type.</text>
+
+  <rect x="1230" y="510" width="500" height="245" rx="20" fill="#fff" stroke="#72a3ab" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="510" width="500" height="40" rx="20" fill="#2f7481"/><text x="1254" y="536" class="badge">MIGRATED CONSUMERS</text>
+  <text x="1254" y="586" class="cardtitle">Compatibility without new tag checks</text>
+  <text x="1254" y="619" class="body">IsNotFriend reads identity and a bounded truth table</text>
+  <text x="1254" y="644" class="body">Player ↔ Enemy permitted; same faction denied</text>
+  <text x="1254" y="669" class="body">Civilian, null, self, invalid identity denied</text>
+  <text x="1254" y="699" class="body">Enemy AI selects nearest valid targetable Player identity</text>
+  <text x="1254" y="734" class="small">Projectiles keep resolving identity through their source avatar.</text>
+
+  <rect x="1230" y="780" width="500" height="275" rx="20" fill="#f5fbf7" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="780" width="500" height="40" rx="20" fill="#39845d"/><text x="1254" y="806" class="badge">AUTHORITY GUARD AND EVIDENCE</text>
+  <text x="1254" y="856" class="cardtitle">Clients cannot invent combat identity</text>
+  <text x="1254" y="889" class="body">✓ No client setter or identity RPC</text>
+  <text x="1254" y="914" class="body">✓ Invalid identity fails closed; diagnostics rate-limited</text>
+  <text x="1254" y="939" class="body">✓ 3/3 focused and 17/17 full native tests</text>
+  <text x="1254" y="964" class="body">✓ Day 01 regression and 22/22 graph smoke</text>
+  <text x="1254" y="989" class="body">✓ Server/client identity replication and AI targeting</text>
+  <text x="1254" y="1024" class="small">Later two-client Listen and Dedicated reports also pass.</text>
+
+  <rect x="70" y="1100" width="1660" height="155" rx="20" fill="#eef8fa" stroke="#72a3ab" stroke-width="2"/>
+  <text x="98" y="1140" class="cardtitle">Downstream handoff</text>
+  <text x="98" y="1174" class="body">Days 05–06 must replace Combat.Unassigned with role-derived Combat.Magic or Combat.Gun before attributes and grants. Pickup eligibility remains a separate</text>
+  <text x="98" y="1199" class="body">compatibility concern for Day 20. Day 03 replaces the bounded IsNotFriend table with the full relationship and permission service.</text>
+  <rect x="1380" y="1132" width="310" height="72" rx="14" fill="#266c78"/><text x="1410" y="1160" class="badge">CORE GUARANTEE</text><text x="1410" y="1187" class="hubbody">Authority writes; clients observe</text>
+  <text x="70" y="1290" class="small">Raw tags → explicit identity → server component → replicated state → generic lookup → tested compatibility</text>
+</svg>
