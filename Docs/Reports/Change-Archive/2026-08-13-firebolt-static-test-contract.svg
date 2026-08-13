@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">FireBolt static test contract update</title>
+  <desc id="desc">The FireBolt static test now follows the data-driven native projectile flow instead of expecting a removed Blueprint class property.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#eaf2f9"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2d668f"/></marker>
+    <style>
+      .title{font:700 28px Segoe UI,Arial;fill:#17324d}.sub{font:400 16px Segoe UI,Arial;fill:#47657e}
+      .head{font:700 18px Segoe UI,Arial;fill:#17324d}.body{font:400 16px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 14px Segoe UI,Arial;fill:#47657e}.label{font:700 12px Segoe UI,Arial;fill:white;letter-spacing:1px}
+    </style>
+  </defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <text x="50" y="52" class="title">2026-08-13 - FireBolt static test contract</text>
+  <text x="50" y="82" class="sub">Align the Python guard with the native data-driven projectile migration.</text>
+  <rect x="50" y="120" width="500" height="250" rx="16" fill="white" stroke="#c27a7a" stroke-width="2"/>
+  <rect x="50" y="120" width="500" height="40" rx="16" fill="#9a3d3d"/>
+  <text x="72" y="146" class="label">BEFORE - STALE EXPECTATION</text>
+  <text x="78" y="205" class="head">Python test</text>
+  <text x="78" y="240" class="body">Looked for SpawnProjectiles</text>
+  <text x="78" y="266" class="body">ProjectileClass containing BP_FireBolt.</text>
+  <text x="78" y="316" class="body">This contradicted FireBolt.xml after</text>
+  <text x="78" y="342" class="body">the data-driven migration.</text>
+  <path d="M570 245 L630 245" stroke="#2d668f" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="650" y="120" width="500" height="250" rx="16" fill="#f5fbf7" stroke="#6ca887" stroke-width="2"/>
+  <rect x="650" y="120" width="500" height="40" rx="16" fill="#39845d"/>
+  <text x="672" y="146" class="label">AFTER - CURRENT CONTRACT</text>
+  <text x="678" y="205" class="head">FireBolt.xml</text>
+  <text x="678" y="240" class="body">ProjectileDefinition = fireBolt</text>
+  <text x="678" y="275" class="body">-&gt;</text>
+  <text x="678" y="310" class="head">ProjectileDefinitions.json</text>
+  <text x="678" y="345" class="body">fireBolt.nativeClass = /Script/Aura.AuraProjectile</text>
+  <rect x="50" y="420" width="1100" height="190" rx="16" fill="#f2f8ff" stroke="#7aa5c2" stroke-width="2"/>
+  <text x="78" y="463" class="head">Guard and validation</text>
+  <text x="78" y="505" class="body">The static test rejects legacy ProjectileClass usage, validates the named definition,</text>
+  <text x="78" y="532" class="body">parses the JSON configuration, and requires the native AAuraProjectile class path.</text>
+  <text x="78" y="575" class="small">Validation: python Scripts/test_firebolt_graph.py -&gt; PASS</text>
+  <text x="690" y="575" class="small">Engine regression: FireBoltFileGraph -&gt; PASSED</text>
+</svg>

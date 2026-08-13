@@ -18,11 +18,13 @@ delivery), which needs the engine.
 """
 
 import sys
+import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 XML_PATH = REPO_ROOT / "Content" / "AbilityDefinitions" / "FireBolt.xml"
+PROJECTILE_CONFIG_PATH = REPO_ROOT / "Content" / "Config" / "ProjectileDefinitions.json"
 
 FAILURES = []
 
@@ -90,13 +92,33 @@ def main():
         check(classes.index("SpawnProjectiles") > classes.index("WaitForMontageEvent"),
               f"SpawnProjectiles must come after WaitForMontageEvent; classes={classes}")
 
-    # 6. SpawnProjectiles projectile class is the FireBolt BP.
+    # 6. SpawnProjectiles uses the current data-driven native projectile contract.
     sp_node = next((c for c in children if c.get("class") == "SpawnProjectiles"), None)
     if sp_node is not None:
-        pc = next((p.get("value") for p in sp_node.findall("property")
-                   if p.get("name") == "ProjectileClass"), None)
-        check(pc and "BP_FireBolt" in pc,
-              f"SpawnProjectiles ProjectileClass='{pc}', expected to reference BP_FireBolt")
+        definition = next((p.get("value") for p in sp_node.findall("property")
+                           if p.get("name") == "ProjectileDefinition"), None)
+        legacy_class = next((p.get("value") for p in sp_node.findall("property")
+                             if p.get("name") == "ProjectileClass"), None)
+        check(definition == "fireBolt",
+              f"SpawnProjectiles ProjectileDefinition='{definition}', expected 'fireBolt'")
+        check(legacy_class is None,
+              f"SpawnProjectiles still contains legacy ProjectileClass='{legacy_class}'")
+
+        check(PROJECTILE_CONFIG_PATH.is_file(),
+              f"Missing projectile configuration: {PROJECTILE_CONFIG_PATH}")
+        if PROJECTILE_CONFIG_PATH.is_file():
+            try:
+                projectile_config = json.loads(PROJECTILE_CONFIG_PATH.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as e:
+                FAILURES.append(f"Projectile config parse error: {e}")
+            else:
+                projectiles = projectile_config.get("projectiles", {})
+                firebolt = projectiles.get("fireBolt") if isinstance(projectiles, dict) else None
+                check(isinstance(firebolt, dict),
+                      "ProjectileDefinitions.json has no 'fireBolt' definition")
+                if isinstance(firebolt, dict):
+                    check(firebolt.get("nativeClass") == "/Script/Aura.AuraProjectile",
+                          "fireBolt definition must use native /Script/Aura.AuraProjectile")
 
     # 7. Cost + cooldown sanity (unchanged by the fix, but guards the data).
     cost = root.find("cost")
