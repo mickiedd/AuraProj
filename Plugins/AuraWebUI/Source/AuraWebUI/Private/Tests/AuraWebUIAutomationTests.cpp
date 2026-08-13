@@ -395,9 +395,13 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Login page uses the native WebSocket URL placeholder"), LoginHtml.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
 	TestTrue(TEXT("Login page sends level selection commands"), LoginHtml.Contains(TEXT("login_select_level")));
 	TestTrue(TEXT("Login page sends connect commands"), LoginHtml.Contains(TEXT("login_connect")));
+	TestTrue(TEXT("Login page sends role selection commands"), LoginHtml.Contains(TEXT("login_select_role")));
+	TestTrue(TEXT("Login page includes the selected role in connect payloads"), LoginHtml.Contains(TEXT("roleId: selectedRoleId")));
 	TestTrue(TEXT("Login page consumes login state events"), LoginHtml.Contains(TEXT("login_state")));
+	TestTrue(TEXT("Login page consumes role lists from login state"), LoginHtml.Contains(TEXT("payload.roles")));
 	TestTrue(TEXT("Login page consumes login status events"), LoginHtml.Contains(TEXT("login_status")));
 	TestTrue(TEXT("Login page renders a server selector"), LoginHtml.Contains(TEXT("id=\"levels\"")));
+	TestTrue(TEXT("Login page renders a role selector"), LoginHtml.Contains(TEXT("id=\"roles\"")));
 	TestTrue(TEXT("Login page renders a connect button"), LoginHtml.Contains(TEXT("id=\"connect\"")));
 	TestTrue(TEXT("Login page renders live status text"), LoginHtml.Contains(TEXT("aria-live=\"polite\"")));
 	return true;

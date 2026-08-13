@@ -46,6 +46,12 @@ void ALoginPlayerController::BeginPlay()
 			ServerTravelComponent->OnStatusMessage.AddUObject(this, &ALoginPlayerController::HandleServerTravelStatusMessage);
 		}
 		LoadLoginServerTargets();
+		FString InitialRoleError;
+		const FName InitialRole = ResolveRequestedRole(InitialRoleError);
+		if (!InitialRole.IsNone())
+		{
+			SelectedRoleId = InitialRole.ToString();
+		}
 		EnsureLoginWebUIWidget();
 		if (AvailableLoginServerTargets.IsEmpty())
 		{
@@ -182,6 +188,7 @@ void ALoginPlayerController::SendLoginState()
 		{
 			TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
 			Payload->SetStringField(TEXT("selectedLevelId"), SelectedLevelId);
+			Payload->SetStringField(TEXT("selectedRoleId"), SelectedRoleId);
 			Payload->SetStringField(TEXT("status"), LoginStatusMessage);
 			Payload->SetBoolField(TEXT("connecting"), bQueryingGameServer || bConnectionAttempted);
 
@@ -195,6 +202,31 @@ void ALoginPlayerController::SendLoginState()
 				Levels.Add(MakeShared<FJsonValueObject>(Level));
 			}
 			Payload->SetArrayField(TEXT("levels"), Levels);
+
+			TArray<TSharedPtr<FJsonValue>> Roles;
+			if (const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this))
+			{
+				TArray<FName> RoleNames = RoleInfo->GetRoleNames();
+				RoleNames.Sort([](const FName& Left, const FName& Right)
+				{
+					return Left.ToString() < Right.ToString();
+				});
+				for (const FName RoleName : RoleNames)
+				{
+					FString RoleError;
+					if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, RoleName, RoleError))
+					{
+						continue;
+					}
+
+					const FRoleDefaultInfo RoleDefaults = RoleInfo->GetRoleDefaultInfo(RoleName);
+					TSharedRef<FJsonObject> RoleEntry = MakeShared<FJsonObject>();
+					RoleEntry->SetStringField(TEXT("roleId"), RoleName.ToString());
+					RoleEntry->SetStringField(TEXT("displayName"), RoleDefaults.DisplayName.IsEmpty() ? RoleName.ToString() : RoleDefaults.DisplayName);
+					Roles.Add(MakeShared<FJsonValueObject>(RoleEntry));
+				}
+			}
+			Payload->SetArrayField(TEXT("roles"), Roles);
 
 			FString PayloadJson;
 			const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&PayloadJson);
@@ -225,6 +257,29 @@ void ALoginPlayerController::HandleWebUICommand(const FString& Command, const FS
 		return;
 	}
 
+	if (Command == TEXT("login_select_role"))
+	{
+		TSharedPtr<FJsonObject> Payload;
+		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(PayloadJson);
+		FString RoleId;
+		if (!FJsonSerializer::Deserialize(Reader, Payload) || !Payload.IsValid() || !Payload->TryGetStringField(TEXT("roleId"), RoleId))
+		{
+			UpdateConnectingStatus(TEXT("The Login page sent an invalid role selection."));
+			return;
+		}
+
+		FString RoleError;
+		if (!SelectLoginRole(RoleId, RoleError))
+		{
+			UpdateConnectingStatus(RoleError);
+			return;
+		}
+
+		UpdateConnectingStatus(FString::Printf(TEXT("Selected role: %s"), *SelectedRoleId));
+		SendLoginState();
+		return;
+	}
+
 	if (Command != TEXT("login_select_level") && Command != TEXT("login_connect"))
 	{
 		return;
@@ -240,6 +295,17 @@ void ALoginPlayerController::HandleWebUICommand(const FString& Command, const FS
 
 	FString LevelId;
 	Payload->TryGetStringField(TEXT("levelId"), LevelId);
+	FString RequestedRoleId;
+	Payload->TryGetStringField(TEXT("roleId"), RequestedRoleId);
+	if (!RequestedRoleId.IsEmpty())
+	{
+		FString RoleError;
+		if (!SelectLoginRole(RequestedRoleId, RoleError))
+		{
+			UpdateConnectingStatus(RoleError);
+			return;
+		}
+	}
 	const FLoginServerTarget* Target = FindLoginServerTarget(LevelId);
 	if (!Target)
 	{
@@ -249,12 +315,34 @@ void ALoginPlayerController::HandleWebUICommand(const FString& Command, const FS
 
 	if (Command == TEXT("login_select_level"))
 	{
-		HandleLoginMenuSelectionChanged(Target->DisplayName, Target->LevelId, Target->ServerPort);
+		HandleLoginMenuSelectionChanged(Target->DisplayName, Target->LevelId, Target->ServerPort, SelectedRoleId);
 	}
 	else
 	{
-		RequestLoginMenuConnect(Target->DisplayName, Target->LevelId, Target->ServerPort);
+		RequestLoginMenuConnect(Target->DisplayName, Target->LevelId, Target->ServerPort, SelectedRoleId);
 	}
+}
+
+bool ALoginPlayerController::SelectLoginRole(const FString& InRoleId, FString& OutError)
+{
+	FString NormalizedRoleId = InRoleId;
+	NormalizedRoleId.TrimStartAndEndInline();
+	if (NormalizedRoleId.IsEmpty())
+	{
+		OutError = TEXT("Select a player role before connecting.");
+		return false;
+	}
+
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
+	const FName RoleName(*NormalizedRoleId);
+	if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, RoleName, OutError))
+	{
+		return false;
+	}
+
+	SelectedRoleId = RoleName.ToString();
+	OutError.Reset();
+	return true;
 }
 
 bool ALoginPlayerController::LoadLoginServerTargets()
@@ -354,7 +442,7 @@ void ALoginPlayerController::HandleServerTravelStatusMessage(const FString& InMe
 	UpdateConnectingStatus(InMessage);
 }
 
-void ALoginPlayerController::HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, const FString& InSelectedLevelId, int32 FallbackPort)
+void ALoginPlayerController::HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, const FString& InSelectedLevelId, int32 FallbackPort, const FString& InSelectedRoleId)
 {
 	if (SelectedDisplayName.IsEmpty() || InSelectedLevelId.IsEmpty() || FallbackPort < 1 || FallbackPort > 65535)
 	{
@@ -364,6 +452,15 @@ void ALoginPlayerController::HandleLoginMenuSelectionChanged(const FString& Sele
 	}
 
 	this->SelectedLevelId = InSelectedLevelId;
+	if (!InSelectedRoleId.IsEmpty())
+	{
+		FString RoleError;
+		if (!SelectLoginRole(InSelectedRoleId, RoleError))
+		{
+			UpdateConnectingStatus(RoleError);
+			return;
+		}
+	}
 	SelectedFallbackPort = FallbackPort;
 	ServerPort = FallbackPort;
 	UpdateConnectingStatus(FString::Printf(TEXT("Selected server: %s (%s)"), *SelectedDisplayName, *BuildServerEndpoint()));
@@ -372,7 +469,7 @@ void ALoginPlayerController::HandleLoginMenuSelectionChanged(const FString& Sele
 		*SelectedDisplayName, *InSelectedLevelId, FallbackPort);
 }
 
-void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisplayName, const FString& InSelectedLevelId, int32 FallbackPort)
+void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisplayName, const FString& InSelectedLevelId, int32 FallbackPort, const FString& InSelectedRoleId)
 {
 	if (!IsLocalPlayerController())
 	{
@@ -392,7 +489,7 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 	}
 
 	// Update SelectedLevelId, SelectedFallbackPort, and ServerPort before we capture anything.
-	HandleLoginMenuSelectionChanged(SelectedDisplayName, InSelectedLevelId, FallbackPort);
+	HandleLoginMenuSelectionChanged(SelectedDisplayName, InSelectedLevelId, FallbackPort, InSelectedRoleId);
 	bConnectionAttempted = true;
 	SendLoginState();
 
@@ -748,6 +845,13 @@ FName ALoginPlayerController::ResolveRequestedRole(FString& OutError) const
 	if (FParse::Value(FCommandLine::Get(), TEXT("AutoLoginRole="), CommandLineRole) && !CommandLineRole.IsEmpty())
 	{
 		RoleId = FName(*CommandLineRole);
+	}
+	if (RoleId.IsNone())
+	{
+		if (!SelectedRoleId.IsEmpty())
+		{
+			RoleId = FName(*SelectedRoleId);
+		}
 	}
 	if (RoleId.IsNone())
 	{

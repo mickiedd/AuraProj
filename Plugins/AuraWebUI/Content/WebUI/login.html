@@ -30,7 +30,9 @@
   <main>
     <section class="panel" aria-labelledby="title">
       <h1 id="title">Enter Aura</h1>
-      <p class="subtitle">Choose a world, then connect to its dedicated server.</p>
+    <p class="subtitle">Choose your role and world, then connect to its dedicated server.</p>
+      <label for="roles">Role selection</label>
+      <select id="roles" aria-label="Role selection"></select>
       <label for="levels">Server level</label>
       <select id="levels" aria-label="Server level"></select>
       <button id="connect" type="button">Connect</button>
@@ -41,17 +43,40 @@
   </main>
   <script>
     const socketUrl = "__AURA_WEBSOCKET_URL__";
+    const roles = document.getElementById('roles');
     const levels = document.getElementById('levels');
     const connectButton = document.getElementById('connect');
     const status = document.getElementById('status');
     const connection = document.getElementById('connection');
     const dot = document.getElementById('dot');
     let socket;
+    let selectedRoleId = '';
     let selectedLevelId = '';
 
     function setStatus(message, kind = '') {
       status.textContent = message || '';
       status.className = `status ${kind}`.trim();
+    }
+
+    function renderRoles(payload = {}) {
+      const entries = Array.isArray(payload.roles) ? payload.roles : [];
+      const previous = payload.selectedRoleId || selectedRoleId;
+      roles.replaceChildren();
+      entries.forEach(entry => {
+        const option = document.createElement('option');
+        option.value = entry.roleId || '';
+        option.textContent = entry.displayName || entry.roleId || '';
+        roles.appendChild(option);
+      });
+      if (entries.length) {
+        const preferred = entries.some(entry => entry.roleId === previous) ? previous : entries[0].roleId;
+        roles.value = preferred;
+        selectedRoleId = preferred;
+      } else {
+        selectedRoleId = '';
+        connectButton.disabled = true;
+        setStatus('No player-selectable roles are configured.', 'error');
+      }
     }
 
     function command(name, payload = {}) {
@@ -61,6 +86,7 @@
     }
 
     function renderState(payload = {}) {
+      renderRoles(payload);
       const entries = Array.isArray(payload.levels) ? payload.levels : [];
       const previous = payload.selectedLevelId || selectedLevelId;
       levels.replaceChildren();
@@ -74,7 +100,7 @@
         const preferred = entries.some(entry => entry.levelId === previous) ? previous : entries[0].levelId;
         levels.value = preferred;
         selectedLevelId = preferred;
-        connectButton.disabled = Boolean(payload.connecting);
+        connectButton.disabled = Boolean(payload.connecting) || !selectedRoleId;
       } else {
         selectedLevelId = '';
         connectButton.disabled = true;
@@ -106,14 +132,19 @@
 
     levels.addEventListener('change', () => {
       selectedLevelId = levels.value;
-      command('login_select_level', { levelId: selectedLevelId });
+      command('login_select_level', { levelId: selectedLevelId, roleId: selectedRoleId });
+    });
+
+    roles.addEventListener('change', () => {
+      selectedRoleId = roles.value;
+      command('login_select_role', { roleId: selectedRoleId });
     });
 
     connectButton.addEventListener('click', () => {
-      if (!selectedLevelId) return;
+      if (!selectedLevelId || !selectedRoleId) return;
       connectButton.disabled = true;
       setStatus('Starting connection...', 'ok');
-      command('login_connect', { levelId: selectedLevelId });
+      command('login_connect', { levelId: selectedLevelId, roleId: selectedRoleId });
     });
 
     connect();

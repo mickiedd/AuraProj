@@ -45,6 +45,16 @@ public:
 
     const UAuraAbilityDefinition* GetDefinition() const;
 
+    /**
+     * Authority-only graph actions may complete locally on a predicting client
+     * without producing their server-side effect. That client must wait for the
+     * authoritative instance to end the activation.
+     */
+    static bool ShouldEndAfterGraphCompletion(bool bIsNetAuthority)
+    {
+        return bIsNetAuthority;
+    }
+
     void AdvanceGraph(EAuraAbilityActionStatus ChildStatus);
 
     UFUNCTION(BlueprintCallable, Category = "Ability|TargetData")
@@ -65,6 +75,7 @@ protected:
     UPROPERTY()
     UAuraAbilityActionTask* RootTask = nullptr;
     bool bGraphActive = false;
+    bool bWaitingForAuthoritativeEnd = false;
 
     // Re-entrancy guard: ending a Pending montage/event task can fire OnInterrupted
     // synchronously, which would re-enter EndAbility via AdvanceGraph(Failure). The

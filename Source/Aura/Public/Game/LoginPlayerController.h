@@ -40,14 +40,14 @@ public:
 	 * @param SelectedLevelId      Level id string (from LevelConfig.json "id" field).
 	 * @param FallbackPort         Port from LevelConfig used if the game server is unreachable.
 	 */
-	void HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, const FString& SelectedLevelId, int32 FallbackPort);
+	void HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, const FString& SelectedLevelId, int32 FallbackPort, const FString& InSelectedRoleId = FString());
 
 	/**
 	 * Called when the user clicks Connect.
 	 * Queries the Game Server Manager for the dedicated server endpoint, then connects.
 	 * Falls back to the fixed port from LevelConfig if the game server is unreachable.
 	 */
-	void RequestLoginMenuConnect(const FString& SelectedDisplayName, const FString& SelectedLevelId, int32 FallbackPort);
+	void RequestLoginMenuConnect(const FString& SelectedDisplayName, const FString& SelectedLevelId, int32 FallbackPort, const FString& InSelectedRoleId = FString());
 
 protected:
 	/**
@@ -116,6 +116,7 @@ protected:
 
 	UFUNCTION()
 	void HandleWebUIConnectionChanged(bool bConnected);
+	bool SelectLoginRole(const FString& InRoleId, FString& OutError);
 
 	struct FLoginServerTarget
 	{
@@ -175,6 +176,9 @@ protected:
 
 	/** Level id selected by the user; sent to the Game Server Manager. */
 	FString SelectedLevelId;
+
+	/** Player-selectable role id selected on the Login Web UI. */
+	FString SelectedRoleId;
 
 	/** Fallback port from LevelConfig, used if the game server is unreachable. */
 	int32 SelectedFallbackPort = 0;

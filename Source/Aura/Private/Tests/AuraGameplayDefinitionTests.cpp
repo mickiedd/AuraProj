@@ -13,6 +13,9 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include "Sound/SoundBase.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraProjectileDefinitionsTest,
@@ -65,6 +68,31 @@ bool FAuraProjectileDefinitionsTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Configured collision radius"), FMath::IsNearlyEqual(Projectile->GetSphereComponent()->GetUnscaledSphereRadius(), FireBolt->CollisionRadius));
 	TestEqual(TEXT("Configured WorldStatic blocks"), Projectile->GetSphereComponent()->GetCollisionResponseToChannel(ECC_WorldStatic), ECR_Block);
 	TestEqual(TEXT("Configured initial speed"), Projectile->ProjectileMovement->InitialSpeed, 650.f);
+
+	// Presentation regression: loading the native definition must resolve every
+	// FireBolt visual/audio dependency, and BeginPlay must attach the flight trail.
+	TestTrue(TEXT("FireBolt flight trail path is configured"), !FireBolt->FlightTrail.IsNull());
+	TestTrue(TEXT("FireBolt impact effect path is configured"), !FireBolt->ImpactEffect.IsNull());
+	TestTrue(TEXT("FireBolt impact sound path is configured"), !FireBolt->ImpactSound.IsNull());
+	TestTrue(TEXT("FireBolt looping sound path is configured"), !FireBolt->LoopingSound.IsNull());
+	UNiagaraSystem* FireBoltFlightTrail = Cast<UNiagaraSystem>(FireBolt->FlightTrail.TryLoad());
+	UNiagaraSystem* FireBoltImpactEffect = Cast<UNiagaraSystem>(FireBolt->ImpactEffect.TryLoad());
+	USoundBase* FireBoltImpactSound = Cast<USoundBase>(FireBolt->ImpactSound.TryLoad());
+	USoundBase* FireBoltLoopingSound = Cast<USoundBase>(FireBolt->LoopingSound.TryLoad());
+	TestNotNull(TEXT("FireBolt flight trail asset loads as Niagara"), FireBoltFlightTrail);
+	TestNotNull(TEXT("FireBolt impact effect asset loads as Niagara"), FireBoltImpactEffect);
+	TestNotNull(TEXT("FireBolt impact sound asset loads as sound"), FireBoltImpactSound);
+	TestNotNull(TEXT("FireBolt looping sound asset loads as sound"), FireBoltLoopingSound);
+
+	if (World->HasBegunPlay())
+	{
+		if (!Projectile->HasActorBegunPlay()) Projectile->DispatchBeginPlay();
+		TestNotNull(TEXT("FireBolt flight trail component attaches on BeginPlay"), Projectile->FindComponentByClass<UNiagaraComponent>());
+	}
+	else
+	{
+		AddInfo(TEXT("FireBolt BeginPlay attachment check deferred: automation world has not begun play"));
+	}
 	Projectile->Destroy();
 	return true;
 }

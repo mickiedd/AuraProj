@@ -51,12 +51,12 @@ The plugin owns three automation tests under `Plugins/AuraWebUI/Source/AuraWebUI
 
 The Loading level is the first migrated screen. `ALoadingPlayerController` still owns all travel, portal resolution, timeout, and progress timing; only its presentation changed from `WBP_LoadingUI` to a native `UWebUIWidget` loading `WebUI/loading.html`. Progress is sent as the `loading_progress` event, with `{ "percent": 0-100, "message": "..." }` payload data. The page sends `ready` when its browser socket opens and updates its progress bar from the event.
 
-The Login level is also migrated. `ALoginPlayerController` still owns LevelConfig parsing, selection validation, role validation, Game Server Manager queries, fallback ports, and travel to Loading. Its presentation is a native `UWebUIWidget` loading `WebUI/login.html`. The controller sends `login_state` with `{ "levels": [{ "displayName", "levelId", "port" }], "selectedLevelId", "status", "connecting" }` and `login_status` with `{ "message" }`. The page sends `login_select_level` or `login_connect` with `{ "levelId" }`; native code resolves the level ID against its validated LevelConfig targets before invoking the existing login methods.
+The Login level is also migrated. `ALoginPlayerController` still owns LevelConfig parsing, role validation, Game Server Manager queries, fallback ports, and travel to Loading. Its presentation is a native `UWebUIWidget` loading `WebUI/login.html`. The controller sends `login_state` with `{ "roles": [{ "displayName", "roleId" }], "levels": [{ "displayName", "levelId", "port" }], "selectedRoleId", "selectedLevelId", "status", "connecting" }` and `login_status` with `{ "message" }`. The page sends `login_select_role` with `{ "roleId" }`, and `login_select_level` or `login_connect` with `{ "levelId", "roleId" }`; native code validates the selected player role against `RoleConfig.json`, resolves the level ID against `LevelConfig.json`, and then invokes the existing login/travel methods. The server remains the final authority and revalidates the role from the `Role` travel option.
 
 Run the focused suite from the project root with:
 
 ```powershell
-& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ".\Aura.uproject" -unattended -nop4 -nullrhi -NoSplash '-ExecCmds=Automation RunTests AuraWebUI; Quit' '-TestExit=Automation Test Queue Empty' '-abslog=.\Saved\Logs\AuraWebUIAutomation.log'
+& "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ".\Aura.uproject" -unattended -nop4 -nullrhi -NoSplash -DisablePlugins=RiderLink '-ExecCmds=Automation RunTests AuraWebUI; Quit' '-TestExit=Automation Test Queue Empty' '-abslog=.\Saved\Logs\AuraWebUIAutomation.log'
 ```
 
 The test uses port `18766`; the runtime bridge default remains `18765`.

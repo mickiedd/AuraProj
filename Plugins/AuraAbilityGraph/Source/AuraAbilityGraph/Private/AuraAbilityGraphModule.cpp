@@ -770,6 +770,27 @@ static bool SmokeTest_FireBoltFileGraph()
 	return true;
 }
 
+// A predicted client can finish the graph after the authority-only
+// SpawnProjectiles action is skipped. It must not replicate that local completion
+// as an ability end before the server has produced the projectile effect.
+static bool SmokeTest_ClientGraphCompletionBoundary()
+{
+	if (!UAuraDataAbility::ShouldEndAfterGraphCompletion(true))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ClientGraphCompletionBoundary: authority completion must end immediately"));
+		return false;
+	}
+
+	if (UAuraDataAbility::ShouldEndAfterGraphCompletion(false))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ClientGraphCompletionBoundary: client completion must wait for server end"));
+		return false;
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ClientGraphCompletionBoundary PASSED (client waits for authoritative end)."));
+	return true;
+}
+
 // ===================================================================
 // Phase 3 smoke tests 閳?load the real XML files from disk and validate
 // graph structure, node types, and properties for the newly ported
@@ -2450,6 +2471,7 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("FireGunMigration"), SmokeTest_FireGunMigration);
 	Run(TEXT("RoleDefinitionLoading"), SmokeTest_RoleDefinitionLoading);
 	Run(TEXT("FireBoltFileGraph"), SmokeTest_FireBoltFileGraph);
+	Run(TEXT("ClientGraphCompletionBoundary"), SmokeTest_ClientGraphCompletionBoundary);
 	Run(TEXT("FireBlastFileGraph"), SmokeTest_FireBlastFileGraph);
 	Run(TEXT("ArcaneShardsFileGraph"), SmokeTest_ArcaneShardsFileGraph);
 	Run(TEXT("ElectrocuteFileGraph"), SmokeTest_ElectrocuteFileGraph);

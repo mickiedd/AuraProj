@@ -200,12 +200,11 @@ bool AAuraCharacter::LoadProgress()
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (AuraGameMode)
 	{
-		// Day 05 ownership boundary: a network server must not treat its process-global
-		// GameInstance save slot as this connection's role/progression identity. PreLogin and
-		// InitNewPlayer have already retained the trusted stable role ID on this PlayerState;
-		// Day 06 is the only milestone that consumes and applies it to the actor. Until then,
-		// preserve the Blueprint shell and initialize only neutral/default combat state needed
-		// by the existing maps. Standalone keeps its local save workflow unchanged.
+		// A network server must not treat its process-global GameInstance save slot as this
+		// connection's role/progression identity. PreLogin and InitNewPlayer have retained the
+		// trusted stable role ID on this PlayerState; consume that connection-scoped value here
+		// for both role visuals and role-specific gameplay initialization. Standalone keeps its
+		// local save workflow unchanged.
 		if (GetNetMode() != NM_Standalone)
 		{
 			if (!AuraPlayerState || !AuraPlayerState->HasPendingAcceptedRoleId())
@@ -214,14 +213,27 @@ bool AAuraCharacter::LoadProgress()
 				return false;
 			}
 
-			UE_LOG(LogAura, Display, TEXT("[Role][Day5] Network connection role '%s' remains pending for Day 06; global save-slot role is not read."),
-				*AuraPlayerState->GetPendingAcceptedRoleId().ToString());
+			const FName AcceptedRole = AuraPlayerState->GetPendingAcceptedRoleId();
+			FString RoleError;
+			if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(UAuraAbilitySystemLibrary::GetRoleInfo(this), AcceptedRole, RoleError))
+			{
+				RejectLogin(RoleError.IsEmpty() ? TEXT("The accepted connection role is no longer available.") : RoleError);
+				return false;
+			}
+
+			UE_LOG(LogAura, Display, TEXT("[Role][Network] Consuming accepted connection role '%s'; global save-slot role is not read."),
+				*AcceptedRole.ToString());
+			AuraPlayerState->SetRole(AcceptedRole);
+			ApplyRole(AcceptedRole);
 			if (!bAttributesAlreadyInitialized)
 			{
-				InitializeDefaultAttributesForRole(UAuraAbilitySystemLibrary::GetDefaultRole(this));
+				InitializeDefaultAttributesForRole(AcceptedRole);
 				AuraPlayerState->MarkDefaultAttributesInitialized();
 				AddCharacterAbilities();
 			}
+			// Keep the accepted role on PlayerState for pawn replacement/respawn. The ASC and
+			// attributes outlive the pawn, while the same connection-scoped role must still be
+			// available when a new pawn is possessed.
 			return true;
 		}
 

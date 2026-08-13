@@ -1493,6 +1493,25 @@ bool FAuraDay5ConnectionScopedRoleRequestTest::RunTest(const FString& Parameters
 	return true;
 }
 
+AURA_DAY5_TEST(FAuraDay5NetworkCharacterConsumesAcceptedRoleTest, "NetworkCharacterConsumesAcceptedRole")
+bool FAuraDay5NetworkCharacterConsumesAcceptedRoleTest::RunTest(const FString& Parameters)
+{
+	const FString CharacterSourcePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Source/Aura/Private/Character/AuraCharacter.cpp"));
+	FString CharacterSource;
+	if (!TestTrue(TEXT("Network character source is available"), FFileHelper::LoadFileToString(CharacterSource, *CharacterSourcePath)))
+	{
+		return false;
+	}
+
+	TestTrue(TEXT("Network path reads the connection-scoped accepted role"), CharacterSource.Contains(TEXT("GetPendingAcceptedRoleId")));
+	TestTrue(TEXT("Network path replicates the accepted role to PlayerState"), CharacterSource.Contains(TEXT("AuraPlayerState->SetRole(AcceptedRole)")));
+	TestTrue(TEXT("Network path applies accepted role visuals"), CharacterSource.Contains(TEXT("ApplyRole(AcceptedRole)")));
+	TestTrue(TEXT("Network path initializes attributes from accepted role"), CharacterSource.Contains(TEXT("InitializeDefaultAttributesForRole(AcceptedRole)")));
+	TestFalse(TEXT("Network path no longer initializes the default role"), CharacterSource.Contains(TEXT("InitializeDefaultAttributesForRole(UAuraAbilitySystemLibrary::GetDefaultRole(this))")));
+	TestTrue(TEXT("Accepted role remains available for respawn"), CharacterSource.Contains(TEXT("Keep the accepted role on PlayerState for pawn replacement/respawn")));
+	return true;
+}
+
 AURA_DAY5_TEST(FAuraDay5LoadScreenRoleValidationTest, "LoadScreenRoleValidation")
 bool FAuraDay5LoadScreenRoleValidationTest::RunTest(const FString& Parameters)
 {

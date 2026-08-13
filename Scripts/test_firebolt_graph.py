@@ -15,6 +15,10 @@ SpawnProjectiles never ran (no projectile) and the Sequence never completed
 This test is a static guard: it parses the real FireBolt.xml and asserts the
 graph ordering is correct. It does NOT exercise the runtime (montage event
 delivery), which needs the engine.
+
+It also guards the runtime lifecycle contract: a predicted client may skip the
+authority-only projectile action, but must wait for the server's authoritative
+ability end instead of replicating local graph completion back to the server.
 """
 
 import sys
@@ -126,6 +130,16 @@ def main():
     cd = root.find("cooldown")
     check(cd is not None and cd.get("tag") == "Cooldown.Fire.FireBolt" and cd.get("duration") == "5",
           f"cooldown mismatch: tag='{cd.get('tag') if cd is not None else None}' dur='{cd.get('duration') if cd is not None else None}'")
+
+    # 8. Client graph completion must wait for the authoritative server end.
+    data_ability_cpp = REPO_ROOT / "Plugins" / "AuraAbilityGraph" / "Source" / "AuraAbilityGraph" / "Private" / "DataAbility.cpp"
+    check(data_ability_cpp.is_file(), f"Missing data ability implementation: {data_ability_cpp}")
+    if data_ability_cpp.is_file():
+        source = data_ability_cpp.read_text(encoding="utf-8")
+        check("Graph completed on non-authority client; waiting for authoritative server end" in source,
+              "DataAbility must hold client graph completion until the authoritative server ends the activation")
+        check("ShouldEndAfterGraphCompletion" in source,
+              "DataAbility must use the graph-completion authority boundary contract")
 
     report()
     return 0 if not FAILURES else 1

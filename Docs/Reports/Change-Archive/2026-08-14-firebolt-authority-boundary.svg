@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">FireBolt authority completion boundary fix</title>
+  <desc id="desc">Before and after network ability flows showing why the server failed to spawn FireBolt and how the predicting client now waits for the authoritative server end.</desc>
+  <style>
+    .bg{fill:#0d1726}.panel{fill:#17283d;stroke:#3a5777;stroke-width:2}.before{fill:#432b2b;stroke:#e87575;stroke-width:2}.after{fill:#183d38;stroke:#4dd2ad;stroke-width:2}.client{fill:#253a56;stroke:#74a8df;stroke-width:2}.server{fill:#49351b;stroke:#e3ae55;stroke-width:2}.guard{fill:#263d58;stroke:#75b8f2;stroke-width:2}.title{fill:#f5f8ff;font:700 30px Arial,sans-serif}.subtitle{fill:#a9bad0;font:15px Arial,sans-serif}.head{fill:#fff;font:700 19px Arial,sans-serif}.body{fill:#d5e1ef;font:15px Arial,sans-serif}.small{fill:#a9bad0;font:13px Arial,sans-serif}.bad{fill:#ffb0b0;font:700 15px Arial,sans-serif}.good{fill:#9af0d5;font:700 15px Arial,sans-serif}.warn{fill:#ffd28b;font:700 15px Arial,sans-serif}.arrow{stroke:#88a9c8;stroke-width:3;fill:none;marker-end:url(#arrow)}.badline{stroke:#ef8585;stroke-width:3;fill:none;stroke-dasharray:8 6;marker-end:url(#badarrow)}.goodline{stroke:#59d6b1;stroke-width:3;fill:none;marker-end:url(#goodarrow)}
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#88a9c8"/></marker>
+    <marker id="badarrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#ef8585"/></marker>
+    <marker id="goodarrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#59d6b1"/></marker>
+  </defs>
+
+  <rect class="bg" width="1400" height="900"/>
+  <text class="title" x="48" y="52">FireBolt authority completion boundary</text>
+  <text class="subtitle" x="48" y="80">A predicted client can observe graph success before the server creates the authoritative projectile.</text>
+
+  <rect class="panel" x="40" y="112" width="1320" height="330" rx="16"/>
+  <text class="head" x="70" y="150">Before: local success replicated an early ability end</text>
+
+  <rect class="client" x="70" y="185" width="270" height="180" rx="12"/>
+  <text class="head" x="92" y="218">Predicting client</text>
+  <text class="body" x="92" y="252">Target data + montage event</text>
+  <text class="body" x="92" y="280">SpawnProjectiles skipped</text>
+  <text class="warn" x="92" y="316">Task returns Success</text>
+  <text class="bad" x="92" y="346">EndAbility replicated</text>
+
+  <path class="badline" d="M340 275 H405"/>
+  <rect class="before" x="410" y="185" width="270" height="180" rx="12"/>
+  <text class="head" x="432" y="218">Network handoff</text>
+  <text class="body" x="432" y="252">Client completion is treated</text>
+  <text class="body" x="432" y="280">as the activation's final state</text>
+  <text class="bad" x="432" y="321">Server receives an end</text>
+  <text class="small" x="432" y="347">before its montage event fires</text>
+
+  <path class="badline" d="M680 275 H745"/>
+  <rect class="server" x="750" y="185" width="270" height="180" rx="12"/>
+  <text class="head" x="772" y="218">Dedicated server</text>
+  <text class="body" x="772" y="252">Still waiting for</text>
+  <text class="body" x="772" y="280">WaitForMontageEvent</text>
+  <text class="bad" x="772" y="321">Pending tasks are ended</text>
+  <text class="bad" x="772" y="349">before SpawnProjectiles</text>
+
+  <path class="badline" d="M1020 275 H1085"/>
+  <rect class="before" x="1090" y="185" width="240" height="180" rx="12"/>
+  <text class="head" x="1112" y="218">Observed result</text>
+  <text class="bad" x="1112" y="258">No FireBolt</text>
+  <text class="body" x="1112" y="290">No projectile actor</text>
+  <text class="body" x="1112" y="318">No impact/effect path</text>
+  <text class="small" x="1112" y="348">The graph was ended early.</text>
+
+  <rect class="panel" x="40" y="470" width="1320" height="330" rx="16"/>
+  <text class="head" x="70" y="508">After: the server owns the effect and the client waits</text>
+
+  <rect class="client" x="70" y="543" width="270" height="180" rx="12"/>
+  <text class="head" x="92" y="576">Predicting client</text>
+  <text class="body" x="92" y="610">Target data + montage event</text>
+  <text class="body" x="92" y="638">SpawnProjectiles skipped</text>
+  <text class="good" x="92" y="674">Success → wait for server end</text>
+  <text class="small" x="92" y="702">No local EndAbility replication</text>
+
+  <path class="goodline" d="M340 633 H405"/>
+  <rect class="guard" x="410" y="543" width="270" height="180" rx="12"/>
+  <text class="head" x="432" y="576">Lifecycle guard</text>
+  <text class="body" x="432" y="610">Only successful non-authority</text>
+  <text class="body" x="432" y="638">completion enters the wait state</text>
+  <text class="good" x="432" y="674">Failures still cancel immediately</text>
+  <text class="small" x="432" y="702">Immediate graphs use the same guard</text>
+
+  <path class="goodline" d="M680 633 H745"/>
+  <rect class="server" x="750" y="543" width="270" height="180" rx="12"/>
+  <text class="head" x="772" y="576">Dedicated server</text>
+  <text class="body" x="772" y="610">Montage event arrives</text>
+  <text class="good" x="772" y="638">SpawnProjectiles runs</text>
+  <text class="body" x="772" y="674">Server creates FireBolt</text>
+  <text class="small" x="772" y="702">Then authoritative EndAbility</text>
+
+  <path class="goodline" d="M1020 633 H1085"/>
+  <rect class="after" x="1090" y="543" width="240" height="180" rx="12"/>
+  <text class="head" x="1112" y="576">Observed result</text>
+  <text class="good" x="1112" y="616">FireBolt appears</text>
+  <text class="body" x="1112" y="648">Projectile/effect path runs</text>
+  <text class="body" x="1112" y="680">Server end cleans client wait</text>
+
+  <rect class="panel" x="40" y="825" width="1320" height="45" rx="10"/>
+  <text class="small" x="62" y="853">Validation: 26/26 AuraAbilityGraph smoke checks • FireBolt static test passed • AuraEditor build passed • Windows + WindowsServer cooks passed (3,304 packages each)</text>
+</svg>

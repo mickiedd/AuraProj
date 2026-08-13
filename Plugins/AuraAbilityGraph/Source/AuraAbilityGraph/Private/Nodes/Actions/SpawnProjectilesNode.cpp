@@ -71,7 +71,11 @@ EAuraAbilityActionStatus USpawnProjectilesTask::OnStart(FAuraAbilityExecutionCon
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnProjectiles] OnStart abort: missing OwnerAbility or AvatarActor"));
         return EAuraAbilityActionStatus::Failure;
     }
-    if (!Ctx.AvatarActor->HasAuthority()) return EAuraAbilityActionStatus::Success;
+    if (!Ctx.AvatarActor->HasAuthority())
+    {
+        UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnProjectiles] OnStart skipped on non-authority; waiting for authoritative instance"));
+        return EAuraAbilityActionStatus::Success;
+    }
 
     const USpawnProjectilesNode* Node = Cast<USpawnProjectilesNode>(NodeDef);
     if (!Node)

@@ -151,6 +151,7 @@ void UAuraDataAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
     PersistentCtx.CursorHit = FHitResult();
     PersistentCtx.BeamState.Reset();
     PersistentCtx.bStopCurrentTimedLoop = false;
+    bWaitingForAuthoritativeEnd = false;
 
     if (const UAuraAbilityDefinition* Definition = GetDefinition())
     {
@@ -175,6 +176,15 @@ void UAuraDataAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] RootTask initial Execute returned %s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
     if (Status != EAuraAbilityActionStatus::Running)
     {
+        if (Status == EAuraAbilityActionStatus::Success && !ShouldEndAfterGraphCompletion(ActorInfo->IsNetAuthority()))
+        {
+            bGraphActive = false;
+            bWaitingForAuthoritativeEnd = true;
+            RootTask = nullptr;
+            UE_LOG(LogAuraAbilityGraph, Log, TEXT("[DataAbility] Graph completed on non-authority client; waiting for authoritative server end"));
+            return;
+        }
+
         EndAbility(Handle, ActorInfo, ActivationInfo, true, Status == EAuraAbilityActionStatus::Failure);
         return;
     }
@@ -200,6 +210,7 @@ void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const
     // timer firing into AdvanceGraph) is a no-op instead of re-advancing/cancelling a
     // half-destroyed graph.
     bGraphActive = false;
+    bWaitingForAuthoritativeEnd = false;
 
     if (!ActorInfo || !ActorInfo->AbilitySystemComponent.IsValid())
     {
@@ -360,6 +371,22 @@ void UAuraDataAbility::AdvanceGraph(EAuraAbilityActionStatus ChildStatus)
         if (Status != EAuraAbilityActionStatus::Running)
         {
             UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] AdvanceGraph ending ability because status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
+
+            // The client intentionally skips authority-only actions such as
+            // SpawnProjectiles. If it ends the predicted activation here, GAS
+            // replicates that local completion to the server before the server
+            // reaches its montage event and projectile node. Keep the client
+            // instance alive until the authoritative instance ends it.
+            const bool bIsNetAuthority = CurrentActorInfo->IsNetAuthority();
+            if (Status == EAuraAbilityActionStatus::Success && !ShouldEndAfterGraphCompletion(bIsNetAuthority))
+            {
+                bGraphActive = false;
+                bWaitingForAuthoritativeEnd = true;
+                RootTask = nullptr;
+                UE_LOG(LogAuraAbilityGraph, Log, TEXT("[DataAbility] Graph completed on non-authority client; waiting for authoritative server end"));
+                return;
+            }
+
             const FGameplayAbilityActivationInfo& ActivationInfo = GetCurrentActivationInfo();
             EndAbility(CurrentSpecHandle, CurrentActorInfo, ActivationInfo, true, Status == EAuraAbilityActionStatus::Failure);
         }

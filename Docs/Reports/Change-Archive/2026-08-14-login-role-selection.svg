@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Login role selection flow</title>
+  <desc id="desc">Diagram showing the Login Web UI role dropdown, native validation, Loading handoff, and server authority.</desc>
+  <style>
+    .bg{fill:#0d1726}.panel{fill:#17283d;stroke:#3a5777;stroke-width:2}.web{fill:#173451;stroke:#70b7ff;stroke-width:2}.native{fill:#183d38;stroke:#4dd2ad;stroke-width:2}.server{fill:#49351b;stroke:#e3ae55;stroke-width:2}.title{fill:#f5f8ff;font:700 28px Arial,sans-serif}.head{fill:#fff;font:700 19px Arial,sans-serif}.body{fill:#d5e1ef;font:15px Arial,sans-serif}.small{fill:#a9bad0;font:13px Arial,sans-serif}.arrow{stroke:#88a9c8;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#88a9c8"/></marker></defs>
+  <rect class="bg" width="1280" height="720"/>
+  <text class="title" x="48" y="54">Login role selection</text>
+  <text class="small" x="48" y="80">Role choice is explicit in the Web UI and remains validated by native/server code.</text>
+
+  <rect class="web" x="48" y="130" width="300" height="440" rx="14"/>
+  <text class="head" x="74" y="170">AuraWebUI login.html</text>
+  <text class="body" x="74" y="218">Role selection dropdown</text>
+  <text class="body" x="74" y="246">Aura · BungeeMan</text>
+  <text class="body" x="74" y="296">Server level dropdown</text>
+  <text class="body" x="74" y="344">Connect</text>
+  <text class="small" x="74" y="405">login_select_role</text>
+  <text class="small" x="74" y="430">login_select_level</text>
+  <text class="small" x="74" y="455">login_connect</text>
+  <text class="small" x="74" y="505">payload: roleId + levelId</text>
+
+  <path class="arrow" d="M365 350 C405 350 405 350 445 350"/>
+
+  <rect class="native" x="445" y="130" width="350" height="440" rx="14"/>
+  <text class="head" x="472" y="170">ALoginPlayerController</text>
+  <text class="body" x="472" y="218">Build login_state:</text>
+  <text class="body" x="472" y="245">roles[] + selectedRoleId</text>
+  <text class="body" x="472" y="292">Validate RoleConfig.json</text>
+  <text class="body" x="472" y="319">playerSelectable + Player type</text>
+  <text class="body" x="472" y="366">Store selected role</text>
+  <text class="body" x="472" y="393">Send Role option through Loading</text>
+  <text class="small" x="472" y="470">Invalid role → status error</text>
+  <text class="small" x="472" y="495">Valid role → existing travel flow</text>
+
+  <path class="arrow" d="M812 350 C852 350 852 350 892 350"/>
+
+  <rect class="server" x="892" y="130" width="340" height="440" rx="14"/>
+  <text class="head" x="918" y="170">Loading + dedicated server</text>
+  <text class="body" x="918" y="218">PendingCrossServerRoleId</text>
+  <text class="body" x="918" y="246">→ ?Role=&lt;StableRoleId&gt;</text>
+  <text class="body" x="918" y="296">Server PreLogin validates</text>
+  <text class="body" x="918" y="323">RoleConfig and rejects invalid IDs</text>
+  <text class="body" x="918" y="373">Selected character applies role</text>
+  <text class="small" x="918" y="455">Existing GSM/fallback/travel behavior</text>
+  <text class="small" x="918" y="480">is preserved.</text>
+
+  <rect class="panel" x="48" y="620" width="1184" height="54" rx="10"/>
+  <text class="body" x="72" y="654">Validation: Login content contract passed • Aura Win64 build passed • AuraEditor Win64 build passed • 3 AuraWebUI tests passed</text>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="760" viewBox="0 0 1320 760" role="img" aria-labelledby="title desc">
+  <title id="title">Network role application fix</title>
+  <desc id="desc">Before and after flow showing BungeeMan being accepted by the server and applied to the spawned character instead of Aura defaults.</desc>
+  <style>
+    .bg{fill:#0d1726}.panel{fill:#17283d;stroke:#3a5777;stroke-width:2}.before{fill:#432b2b;stroke:#e87575;stroke-width:2}.after{fill:#183d38;stroke:#4dd2ad;stroke-width:2}.server{fill:#49351b;stroke:#e3ae55;stroke-width:2}.title{fill:#f5f8ff;font:700 28px Arial,sans-serif}.head{fill:#fff;font:700 19px Arial,sans-serif}.body{fill:#d5e1ef;font:15px Arial,sans-serif}.small{fill:#a9bad0;font:13px Arial,sans-serif}.bad{fill:#ffb0b0;font:700 15px Arial,sans-serif}.good{fill:#9af0d5;font:700 15px Arial,sans-serif}.arrow{stroke:#88a9c8;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#88a9c8"/></marker></defs>
+  <rect class="bg" width="1320" height="760"/>
+  <text class="title" x="48" y="54">Network role application fix</text>
+  <text class="small" x="48" y="82">The accepted connection role now drives both character visuals and role-specific gameplay initialization.</text>
+
+  <rect class="server" x="48" y="125" width="360" height="255" rx="14"/>
+  <text class="head" x="74" y="165">Server admission</text>
+  <text class="body" x="74" y="210">Travel option: Role=BungeeMan</text>
+  <text class="body" x="74" y="240">PreLogin: accepted</text>
+  <text class="body" x="74" y="270">PlayerState:</text>
+  <text class="good" x="74" y="298">PendingAcceptedRoleId=BungeeMan</text>
+  <text class="small" x="74" y="340">This part already worked.</text>
+
+  <path class="arrow" d="M430 250 C470 250 470 250 510 250"/>
+
+  <rect class="before" x="510" y="125" width="360" height="255" rx="14"/>
+  <text class="head" x="536" y="165">Before: LoadProgress()</text>
+  <text class="body" x="536" y="210">Pending role was only logged</text>
+  <text class="bad" x="536" y="250">InitializeDefaultAttributesForRole(Aura)</text>
+  <text class="body" x="536" y="290">Blueprint/default role remained active</text>
+  <text class="bad" x="536" y="330">Character displayed Aura</text>
+
+  <path class="arrow" d="M890 250 C930 250 930 250 970 250"/>
+
+  <rect class="after" x="970" y="125" width="300" height="255" rx="14"/>
+  <text class="head" x="996" y="165">After: LoadProgress()</text>
+  <text class="good" x="996" y="210">Read BungeeMan</text>
+  <text class="body" x="996" y="240">Validate accepted role</text>
+  <text class="body" x="996" y="270">SetRole + ApplyRole</text>
+  <text class="body" x="996" y="300">Initialize attributes</text>
+  <text class="good" x="996" y="340">Character displays BungeeMan</text>
+
+  <rect class="panel" x="48" y="430" width="1222" height="235" rx="14"/>
+  <text class="head" x="74" y="470">Guard and regression coverage</text>
+  <text class="body" x="74" y="515">Invalid or unavailable accepted roles still reject login before character setup.</text>
+  <text class="body" x="74" y="550">The accepted role remains on PlayerState so respawned pawns retain the connection identity.</text>
+  <text class="body" x="74" y="585">Regression: NetworkCharacterConsumesAcceptedRole verifies source, replication, visuals, and attributes.</text>
+  <text class="small" x="74" y="625">Validation: Aura build passed | AuraEditor build passed | 12 Day 5 tests passed | 0 failed | git diff --check passed</text>
+</svg>
