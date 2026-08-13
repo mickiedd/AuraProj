@@ -47,6 +47,10 @@ public:
 	FORCEINLINE int32 GetAttributePoints() const { return AttributePoints; }
 	FORCEINLINE int32 GetSpellPoints() const { return SpellPoints; }
 	FORCEINLINE FName GetRole() const { return CharacterRole; }
+	FORCEINLINE FName GetPendingAcceptedRoleId() const { return PendingAcceptedRoleId; }
+	FORCEINLINE bool HasPendingAcceptedRoleId() const { return !PendingAcceptedRoleId.IsNone(); }
+	void SetPendingAcceptedRoleId(FName InRoleId) { PendingAcceptedRoleId = InRoleId; }
+	void ClearPendingAcceptedRoleId() { PendingAcceptedRoleId = NAME_None; }
 
 	void AddToXP(int32 InXP);
 	void AddToLevel(int32 InLevel);
@@ -87,6 +91,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Role)
 	FName CharacterRole = NAME_None;
+
+	/** Authority-only connection request accepted by GameMode; Day 06 consumes this into CharacterRole. */
+	UPROPERTY(Transient)
+	FName PendingAcceptedRoleId = NAME_None;
 
 	/** Runtime-only guard because the ASC/attributes persist while the pawn respawns. */
 	UPROPERTY(Transient)

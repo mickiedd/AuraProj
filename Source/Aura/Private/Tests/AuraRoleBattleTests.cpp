@@ -1343,4 +1343,176 @@ bool FAuraDay4PreservedDamageSemanticsTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+namespace AuraRoleBattleDay5TestsPrivate
+{
+	FAuraRoleLoadResult LoadShipped()
+	{
+		return UAuraAbilitySystemLibrary::LoadRoleInfoCandidate(nullptr);
+	}
+
+	FString LegacyAuraJson(bool bExplicitVersion)
+	{
+		return FString::Printf(TEXT(R"JSON({%s"defaultRole":"Aura","roles":[{"role":"Aura","displayName":"Aura","mesh":"/Game/Assets/Characters/Aura/SKM_Aura","animBlueprint":"/Game/Blueprints/Character/Aura/ABP_Aura.ABP_Aura_C","weaponMesh":"","weaponSocket":"","weaponTipSocket":"","attributes":{"strength":10,"intelligence":15,"resilience":10,"vigor":10},"lmbAbility":"","lmbAbilityDefinition":"/Game/AbilityDefinitions/FireBolt.xml"}]})JSON"),
+			bExplicitVersion ? TEXT("\"roleDefinitionVersion\":1,") : TEXT(""));
+	}
+
+	bool HasIssue(const FAuraRoleLoadResult& Result, const FString& Fragment)
+	{
+		return Result.Issues.ContainsByPredicate([&Fragment](const FAuraRoleValidationIssue& Issue)
+		{
+			return Issue.JsonPath.Contains(Fragment) || Issue.Message.Contains(Fragment);
+		});
+	}
+}
+
+#define AURA_DAY5_TEST(ClassName, TestName) \
+	IMPLEMENT_SIMPLE_AUTOMATION_TEST(ClassName, "Aura.RoleBattle.Day5." TestName, EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+AURA_DAY5_TEST(FAuraDay5ValidVersion2SchemaTest, "ValidVersion2Schema")
+bool FAuraDay5ValidVersion2SchemaTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	AddInfo(Result.ToLogString());
+	TestTrue(TEXT("Version 2 registry publishes"), Result.bCanPublish);
+	TestEqual(TEXT("Authored version detected"), Result.DetectedVersion, 2);
+	TestEqual(TEXT("Three roles published"), Result.Candidate ? Result.Candidate->RoleInformation.Num() : 0, 3);
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5LegacyVersion1MigrationTest, "LegacyVersion1Migration")
+bool FAuraDay5LegacyVersion1MigrationTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleDay5TestsPrivate;
+	const FAuraRoleLoadResult Omitted = UAuraAbilitySystemLibrary::ParseRoleInfoJson(nullptr, LegacyAuraJson(false));
+	const FAuraRoleLoadResult Explicit = UAuraAbilitySystemLibrary::ParseRoleInfoJson(nullptr, LegacyAuraJson(true));
+	TestTrue(TEXT("Omitted version migrates"), Omitted.bCanPublish);
+	TestTrue(TEXT("Explicit version 1 migrates"), Explicit.bCanPublish);
+	TestEqual(TEXT("Migration retains detected version"), Omitted.DetectedVersion, 1);
+	TestEqual(TEXT("Migration publishes version 2"), Omitted.PublishedVersion, 2);
+	const FRoleDefaultInfo* Aura = Omitted.Candidate ? Omitted.Candidate->RoleInformation.Find(TEXT("Aura")) : nullptr;
+	TestTrue(TEXT("Legacy Aura receives fixed Player identity"), Aura && Aura->EntityType.MatchesTagExact(FAuraGameplayTags::Get().Entity_Player));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5AggregateValidationErrorsTest, "AggregateValidationErrors")
+bool FAuraDay5AggregateValidationErrorsTest::RunTest(const FString& Parameters)
+{
+	using namespace AuraRoleBattleDay5TestsPrivate;
+	const FString Bad = TEXT(R"JSON({"roleDefinitionVersion":2,"defaultRole":"Broken","roles":[{"role":"Broken","displayName":7,"entityType":"Faction.Player","controlType":"Control.Player","combatProfile":"Combat.Magic","faction":"Faction.Player","deathPolicy":"Death.PlayerRespawn","economyProfile":"Economy.None","interactionProfile":"Interaction.Combatant","playerSelectable":true,"targetable":"yes","canAttack":true,"canBeDamaged":true,"allowFriendlyFire":false,"mesh":"/Game/Missing/Mesh","animBlueprint":"/Game/Missing/Anim_C","attributes":{"strength":"bad","intelligence":1,"resilience":1,"vigor":1},"startupAbilities":["/Game/Missing/Ability_C"],"startupPassiveAbilities":[],"unlockableAbilities":[],"startupAbilityDefinitions":[],"startupPassiveAbilityDefinitions":[],"lmbAbility":"","lmbAbilityDefinition":"/Game/Missing/Definition.Missing"},{"role":"Broken"}]})JSON");
+	const FAuraRoleLoadResult Result = UAuraAbilitySystemLibrary::ParseRoleInfoJson(nullptr, Bad);
+	AddInfo(Result.ToLogString());
+	TestFalse(TEXT("Malformed aggregate cannot publish"), Result.bCanPublish);
+	TestTrue(TEXT("All malformed fields are accumulated"), Result.Issues.Num() >= 8);
+	TestTrue(TEXT("Wrong type reported"), HasIssue(Result, TEXT("displayName")));
+	TestTrue(TEXT("Duplicate reported"), HasIssue(Result, TEXT("duplicate stable role ID")));
+	TestTrue(TEXT("Invalid asset reported"), HasIssue(Result, TEXT("failed to load")));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5DuplicateRoleIdsTest, "DuplicateRoleIds")
+bool FAuraDay5DuplicateRoleIdsTest::RunTest(const FString& Parameters)
+{
+	FString Json = AuraRoleBattleDay5TestsPrivate::LegacyAuraJson(true);
+	Json.ReplaceInline(TEXT("]}"), TEXT(",{\"role\":\"Aura\"}]}"));
+	const FAuraRoleLoadResult Result = UAuraAbilitySystemLibrary::ParseRoleInfoJson(nullptr, Json);
+	TestFalse(TEXT("Duplicate IDs prevent publication"), Result.bCanPublish);
+	TestTrue(TEXT("Duplicate ID issue exists"), AuraRoleBattleDay5TestsPrivate::HasIssue(Result, TEXT("duplicate stable role ID")));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5FullGameplayTagContractTest, "FullGameplayTagContract")
+bool FAuraDay5FullGameplayTagContractTest::RunTest(const FString& Parameters)
+{
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	TestTrue(TEXT("Entity.Player registered"), Tags.Entity_Player.IsValid());
+	TestTrue(TEXT("Entity.AmbientNPC registered"), Tags.Entity_AmbientNPC.IsValid());
+	TestTrue(TEXT("Economy capability tags registered"), Tags.Economy_None.IsValid() && Tags.Economy_Ambient.IsValid() && Tags.Economy_CommerceCapable.IsValid());
+	TestTrue(TEXT("Interaction tags registered"), Tags.Interaction_Combatant.IsValid() && Tags.Interaction_Civilian.IsValid());
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5EquipmentAndSocketValidationTest, "EquipmentAndSocketValidation")
+bool FAuraDay5EquipmentAndSocketValidationTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	const FRoleDefaultInfo* Bungee = Result.Candidate ? Result.Candidate->RoleInformation.Find(TEXT("BungeeMan")) : nullptr;
+	TestTrue(TEXT("Bungee equipment and sockets validate"), Result.bCanPublish && Bungee && Bungee->SkeletalMesh->FindSocket(Bungee->WeaponSocketName) && Bungee->WeaponMesh->FindSocket(Bungee->WeaponTipSocketName));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5CivilianEmptyLoadoutTest, "CivilianEmptyLoadout")
+bool FAuraDay5CivilianEmptyLoadoutTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	const FRoleDefaultInfo* Civilian = Result.Candidate ? Result.Candidate->RoleInformation.Find(TEXT("Civilian")) : nullptr;
+	TestTrue(TEXT("Civilian is valid ambient content"), Result.bCanPublish && Civilian && !Civilian->bPlayerSelectable && !Civilian->bCanAttack);
+	TestTrue(TEXT("Civilian has empty spawn and unlock loadout"), Civilian && Civilian->StartupAbilities.IsEmpty() && Civilian->StartupAbilityDefinitions.IsEmpty() && Civilian->UnlockableAbilities.IsEmpty() && !Civilian->DefaultLMBAbility && !Civilian->DefaultLMBAbilityDefinition);
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5DefaultRoleSelectableTest, "DefaultRoleSelectable")
+bool FAuraDay5DefaultRoleSelectableTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	TestTrue(TEXT("Default is player selectable"), Result.Candidate && Result.Candidate->IsPlayerRoleSelectable(Result.Candidate->DefaultRole));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5AtomicReloadRetainsLastGoodTest, "AtomicReloadRetainsLastGood")
+bool FAuraDay5AtomicReloadRetainsLastGoodTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Good = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	URoleInfo* Published = Good.Candidate;
+	URoleInfo* Identity = Published;
+	const FAuraRoleLoadResult Bad = UAuraAbilitySystemLibrary::ParseRoleInfoJson(nullptr, TEXT("{}"));
+	TestFalse(TEXT("Bad candidate is rejected"), UAuraAbilitySystemLibrary::TryPublishRoleInfo(Published, Bad));
+	TestTrue(TEXT("Last-good object identity retained"), Published == Identity && Published && Published->RoleInformation.Contains(TEXT("Aura")));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5ServerRejectsInvalidConfigOrRoleTest, "ServerRejectsInvalidConfigOrRole")
+bool FAuraDay5ServerRejectsInvalidConfigOrRoleTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	FString Error;
+	TestFalse(TEXT("Unavailable registry rejected"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(nullptr, TEXT("Aura"), Error));
+	TestFalse(TEXT("Unknown role rejected"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Unknown"), Error));
+	TestFalse(TEXT("Ambient role rejected"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Civilian"), Error));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5ConnectionScopedRoleRequestTest, "ConnectionScopedRoleRequest")
+bool FAuraDay5ConnectionScopedRoleRequestTest::RunTest(const FString& Parameters)
+{
+	AAuraPlayerState* First = NewObject<AAuraPlayerState>(GetTransientPackage());
+	AAuraPlayerState* Second = NewObject<AAuraPlayerState>(GetTransientPackage());
+	First->SetPendingAcceptedRoleId(TEXT("Aura"));
+	Second->SetPendingAcceptedRoleId(TEXT("BungeeMan"));
+	TestEqual(TEXT("First connection retains Aura"), First->GetPendingAcceptedRoleId(), FName(TEXT("Aura")));
+	TestEqual(TEXT("Second connection retains BungeeMan"), Second->GetPendingAcceptedRoleId(), FName(TEXT("BungeeMan")));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5LoadScreenRoleValidationTest, "LoadScreenRoleValidation")
+bool FAuraDay5LoadScreenRoleValidationTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	FString Error;
+	TestTrue(TEXT("Aura accepted for load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Aura"), Error));
+	TestFalse(TEXT("Civilian excluded from load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Civilian"), Error));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5SavedRoleIdCompatibilityTest, "SavedRoleIdCompatibility")
+bool FAuraDay5SavedRoleIdCompatibilityTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	FString Error;
+	TestTrue(TEXT("Stable Aura save ID retained"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Aura"), Error));
+	TestTrue(TEXT("Stable BungeeMan save ID retained"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("BungeeMan"), Error));
+	return true;
+}
+
+#undef AURA_DAY5_TEST
+
 #endif

@@ -40,6 +40,7 @@
 #include "Dom/JsonObject.h"
 #include "Engine/SkeletalMesh.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimClassInterface.h"
 #include "Materials/MaterialInstance.h"
 #include "NiagaraSystem.h"
 #include "Sound/SoundBase.h"
@@ -602,9 +603,7 @@ FName UAuraAbilitySystemLibrary::GetDefaultRole(const UObject* WorldContextObjec
 
 void UAuraAbilitySystemLibrary::ReloadRoleConfig(const UObject* WorldContextObject)
 {
-	// Drop the pure-client static cache so the next GetRoleInfo call on a client rebuilds it.
-	RoleConfigReloadPrivate::GClientRoleInfoCache.Reset();
-
+	const FAuraRoleLoadResult Candidate = LoadRoleInfoCandidate(WorldContextObject);
 	URoleInfo* Reloaded = nullptr;
 
 	// On the server (GameMode present), refresh the authoritative AAuraGameModeBase::RoleInfo
@@ -612,15 +611,20 @@ void UAuraAbilitySystemLibrary::ReloadRoleConfig(const UObject* WorldContextObje
 	// path also covers a direct console-command invocation on a listen/PIE server.
 	if (AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
 	{
-		AuraGameMode->RoleInfo = LoadRoleInfoFromConfig(WorldContextObject);
-		Reloaded = AuraGameMode->RoleInfo;
+		URoleInfo* Current = AuraGameMode->RoleInfo;
+		if (TryPublishRoleInfo(Current, Candidate))
+		{
+			AuraGameMode->RoleInfo = Current;
+			Reloaded = Current;
+		}
 	}
 	else
 	{
-		// Pure client (no GameMode): rebuild the static cache immediately so the next
-		// GetDefaultRole/GetRoleInfo call returns the new config without waiting on a poll.
-		Reloaded = LoadRoleInfoFromConfig(WorldContextObject);
-		RoleConfigReloadPrivate::GClientRoleInfoCache.Reset(Reloaded);
+		if (Candidate.bCanPublish && Candidate.Candidate)
+		{
+			Reloaded = Candidate.Candidate;
+			RoleConfigReloadPrivate::GClientRoleInfoCache.Reset(Reloaded);
+		}
 	}
 
 	if (Reloaded)
@@ -631,7 +635,7 @@ void UAuraAbilitySystemLibrary::ReloadRoleConfig(const UObject* WorldContextObje
 	}
 	else
 	{
-		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Reload requested but LoadRoleInfoFromConfig returned null; keeping prior state."));
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Reload rejected; retaining last known-good registry: %s"), *Candidate.ToLogString());
 	}
 }
 
@@ -680,236 +684,482 @@ void UAuraAbilitySystemLibrary::PollRoleConfigReload(const UObject* WorldContext
 
 namespace RoleConfigPrivate
 {
-	static void LoadAbilityClasses(const TArray<TSharedPtr<FJsonValue>>& Paths, TArray<TSubclassOf<UGameplayAbility>>& OutClasses, const FString& RoleName, const FString& FieldLabel)
+	static void AddIssue(FAuraRoleLoadResult& Result, EAuraRoleValidationSeverity Severity, FName RoleId, const FString& Path, const FString& Message)
 	{
-		for (const TSharedPtr<FJsonValue>& PathValue : Paths)
-		{
-			if (!PathValue.IsValid()) continue;
-			const FString Path = PathValue->AsString();
-			if (Path.IsEmpty()) continue;
-			const TSubclassOf<UGameplayAbility> Loaded = LoadClass<UGameplayAbility>(nullptr, *Path);
-			if (Loaded)
-			{
-				OutClasses.AddUnique(Loaded);
-			}
-			else
-			{
-				UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load %s class '%s'."), *RoleName, *FieldLabel, *Path);
-			}
-		}
+		FAuraRoleValidationIssue& Issue = Result.Issues.AddDefaulted_GetRef();
+		Issue.Severity = Severity;
+		Issue.RoleId = RoleId;
+		Issue.JsonPath = Path;
+		Issue.Message = Message;
 	}
 
-	static UAuraAbilityDefinition* LoadAbilityDefinition(const FString& DefPath, const FString& RoleName)
+	static bool ReadString(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, FString& Out, FAuraRoleLoadResult& Result, FName RoleId, const FString& BasePath, bool bRequired, bool bAllowEmpty = false)
 	{
-		if (DefPath.IsEmpty())
+		const TSharedPtr<FJsonValue>* FieldValue = Object.IsValid() ? Object->Values.Find(Field) : nullptr;
+		if (FieldValue && FieldValue->IsValid() && (*FieldValue)->Type == EJson::String && (*FieldValue)->TryGetString(Out))
 		{
-			return nullptr;
+			if (bRequired && !bAllowEmpty && Out.IsEmpty())
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, BasePath + TEXT(".") + Field, TEXT("must be a non-empty string"));
+				return false;
+			}
+			return true;
 		}
+		if (bRequired || (Object.IsValid() && Object->HasField(Field)))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, BasePath + TEXT(".") + Field, TEXT("is missing or is not a string"));
+		}
+		Out.Reset();
+		return false;
+	}
 
-		// Prioritize XML loading (new data-driven approach)
+	static bool ReadBool(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, bool& Out, FAuraRoleLoadResult& Result, FName RoleId, const FString& BasePath, bool bRequired)
+	{
+		const TSharedPtr<FJsonValue>* FieldValue = Object.IsValid() ? Object->Values.Find(Field) : nullptr;
+		if (FieldValue && FieldValue->IsValid() && (*FieldValue)->Type == EJson::Boolean && (*FieldValue)->TryGetBool(Out)) return true;
+		if (bRequired || (Object.IsValid() && Object->HasField(Field)))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, BasePath + TEXT(".") + Field, TEXT("is missing or is not a boolean"));
+		}
+		return false;
+	}
+
+	static bool ReadNumber(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, float& Out, FAuraRoleLoadResult& Result, FName RoleId, const FString& BasePath)
+	{
+		double Value = 0.0;
+		const TSharedPtr<FJsonValue>* FieldValue = Object.IsValid() ? Object->Values.Find(Field) : nullptr;
+		if (!FieldValue || !FieldValue->IsValid() || (*FieldValue)->Type != EJson::Number || !(*FieldValue)->TryGetNumber(Value) || !FMath::IsFinite(Value))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, BasePath + TEXT(".") + Field, TEXT("is missing, is not numeric, or is non-finite"));
+			return false;
+		}
+		Out = static_cast<float>(Value);
+		return true;
+	}
+
+	static bool ReadStringArray(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, TArray<FString>& Out, FAuraRoleLoadResult& Result, FName RoleId, const FString& BasePath, bool bRequired)
+	{
+		const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+		if (!Object.IsValid() || !Object->TryGetArrayField(Field, Values) || Values == nullptr)
+		{
+			if (bRequired || (Object.IsValid() && Object->HasField(Field)))
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, BasePath + TEXT(".") + Field, TEXT("is missing or is not an array"));
+			}
+			return false;
+		}
+		for (int32 Index = 0; Index < Values->Num(); ++Index)
+		{
+			FString Value;
+			if (!(*Values)[Index].IsValid() || (*Values)[Index]->Type != EJson::String || !(*Values)[Index]->TryGetString(Value))
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId,
+					FString::Printf(TEXT("%s.%s[%d]"), *BasePath, Field, Index), TEXT("must be a string"));
+				continue;
+			}
+			if (!Value.IsEmpty()) Out.Add(Value);
+		}
+		return true;
+	}
+
+	static FGameplayTag ReadSupportedTag(const FString& Value, const TCHAR* Category, const TSet<FString>& Supported,
+		FAuraRoleLoadResult& Result, FName RoleId, const FString& Path)
+	{
+		if (!Supported.Contains(Value) || !Value.StartsWith(FString(Category) + TEXT(".")))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, Path,
+				FString::Printf(TEXT("'%s' is not a supported full %s Gameplay Tag"), *Value, Category));
+			return FGameplayTag();
+		}
+		const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*Value), false);
+		if (!Tag.IsValid())
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, Path,
+				FString::Printf(TEXT("Gameplay Tag '%s' is not registered"), *Value));
+		}
+		return Tag;
+	}
+
+	static UAuraAbilityDefinition* LoadAbilityDefinition(const FString& DefPath)
+	{
+		if (DefPath.IsEmpty()) return nullptr;
 		if (DefPath.EndsWith(TEXT(".xml")) || DefPath.Contains(TEXT("/AbilityDefinitions/")))
 		{
-			// Use the centralized XML loader (mirrors BehaviorU pattern)
-			if (UAuraAbilityDefinition* Def = UAuraAbilitySystemLibrary::LoadAbilityDefinitionFromXMLFile(DefPath))
-			{
-				UE_LOG(LogAura, Log, TEXT("[RoleConfig] Role '%s': loaded definition XML '%s' (Tag=%s)."),
-					*RoleName, *DefPath, *Def->AbilityTag.ToString());
-				return Def;
-			}
-			UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load definition XML '%s'."), *RoleName, *DefPath);
-			return nullptr;
+			return UAuraAbilitySystemLibrary::LoadAbilityDefinitionFromXMLFile(DefPath);
 		}
+		return LoadObject<UAuraAbilityDefinition>(nullptr, *DefPath);
+	}
 
-		// Fallback: legacy UAsset loading (for backward compatibility during migration)
-		if (UAuraAbilityDefinition* Def = LoadObject<UAuraAbilityDefinition>(nullptr, *DefPath))
+	static bool ProjectileDefinitionExists(const FString& Id)
+	{
+		FString Content;
+		if (!FFileHelper::LoadFileToString(Content, *FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("ProjectileDefinitions.json")))) return false;
+		TSharedPtr<FJsonObject> Root;
+		if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Content), Root) || !Root.IsValid()) return false;
+		const TSharedPtr<FJsonObject>* Definitions = nullptr;
+		return Root->TryGetObjectField(TEXT("projectiles"), Definitions) && Definitions && (*Definitions)->HasField(Id);
+	}
+
+	static void ValidateDefinition(UAuraAbilityDefinition* Def, const FString& DefPath, bool bPassive, bool bLMB,
+		FAuraRoleLoadResult& Result, FName RoleId, const FString& JsonPath, TSet<FGameplayTag>& UsedTags, TSet<FGameplayTag>& UsedInputs, bool& bHasOffensive)
+	{
+		if (!Def)
 		{
-			UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': loaded LEGACY UAsset definition '%s'. Migrate to XML!"), *RoleName, *DefPath);
-			return Def;
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, FString::Printf(TEXT("failed to load ability definition '%s'"), *DefPath));
+			return;
 		}
-
-		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load definition '%s' (not XML or UAsset)."), *RoleName, *DefPath);
-		return nullptr;
+		if (!Def->AbilityTag.IsValid()) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("definition has no registered ability tag"));
+		else if (UsedTags.Contains(Def->AbilityTag)) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, FString::Printf(TEXT("duplicates ability tag '%s'"), *Def->AbilityTag.ToString()));
+		else UsedTags.Add(Def->AbilityTag);
+		if (Def->InputTag.IsValid())
+		{
+			if (UsedInputs.Contains(Def->InputTag)) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, FString::Printf(TEXT("duplicates input slot '%s'"), *Def->InputTag.ToString()));
+			else UsedInputs.Add(Def->InputTag);
+		}
+		if (bLMB && !Def->InputTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("InputTag.LMB"), false)))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("LMB definition must use InputTag.LMB"));
+		}
+		const bool bIsPassive = Def->AbilityType.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Abilities.Type.Passive"), false));
+		const bool bIsOffensive = Def->AbilityType.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Abilities.Type.Offensive"), false));
+		if (bPassive != bIsPassive) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("definition grant category does not match its ability type"));
+		bHasOffensive |= bIsOffensive;
+		if (Def->SourceXML.Contains(TEXT("ProjectileDefinition")))
+		{
+			const FString Marker = TEXT("name=\"ProjectileDefinition\" value=\"");
+			const int32 Start = Def->SourceXML.Find(Marker);
+			const int32 ValueStart = Start == INDEX_NONE ? INDEX_NONE : Start + Marker.Len();
+			const int32 End = ValueStart == INDEX_NONE ? INDEX_NONE : Def->SourceXML.Find(TEXT("\""), ESearchCase::CaseSensitive, ESearchDir::FromStart, ValueStart);
+			const FString ProjectileId = End == INDEX_NONE ? FString() : Def->SourceXML.Mid(ValueStart, End - ValueStart);
+			if (ProjectileId.IsEmpty() || !ProjectileDefinitionExists(ProjectileId))
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, FString::Printf(TEXT("missing projectile definition '%s'"), *ProjectileId));
+			}
+		}
 	}
 }
 
-URoleInfo* UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(const UObject* WorldContextObject)
+FAuraRoleLoadResult UAuraAbilitySystemLibrary::ParseRoleInfoJson(const UObject* WorldContextObject, const FString& JsonContent, const FString& SourceLabel)
 {
-	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("RoleConfig.json"));
-	FString JsonContent;
-	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
-	{
-		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Failed to read role config file: %s"), *ConfigPath);
-		return nullptr;
-	}
-
+	using namespace RoleConfigPrivate;
+	FAuraRoleLoadResult Result;
+	Result.PublishedVersion = 2;
 	TSharedPtr<FJsonObject> RootObject;
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
 	if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
 	{
-		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Failed to parse role config JSON: %s"), *ConfigPath);
-		return nullptr;
+		AddIssue(Result, EAuraRoleValidationSeverity::Error, NAME_None, TEXT("$"), FString::Printf(TEXT("malformed JSON in %s"), *SourceLabel));
+		return Result;
+	}
+
+	double VersionNumber = 1.0;
+	if (RootObject->HasField(TEXT("roleDefinitionVersion")) && (!RootObject->TryGetNumberField(TEXT("roleDefinitionVersion"), VersionNumber) || !FMath::IsFinite(VersionNumber) || FMath::FloorToDouble(VersionNumber) != VersionNumber))
+	{
+		AddIssue(Result, EAuraRoleValidationSeverity::Error, NAME_None, TEXT("$.roleDefinitionVersion"), TEXT("must be an integer"));
+	}
+	Result.DetectedVersion = static_cast<int32>(VersionNumber);
+	if (Result.DetectedVersion != 1 && Result.DetectedVersion != 2)
+	{
+		AddIssue(Result, EAuraRoleValidationSeverity::Error, NAME_None, TEXT("$.roleDefinitionVersion"), TEXT("only versions 1 and 2 are supported"));
+	}
+	if (Result.DetectedVersion == 1)
+	{
+		AddIssue(Result, EAuraRoleValidationSeverity::Warning, NAME_None, TEXT("$.roleDefinitionVersion"), TEXT("legacy role schema migrated deterministically to version 2"));
 	}
 
 	const TArray<TSharedPtr<FJsonValue>>* RolesArray = nullptr;
 	if (!RootObject->TryGetArrayField(TEXT("roles"), RolesArray) || RolesArray == nullptr)
 	{
-		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] No 'roles' array in %s"), *ConfigPath);
-		return nullptr;
+		AddIssue(Result, EAuraRoleValidationSeverity::Error, NAME_None, TEXT("$.roles"), TEXT("is missing or is not an array"));
+		return Result;
 	}
 
 	URoleInfo* RoleInfo = NewObject<URoleInfo>(GetTransientPackage());
+	RoleInfo->RoleDefinitionVersion = 2;
+	Result.Candidate = RoleInfo;
 
-	// Top-level "defaultRole": role used when no role is explicitly chosen (no save / no UI).
-	// Stored as a name string; validated against the loaded roles below.
 	FString DefaultRoleStr;
-	if (RootObject->TryGetStringField(TEXT("defaultRole"), DefaultRoleStr) && !DefaultRoleStr.IsEmpty())
-	{
-		RoleInfo->DefaultRole = FName(*DefaultRoleStr);
-	}
+	ReadString(RootObject, TEXT("defaultRole"), DefaultRoleStr, Result, NAME_None, TEXT("$"), true);
+	RoleInfo->DefaultRole = FName(*DefaultRoleStr);
 
-	for (const TSharedPtr<FJsonValue>& RoleValue : *RolesArray)
+	const TSet<FString> EntityTags = { TEXT("Entity.Player"), TEXT("Entity.AmbientNPC") };
+	const TSet<FString> ControlTags = { TEXT("Control.Player"), TEXT("Control.EnemyAI"), TEXT("Control.CivilianAI") };
+	const TSet<FString> CombatTags = { TEXT("Combat.Unassigned"), TEXT("Combat.Magic"), TEXT("Combat.Gun"), TEXT("Combat.Civilian") };
+	const TSet<FString> FactionTags = { TEXT("Faction.Player"), TEXT("Faction.Enemy"), TEXT("Faction.Civilian") };
+	const TSet<FString> DeathTags = { TEXT("Death.PlayerRespawn"), TEXT("Death.EnemyLoot"), TEXT("Death.PopulationRespawn") };
+	const TSet<FString> EconomyTags = { TEXT("Economy.None"), TEXT("Economy.Ambient"), TEXT("Economy.CommerceCapable") };
+	const TSet<FString> InteractionTags = { TEXT("Interaction.Combatant"), TEXT("Interaction.Civilian") };
+	TSet<FName> SeenRoles;
+
+	for (int32 RoleIndex = 0; RoleIndex < RolesArray->Num(); ++RoleIndex)
 	{
+		const TSharedPtr<FJsonValue>& RoleValue = (*RolesArray)[RoleIndex];
+		const FString BasePath = FString::Printf(TEXT("$.roles[%d]"), RoleIndex);
 		const TSharedPtr<FJsonObject>* RoleObjPtr = nullptr;
 		if (!RoleValue.IsValid() || !RoleValue->TryGetObject(RoleObjPtr) || !RoleObjPtr->IsValid())
 		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, NAME_None, BasePath, TEXT("must be an object"));
 			continue;
 		}
 		const TSharedPtr<FJsonObject> RoleObj = *RoleObjPtr;
 
 		FString RoleNameStr;
-		if (!RoleObj->TryGetStringField(TEXT("role"), RoleNameStr) || RoleNameStr.IsEmpty())
+		ReadString(RoleObj, TEXT("role"), RoleNameStr, Result, NAME_None, BasePath, true);
+		const FName RoleName = FName(*RoleNameStr);
+		if (RoleName.IsNone()) continue;
+		if (SeenRoles.Contains(RoleName))
 		{
-			UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role entry missing 'role' name; skipping."));
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".role"), TEXT("duplicate stable role ID; first entry retained"));
 			continue;
 		}
-		const FName RoleName = FName(*RoleNameStr);
+		SeenRoles.Add(RoleName);
 
 		FRoleDefaultInfo Info;
+		ReadString(RoleObj, TEXT("displayName"), Info.DisplayName, Result, RoleName, BasePath, true);
 
-		// Visuals: asset paths resolved synchronously (loader runs once at GameMode BeginPlay).
-		const FString MeshPath = RoleObj->GetStringField(TEXT("mesh"));
-		const FString AnimPath = RoleObj->GetStringField(TEXT("animBlueprint"));
-		const FString WeaponMeshPath = RoleObj->GetStringField(TEXT("weaponMesh"));
-		const FString DissolvePath = RoleObj->GetStringField(TEXT("dissolve"));
-		const FString WeaponDissolvePath = RoleObj->GetStringField(TEXT("weaponDissolve"));
-		const FString BloodPath = RoleObj->GetStringField(TEXT("bloodEffect"));
-		const FString DeathSoundPath = RoleObj->GetStringField(TEXT("deathSound"));
+		FString Entity, Control, Combat, Faction, Death, Economy, Interaction;
+		const bool bLegacyKnown = Result.DetectedVersion == 1 && (RoleName == TEXT("Aura") || RoleName == TEXT("BungeeMan"));
+		auto LegacyString = [&](const TCHAR* Field, FString& Out, const TCHAR* AuraValue, const TCHAR* BungeeValue)
+		{
+			if (!ReadString(RoleObj, Field, Out, Result, RoleName, BasePath, !bLegacyKnown) && bLegacyKnown)
+			{
+				Out = RoleName == TEXT("Aura") ? AuraValue : BungeeValue;
+			}
+		};
+		LegacyString(TEXT("entityType"), Entity, TEXT("Entity.Player"), TEXT("Entity.Player"));
+		LegacyString(TEXT("controlType"), Control, TEXT("Control.Player"), TEXT("Control.Player"));
+		LegacyString(TEXT("combatProfile"), Combat, TEXT("Combat.Magic"), TEXT("Combat.Gun"));
+		LegacyString(TEXT("faction"), Faction, TEXT("Faction.Player"), TEXT("Faction.Player"));
+		LegacyString(TEXT("deathPolicy"), Death, TEXT("Death.PlayerRespawn"), TEXT("Death.PlayerRespawn"));
+		LegacyString(TEXT("economyProfile"), Economy, TEXT("Economy.None"), TEXT("Economy.None"));
+		LegacyString(TEXT("interactionProfile"), Interaction, TEXT("Interaction.Combatant"), TEXT("Interaction.Combatant"));
+		Info.EntityType = ReadSupportedTag(Entity, TEXT("Entity"), EntityTags, Result, RoleName, BasePath + TEXT(".entityType"));
+		Info.ControlType = ReadSupportedTag(Control, TEXT("Control"), ControlTags, Result, RoleName, BasePath + TEXT(".controlType"));
+		Info.CombatProfile = ReadSupportedTag(Combat, TEXT("Combat"), CombatTags, Result, RoleName, BasePath + TEXT(".combatProfile"));
+		Info.Faction = ReadSupportedTag(Faction, TEXT("Faction"), FactionTags, Result, RoleName, BasePath + TEXT(".faction"));
+		Info.DeathPolicy = ReadSupportedTag(Death, TEXT("Death"), DeathTags, Result, RoleName, BasePath + TEXT(".deathPolicy"));
+		Info.EconomyProfile = ReadSupportedTag(Economy, TEXT("Economy"), EconomyTags, Result, RoleName, BasePath + TEXT(".economyProfile"));
+		Info.InteractionProfile = ReadSupportedTag(Interaction, TEXT("Interaction"), InteractionTags, Result, RoleName, BasePath + TEXT(".interactionProfile"));
 
+		auto LegacyBool = [&](const TCHAR* Field, bool& Out, bool DefaultValue)
+		{
+			if (!ReadBool(RoleObj, Field, Out, Result, RoleName, BasePath, !bLegacyKnown) && bLegacyKnown) Out = DefaultValue;
+		};
+		LegacyBool(TEXT("playerSelectable"), Info.bPlayerSelectable, true);
+		LegacyBool(TEXT("targetable"), Info.bTargetable, true);
+		LegacyBool(TEXT("canAttack"), Info.bCanAttack, true);
+		LegacyBool(TEXT("canBeDamaged"), Info.bCanBeDamaged, true);
+		LegacyBool(TEXT("allowFriendlyFire"), Info.bAllowFriendlyFire, false);
+
+		FString MeshPath, AnimPath;
+		ReadString(RoleObj, TEXT("mesh"), MeshPath, Result, RoleName, BasePath, true);
+		ReadString(RoleObj, TEXT("animBlueprint"), AnimPath, Result, RoleName, BasePath, true);
 		if (!MeshPath.IsEmpty()) Info.SkeletalMesh = LoadObject<USkeletalMesh>(nullptr, *MeshPath);
 		if (!AnimPath.IsEmpty()) Info.AnimBlueprintClass = LoadClass<UAnimInstance>(nullptr, *AnimPath);
+		if (!MeshPath.IsEmpty() && !Info.SkeletalMesh) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".mesh"), FString::Printf(TEXT("failed to load '%s'"), *MeshPath));
+		if (!AnimPath.IsEmpty() && !Info.AnimBlueprintClass) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".animBlueprint"), FString::Printf(TEXT("failed to load '%s'"), *AnimPath));
+		if (Info.SkeletalMesh && Info.AnimBlueprintClass)
+		{
+			const IAnimClassInterface* AnimInterface = IAnimClassInterface::GetFromClass(Info.AnimBlueprintClass);
+			if (!AnimInterface || !AnimInterface->GetTargetSkeleton() || AnimInterface->GetTargetSkeleton() != Info.SkeletalMesh->GetSkeleton())
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".animBlueprint"), TEXT("Anim Blueprint skeleton is incompatible with the role mesh"));
+			}
+		}
+
+		const bool bHasEquipment = RoleObj->HasField(TEXT("equipment"));
+		const bool bHasLegacyEquipment = RoleObj->HasField(TEXT("weaponMesh")) || RoleObj->HasField(TEXT("weaponSocket")) || RoleObj->HasField(TEXT("weaponTipSocket"));
+		if ((Result.DetectedVersion == 1 && bHasEquipment) || (Result.DetectedVersion == 2 && bHasLegacyEquipment))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".equipment"), TEXT("mixed/legacy equipment shape is ambiguous for this schema version"));
+		}
+		TSharedPtr<FJsonObject> Equipment;
+		if (Result.DetectedVersion == 2 && bHasEquipment)
+		{
+			const TSharedPtr<FJsonObject>* EquipmentPtr = nullptr;
+			if (RoleObj->TryGetObjectField(TEXT("equipment"), EquipmentPtr) && EquipmentPtr) Equipment = *EquipmentPtr;
+			else AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".equipment"), TEXT("must be an object"));
+		}
+		const TSharedPtr<FJsonObject>& EquipmentSource = Result.DetectedVersion == 1 ? RoleObj : Equipment;
+		const TCHAR* WeaponField = Result.DetectedVersion == 1 ? TEXT("weaponMesh") : TEXT("weaponMesh");
+		const TCHAR* AttachField = Result.DetectedVersion == 1 ? TEXT("weaponSocket") : TEXT("attachSocket");
+		const TCHAR* TipField = Result.DetectedVersion == 1 ? TEXT("weaponTipSocket") : TEXT("tipSocket");
+		FString WeaponMeshPath, AttachSocket, TipSocket;
+		if (EquipmentSource.IsValid())
+		{
+			const bool bVersion2Equipment = Result.DetectedVersion == 2;
+			const FString EquipmentPath = BasePath + (bVersion2Equipment ? TEXT(".equipment") : TEXT(""));
+			ReadString(EquipmentSource, WeaponField, WeaponMeshPath, Result, RoleName, EquipmentPath, bVersion2Equipment);
+			ReadString(EquipmentSource, AttachField, AttachSocket, Result, RoleName, EquipmentPath, bVersion2Equipment);
+			ReadString(EquipmentSource, TipField, TipSocket, Result, RoleName, EquipmentPath, bVersion2Equipment, true);
+		}
+		if (!WeaponMeshPath.IsEmpty()) Info.WeaponMesh = LoadObject<USkeletalMesh>(nullptr, *WeaponMeshPath);
+		Info.WeaponSocketName = FName(*AttachSocket);
+		Info.WeaponTipSocketName = FName(*TipSocket);
+		if (!WeaponMeshPath.IsEmpty() && !Info.WeaponMesh) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".equipment.weaponMesh"), FString::Printf(TEXT("failed to load '%s'"), *WeaponMeshPath));
+		if (!AttachSocket.IsEmpty() && Info.SkeletalMesh && !Info.SkeletalMesh->FindSocket(Info.WeaponSocketName)) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".equipment.attachSocket"), TEXT("socket does not exist on body mesh"));
+		if (!TipSocket.IsEmpty() && Info.WeaponMesh && !Info.WeaponMesh->FindSocket(Info.WeaponTipSocketName)) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".equipment.tipSocket"), TEXT("socket does not exist on weapon mesh"));
+		if (!WeaponMeshPath.IsEmpty() && AttachSocket.IsEmpty()) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".equipment.attachSocket"), TEXT("equipment requires an attach socket"));
+
+		FString Optional;
+		ReadString(RoleObj, TEXT("leftHandSocket"), Optional, Result, RoleName, BasePath, false); Info.LeftHandSocketName = FName(*Optional);
+		ReadString(RoleObj, TEXT("rightHandSocket"), Optional, Result, RoleName, BasePath, false); Info.RightHandSocketName = FName(*Optional);
+		ReadString(RoleObj, TEXT("tailSocket"), Optional, Result, RoleName, BasePath, false); Info.TailSocketName = FName(*Optional);
+		FString DissolvePath, WeaponDissolvePath, BloodPath, DeathSoundPath;
+		ReadString(RoleObj, TEXT("dissolve"), DissolvePath, Result, RoleName, BasePath, false);
+		ReadString(RoleObj, TEXT("weaponDissolve"), WeaponDissolvePath, Result, RoleName, BasePath, false);
+		ReadString(RoleObj, TEXT("bloodEffect"), BloodPath, Result, RoleName, BasePath, false);
+		ReadString(RoleObj, TEXT("deathSound"), DeathSoundPath, Result, RoleName, BasePath, false);
 		if (!WeaponMeshPath.IsEmpty()) Info.WeaponMesh = LoadObject<USkeletalMesh>(nullptr, *WeaponMeshPath);
 		if (!DissolvePath.IsEmpty()) Info.DissolveMaterialInstance = LoadObject<UMaterialInstance>(nullptr, *DissolvePath);
 		if (!WeaponDissolvePath.IsEmpty()) Info.WeaponDissolveMaterialInstance = LoadObject<UMaterialInstance>(nullptr, *WeaponDissolvePath);
 		if (!BloodPath.IsEmpty()) Info.BloodEffect = LoadObject<UNiagaraSystem>(nullptr, *BloodPath);
 		if (!DeathSoundPath.IsEmpty()) Info.DeathSound = LoadObject<USoundBase>(nullptr, *DeathSoundPath);
 
-		if (!MeshPath.IsEmpty() && Info.SkeletalMesh == nullptr) UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load mesh '%s'."), *RoleNameStr, *MeshPath);
-		if (!AnimPath.IsEmpty() && Info.AnimBlueprintClass == nullptr) UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load anim blueprint '%s'."), *RoleNameStr, *AnimPath);
-
-		// Sockets.
-		const FString WeaponSocket = RoleObj->GetStringField(TEXT("weaponSocket"));
-		Info.WeaponSocketName = WeaponSocket.IsEmpty() ? FName("WeaponHandSocket") : FName(*WeaponSocket);
-		Info.WeaponTipSocketName = FName(*RoleObj->GetStringField(TEXT("weaponTipSocket")));
-		Info.LeftHandSocketName = FName(*RoleObj->GetStringField(TEXT("leftHandSocket")));
-		Info.RightHandSocketName = FName(*RoleObj->GetStringField(TEXT("rightHandSocket")));
-		Info.TailSocketName = FName(*RoleObj->GetStringField(TEXT("tailSocket")));
-
-		// Attributes (numeric, applied via PrimaryAttributes_SetByCaller at init).
-		const TSharedPtr<FJsonObject> Attrs = RoleObj->GetObjectField(TEXT("attributes"));
-		if (Attrs.IsValid())
+		const TSharedPtr<FJsonObject>* AttrsPtr = nullptr;
+		if (RoleObj->TryGetObjectField(TEXT("attributes"), AttrsPtr) && AttrsPtr && AttrsPtr->IsValid())
 		{
-			Info.Strength = static_cast<float>(Attrs->GetNumberField(TEXT("strength")));
-			Info.Intelligence = static_cast<float>(Attrs->GetNumberField(TEXT("intelligence")));
-			Info.Resilience = static_cast<float>(Attrs->GetNumberField(TEXT("resilience")));
-			Info.Vigor = static_cast<float>(Attrs->GetNumberField(TEXT("vigor")));
+			ReadNumber(*AttrsPtr, TEXT("strength"), Info.Strength, Result, RoleName, BasePath + TEXT(".attributes"));
+			ReadNumber(*AttrsPtr, TEXT("intelligence"), Info.Intelligence, Result, RoleName, BasePath + TEXT(".attributes"));
+			ReadNumber(*AttrsPtr, TEXT("resilience"), Info.Resilience, Result, RoleName, BasePath + TEXT(".attributes"));
+			ReadNumber(*AttrsPtr, TEXT("vigor"), Info.Vigor, Result, RoleName, BasePath + TEXT(".attributes"));
 		}
+		else AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".attributes"), TEXT("is missing or is not an object"));
 
-		// Abilities (class paths; Blueprint classes need the _C suffix).
-		const TArray<TSharedPtr<FJsonValue>>& StartupArr = RoleObj->GetArrayField(TEXT("startupAbilities"));
-		RoleConfigPrivate::LoadAbilityClasses(StartupArr, Info.StartupAbilities, RoleNameStr, TEXT("startup ability"));
-
-		const TArray<TSharedPtr<FJsonValue>>& PassiveArr = RoleObj->GetArrayField(TEXT("startupPassiveAbilities"));
-		RoleConfigPrivate::LoadAbilityClasses(PassiveArr, Info.StartupPassiveAbilities, RoleNameStr, TEXT("startup passive ability"));
-
-		// Unlock catalog: legacy classes which remain level-gated and must not be granted at startup.
-		// Data-driven definitions are resolved from the definition registry by ability tag.
-		const TArray<TSharedPtr<FJsonValue>>* UnlockableArr = nullptr;
-		if (RoleObj->TryGetArrayField(TEXT("unlockableAbilities"), UnlockableArr) && UnlockableArr)
+		TArray<FString> StartupClasses, PassiveClasses, UnlockableClasses, StartupDefs, PassiveDefs;
+		const bool bArraysRequired = Result.DetectedVersion == 2;
+		ReadStringArray(RoleObj, TEXT("startupAbilities"), StartupClasses, Result, RoleName, BasePath, bArraysRequired);
+		ReadStringArray(RoleObj, TEXT("startupPassiveAbilities"), PassiveClasses, Result, RoleName, BasePath, bArraysRequired);
+		ReadStringArray(RoleObj, TEXT("unlockableAbilities"), UnlockableClasses, Result, RoleName, BasePath, bArraysRequired);
+		ReadStringArray(RoleObj, TEXT("startupAbilityDefinitions"), StartupDefs, Result, RoleName, BasePath, bArraysRequired);
+		ReadStringArray(RoleObj, TEXT("startupPassiveAbilityDefinitions"), PassiveDefs, Result, RoleName, BasePath, bArraysRequired);
+		TSet<FString> UsedClassPaths;
+		auto LoadClasses = [&](const TArray<FString>& Paths, TArray<TSubclassOf<UGameplayAbility>>& Output, const FString& Field)
 		{
-			RoleConfigPrivate::LoadAbilityClasses(*UnlockableArr, Info.UnlockableAbilities, RoleNameStr, TEXT("unlockable ability"));
-		}
-
-		// Data-driven ability definitions (UAuraAbilityDefinition asset paths or .xml file paths).
-		const TArray<TSharedPtr<FJsonValue>>& StartupDefArr = RoleObj->GetArrayField(TEXT("startupAbilityDefinitions"));
-		for (const TSharedPtr<FJsonValue>& DefValue : StartupDefArr)
-		{
-			if (!DefValue.IsValid()) continue;
-			const FString DefPath = DefValue->AsString();
-			if (DefPath.IsEmpty()) continue;
-			if (UAuraAbilityDefinition* Def = RoleConfigPrivate::LoadAbilityDefinition(DefPath, RoleNameStr))
+			for (int32 Index = 0; Index < Paths.Num(); ++Index)
 			{
-				Info.StartupAbilityDefinitionPaths.Add(DefPath);
-				Info.StartupAbilityDefinitions.Add(Def);
+				if (UsedClassPaths.Contains(Paths[Index])) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, FString::Printf(TEXT("%s.%s[%d]"), *BasePath, *Field, Index), TEXT("duplicates another ability class path"));
+				UsedClassPaths.Add(Paths[Index]);
+				const TSubclassOf<UGameplayAbility> Class = LoadClass<UGameplayAbility>(nullptr, *Paths[Index]);
+				if (!Class) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, FString::Printf(TEXT("%s.%s[%d]"), *BasePath, *Field, Index), FString::Printf(TEXT("failed to load '%s'"), *Paths[Index]));
+				else Output.Add(Class);
 			}
-		}
+		};
+		LoadClasses(StartupClasses, Info.StartupAbilities, TEXT("startupAbilities"));
+		LoadClasses(PassiveClasses, Info.StartupPassiveAbilities, TEXT("startupPassiveAbilities"));
+		LoadClasses(UnlockableClasses, Info.UnlockableAbilities, TEXT("unlockableAbilities"));
 
-		const TArray<TSharedPtr<FJsonValue>>& PassiveDefArr = RoleObj->GetArrayField(TEXT("startupPassiveAbilityDefinitions"));
-		for (const TSharedPtr<FJsonValue>& DefValue : PassiveDefArr)
+		TSet<FGameplayTag> UsedTags, UsedInputs;
+		bool bHasOffensive = false;
+		for (int32 Index = 0; Index < StartupDefs.Num(); ++Index)
 		{
-			if (!DefValue.IsValid()) continue;
-			const FString DefPath = DefValue->AsString();
-			if (DefPath.IsEmpty()) continue;
-			if (UAuraAbilityDefinition* Def = RoleConfigPrivate::LoadAbilityDefinition(DefPath, RoleNameStr))
-			{
-				Info.StartupPassiveAbilityDefinitionPaths.Add(DefPath);
-				Info.StartupPassiveAbilityDefinitions.Add(Def);
-			}
+			UAuraAbilityDefinition* Def = LoadAbilityDefinition(StartupDefs[Index]);
+			ValidateDefinition(Def, StartupDefs[Index], false, false, Result, RoleName, FString::Printf(TEXT("%s.startupAbilityDefinitions[%d]"), *BasePath, Index), UsedTags, UsedInputs, bHasOffensive);
+			if (Def) { Info.StartupAbilityDefinitionPaths.Add(StartupDefs[Index]); Info.StartupAbilityDefinitions.Add(Def); }
 		}
-
-		// LMB default skill: try data-driven definition first (asset or .xml), fall back to class path.
-		const FString LMBDefPath = RoleObj->GetStringField(TEXT("lmbAbilityDefinition"));
+		for (int32 Index = 0; Index < PassiveDefs.Num(); ++Index)
+		{
+			UAuraAbilityDefinition* Def = LoadAbilityDefinition(PassiveDefs[Index]);
+			ValidateDefinition(Def, PassiveDefs[Index], true, false, Result, RoleName, FString::Printf(TEXT("%s.startupPassiveAbilityDefinitions[%d]"), *BasePath, Index), UsedTags, UsedInputs, bHasOffensive);
+			if (Def) { Info.StartupPassiveAbilityDefinitionPaths.Add(PassiveDefs[Index]); Info.StartupPassiveAbilityDefinitions.Add(Def); }
+		}
+		FString LMBDefPath, LMBAbilityPath;
+		ReadString(RoleObj, TEXT("lmbAbilityDefinition"), LMBDefPath, Result, RoleName, BasePath, Result.DetectedVersion == 2, true);
+		ReadString(RoleObj, TEXT("lmbAbility"), LMBAbilityPath, Result, RoleName, BasePath, Result.DetectedVersion == 2, true);
+		if (!LMBDefPath.IsEmpty() && !LMBAbilityPath.IsEmpty()) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".lmbAbility"), TEXT("lmbAbility and lmbAbilityDefinition are mutually exclusive"));
 		if (!LMBDefPath.IsEmpty())
 		{
 			Info.DefaultLMBAbilityDefinitionPath = LMBDefPath;
-			Info.DefaultLMBAbilityDefinition = RoleConfigPrivate::LoadAbilityDefinition(LMBDefPath, RoleNameStr);
+			Info.DefaultLMBAbilityDefinition = LoadAbilityDefinition(LMBDefPath);
+			ValidateDefinition(Cast<UAuraAbilityDefinition>(Info.DefaultLMBAbilityDefinition), LMBDefPath, false, true, Result, RoleName, BasePath + TEXT(".lmbAbilityDefinition"), UsedTags, UsedInputs, bHasOffensive);
 		}
-
-		// Legacy LMB class path (backward compatibility).
-		const FString LMBAbilityPath = RoleObj->GetStringField(TEXT("lmbAbility"));
 		if (!LMBAbilityPath.IsEmpty())
 		{
 			Info.DefaultLMBAbility = LoadClass<UGameplayAbility>(nullptr, *LMBAbilityPath);
-			if (Info.DefaultLMBAbility == nullptr)
-			{
-				UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Role '%s': failed to load LMB ability '%s'."), *RoleNameStr, *LMBAbilityPath);
-			}
+			if (!Info.DefaultLMBAbility) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".lmbAbility"), FString::Printf(TEXT("failed to load '%s'"), *LMBAbilityPath));
+			else bHasOffensive = true;
 		}
+		if (Info.bCanAttack && !bHasOffensive) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".canAttack"), TEXT("attacking role needs at least one valid offensive spawn grant"));
+		if (!Info.bCanAttack && bHasOffensive) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".canAttack"), TEXT("non-attacking role cannot have offensive spawn grants"));
+		if (RoleName == TEXT("Civilian") && UnlockableClasses.Num() > 0) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".unlockableAbilities"), TEXT("Civilian offensive unlock catalog must be empty"));
+		const bool bPlayerIdentity = Entity == TEXT("Entity.Player") && Control == TEXT("Control.Player") && Faction == TEXT("Faction.Player") && Death == TEXT("Death.PlayerRespawn");
+		const bool bCivilianIdentity = Entity == TEXT("Entity.AmbientNPC") && Control == TEXT("Control.CivilianAI") && Faction == TEXT("Faction.Civilian") && Death == TEXT("Death.PopulationRespawn") && Combat == TEXT("Combat.Civilian");
+		if (!bPlayerIdentity && !bCivilianIdentity) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath, TEXT("identity/profile tag combination is not supported"));
+		if (Info.bPlayerSelectable && !bPlayerIdentity) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".playerSelectable"), TEXT("only Entity.Player/Control.Player roles may be player-selectable"));
 
 		RoleInfo->RoleInformation.Add(RoleName, Info);
-		UE_LOG(LogAura, Log, TEXT("[RoleConfig] Loaded role '%s' (mesh=%s, anim=%s, abilities=%d)."),
-			*RoleNameStr,
-			*GetNameSafe(Info.SkeletalMesh.Get()),
-			*GetNameSafe(Info.AnimBlueprintClass.Get()),
-			Info.StartupAbilities.Num());
 	}
 
-	// Validate the default role references a role that was actually loaded.
-	if (RoleInfo->DefaultRole.IsNone())
+	FString DefaultError;
+	if (!ValidatePlayerRoleSelection(RoleInfo, RoleInfo->DefaultRole, DefaultError))
 	{
-		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] No 'defaultRole' set in %s; login will require an explicit role."), *ConfigPath);
+		AddIssue(Result, EAuraRoleValidationSeverity::Error, NAME_None, TEXT("$.defaultRole"), DefaultError);
 	}
-	else if (!RoleInfo->RoleInformation.Contains(RoleInfo->DefaultRole))
-	{
-		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] defaultRole '%s' does not match any role entry in %s; login will be refused until it is configured."),
-			*RoleInfo->DefaultRole.ToString(), *ConfigPath);
-	}
-	else
-	{
-		UE_LOG(LogAura, Log, TEXT("[RoleConfig] Default role = '%s'."), *RoleInfo->DefaultRole.ToString());
-	}
+	Result.bCanPublish = !Result.Issues.ContainsByPredicate([](const FAuraRoleValidationIssue& Issue) { return Issue.Severity == EAuraRoleValidationSeverity::Error; });
+	return Result;
+}
 
-	UE_LOG(LogAura, Log, TEXT("[RoleConfig] Loaded %d role(s) from %s."), RoleInfo->RoleInformation.Num(), *ConfigPath);
-	return RoleInfo;
+FAuraRoleLoadResult UAuraAbilitySystemLibrary::LoadRoleInfoCandidate(const UObject* WorldContextObject)
+{
+	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("RoleConfig.json"));
+	FString JsonContent;
+	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	{
+		FAuraRoleLoadResult Result;
+		RoleConfigPrivate::AddIssue(Result, EAuraRoleValidationSeverity::Error, NAME_None, TEXT("$"), FString::Printf(TEXT("failed to read %s"), *ConfigPath));
+		return Result;
+	}
+	FAuraRoleLoadResult Result = ParseRoleInfoJson(WorldContextObject, JsonContent, ConfigPath);
+	if (!Result.bCanPublish)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[RoleConfig] Candidate diagnostics: %s"), *Result.ToLogString());
+	}
+	return Result;
+}
+
+URoleInfo* UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(const UObject* WorldContextObject)
+{
+	const FAuraRoleLoadResult Result = LoadRoleInfoCandidate(WorldContextObject);
+	if (!Result.bCanPublish)
+	{
+		UE_LOG(LogAura, Error, TEXT("[RoleConfig] Candidate rejected atomically: %s"), *Result.ToLogString());
+		return nullptr;
+	}
+	UE_LOG(LogAura, Log, TEXT("[RoleConfig] Candidate valid: %s"), *Result.ToLogString());
+	return Result.Candidate;
+}
+
+bool UAuraAbilitySystemLibrary::TryPublishRoleInfo(URoleInfo*& Current, const FAuraRoleLoadResult& Result)
+{
+	if (!Result.bCanPublish || !Result.Candidate) return false;
+	Current = Result.Candidate;
+	return true;
+}
+
+bool UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(const URoleInfo* RoleInfo, FName RoleId, FString& OutError)
+{
+	if (!RoleInfo)
+	{
+		OutError = TEXT("The authoritative role service is unavailable. Check RoleConfig.json validation errors.");
+		return false;
+	}
+	if (RoleId.IsNone())
+	{
+		OutError = TEXT("No role was requested. Choose a valid player role and reconnect.");
+		return false;
+	}
+	if (!RoleInfo->RoleInformation.Contains(RoleId))
+	{
+		OutError = FString::Printf(TEXT("Role '%s' is unknown. Refresh the local role configuration and reconnect."), *RoleId.ToString());
+		return false;
+	}
+	if (!RoleInfo->IsPlayerRoleSelectable(RoleId))
+	{
+		OutError = FString::Printf(TEXT("Role '%s' is not a configured, player-selectable Player role."), *RoleId.ToString());
+		return false;
+	}
+	OutError.Reset();
+	return true;
 }
 
 ULootTiers* UAuraAbilitySystemLibrary::GetLootTiers(const UObject* WorldContextObject)

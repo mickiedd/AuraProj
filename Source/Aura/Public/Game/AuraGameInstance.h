@@ -72,6 +72,10 @@ public:
 	UPROPERTY()
 	FString PendingCrossServerPlayerName;
 
+	/** Local presentation/save choice carried as the sole server-authorized Role option. */
+	UPROPERTY()
+	FName PendingCrossServerRoleId = NAME_None;
+
 	/**
 	 * Resolved game-server endpoint captured by the GSM callback BEFORE it broadcasts
 	 * OnCrossServerTravelReady.  If the GSM resolves before the Loading level has finished
@@ -138,6 +142,7 @@ public:
 		PendingCrossServerPlayerName.Empty();
 		PendingCrossServerResolvedEndpoint.Empty();
 		PendingCrossServerResolvedPlayerName.Empty();
+		PendingCrossServerRoleId = NAME_None;
 		bCrossServerTravelReady = false;
 		PendingGameServerClient = nullptr;
 	}

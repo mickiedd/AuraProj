@@ -16,6 +16,7 @@
 #include "Dom/JsonObject.h"
 #include "Game/AuraGameInstance.h"
 #include "Game/LoadScreenSaveGame.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "UI/Widget/LoginConnectingWidget.h"
 #include "UI/Widget/LoginMenuWidget.h"
 
@@ -227,6 +228,15 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 	// 'this' (LoginPlayerController) is destroyed when the Loading level finishes loading,
 	// so it must NOT be captured in the lambda.
 	const FString ResolvedPlayerName = ResolvePlayerName();
+	FString RoleError;
+	const FName ResolvedRole = ResolveRequestedRole(RoleError);
+	if (ResolvedRole.IsNone())
+	{
+		EnsureConnectingWidget();
+		UpdateConnectingStatus(RoleError);
+		UE_LOG(LogTemp, Error, TEXT("[LoginConn] Role validation failed before connect: %s"), *RoleError);
+		return;
+	}
 	const FString FallbackEndpoint   = BuildServerEndpoint(); // ServerAddress:FallbackPort
 	const FString GSMAddress         = GameServerAddress.IsEmpty() ? ServerAddress : GameServerAddress;
 	const int32   GSMPort            = GameServerPort;
@@ -245,6 +255,7 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 	// Store player name in GI so ALoadingPlayerController can pick it up after
 	// this controller is destroyed.
 	GI->PendingCrossServerPlayerName = ResolvedPlayerName;
+	GI->PendingCrossServerRoleId = ResolvedRole;
 
 	// Create the GSM client on GI (as its outer) so the GC does not collect it
 	// while the level transition to Loading is in progress.
@@ -360,8 +371,15 @@ void ALoginPlayerController::ExecuteClientConnect()
 		// Execute the travel command to connect to the dedicated server
 		// Format: open 127.0.0.1?PlayerName=Some_Name
 		const FString RequestedPlayerName = ResolvePlayerName();
+		FString RoleError;
+		const FName RequestedRole = ResolveRequestedRole(RoleError);
+		if (RequestedRole.IsNone())
+		{
+			UpdateConnectingStatus(RoleError);
+			return;
+		}
 
-		if (!IsValid(ServerTravelComponent) || !ServerTravelComponent->TravelToServerViaLoadingLevel(ServerEndpoint, RequestedPlayerName))
+		if (!IsValid(ServerTravelComponent) || !ServerTravelComponent->TravelToServerViaLoadingLevel(ServerEndpoint, RequestedPlayerName, RequestedRole))
 		{
 			UpdateConnectingStatus(TEXT("Could not start connection travel. Please try again."));
 			UE_LOG(LogTemp, Error, TEXT("[LoginConn] ExecuteClientConnect: ServerTravelComponent via-loading-level travel request failed"));
@@ -579,6 +597,29 @@ FString ALoginPlayerController::ResolvePlayerName() const
 	PlayerName.ReplaceInline(TEXT(" "), TEXT("_"));
 
 	return PlayerName;
+}
+
+FName ALoginPlayerController::ResolveRequestedRole(FString& OutError) const
+{
+	FString CommandLineRole;
+	FName RoleId = NAME_None;
+	if (FParse::Value(FCommandLine::Get(), TEXT("AutoLoginRole="), CommandLineRole) && !CommandLineRole.IsEmpty())
+	{
+		RoleId = FName(*CommandLineRole);
+	}
+	if (RoleId.IsNone())
+	{
+		if (const UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>())
+		{
+			if (!GI->LoadSlotName.IsEmpty() && UGameplayStatics::DoesSaveGameExist(GI->LoadSlotName, GI->LoadSlotIndex))
+			{
+				if (const ULoadScreenSaveGame* Save = Cast<ULoadScreenSaveGame>(UGameplayStatics::LoadGameFromSlot(GI->LoadSlotName, GI->LoadSlotIndex))) RoleId = Save->Role;
+			}
+		}
+	}
+	const URoleInfo* Registry = UAuraAbilitySystemLibrary::GetRoleInfo(this);
+	if (RoleId.IsNone() && Registry) RoleId = Registry->DefaultRole;
+	return UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Registry, RoleId, OutError) ? RoleId : NAME_None;
 }
 
 FString ALoginPlayerController::BuildServerEndpoint() const

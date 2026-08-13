@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Data/CharacterClassInfo.h"
+#include "AbilitySystem/Data/RoleInfo.h"
 #include "AuraAbilitySystemLibrary.generated.h"
 
 class ULootTiers;
@@ -95,6 +96,18 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults")
 	static URoleInfo* LoadRoleInfoFromConfig(const UObject* WorldContextObject);
+
+	/** Safely parses and validates an in-memory role document. Used by startup and inline automation fixtures. */
+	static FAuraRoleLoadResult ParseRoleInfoJson(const UObject* WorldContextObject, const FString& JsonContent, const FString& SourceLabel = TEXT("<memory>"));
+
+	/** Reads RoleConfig.json and returns the full candidate/diagnostic result without publishing it. */
+	static FAuraRoleLoadResult LoadRoleInfoCandidate(const UObject* WorldContextObject);
+
+	/** Replaces Current only for a fully valid candidate, preserving object identity on failure. */
+	static bool TryPublishRoleInfo(URoleInfo*& Current, const FAuraRoleLoadResult& Result);
+
+	/** Shared UI/server validation for a stable, player-selectable role ID. */
+	static bool ValidatePlayerRoleSelection(const URoleInfo* RoleInfo, FName RoleId, FString& OutError);
 
 	/**
 	 * Loads Content/Config/AbilityInfo.json and builds a transient URuntimeAbilityInfo.

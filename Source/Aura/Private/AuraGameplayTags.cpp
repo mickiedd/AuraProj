@@ -18,6 +18,11 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Faction_Civilian = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Faction.Civilian"), FString("Civilian faction"));
 
+	GameplayTags.Entity_Player = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Entity.Player"), FString("Player avatar role"));
+	GameplayTags.Entity_AmbientNPC = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Entity.AmbientNPC"), FString("Ambient non-player role"));
+
 	GameplayTags.Control_Player = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Control.Player"), FString("Player-controlled avatar"));
 	GameplayTags.Control_EnemyAI = UGameplayTagsManager::Get().AddNativeGameplayTag(
@@ -40,6 +45,18 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FName("Death.EnemyLoot"), FString("Enemy loot death policy"));
 	GameplayTags.Death_PopulationRespawn = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Death.PopulationRespawn"), FString("Population-managed respawn death policy"));
+
+	GameplayTags.Economy_None = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Economy.None"), FString("No economy capability"));
+	GameplayTags.Economy_Ambient = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Economy.Ambient"), FString("Ambient economy classification"));
+	GameplayTags.Economy_CommerceCapable = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Economy.CommerceCapable"), FString("May receive commerce capabilities from population data"));
+
+	GameplayTags.Interaction_Combatant = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Interaction.Combatant"), FString("Combatant interaction profile"));
+	GameplayTags.Interaction_Civilian = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Interaction.Civilian"), FString("Civilian interaction profile"));
 
 	/*
 	 * Primary Attributes

@@ -200,6 +200,31 @@ bool AAuraCharacter::LoadProgress()
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (AuraGameMode)
 	{
+		// Day 05 ownership boundary: a network server must not treat its process-global
+		// GameInstance save slot as this connection's role/progression identity. PreLogin and
+		// InitNewPlayer have already retained the trusted stable role ID on this PlayerState;
+		// Day 06 is the only milestone that consumes and applies it to the actor. Until then,
+		// preserve the Blueprint shell and initialize only neutral/default combat state needed
+		// by the existing maps. Standalone keeps its local save workflow unchanged.
+		if (GetNetMode() != NM_Standalone)
+		{
+			if (!AuraPlayerState || !AuraPlayerState->HasPendingAcceptedRoleId())
+			{
+				RejectLogin(TEXT("The server did not retain an accepted role for this connection."));
+				return false;
+			}
+
+			UE_LOG(LogAura, Display, TEXT("[Role][Day5] Network connection role '%s' remains pending for Day 06; global save-slot role is not read."),
+				*AuraPlayerState->GetPendingAcceptedRoleId().ToString());
+			if (!bAttributesAlreadyInitialized)
+			{
+				InitializeDefaultAttributesForRole(UAuraAbilitySystemLibrary::GetDefaultRole(this));
+				AuraPlayerState->MarkDefaultAttributesInitialized();
+				AddCharacterAbilities();
+			}
+			return true;
+		}
+
 		ULoadScreenSaveGame* SaveData = AuraGameMode->RetrieveInGameSaveData();
 		if (SaveData == nullptr)
 		{
@@ -209,10 +234,10 @@ bool AAuraCharacter::LoadProgress()
 			if (URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this))
 			{
 				const FName DefaultRole = UAuraAbilitySystemLibrary::GetDefaultRole(this);
-				if (!RoleInfo->IsRoleConfigured(DefaultRole))
+				FString RoleError;
+				if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, DefaultRole, RoleError))
 				{
-					RejectLogin(FString::Printf(TEXT("Default role '%s' is not fully configured in RoleConfig.json (empty mesh or animation). Login refused."),
-						*DefaultRole.ToString()));
+					RejectLogin(RoleError);
 					return false;
 				}
 			}
@@ -230,10 +255,10 @@ bool AAuraCharacter::LoadProgress()
 		// Refuse login if the saved role is not fully configured (empty mesh/animation).
 		if (URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this))
 		{
-			if (!RoleInfo->IsRoleConfigured(SaveData->Role))
+			FString RoleError;
+			if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, SaveData->Role, RoleError))
 			{
-				RejectLogin(FString::Printf(TEXT("Role '%s' is not fully configured in RoleConfig.json (empty mesh or animation). Login refused."),
-					*SaveData->Role.ToString()));
+				RejectLogin(RoleError);
 				return false;
 			}
 		}

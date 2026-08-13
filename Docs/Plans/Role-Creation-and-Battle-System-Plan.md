@@ -1,6 +1,6 @@
 # Role Creation and Battle System Plan
 
-Status: Revised implementation contract; Day 01 headless gate executed conditionally, Days 02–04 implemented and verified, Day 05 pending
+Status: Revised implementation contract; Day 01 headless gate executed conditionally, Days 02–05 implemented and verified, Day 06 pending
 
 This plan is based on the current AuraProj code and configuration. It is intended to turn the existing Aura/BungeeMan prototype into a system that can support:
 

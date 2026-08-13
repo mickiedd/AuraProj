@@ -17,6 +17,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "Player/AuraPlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "Engine/NetConnection.h"
 #include "Engine/Level.h"
@@ -222,6 +223,52 @@ FString AAuraGameModeBase::GetMapNameFromMapAssetName(const FString& MapAssetNam
 	return FString();
 }
 
+void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+	const FAuraRoleLoadResult LoadResult = UAuraAbilitySystemLibrary::LoadRoleInfoCandidate(this);
+	if (LoadResult.bCanPublish && LoadResult.Candidate)
+	{
+		RoleInfo = LoadResult.Candidate;
+		UE_LOG(LogAura, Display, TEXT("[RoleConfig][InitGame] Published version=%d roles=%d default=%s before PreLogin."),
+			LoadResult.PublishedVersion, RoleInfo->RoleInformation.Num(), *RoleInfo->DefaultRole.ToString());
+		if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay5ConfigProbe")))
+		{
+			FString Error;
+			const bool bAuraAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Aura"), Error);
+			const bool bBungeeAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("BungeeMan"), Error);
+			const bool bCivilianRejected = !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Civilian"), Error);
+			const bool bUnknownRejected = !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Unknown"), Error);
+			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] ValidStartup=1 AuraAccepted=%d BungeeAccepted=%d CivilianRejected=%d UnknownRejected=%d SavedDefaultValidation=%d"),
+				bAuraAccepted, bBungeeAccepted, bCivilianRejected, bUnknownRejected,
+				RoleInfo->IsPlayerRoleSelectable(RoleInfo->DefaultRole));
+		}
+	}
+	else
+	{
+		RoleInfo = nullptr;
+		UE_LOG(LogAura, Error, TEXT("[RoleConfig][InitGame] Role service unavailable; startup candidate rejected: %s"), *LoadResult.ToLogString());
+		if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay5ConfigProbe")))
+		{
+			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] InvalidStartupRejected=1 RoleServiceUnavailable=1"));
+		}
+	}
+}
+
+void AAuraGameModeBase::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+	if (!ErrorMessage.IsEmpty()) return;
+
+	const FName RequestedRole(*UGameplayStatics::ParseOption(Options, TEXT("Role")));
+	if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, RequestedRole, ErrorMessage))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[RoleLogin][PreLogin] Rejected address=%s role=%s reason=%s"), *Address, *RequestedRole.ToString(), *ErrorMessage);
+		return;
+	}
+	UE_LOG(LogAura, Display, TEXT("[RoleLogin][PreLogin] Accepted address=%s role=%s"), *Address, *RequestedRole.ToString());
+}
+
 FString AAuraGameModeBase::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
 {
 	const FString Result = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
@@ -240,10 +287,58 @@ FString AAuraGameModeBase::InitNewPlayer(APlayerController* NewPlayerController,
 	const FString DisambiguationToken = BuildConnectionDisambiguationToken(NewPlayerController, UniqueId);
 	const FString UniqueName = BuildUniquePlayerName(RequestedName, DisambiguationToken, NewPlayerController->PlayerState);
 	ChangeName(NewPlayerController, UniqueName, false);
+	if (GetNetMode() == NM_Standalone)
+	{
+		return Result; // Login/loading map local player is not a server connection request.
+	}
+
+	const FName RequestedRole(*UGameplayStatics::ParseOption(Options, TEXT("Role")));
+	FString RoleError;
+	AAuraPlayerState* AuraPlayerState = NewPlayerController->GetPlayerState<AAuraPlayerState>();
+	if (!IsValid(AuraPlayerState) || !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, RequestedRole, RoleError))
+	{
+		UE_LOG(LogAura, Error, TEXT("[RoleLogin][InitNewPlayer] Accepted option could not be revalidated for controller=%s role=%s: %s"),
+			*GetNameSafe(NewPlayerController), *RequestedRole.ToString(), *RoleError);
+		return RoleError.IsEmpty() ? TEXT("Connection role state is unavailable.") : RoleError;
+	}
+	AuraPlayerState->SetPendingAcceptedRoleId(RequestedRole);
+	UE_LOG(LogAura, Display, TEXT("[RoleLogin][InitNewPlayer] PendingAcceptedRoleId=%s playerState=%s"), *RequestedRole.ToString(), *GetNameSafe(AuraPlayerState));
 
 	UE_LOG(LogTemp, Display, TEXT("Assigned player name '%s' (requested: '%s', token: '%s')"), *UniqueName, *RequestedName, *DisambiguationToken);
 
 	return Result;
+}
+
+void AAuraGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	if (GetNetMode() == NM_Standalone)
+	{
+		Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+		return;
+	}
+	const AAuraPlayerState* AuraPlayerState = IsValid(NewPlayer) ? NewPlayer->GetPlayerState<AAuraPlayerState>() : nullptr;
+	if (!IsValid(AuraPlayerState) || !AuraPlayerState->HasPendingAcceptedRoleId())
+	{
+		UE_LOG(LogAura, Error, TEXT("[RoleLogin] Blocked HandleStartingNewPlayer without a connection-scoped accepted role for %s."), *GetNameSafe(NewPlayer));
+		return;
+	}
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+}
+
+void AAuraGameModeBase::RestartPlayer(AController* NewPlayer)
+{
+	if (GetNetMode() == NM_Standalone)
+	{
+		Super::RestartPlayer(NewPlayer);
+		return;
+	}
+	const AAuraPlayerState* AuraPlayerState = IsValid(NewPlayer) ? NewPlayer->GetPlayerState<AAuraPlayerState>() : nullptr;
+	if (!IsValid(AuraPlayerState) || !AuraPlayerState->HasPendingAcceptedRoleId())
+	{
+		UE_LOG(LogAura, Error, TEXT("[RoleLogin] Blocked RestartPlayer without a connection-scoped accepted role for %s."), *GetNameSafe(NewPlayer));
+		return;
+	}
+	Super::RestartPlayer(NewPlayer);
 }
 
 void AAuraGameModeBase::PostLogin(APlayerController* NewPlayer)
@@ -540,10 +635,6 @@ void AAuraGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	Maps.Add(DefaultMapName, DefaultMap);
-
-	// Build per-role config from Content/Config/RoleConfig.json. Replaces a designer-authored
-	// DA_RoleInfo asset; consumed at runtime via UAuraAbilitySystemLibrary::GetRoleInfo.
-	RoleInfo = UAuraAbilitySystemLibrary::LoadRoleInfoFromConfig(this);
 
 	// Poll the editor "Reload Role Config" mending-tool sentinel so a running dedicated server
 	// picks up hand-edits to RoleConfig.json without a restart. New logins/spawns then use the

@@ -10,6 +10,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "Player/AuraPlayerState.h"
 #include "Interaction/PlayerInterface.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -122,6 +123,7 @@ void ALevelJumpPortal::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent
 				*DestinationServerId);
 			APlayerState* PlayerState = PlayerController->PlayerState.Get();
 			const FString SafePlayerName = IsValid(PlayerState) ? PlayerState->GetPlayerName() : FString();
+			const FName SafeRoleId = Cast<AAuraPlayerState>(PlayerState) ? CastChecked<AAuraPlayerState>(PlayerState)->GetRole() : NAME_None;
 			FString LoadingUrl = FString::Printf(TEXT("%s?PortalServerId=%s"), *UServerTravelComponent::LoadingLevelPath, *DestinationServerId);
 			if (!DestinationServer.IsEmpty())
 			{
@@ -130,6 +132,10 @@ void ALevelJumpPortal::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent
 			if (!SafePlayerName.IsEmpty())
 			{
 				LoadingUrl += FString::Printf(TEXT("?PName=%s"), *SafePlayerName);
+			}
+			if (!SafeRoleId.IsNone())
+			{
+				LoadingUrl += FString::Printf(TEXT("?Role=%s"), *SafeRoleId.ToString());
 			}
 			UE_LOG(LogAura, Display, TEXT("[JumpPortal] ClientTravel to Loading URL=%s"), *LoadingUrl);
 			PlayerController->ClientTravel(LoadingUrl, TRAVEL_Absolute);
@@ -156,7 +162,10 @@ void ALevelJumpPortal::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent
 		if (IsValid(PlayerController))
 		{
 			UE_LOG(LogAura, Warning, TEXT("[JumpPortal] Using legacy DestinationServer fallback: %s"), *DestinationServer);
-			UServerTravelComponent::RouteToServerViaLoadingLevel(PlayerController, DestinationServer);
+			const AAuraPlayerState* AuraPlayerState = PlayerController->GetPlayerState<AAuraPlayerState>();
+			UServerTravelComponent::RouteToServerViaLoadingLevel(PlayerController, DestinationServer,
+				IsValid(AuraPlayerState) ? AuraPlayerState->GetPlayerName() : FString(),
+				IsValid(AuraPlayerState) ? AuraPlayerState->GetRole() : NAME_None);
 			return;
 		}
 

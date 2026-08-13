@@ -62,6 +62,7 @@ void ALoadingPlayerController::BeginPlay()
 		{
 			const FString PortalFallbackEndpoint = UGameplayStatics::ParseOption(OptionsString, TEXT("PortalFallback"));
 			const FString PortalPlayerName = UGameplayStatics::ParseOption(OptionsString, TEXT("PName"));
+			const FName PortalRoleId(*UGameplayStatics::ParseOption(OptionsString, TEXT("Role")));
 
 			UE_LOG(LogTemp, Display, TEXT("[LoadingPC] BeginPlay: portal GSM request detected serverId='%s' fallback='%s' player='%s'"),
 				*PortalServerId, *PortalFallbackEndpoint, *PortalPlayerName);
@@ -91,7 +92,7 @@ void ALoadingPlayerController::BeginPlay()
 					GSMPort,
 					PortalServerId,
 					PortalGsmTimeoutSeconds,
-					FOnGameServerResponse::CreateLambda([WeakThis, PortalFallbackEndpoint, PortalPlayerName](const FGameServerResponse& Response)
+					FOnGameServerResponse::CreateLambda([WeakThis, PortalFallbackEndpoint, PortalPlayerName, PortalRoleId](const FGameServerResponse& Response)
 					{
 						if (ALoadingPlayerController* PC = WeakThis.Get())
 						{
@@ -102,7 +103,7 @@ void ALoadingPlayerController::BeginPlay()
 								PC->SetLoadingProgressTarget(88.f, FString::Printf(TEXT("Connecting to %s..."), *FinalEndpoint));
 								if (IsValid(PC->ServerTravelComponent))
 								{
-									PC->ServerTravelComponent->TravelToServer(FinalEndpoint, PortalPlayerName);
+									PC->ServerTravelComponent->TravelToServer(FinalEndpoint, PortalPlayerName, PortalRoleId);
 								}
 								return;
 							}
@@ -113,7 +114,7 @@ void ALoadingPlayerController::BeginPlay()
 								PC->SetLoadingProgressTarget(88.f, FString::Printf(TEXT("Connecting to %s..."), *PortalFallbackEndpoint));
 								if (IsValid(PC->ServerTravelComponent))
 								{
-									PC->ServerTravelComponent->TravelToServer(PortalFallbackEndpoint, PortalPlayerName);
+									PC->ServerTravelComponent->TravelToServer(PortalFallbackEndpoint, PortalPlayerName, PortalRoleId);
 								}
 								return;
 							}
@@ -142,13 +143,14 @@ void ALoadingPlayerController::BeginPlay()
 			{
 				const FString Endpoint = GI->PendingCrossServerResolvedEndpoint;
 				const FString PlayerName = GI->PendingCrossServerResolvedPlayerName;
+				const FName RoleId = GI->PendingCrossServerRoleId;
 				UE_LOG(LogTemp, Display, TEXT("[LoadingPC] BeginPlay: login-flow GSM already resolved (endpoint='%s' player='%s') — calling TravelToServer directly"),
 					*Endpoint, *PlayerName);
 				SetLoadingProgressTarget(88.f, FString::Printf(TEXT("Connecting to %s..."), *Endpoint));
 				GI->ClearPendingCrossServerTravel();
 				if (IsValid(ServerTravelComponent))
 				{
-					ServerTravelComponent->TravelToServer(Endpoint, PlayerName);
+					ServerTravelComponent->TravelToServer(Endpoint, PlayerName, RoleId);
 				}
 				else
 				{
@@ -174,6 +176,7 @@ void ALoadingPlayerController::BeginPlay()
 	}
 
 	const FString PlayerName = UGameplayStatics::ParseOption(OptionsString, TEXT("PName"));
+	const FName RoleId(*UGameplayStatics::ParseOption(OptionsString, TEXT("Role")));
 
 	UE_LOG(LogTemp, Display, TEXT("[LoadingPC] BeginPlay: cross-server Dest='%s' PName='%s' — calling TravelToServer"),
 		*Dest, *PlayerName);
@@ -181,7 +184,7 @@ void ALoadingPlayerController::BeginPlay()
 
 	if (IsValid(ServerTravelComponent))
 	{
-		ServerTravelComponent->TravelToServer(Dest, PlayerName);
+		ServerTravelComponent->TravelToServer(Dest, PlayerName, RoleId);
 	}
 	else
 	{
@@ -301,8 +304,10 @@ void ALoadingPlayerController::OnCrossServerTravelReady(const FString& Endpoint,
 	UE_LOG(LogTemp, Display, TEXT("[LoadingPC] OnCrossServerTravelReady: endpoint='%s' player='%s' — calling TravelToServer"),
 		*Endpoint, *PlayerName);
 
+	FName RoleId = NAME_None;
 	if (UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>())
 	{
+		RoleId = GI->PendingCrossServerRoleId;
 		// Consume the cached result so a stale endpoint cannot be replayed by a
 		// later LoadingPC BeginPlay (e.g. on a subsequent reconnect attempt).
 		GI->ClearPendingCrossServerTravel();
@@ -311,7 +316,7 @@ void ALoadingPlayerController::OnCrossServerTravelReady(const FString& Endpoint,
 
 	if (IsValid(ServerTravelComponent))
 	{
-		ServerTravelComponent->TravelToServer(Endpoint, PlayerName);
+		ServerTravelComponent->TravelToServer(Endpoint, PlayerName, RoleId);
 	}
 	else
 	{

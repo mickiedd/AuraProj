@@ -138,7 +138,7 @@ try {
     if (-not (Test-Path -LiteralPath $ServerLog)) { throw "Server startup timed out; '$ServerLog' is missing." }
 
     $ClientBaseArguments = @(
-        $ProjectFile, "127.0.0.1:$ListenPort", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', '-RoleBattleDay4DamageProbe'
+		$ProjectFile, "127.0.0.1:${ListenPort}?Role=Aura", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', '-RoleBattleDay4DamageProbe'
     )
     foreach ($ClientSpec in @(@('Client1', $Client1Log), @('Client2', $Client2Log))) {
         $ClientArguments = @($ClientBaseArguments + "-abslog=$($ClientSpec[1])")

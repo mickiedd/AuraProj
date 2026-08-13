@@ -21,6 +21,9 @@ public:
 	FGameplayTag Faction_Enemy;
 	FGameplayTag Faction_Civilian;
 
+	FGameplayTag Entity_Player;
+	FGameplayTag Entity_AmbientNPC;
+
 	FGameplayTag Control_Player;
 	FGameplayTag Control_EnemyAI;
 	FGameplayTag Control_CivilianAI;
@@ -33,6 +36,13 @@ public:
 	FGameplayTag Death_PlayerRespawn;
 	FGameplayTag Death_EnemyLoot;
 	FGameplayTag Death_PopulationRespawn;
+
+	FGameplayTag Economy_None;
+	FGameplayTag Economy_Ambient;
+	FGameplayTag Economy_CommerceCapable;
+
+	FGameplayTag Interaction_Combatant;
+	FGameplayTag Interaction_Civilian;
 
 	FGameplayTag Attributes_Primary_Strength;
 	FGameplayTag Attributes_Primary_Intelligence;

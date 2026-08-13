@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "GameplayTagContainer.h"
 #include "RoleInfo.generated.h"
 
 class USkeletalMesh;
@@ -15,6 +16,31 @@ class UGameplayEffect;
 class UGameplayAbility;
 class UObject;
 
+UENUM()
+enum class EAuraRoleValidationSeverity : uint8
+{
+	Warning,
+	Error
+};
+
+USTRUCT()
+struct AURA_API FAuraRoleValidationIssue
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	EAuraRoleValidationSeverity Severity = EAuraRoleValidationSeverity::Error;
+
+	UPROPERTY()
+	FName RoleId = NAME_None;
+
+	UPROPERTY()
+	FString JsonPath;
+
+	UPROPERTY()
+	FString Message;
+};
+
 /**
  * 
  */
@@ -22,6 +48,45 @@ USTRUCT(BlueprintType)
 struct FRoleDefaultInfo
 {
 	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	FString DisplayName;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	FGameplayTag EntityType;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	FGameplayTag ControlType;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	FGameplayTag CombatProfile;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	FGameplayTag Faction;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	FGameplayTag DeathPolicy;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	FGameplayTag EconomyProfile;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	FGameplayTag InteractionProfile;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	bool bPlayerSelectable = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	bool bTargetable = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	bool bCanAttack = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	bool bCanBeDamaged = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Role|Identity")
+	bool bAllowFriendlyFire = false;
 
 	/* Visuals */
 
@@ -128,6 +193,9 @@ class AURA_API URoleInfo : public UDataAsset
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(VisibleAnywhere, Category = "Role Defaults")
+	int32 RoleDefinitionVersion = 2;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Role Defaults")
 	TMap<FName, FRoleDefaultInfo> RoleInformation;
 
@@ -145,4 +213,30 @@ public:
 	 *  AnimBlueprintClass loaded. Used to reject login for under-configured roles
 	 *  (e.g. a placeholder role with empty mesh/anim). */
 	bool IsRoleConfigured(FName Role) const;
+
+	/** Server/login-safe predicate. Presentation callers may inspect non-player roles separately. */
+	bool IsPlayerRoleSelectable(FName Role) const;
+};
+
+USTRUCT()
+struct AURA_API FAuraRoleLoadResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY(Transient)
+	TObjectPtr<URoleInfo> Candidate;
+
+	UPROPERTY()
+	int32 DetectedVersion = 0;
+
+	UPROPERTY()
+	int32 PublishedVersion = 2;
+
+	UPROPERTY()
+	TArray<FAuraRoleValidationIssue> Issues;
+
+	UPROPERTY()
+	bool bCanPublish = false;
+
+	FString ToLogString() const;
 };

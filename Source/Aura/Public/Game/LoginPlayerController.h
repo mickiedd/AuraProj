@@ -122,6 +122,7 @@ protected:
 	/** Resolves the player name from save data, OS username, or a default.
 	 *  Safe to call before traveling to the Loading level. */
 	FString ResolvePlayerName() const;
+	FName ResolveRequestedRole(FString& OutError) const;
 
 	bool LoadServerConnectionFromJson();
 	FString BuildServerEndpoint() const;

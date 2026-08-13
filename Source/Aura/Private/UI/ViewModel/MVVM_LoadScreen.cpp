@@ -14,6 +14,11 @@ void UMVVM_LoadScreen::InitializeLoadSlots()
 	// New slots default to the role configured in RoleConfig.json ("defaultRole"),
 	// so a new game with no role-picker UI loads the default role.
 	const FName DefaultRole = UAuraAbilitySystemLibrary::GetDefaultRole(this);
+	FString DefaultRoleError;
+	if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(UAuraAbilitySystemLibrary::GetRoleInfo(this), DefaultRole, DefaultRoleError))
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(RoleValidationError, DefaultRoleError);
+	}
 
 	LoadSlot_0 = NewObject<UMVVM_LoadSlot>(this, LoadSlotViewModelClass);
 	LoadSlot_0->SetLoadSlotName(FString("LoadSlot_0"));
@@ -101,15 +106,26 @@ void UMVVM_LoadScreen::DeleteButtonPressed()
 void UMVVM_LoadScreen::PlayButtonPressed()
 {
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (!IsValid(AuraGameMode) || !IsValid(SelectedSlot))
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(RoleValidationError, TEXT("Select a valid saved slot before playing."));
+		return;
+	}
+	FString ValidationError;
+	if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(AuraGameMode->RoleInfo, SelectedSlot->GetRole(), ValidationError))
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(RoleValidationError, ValidationError);
+		SelectedSlot->EnableSelectSlotButton.Broadcast(false);
+		UE_LOG(LogTemp, Warning, TEXT("[LoadScreen] Play rejected: %s"), *ValidationError);
+		return;
+	}
+	UE_MVVM_SET_PROPERTY_VALUE(RoleValidationError, FString());
 	UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(AuraGameMode->GetGameInstance());
 	AuraGameInstance->PlayerStartTag = SelectedSlot->PlayerStartTag;
 	AuraGameInstance->LoadSlotName = SelectedSlot->GetLoadSlotName();
 	AuraGameInstance->LoadSlotIndex = SelectedSlot->SlotIndex;
 	
-	if (IsValid(SelectedSlot))
-	{
-		AuraGameMode->TravelToMap(SelectedSlot);
-	}
+	AuraGameMode->TravelToMap(SelectedSlot);
 }
 
 void UMVVM_LoadScreen::LoadData()
@@ -130,7 +146,18 @@ void UMVVM_LoadScreen::LoadData()
 		LoadSlot.Value->SetMapName(SaveObject->MapName);
 		LoadSlot.Value->PlayerStartTag = SaveObject->PlayerStartTag;
 		LoadSlot.Value->SetPlayerLevel(SaveObject->PlayerLevel);
-		LoadSlot.Value->SetRole(SaveObject->Role);
+		FString ValidationError;
+		if (SaveSlotStatus == Taken && !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(AuraGameMode->RoleInfo, SaveObject->Role, ValidationError))
+		{
+			LoadSlot.Value->SetRole(NAME_None);
+			LoadSlot.Value->EnableSelectSlotButton.Broadcast(false);
+			UE_MVVM_SET_PROPERTY_VALUE(RoleValidationError, ValidationError);
+			UE_LOG(LogTemp, Warning, TEXT("[LoadScreen] Saved slot '%s' rejected role '%s': %s"), *LoadSlot.Value->GetLoadSlotName(), *SaveObject->Role.ToString(), *ValidationError);
+		}
+		else
+		{
+			LoadSlot.Value->SetRole(SaveObject->Role);
+		}
 	}
 }
 

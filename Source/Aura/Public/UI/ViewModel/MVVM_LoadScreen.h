@@ -49,6 +49,7 @@ public:
 	void SetNumLoadSlots(int32 InNumLoadSlots);
 
 	int32 GetNumLoadSlots() const { return NumLoadSlots; }
+	FString GetRoleValidationError() const { return RoleValidationError; }
 	
 private:
 
@@ -69,4 +70,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta = (AllowPrivateAccess="true"));
 	int32 NumLoadSlots;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Getter, meta = (AllowPrivateAccess="true"))
+	FString RoleValidationError;
 };

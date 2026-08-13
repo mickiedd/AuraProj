@@ -2024,77 +2024,25 @@ private:
 			return false;
 		}
 
-		TSharedPtr<FJsonObject> RootObject;
-		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonInput);
-		if (!FJsonSerializer::Deserialize(Reader, RootObject) || !RootObject.IsValid())
+		const FAuraRoleLoadResult Result = UAuraAbilitySystemLibrary::ParseRoleInfoJson(nullptr, JsonInput, ConfigPath);
+		if (!Result.bCanPublish || !Result.Candidate)
 		{
 			OutReport = FText::Format(
-				LOCTEXT("RoleConfigInvalidJson", "RoleConfig.json is not valid JSON:\n{0}"),
-				FText::FromString(ConfigPath));
-			return false;
-		}
-
-		const TArray<TSharedPtr<FJsonValue>>* RolesArray = nullptr;
-		if (!RootObject->TryGetArrayField(TEXT("roles"), RolesArray) || RolesArray == nullptr || RolesArray->IsEmpty())
-		{
-			OutReport = FText::Format(
-				LOCTEXT("RoleConfigNoRoles", "RoleConfig.json has no 'roles' array (or it is empty):\n{0}"),
-				FText::FromString(ConfigPath));
+				LOCTEXT("RoleConfigAggregateFailure", "RoleConfig.json was rejected atomically. No reload signal was sent.\n\n{0}"),
+				FText::FromString(Result.ToLogString()));
 			return false;
 		}
 
 		TArray<FString> RoleNames;
-		TSet<FString> RoleNameSet;
-		for (const TSharedPtr<FJsonValue>& RoleValue : *RolesArray)
-		{
-			const TSharedPtr<FJsonObject>* RoleObjPtr = nullptr;
-			if (!RoleValue.IsValid() || !RoleValue->TryGetObject(RoleObjPtr) || !RoleObjPtr->IsValid())
-			{
-				OutReport = FText::Format(
-					LOCTEXT("RoleConfigMalformedEntry", "A role entry in RoleConfig.json is malformed:\n{0}"),
-					FText::FromString(ConfigPath));
-				return false;
-			}
-
-			FString RoleName;
-			if (!(*RoleObjPtr)->TryGetStringField(TEXT("role"), RoleName) || RoleName.IsEmpty())
-			{
-				OutReport = FText::Format(
-					LOCTEXT("RoleConfigMissingRoleName", "A role entry is missing its 'role' name field:\n{0}"),
-					FText::FromString(ConfigPath));
-				return false;
-			}
-
-			RoleNames.Add(RoleName);
-			RoleNameSet.Add(RoleName);
-		}
-
-		FString DefaultRoleStr;
-		const bool bHasDefaultRole = RootObject->TryGetStringField(TEXT("defaultRole"), DefaultRoleStr) && !DefaultRoleStr.IsEmpty();
-		bool bDefaultRoleConfigured = false;
-		if (bHasDefaultRole)
-		{
-			bDefaultRoleConfigured = RoleNameSet.Contains(DefaultRoleStr);
-			if (!bDefaultRoleConfigured)
-			{
-				OutReport = FText::Format(
-					LOCTEXT("RoleConfigDefaultRoleMismatch", "defaultRole '{0}' does not match any role entry in RoleConfig.json.\n\nRoles: {1}\n\nFix the defaultRole value or add the role, then retry."),
-					FText::FromString(DefaultRoleStr),
-					FText::FromString(FString::Join(RoleNames, TEXT(", "))));
-				return false;
-			}
-		}
-
-		const FString RolesList = FString::Join(RoleNames, TEXT(", "));
-		const FString DefaultLine = bHasDefaultRole
-			? FString::Printf(TEXT("defaultRole = %s (configured: %s)"), *DefaultRoleStr, bDefaultRoleConfigured ? TEXT("yes") : TEXT("no"))
-			: TEXT("defaultRole = <not set; login will require an explicit role>");
-
+		for (const FName RoleName : Result.Candidate->GetRoleNames()) RoleNames.Add(RoleName.ToString());
+		RoleNames.Sort();
 		OutReport = FText::Format(
-			LOCTEXT("RoleConfigValidReport", "RoleConfig.json validated.\n\n{0} role(s): {1}\n{2}"),
+			LOCTEXT("RoleConfigValidReport", "RoleConfig.json validated for atomic publication.\n\nVersion {0}; {1} role(s): {2}\nDefault player role: {3}\n\n{4}"),
+			Result.PublishedVersion,
 			RoleNames.Num(),
-			FText::FromString(RolesList),
-			FText::FromString(DefaultLine));
+			FText::FromString(FString::Join(RoleNames, TEXT(", "))),
+			FText::FromName(Result.Candidate->DefaultRole),
+			FText::FromString(Result.ToLogString()));
 		return true;
 	}
 

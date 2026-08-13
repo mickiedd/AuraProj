@@ -51,13 +51,13 @@ public:
 	 * @param ServerEndpoint Host[:Port] endpoint.
 	 * @param RequestedPlayerName Optional player name appended as ?PlayerName=...
 	 */
-	bool TravelToServer(const FString& ServerEndpoint, const FString& RequestedPlayerName = FString());
+	bool TravelToServer(const FString& ServerEndpoint, const FString& RequestedPlayerName = FString(), FName RequestedRoleId = NAME_None);
 
 	/**
 	 * Routes cross-server travel through the Loading level for this component's owning controller.
 	 * Encodes the destination in the Loading level URL; LoadingPlayerController reads it on BeginPlay.
 	 */
-	bool TravelToServerViaLoadingLevel(const FString& ServerEndpoint, const FString& RequestedPlayerName = FString());
+	bool TravelToServerViaLoadingLevel(const FString& ServerEndpoint, const FString& RequestedPlayerName = FString(), FName RequestedRoleId = NAME_None);
 
 	// -----------------------------------------------------------------------
 	// Static routing helpers — usable from any actor without a component ref
@@ -68,7 +68,7 @@ public:
 	 * Safe to call from server authority (e.g. LevelJumpPortal GSM callback) where
 	 * the controller is a remote player controller.
 	 */
-	static void RouteToServerViaLoadingLevel(APlayerController* InPC, const FString& ServerEndpoint, const FString& RequestedPlayerName = FString());
+	static void RouteToServerViaLoadingLevel(APlayerController* InPC, const FString& ServerEndpoint, const FString& RequestedPlayerName = FString(), FName RequestedRoleId = NAME_None);
 
 	/**
 	 * Routes a same-server level travel through the Loading level.
@@ -93,7 +93,7 @@ private:
 	void UnbindConnectionFailureDelegates();
 	void ClearMonitoringTimers();
 	void BroadcastStatusMessage(const FString& InMessage) const;
-	FString BuildTravelUrl(const FString& ServerEndpoint, const FString& RequestedPlayerName) const;
+	FString BuildTravelUrl(const FString& ServerEndpoint, const FString& RequestedPlayerName, FName RequestedRoleId) const;
 	static FString SanitizePlayerName(FString PlayerName);
 	APlayerController* GetOwningPlayerController() const;
 

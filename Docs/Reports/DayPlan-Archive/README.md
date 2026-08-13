@@ -8,7 +8,7 @@ A day is included only when the repository contains implementation evidence, the
 
 Day 01 is included as a **conditional completed work record** because its headless functional gate passed. Its still-open rendered presentation check remains visible in the map and belongs to Day 07. Days 03 and 04 are included from their implementation commits, plan-local status/evidence, checked-in tests/runners, and passing retained reports; the older one-line status at the top of the schedule had not yet caught up with that work.
 
-Days 05–20 are intentionally absent. Their documents are implementation contracts, but this checkout has no corresponding completed implementation/test namespaces or completion evidence.
+Days 06–20 are intentionally absent. Their documents are implementation contracts, but this checkout has no corresponding completed implementation/test namespaces or completion evidence.
 
 ## Finished day plans
 
@@ -18,6 +18,7 @@ Days 05–20 are intentionally absent. Their documents are implementation contra
 | 02 | 2026-08-08 | Replicated, server-owned combat identity | [SVG](2026-08-08-role-battle-day-02-combat-identity.svg) | [record](2026-08-08-role-battle-day-02-combat-identity.md) |
 | 03 | 2026-08-09 | Central combat rules and replicated life state | [SVG](2026-08-09-role-battle-day-03-combat-rules.svg) | [record](2026-08-09-role-battle-day-03-combat-rules.md) |
 | 04 | 2026-08-10 | Authoritative shared damage boundary and attribution | [SVG](2026-08-10-role-battle-day-04-damage-boundary.svg) | [record](2026-08-10-role-battle-day-04-damage-boundary.md) |
+| 05 | 2026-08-13 | Versioned, validated, atomically published role registry | [SVG](2026-08-13-role-battle-day-05-role-schema.svg) | [record](2026-08-13-role-battle-day-05-role-schema.md) |
 
 ## Maintenance rule
 

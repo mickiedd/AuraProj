@@ -55,7 +55,7 @@ void UServerTravelComponent::ConfigureLocalTravelMonitoring(float InWarningDelay
 	ConnectionTimeoutDelay = FMath::Max(ConnectionResponseWarningDelay + 0.1f, InTimeoutDelaySeconds);
 }
 
-bool UServerTravelComponent::TravelToServer(const FString& ServerEndpoint, const FString& RequestedPlayerName)
+bool UServerTravelComponent::TravelToServer(const FString& ServerEndpoint, const FString& RequestedPlayerName, FName RequestedRoleId)
 {
 	APlayerController* PlayerController = GetOwningPlayerController();
 	if (!IsValid(PlayerController))
@@ -73,7 +73,7 @@ bool UServerTravelComponent::TravelToServer(const FString& ServerEndpoint, const
 		return false;
 	}
 
-	const FString TravelUrl = BuildTravelUrl(TrimmedEndpoint, RequestedPlayerName);
+	const FString TravelUrl = BuildTravelUrl(TrimmedEndpoint, RequestedPlayerName, RequestedRoleId);
 	UE_LOG(LogTemp, Display, TEXT("[ServerTravelComponent] Executing travel for PC=%s url=%s local=%d"),
 		*GetNameSafe(PlayerController),
 		*TravelUrl,
@@ -214,16 +214,13 @@ void UServerTravelComponent::BroadcastStatusMessage(const FString& InMessage) co
 	}
 }
 
-FString UServerTravelComponent::BuildTravelUrl(const FString& ServerEndpoint, const FString& RequestedPlayerName) const
+FString UServerTravelComponent::BuildTravelUrl(const FString& ServerEndpoint, const FString& RequestedPlayerName, FName RequestedRoleId) const
 {
 	const FString SanitizedPlayerName = SanitizePlayerName(RequestedPlayerName);
-	if (SanitizedPlayerName.IsEmpty())
-	{
-		return ServerEndpoint;
-	}
-
-	const TCHAR Delimiter = ServerEndpoint.Contains(TEXT("?")) ? TEXT('&') : TEXT('?');
-	return FString::Printf(TEXT("%s%cPlayerName=%s"), *ServerEndpoint, Delimiter, *SanitizedPlayerName);
+	FString Url = ServerEndpoint;
+	if (!SanitizedPlayerName.IsEmpty()) Url += FString::Printf(TEXT("?PlayerName=%s"), *SanitizedPlayerName);
+	if (!RequestedRoleId.IsNone()) Url += FString::Printf(TEXT("?Role=%s"), *RequestedRoleId.ToString());
+	return Url;
 }
 
 FString UServerTravelComponent::SanitizePlayerName(FString PlayerName)
@@ -242,13 +239,13 @@ APlayerController* UServerTravelComponent::GetOwningPlayerController() const
 	return Cast<APlayerController>(GetOwner());
 }
 
-bool UServerTravelComponent::TravelToServerViaLoadingLevel(const FString& ServerEndpoint, const FString& RequestedPlayerName)
+bool UServerTravelComponent::TravelToServerViaLoadingLevel(const FString& ServerEndpoint, const FString& RequestedPlayerName, FName RequestedRoleId)
 {
-	RouteToServerViaLoadingLevel(GetOwningPlayerController(), ServerEndpoint, RequestedPlayerName);
+	RouteToServerViaLoadingLevel(GetOwningPlayerController(), ServerEndpoint, RequestedPlayerName, RequestedRoleId);
 	return IsValid(GetOwningPlayerController());
 }
 
-void UServerTravelComponent::RouteToServerViaLoadingLevel(APlayerController* InPC, const FString& ServerEndpoint, const FString& RequestedPlayerName)
+void UServerTravelComponent::RouteToServerViaLoadingLevel(APlayerController* InPC, const FString& ServerEndpoint, const FString& RequestedPlayerName, FName RequestedRoleId)
 {
 	if (!IsValid(InPC))
 	{
@@ -272,6 +269,10 @@ void UServerTravelComponent::RouteToServerViaLoadingLevel(APlayerController* InP
 	if (!SafePlayerName.IsEmpty())
 	{
 		LoadingUrl += FString::Printf(TEXT("?PName=%s"), *SafePlayerName);
+	}
+	if (!RequestedRoleId.IsNone())
+	{
+		LoadingUrl += FString::Printf(TEXT("?Role=%s"), *RequestedRoleId.ToString());
 	}
 
 	UE_LOG(LogTemp, Display, TEXT("[ServerTravelComponent] Routing PC=%s to loading level -> final dest=%s"),

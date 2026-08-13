@@ -180,3 +180,15 @@ The Day 5 config smoke supports `-Mode Listen` and `-Mode Dedicated`. It enforce
 ## Completion gate
 
 Version-2 RoleConfig loads Aura, BungeeMan, and Civilian with full Gameplay Tags, explicit flags, and separated spawn/unlockable ability categories; real Civilian presentation assets are valid; version-1 input migrates deterministically; all malformed input yields aggregate diagnostics without crashing; a bad reload retains the last good config; `InitGame` publishes before login; and two connections can retain different server-validated pending roles without using the process-global save slot. The existing UI accepts only a valid saved/default player role and adds no fictitious picker. All named tests and both Day 4 and Day 5 smokes pass with recorded artifacts.
+
+## Execution status (2026-08-13)
+
+Implemented and verified.
+
+- `RoleConfig.json` now authors schema version 2 for Aura, BungeeMan, and Civilian. Civilian uses the existing Shaman mesh and compatible Shaman Anim Blueprint as its distinct first-slice ambient presentation; it does not reuse either player avatar.
+- Runtime and editor use the same safe aggregate parser. It reports structured field-level issues, migrates omitted/explicit version 1 deterministically, rejects duplicates and invalid tags/assets/sockets/ability contracts, and publishes only complete candidates.
+- Startup publication moved to `InitGame`. Failed reloads retain the last known-good registry, while a never-good startup makes the role service unavailable.
+- Cross-server travel sends only `Role=<StableRoleId>`. `PreLogin` rejects missing, unknown, ambient, and non-selectable requests; `InitNewPlayer` stores the revalidated ID on that connection's `AAuraPlayerState`; player start and restart are gated on that state.
+- The load screen and login flow reject invalid saved/default IDs and surface an actionable status without adding a role picker.
+- All 13 `Aura.RoleBattle.Day5.*` automation tests passed. `RunRoleBattleDay5ConfigSmoke.ps1` passed in Listen and Dedicated modes, and the required Day 04 damage smoke passed in both modes after adding the explicit role option.
+- Retained evidence: `Saved/Logs/Day5Automation.log`, `Saved/Reports/Day05-Listen.json`, `Saved/Reports/Day05-Dedicated.json`, `Saved/Reports/Day04-Listen.json`, and `Saved/Reports/Day04-Dedicated.json`.
