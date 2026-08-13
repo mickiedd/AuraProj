@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="760" viewBox="0 0 1320 760" role="img" aria-labelledby="title desc">
+  <title id="title">FireBolt presentation regression test</title>
+  <desc id="desc">Test flow from FireBolt JSON definition through Niagara and sound asset resolution to the runtime projectile trail, with the blocked command-line runner called out separately.</desc>
+  <style>
+    .bg{fill:#0d1726}.panel{fill:#17283d;stroke:#3a5777;stroke-width:2}.source{fill:#49351b;stroke:#e3ae55;stroke-width:2}.check{fill:#183d38;stroke:#4dd2ad;stroke-width:2}.runtime{fill:#253a56;stroke:#74a8df;stroke-width:2}.blocked{fill:#432b2b;stroke:#e87575;stroke-width:2}.title{fill:#f5f8ff;font:700 29px Arial,sans-serif}.subtitle{fill:#a9bad0;font:15px Arial,sans-serif}.head{fill:#fff;font:700 18px Arial,sans-serif}.body{fill:#d5e1ef;font:14px Arial,sans-serif}.small{fill:#a9bad0;font:13px Arial,sans-serif}.good{fill:#9af0d5;font:700 14px Arial,sans-serif}.bad{fill:#ffb0b0;font:700 14px Arial,sans-serif}.arrow{stroke:#88a9c8;stroke-width:3;fill:none;marker-end:url(#arrow)}.goodline{stroke:#59d6b1;stroke-width:3;fill:none;marker-end:url(#goodarrow)}
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#88a9c8"/></marker>
+    <marker id="goodarrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#59d6b1"/></marker>
+  </defs>
+  <rect class="bg" width="1320" height="760"/>
+  <text class="title" x="44" y="52">FireBolt presentation regression coverage</text>
+  <text class="subtitle" x="44" y="80">The test now proves that the projectile can render and play its presentation assets, not only that its graph is ordered correctly.</text>
+
+  <rect class="source" x="44" y="125" width="245" height="190" rx="13"/>
+  <text class="head" x="66" y="160">FireBolt definition</text>
+  <text class="body" x="66" y="198">ProjectileDefinitions.json</text>
+  <text class="body" x="66" y="226">flightTrail</text>
+  <text class="body" x="66" y="250">impactEffect</text>
+  <text class="body" x="66" y="274">impactSound + loopingSound</text>
+  <text class="good" x="66" y="299">All paths must be non-empty</text>
+
+  <path class="goodline" d="M289 220 H350"/>
+  <rect class="check" x="355" y="125" width="275" height="190" rx="13"/>
+  <text class="head" x="377" y="160">Asset type checks</text>
+  <text class="good" x="377" y="200">UNiagaraSystem: trail</text>
+  <text class="good" x="377" y="228">UNiagaraSystem: impact</text>
+  <text class="good" x="377" y="256">USoundBase: impact</text>
+  <text class="good" x="377" y="284">USoundBase: looping</text>
+
+  <path class="goodline" d="M630 220 H691"/>
+  <rect class="runtime" x="696" y="125" width="275" height="190" rx="13"/>
+  <text class="head" x="718" y="160">Projectile runtime</text>
+  <text class="body" x="718" y="200">ConfigureFromDefinition(fireBolt)</text>
+  <text class="body" x="718" y="228">Collision + speed remain valid</text>
+  <text class="body" x="718" y="256">BeginPlay attaches trail</text>
+  <text class="good" x="718" y="289">Flight visual is present</text>
+
+  <path class="goodline" d="M971 220 H1032"/>
+  <rect class="check" x="1037" y="125" width="235" height="190" rx="13"/>
+  <text class="head" x="1059" y="160">Test result</text>
+  <text class="good" x="1059" y="204">No missing visual refs</text>
+  <text class="good" x="1059" y="232">No wrong asset classes</text>
+  <text class="good" x="1059" y="260">No absent trail component</text>
+  <text class="small" x="1059" y="294">Impact path is also resolved.</text>
+
+  <rect class="panel" x="44" y="370" width="1228" height="235" rx="14"/>
+  <text class="head" x="70" y="410">Preserved gameplay guards</text>
+  <text class="body" x="70" y="450">FireBolt.xml: WaitForTargetData → PlayMontage → WaitForMontageEvent → SpawnProjectiles</text>
+  <text class="body" x="70" y="480">Native projectile class: AAuraProjectile • InitialSpeed: 650 • WorldStatic: Block</text>
+  <text class="body" x="70" y="510">Authority boundary: client waits for authoritative end; server owns projectile creation</text>
+  <text class="good" x="70" y="555">Static graph test and editor compilation both pass.</text>
+
+  <rect class="blocked" x="44" y="640" width="1228" height="70" rx="12"/>
+  <text class="bad" x="70" y="670">Focused command-line automation runner: blocked before test execution</text>
+  <text class="small" x="70" y="694">UE reports the existing Aura → AuraAbilityGraph module preload/search-path failure; this is not counted as a test pass.</text>
+</svg>

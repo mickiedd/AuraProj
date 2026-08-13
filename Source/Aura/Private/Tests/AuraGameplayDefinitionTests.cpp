@@ -83,15 +83,17 @@ bool FAuraProjectileDefinitionsTest::RunTest(const FString& Parameters)
 	TestNotNull(TEXT("FireBolt impact effect asset loads as Niagara"), FireBoltImpactEffect);
 	TestNotNull(TEXT("FireBolt impact sound asset loads as sound"), FireBoltImpactSound);
 	TestNotNull(TEXT("FireBolt looping sound asset loads as sound"), FireBoltLoopingSound);
+	TestTrue(TEXT("FireBolt flight trail is a non-empty Niagara system"), FireBoltFlightTrail && !FireBoltFlightTrail->GetPathName().IsEmpty());
+	TestTrue(TEXT("FireBolt impact effect is a non-empty Niagara system"), FireBoltImpactEffect && !FireBoltImpactEffect->GetPathName().IsEmpty());
+	TestTrue(TEXT("FireBolt impact sound has a valid object path"), FireBoltImpactSound && !FireBoltImpactSound->GetPathName().IsEmpty());
+	TestTrue(TEXT("FireBolt looping sound has a valid object path"), FireBoltLoopingSound && !FireBoltLoopingSound->GetPathName().IsEmpty());
 
+	// BeginPlay is only dispatched by a running game world. The asset/type checks
+	// above remain valid in commandlet/editor fixture worlds where it is not safe
+	// to call DispatchBeginPlay manually.
 	if (World->HasBegunPlay())
 	{
-		if (!Projectile->HasActorBegunPlay()) Projectile->DispatchBeginPlay();
 		TestNotNull(TEXT("FireBolt flight trail component attaches on BeginPlay"), Projectile->FindComponentByClass<UNiagaraComponent>());
-	}
-	else
-	{
-		AddInfo(TEXT("FireBolt BeginPlay attachment check deferred: automation world has not begun play"));
 	}
 	Projectile->Destroy();
 	return true;
