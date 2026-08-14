@@ -7,6 +7,8 @@
 #include "Combat/AuraCombatTypes.h"
 #include "AuraCombatIdentityComponent.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAuraCombatIdentityChanged, const FAuraCombatIdentity&);
+
 /**
  * Owns one replicated combat identity for an avatar. The server initializes and
  * mutates the identity; clients receive it through normal component replication.
@@ -23,6 +25,9 @@ public:
 
 	/** Server-only initialization/mutation entry point. Rejects invalid identity data. */
 	bool InitializeIdentity(const FAuraCombatIdentity& InIdentity);
+
+	/** Fired after an authoritative commit and after the matching client rep-notify. */
+	FOnAuraCombatIdentityChanged OnIdentityChanged;
 
 	const FAuraCombatIdentity& GetIdentity() const { return Identity; }
 

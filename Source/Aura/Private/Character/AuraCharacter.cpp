@@ -95,6 +95,16 @@ FAuraCombatIdentity AAuraCharacter::BuildDefaultCombatIdentity() const
 	return Identity;
 }
 
+FGameplayTag AAuraCharacter::GetRequiredRoleEntityType() const
+{
+	return FAuraGameplayTags::Get().Entity_Player;
+}
+
+FGameplayTag AAuraCharacter::GetRequiredRoleControlType() const
+{
+	return FAuraGameplayTags::Get().Control_Player;
+}
+
 void AAuraCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -139,12 +149,13 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 
 bool AAuraCharacter::LoadProgress()
 {
-	UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress enter: Character=%s HasAuthority=%s"),
-		*GetNameSafe(this), HasAuthority() ? TEXT("true") : TEXT("false"));
+	UE_LOG(LogAura, Log, TEXT("[Character][Server] Transactional LoadProgress: Character=%s Authority=%d"),
+		*GetNameSafe(this), HasAuthority());
+	if (!HasAuthority())
+	{
+		return false;
+	}
 
-	// Role config is incomplete (e.g. placeholder Bonman/Ironman with empty mesh/anim): refuse to
-	// log in with a broken role — log an Error and send the client back to the Login level with an
-	// alert via the existing server-lost path (reused by KickOutSelf / mid-game server loss).
 	auto RejectLogin = [this](const FString& Reason)
 	{
 		UE_LOG(LogAura, Error, TEXT("[Role][Login] %s"), *Reason);
@@ -152,185 +163,59 @@ bool AAuraCharacter::LoadProgress()
 		{
 			AuraPC->ClientRejectLogin(Reason);
 		}
-		else
-		{
-			UE_LOG(LogAura, Error, TEXT("[Role][Login] No PlayerController for Character=%s to reject login."), *GetNameSafe(this));
-		}
 	};
 
-	AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState());
-	const bool bAttributesAlreadyInitialized = AuraPlayerState && AuraPlayerState->HasInitializedDefaultAttributes();
-
-	// The player ASC and AttributeSet are owned by PlayerState and survive pawn replacement.
-	// Reapplying additive default GameplayEffects here would increase MaxHealth/MaxMana on every
-	// respawn. A respawn only needs to refill the existing vital attributes.
-	if (bAttributesAlreadyInitialized)
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	if (!AuraPlayerState || !Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
 	{
-		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: persistent attributes already initialized; refilling vitals for respawn."));
-		UAuraAbilitySystemLibrary::TopOffVitalAttributes(AbilitySystemComponent, this);
+		RejectLogin(TEXT("The persistent PlayerState ability system is unavailable."));
+		return false;
 	}
 
-	auto InitializeFallbackDefaults = [this, AuraPlayerState, bAttributesAlreadyInitialized]()
-	{
-		// No save data (e.g. direct connect to a dedicated server with no slot): load the default
-		// role from RoleConfig.json ("defaultRole"). Replicate it via PlayerState so clients render
-		// the same role, apply visuals/abilities, and apply attributes from JSON.
-		const FName DefaultRole = UAuraAbilitySystemLibrary::GetDefaultRole(this);
-		UE_LOG(LogAura, Log, TEXT("[Character][Server] Fallback: loading default role = '%s'."), *DefaultRole.ToString());
-
-		if (AuraPlayerState)
-		{
-			AuraPlayerState->SetRole(DefaultRole);
-		}
-		ApplyRole(DefaultRole);
-		if (!bAttributesAlreadyInitialized)
-		{
-			InitializeDefaultAttributesForRole(DefaultRole);
-			if (AuraPlayerState) AuraPlayerState->MarkDefaultAttributesInitialized();
-			AddCharacterAbilities();
-		}
-
-		if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
-		{
-			UE_LOG(LogAura, Warning, TEXT("[Character][Server] Fallback defaults applied: Health=%.1f/%.1f Mana=%.1f/%.1f"),
-				AuraAS->GetHealth(), AuraAS->GetMaxHealth(), AuraAS->GetMana(), AuraAS->GetMaxMana());
-		}
-	};
-
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
-	if (AuraGameMode)
+	const ULoadScreenSaveGame* SaveData = nullptr;
+	FName AuthorizedRole = NAME_None;
+	if (GetNetMode() != NM_Standalone)
 	{
-		// A network server must not treat its process-global GameInstance save slot as this
-		// connection's role/progression identity. PreLogin and InitNewPlayer have retained the
-		// trusted stable role ID on this PlayerState; consume that connection-scoped value here
-		// for both role visuals and role-specific gameplay initialization. Standalone keeps its
-		// local save workflow unchanged.
-		if (GetNetMode() != NM_Standalone)
+		if (!AuraPlayerState->HasPendingAcceptedRoleId())
 		{
-			if (!AuraPlayerState || !AuraPlayerState->HasPendingAcceptedRoleId())
-			{
-				RejectLogin(TEXT("The server did not retain an accepted role for this connection."));
-				return false;
-			}
-
-			const FName AcceptedRole = AuraPlayerState->GetPendingAcceptedRoleId();
-			FString RoleError;
-			if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(UAuraAbilitySystemLibrary::GetRoleInfo(this), AcceptedRole, RoleError))
-			{
-				RejectLogin(RoleError.IsEmpty() ? TEXT("The accepted connection role is no longer available.") : RoleError);
-				return false;
-			}
-
-			UE_LOG(LogAura, Display, TEXT("[Role][Network] Consuming accepted connection role '%s'; global save-slot role is not read."),
-				*AcceptedRole.ToString());
-			AuraPlayerState->SetRole(AcceptedRole);
-			ApplyRole(AcceptedRole);
-			if (!bAttributesAlreadyInitialized)
-			{
-				InitializeDefaultAttributesForRole(AcceptedRole);
-				AuraPlayerState->MarkDefaultAttributesInitialized();
-				AddCharacterAbilities();
-			}
-			// Keep the accepted role on PlayerState for pawn replacement/respawn. The ASC and
-			// attributes outlive the pawn, while the same connection-scoped role must still be
-			// available when a new pawn is possessed.
-			return true;
+			RejectLogin(TEXT("The server did not retain an accepted role for this connection."));
+			return false;
 		}
-
-		ULoadScreenSaveGame* SaveData = AuraGameMode->RetrieveInGameSaveData();
-		if (SaveData == nullptr)
-		{
-			UE_LOG(LogAura, Warning, TEXT("[Character][Server] LoadProgress: SaveData is null for Character=%s. Applying fallback defaults."), *GetNameSafe(this));
-
-			// Refuse login if the default role is not fully configured (empty mesh/animation).
-			if (URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this))
-			{
-				const FName DefaultRole = UAuraAbilitySystemLibrary::GetDefaultRole(this);
-				FString RoleError;
-				if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, DefaultRole, RoleError))
-				{
-					RejectLogin(RoleError);
-					return false;
-				}
-			}
-
-			if (!bAttributesAlreadyInitialized)
-			{
-				InitializeFallbackDefaults();
-			}
-			return true;
-		}
-
-		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: SaveData found FirstTime=%s Level=%d"),
-			SaveData->bFirstTimeLoadIn ? TEXT("true") : TEXT("false"), SaveData->PlayerLevel);
-
-		// Refuse login if the saved role is not fully configured (empty mesh/animation).
-		if (URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this))
-		{
-			FString RoleError;
-			if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, SaveData->Role, RoleError))
-			{
-				RejectLogin(RoleError);
-				return false;
-			}
-		}
-
-		// Apply the saved Role before gameplay init: visuals + (server) replicate via PlayerState.
-		// Copying the role's DefaultPrimaryAttributes / StartupAbilities onto this character makes
-		// the InitializeDefaultAttributes() / AddCharacterAbilities() calls below consume role data.
-		UE_LOG(LogAura, Log, TEXT("[Character][Server] LoadProgress: SaveData Role='%s' — applying role + replicating via PlayerState."), *SaveData->Role.ToString());
-		if (AuraPlayerState)
-		{
-			AuraPlayerState->SetRole(SaveData->Role);
-		}
-		ApplyRole(SaveData->Role);
-
-		if (SaveData->bFirstTimeLoadIn && !bAttributesAlreadyInitialized)
-		{
-			InitializeDefaultAttributesForRole(SaveData->Role);
-			if (AuraPlayerState) AuraPlayerState->MarkDefaultAttributesInitialized();
-			AddCharacterAbilities();
-
-			if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
-			{
-				UE_LOG(LogAura, Log, TEXT("[Character][Server] FirstLoad attributes initialized: Health=%.1f/%.1f Mana=%.1f/%.1f"),
-					AuraAS->GetHealth(), AuraAS->GetMaxHealth(), AuraAS->GetMana(), AuraAS->GetMaxMana());
-			}
-		}
-		else if (!bAttributesAlreadyInitialized)
-		{
-			if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
-			{
-				AuraASC->AddCharacterAbilitiesFromSaveData(SaveData);
-			}
-			
-			if (AuraPlayerState)
-			{
-				AuraPlayerState->SetLevel(SaveData->PlayerLevel);
-				AuraPlayerState->SetXP(SaveData->XP);
-				AuraPlayerState->SetAttributePoints(SaveData->AttributePoints);
-				AuraPlayerState->SetSpellPoints(SaveData->SpellPoints);
-			}
-			
-			UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(this, AbilitySystemComponent, SaveData);
-			if (AuraPlayerState) AuraPlayerState->MarkDefaultAttributesInitialized();
-
-			if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
-			{
-				UE_LOG(LogAura, Log, TEXT("[Character][Server] SaveData attributes initialized: Health=%.1f/%.1f Mana=%.1f/%.1f Level=%d"),
-					AuraAS->GetHealth(), AuraAS->GetMaxHealth(), AuraAS->GetMana(), AuraAS->GetMaxMana(), SaveData->PlayerLevel);
-			}
-		}
+		AuthorizedRole = AuraPlayerState->GetPendingAcceptedRoleId();
 	}
 	else
 	{
-		UE_LOG(LogAura, Warning, TEXT("[Character][Server] LoadProgress: AuraGameMode is null for Character=%s. Applying fallback defaults."), *GetNameSafe(this));
-		if (!bAttributesAlreadyInitialized)
-		{
-			InitializeFallbackDefaults();
-		}
+		SaveData = AuraGameMode ? AuraGameMode->RetrieveInGameSaveData() : nullptr;
+		AuthorizedRole = SaveData && !SaveData->Role.IsNone()
+			? SaveData->Role
+			: UAuraAbilitySystemLibrary::GetDefaultRole(this);
 	}
 
+	FString RoleError;
+	if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(
+		UAuraAbilitySystemLibrary::GetRoleInfo(this), AuthorizedRole, RoleError))
+	{
+		RejectLogin(RoleError.IsEmpty() ? TEXT("The requested role is not available.") : RoleError);
+		return false;
+	}
+
+	if (SaveData && !SaveData->bFirstTimeLoadIn)
+	{
+		AuraPlayerState->SetLevel(SaveData->PlayerLevel);
+		AuraPlayerState->SetXP(SaveData->XP);
+		AuraPlayerState->SetAttributePoints(SaveData->AttributePoints);
+		AuraPlayerState->SetSpellPoints(SaveData->SpellPoints);
+	}
+
+	const FAuraRoleApplicationResult Result = ApplyRoleAtSpawn(AuthorizedRole, SaveData);
+	if (!Result.bSuccess)
+	{
+		RejectLogin(Result.Message.IsEmpty()
+			? FString::Printf(TEXT("Role '%s' could not be applied."), *AuthorizedRole.ToString())
+			: Result.Message);
+		return false;
+	}
 	return true;
 }
 
@@ -344,11 +229,8 @@ void AAuraCharacter::OnRep_PlayerState()
 	// Init ability actor info for the Client
 	InitAbilityActorInfo();
 
-	// Apply this player's chosen Role on the client (visuals only; gameplay is server-granted).
-	if (const AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>())
-	{
-		ApplyRole(AuraPlayerState->GetRole());
-	}
+	// Presentation is driven only by AAuraCharacterBase::AppliedRoleState replication.
+	// PlayerState role is a persistent save/UI mirror and never authorizes a client fallback.
 
 	if (const UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(GetAttributeSet()))
 	{
@@ -521,6 +403,10 @@ void AAuraCharacter::SaveProgress_Implementation(const FName& CheckpointTag)
 			SavedAbility.AbilitySlot = AuraASC->GetSlotFromAbilityTag(AbilityTag);
 			SavedAbility.AbilityStatus = AuraASC->GetStatusFromAbilityTag(AbilityTag);
 			SavedAbility.AbilityTag = AbilityTag;
+			FName GrantedRoleId;
+			SavedAbility.GrantSource = static_cast<uint8>(AuraASC->GetGrantSourceForSpec(AbilitySpec, GrantedRoleId));
+			SavedAbility.GrantedRoleId = GrantedRoleId;
+			SavedAbility.ProvenanceVersion = 1;
 			SaveData->SavedAbilities.AddUnique(SavedAbility);
 
 		});
@@ -717,7 +603,11 @@ void AAuraCharacter::BindRoleDelegate()
 
 void AAuraCharacter::HandleRoleChanged(FName NewRole)
 {
-	ApplyRole(NewRole);
+	if (GetAppliedRoleState().IsValid() && GetAppliedRoleState().RoleId != NewRole)
+	{
+		UE_LOG(LogAura, Error, TEXT("[Role][Mirror] PlayerState role '%s' does not match pawn applied role '%s'."),
+			*NewRole.ToString(), *GetAppliedRoleState().RoleId.ToString());
+	}
 }
 
 void AAuraCharacter::InitAbilityActorInfo()

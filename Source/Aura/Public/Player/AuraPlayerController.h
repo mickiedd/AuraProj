@@ -294,6 +294,11 @@ private:
 	bool ValidateRoleBattleDay1Vitals(const UAuraAttributeSet* InAttributes, FString& OutFailure) const;
 	void FinishRoleBattleDay1Smoke(bool bPassed, const FString& Message);
 
+	/** Multi-process Day 6 role application/ledger probe (non-shipping command-line only). */
+	void TickRoleBattleDay6NetworkProbe();
+	bool ValidateRoleBattleDay6Pawn(class AAuraCharacter* PlayerCharacter, FString& OutFailure) const;
+	bool AuditRoleBattleDay6SaveReconciliation(FString& OutFailure) const;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
 
@@ -325,4 +330,13 @@ private:
 	bool bRoleBattleDay1SmokeAssetsChecked = false;
 	bool bRoleBattleDay1SmokeDamageChecked = false;
 	bool bRoleBattleDay1SmokeDeathStarted = false;
+
+	FTimerHandle RoleBattleDay6ProbeTimerHandle;
+	TWeakObjectPtr<APawn> RoleBattleDay6PreviousPawn;
+	float RoleBattleDay6ExpectedMaxHealth = 0.f;
+	float RoleBattleDay6ExpectedMaxMana = 0.f;
+	int32 RoleBattleDay6Respawns = 0;
+	bool bRoleBattleDay6ProbeEnabled = false;
+	bool bRoleBattleDay6InitialAuditComplete = false;
+	bool bRoleBattleDay6ClientAuditComplete = false;
 };

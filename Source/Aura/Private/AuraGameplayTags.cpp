@@ -58,6 +58,9 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Interaction_Civilian = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Interaction.Civilian"), FString("Civilian interaction profile"));
 
+	GameplayTags.GrantSource_Role = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("GrantSource.Role"), FString("Ability spec granted by the currently authorized role"));
+
 	/*
 	 * Primary Attributes
 	 */

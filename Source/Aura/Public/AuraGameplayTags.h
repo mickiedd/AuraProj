@@ -44,6 +44,9 @@ public:
 	FGameplayTag Interaction_Combatant;
 	FGameplayTag Interaction_Civilian;
 
+	/** Replicated dynamic source tag attached to every role-owned ability spec. */
+	FGameplayTag GrantSource_Role;
+
 	FGameplayTag Attributes_Primary_Strength;
 	FGameplayTag Attributes_Primary_Intelligence;
 	FGameplayTag Attributes_Primary_Resilience;

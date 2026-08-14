@@ -170,11 +170,11 @@ function Get-NetworkAssertions {
 
     return [ordered]@{
         ServerAcceptedTwoClients = Test-LogPatternCount -Path $ServerLog -Pattern 'Join succeeded:' -MinimumCount 2
-        ServerPlayerIdentity = Test-LogPattern -Path $ServerLog -Pattern '\[CombatIdentity\]\[Server\].*Faction=Faction\.Player.*Control=Control\.Player.*Profile=Combat\.Unassigned.*Death=Death\.PlayerRespawn.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
+        ServerPlayerIdentity = Test-LogPattern -Path $ServerLog -Pattern '\[CombatIdentity\]\[Server\].*Faction=Faction\.Player.*Control=Control\.Player.*Profile=Combat\.(Magic|Gun).*Death=Death\.PlayerRespawn.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
         ServerEnemyIdentity = Test-LogPattern -Path $ServerLog -Pattern '\[CombatIdentity\]\[Server\].*Faction=Faction\.Enemy.*Control=Control\.EnemyAI.*Profile=Combat\.Unassigned.*Death=Death\.EnemyLoot.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
-        Client1PlayerIdentity = Test-LogPattern -Path $Client1Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Player.*Control=Control\.Player.*Profile=Combat\.Unassigned.*Death=Death\.PlayerRespawn.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
+        Client1PlayerIdentity = Test-LogPattern -Path $Client1Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Player.*Control=Control\.Player.*Profile=Combat\.(Magic|Gun).*Death=Death\.PlayerRespawn.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
         Client1EnemyIdentity = Test-LogPattern -Path $Client1Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Enemy.*Control=Control\.EnemyAI.*Profile=Combat\.Unassigned.*Death=Death\.EnemyLoot.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
-        Client2PlayerIdentity = Test-LogPattern -Path $Client2Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Player.*Control=Control\.Player.*Profile=Combat\.Unassigned.*Death=Death\.PlayerRespawn.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
+        Client2PlayerIdentity = Test-LogPattern -Path $Client2Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Player.*Control=Control\.Player.*Profile=Combat\.(Magic|Gun).*Death=Death\.PlayerRespawn.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
         Client2EnemyIdentity = Test-LogPattern -Path $Client2Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Enemy.*Control=Control\.EnemyAI.*Profile=Combat\.Unassigned.*Death=Death\.EnemyLoot.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
         EnemyAcquiredPlayer = Test-LogPattern -Path $ServerLog -Pattern '\[EnemyAI\]\[FindNearestPlayer\].*Candidates=[1-9][0-9]*.*Closest=BP_AuraCharacter.*BB: Target=BP_AuraCharacter.*BBDist='
     }
@@ -319,19 +319,19 @@ foreach ($selectedMode in $selectedModes) {
             throw "Day 2 $selectedMode server did not create '$serverLog' within the startup timeout."
         }
 
-        $clientArguments = @(
-            $projectFile,
-            "127.0.0.1:$port",
-            '-game',
-            '-unattended',
-            '-nop4',
-            '-nullrhi',
-            '-nosound',
-            '-NoSplash'
-        )
-
         foreach ($clientName in @('Client1', 'Client2')) {
             $clientLog = if ($clientName -eq 'Client1') { $client1Log } else { $client2Log }
+            $clientUri = if ($clientName -eq 'Client1') { "127.0.0.1:${port}?PlayerName=Day2Aura?Role=Aura" } else { "127.0.0.1:${port}?PlayerName=Day2Bungee?Role=BungeeMan" }
+            $clientArguments = @(
+                $projectFile,
+                $clientUri,
+                '-game',
+                '-unattended',
+                '-nop4',
+                '-nullrhi',
+                '-nosound',
+                '-NoSplash'
+            )
             $clientArgumentsForProcess = @($clientArguments + "-abslog=$clientLog")
             $modeResult.Commands += [ordered]@{
                 Name = $clientName

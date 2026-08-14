@@ -16,6 +16,57 @@ class UGameplayEffect;
 class UGameplayAbility;
 class UObject;
 
+UENUM(BlueprintType)
+enum class EAuraRoleApplicationError : uint8
+{
+	None,
+	NotAuthority,
+	RoleServiceUnavailable,
+	UnknownRole,
+	IncompatibleActorShell,
+	AbilityActorInfoMissing,
+	UnsupportedLiveSwitch,
+	InvalidRoleCandidate,
+	GrantReconciliationFailed,
+	PresentationFailed
+};
+
+/** Structured outcome used by login/spawn callers and automation diagnostics. */
+USTRUCT(BlueprintType)
+struct AURA_API FAuraRoleApplicationResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Role Application")
+	bool bSuccess = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Role Application")
+	EAuraRoleApplicationError Error = EAuraRoleApplicationError::None;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Role Application")
+	FName RoleId = NAME_None;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Role Application")
+	FString Message;
+
+	static FAuraRoleApplicationResult Success(FName InRoleId)
+	{
+		FAuraRoleApplicationResult Result;
+		Result.bSuccess = true;
+		Result.RoleId = InRoleId;
+		return Result;
+	}
+
+	static FAuraRoleApplicationResult Failure(FName InRoleId, EAuraRoleApplicationError InError, FString InMessage)
+	{
+		FAuraRoleApplicationResult Result;
+		Result.Error = InError;
+		Result.RoleId = InRoleId;
+		Result.Message = MoveTemp(InMessage);
+		return Result;
+	}
+};
+
 UENUM()
 enum class EAuraRoleValidationSeverity : uint8
 {

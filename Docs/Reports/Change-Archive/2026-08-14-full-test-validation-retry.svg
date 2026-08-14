@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="860" viewBox="0 0 1440 860" role="img" aria-labelledby="title desc">
+  <title id="title">Full test validation retry</title>
+  <desc id="desc">Before and after diagram for the validation retry: game-target UHT fixture compatibility and Day 2/3 role handshake assertions were corrected, then all automation and network suites passed.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#081321"/><stop offset="1" stop-color="#172b43"/></linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#02060c" flood-opacity="0.5"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#6ee7f2"/></marker>
+    <style>
+      .title{font:700 34px 'Segoe UI',Arial,sans-serif;fill:#f4f8ff}.subtitle{font:400 17px 'Segoe UI',Arial,sans-serif;fill:#aec0d4}.section{font:700 22px 'Segoe UI',Arial,sans-serif;fill:#f4f8ff}.head{font:700 17px 'Segoe UI',Arial,sans-serif;fill:#f7fbff}.body{font:400 14px 'Segoe UI',Arial,sans-serif;fill:#cbd8e6}.small{font:400 13px 'Segoe UI',Arial,sans-serif;fill:#b8c8d8}.pass{font:700 15px 'Segoe UI',Arial,sans-serif;fill:#8ff0ba}.mono{font:600 13px Consolas,monospace;fill:#dffaff}
+    </style>
+  </defs>
+  <rect width="1440" height="860" fill="url(#bg)"/>
+  <text x="64" y="60" class="title">Full Test Validation Retry · Day 06</text>
+  <text x="64" y="90" class="subtitle">The failed build and stale network probes were corrected, then the complete validation matrix was rerun.</text>
+
+  <g filter="url(#shadow)"><rect x="64" y="130" width="380" height="500" rx="18" fill="#241b25" stroke="#e07878"/></g>
+  <text x="92" y="170" class="section">Before · failed gates</text>
+  <rect x="92" y="205" width="324" height="125" rx="12" fill="#3b2027" stroke="#ef7b72"/>
+  <text x="114" y="237" class="head">Aura game target</text>
+  <text x="114" y="266" class="body">UHT generated fixture code for a</text>
+  <text x="114" y="288" class="body">class compiled out of the game target.</text>
+  <text x="114" y="313" class="mono">AAuraRoleApplicationTestActor.gen.cpp</text>
+  <rect x="92" y="350" width="324" height="125" rx="12" fill="#3b2027" stroke="#ef7b72"/>
+  <text x="114" y="382" class="head">Day 2 / Day 3 runners</text>
+  <text x="114" y="411" class="body">Clients connected without ?Role=, so</text>
+  <text x="114" y="433" class="body">the server rejected the probes.</text>
+  <text x="114" y="458" class="mono">No role was requested</text>
+  <rect x="92" y="495" width="324" height="106" rx="12" fill="#35212b" stroke="#a85562"/>
+  <text x="114" y="527" class="head">Assertion drift</text>
+  <text x="114" y="556" class="body">Player patterns expected Combat.Unassigned,</text>
+  <text x="114" y="578" class="body">not Day 06’s authoritative role profiles.</text>
+
+  <line x1="454" y1="380" x2="515" y2="380" stroke="#6ee7f2" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <g filter="url(#shadow)"><rect x="540" y="130" width="836" height="500" rx="18" fill="#102d38" stroke="#48cad8"/></g>
+  <text x="570" y="170" class="section">After · compatible build and honest probes</text>
+  <rect x="570" y="205" width="240" height="140" rx="12" fill="#173148" stroke="#61d8e4"/>
+  <text x="592" y="237" class="head">Target-safe fixture</text>
+  <text x="592" y="266" class="body">Private transient UCLASS remains</text>
+  <text x="592" y="288" class="body">declared for every target, while</text>
+  <text x="592" y="310" class="body">Day 06 tests stay editor-gated.</text>
+  <text x="592" y="334" class="mono">Aura.exe links successfully</text>
+  <rect x="838" y="205" width="240" height="140" rx="12" fill="#173148" stroke="#61d8e4"/>
+  <text x="860" y="237" class="head">Role-aware clients</text>
+  <text x="860" y="266" class="body">Day 2/3 URLs now carry explicit</text>
+  <text x="860" y="288" class="body">Aura or BungeeMan role queries.</text>
+  <text x="860" y="319" class="mono">?PlayerName=…?Role=…</text>
+  <rect x="1106" y="205" width="240" height="140" rx="12" fill="#173148" stroke="#61d8e4"/>
+  <text x="1128" y="237" class="head">Profile-aware checks</text>
+  <text x="1128" y="266" class="body">Player identity accepts final</text>
+  <text x="1128" y="288" class="body">Combat.Magic or Combat.Gun.</text>
+  <text x="1128" y="319" class="mono">Server + both clients</text>
+
+  <rect x="570" y="380" width="776" height="178" rx="14" fill="#102a35" stroke="#3bb9a3"/>
+  <text x="596" y="414" class="head">Validation flow</text>
+  <text x="596" y="446" class="body">Build AuraEditor + Aura → run Aura automation → run AbilityGraph smoke → run Day 1–6 modes</text>
+  <line x1="596" y1="472" x2="1290" y2="472" stroke="#55d594" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="596" y="508" class="pass">64/64 automation · 26/26 graph smoke · 10/10 network reports · Day 1 PASS</text>
+  <text x="596" y="534" class="small">All Unreal processes exited; Day 6 fixtures and Day 5 reload sentinel were removed.</text>
+
+  <rect x="64" y="674" width="1312" height="104" rx="16" fill="#101f31" stroke="#365576"/>
+  <text x="90" y="708" class="section">Result</text>
+  <text x="90" y="740" class="pass">✓ AuraEditor and Aura game Development builds pass</text>
+  <text x="520" y="740" class="pass">✓ Day 2/3 Listen + Dedicated pass</text>
+  <text x="860" y="740" class="pass">✓ Day 4/5/6 Listen + Dedicated pass</text>
+  <text x="90" y="762" class="small">AuraServer compilation remains unavailable in the installed Epic distribution; Dedicated runtime was validated with UnrealEditor-Cmd -server.</text>
+  <text x="1348" y="820" text-anchor="end" class="small">AuraProj · 2026-08-14</text>
+</svg>

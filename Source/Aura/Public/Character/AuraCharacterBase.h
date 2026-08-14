@@ -25,8 +25,9 @@ class UAnimMontage;
 class USoundBase;
 class UAuraDataAbility;
 class UAuraAbilityDefinition;
-class UAuraDataAbility;
-class UAuraAbilityDefinition;
+class ULoadScreenSaveGame;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAppliedRoleStateChanged, const FAuraAppliedRoleState&);
 
 UCLASS(Abstract)
 class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -50,17 +51,15 @@ public:
 	FAuraCombatIdentity GetResolvedDefaultCombatIdentity() const { return BuildDefaultCombatIdentity(); }
 	bool HasValidCombatIdentity() const;
 
-	/**
-	 * Applies a player Role: swaps the body SkeletalMesh + AnimBP + weapon mesh/sockets +
-	 * death/dissolve VFX from URoleInfo, and copies the role's primary-attributes GE and
-	 * startup abilities onto this character so the existing InitializeDefaultAttributes() /
-	 * AddCharacterAbilities() consume them. Safe to call on both server (before gameplay
-	 * init) and client (visuals only). No-ops if Role is unchanged since the last apply.
-	 */
-	void ApplyRole(FName InRole);
+	/** Complete authority-only spawn transaction. Never acts as a live role-switch API. */
+	FAuraRoleApplicationResult ApplyRoleAtSpawn(FName InRole, const ULoadScreenSaveGame* SaveData = nullptr);
 
-	/** Player hero identity (role name from RoleConfig.json). NAME_None until ApplyRole runs. Orthogonal to CharacterClass. */
-	FName GetCharacterRole() const { return CharacterRole; }
+	/** Cosmetic/config-cache path. It never mutates identity, attributes, or ability specs. */
+	FAuraRoleApplicationResult ApplyRolePresentation(FName AuthorizedRoleId);
+
+	FName GetCharacterRole() const { return AppliedRoleState.RoleId; }
+	const FAuraAppliedRoleState& GetAppliedRoleState() const { return AppliedRoleState; }
+	FOnAppliedRoleStateChanged OnAppliedRoleStateChanged;
 
 	/** Combat Interface */
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;	
@@ -126,6 +125,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual FAuraCombatIdentity BuildDefaultCombatIdentity() const;
+	virtual FGameplayTag GetRequiredRoleEntityType() const;
+	virtual FGameplayTag GetRequiredRoleControlType() const;
 
 	/** Returns true only to the caller that won Alive -> Dying. */
 	bool TryBeginCombatDeath();
@@ -204,9 +205,17 @@ protected:
 	 * Intelligence/Resilience/Vigor) via the shared PrimaryAttributes_SetByCaller GE, then the
 	 * shared Secondary/Vital GEs from the BP. Used for first-time player init when a Role is set.
 	 */
-	void InitializeDefaultAttributesForRole(FName InRole) const;
+	bool InitializeDefaultAttributesForRole(FName InRole, const FRoleDefaultInfo& RoleDefinition) const;
 
-	void AddCharacterAbilities();
+	void ClearRoleRuntimeState();
+	bool LoadRoleRuntimeState(const FRoleDefaultInfo& RoleDefinition, FString& OutError);
+	FAuraRoleApplicationResult ApplyRolePresentationFromDefinition(FName AuthorizedRoleId, const FRoleDefaultInfo& RoleDefinition);
+
+	UFUNCTION()
+	void OnRep_AppliedRoleState();
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing=OnRep_AppliedRoleState, Category = "Applied Role")
+	FAuraAppliedRoleState AppliedRoleState;
 
 	/* Dissolve Effects */
 
@@ -236,9 +245,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Class Defaults")
 	ECharacterClass CharacterClass = ECharacterClass::Warrior;
-
-	/** Currently applied player Role (role name from RoleConfig.json). NAME_None until ApplyRole runs. */
-	FName CharacterRole = NAME_None;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;

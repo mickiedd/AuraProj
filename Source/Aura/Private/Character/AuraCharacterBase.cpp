@@ -22,10 +22,12 @@
 #include "Combat/AuraCombatStateComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Game/LoadScreenSaveGame.h"
 #include "Net/UnrealNetwork.h"
 #include "Misc/Parse.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Sound/SoundBase.h"
+#include "Player/AuraPlayerState.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "AuraAbilityTypes.h"
@@ -83,6 +85,7 @@ void AAuraCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AAuraCharacterBase, bIsBurned);
 	DOREPLIFETIME(AAuraCharacterBase, bIsBeingShocked);
 	DOREPLIFETIME(AAuraCharacterBase, bIsMounted);
+	DOREPLIFETIME(AAuraCharacterBase, AppliedRoleState);
 }
 
 float AAuraCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -108,141 +111,262 @@ bool AAuraCharacterBase::HasValidCombatIdentity() const
 	return CombatIdentityComponent && CombatIdentityComponent->HasValidIdentity();
 }
 
-void AAuraCharacterBase::ApplyRole(FName InRole)
+FAuraRoleApplicationResult AAuraCharacterBase::ApplyRoleAtSpawn(FName InRole, const ULoadScreenSaveGame* SaveData)
 {
-	if (CharacterRole == InRole)
+	if (!HasAuthority())
 	{
-		UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: Role='%s' already applied (no-op)."),
-			*GetNameSafe(this), *InRole.ToString());
-		return;
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::NotAuthority,
+			TEXT("Only the server may apply a role at spawn."));
 	}
 
 	URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
-	if (RoleInfo == nullptr)
+	if (!RoleInfo)
 	{
-		UE_LOG(LogAura, Warning, TEXT("[Role][Apply] %s: URoleInfo not configured on the GameMode; cannot apply Role='%s'."),
-			*GetNameSafe(this), *InRole.ToString());
-		return;
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::RoleServiceUnavailable,
+			TEXT("The authoritative role registry is unavailable."));
 	}
-	if (!RoleInfo->RoleInformation.Contains(InRole))
+	const FRoleDefaultInfo* Candidate = RoleInfo->RoleInformation.Find(InRole);
+	if (!Candidate)
 	{
-		UE_LOG(LogAura, Warning, TEXT("[Role][Apply] %s: Role='%s' not found in RoleConfig.json; leaving BP defaults."),
-			*GetNameSafe(this), *InRole.ToString());
-		return;
-	}
-
-	const FRoleDefaultInfo Info = RoleInfo->GetRoleDefaultInfo(InRole);
-
-	// Body mesh + anim blueprint. Only set when the role specifies one; for mesh, skip the
-	// redundant set when it already matches (avoids a needless re-init). Anim is (re)set
-	// unconditionally when specified — re-setting the same class is a harmless one-time cost.
-	if (Info.SkeletalMesh && GetMesh()->GetSkeletalMeshAsset() != Info.SkeletalMesh)
-	{
-		GetMesh()->SetSkeletalMeshAsset(Info.SkeletalMesh);
-	}
-	if (Info.AnimBlueprintClass)
-	{
-		GetMesh()->SetAnimInstanceClass(Info.AnimBlueprintClass);
-		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::UnknownRole,
+			FString::Printf(TEXT("Role '%s' is not in the published registry."), *InRole.ToString()));
 	}
 
-	// Weapon mesh + socket. The weapon is tied to the role's LMB skill: a role with no LMB
-	// ability (Info.DefaultLMBAbility / Info.DefaultLMBAbilityDefinition empty) holds NO weapon,
-	// so clear the mesh and skip attach.
-	// A role with an LMB ability equips its configured weapon (if specified) on the role's socket.
-	if (Info.DefaultLMBAbility || Info.DefaultLMBAbilityDefinition)
+	const FGameplayTag RequiredEntity = GetRequiredRoleEntityType();
+	const FGameplayTag RequiredControl = GetRequiredRoleControlType();
+	if (!RequiredEntity.IsValid() || !RequiredControl.IsValid()
+		|| !Candidate->EntityType.MatchesTagExact(RequiredEntity)
+		|| !Candidate->ControlType.MatchesTagExact(RequiredControl))
 	{
-		UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: equipping weapon mesh=%s socket=%s"),
-			*GetNameSafe(this), *GetNameSafe(Info.WeaponMesh.Get()), *Info.WeaponSocketName.ToString());
-		if (Info.WeaponMesh)
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::IncompatibleActorShell,
+			FString::Printf(TEXT("Role '%s' (%s/%s) is incompatible with actor shell %s (%s/%s)."),
+				*InRole.ToString(), *Candidate->EntityType.ToString(), *Candidate->ControlType.ToString(), *GetNameSafe(this),
+				*RequiredEntity.ToString(), *RequiredControl.ToString()));
+	}
+
+	UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	if (!AuraASC || !AuraASC->GetOwnerActor() || AuraASC->GetAvatarActor() != this)
+	{
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::AbilityActorInfoMissing,
+			TEXT("InitAbilityActorInfo/AbilityActorInfoSet must complete for this avatar before role application."));
+	}
+	if (AppliedRoleState.IsValid() && AppliedRoleState.RoleId != InRole)
+	{
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::UnsupportedLiveSwitch,
+			FString::Printf(TEXT("Live role switching from '%s' to '%s' is disabled."),
+				*AppliedRoleState.RoleId.ToString(), *InRole.ToString()));
+	}
+
+	FAuraAppliedRoleState CandidateState;
+	CandidateState.RoleId = InRole;
+	CandidateState.EntityTypeTag = Candidate->EntityType;
+	CandidateState.EconomyProfileTag = Candidate->EconomyProfile;
+	CandidateState.InteractionProfileTag = Candidate->InteractionProfile;
+	FAuraCombatIdentity CandidateIdentity;
+	CandidateIdentity.FactionTag = Candidate->Faction;
+	CandidateIdentity.ControlTypeTag = Candidate->ControlType;
+	CandidateIdentity.CombatProfileTag = Candidate->CombatProfile;
+	CandidateIdentity.DeathPolicyTag = Candidate->DeathPolicy;
+	CandidateIdentity.bTargetable = Candidate->bTargetable;
+	CandidateIdentity.bCanAttack = Candidate->bCanAttack;
+	CandidateIdentity.bCanBeDamaged = Candidate->bCanBeDamaged;
+	CandidateIdentity.bAllowFriendlyFire = Candidate->bAllowFriendlyFire;
+	if (!CandidateState.IsValid() || !CandidateIdentity.IsValid()
+		|| !Candidate->SkeletalMesh || !Candidate->AnimBlueprintClass
+		|| (Candidate->WeaponMesh && Candidate->WeaponSocketName.IsNone()))
+	{
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::InvalidRoleCandidate,
+			TEXT("The staged role is missing required identity, presentation, or equipment data."));
+	}
+
+	FString GrantError;
+	if (!AuraASC->ValidateRoleGrantSet(InRole, *Candidate, SaveData, GrantError))
+	{
+		const EAuraRoleApplicationError Error = AuraASC->GetRoleGrantLedger().bInitialized
+			&& AuraASC->GetRoleGrantLedger().GrantedRoleId != InRole
+			? EAuraRoleApplicationError::UnsupportedLiveSwitch
+			: EAuraRoleApplicationError::GrantReconciliationFailed;
+		return FAuraRoleApplicationResult::Failure(InRole, Error, MoveTemp(GrantError));
+	}
+
+	const FAuraAppliedRoleState PreviousState = AppliedRoleState;
+	const FAuraRoleApplicationResult Presentation = ApplyRolePresentationFromDefinition(InRole, *Candidate);
+	if (!Presentation.bSuccess)
+	{
+		return Presentation;
+	}
+
+	const bool bAttributesAlreadyInitialized = AuraASC->GetRoleGrantLedger().bAttributesInitialized;
+	if (!bAttributesAlreadyInitialized)
+	{
+		if (SaveData && !SaveData->bFirstTimeLoadIn)
 		{
-			Weapon->SetSkeletalMeshAsset(Info.WeaponMesh);
+			UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(this, AbilitySystemComponent,
+				const_cast<ULoadScreenSaveGame*>(SaveData));
 		}
-		if (!Info.WeaponSocketName.IsNone() && Weapon->GetAttachSocketName() != Info.WeaponSocketName)
+		else if (!InitializeDefaultAttributesForRole(InRole, *Candidate))
 		{
-			Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-			Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, Info.WeaponSocketName);
+			if (PreviousState.IsValid()) ApplyRolePresentation(PreviousState.RoleId); else ClearRoleRuntimeState();
+			return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::InvalidRoleCandidate,
+				TEXT("Role attribute initialization could not stage valid GameplayEffect specs."));
 		}
+		AuraASC->MarkRoleAttributesInitialized();
 	}
 	else
 	{
-		// No LMB skill → no weapon. Clear the mesh so this role spawns empty-handed rather than
-		// inheriting the BP-default (Aura) staff.
-		UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: clearing weapon (no LMB skill)"), *GetNameSafe(this));
-		Weapon->SetSkeletalMeshAsset(nullptr);
+		UAuraAbilitySystemLibrary::TopOffVitalAttributes(AbilitySystemComponent, this);
 	}
 
-	// Combat sockets are skeleton-dependent. Only override when the role specifies a name, so an
-	// unspecified socket keeps the BP default (GetCombatSocketLocation still resolves correctly).
-	if (!Info.WeaponTipSocketName.IsNone()) WeaponTipSocketName = Info.WeaponTipSocketName;
-	if (!Info.LeftHandSocketName.IsNone()) LeftHandSocketName = Info.LeftHandSocketName;
-	if (!Info.RightHandSocketName.IsNone()) RightHandSocketName = Info.RightHandSocketName;
-	if (!Info.TailSocketName.IsNone()) TailSocketName = Info.TailSocketName;
-
-	// Death / dissolve VFX. Only override when the role specifies an asset, so an unspecified
-	// field keeps the BP default rather than clearing it to null.
-	if (Info.DissolveMaterialInstance) DissolveMaterialInstance = Info.DissolveMaterialInstance;
-	if (Info.WeaponDissolveMaterialInstance) WeaponDissolveMaterialInstance = Info.WeaponDissolveMaterialInstance;
-	if (Info.BloodEffect) BloodEffect = Info.BloodEffect;
-	if (Info.DeathSound) DeathSound = Info.DeathSound;
-
-	// Gameplay: copy startup abilities so AddCharacterAbilities() grants role-specific skills.
-	// (Primary attributes come from the role's numeric values via InitializeDefaultAttributesForRole.)
-	// Only overwrite when the role actually lists abilities — an empty JSON array means "leave the
-	// BP defaults", so an under-filled role (e.g. a test default) doesn't strip all abilities.
-	if (Info.StartupAbilities.Num() > 0)
+	if (!AuraASC->ApplyRoleGrantSet(InRole, RoleInfo->RoleDefinitionVersion, *Candidate, SaveData, GrantError))
 	{
-		StartupAbilities = Info.StartupAbilities;
-	}
-	if (Info.StartupPassiveAbilities.Num() > 0)
-	{
-		StartupPassiveAbilities = Info.StartupPassiveAbilities;
+		if (PreviousState.IsValid()) ApplyRolePresentation(PreviousState.RoleId); else ClearRoleRuntimeState();
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::GrantReconciliationFailed,
+			MoveTemp(GrantError));
 	}
 
-	// Data-driven ability definitions (granted as UAuraDataAbility with SourceObject = Definition).
-	if (Info.StartupAbilityDefinitions.Num() > 0)
+	AppliedRoleState = CandidateState;
+	if (!CombatIdentityComponent || !CombatIdentityComponent->InitializeIdentity(CandidateIdentity))
 	{
-		StartupAbilityDefinitionObjects.SetNum(Info.StartupAbilityDefinitions.Num());
-		for (int32 i = 0; i < Info.StartupAbilityDefinitions.Num(); ++i)
+		AppliedRoleState = PreviousState;
+		if (PreviousState.IsValid()) ApplyRolePresentation(PreviousState.RoleId); else ClearRoleRuntimeState();
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::InvalidRoleCandidate,
+			TEXT("The authoritative combat identity could not be committed."));
+	}
+	if (AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>())
+	{
+		if (!AuraPlayerState->SetRole(InRole))
 		{
-			StartupAbilityDefinitionObjects[i] = Cast<UObject>(Info.StartupAbilityDefinitions[i].Get());
+			return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::NotAuthority,
+				TEXT("PlayerState rejected the authoritative role commit."));
 		}
 	}
-	if (Info.StartupPassiveAbilityDefinitions.Num() > 0)
-	{
-		StartupPassiveAbilityDefinitionObjects.SetNum(Info.StartupPassiveAbilityDefinitions.Num());
-		for (int32 i = 0; i < Info.StartupPassiveAbilityDefinitions.Num(); ++i)
-		{
-			StartupPassiveAbilityDefinitionObjects[i] = Cast<UObject>(Info.StartupPassiveAbilityDefinitions[i].Get());
-		}
-	}
+	OnAppliedRoleStateChanged.Broadcast(AppliedRoleState);
+	ForceNetUpdate();
+	UE_LOG(LogAura, Display,
+		TEXT("[Day6Role][Server] Actor=%s Role=%s Entity=%s Combat=%s Economy=%s Interaction=%s RoleSpecs=%d ReusedLedger=%d"),
+		*GetNameSafe(this), *InRole.ToString(), *CandidateState.EntityTypeTag.ToString(),
+		*CandidateIdentity.CombatProfileTag.ToString(), *CandidateState.EconomyProfileTag.ToString(),
+		*CandidateState.InteractionProfileTag.ToString(), AuraASC->GetRoleGrantLedger().AbilitySpecHandles.Num(),
+		AuraASC->GetRoleGrantLedger().bInitialized && bAttributesAlreadyInitialized);
+	return FAuraRoleApplicationResult::Success(InRole);
+}
 
-	// LMB default skill: prefer data-driven definition, fall back to legacy class path.
-	const FGameplayTag LMBInputTag = FAuraGameplayTags::Get().InputTag_LMB;
-	StartupAbilities.RemoveAll([&LMBInputTag](const TSubclassOf<UGameplayAbility>& AbilityClass)
+FAuraRoleApplicationResult AAuraCharacterBase::ApplyRolePresentation(FName AuthorizedRoleId)
+{
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
+	const FRoleDefaultInfo* RoleDefinition = RoleInfo ? RoleInfo->RoleInformation.Find(AuthorizedRoleId) : nullptr;
+	if (!RoleDefinition)
 	{
-		if (const UAuraGameplayAbility* DefaultObj = Cast<UAuraGameplayAbility>(AbilityClass.GetDefaultObject()))
-		{
-			return DefaultObj->StartupInputTag.MatchesTagExact(LMBInputTag);
-		}
+		UE_LOG(LogAura, Error, TEXT("[RolePresentation] Missing local definition for authorized role '%s' on %s."),
+			*AuthorizedRoleId.ToString(), *GetNameSafe(this));
+		return FAuraRoleApplicationResult::Failure(AuthorizedRoleId, EAuraRoleApplicationError::PresentationFailed,
+			TEXT("The local presentation definition is missing; no fallback identity was constructed."));
+	}
+	return ApplyRolePresentationFromDefinition(AuthorizedRoleId, *RoleDefinition);
+}
+
+FAuraRoleApplicationResult AAuraCharacterBase::ApplyRolePresentationFromDefinition(
+	FName AuthorizedRoleId, const FRoleDefaultInfo& RoleDefinition)
+{
+	FString Error;
+	if (!LoadRoleRuntimeState(RoleDefinition, Error))
+	{
+		return FAuraRoleApplicationResult::Failure(AuthorizedRoleId, EAuraRoleApplicationError::PresentationFailed, MoveTemp(Error));
+	}
+	UE_LOG(LogAura, Display, TEXT("[RolePresentation][%s] Actor=%s Role=%s Weapon=%s Tip=%s"),
+		HasAuthority() ? TEXT("Server") : TEXT("Client"), *GetNameSafe(this), *AuthorizedRoleId.ToString(),
+		*GetNameSafe(RoleDefinition.WeaponMesh.Get()), *RoleDefinition.WeaponTipSocketName.ToString());
+	return FAuraRoleApplicationResult::Success(AuthorizedRoleId);
+}
+
+void AAuraCharacterBase::ClearRoleRuntimeState()
+{
+	GetMesh()->SetAnimInstanceClass(nullptr);
+	GetMesh()->SetSkeletalMeshAsset(nullptr);
+	Weapon->SetSkeletalMeshAsset(nullptr);
+	WeaponTipSocketName = NAME_None;
+	LeftHandSocketName = NAME_None;
+	RightHandSocketName = NAME_None;
+	TailSocketName = NAME_None;
+	DissolveMaterialInstance = nullptr;
+	WeaponDissolveMaterialInstance = nullptr;
+	BloodEffect = nullptr;
+	DeathSound = nullptr;
+	StartupAbilities.Reset();
+	StartupPassiveAbilities.Reset();
+	StartupAbilityDefinitionObjects.Reset();
+	StartupPassiveAbilityDefinitionObjects.Reset();
+	DefaultLMBAbilityDefinitionObject = nullptr;
+}
+
+bool AAuraCharacterBase::LoadRoleRuntimeState(const FRoleDefaultInfo& RoleDefinition, FString& OutError)
+{
+	if (!RoleDefinition.SkeletalMesh || !RoleDefinition.AnimBlueprintClass)
+	{
+		OutError = TEXT("Role presentation requires a body mesh and animation blueprint.");
 		return false;
-	});
-
-	if (Info.DefaultLMBAbilityDefinition)
-	{
-		DefaultLMBAbilityDefinitionObject = Cast<UObject>(Info.DefaultLMBAbilityDefinition.Get());
 	}
-	else if (Info.DefaultLMBAbility)
+	for (const TObjectPtr<UObject>& Object : RoleDefinition.StartupAbilityDefinitions)
 	{
-		StartupAbilities.AddUnique(Info.DefaultLMBAbility);
+		if (!Cast<UAuraAbilityDefinition>(Object.Get()))
+		{
+			OutError = TEXT("Role contains an unresolved startup ability definition.");
+			return false;
+		}
+	}
+	for (const TObjectPtr<UObject>& Object : RoleDefinition.StartupPassiveAbilityDefinitions)
+	{
+		if (!Cast<UAuraAbilityDefinition>(Object.Get()))
+		{
+			OutError = TEXT("Role contains an unresolved passive ability definition.");
+			return false;
+		}
 	}
 
-	UE_LOG(LogAura, Log, TEXT("[Role][Apply] %s: applied Role='%s' (mesh=%s anim=%s weapon=%s)."),
-		*GetNameSafe(this), *InRole.ToString(),
-		*GetNameSafe(Info.SkeletalMesh.Get()), *GetNameSafe(Info.AnimBlueprintClass.Get()),
-		*GetNameSafe(Info.WeaponMesh.Get()), Info.StartupAbilities.Num(), Info.StartupPassiveAbilities.Num());
+	ClearRoleRuntimeState();
+	GetMesh()->SetSkeletalMeshAsset(RoleDefinition.SkeletalMesh);
+	GetMesh()->SetAnimInstanceClass(RoleDefinition.AnimBlueprintClass);
+	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	if (RoleDefinition.WeaponMesh)
+	{
+		Weapon->SetSkeletalMeshAsset(RoleDefinition.WeaponMesh);
+		Weapon->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RoleDefinition.WeaponSocketName);
+	}
+	WeaponTipSocketName = RoleDefinition.WeaponTipSocketName;
+	LeftHandSocketName = RoleDefinition.LeftHandSocketName;
+	RightHandSocketName = RoleDefinition.RightHandSocketName;
+	TailSocketName = RoleDefinition.TailSocketName;
+	DissolveMaterialInstance = RoleDefinition.DissolveMaterialInstance;
+	WeaponDissolveMaterialInstance = RoleDefinition.WeaponDissolveMaterialInstance;
+	BloodEffect = RoleDefinition.BloodEffect;
+	DeathSound = RoleDefinition.DeathSound;
+	StartupAbilities = RoleDefinition.StartupAbilities;
+	StartupPassiveAbilities = RoleDefinition.StartupPassiveAbilities;
+	StartupAbilityDefinitionObjects = RoleDefinition.StartupAbilityDefinitions;
+	StartupPassiveAbilityDefinitionObjects = RoleDefinition.StartupPassiveAbilityDefinitions;
+	DefaultLMBAbilityDefinitionObject = RoleDefinition.DefaultLMBAbilityDefinition;
+	if (RoleDefinition.DefaultLMBAbility)
+	{
+		StartupAbilities.AddUnique(RoleDefinition.DefaultLMBAbility);
+	}
+	return true;
+}
 
-	CharacterRole = InRole;
+void AAuraCharacterBase::OnRep_AppliedRoleState()
+{
+	if (!AppliedRoleState.IsValid()) return;
+	const FAuraRoleApplicationResult Result = ApplyRolePresentation(AppliedRoleState.RoleId);
+	if (!Result.bSuccess)
+	{
+		UE_LOG(LogAura, Error, TEXT("[Day6Role][Client] PresentationError Role=%s Message=%s"),
+			*AppliedRoleState.RoleId.ToString(), *Result.Message);
+		return;
+	}
+	OnAppliedRoleStateChanged.Broadcast(AppliedRoleState);
+	UE_LOG(LogAura, Display, TEXT("[Day6Role][Client] Actor=%s Role=%s Entity=%s Economy=%s Interaction=%s Presentation=1"),
+		*GetNameSafe(this), *AppliedRoleState.RoleId.ToString(), *AppliedRoleState.EntityTypeTag.ToString(),
+		*AppliedRoleState.EconomyProfileTag.ToString(), *AppliedRoleState.InteractionProfileTag.ToString());
 }
 
 UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
@@ -545,6 +669,16 @@ FAuraCombatIdentity AAuraCharacterBase::BuildDefaultCombatIdentity() const
 	return DefaultCombatIdentity;
 }
 
+FGameplayTag AAuraCharacterBase::GetRequiredRoleEntityType() const
+{
+	return FGameplayTag();
+}
+
+FGameplayTag AAuraCharacterBase::GetRequiredRoleControlType() const
+{
+	return FGameplayTag();
+}
+
 FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag)
 {
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
@@ -732,30 +866,24 @@ void AAuraCharacterBase::InitializeDefaultAttributes() const
 	LoadAndApplySecondaryAttributes();
 }
 
-void AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole) const
+bool AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole, const FRoleDefaultInfo& RoleDefinition) const
 {
-	URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
-	UCharacterClassInfo* CharacterClassInfo = UAuraAbilitySystemLibrary::GetCharacterClassInfo(this);
-	if (RoleInfo == nullptr || CharacterClassInfo == nullptr || !RoleInfo->RoleInformation.Contains(InRole))
+	if (!GetAbilitySystemComponent())
 	{
-		// No role data available / role not in config: fall back to the BP-set DefaultPrimaryAttributes path.
-		InitializeDefaultAttributes();
-		return;
+		return false;
 	}
-
-	const FRoleDefaultInfo Info = RoleInfo->GetRoleDefaultInfo(InRole);
 
 	// Safety net: if the role config left all primary attribute values unset, keep the legacy
 	// BP-set DefaultPrimaryAttributes GE so the character isn't zeroed out.
-	if (Info.Strength == 0.f && Info.Intelligence == 0.f && Info.Resilience == 0.f && Info.Vigor == 0.f)
+	if (RoleDefinition.Strength == 0.f && RoleDefinition.Intelligence == 0.f && RoleDefinition.Resilience == 0.f && RoleDefinition.Vigor == 0.f)
 	{
-		UE_LOG(LogAura, Warning, TEXT("[Role][Attributes] %s: Role='%s' has no attribute values in RoleConfig.json; falling back to BP DefaultPrimaryAttributes."), *GetNameSafe(this), *InRole.ToString());
-		InitializeDefaultAttributes();
-		return;
+		UE_LOG(LogAura, Error, TEXT("[Role][Attributes] %s: Role='%s' has no staged primary attributes."),
+			*GetNameSafe(this), *InRole.ToString());
+		return false;
 	}
 
 	UE_LOG(LogAura, Log, TEXT("[Role][Attributes] %s: Role='%s' primary via SetByCaller (Str=%.1f Int=%.1f Res=%.1f Vig=%.1f)."),
-		*GetNameSafe(this), *InRole.ToString(), Info.Strength, Info.Intelligence, Info.Resilience, Info.Vigor);
+		*GetNameSafe(this), *InRole.ToString(), RoleDefinition.Strength, RoleDefinition.Intelligence, RoleDefinition.Resilience, RoleDefinition.Vigor);
 
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 
@@ -763,41 +891,21 @@ void AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole) const
 	FGameplayEffectContextHandle PrimaryContext = GetAbilitySystemComponent()->MakeEffectContext();
 	PrimaryContext.AddSourceObject(this);
 	const FGameplayEffectSpecHandle PrimarySpec = GetAbilitySystemComponent()->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, PrimaryContext);
+	if (!PrimarySpec.IsValid())
+	{
+		return false;
+	}
 	UAuraAbilitySystemLibrary::AssignDefaultAttributeMagnitudes(PrimarySpec);
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Strength, Info.Strength);
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Intelligence, Info.Intelligence);
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Resilience, Info.Resilience);
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Vigor, Info.Vigor);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Strength, RoleDefinition.Strength);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Intelligence, RoleDefinition.Intelligence);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Resilience, RoleDefinition.Resilience);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Vigor, RoleDefinition.Vigor);
 
 	// Secondary + Vital + Resistance via the same C++ GE, magnitudes from GameplayEffects.json.
 	LoadAndApplySecondaryAttributes();
 
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
-}
-
-void AAuraCharacterBase::AddCharacterAbilities()
-{
-	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
-	if (!HasAuthority()) return;
-
-	AuraASC->AddCharacterAbilities(StartupAbilities);
-	AuraASC->AddCharacterPassiveAbilities(StartupPassiveAbilities);
-	TArray<UAuraAbilityDefinition*> DataAbilityDefs;
-	for (const TObjectPtr<UObject>& Obj : StartupAbilityDefinitionObjects)
-	{
-		DataAbilityDefs.Add(Cast<UAuraAbilityDefinition>(Obj.Get()));
-	}
-	if (DefaultLMBAbilityDefinitionObject)
-	{
-		DataAbilityDefs.Add(Cast<UAuraAbilityDefinition>(DefaultLMBAbilityDefinitionObject.Get()));
-	}
-	AuraASC->AddCharacterDataAbilities(DataAbilityDefs);
-	TArray<UAuraAbilityDefinition*> DataPassiveDefs;
-	for (const TObjectPtr<UObject>& Obj : StartupPassiveAbilityDefinitionObjects)
-	{
-		DataPassiveDefs.Add(Cast<UAuraAbilityDefinition>(Obj.Get()));
-	}
-	AuraASC->AddCharacterDataPassiveAbilities(DataPassiveDefs);
+	return true;
 }
 
 void AAuraCharacterBase::Dissolve()

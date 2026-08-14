@@ -83,14 +83,36 @@ void AAuraPlayerState::SetSpellPoints(int32 InPoints)
 	OnSpellPointsChangedDelegate.Broadcast(SpellPoints);
 }
 
-void AAuraPlayerState::SetRole(FName InRole)
+bool AAuraPlayerState::SetRole(FName InRole)
 {
+	if (!HasAuthority())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Role][PlayerState] Rejected non-authority mutation to '%s' on %s."),
+			*InRole.ToString(), *GetNameSafe(this));
+		return false;
+	}
 	if (CharacterRole == InRole)
 	{
-		return;
+		return true;
 	}
 	CharacterRole = InRole;
 	OnRoleChangedDelegate.Broadcast(CharacterRole);
+	ForceNetUpdate();
+	return true;
+}
+
+bool AAuraPlayerState::HasInitializedDefaultAttributes() const
+{
+	const UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	return AuraASC && AuraASC->GetRoleGrantLedger().bAttributesInitialized;
+}
+
+void AAuraPlayerState::MarkDefaultAttributesInitialized()
+{
+	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
+	{
+		AuraASC->MarkRoleAttributesInitialized();
+	}
 }
 
 void AAuraPlayerState::OnRep_Level(int32 OldLevel)

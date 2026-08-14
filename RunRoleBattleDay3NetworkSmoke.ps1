@@ -141,8 +141,10 @@ try {
     $ClientBaseArguments = @(
         $ProjectFile, "127.0.0.1:$Port", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', '-RoleBattleDay3NetworkProbe'
     )
-    foreach ($ClientSpec in @(@('Client1', $Client1Log), @('Client2', $Client2Log))) {
-        $ClientArguments = @($ClientBaseArguments + "-abslog=$($ClientSpec[1])")
+    foreach ($ClientSpec in @(@('Client1', $Client1Log, 'Aura'), @('Client2', $Client2Log, 'BungeeMan'))) {
+        $ClientArguments = @($ClientBaseArguments)
+        $ClientArguments[1] = "127.0.0.1:${Port}?PlayerName=Day3$($ClientSpec[2])?Role=$($ClientSpec[2])"
+        $ClientArguments += "-abslog=$($ClientSpec[1])"
         $Client = Start-OwnedProcess $ClientSpec[0] $EditorExe $ClientArguments
         $OwnedProcesses += $Client
         Start-Sleep -Milliseconds 500

@@ -79,6 +79,8 @@ public:
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual FAuraCombatIdentity BuildDefaultCombatIdentity() const override;
+	virtual FGameplayTag GetRequiredRoleEntityType() const override;
+	virtual FGameplayTag GetRequiredRoleControlType() const override;
 
 private:
 	void UpdateFatalFallState(float DeltaSeconds);

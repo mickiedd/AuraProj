@@ -39,9 +39,14 @@ bool UAuraCombatIdentityComponent::InitializeIdentity(const FAuraCombatIdentity&
 		LogMissingIdentityOnce(Owner, TEXT("InitializeIdentity"));
 		return false;
 	}
+	if (Identity == InIdentity)
+	{
+		return true;
+	}
 
 	Identity = InIdentity;
 	Owner->ForceNetUpdate();
+	OnIdentityChanged.Broadcast(Identity);
 	LogIdentity(TEXT("Server"));
 	return true;
 }
@@ -93,6 +98,7 @@ void UAuraCombatIdentityComponent::LogMissingIdentityOnce(const AActor* Actor, c
 
 void UAuraCombatIdentityComponent::OnRep_Identity()
 {
+	OnIdentityChanged.Broadcast(Identity);
 	LogIdentity(TEXT("Client"));
 }
 

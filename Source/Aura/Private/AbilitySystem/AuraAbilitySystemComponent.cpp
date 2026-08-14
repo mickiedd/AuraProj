@@ -28,6 +28,15 @@ namespace
 		FGameplayTag InputTag;
 	};
 
+	struct FRoleGrantCandidate
+	{
+		TSubclassOf<UGameplayAbility> AbilityClass;
+		UAuraAbilityDefinition* Definition = nullptr;
+		FGameplayTag AbilityTag;
+		FGameplayTag InputTag;
+		bool bPassive = false;
+	};
+
 	FGameplayTag GetAbilityTagFromClass(const TSubclassOf<UGameplayAbility>& AbilityClass)
 	{
 		const UGameplayAbility* DefaultAbility = AbilityClass ? AbilityClass.GetDefaultObject() : nullptr;
@@ -104,6 +113,120 @@ namespace
 		return Spec;
 	}
 
+	TSubclassOf<UGameplayAbility> GetDataAbilityClass(const UAuraAbilityDefinition* Definition)
+	{
+		if (!Definition)
+		{
+			return nullptr;
+		}
+		if (Definition->AbilityTags.HasTagExact(FAuraGameplayTags::Get().Abilities_Attack))
+		{
+			return UAuraEnemyAttackDataAbility::StaticClass();
+		}
+		if (Definition->AbilityTag.MatchesTagExact(FAuraGameplayTags::Get().Effects_HitReact))
+		{
+			return UAuraEnemyHitReactDataAbility::StaticClass();
+		}
+		return UAuraDataAbility::StaticClass();
+	}
+
+	bool BuildRoleGrantCandidates(const FRoleDefaultInfo& Role, TArray<FRoleGrantCandidate>& OutCandidates, FString& OutError)
+	{
+		TSet<FGameplayTag> StableTags;
+		auto AddCandidate = [&OutCandidates, &StableTags, &OutError](TSubclassOf<UGameplayAbility> AbilityClass,
+			UAuraAbilityDefinition* Definition, bool bPassive) -> bool
+		{
+			FRoleGrantCandidate Candidate;
+			Candidate.AbilityClass = Definition ? GetDataAbilityClass(Definition) : AbilityClass;
+			Candidate.Definition = Definition;
+			Candidate.bPassive = bPassive;
+			if (Definition)
+			{
+				Candidate.AbilityTag = Definition->AbilityTag;
+				Candidate.InputTag = Definition->InputTag;
+			}
+			else
+			{
+				Candidate.AbilityTag = GetAbilityTagFromClass(AbilityClass);
+				if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilityClass ? AbilityClass.GetDefaultObject() : nullptr))
+				{
+					Candidate.InputTag = AuraAbility->StartupInputTag;
+				}
+			}
+
+			if (!Candidate.AbilityClass || !Candidate.AbilityTag.IsValid())
+			{
+				OutError = TEXT("Role loadout contains an unresolved ability or a grant without a stable ability tag.");
+				return false;
+			}
+			if (StableTags.Contains(Candidate.AbilityTag))
+			{
+				OutError = FString::Printf(TEXT("Role loadout duplicates stable ability tag '%s'."), *Candidate.AbilityTag.ToString());
+				return false;
+			}
+			StableTags.Add(Candidate.AbilityTag);
+			OutCandidates.Add(MoveTemp(Candidate));
+			return true;
+		};
+
+		for (const TSubclassOf<UGameplayAbility>& AbilityClass : Role.StartupAbilities)
+		{
+			if (!AddCandidate(AbilityClass, nullptr, false)) return false;
+		}
+		for (const TSubclassOf<UGameplayAbility>& AbilityClass : Role.StartupPassiveAbilities)
+		{
+			if (!AddCandidate(AbilityClass, nullptr, true)) return false;
+		}
+		for (const TObjectPtr<UObject>& Object : Role.StartupAbilityDefinitions)
+		{
+			if (!AddCandidate(nullptr, Cast<UAuraAbilityDefinition>(Object.Get()), false)) return false;
+		}
+		for (const TObjectPtr<UObject>& Object : Role.StartupPassiveAbilityDefinitions)
+		{
+			if (!AddCandidate(nullptr, Cast<UAuraAbilityDefinition>(Object.Get()), true)) return false;
+		}
+		if (Role.DefaultLMBAbilityDefinition)
+		{
+			if (!AddCandidate(nullptr, Cast<UAuraAbilityDefinition>(Role.DefaultLMBAbilityDefinition.Get()), false)) return false;
+		}
+		else if (Role.DefaultLMBAbility)
+		{
+			if (!AddCandidate(Role.DefaultLMBAbility, nullptr, false)) return false;
+		}
+		return true;
+	}
+
+	bool IsLegacyShippedRoleGrant(FName RoleId, const FGameplayTag& AbilityTag)
+	{
+		TSet<FString> ShippedTags;
+		if (RoleId == TEXT("Aura"))
+		{
+			ShippedTags = {
+				TEXT("Abilities.Fire.FireBolt"),
+				TEXT("Abilities.Fire.FireBlast"),
+				TEXT("Abilities.Arcane.ArcaneShards"),
+				TEXT("Abilities.Lightning.Electrocute")
+			};
+		}
+		else if (RoleId == TEXT("BungeeMan"))
+		{
+			ShippedTags = { TEXT("Abilities.Gun.Fire") };
+		}
+		return ShippedTags.Contains(AbilityTag.ToString());
+	}
+
+	bool IsKnownProgressionGrant(const FRoleDefaultInfo& Role, const FGameplayTag& AbilityTag)
+	{
+		for (const TSubclassOf<UGameplayAbility>& AbilityClass : Role.UnlockableAbilities)
+		{
+			if (GetAbilityTagFromClass(AbilityClass).MatchesTagExact(AbilityTag))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	TArray<FGameplayTag> GetOrderedSlotsForAbilityType(const FGameplayTag& AbilityType)
 	{
 		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
@@ -133,39 +256,228 @@ void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 	
 }
 
-void UAuraAbilitySystemComponent::AddCharacterAbilitiesFromSaveData(ULoadScreenSaveGame* SaveData)
+int32 UAuraAbilitySystemComponent::CountAbilitySpecsByTag(const FGameplayTag& AbilityTag) const
 {
-	for (const FSavedAbility& Data : SaveData->SavedAbilities)
+	if (!AbilityTag.IsValid()) return 0;
+	int32 Count = 0;
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		FResolvedAbilitySource Source;
-		if (!ResolveAbilitySource(GetAvatarActor(), Data.AbilityTag, nullptr, Source))
+		if (GetAbilityTagFromSpec(Spec).MatchesTagExact(AbilityTag))
 		{
-			UE_LOG(LogAura, Error, TEXT("[ASC] Save restore skipped unresolved ability tag %s"), *Data.AbilityTag.ToString());
-			continue;
+			++Count;
 		}
+	}
+	return Count;
+}
 
-		FGameplayAbilitySpec LoadedAbilitySpec = MakeAbilitySpec(Source, Data.AbilityLevel);
-		if (Data.AbilitySlot.IsValid()) LoadedAbilitySpec.GetDynamicSpecSourceTags().AddTag(Data.AbilitySlot);
-		if (Data.AbilityStatus.IsValid()) LoadedAbilitySpec.GetDynamicSpecSourceTags().AddTag(Data.AbilityStatus);
-		if (Source.AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Offensive))
+EAuraAbilityGrantSource UAuraAbilitySystemComponent::GetGrantSourceForSpec(
+	const FGameplayAbilitySpec& AbilitySpec, FName& OutGrantedRoleId) const
+{
+	OutGrantedRoleId = NAME_None;
+	if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(FAuraGameplayTags::Get().GrantSource_Role))
+	{
+		if (const FName* RoleId = GrantedRoleBySpecHandle.Find(AbilitySpec.Handle))
 		{
-			GiveAbility(LoadedAbilitySpec);
+			OutGrantedRoleId = *RoleId;
 		}
-		else if (Source.AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive))
+		else if (RoleGrantLedger.AbilitySpecHandles.Contains(AbilitySpec.Handle))
 		{
-			if (Data.AbilityStatus.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Status_Equipped))
+			OutGrantedRoleId = RoleGrantLedger.GrantedRoleId;
+		}
+		return EAuraAbilityGrantSource::Role;
+	}
+	return EAuraAbilityGrantSource::Progression;
+}
+
+bool UAuraAbilitySystemComponent::ValidateRoleGrantSet(FName RoleId, const FRoleDefaultInfo& Role,
+	const ULoadScreenSaveGame* SaveData, FString& OutError) const
+{
+	OutError.Reset();
+	if (!IsOwnerActorAuthoritative())
+	{
+		OutError = TEXT("Only the authoritative ASC may reconcile role grants.");
+		return false;
+	}
+	if (RoleId.IsNone())
+	{
+		OutError = TEXT("A stable role ID is required for role grants.");
+		return false;
+	}
+	if (RoleGrantLedger.bInitialized && RoleGrantLedger.GrantedRoleId != RoleId)
+	{
+		OutError = FString::Printf(TEXT("Live role switching from '%s' to '%s' is unsupported."),
+			*RoleGrantLedger.GrantedRoleId.ToString(), *RoleId.ToString());
+		return false;
+	}
+
+	TArray<FRoleGrantCandidate> Candidates;
+	if (!BuildRoleGrantCandidates(Role, Candidates, OutError))
+	{
+		return false;
+	}
+	for (const FRoleGrantCandidate& Candidate : Candidates)
+	{
+		if (CountAbilitySpecsByTag(Candidate.AbilityTag) > 1)
+		{
+			OutError = FString::Printf(TEXT("ASC already contains duplicate specs for '%s'."), *Candidate.AbilityTag.ToString());
+			return false;
+		}
+	}
+
+	if (SaveData && SaveData->Role != RoleId)
+	{
+		OutError = FString::Printf(TEXT("Save role '%s' does not match authorized role '%s'."),
+			*SaveData->Role.ToString(), *RoleId.ToString());
+		return false;
+	}
+	return true;
+}
+
+bool UAuraAbilitySystemComponent::ApplyRoleGrantSet(FName RoleId, int32 RoleDefinitionVersion,
+	const FRoleDefaultInfo& Role, const ULoadScreenSaveGame* SaveData, FString& OutError)
+{
+	if (!ValidateRoleGrantSet(RoleId, Role, SaveData, OutError))
+	{
+		return false;
+	}
+
+	TArray<FRoleGrantCandidate> Candidates;
+	if (!BuildRoleGrantCandidates(Role, Candidates, OutError))
+	{
+		return false;
+	}
+	const bool bWasInitialized = RoleGrantLedger.bInitialized;
+
+	auto RecordRoleSpec = [this, RoleId](const FGameplayAbilitySpecHandle Handle)
+	{
+		RoleGrantLedger.AbilitySpecHandles.AddUnique(Handle);
+		GrantedRoleBySpecHandle.Add(Handle, RoleId);
+	};
+
+	if (!bWasInitialized && SaveData)
+	{
+		for (const FSavedAbility& Data : SaveData->SavedAbilities)
+		{
+			if (!Data.AbilityTag.IsValid() || CountAbilitySpecsByTag(Data.AbilityTag) > 0)
 			{
-				GiveAbilityAndActivateOnce(LoadedAbilitySpec);
-				MulticastActivatePassiveEffect(Data.AbilityTag, true);
+				continue;
 			}
-			else
+
+			if (Data.ProvenanceVersion > 1 || Data.GrantSource > static_cast<uint8>(EAuraAbilityGrantSource::Progression))
 			{
-				GiveAbility(LoadedAbilitySpec);
+				UE_LOG(LogAura, Error, TEXT("[RoleGrant] Quarantined ability '%s' with unsupported provenance version/source."),
+					*Data.AbilityTag.ToString());
+				continue;
+			}
+			EAuraAbilityGrantSource Provenance = static_cast<EAuraAbilityGrantSource>(Data.GrantSource);
+			if (Provenance == EAuraAbilityGrantSource::Unknown)
+			{
+				if (IsLegacyShippedRoleGrant(RoleId, Data.AbilityTag))
+				{
+					Provenance = EAuraAbilityGrantSource::Role;
+				}
+				else if (IsKnownProgressionGrant(Role, Data.AbilityTag))
+				{
+					Provenance = EAuraAbilityGrantSource::Progression;
+				}
+				else
+				{
+					UE_LOG(LogAura, Error, TEXT("[RoleGrant] Quarantined unknown legacy ability '%s' for role '%s'."),
+						*Data.AbilityTag.ToString(), *RoleId.ToString());
+					continue;
+				}
+			}
+
+			const bool bAllowedRoleGrant = Candidates.ContainsByPredicate([&Data](const FRoleGrantCandidate& Candidate)
+			{
+				return Candidate.AbilityTag.MatchesTagExact(Data.AbilityTag);
+			});
+			if (Provenance == EAuraAbilityGrantSource::Role
+				&& ((!Data.GrantedRoleId.IsNone() && Data.GrantedRoleId != RoleId) || !bAllowedRoleGrant))
+			{
+				UE_LOG(LogAura, Warning, TEXT("[RoleGrant] Removed/mismatched role grant '%s' was not restored or promoted."),
+					*Data.AbilityTag.ToString());
+				continue;
+			}
+
+			FResolvedAbilitySource Source;
+			if (!ResolveAbilitySource(GetAvatarActor(), Data.AbilityTag, nullptr, Source))
+			{
+				UE_LOG(LogAura, Error, TEXT("[RoleGrant] Save restore skipped unresolved ability '%s'."), *Data.AbilityTag.ToString());
+				continue;
+			}
+			FGameplayAbilitySpec Spec = MakeAbilitySpec(Source, FMath::Max(1, Data.AbilityLevel));
+			if (Data.AbilitySlot.IsValid()) Spec.GetDynamicSpecSourceTags().AddTag(Data.AbilitySlot);
+			if (Data.AbilityStatus.IsValid()) Spec.GetDynamicSpecSourceTags().AddTag(Data.AbilityStatus);
+			if (Provenance == EAuraAbilityGrantSource::Role)
+			{
+				Spec.GetDynamicSpecSourceTags().AddTag(FAuraGameplayTags::Get().GrantSource_Role);
+			}
+			if (Source.Definition)
+			{
+				GrantedAbilityDefinitions.AddUnique(const_cast<UAuraAbilityDefinition*>(Source.Definition));
+			}
+
+			const bool bActivatePassive = Source.AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive)
+				&& Data.AbilityStatus.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Status_Equipped);
+			const FGameplayAbilitySpecHandle Handle = bActivatePassive ? GiveAbilityAndActivateOnce(Spec) : GiveAbility(Spec);
+			if (Provenance == EAuraAbilityGrantSource::Role)
+			{
+				RecordRoleSpec(Handle);
+			}
+			if (bActivatePassive)
+			{
+				MulticastActivatePassiveEffect(Data.AbilityTag, true);
 			}
 		}
 	}
+
+	for (const FRoleGrantCandidate& Candidate : Candidates)
+	{
+		FGameplayAbilitySpec* Existing = GetSpecFromAbilityTag(Candidate.AbilityTag);
+		if (Existing)
+		{
+			if (Existing->GetDynamicSpecSourceTags().HasTagExact(FAuraGameplayTags::Get().GrantSource_Role))
+			{
+				RecordRoleSpec(Existing->Handle);
+			}
+			continue;
+		}
+
+		FGameplayAbilitySpec Spec(Candidate.AbilityClass, 1);
+		if (Candidate.Definition)
+		{
+			GrantedAbilityDefinitions.AddUnique(Candidate.Definition);
+			Spec.SourceObject = Candidate.Definition;
+			Spec.GetDynamicSpecSourceTags().AppendTags(Candidate.Definition->AbilityTags);
+			Spec.GetDynamicSpecSourceTags().AddTag(Candidate.AbilityTag);
+		}
+		if (Candidate.InputTag.IsValid())
+		{
+			Spec.GetDynamicSpecSourceTags().AddTag(Candidate.InputTag);
+		}
+		Spec.GetDynamicSpecSourceTags().AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
+		Spec.GetDynamicSpecSourceTags().AddTag(FAuraGameplayTags::Get().GrantSource_Role);
+		const FGameplayAbilitySpecHandle Handle = Candidate.bPassive ? GiveAbilityAndActivateOnce(Spec) : GiveAbility(Spec);
+		RecordRoleSpec(Handle);
+		if (Candidate.bPassive)
+		{
+			MulticastActivatePassiveEffect(Candidate.AbilityTag, true);
+		}
+	}
+
+	RoleGrantLedger.GrantedRoleId = RoleId;
+	RoleGrantLedger.RoleDefinitionVersion = RoleDefinitionVersion;
+	RoleGrantLedger.bInitialized = true;
+	RoleGrantLedger.bReconciled = true;
 	bStartupAbilitiesGiven = true;
-	AbilitiesGivenDelegate.Broadcast();
+	if (!bWasInitialized)
+	{
+		AbilitiesGivenDelegate.Broadcast();
+	}
+	UE_LOG(LogAura, Display, TEXT("[RoleGrant][Server] Role=%s Required=%d OwnedSpecs=%d ReusedLedger=%d"),
+		*RoleId.ToString(), Candidates.Num(), RoleGrantLedger.AbilitySpecHandles.Num(), bWasInitialized);
+	return true;
 }
 
 void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)

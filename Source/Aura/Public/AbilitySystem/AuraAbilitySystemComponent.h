@@ -10,6 +10,43 @@ class ULoadScreenSaveGame;
 struct FAuraAbilityInfo;
 class UAuraDataAbility;
 class UAuraAbilityDefinition;
+struct FRoleDefaultInfo;
+
+UENUM(BlueprintType)
+enum class EAuraAbilityGrantSource : uint8
+{
+	Unknown,
+	Role,
+	Progression
+};
+
+/** Persistent server ledger; it lives with the PlayerState-owned ASC across pawns. */
+USTRUCT(BlueprintType)
+struct AURA_API FAuraRoleGrantLedger
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Role Grants")
+	FName GrantedRoleId = NAME_None;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Role Grants")
+	int32 RoleDefinitionVersion = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Role Grants")
+	TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Role Grants")
+	TArray<FActiveGameplayEffectHandle> RemovableEffectHandles;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Role Grants")
+	bool bInitialized = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Role Grants")
+	bool bReconciled = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Role Grants")
+	bool bAttributesInitialized = false;
+};
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
@@ -35,12 +72,24 @@ public:
 	FDeactivatePassiveAbility DeactivatePassiveAbility;
 	FActivatePassiveEffect ActivatePassiveEffect;
 
- 	void AddCharacterAbilitiesFromSaveData(ULoadScreenSaveGame* SaveData);
  	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
  	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
 	void AddCharacterDataAbilities(const TArray<UAuraAbilityDefinition*>& Definitions, int32 AbilityLevel = 1);
  	void AddCharacterDataPassiveAbilities(const TArray<UAuraAbilityDefinition*>& Definitions);
- 	bool bStartupAbilitiesGiven = false;
+	/** Compatibility mirror for existing UI; the role ledger is the authoritative guard. */
+	bool bStartupAbilitiesGiven = false;
+
+	/** Validates all stable tags and save provenance without mutating specs or the ledger. */
+	bool ValidateRoleGrantSet(FName RoleId, const FRoleDefaultInfo& Role, const ULoadScreenSaveGame* SaveData, FString& OutError) const;
+
+	/** Restores/reconciles once, or verifies a same-role respawn without duplicate grants. */
+	bool ApplyRoleGrantSet(FName RoleId, int32 RoleDefinitionVersion, const FRoleDefaultInfo& Role,
+		const ULoadScreenSaveGame* SaveData, FString& OutError);
+
+	const FAuraRoleGrantLedger& GetRoleGrantLedger() const { return RoleGrantLedger; }
+	void MarkRoleAttributesInitialized() { RoleGrantLedger.bAttributesInitialized = true; }
+	EAuraAbilityGrantSource GetGrantSourceForSpec(const FGameplayAbilitySpec& AbilitySpec, FName& OutGrantedRoleId) const;
+	int32 CountAbilitySpecsByTag(const FGameplayTag& AbilityTag) const;
 
 	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
@@ -97,6 +146,9 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UAuraAbilityDefinition>> GrantedAbilityDefinitions;
 
+	UPROPERTY(VisibleInstanceOnly, Category = "Role Grants")
+	FAuraRoleGrantLedger RoleGrantLedger;
+
 	virtual void OnRep_ActivateAbilities() override;
 
 	UFUNCTION(Client, Reliable)
@@ -116,4 +168,7 @@ private:
 	float HeldCooldownRetryDelay = 0.12f;
 	float HeldCostRetryDelay = 0.20f;
 	float HeldSuccessRetryDelay = 0.03f;
+
+	/** Role IDs remain stable data IDs rather than being converted to gameplay tags. */
+	TMap<FGameplayAbilitySpecHandle, FName> GrantedRoleBySpecHandle;
 };

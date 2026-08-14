@@ -64,6 +64,17 @@ struct FSavedAbility
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	int32 AbilityLevel = 1;
+
+	/** Versioned provenance. Legacy saves deserialize as Unknown and migrate explicitly. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	uint8 GrantSource = 0;
+
+	/** Stable role ID for role-owned grants; NAME_None for progression/unlocks. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	FName GrantedRoleId = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	int32 ProvenanceVersion = 1;
 };
 
 inline bool operator==(const FSavedAbility& Left, const FSavedAbility& Right)

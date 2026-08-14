@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960" role="img" aria-labelledby="title desc">
+  <title id="title">Day 06 authoritative role application</title>
+  <desc id="desc">Before and after diagram showing the replacement of split role setup with one server-authoritative, atomic, idempotent spawn transaction backed by a persistent ability grant ledger and replicated applied role state.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#081321"/>
+      <stop offset="1" stop-color="#13243a"/>
+    </linearGradient>
+    <linearGradient id="after" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#102d38"/>
+      <stop offset="1" stop-color="#173956"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#02060c" flood-opacity="0.55"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6ee7f2"/>
+    </marker>
+    <style>
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #f4f8ff; }
+      .subtitle { font: 400 17px 'Segoe UI', Arial, sans-serif; fill: #aebfd2; }
+      .section { font: 700 22px 'Segoe UI', Arial, sans-serif; fill: #f4f8ff; }
+      .box-title { font: 700 17px 'Segoe UI', Arial, sans-serif; fill: #f7fbff; }
+      .body { font: 400 14px 'Segoe UI', Arial, sans-serif; fill: #cbd8e6; }
+      .small { font: 400 13px 'Segoe UI', Arial, sans-serif; fill: #b8c8d8; }
+      .mono { font: 600 13px Consolas, monospace; fill: #dffaff; }
+      .pass { font: 700 15px 'Segoe UI', Arial, sans-serif; fill: #8ff0ba; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="960" fill="url(#bg)"/>
+  <circle cx="1285" cy="70" r="155" fill="#17476a" opacity="0.18"/>
+  <circle cx="118" cy="885" r="180" fill="#0c8090" opacity="0.10"/>
+
+  <text id="titleText" x="64" y="62" class="title">Day 06 · Authoritative Role Application</text>
+  <text x="64" y="92" class="subtitle">One atomic spawn transaction now owns presentation, attributes, abilities, identity, persistence, and replication.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="64" y="128" width="350" height="660" rx="18" fill="#211923" stroke="#e07878" stroke-width="1.5"/>
+  </g>
+  <text x="90" y="168" class="section">Before · split setup</text>
+  <text x="90" y="194" class="small">Multiple paths could partially mutate a pawn.</text>
+
+  <rect x="90" y="225" width="298" height="94" rx="12" fill="#35212b" stroke="#a85562"/>
+  <text x="112" y="254" class="box-title">Spawn / load progress</text>
+  <text x="112" y="280" class="body">Role, attributes, and saved abilities</text>
+  <text x="112" y="301" class="body">were applied through separate calls.</text>
+
+  <rect x="90" y="341" width="298" height="94" rx="12" fill="#35212b" stroke="#a85562"/>
+  <text x="112" y="370" class="box-title">Presentation inferred loadout</text>
+  <text x="112" y="396" class="body">Weapon state could follow ability/LMB</text>
+  <text x="112" y="417" class="body">assumptions instead of explicit data.</text>
+
+  <rect x="90" y="457" width="298" height="116" rx="12" fill="#35212b" stroke="#a85562"/>
+  <text x="112" y="486" class="box-title">Ability grants lacked ownership</text>
+  <text x="112" y="512" class="body">Respawn could duplicate role specs;</text>
+  <text x="112" y="533" class="body">legacy save entries had no durable</text>
+  <text x="112" y="554" class="body">role vs. progression provenance.</text>
+
+  <rect x="90" y="595" width="298" height="160" rx="12" fill="#3b2027" stroke="#ef7b72" stroke-width="1.5"/>
+  <text x="112" y="625" class="box-title">Risk surface</text>
+  <text x="112" y="653" class="body">• Client-side mutation entry points</text>
+  <text x="112" y="677" class="body">• Live role switching</text>
+  <text x="112" y="701" class="body">• Half-applied failure state</text>
+  <text x="112" y="725" class="body">• Identity / UI disagreement</text>
+
+  <g filter="url(#shadow)">
+    <rect x="450" y="128" width="926" height="660" rx="18" fill="url(#after)" stroke="#48cad8" stroke-width="1.5"/>
+  </g>
+  <text x="478" y="168" class="section">After · one server-owned spawn transaction</text>
+  <text x="478" y="194" class="small">ApplyRoleAtSpawn validates and stages everything before any authoritative commit.</text>
+
+  <rect x="478" y="226" width="158" height="104" rx="12" fill="#173148" stroke="#61d8e4"/>
+  <text x="498" y="255" class="box-title">1 · Request</text>
+  <text x="498" y="282" class="body">Accepted role ID</text>
+  <text x="498" y="304" class="body">+ optional save</text>
+
+  <line x1="637" y1="278" x2="671" y2="278" stroke="#6ee7f2" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="676" y="226" width="206" height="104" rx="12" fill="#173148" stroke="#61d8e4"/>
+  <text x="696" y="255" class="box-title">2 · Validate + stage</text>
+  <text x="696" y="282" class="body">Authority, registry, shell,</text>
+  <text x="696" y="304" class="body">ASC, identity, grant set</text>
+
+  <line x1="883" y1="278" x2="917" y2="278" stroke="#6ee7f2" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="922" y="226" width="205" height="104" rx="12" fill="#173148" stroke="#61d8e4"/>
+  <text x="942" y="255" class="box-title">3 · Apply once</text>
+  <text x="942" y="282" class="body">Presentation + attributes</text>
+  <text x="942" y="304" class="body">+ grant reconciliation</text>
+
+  <line x1="1128" y1="278" x2="1162" y2="278" stroke="#6ee7f2" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="1167" y="226" width="181" height="104" rx="12" fill="#173148" stroke="#61d8e4"/>
+  <text x="1187" y="255" class="box-title">4 · Commit</text>
+  <text x="1187" y="282" class="body">Applied state, identity,</text>
+  <text x="1187" y="304" class="body">PlayerState + replication</text>
+
+  <rect x="478" y="364" width="416" height="170" rx="14" fill="#102a35" stroke="#3bb9a3"/>
+  <text x="500" y="395" class="box-title">Persistent ASC role-grant ledger</text>
+  <text x="500" y="424" class="body">Role ID + definition version + spec/effect handles</text>
+  <text x="500" y="450" class="body">Same-role respawn reuses owned specs and attributes.</text>
+  <text x="500" y="476" class="body">Save grants carry Role / Progression provenance.</text>
+  <text x="500" y="502" class="body">Legacy grants migrate only through an explicit allowlist.</text>
+
+  <rect x="920" y="364" width="428" height="170" rx="14" fill="#102a35" stroke="#3bb9a3"/>
+  <text x="942" y="395" class="box-title">Replicated final identity</text>
+  <text x="942" y="424" class="mono">FAuraAppliedRoleState</text>
+  <text x="942" y="450" class="body">Role · entity · economy · interaction</text>
+  <text x="942" y="476" class="body">Combat identity broadcasts only after server commit.</text>
+  <text x="942" y="502" class="body">Clients rebuild presentation from replicated truth.</text>
+
+  <rect x="478" y="562" width="272" height="108" rx="13" fill="#35202a" stroke="#ef867c"/>
+  <text x="500" y="592" class="box-title">Guard · client mutation</text>
+  <text x="500" y="620" class="body">Rejected before state changes;</text>
+  <text x="500" y="643" class="body">UI is a read-only consumer.</text>
+
+  <rect x="770" y="562" width="272" height="108" rx="13" fill="#35202a" stroke="#ef867c"/>
+  <text x="792" y="592" class="box-title">Guard · live switch</text>
+  <text x="792" y="620" class="body">Different role after commit is</text>
+  <text x="792" y="643" class="body">rejected; same role is idempotent.</text>
+
+  <rect x="1062" y="562" width="286" height="108" rx="13" fill="#35202a" stroke="#ef867c"/>
+  <text x="1084" y="592" class="box-title">Guard · atomic failure</text>
+  <text x="1084" y="620" class="body">Invalid input leaves presentation,</text>
+  <text x="1084" y="643" class="body">identity, and grants unchanged.</text>
+
+  <rect x="478" y="700" width="870" height="62" rx="12" fill="#12382f" stroke="#55d594"/>
+  <text x="500" y="728" class="pass">✓ Spawn result: explicit role presentation + correct profiles + exactly-once role grants</text>
+  <text x="500" y="750" class="small">Aura, BungeeMan, and empty Civilian loadouts are all data-driven and independently validated.</text>
+
+  <rect x="64" y="820" width="1312" height="92" rx="16" fill="#101f31" stroke="#365576"/>
+  <text x="88" y="850" class="section">Validation</text>
+  <text x="88" y="881" class="pass">AuraEditor build ✓</text>
+  <text x="280" y="881" class="pass">Day 06 automation 12/12 ✓</text>
+  <text x="555" y="881" class="pass">Day 05 regression 14/14 ✓</text>
+  <text x="827" y="881" class="pass">Day 04 / 05 / 06 Listen + Dedicated ✓</text>
+  <text x="88" y="902" class="small">Day 06 network probes: 9/9 assertions per mode, two clients, two respawns each, no crash/fatal, isolated fixtures removed.</text>
+
+  <text x="1376" y="940" text-anchor="end" class="small">AuraProj · 2026-08-14</text>
+</svg>

@@ -48,6 +48,7 @@
 #include "Actor/AuraProjectile.h"
 #include "Data/AuraGameplayConfig.h"
 #include "AbilitySystem/Data/RoleInfo.h"
+#include "Game/LoadScreenSaveGame.h"
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 
 AAuraPlayerController::AAuraPlayerController()
@@ -909,6 +910,20 @@ void AAuraPlayerController::BeginPlay()
 			true);
 		UE_LOG(LogAura, Display, TEXT("[Day1Smoke] Scheduled role/respawn smoke test."));
 	}
+#if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay6NetworkProbe")))
+	{
+		bRoleBattleDay6ProbeEnabled = true;
+		GetWorldTimerManager().SetTimer(
+			RoleBattleDay6ProbeTimerHandle,
+			this,
+			&ThisClass::TickRoleBattleDay6NetworkProbe,
+			0.25f,
+			true);
+		UE_LOG(LogAura, Display, TEXT("[Day6NetworkProbe][%s] Scheduled Controller=%s"),
+			HasAuthority() ? TEXT("Server") : TEXT("Client"), *GetNameSafe(this));
+	}
+#endif
 	if (!AuraContext)
 	{
 		UE_LOG(LogAura, Error, TEXT("AAuraPlayerController::BeginPlay: AuraContext (Input Mapping Context) is not set. Input will not be bound."));
@@ -953,6 +968,194 @@ void AAuraPlayerController::BeginPlay()
 	{
 		FSlateApplication::Get().SetAllUserFocusToGameViewport(EFocusCause::SetDirectly);
 	}
+}
+
+bool AAuraPlayerController::ValidateRoleBattleDay6Pawn(AAuraCharacter* PlayerCharacter, FString& OutFailure) const
+{
+	if (!PlayerCharacter || !PlayerCharacter->GetAppliedRoleState().IsValid()
+		|| !PlayerCharacter->HasValidCombatIdentity())
+	{
+		OutFailure = TEXT("Applied role state or final combat identity is not ready.");
+		return false;
+	}
+	const FName RoleId = PlayerCharacter->GetAppliedRoleState().RoleId;
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(PlayerCharacter);
+	const FRoleDefaultInfo* Definition = RoleInfo ? RoleInfo->RoleInformation.Find(RoleId) : nullptr;
+	const UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(PlayerCharacter->GetAbilitySystemComponent());
+	if (!Definition || !ASC)
+	{
+		OutFailure = TEXT("Role definition or ASC is unavailable.");
+		return false;
+	}
+	if (!PlayerCharacter->GetCombatIdentity().CombatProfileTag.MatchesTagExact(Definition->CombatProfile)
+		|| !PlayerCharacter->GetAppliedRoleState().EconomyProfileTag.MatchesTagExact(Definition->EconomyProfile)
+		|| !PlayerCharacter->GetAppliedRoleState().InteractionProfileTag.MatchesTagExact(Definition->InteractionProfile))
+	{
+		OutFailure = TEXT("Applied identity/profile values do not match the authoritative definition.");
+		return false;
+	}
+
+	TArray<FGameplayTag> RequiredTags;
+	for (const TObjectPtr<UObject>& Object : Definition->StartupAbilityDefinitions)
+	{
+		if (const UAuraAbilityDefinition* AbilityDefinition = Cast<UAuraAbilityDefinition>(Object.Get())) RequiredTags.Add(AbilityDefinition->AbilityTag);
+	}
+	for (const TObjectPtr<UObject>& Object : Definition->StartupPassiveAbilityDefinitions)
+	{
+		if (const UAuraAbilityDefinition* AbilityDefinition = Cast<UAuraAbilityDefinition>(Object.Get())) RequiredTags.Add(AbilityDefinition->AbilityTag);
+	}
+	if (const UAuraAbilityDefinition* AbilityDefinition = Cast<UAuraAbilityDefinition>(Definition->DefaultLMBAbilityDefinition.Get()))
+	{
+		RequiredTags.Add(AbilityDefinition->AbilityTag);
+	}
+	for (const FGameplayTag& AbilityTag : RequiredTags)
+	{
+		if (ASC->CountAbilitySpecsByTag(AbilityTag) != 1)
+		{
+			OutFailure = FString::Printf(TEXT("Expected one role spec for %s."), *AbilityTag.ToString());
+			return false;
+		}
+	}
+	if (RoleId == TEXT("BungeeMan"))
+	{
+		const USkeletalMeshComponent* WeaponComponent = ICombatInterface::Execute_GetWeapon(PlayerCharacter);
+		if (!WeaponComponent || WeaponComponent->GetSkeletalMeshAsset() != Definition->WeaponMesh
+			|| Definition->WeaponTipSocketName != TEXT("Muzzle"))
+		{
+			OutFailure = TEXT("BungeeMan explicit rifle/Muzzle presentation is incomplete.");
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AAuraPlayerController::AuditRoleBattleDay6SaveReconciliation(FString& OutFailure) const
+{
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
+	const FRoleDefaultInfo* AuraDefinition = RoleInfo ? RoleInfo->RoleInformation.Find(TEXT("Aura")) : nullptr;
+	if (!GetWorld() || !AuraDefinition)
+	{
+		OutFailure = TEXT("Save audit could not resolve the Aura definition.");
+		return false;
+	}
+	FActorSpawnParameters Parameters;
+	Parameters.ObjectFlags |= RF_Transient;
+	AActor* AuditOwner = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, Parameters);
+	if (!AuditOwner)
+	{
+		OutFailure = TEXT("Save audit could not spawn its isolated owner.");
+		return false;
+	}
+	UAuraAbilitySystemComponent* AuditASC = NewObject<UAuraAbilitySystemComponent>(AuditOwner, NAME_None, RF_Transient);
+	AuditOwner->AddInstanceComponent(AuditASC);
+	AuditASC->RegisterComponent();
+	AuditASC->InitAbilityActorInfo(AuditOwner, AuditOwner);
+	AuditASC->AbilityActorInfoSet();
+	ULoadScreenSaveGame* Save = NewObject<ULoadScreenSaveGame>(AuditOwner);
+	Save->Role = TEXT("Aura");
+	FSavedAbility SavedFireBolt;
+	SavedFireBolt.AbilityTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt"));
+	SavedFireBolt.AbilityLevel = 2;
+	SavedFireBolt.AbilitySlot = FAuraGameplayTags::Get().InputTag_LMB;
+	SavedFireBolt.AbilityStatus = FAuraGameplayTags::Get().Abilities_Status_Equipped;
+	SavedFireBolt.GrantSource = static_cast<uint8>(EAuraAbilityGrantSource::Role);
+	SavedFireBolt.GrantedRoleId = TEXT("Aura");
+	Save->SavedAbilities.Add(SavedFireBolt);
+	FString Error;
+	const bool bApplied = AuditASC->ApplyRoleGrantSet(TEXT("Aura"), RoleInfo->RoleDefinitionVersion, *AuraDefinition, Save, Error);
+	const FGameplayAbilitySpec* FireBoltSpec = AuditASC->GetSpecFromAbilityTag(SavedFireBolt.AbilityTag);
+	const bool bPassed = bApplied && FireBoltSpec && FireBoltSpec->Level == 2
+		&& AuditASC->GetRoleGrantLedger().AbilitySpecHandles.Num() == 4;
+	if (!bPassed)
+	{
+		OutFailure = Error.IsEmpty() ? TEXT("Existing-save role grant reconciliation audit failed.") : Error;
+	}
+	AuditOwner->Destroy();
+	return bPassed;
+}
+
+void AAuraPlayerController::TickRoleBattleDay6NetworkProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (!bRoleBattleDay6ProbeEnabled) return;
+	AAuraCharacter* PlayerCharacter = GetPawn<AAuraCharacter>();
+	if (!PlayerCharacter || !PlayerCharacter->GetAppliedRoleState().IsValid() || !PlayerCharacter->HasValidCombatIdentity()) return;
+
+	if (!HasAuthority())
+	{
+		if (bRoleBattleDay6ClientAuditComplete) return;
+		const FName OtherRole = PlayerCharacter->GetAppliedRoleState().RoleId == TEXT("Aura") ? FName(TEXT("BungeeMan")) : FName(TEXT("Aura"));
+		const FAuraRoleApplicationResult Mutation = PlayerCharacter->ApplyRoleAtSpawn(OtherRole);
+		const bool bRejected = !Mutation.bSuccess && Mutation.Error == EAuraRoleApplicationError::NotAuthority;
+		UE_LOG(LogAura, Display,
+			TEXT("[Day6NetworkProbe][Client] Role=%s Combat=%s Presentation=1 ClientRoleMutationRejected=%d AuthorityGrantMutation=0"),
+			*PlayerCharacter->GetAppliedRoleState().RoleId.ToString(),
+			*PlayerCharacter->GetCombatIdentity().CombatProfileTag.ToString(), bRejected);
+		bRoleBattleDay6ClientAuditComplete = true;
+		bRoleBattleDay6ProbeEnabled = false;
+		GetWorldTimerManager().ClearTimer(RoleBattleDay6ProbeTimerHandle);
+		return;
+	}
+
+	FString Failure;
+	if (!ValidateRoleBattleDay6Pawn(PlayerCharacter, Failure)) return;
+	const UAuraAttributeSet* Attributes = Cast<UAuraAttributeSet>(PlayerCharacter->GetAttributeSet());
+	UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(PlayerCharacter->GetAbilitySystemComponent());
+	if (!Attributes || !ASC) return;
+
+	if (!bRoleBattleDay6InitialAuditComplete)
+	{
+		if (!AuditRoleBattleDay6SaveReconciliation(Failure))
+		{
+			UE_LOG(LogAura, Error, TEXT("[Day6NetworkProbe][Server] FAIL Role=%s Message=%s"),
+				*PlayerCharacter->GetAppliedRoleState().RoleId.ToString(), *Failure);
+			bRoleBattleDay6ProbeEnabled = false;
+			return;
+		}
+		const FName OtherRole = PlayerCharacter->GetAppliedRoleState().RoleId == TEXT("Aura") ? FName(TEXT("BungeeMan")) : FName(TEXT("Aura"));
+		const FAuraRoleApplicationResult Switch = PlayerCharacter->ApplyRoleAtSpawn(OtherRole);
+		if (Switch.bSuccess || Switch.Error != EAuraRoleApplicationError::UnsupportedLiveSwitch)
+		{
+			UE_LOG(LogAura, Error, TEXT("[Day6NetworkProbe][Server] FAIL Role=%s Message=LiveSwitchAccepted"),
+				*PlayerCharacter->GetAppliedRoleState().RoleId.ToString());
+			bRoleBattleDay6ProbeEnabled = false;
+			return;
+		}
+		RoleBattleDay6ExpectedMaxHealth = Attributes->GetMaxHealth();
+		RoleBattleDay6ExpectedMaxMana = Attributes->GetMaxMana();
+		RoleBattleDay6PreviousPawn = PlayerCharacter;
+		bRoleBattleDay6InitialAuditComplete = true;
+		UE_LOG(LogAura, Display,
+			TEXT("[Day6NetworkProbe][Server] Role=%s Combat=%s AppliedProfiles=1 ServerRoleGrants=1 ExistingSaveReconciliation=1 LiveSwitchRejected=1 Respawn=0/2"),
+			*PlayerCharacter->GetAppliedRoleState().RoleId.ToString(), *PlayerCharacter->GetCombatIdentity().CombatProfileTag.ToString());
+		PlayerCharacter->Die(FVector::ZeroVector);
+		return;
+	}
+
+	if (RoleBattleDay6PreviousPawn.Get() == PlayerCharacter) return;
+	if (!FMath::IsNearlyEqual(Attributes->GetMaxHealth(), RoleBattleDay6ExpectedMaxHealth, 0.1f)
+		|| !FMath::IsNearlyEqual(Attributes->GetMaxMana(), RoleBattleDay6ExpectedMaxMana, 0.1f))
+	{
+		UE_LOG(LogAura, Error, TEXT("[Day6NetworkProbe][Server] FAIL Role=%s Message=AttributeMaximaChanged"),
+			*PlayerCharacter->GetAppliedRoleState().RoleId.ToString());
+		bRoleBattleDay6ProbeEnabled = false;
+		return;
+	}
+	++RoleBattleDay6Respawns;
+	UE_LOG(LogAura, Display, TEXT("[Day6NetworkProbe][Server] Role=%s Respawn=%d/2 LedgerRole=%s RoleSpecs=%d"),
+		*PlayerCharacter->GetAppliedRoleState().RoleId.ToString(), RoleBattleDay6Respawns,
+		*ASC->GetRoleGrantLedger().GrantedRoleId.ToString(), ASC->GetRoleGrantLedger().AbilitySpecHandles.Num());
+	if (RoleBattleDay6Respawns >= 2)
+	{
+		UE_LOG(LogAura, Display, TEXT("[Day6NetworkProbe][Server] PASS Role=%s Respawns=2 Profiles=1 Idempotent=1"),
+			*PlayerCharacter->GetAppliedRoleState().RoleId.ToString());
+		bRoleBattleDay6ProbeEnabled = false;
+		GetWorldTimerManager().ClearTimer(RoleBattleDay6ProbeTimerHandle);
+		return;
+	}
+	RoleBattleDay6PreviousPawn = PlayerCharacter;
+	PlayerCharacter->Die(FVector::ZeroVector);
+#endif
 }
 
 bool AAuraPlayerController::ValidateRoleBattleDay1Assets(FString& OutFailure) const

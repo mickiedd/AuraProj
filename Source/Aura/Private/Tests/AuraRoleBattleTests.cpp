@@ -22,12 +22,16 @@
 #include "Engine/World.h"
 #include "Engine/SkeletalMesh.h"
 #include "GameFramework/Actor.h"
+#include "Game/LoadScreenSaveGame.h"
 #include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "UObject/CoreNet.h"
 #include "Player/AuraPlayerState.h"
 #include "AbilitySystem/Abilities/AuraDamageGameplayAbility.h"
+#if WITH_EDITOR
+#include "Tests/Fixtures/AuraRoleApplicationTestActor.h"
+#endif
 
 namespace AuraRoleBattleTestsPrivate
 {
@@ -1504,11 +1508,11 @@ bool FAuraDay5NetworkCharacterConsumesAcceptedRoleTest::RunTest(const FString& P
 	}
 
 	TestTrue(TEXT("Network path reads the connection-scoped accepted role"), CharacterSource.Contains(TEXT("GetPendingAcceptedRoleId")));
-	TestTrue(TEXT("Network path replicates the accepted role to PlayerState"), CharacterSource.Contains(TEXT("AuraPlayerState->SetRole(AcceptedRole)")));
-	TestTrue(TEXT("Network path applies accepted role visuals"), CharacterSource.Contains(TEXT("ApplyRole(AcceptedRole)")));
-	TestTrue(TEXT("Network path initializes attributes from accepted role"), CharacterSource.Contains(TEXT("InitializeDefaultAttributesForRole(AcceptedRole)")));
+	TestTrue(TEXT("Accepted role enters the single spawn transaction"), CharacterSource.Contains(TEXT("ApplyRoleAtSpawn(AuthorizedRole, SaveData)")));
+	TestFalse(TEXT("Network path no longer commits PlayerState before the transaction"), CharacterSource.Contains(TEXT("AuraPlayerState->SetRole(AcceptedRole)")));
+	TestFalse(TEXT("Network path no longer grants outside the transaction"), CharacterSource.Contains(TEXT("AddCharacterAbilitiesFromSaveData(SaveData)")));
 	TestFalse(TEXT("Network path no longer initializes the default role"), CharacterSource.Contains(TEXT("InitializeDefaultAttributesForRole(UAuraAbilitySystemLibrary::GetDefaultRole(this))")));
-	TestTrue(TEXT("Accepted role remains available for respawn"), CharacterSource.Contains(TEXT("Keep the accepted role on PlayerState for pawn replacement/respawn")));
+	TestTrue(TEXT("Accepted role remains connection-scoped for respawn"), CharacterSource.Contains(TEXT("AuraPlayerState->HasPendingAcceptedRoleId()")));
 	return true;
 }
 
@@ -1533,5 +1537,319 @@ bool FAuraDay5SavedRoleIdCompatibilityTest::RunTest(const FString& Parameters)
 }
 
 #undef AURA_DAY5_TEST
+
+#if WITH_EDITOR
+
+namespace AuraRoleBattleDay6TestsPrivate
+{
+	AAuraRoleApplicationTestActor* SpawnFixture(FName RoleId,
+		UAuraAbilitySystemComponent* ExternalASC = nullptr, UAttributeSet* ExternalAttributes = nullptr,
+		AActor* ExternalOwner = nullptr)
+	{
+		UWorld* World = AuraRoleBattleTestsPrivate::FindAutomationWorld();
+		const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(World);
+		const FRoleDefaultInfo* RoleDefinition = RoleInfo ? RoleInfo->RoleInformation.Find(RoleId) : nullptr;
+		if (!World || !RoleDefinition) return nullptr;
+
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.ObjectFlags |= RF_Transient;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		AAuraRoleApplicationTestActor* Fixture = World->SpawnActor<AAuraRoleApplicationTestActor>(
+			AAuraRoleApplicationTestActor::StaticClass(), FTransform::Identity, SpawnParameters);
+		if (!Fixture) return nullptr;
+		Fixture->ConfigureRoleShell(RoleDefinition->EntityType, RoleDefinition->ControlType);
+		if (ExternalASC)
+		{
+			Fixture->UseExternalAbilitySystem(ExternalASC, ExternalAttributes);
+		}
+		if (!Fixture->InitializeTestAbilityActorInfo(ExternalOwner))
+		{
+			Fixture->Destroy();
+			return nullptr;
+		}
+		return Fixture;
+	}
+
+	TArray<FGameplayTag> GetRequiredTags(const FRoleDefaultInfo& RoleDefinition)
+	{
+		TArray<FGameplayTag> Tags;
+		for (const TObjectPtr<UObject>& Object : RoleDefinition.StartupAbilityDefinitions)
+		{
+			if (const UAuraAbilityDefinition* Definition = Cast<UAuraAbilityDefinition>(Object.Get())) Tags.Add(Definition->AbilityTag);
+		}
+		for (const TObjectPtr<UObject>& Object : RoleDefinition.StartupPassiveAbilityDefinitions)
+		{
+			if (const UAuraAbilityDefinition* Definition = Cast<UAuraAbilityDefinition>(Object.Get())) Tags.Add(Definition->AbilityTag);
+		}
+		if (const UAuraAbilityDefinition* Definition = Cast<UAuraAbilityDefinition>(RoleDefinition.DefaultLMBAbilityDefinition.Get()))
+		{
+			Tags.Add(Definition->AbilityTag);
+		}
+		return Tags;
+	}
+}
+
+#define AURA_DAY6_TEST(ClassName, TestName) \
+	IMPLEMENT_SIMPLE_AUTOMATION_TEST(ClassName, "Aura.RoleBattle.Day6." TestName, EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+AURA_DAY6_TEST(FAuraDay6AuraAppliedIdentityAndProfilesTest, "AuraAppliedIdentityAndProfiles")
+bool FAuraDay6AuraAppliedIdentityAndProfilesTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Aura"));
+	if (!TestNotNull(TEXT("Aura role fixture spawned"), Fixture)) return false;
+	const FAuraRoleApplicationResult Result = Fixture->ApplyRoleAtSpawn(TEXT("Aura"));
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	TestTrue(TEXT("Aura applies transactionally"), Result.bSuccess);
+	TestEqual(TEXT("Aura final combat profile"), Fixture->GetCombatIdentity().CombatProfileTag, Tags.Combat_Magic);
+	TestEqual(TEXT("Aura entity profile"), Fixture->GetAppliedRoleState().EntityTypeTag, Tags.Entity_Player);
+	TestEqual(TEXT("Aura economy profile"), Fixture->GetAppliedRoleState().EconomyProfileTag, Tags.Economy_None);
+	TestEqual(TEXT("Aura interaction profile"), Fixture->GetAppliedRoleState().InteractionProfileTag, Tags.Interaction_Combatant);
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6BungeeAppliedIdentityAndProfilesTest, "BungeeAppliedIdentityAndProfiles")
+bool FAuraDay6BungeeAppliedIdentityAndProfilesTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
+	if (!TestNotNull(TEXT("BungeeMan role fixture spawned"), Fixture)) return false;
+	const FAuraRoleApplicationResult Result = Fixture->ApplyRoleAtSpawn(TEXT("BungeeMan"));
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	TestTrue(TEXT("BungeeMan applies transactionally"), Result.bSuccess);
+	TestEqual(TEXT("BungeeMan final combat profile"), Fixture->GetCombatIdentity().CombatProfileTag, Tags.Combat_Gun);
+	TestEqual(TEXT("BungeeMan role ID published"), Fixture->GetAppliedRoleState().RoleId, FName(TEXT("BungeeMan")));
+	TestEqual(TEXT("BungeeMan muzzle socket published"), Fixture->GetWeaponTipSocketForTest(), FName(TEXT("Muzzle")));
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6FreshCivilianDefinitionHasEmptyLoadoutTest, "FreshCivilianDefinitionHasEmptyLoadout")
+bool FAuraDay6FreshCivilianDefinitionHasEmptyLoadoutTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Civilian"));
+	if (!TestNotNull(TEXT("Civilian fixture spawned"), Fixture)) return false;
+	const FAuraRoleApplicationResult Result = Fixture->ApplyRoleAtSpawn(TEXT("Civilian"));
+	TestTrue(TEXT("Compatible actor-owned civilian applies"), Result.bSuccess);
+	TestEqual(TEXT("Civilian grants no specs"), Fixture->GetTestASC()->GetActivatableAbilities().Num(), 0);
+	TestNull(TEXT("Civilian equips no weapon"), Fixture->GetEquippedWeaponMesh());
+	TestFalse(TEXT("Civilian cannot attack"), Fixture->GetCombatIdentity().bCanAttack);
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6ExplicitEquipmentOnlyTest, "ExplicitEquipmentOnly")
+bool FAuraDay6ExplicitEquipmentOnlyTest::RunTest(const FString& Parameters)
+{
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(nullptr);
+	const FRoleDefaultInfo* Bungee = RoleInfo ? RoleInfo->RoleInformation.Find(TEXT("BungeeMan")) : nullptr;
+	AAuraRoleApplicationTestActor* Armed = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
+	AAuraRoleApplicationTestActor* Unarmed = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Civilian"));
+	if (!TestNotNull(TEXT("Armed fixture"), Armed) || !TestNotNull(TEXT("Unarmed fixture"), Unarmed) || !Bungee) return false;
+	TestTrue(TEXT("Armed role applies"), Armed->ApplyRoleAtSpawn(TEXT("BungeeMan")).bSuccess);
+	TestTrue(TEXT("Unarmed role applies"), Unarmed->ApplyRoleAtSpawn(TEXT("Civilian")).bSuccess);
+	TestTrue(TEXT("Only explicit Bungee equipment is used"), Armed->GetEquippedWeaponMesh() == Bungee->WeaponMesh.Get());
+	TestNull(TEXT("Missing equipment structure clears inherited weapon"), Unarmed->GetEquippedWeaponMesh());
+	Armed->Destroy();
+	Unarmed->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6SpawnGrantIdempotenceTest, "SpawnGrantIdempotence")
+bool FAuraDay6SpawnGrantIdempotenceTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
+	if (!TestNotNull(TEXT("BungeeMan fixture"), Fixture)) return false;
+	UAuraAbilitySystemComponent* ASC = Fixture->GetTestASC();
+	int32 Notifications = 0;
+	ASC->AbilitiesGivenDelegate.AddLambda([&Notifications]() { ++Notifications; });
+	TestTrue(TEXT("First apply succeeds"), Fixture->ApplyRoleAtSpawn(TEXT("BungeeMan")).bSuccess);
+	TestTrue(TEXT("Same-role reapply succeeds"), Fixture->ApplyRoleAtSpawn(TEXT("BungeeMan")).bSuccess);
+	const FGameplayTag FireGun = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"));
+	TestEqual(TEXT("Exactly one FireGun spec"), ASC->CountAbilitySpecsByTag(FireGun), 1);
+	TestEqual(TEXT("Grant notification fires once"), Notifications, 1);
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6PersistentASCRespawnLedgerTest, "PersistentASCRespawnLedger")
+bool FAuraDay6PersistentASCRespawnLedgerTest::RunTest(const FString& Parameters)
+{
+	UWorld* World = AuraRoleBattleTestsPrivate::FindAutomationWorld();
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.ObjectFlags |= RF_Transient;
+	AAuraPlayerState* PlayerState = World ? World->SpawnActor<AAuraPlayerState>(SpawnParameters) : nullptr;
+	if (!TestNotNull(TEXT("Persistent PlayerState spawned"), PlayerState)) return false;
+	UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(PlayerState->GetAbilitySystemComponent());
+	UAttributeSet* Attributes = PlayerState->GetAttributeSet();
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(World);
+	const FRoleDefaultInfo* Aura = RoleInfo ? RoleInfo->RoleInformation.Find(TEXT("Aura")) : nullptr;
+	if (!TestNotNull(TEXT("Persistent ASC"), ASC) || !Aura) return false;
+	int32 Notifications = 0;
+	ASC->AbilitiesGivenDelegate.AddLambda([&Notifications]() { ++Notifications; });
+	float ExpectedMaxHealth = 0.f;
+	float ExpectedMaxMana = 0.f;
+	for (int32 SpawnIndex = 0; SpawnIndex < 3; ++SpawnIndex)
+	{
+		AAuraRoleApplicationTestActor* Pawn = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Aura"), ASC, Attributes, PlayerState);
+		if (!TestNotNull(FString::Printf(TEXT("Pawn %d spawned"), SpawnIndex + 1), Pawn)) return false;
+		TestTrue(FString::Printf(TEXT("Pawn %d applies same role"), SpawnIndex + 1), Pawn->ApplyRoleAtSpawn(TEXT("Aura")).bSuccess);
+		const UAuraAttributeSet* AuraAttributes = Cast<UAuraAttributeSet>(Attributes);
+		if (SpawnIndex == 0)
+		{
+			ExpectedMaxHealth = AuraAttributes->GetMaxHealth();
+			ExpectedMaxMana = AuraAttributes->GetMaxMana();
+		}
+		else
+		{
+			TestEqual(TEXT("MaxHealth unchanged across pawn replacement"), AuraAttributes->GetMaxHealth(), ExpectedMaxHealth);
+			TestEqual(TEXT("MaxMana unchanged across pawn replacement"), AuraAttributes->GetMaxMana(), ExpectedMaxMana);
+		}
+		for (const FGameplayTag& Tag : AuraRoleBattleDay6TestsPrivate::GetRequiredTags(*Aura))
+		{
+			TestEqual(FString::Printf(TEXT("One persistent spec for %s"), *Tag.ToString()), ASC->CountAbilitySpecsByTag(Tag), 1);
+		}
+		TestEqual(TEXT("Pawn receives final magic identity"), Pawn->GetCombatIdentity().CombatProfileTag, FAuraGameplayTags::Get().Combat_Magic);
+		Pawn->Destroy();
+	}
+	TestEqual(TEXT("One grant notification across three pawns"), Notifications, 1);
+	TestEqual(TEXT("Ledger retains Aura"), ASC->GetRoleGrantLedger().GrantedRoleId, FName(TEXT("Aura")));
+	PlayerState->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6ExistingSaveGrantReconciliationTest, "ExistingSaveGrantReconciliation")
+bool FAuraDay6ExistingSaveGrantReconciliationTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Aura"));
+	if (!TestNotNull(TEXT("Aura fixture"), Fixture)) return false;
+	ULoadScreenSaveGame* Save = NewObject<ULoadScreenSaveGame>();
+	Save->Role = TEXT("Aura");
+	Save->bFirstTimeLoadIn = true;
+	FSavedAbility FireBolt;
+	FireBolt.AbilityTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt"));
+	FireBolt.AbilitySlot = FAuraGameplayTags::Get().InputTag_LMB;
+	FireBolt.AbilityStatus = FAuraGameplayTags::Get().Abilities_Status_Equipped;
+	FireBolt.AbilityLevel = 3;
+	FireBolt.GrantSource = static_cast<uint8>(EAuraAbilityGrantSource::Role);
+	FireBolt.GrantedRoleId = TEXT("Aura");
+	Save->SavedAbilities.Add(FireBolt);
+	TestTrue(TEXT("Saved Aura reconciles"), Fixture->ApplyRoleAtSpawn(TEXT("Aura"), Save).bSuccess);
+	FGameplayAbilitySpec* Restored = Fixture->GetTestASC()->GetSpecFromAbilityTag(FireBolt.AbilityTag);
+	TestTrue(TEXT("Saved FireBolt retained level/slot/status"), Restored && Restored->Level == 3
+		&& UAuraAbilitySystemComponent::AbilityHasSlot(*Restored, FireBolt.AbilitySlot)
+		&& UAuraAbilitySystemComponent::GetStatusFromSpec(*Restored).MatchesTagExact(FireBolt.AbilityStatus));
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(nullptr);
+	for (const FGameplayTag& Tag : AuraRoleBattleDay6TestsPrivate::GetRequiredTags(RoleInfo->GetRoleDefaultInfo(TEXT("Aura"))))
+	{
+		TestEqual(FString::Printf(TEXT("Save reconciliation produces one %s"), *Tag.ToString()), Fixture->GetTestASC()->CountAbilitySpecsByTag(Tag), 1);
+	}
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6RemovedRoleGrantNotPromotedTest, "RemovedRoleGrantNotPromoted")
+bool FAuraDay6RemovedRoleGrantNotPromotedTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
+	if (!TestNotNull(TEXT("Bungee fixture"), Fixture)) return false;
+	ULoadScreenSaveGame* Save = NewObject<ULoadScreenSaveGame>();
+	Save->Role = TEXT("BungeeMan");
+	FSavedAbility Removed;
+	Removed.AbilityTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Lightning.Electrocute"));
+	Removed.GrantSource = static_cast<uint8>(EAuraAbilityGrantSource::Role);
+	Removed.GrantedRoleId = TEXT("BungeeMan");
+	Save->SavedAbilities.Add(Removed);
+	TestTrue(TEXT("Role applies while removed grant is quarantined"), Fixture->ApplyRoleAtSpawn(TEXT("BungeeMan"), Save).bSuccess);
+	TestEqual(TEXT("Removed role grant is not restored as progression"), Fixture->GetTestASC()->CountAbilitySpecsByTag(Removed.AbilityTag), 0);
+	TestEqual(TEXT("Current FireGun requirement is reconciled"), Fixture->GetTestASC()->CountAbilitySpecsByTag(
+		FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"))), 1);
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6RoleGrantSourceMetadataTest, "RoleGrantSourceMetadata")
+bool FAuraDay6RoleGrantSourceMetadataTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
+	if (!TestNotNull(TEXT("Bungee fixture"), Fixture)) return false;
+	TestTrue(TEXT("Bungee role applies"), Fixture->ApplyRoleAtSpawn(TEXT("BungeeMan")).bSuccess);
+	const FGameplayTag FireGun = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"));
+	FGameplayAbilitySpec* Spec = Fixture->GetTestASC()->GetSpecFromAbilityTag(FireGun);
+	FName GrantedRoleId;
+	TestTrue(TEXT("FireGun has replicated role-source tag"), Spec && Spec->GetDynamicSpecSourceTags().HasTagExact(FAuraGameplayTags::Get().GrantSource_Role));
+	if (Spec)
+	{
+		TestEqual(TEXT("Server provenance map retains role ID"), Fixture->GetTestASC()->GetGrantSourceForSpec(*Spec, GrantedRoleId), EAuraAbilityGrantSource::Role);
+		TestEqual(TEXT("Server provenance is BungeeMan"), GrantedRoleId, FName(TEXT("BungeeMan")));
+	}
+	TestTrue(TEXT("Definition remains SourceObject"), Spec && Spec->SourceObject.IsValid() && Spec->SourceObject.Get()->IsA<UAuraAbilityDefinition>());
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6ClientRoleMutationRejectedTest, "ClientRoleMutationRejected")
+bool FAuraDay6ClientRoleMutationRejectedTest::RunTest(const FString& Parameters)
+{
+	AAuraPlayerState* ClientLikeState = NewObject<AAuraPlayerState>(GetTransientPackage());
+	ClientLikeState->AActor::SetRole(ROLE_SimulatedProxy);
+	TestFalse(TEXT("Non-authority PlayerState role write is rejected"), ClientLikeState->SetRole(TEXT("BungeeMan")));
+	TestTrue(TEXT("Rejected mutation publishes no role"), ClientLikeState->GetRole().IsNone());
+	const FString SourcePath = FPaths::ProjectDir() / TEXT("Source/Aura/Private/Character/AuraCharacterBase.cpp");
+	FString Source;
+	TestTrue(TEXT("Role application source is readable"), FFileHelper::LoadFileToString(Source, *SourcePath));
+	TestTrue(TEXT("ApplyRoleAtSpawn has an authority gate"), Source.Contains(TEXT("if (!HasAuthority())"))
+		&& Source.Contains(TEXT("EAuraRoleApplicationError::NotAuthority")));
+	for (const TCHAR* RelativePath : {
+		TEXT("Source/Aura/Private/UI/ViewModel/MVVM_LoadScreen.cpp"),
+		TEXT("Source/Aura/Private/UI/WidgetController/AuraWidgetController.cpp"),
+		TEXT("Source/Aura/Private/UI/WidgetController/OverlayWidgetController.cpp"),
+		TEXT("Source/Aura/Private/UI/WidgetController/SpellMenuWidgetController.cpp")})
+	{
+		FString UISource;
+		const FString UIPath = FPaths::ProjectDir() / RelativePath;
+		TestTrue(FString::Printf(TEXT("UI source is readable: %s"), RelativePath), FFileHelper::LoadFileToString(UISource, *UIPath));
+		TestFalse(FString::Printf(TEXT("UI does not authorize role application: %s"), RelativePath), UISource.Contains(TEXT("ApplyRoleAtSpawn")));
+		TestFalse(FString::Printf(TEXT("UI does not grant abilities: %s"), RelativePath), UISource.Contains(TEXT("GiveAbility(")));
+		TestFalse(FString::Printf(TEXT("UI does not initialize authoritative role attributes: %s"), RelativePath), UISource.Contains(TEXT("InitializeDefaultAttributesForRole")));
+	}
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6LiveRoleSwitchRejectedTest, "LiveRoleSwitchRejected")
+bool FAuraDay6LiveRoleSwitchRejectedTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Aura"));
+	if (!TestNotNull(TEXT("Aura fixture"), Fixture)) return false;
+	TestTrue(TEXT("Initial Aura applies"), Fixture->ApplyRoleAtSpawn(TEXT("Aura")).bSuccess);
+	const int32 SpecsBefore = Fixture->GetTestASC()->GetActivatableAbilities().Num();
+	const FAuraRoleApplicationResult LedgerSwitch = Fixture->ApplyRoleAtSpawn(TEXT("BungeeMan"));
+	TestFalse(TEXT("Persistent ledger rejects different player role"), LedgerSwitch.bSuccess);
+	TestEqual(TEXT("Ledger rejection is unsupported live switch"), LedgerSwitch.Error, EAuraRoleApplicationError::UnsupportedLiveSwitch);
+	TestEqual(TEXT("Applied role remains Aura"), Fixture->GetAppliedRoleState().RoleId, FName(TEXT("Aura")));
+	TestEqual(TEXT("Spec count is unchanged"), Fixture->GetTestASC()->GetActivatableAbilities().Num(), SpecsBefore);
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6ApplicationFailureIsAtomicTest, "ApplicationFailureIsAtomic")
+bool FAuraDay6ApplicationFailureIsAtomicTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Civilian"));
+	if (!TestNotNull(TEXT("Civilian shell fixture"), Fixture)) return false;
+	const FAuraCombatIdentity IdentityBefore = Fixture->GetCombatIdentity();
+	const FAuraRoleApplicationResult Failure = Fixture->ApplyRoleAtSpawn(TEXT("Aura"));
+	TestFalse(TEXT("Incompatible candidate fails staging"), Failure.bSuccess);
+	TestTrue(TEXT("No applied state is published"), Fixture->GetAppliedRoleState().RoleId.IsNone());
+	TestTrue(TEXT("Combat identity is unchanged"), Fixture->GetCombatIdentity() == IdentityBefore);
+	TestEqual(TEXT("No ability grant is published"), Fixture->GetTestASC()->GetActivatableAbilities().Num(), 0);
+	TestNull(TEXT("No equipment is published"), Fixture->GetEquippedWeaponMesh());
+	TestFalse(TEXT("Attribute initialization remains uncommitted"), Fixture->GetTestASC()->GetRoleGrantLedger().bAttributesInitialized);
+	Fixture->Destroy();
+	return true;
+}
+
+#undef AURA_DAY6_TEST
+
+#endif
 
 #endif

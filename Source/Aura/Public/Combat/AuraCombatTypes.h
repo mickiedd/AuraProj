@@ -51,6 +51,49 @@ enum class EAuraCombatRuleRejectionReason : uint8
 };
 
 /**
+ * Replicated non-combat half of an applied role. Concrete merchant, job, and
+ * offer identities intentionally do not belong here; those are population data.
+ */
+USTRUCT(BlueprintType)
+struct AURA_API FAuraAppliedRoleState
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Applied Role")
+	FName RoleId = NAME_None;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Applied Role")
+	FGameplayTag EntityTypeTag;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Applied Role")
+	FGameplayTag EconomyProfileTag;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Applied Role")
+	FGameplayTag InteractionProfileTag;
+
+	bool IsValid() const
+	{
+		return !RoleId.IsNone()
+			&& EntityTypeTag.IsValid()
+			&& EconomyProfileTag.IsValid()
+			&& InteractionProfileTag.IsValid();
+	}
+
+	bool operator==(const FAuraAppliedRoleState& Other) const
+	{
+		return RoleId == Other.RoleId
+			&& EntityTypeTag.MatchesTagExact(Other.EntityTypeTag)
+			&& EconomyProfileTag.MatchesTagExact(Other.EconomyProfileTag)
+			&& InteractionProfileTag.MatchesTagExact(Other.InteractionProfileTag);
+	}
+
+	bool operator!=(const FAuraAppliedRoleState& Other) const
+	{
+		return !(*this == Other);
+	}
+};
+
+/**
  * Server-owned relationship policy. The fields intentionally have no public
  * mutators; a valid permissive snapshot can only be produced by an
  * authoritative resolver or the development-only test factory.
@@ -148,10 +191,10 @@ struct AURA_API FAuraCombatIdentity
 
 	bool operator==(const FAuraCombatIdentity& Other) const
 	{
-		return FactionTag.MatchesTagExact(Other.FactionTag)
-			&& ControlTypeTag.MatchesTagExact(Other.ControlTypeTag)
-			&& CombatProfileTag.MatchesTagExact(Other.CombatProfileTag)
-			&& DeathPolicyTag.MatchesTagExact(Other.DeathPolicyTag)
+		return FactionTag == Other.FactionTag
+			&& ControlTypeTag == Other.ControlTypeTag
+			&& CombatProfileTag == Other.CombatProfileTag
+			&& DeathPolicyTag == Other.DeathPolicyTag
 			&& bTargetable == Other.bTargetable
 			&& bCanAttack == Other.bCanAttack
 			&& bCanBeDamaged == Other.bCanBeDamaged

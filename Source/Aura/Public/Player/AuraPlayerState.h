@@ -61,11 +61,12 @@ public:
 	void SetLevel(int32 InLevel);
 	void SetAttributePoints(int32 InPoints);
 	void SetSpellPoints(int32 InPoints);
-	void SetRole(FName InRole);
+	/** Authority-only persistent role commit. Returns false for client mutation attempts. */
+	bool SetRole(FName InRole);
 
 	/** True after the persistent ASC has received its initial attribute set. */
-	bool HasInitializedDefaultAttributes() const { return bDefaultAttributesInitialized; }
-	void MarkDefaultAttributesInitialized() { bDefaultAttributesInitialized = true; }
+	bool HasInitializedDefaultAttributes() const;
+	void MarkDefaultAttributesInitialized();
 	
 protected:
 	
@@ -95,10 +96,6 @@ private:
 	/** Authority-only connection request accepted by GameMode; Day 06 consumes this into CharacterRole. */
 	UPROPERTY(Transient)
 	FName PendingAcceptedRoleId = NAME_None;
-
-	/** Runtime-only guard because the ASC/attributes persist while the pawn respawns. */
-	UPROPERTY(Transient)
-	bool bDefaultAttributesInitialized = false;
 
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
