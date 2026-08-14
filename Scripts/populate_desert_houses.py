@@ -125,7 +125,9 @@ def load_world():
             return unreal.EditorLoadingAndSavingUtils.load_map(LEVEL_PATH, False, False)
         except Exception:
             try:
-                return unreal.EditorLevelLibrary.load_editor_level(LEVEL_PATH)
+                level_editor = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
+                if level_editor.load_level(LEVEL_PATH):
+                    return _editor_world()
             except Exception:
                 return _editor_world()
 

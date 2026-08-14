@@ -130,7 +130,12 @@ def main():
             world = unreal.EditorLoadingAndSavingUtils.load_map(LEVEL_PATH, False, False)
         except Exception:
             try:
-                world = unreal.EditorLevelLibrary.load_editor_level(LEVEL_PATH)
+                # UE5.5 exposes LevelEditorSubsystem.load_level; the old
+                # EditorLevelLibrary.load_editor_level binding was removed.
+                level_editor = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
+                loaded = level_editor.load_level(LEVEL_PATH)
+                if loaded:
+                    world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
             except Exception as e1:
                 unreal.log_warning("load_map variants failed: {}".format(e1))
     # fallback: use whatever world is currently loaded (e.g. user already opened this level)
@@ -140,7 +145,10 @@ def main():
         unreal.log_error("Failed to load level " + LEVEL_PATH + ". Open it in the editor first, then run the script.")
         return
 
-    actors = unreal.EditorLevelLibrary.get_all_level_actors()
+    try:
+        actors = unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors()
+    except Exception:
+        actors = unreal.EditorLevelLibrary.get_all_level_actors()
     total = len(actors)
     unreal.log("Total actors in level: {}".format(total))
 

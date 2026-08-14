@@ -667,13 +667,19 @@ class GameServerManager:
                 self._clear_ready_state(level_id)
                 logger.info("[%s] Cleared stale ready state for levelId='%s' before launch", request_id, level_id)
 
-                # Build the dedicated server binary before launching.
-                # Skipped when running through UnrealEditor (editor-server mode).
+                # Resolve the packaged server binary before launching. The manager can
+                # stay alive while a first build creates AuraServer.exe; keeping
+                # self.server_exe=None in that case used to force every first
+                # request through a blocking UBT build and exceed the client's
+                # 35-second query budget even though the binary was already ready.
+                if self.server_exe is None or not self.server_exe.exists():
+                    self.server_exe = self.locate_server_exe()
+
                 is_editor_mode = (
                     self.server_exe is not None
                     and self.server_exe.name.lower() == "unrealeditor.exe"
                 )
-                if not is_editor_mode:
+                if self.server_exe is None and not is_editor_mode:
                     logger.info(
                         "[%s] Server not running — building AuraServer binary before launch (levelId='%s')",
                         request_id, level_id,

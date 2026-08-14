@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <title>BungeeMan weapon attachment alignment</title>
+  <desc>Before and after flow for correcting the BungeeMan rifle body socket in Unreal Editor through remote Python.</desc>
+  <style>
+    .bg { fill: #101827; }
+    .panel { fill: #18263a; stroke: #48627e; stroke-width: 2; rx: 16; }
+    .before { fill: #3b2430; stroke: #d27883; stroke-width: 2; rx: 12; }
+    .after { fill: #173b38; stroke: #58d1ae; stroke-width: 2; rx: 12; }
+    .check { fill: #203653; stroke: #80b7ff; stroke-width: 2; rx: 12; }
+    .title { fill: #f4f7fb; font: 700 28px Arial, sans-serif; }
+    .heading { fill: #f4f7fb; font: 700 20px Arial, sans-serif; }
+    .label { fill: #dce7f4; font: 16px Arial, sans-serif; }
+    .small { fill: #b8c9db; font: 14px Arial, sans-serif; }
+    .bad { fill: #ffb2b9; font: 700 16px Arial, sans-serif; }
+    .good { fill: #8cf0cc; font: 700 16px Arial, sans-serif; }
+    .line { stroke: #91abc5; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    .socket { fill: #f7c96b; stroke: #fff1bd; stroke-width: 2; }
+    .rifle { fill: #d9e4ee; stroke: #8ba7c4; stroke-width: 2; }
+    .body { fill: #f59a3d; stroke: #ffd09a; stroke-width: 2; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#91abc5"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1200" height="760"/>
+  <text class="title" x="56" y="54">BungeeMan rifle attachment alignment</text>
+  <text class="small" x="56" y="82">Remote Unreal Python preview identified a zeroed hand socket; the saved body socket now carries the rifle alignment.</text>
+
+  <rect class="panel" x="40" y="112" width="1120" height="230"/>
+  <text class="heading" x="70" y="150">Before: SnapToTarget with zero socket transform</text>
+  <rect class="before" x="70" y="176" width="286" height="124"/>
+  <text class="label" x="92" y="204">SKM_BungeeMan</text>
+  <text class="small" x="92" y="230">WeaponHandSocket on hand_l</text>
+  <text class="bad" x="92" y="264">Location 0,0,0</text>
+  <text class="bad" x="92" y="286">Rotation 0,0,0</text>
+  <path class="line" d="M356 238 L470 238"/>
+  <rect class="before" x="486" y="176" width="286" height="124"/>
+  <text class="label" x="508" y="204">Runtime attach</text>
+  <text class="small" x="508" y="230">Snap rifle to hand socket</text>
+  <text class="bad" x="508" y="264">Rifle sits at wrist/waist</text>
+  <text class="bad" x="508" y="286">Flat, unnatural presentation</text>
+  <path class="line" d="M772 238 L886 238"/>
+  <rect class="before" x="902" y="176" width="226" height="124"/>
+  <text class="heading" x="932" y="214">Observed</text>
+  <circle class="body" cx="980" cy="262" r="20"/>
+  <path class="body" d="M980 284 L980 300 M962 292 L998 292"/>
+  <path class="rifle" d="M947 274 L1035 274 L1047 279 L1035 284 L947 284 Z"/>
+  <text class="small" x="925" y="322">weapon across low body</text>
+
+  <rect class="panel" x="40" y="370" width="1120" height="250"/>
+  <text class="heading" x="70" y="408">After: align the authored body socket</text>
+  <rect class="after" x="70" y="434" width="286" height="150"/>
+  <text class="label" x="92" y="462">Remote Python edit</text>
+  <text class="small" x="92" y="488">WeaponHandSocket on hand_l</text>
+  <text class="good" x="92" y="524">Offset Z = -35 cm</text>
+  <text class="good" x="92" y="550">Stored rotation P90 Y0 R15</text>
+  <text class="small" x="92" y="574">Saved mesh and skeleton assets</text>
+  <path class="line" d="M356 509 L470 509"/>
+  <rect class="after" x="486" y="434" width="286" height="150"/>
+  <text class="label" x="508" y="462">Existing runtime path</text>
+  <text class="small" x="508" y="488">SnapToTarget uses the socket</text>
+  <text class="good" x="508" y="524">No C++ attach change needed</text>
+  <text class="small" x="508" y="550">Server and client share the asset</text>
+  <path class="line" d="M772 509 L886 509"/>
+  <rect class="after" x="902" y="434" width="226" height="150"/>
+  <text class="heading" x="932" y="472">Result</text>
+  <circle class="body" cx="980" cy="525" r="20"/>
+  <path class="body" d="M980 547 L980 565 M962 555 L998 555"/>
+  <path class="rifle" d="M936 531 L1028 500 L1040 503 L1030 510 L940 540 Z"/>
+  <text class="good" x="922" y="606">raised and angled across chest</text>
+
+  <rect class="check" x="40" y="650" width="1120" height="70"/>
+  <text class="heading" x="70" y="680">Validation</text>
+  <text class="label" x="220" y="680">Remote preview screenshot passed | socket values re-read after save | no PIE preview actors left in the editor</text>
+</svg>

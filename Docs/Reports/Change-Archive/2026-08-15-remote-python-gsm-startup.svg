@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Remote Python diagnostics and Game Server Manager startup fix</title>
+  <desc id="desc">Before and after flows showing the request timeout caused by an unnecessary server build and the UE5.5 remote level-loader repair.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#e8f1f8"/></linearGradient>
+    <style>
+      .title{font:700 27px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#49677f}
+      .head{font:700 17px Segoe UI,Arial;fill:#17324d}.body{font:400 14px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#49677f}.label{font:700 12px Segoe UI,Arial;fill:#fff;letter-spacing:1px}
+      .bad{font:700 14px Segoe UI,Arial;fill:#8d3a35}.good{font:700 14px Segoe UI,Arial;fill:#21633f}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2d668f"/></marker>
+    <marker id="redarrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b65349"/></marker>
+    <marker id="greenarrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f8255"/></marker>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="48" y="46" class="title">2026-08-15 - Remote Python diagnostics + GSM startup fix</text>
+  <text x="48" y="74" class="sub">The runtime failure was request latency; the scene itself was valid once the UE5.5 loader reached the showcase map.</text>
+
+  <rect x="48" y="108" width="530" height="280" rx="16" fill="#fff4f2" stroke="#d88478" stroke-width="2"/>
+  <rect x="48" y="108" width="530" height="40" rx="16" fill="#b65349"/>
+  <text x="72" y="134" class="label">BEFORE - FIRST LOGIN REQUEST</text>
+  <rect x="74" y="174" width="200" height="70" rx="10" fill="#fff" stroke="#d88478"/>
+  <text x="92" y="201" class="head">GSM has no cached path</text>
+  <text x="92" y="224" class="small">self.server_exe = None</text>
+  <path d="M274 209 H308" stroke="#b65349" stroke-width="3" marker-end="url(#redarrow)"/>
+  <rect x="308" y="174" width="238" height="70" rx="10" fill="#fff" stroke="#d88478"/>
+  <text x="326" y="201" class="head">Build AuraServer on demand</text>
+  <text x="326" y="224" class="small">blocking UBT exceeds 35 seconds</text>
+  <path d="M427 244 L427 274" stroke="#b65349" stroke-width="3" marker-end="url(#redarrow)"/>
+  <rect x="74" y="274" width="472" height="70" rx="10" fill="#fff" stroke="#d88478"/>
+  <text x="92" y="301" class="head">Client times out and uses fallback 192.168.1.6:7784</text>
+  <text x="92" y="324" class="bad">Log: ReadLine timed out after 35.002s</text>
+
+  <rect x="622" y="108" width="530" height="280" rx="16" fill="#eef9f1" stroke="#6eaf83" stroke-width="2"/>
+  <rect x="622" y="108" width="530" height="40" rx="16" fill="#328052"/>
+  <text x="646" y="134" class="label">AFTER - PACKAGED SERVER PATH</text>
+  <rect x="648" y="174" width="200" height="70" rx="10" fill="#fff" stroke="#6eaf83"/>
+  <text x="666" y="201" class="head">Request-time resolution</text>
+  <text x="666" y="224" class="small">locate AuraServer.exe</text>
+  <path d="M848 209 H882" stroke="#2f8255" stroke-width="3" marker-end="url(#greenarrow)"/>
+  <rect x="882" y="174" width="238" height="70" rx="10" fill="#fff" stroke="#6eaf83"/>
+  <text x="900" y="201" class="head">Reuse packaged binary</text>
+  <text x="900" y="224" class="small">skip blocking build</text>
+  <path d="M1001 244 L1001 274" stroke="#2f8255" stroke-width="3" marker-end="url(#greenarrow)"/>
+  <rect x="648" y="274" width="472" height="70" rx="10" fill="#fff" stroke="#6eaf83"/>
+  <text x="666" y="301" class="head">Launch/wait for ready and return the endpoint</text>
+  <text x="666" y="324" class="good">No build-induced timeout; fallback remains a last resort</text>
+
+  <rect x="48" y="420" width="1104" height="124" rx="16" fill="#fffaf0" stroke="#d6b66c" stroke-width="2"/>
+  <text x="72" y="454" class="head">Remote Python loader repair</text>
+  <text x="72" y="482" class="body">Old path: removed EditorLevelLibrary.load_editor_level caused the analyzer to inspect the Login map and report 0 actors.</text>
+  <text x="72" y="507" class="body">New path: LevelEditorSubsystem.load_level reaches L_showcase_level; remote analysis reports 1,699 actors, 9 landscapes, 36 PlayerStarts.</text>
+  <text x="72" y="530" class="small">Spawn-area probe also confirmed the BungeeMan body socket and rifle Muzzle socket.</text>
+
+  <rect x="48" y="578" width="1104" height="126" rx="16" fill="#ffffff" stroke="#8fb3ca" stroke-width="2"/>
+  <text x="72" y="612" class="head">Validation</text>
+  <text x="72" y="640" class="body">PASS  Python AST checks for all changed scripts; FireBolt structural test; git diff --check</text>
+  <text x="72" y="665" class="body">PASS  Focused async GSM handler test: packaged AuraServer.exe reused without build</text>
+  <text x="72" y="690" class="body">PASS  Live remote editor analysis and spawn-area inspection</text>
+  <text x="760" y="640" class="small">Operational note: restart the existing GSM process</text>
+  <text x="760" y="663" class="small">to load the updated Python module.</text>
+</svg>
