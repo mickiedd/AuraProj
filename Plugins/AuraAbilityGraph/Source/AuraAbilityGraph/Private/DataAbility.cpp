@@ -5,6 +5,7 @@
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "AbilitySystem/Data/RoleInfo.h"
 #include "AbilitySystem/AbilityTasks/TargetDataUnderMouse.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraAbilityGraphLogChannels.h"
@@ -76,18 +77,117 @@ const UAuraAbilityDefinition* UAuraDataAbility::GetDefinition() const
             {
                 return Cast<UAuraAbilityDefinition>(Spec->SourceObject.Get());
             }
+
             // FGameplayAbilitySpec::SourceObject is a TWeakObjectPtr that does NOT replicate.
             // On non-authoritative clients the spec arrives with a null SourceObject, so the
-            // ability would otherwise abort in ActivateAbility. Fall back to the process-lifetime
-            // definition registry keyed by AbilityTag. The AbilityTag rides in the spec's
-            // dynamic spec source tags (which DO replicate), so we can resolve the definition that way.
-            for (const FGameplayTag& Tag : Spec->GetDynamicSpecSourceTags())
+            // ability resolves through the process-lifetime definition registry keyed by the
+            // replicated ability tag. The registry can be empty after a map travel: the login
+            // world's RoleInfo owner is gone and its weak entries have been garbage-collected.
+            const auto FindRegisteredDefinition = [Spec]() -> const UAuraAbilityDefinition*
             {
-                if (const UAuraAbilityDefinition* Def = UAuraAbilitySystemLibrary::FindAbilityDefinitionByTag(Tag))
+                for (const FGameplayTag& Tag : Spec->GetDynamicSpecSourceTags())
                 {
+                    if (const UAuraAbilityDefinition* Def = UAuraAbilitySystemLibrary::FindAbilityDefinitionByTag(Tag))
+                    {
+                        return Def;
+                    }
+                }
+                return nullptr;
+            };
+
+            if (const UAuraAbilityDefinition* Def = FindRegisteredDefinition())
+            {
+                return Def;
+            }
+
+            // Rebuild the client-side RoleInfo cache on demand. This is important for a
+            // network client that travels Login -> Loading -> gameplay: the definition
+            // registry was populated while Login was alive, then its transient definitions
+            // were collected when that world was torn down. Loading RoleConfig here roots the
+            // definitions in the process-lifetime client cache and re-registers them before
+            // the predicted activation applies any ability-side work.
+            const UObject* WorldContext = CurrentActorInfo->AvatarActor.Get();
+            if (!WorldContext)
+            {
+                WorldContext = CurrentActorInfo->OwnerActor.Get();
+            }
+            if (WorldContext)
+            {
+                const auto FindDefinitionInRoleInfo = [Spec](const URoleInfo* RoleInfo) -> const UAuraAbilityDefinition*
+                {
+                    if (!RoleInfo)
+                    {
+                        return nullptr;
+                    }
+
+                    for (const TPair<FName, FRoleDefaultInfo>& RolePair : RoleInfo->RoleInformation)
+                    {
+                        const FRoleDefaultInfo& Role = RolePair.Value;
+                        const auto FindInObjects = [Spec](const TArray<TObjectPtr<UObject>>& Objects) -> const UAuraAbilityDefinition*
+                        {
+                            for (const FGameplayTag& Tag : Spec->GetDynamicSpecSourceTags())
+                            {
+                                for (const TObjectPtr<UObject>& Object : Objects)
+                                {
+                                    const UAuraAbilityDefinition* Def = Cast<UAuraAbilityDefinition>(Object.Get());
+                                    if (Def && Def->AbilityTag == Tag)
+                                    {
+                                        return Def;
+                                    }
+                                }
+                            }
+                            return nullptr;
+                        };
+
+                        if (const UAuraAbilityDefinition* Def = FindInObjects(Role.StartupAbilityDefinitions))
+                        {
+                            return Def;
+                        }
+                        if (const UAuraAbilityDefinition* Def = FindInObjects(Role.StartupPassiveAbilityDefinitions))
+                        {
+                            return Def;
+                        }
+
+                        if (const UAuraAbilityDefinition* Def = Cast<UAuraAbilityDefinition>(Role.DefaultLMBAbilityDefinition.Get()))
+                        {
+                            for (const FGameplayTag& Tag : Spec->GetDynamicSpecSourceTags())
+                            {
+                                if (Def->AbilityTag == Tag)
+                                {
+                                    return Def;
+                                }
+                            }
+                        }
+                    }
+                    return nullptr;
+                };
+
+                const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(WorldContext);
+                if (const UAuraAbilityDefinition* Def = FindRegisteredDefinition())
+                {
+                    UE_LOG(LogAuraAbilityGraph, Verbose,
+                        TEXT("[DataAbility] GetDefinition rebuilt client definition cache for handle=%s"),
+                        *CurrentSpecHandle.ToString());
+                    return Def;
+                }
+
+                // The role cache can still own the definitions even when the weak
+                // process registry was cleared during map travel. Recover directly
+                // from those rooted objects, then restore the registry for future
+                // lookups and other abilities in the same client world.
+                if (const UAuraAbilityDefinition* Def = FindDefinitionInRoleInfo(RoleInfo))
+                {
+                    UAuraAbilitySystemLibrary::RegisterAbilityDefinition(const_cast<UAuraAbilityDefinition*>(Def));
+                    UE_LOG(LogAuraAbilityGraph, Verbose,
+                        TEXT("[DataAbility] GetDefinition recovered rooted RoleInfo definition for handle=%s"),
+                        *CurrentSpecHandle.ToString());
                     return Def;
                 }
             }
+
+            UE_LOG(LogAuraAbilityGraph, Warning,
+                TEXT("[DataAbility] GetDefinition failed to resolve replicated definition for handle=%s"),
+                *CurrentSpecHandle.ToString());
         }
     }
     return nullptr;

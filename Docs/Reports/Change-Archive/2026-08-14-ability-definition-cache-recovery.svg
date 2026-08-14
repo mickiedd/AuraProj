@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Ability definition cache recovery after network map travel</title>
+  <desc id="desc">Before and after flow showing a client prediction failure caused by a missing transient XML definition, and the lazy RoleConfig recovery guard.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#e9f1f8"/></linearGradient>
+    <style>
+      .title{font:700 27px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#49677f}
+      .head{font:700 18px Segoe UI,Arial;fill:#17324d}.body{font:400 15px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#49677f}.label{font:700 12px Segoe UI,Arial;fill:#fff;letter-spacing:1px}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2d668f"/></marker>
+    <marker id="redarrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b44b4b"/></marker>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="48" y="48" class="title">2026-08-14 - Ability definition cache recovery</text>
+  <text x="48" y="76" class="sub">Replicated XML SourceObject is unavailable on clients; the stable ability tag now rebuilds the local definition cache on demand.</text>
+
+  <rect x="48" y="108" width="530" height="300" rx="16" fill="#fff8f7" stroke="#d68a86" stroke-width="2"/>
+  <rect x="48" y="108" width="530" height="40" rx="16" fill="#a94b49"/>
+  <text x="72" y="134" class="label">BEFORE - FAILED PREDICTION</text>
+  <rect x="74" y="174" width="218" height="66" rx="10" fill="#fff" stroke="#d68a86"/>
+  <text x="90" y="200" class="head">Client receives spec</text>
+  <text x="90" y="222" class="small">tag survives; SourceObject = null</text>
+  <path d="M292 207 L328 207" stroke="#b44b4b" stroke-width="3" marker-end="url(#redarrow)"/>
+  <rect x="328" y="174" width="218" height="66" rx="10" fill="#fff" stroke="#d68a86"/>
+  <text x="344" y="200" class="head">Definition lookup fails</text>
+  <text x="344" y="222" class="small">weak registry was collected after travel</text>
+  <path d="M437 240 L437 270" stroke="#b44b4b" stroke-width="3" marker-end="url(#redarrow)"/>
+  <rect x="74" y="270" width="472" height="62" rx="10" fill="#fff" stroke="#d68a86"/>
+  <text x="90" y="296" class="head">RootNode is null - predicted ability ends</text>
+  <text x="90" y="318" class="body">No montage or target data is sent from the client.</text>
+  <path d="M310 332 L310 362" stroke="#b44b4b" stroke-width="3" marker-end="url(#redarrow)"/>
+  <rect x="74" y="362" width="472" height="28" rx="8" fill="#fbe4e2"/>
+  <text x="90" y="382" class="body">Server already charged mana, then cancels while waiting.</text>
+
+  <rect x="622" y="108" width="530" height="300" rx="16" fill="#f5fbf7" stroke="#6ca887" stroke-width="2"/>
+  <rect x="622" y="108" width="530" height="40" rx="16" fill="#39845d"/>
+  <text x="646" y="134" class="label">AFTER - RECOVERED PREDICTION</text>
+  <rect x="648" y="174" width="218" height="66" rx="10" fill="#fff" stroke="#6ca887"/>
+  <text x="664" y="200" class="head">Client receives spec</text>
+  <text x="664" y="222" class="small">replicated ability tag is available</text>
+  <path d="M866 207 L902 207" stroke="#39845d" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="902" y="174" width="218" height="66" rx="10" fill="#fff" stroke="#6ca887"/>
+  <text x="918" y="200" class="head">Lookup misses</text>
+  <text x="918" y="222" class="small">lazy recovery guard runs</text>
+  <path d="M1011 240 L1011 270" stroke="#39845d" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="648" y="270" width="472" height="62" rx="10" fill="#fff" stroke="#6ca887"/>
+  <text x="664" y="296" class="head">GetRoleInfo loads and roots RoleConfig definitions</text>
+  <text x="664" y="318" class="body">XML definitions re-register by stable ability tag.</text>
+  <path d="M884 332 L884 362" stroke="#39845d" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="648" y="362" width="472" height="28" rx="8" fill="#dff2e6"/>
+  <text x="664" y="382" class="body">Graph runs: montage, target data, and server effect stay aligned.</text>
+
+  <rect x="48" y="438" width="1104" height="108" rx="16" fill="#fffdf7" stroke="#d3a44f" stroke-width="2"/>
+  <text x="74" y="472" class="head">Important guard</text>
+  <text x="74" y="500" class="body">A transient GAS SourceObject is not a client transport. Dynamic ability tags are the transport key; a missing registry entry now triggers</text>
+  <text x="74" y="523" class="body">the local RoleConfig load before cost/graph work proceeds. Unresolved tags still log a warning and abort safely.</text>
+
+  <rect x="48" y="574" width="530" height="96" rx="16" fill="#f2f8ff" stroke="#7aa5c2" stroke-width="2"/>
+  <text x="74" y="606" class="head">Validation</text>
+  <text x="74" y="632" class="body">AuraEditor Live Coding compile: changed files passed.</text>
+  <text x="74" y="654" class="body">FireBolt structural test: PASS.</text>
+  <rect x="622" y="574" width="530" height="96" rx="16" fill="#f2f8ff" stroke="#7aa5c2" stroke-width="2"/>
+  <text x="648" y="606" class="head">Regression coverage</text>
+  <text x="648" y="632" class="body">New cache-recovery automation test simulates null SourceObject + travel.</text>
+  <text x="648" y="654" class="body">The test asserts the recovered FireBolt graph root and stable tag.</text>
+</svg>

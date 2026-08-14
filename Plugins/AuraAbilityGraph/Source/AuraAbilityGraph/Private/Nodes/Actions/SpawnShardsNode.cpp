@@ -6,13 +6,13 @@
 #include "AbilityDefinition.h"
 #include "DataAbility.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Actor/PointCollection.h"
 #include "AuraAbilityTypes.h"
 #include "AuraAbilityGraphLogChannels.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
-#include "GameplayCueManager.h"
 #include "GameplayTagContainer.h"
 
 UAuraAbilityActionTask* USpawnShardsNode::CreateTask(UObject* Outer) const
@@ -188,17 +188,28 @@ void USpawnShardsTask::SpawnNextShard()
     UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnShards] Spawning shard %d/%d at %s"),
         CurrentShardIndex + 1, ShardLocations.Num(), *ShardLocation.ToCompactString());
 
-    // Execute gameplay cue if specified
+    // Execute the cue through the source ASC so the authoritative server broadcasts
+    // the burst to every client. The local-only cue API invoked only the local cue
+    // manager; that made ArcaneShards deal server-side damage while the owning client
+    // saw no shard effect at all.
     if (!Node->GameplayCueTag.IsEmpty())
     {
         FGameplayCueParameters CueParams;
         CueParams.Location = ShardLocation;
-        if (CachedCtx.AvatarActor)
+        const FGameplayTag CueTag = FGameplayTag::RequestGameplayTag(FName(*Node->GameplayCueTag), false);
+        if (!CueTag.IsValid())
         {
-            UGameplayCueManager::ExecuteGameplayCue_NonReplicated(
-                CachedCtx.AvatarActor,
-                FGameplayTag::RequestGameplayTag(FName(*Node->GameplayCueTag), false),
-                CueParams);
+            UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnShards] Skipping invalid GameplayCueTag '%s'"), *Node->GameplayCueTag);
+        }
+        else if (CachedCtx.ASC)
+        {
+            CachedCtx.ASC->ExecuteGameplayCue(CueTag, CueParams);
+            UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SpawnShards] Broadcast gameplay cue tag=%s at %s via source ASC"),
+                *CueTag.ToString(), *ShardLocation.ToCompactString());
+        }
+        else
+        {
+            UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[SpawnShards] Cannot broadcast GameplayCueTag '%s': source ASC is null"), *Node->GameplayCueTag);
         }
     }
 

@@ -567,6 +567,13 @@ void UAuraAbilitySystemLibrary::ClearProcessLifetimeCaches()
 	UE_LOG(LogAura, Log, TEXT("[AbilitySystemLibrary] Cleared process-lifetime RoleInfo/AbilityInfo/Definition caches (PIE end)."));
 }
 
+#if WITH_DEV_AUTOMATION_TESTS
+void UAuraAbilitySystemLibrary::ClearDefinitionRegistryForTests()
+{
+	AuraAbilityDefRegistryPrivate::GDefinitionRegistry.Empty();
+}
+#endif
+
 URoleInfo* UAuraAbilitySystemLibrary::GetRoleInfo(const UObject* WorldContextObject)
 {
 	// Pick up an editor-triggered RoleConfig.json reload (writes a sentinel file) before

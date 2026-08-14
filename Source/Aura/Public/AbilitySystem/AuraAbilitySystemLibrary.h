@@ -148,6 +148,11 @@ public:
 	 */
 	static void ClearProcessLifetimeCaches();
 
+#if WITH_DEV_AUTOMATION_TESTS
+	/** Test-only hook: retain RoleInfo objects while simulating a cleared weak definition registry. */
+	static void ClearDefinitionRegistryForTests();
+#endif
+
 	/**
 	 * Drop both RoleInfo caches (AAuraGameModeBase::RoleInfo on the server, and the
 	 * process-lifetime client static cache) and re-read Content/Config/RoleConfig.json.

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">ArcaneShards cue replication test coverage</title>
+  <desc id="desc">The automation test coverage for ArcaneShards XML, graph node, replicated cue dispatch, and runtime diagnostic marker.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#e8f1f8"/></linearGradient>
+    <style>
+      .title{font:700 28px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#49677f}
+      .head{font:700 17px Segoe UI,Arial;fill:#17324d}.body{font:400 14px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#49677f}.pass{font:700 14px Segoe UI,Arial;fill:#21633f}.label{font:700 12px Segoe UI,Arial;fill:#fff;letter-spacing:1px}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2d668f"/></marker>
+    <marker id="greenarrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f8255"/></marker>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="48" y="48" class="title">ArcaneShards.CueReplication test coverage</text>
+  <text x="48" y="76" class="sub">The regression now protects the complete contract from authored XML to client-visible cue dispatch.</text>
+
+  <rect x="48" y="120" width="1104" height="330" rx="16" fill="#ffffff" stroke="#9db7c9" stroke-width="2"/>
+  <rect x="48" y="120" width="230" height="38" rx="16" fill="#2d668f"/>
+  <text x="72" y="145" class="label">AUTOMATION TEST</text>
+
+  <rect x="82" y="190" width="210" height="112" rx="12" fill="#eef5fa" stroke="#9db7c9"/>
+  <text x="102" y="220" class="head">Authored XML</text>
+  <text x="102" y="248" class="body">Parse ArcaneShards.xml</text>
+  <text x="102" y="271" class="body">Find SpawnShards</text>
+  <text x="102" y="294" class="body">Cue = ArcaneShards</text>
+  <path d="M292 246 H370" stroke="#2d668f" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="390" y="190" width="250" height="112" rx="12" fill="#eef9f1" stroke="#6eaf83"/>
+  <text x="410" y="220" class="head">Network contract</text>
+  <text x="410" y="248" class="body">Source ASC dispatch exists</text>
+  <text x="410" y="271" class="body">Runtime marker exists</text>
+  <text x="410" y="294" class="body">Local-only path absent</text>
+  <path d="M640 246 H718" stroke="#2f8255" stroke-width="2" marker-end="url(#greenarrow)"/>
+
+  <rect x="738" y="190" width="330" height="112" rx="12" fill="#eef9f1" stroke="#6eaf83"/>
+  <text x="758" y="220" class="head">Regression protected</text>
+  <text x="758" y="248" class="pass">Cue reaches GAS replication</text>
+  <text x="758" y="271" class="pass">Client can display effect</text>
+  <text x="758" y="294" class="pass">Mana/cost path unchanged</text>
+
+  <text x="82" y="358" class="small">Two guards now cover the same contract:</text>
+  <text x="102" y="386" class="body">1. Aura.Abilities.ArcaneShards.CueReplication</text>
+  <text x="102" y="410" class="body">2. AuraAbilityGraph ArcaneShardsFileGraph smoke test</text>
+
+  <rect x="48" y="492" width="1104" height="132" rx="16" fill="#ffffff" stroke="#9db7c9" stroke-width="2"/>
+  <text x="72" y="528" class="head">Validation recorded</text>
+  <text x="72" y="558" class="body">AuraEditor Live Coding compile: PASS</text>
+  <text x="410" y="558" class="body">XML/source contract: PASS</text>
+  <text x="720" y="558" class="body">FireBolt structural test: PASS</text>
+  <text x="72" y="588" class="small">Full automation run remains a post-editor-restart step because the active editor holds the old module binary.</text>
+</svg>

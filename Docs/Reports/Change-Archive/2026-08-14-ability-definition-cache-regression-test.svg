@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Ability definition cache recovery regression test</title>
+  <desc id="desc">A test flow that simulates a replicated ability spec with a null SourceObject, verifies RoleConfig recovery, exercises activation to the target-data wait, and validates cleanup.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#e8f1f8"/></linearGradient>
+    <style>
+      .title{font:700 27px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#49677f}
+      .head{font:700 17px Segoe UI,Arial;fill:#17324d}.body{font:400 14px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#49677f}.label{font:700 12px Segoe UI,Arial;fill:#fff;letter-spacing:1px}
+      .pass{font:700 14px Segoe UI,Arial;fill:#21633f}.note{font:400 13px Segoe UI,Arial;fill:#5b4b27}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2d668f"/></marker>
+    <marker id="greenarrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f8255"/></marker>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="48" y="48" class="title">2026-08-14 - Definition cache recovery regression coverage</text>
+  <text x="48" y="76" class="sub">The test now covers the failure boundary: a recovered XML definition must enter the graph instead of charging cost and aborting at RootNode = null.</text>
+
+  <rect x="48" y="108" width="1104" height="392" rx="16" fill="#ffffff" stroke="#8fb3ca" stroke-width="2"/>
+  <rect x="48" y="108" width="1104" height="40" rx="16" fill="#2d668f"/>
+  <text x="72" y="134" class="label">REGRESSION FLOW</text>
+
+  <rect x="76" y="176" width="196" height="92" rx="10" fill="#fff8f7" stroke="#d68a86" stroke-width="2"/>
+  <text x="94" y="202" class="head">1. Simulate travel loss</text>
+  <text x="94" y="225" class="body">Clear process caches.</text>
+  <text x="94" y="247" class="small">Spec: tag present, SourceObject null</text>
+  <path d="M272 222 L306 222" stroke="#2d668f" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="306" y="176" width="196" height="92" rx="10" fill="#eef7ff" stroke="#8fb3ca" stroke-width="2"/>
+  <text x="324" y="202" class="head">2. Resolve definition</text>
+  <text x="324" y="225" class="body">GetDefinition() retries</text>
+  <text x="324" y="247" class="small">RoleConfig via stable tag</text>
+  <path d="M502 222 L536 222" stroke="#2d668f" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="536" y="176" width="196" height="92" rx="10" fill="#eefaf2" stroke="#79b88e" stroke-width="2"/>
+  <text x="554" y="202" class="head">3. Verify graph root</text>
+  <text x="554" y="225" class="body">Definition tag = FireBolt.</text>
+  <text x="554" y="247" class="small">RootNode is non-null.</text>
+  <path d="M732 222 L766 222" stroke="#2d668f" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="766" y="176" width="196" height="92" rx="10" fill="#eefaf2" stroke="#79b88e" stroke-width="2"/>
+  <text x="784" y="202" class="head">4. Exercise activation</text>
+  <text x="784" y="225" class="body">ActivateAbility() runs.</text>
+  <text x="784" y="247" class="small">No early RootNode abort.</text>
+  <path d="M962 222 L996 222" stroke="#2d668f" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="996" y="176" width="128" height="92" rx="10" fill="#eefaf2" stroke="#79b88e" stroke-width="2"/>
+  <text x="1014" y="202" class="head">5. Assert</text>
+  <text x="1014" y="225" class="body">Graph running</text>
+  <text x="1014" y="247" class="small">Target wait live</text>
+
+  <path d="M1060 268 L1060 328 L140 328 L140 362" fill="none" stroke="#2f8255" stroke-width="3" marker-end="url(#greenarrow)"/>
+  <rect x="76" y="362" width="1048" height="92" rx="10" fill="#f3fbf5" stroke="#79b88e" stroke-width="2"/>
+  <text x="98" y="390" class="head">Cleanup assertion</text>
+  <text x="98" y="415" class="body">EndForTest() cancels the pending target-data task and leaves the graph inactive.</text>
+  <text x="98" y="437" class="small">This prevents the regression test itself from leaving a live ability task behind.</text>
+
+  <rect x="48" y="532" width="1104" height="170" rx="16" fill="#fffaf0" stroke="#d6b66c" stroke-width="2"/>
+  <text x="72" y="566" class="head">Validation completed</text>
+  <text x="92" y="598" class="pass">PASS</text><text x="150" y="598" class="body">Focused automation: Aura.Abilities.DefinitionCache.RecoveryAfterTravel</text>
+  <text x="92" y="626" class="pass">PASS</text><text x="150" y="626" class="body">Aura.Abilities.Metadata: 5/5 tests</text>
+  <text x="92" y="654" class="pass">PASS</text><text x="150" y="654" class="body">AuraEditor Development full link; FireBolt XML structural test; git diff --check</text>
+  <text x="92" y="682" class="note">The runtime test intentionally waits before target data; the XML structural test confirms the subsequent FireBolt action ordering.</text>
+</svg>

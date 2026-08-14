@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">ArcaneShards debugging lead</title>
+  <desc id="desc">A reusable log triage path for abilities that consume mana but show no client-visible effect.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#e8f1f8"/></linearGradient>
+    <style>
+      .title{font:700 28px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#49677f}
+      .head{font:700 17px Segoe UI,Arial;fill:#17324d}.body{font:400 14px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#49677f}.good{font:700 14px Segoe UI,Arial;fill:#21633f}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2d668f"/></marker>
+    <marker id="greenarrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f8255"/></marker>
+  </defs>
+  <rect width="1200" height="680" fill="url(#bg)"/>
+  <text x="48" y="48" class="title">Reusable lead: mana spent, effect invisible</text>
+  <text x="48" y="76" class="sub">Follow the log sequence to the authority boundary before investigating definition caches again.</text>
+
+  <rect x="48" y="124" width="250" height="112" rx="14" fill="#ffffff" stroke="#9db7c9" stroke-width="2"/>
+  <text x="70" y="154" class="head">1. Activation evidence</text>
+  <text x="70" y="181" class="body">Input resolves correctly</text>
+  <text x="70" y="203" class="body">Cost/cooldown apply</text>
+  <text x="70" y="225" class="body">Target data arrives</text>
+  <path d="M298 180 H370" stroke="#2d668f" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="390" y="124" width="300" height="112" rx="14" fill="#fff4f2" stroke="#d88478" stroke-width="2"/>
+  <text x="412" y="154" class="head">2. Authority boundary</text>
+  <text x="412" y="181" class="body">Effect node runs on server</text>
+  <text x="412" y="203" class="body">Check cue/projectile/multicast</text>
+  <text x="412" y="225" class="body">Do not assume graph failure</text>
+  <path d="M690 180 H762" stroke="#2d668f" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="782" y="124" width="370" height="112" rx="14" fill="#ffffff" stroke="#d88478" stroke-width="2"/>
+  <text x="804" y="154" class="head">3. Local-only cue symptom</text>
+  <text x="804" y="181" class="body">Server damage may occur</text>
+  <text x="804" y="203" class="body">Client receives no visual effect</text>
+  <text x="804" y="225" class="body">Especially with gameplay cues</text>
+
+  <rect x="48" y="302" width="1104" height="154" rx="14" fill="#eef9f1" stroke="#6eaf83" stroke-width="2"/>
+  <text x="72" y="338" class="head">Verified fix pattern</text>
+  <text x="72" y="368" class="body">Authoritative node</text>
+  <path d="M208 363 H322" stroke="#2f8255" stroke-width="2" marker-end="url(#greenarrow)"/>
+  <rect x="342" y="340" width="265" height="58" rx="10" fill="#ffffff" stroke="#6eaf83"/>
+  <text x="362" y="375" class="good">Source ASC ExecuteGameplayCue</text>
+  <path d="M607 363 H728" stroke="#2f8255" stroke-width="2" marker-end="url(#greenarrow)"/>
+  <text x="750" y="368" class="good">GAS broadcasts location + cue to clients</text>
+  <text x="72" y="430" class="small">Expected runtime marker: “[SpawnShards] Broadcast gameplay cue ... via source ASC”.</text>
+
+  <rect x="48" y="514" width="1104" height="100" rx="14" fill="#ffffff" stroke="#9db7c9" stroke-width="2"/>
+  <text x="72" y="548" class="head">Memory anchor</text>
+  <text x="72" y="576" class="body">ArcaneShards No.2: graph completed; the missing effect was replication, not activation or mana.</text>
+  <text x="72" y="598" class="small">Keep the original log signature and the ASC cue-dispatch test beside future ability investigations.</text>
+</svg>

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "DataAbility.h"
+#include "GameplayTagContainer.h"
 #include "TestDataAbility.generated.h"
 
 class AActor;
@@ -31,7 +32,17 @@ public:
     // Point the ability's actor info at the test avatar so GetOwningActorFromActorInfo()
     // returns it and GetAbilityLevel() returns 1. The ActorInfo member must outlive the
     // ability's use of it, so it is held on this object.
-    void InitTestOwner(AActor* Owner, int32 AbilityLevel = 1);
+    void InitTestOwner(AActor* Owner, int32 AbilityLevel = 1, FGameplayTag ReplicatedAbilityTag = FGameplayTag());
+
+    // Exercise UAuraDataAbility::ActivateAbility directly after InitTestOwner(). The
+    // simulated-proxy fixture makes the target-data task take its server wait path,
+    // which avoids requiring a real cursor/controller while still proving that the
+    // recovered definition reaches graph activation instead of the RootNode-null abort.
+    void ActivateForTest();
+    void EndForTest();
+    bool IsGraphRunningForTest() const;
+    bool HasPendingTargetDataForTest() const;
+    bool HasReplicatedTagOnlySpecForTest() const;
 
 private:
     FGameplayAbilityActorInfo ActorInfo;

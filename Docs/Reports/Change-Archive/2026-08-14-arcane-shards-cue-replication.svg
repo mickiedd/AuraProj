@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">ArcaneShards effect replication fix</title>
+  <desc id="desc">Before and after flow for the No.2 ArcaneShards gameplay cue, showing the authoritative server cue broadcast and regression validation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#e8f1f8"/></linearGradient>
+    <style>
+      .title{font:700 28px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#49677f}
+      .head{font:700 17px Segoe UI,Arial;fill:#17324d}.body{font:400 14px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#49677f}.label{font:700 12px Segoe UI,Arial;fill:#fff;letter-spacing:1px}
+      .bad{font:700 14px Segoe UI,Arial;fill:#8d3a35}.good{font:700 14px Segoe UI,Arial;fill:#21633f}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2d668f"/></marker>
+    <marker id="greenarrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f8255"/></marker>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="48" y="48" class="title">2026-08-14 - No.2 ArcaneShards effect replication</text>
+  <text x="48" y="76" class="sub">Mana and graph activation were healthy; the visual cue was stranded on the authoritative process.</text>
+
+  <rect x="48" y="112" width="1104" height="238" rx="16" fill="#fff4f2" stroke="#d88478" stroke-width="2"/>
+  <rect x="48" y="112" width="180" height="38" rx="16" fill="#b65349"/>
+  <text x="72" y="137" class="label">BEFORE</text>
+  <text x="80" y="184" class="head">InputTag.2</text>
+  <text x="80" y="210" class="body">Activate ArcaneShards</text>
+  <path d="M255 198 H350" stroke="#2d668f" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="370" y="160" width="230" height="78" rx="12" fill="#ffffff" stroke="#9db7c9"/>
+  <text x="390" y="188" class="head">Server SpawnShards</text>
+  <text x="390" y="213" class="body">Apply damage</text>
+  <text x="390" y="232" class="body">Execute local-only cue</text>
+  <path d="M600 198 H690" stroke="#b65349" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="710" y="160" width="370" height="78" rx="12" fill="#fff" stroke="#d88478"/>
+  <text x="730" y="188" class="head">Client viewport</text>
+  <text x="730" y="213" class="bad">No GameplayCue.ArcaneShards effect</text>
+  <text x="80" y="296" class="small">Observed log: activation + mana cost + target data + graph completion, but no client-visible shard burst.</text>
+
+  <rect x="48" y="382" width="1104" height="238" rx="16" fill="#eef9f1" stroke="#6eaf83" stroke-width="2"/>
+  <rect x="48" y="382" width="180" height="38" rx="16" fill="#328052"/>
+  <text x="72" y="407" class="label">AFTER</text>
+  <text x="80" y="454" class="head">InputTag.2</text>
+  <text x="80" y="480" class="body">Activate ArcaneShards</text>
+  <path d="M255 468 H350" stroke="#2d668f" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="370" y="430" width="230" height="78" rx="12" fill="#ffffff" stroke="#9db7c9"/>
+  <text x="390" y="458" class="head">Server SpawnShards</text>
+  <text x="390" y="483" class="body">ASC ExecuteGameplayCue</text>
+  <text x="390" y="502" class="body">with shard location</text>
+  <path d="M600 468 H690" stroke="#2f8255" stroke-width="2" marker-end="url(#greenarrow)"/>
+  <rect x="710" y="430" width="370" height="78" rx="12" fill="#fff" stroke="#6eaf83"/>
+  <text x="730" y="458" class="head">All client viewports</text>
+  <text x="730" y="483" class="good">GameplayCue.ArcaneShards displays</text>
+  <text x="80" y="566" class="small">Guard: invalid cue tag or missing source ASC logs a warning; client still skips server-only damage work.</text>
+
+  <rect x="48" y="652" width="1104" height="64" rx="12" fill="#ffffff" stroke="#9db7c9"/>
+  <text x="72" y="678" class="head">Regression validation</text>
+  <text x="270" y="678" class="body">ArcaneShards graph smoke test + cue contract check + FireBolt structural test + diff check</text>
+  <text x="270" y="699" class="small">Runtime replay: after editor restart to load the newly linked module.</text>
+</svg>

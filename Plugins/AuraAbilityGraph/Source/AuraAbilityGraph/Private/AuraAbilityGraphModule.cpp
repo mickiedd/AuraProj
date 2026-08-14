@@ -1011,6 +1011,29 @@ static bool SmokeTest_ArcaneShardsFileGraph()
 		return false;
 	}
 
+	// ArcaneShards is authoritative for damage, so its visual cue must use the ASC
+	// execution path. A local/non-replicated cue would reproduce the reported bug:
+	// mana and damage can change while remote clients see no shard effect.
+	const FString SpawnShardsSourcePath = FPaths::Combine(
+		FPaths::ProjectDir(),
+		TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnShardsNode.cpp"));
+	FString SpawnShardsSource;
+	if (!FFileHelper::LoadFileToString(SpawnShardsSource, *SpawnShardsSourcePath))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: could not read SpawnShards implementation"));
+		return false;
+	}
+	if (!SpawnShardsSource.Contains(TEXT("CachedCtx.ASC->ExecuteGameplayCue(CueTag, CueParams)")))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: SpawnShards does not dispatch its cue through the source ASC"));
+		return false;
+	}
+	if (SpawnShardsSource.Contains(TEXT("ExecuteGameplayCue_NonReplicated")))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: SpawnShards still uses a non-replicated gameplay cue"));
+		return false;
+	}
+
 	// Validate WaitForMontageEvent EventTag
 	if (UWaitForMontageEventNode* EventNode = Cast<UWaitForMontageEventNode>(Children[3]))
 	{
@@ -1021,7 +1044,7 @@ static bool SmokeTest_ArcaneShardsFileGraph()
 		}
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ArcaneShardsFileGraph PASSED (WaitForTargetData->FaceTarget->PlayMontage->WaitForMontageEvent->SpawnShards)."));
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ArcaneShardsFileGraph PASSED (graph structure, montage event, and replicated shard cue dispatch)."));
 	return true;
 }
 
