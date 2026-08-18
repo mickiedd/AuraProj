@@ -26,7 +26,10 @@
 #include "AuraDamageGameplayEffect.h"
 #include "AuraAttributeGameplayEffect.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "AbilitySystem/Abilities/AuraPassiveAbility.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
+#include "Data/AuraGameplayConfig.h"
 #include "Combat/AuraCombatIdentityComponent.h"
 #include "Combat/AuraCombatRules.h"
 
@@ -115,6 +118,7 @@ void UAuraAbilitySystemLibrary::TopOffVitalAttributes(UAbilitySystemComponent* A
 	FGameplayEffectContextHandle Ctx = ASC->MakeEffectContext();
 	Ctx.AddSourceObject(SourceAvatar);
 	const FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(UAuraPickupGameplayEffect::StaticClass(), 1.f, Ctx);
+	if (!Spec.IsValid()) return;
 	AssignDefaultAttributeMagnitudes(Spec);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tags.Attributes_Vital_Health, AuraAS->GetMaxHealth());
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tags.Attributes_Vital_Mana, AuraAS->GetMaxMana());
@@ -161,6 +165,10 @@ void UAuraAbilitySystemLibrary::AssignDefaultAttributeMagnitudes(const FGameplay
 
 void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* WorldContextObject, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC)
 {
+	if (!ASC)
+	{
+		return;
+	}
 	AActor* AvatarActor = ASC->GetAvatarActor();
 
 	// All attribute GEs are now C++ (UAuraAttributeGameplayEffect) with SetByCaller magnitudes.
@@ -169,61 +177,58 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
 	FGameplayEffectContextHandle PrimaryContext = ASC->MakeEffectContext();
 	PrimaryContext.AddSourceObject(AvatarActor);
 	const FGameplayEffectSpecHandle PrimarySpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), Level, PrimaryContext);
-	AssignDefaultAttributeMagnitudes(PrimarySpec);
-	ASC->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
+	if (PrimarySpec.IsValid())
+	{
+		AssignDefaultAttributeMagnitudes(PrimarySpec);
+		ASC->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
+	}
 
 	// Secondary + Vital + Resistance from GameplayEffects.json
-	FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("GameplayEffects.json"));
-	FString JsonContent;
-	if (FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	FAuraAttributeDefaults Defaults;
+	FString ConfigError;
+	if (FAuraGameplayConfig::GetAttributeDefaults(Defaults, ConfigError))
 	{
-		TSharedPtr<FJsonObject> RootObj;
-		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
-		if (FJsonSerializer::Deserialize(Reader, RootObj) && RootObj.IsValid())
+		FGameplayEffectContextHandle SecContext = ASC->MakeEffectContext();
+		SecContext.AddSourceObject(AvatarActor);
+		const FGameplayEffectSpecHandle SecSpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), Level, SecContext);
+		if (SecSpec.IsValid())
 		{
-			const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-			FGameplayEffectContextHandle SecContext = ASC->MakeEffectContext();
-			SecContext.AddSourceObject(AvatarActor);
-			const FGameplayEffectSpecHandle SecSpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), Level, SecContext);
 			AssignDefaultAttributeMagnitudes(SecSpec);
-
-			auto AssignFromJson = [&SecSpec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)
+			for (const TPair<FGameplayTag, float>& Pair : Defaults.Magnitudes)
 			{
-				if (Obj.IsValid() && Obj->HasField(FieldName))
-				{
-					UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SecSpec, Tag, static_cast<float>(Obj->GetNumberField(FieldName)));
-				}
-			};
-
-			const TSharedPtr<FJsonObject>& Secondary = RootObj->GetObjectField(TEXT("secondaryAttributes"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_Armor, TEXT("Armor"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_ArmorPenetration, TEXT("ArmorPenetration"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_BlockChance, TEXT("BlockChance"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitChance, TEXT("CriticalHitChance"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitDamage, TEXT("CriticalHitDamage"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitResistance, TEXT("CriticalHitResistance"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_HealthRegeneration, TEXT("HealthRegeneration"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_ManaRegeneration, TEXT("ManaRegeneration"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxHealth, TEXT("MaxHealth"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxMana, TEXT("MaxMana"));
-
-			const TSharedPtr<FJsonObject>& Resistances = RootObj->GetObjectField(TEXT("resistances"));
-			AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Fire, TEXT("Fire"));
-			AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Lightning, TEXT("Lightning"));
-			AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Arcane, TEXT("Arcane"));
-			AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Physical, TEXT("Physical"));
-
+				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SecSpec, Pair.Key, Pair.Value);
+			}
 			ASC->ApplyGameplayEffectSpecToSelf(*SecSpec.Data.Get());
 		}
+	}
+	else
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Attributes] Skipping shared secondary defaults: %s"), *ConfigError);
 	}
 
 	// Initialize current Health/Mana to MaxHealth/MaxMana (MaxHealth/MaxMana set above).
 	TopOffVitalAttributes(ASC, AvatarActor);
 }
 
-void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ULoadScreenSaveGame* SaveGame)
+bool UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ULoadScreenSaveGame* SaveGame)
 {
+	if (!ASC || !SaveGame)
+	{
+		return false;
+	}
+	if (!FMath::IsFinite(SaveGame->Strength) || !FMath::IsFinite(SaveGame->Intelligence)
+		|| !FMath::IsFinite(SaveGame->Resilience) || !FMath::IsFinite(SaveGame->Vigor))
+	{
+		return false;
+	}
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	FAuraAttributeDefaults Defaults;
+	FString ConfigError;
+	if (!FAuraGameplayConfig::GetAttributeDefaults(Defaults, ConfigError))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Attributes] Save-data initialization rejected: %s"), *ConfigError);
+		return false;
+	}
 
 	const AActor* SourceAvatarActor = ASC->GetAvatarActor();
 
@@ -232,51 +237,44 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(const UO
 	EffectContexthandle.AddSourceObject(SourceAvatarActor);
 
 	const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, EffectContexthandle);
-	AssignDefaultAttributeMagnitudes(SpecHandle);
+	if (SpecHandle.IsValid())
+	{
+		AssignDefaultAttributeMagnitudes(SpecHandle);
 
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Strength, SaveGame->Strength);
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Intelligence, SaveGame->Intelligence);
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Resilience, SaveGame->Resilience);
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Vigor, SaveGame->Vigor);
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Strength, SaveGame->Strength);
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Intelligence, SaveGame->Intelligence);
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Resilience, SaveGame->Resilience);
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Attributes_Primary_Vigor, SaveGame->Vigor);
+	}
+	else
+	{
+		return false;
+	}
 
-	ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
-
-	// Secondary + Vital: use Infinite variant for save-data path (matches legacy behavior).
+	// Secondary + Vital values use the same validated source as role initialization.
 	FGameplayEffectContextHandle SecContext = ASC->MakeEffectContext();
 	SecContext.AddSourceObject(SourceAvatarActor);
-	ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect_Infinite::StaticClass(), 1.f, SecContext);
-
-	// Vital via C++ GE (same class, different magnitudes from JSON).
-	FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("GameplayEffects.json"));
-	FString JsonContent;
-	if (FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	const FGameplayEffectSpecHandle VitalSpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, SecContext);
+	if (VitalSpec.IsValid())
 	{
-		TSharedPtr<FJsonObject> RootObj;
-		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
-		if (FJsonSerializer::Deserialize(Reader, RootObj) && RootObj.IsValid())
+		AssignDefaultAttributeMagnitudes(VitalSpec);
+		for (const TPair<FGameplayTag, float>& Pair : Defaults.Magnitudes)
 		{
-			FGameplayEffectContextHandle VitalContext = ASC->MakeEffectContext();
-			VitalContext.AddSourceObject(SourceAvatarActor);
-			const FGameplayEffectSpecHandle VitalSpec = ASC->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, VitalContext);
-			AssignDefaultAttributeMagnitudes(VitalSpec);
-
-			const TSharedPtr<FJsonObject>& Secondary = RootObj->GetObjectField(TEXT("secondaryAttributes"));
-			auto AssignFromJson = [&VitalSpec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)
-			{
-				if (Obj.IsValid() && Obj->HasField(FieldName))
-				{
-					UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(VitalSpec, Tag, static_cast<float>(Obj->GetNumberField(FieldName)));
-				}
-			};
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxHealth, TEXT("MaxHealth"));
-			AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxMana, TEXT("MaxMana"));
-
-			ASC->ApplyGameplayEffectSpecToSelf(*VitalSpec.Data.Get());
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(VitalSpec, Pair.Key, Pair.Value);
 		}
 	}
+	else
+	{
+		return false;
+	}
+
+	// Both specs are valid and fully populated before either one mutates the ASC.
+	ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+	ASC->ApplyGameplayEffectSpecToSelf(*VitalSpec.Data.Get());
 
 	// Initialize current Health/Mana to MaxHealth/MaxMana (MaxHealth/MaxMana set above).
 	TopOffVitalAttributes(ASC, SourceAvatarActor);
+	return true;
 }
 
 void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ECharacterClass CharacterClass)
@@ -764,7 +762,14 @@ namespace RoleConfigPrivate
 					FString::Printf(TEXT("%s.%s[%d]"), *BasePath, Field, Index), TEXT("must be a string"));
 				continue;
 			}
-			if (!Value.IsEmpty()) Out.Add(Value);
+			Value.TrimStartAndEndInline();
+			if (Value.IsEmpty())
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId,
+					FString::Printf(TEXT("%s.%s[%d]"), *BasePath, Field, Index), TEXT("must be a non-empty string"));
+				continue;
+			}
+			Out.Add(Value);
 		}
 		return true;
 	}
@@ -797,14 +802,79 @@ namespace RoleConfigPrivate
 		return LoadObject<UAuraAbilityDefinition>(nullptr, *DefPath);
 	}
 
+	static void ValidateAbilityClass(const TSubclassOf<UGameplayAbility>& AbilityClass, bool bPassive, bool bLMB,
+		bool bCountsAsSpawnGrant, FAuraRoleLoadResult& Result, FName RoleId, const FString& JsonPath,
+		TSet<FGameplayTag>& UsedTags, TSet<FGameplayTag>& UsedInputs, bool& bHasOffensive)
+	{
+		if (!AbilityClass)
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("ability class is unresolved"));
+			return;
+		}
+
+		const UGameplayAbility* DefaultAbility = AbilityClass.GetDefaultObject();
+		const FGameplayTag AbilitiesRoot = FGameplayTag::RequestGameplayTag(TEXT("Abilities"), false);
+		FGameplayTag AbilityTag;
+		if (DefaultAbility)
+		{
+			for (const FGameplayTag& Tag : DefaultAbility->AbilityTags)
+			{
+				if (Tag.MatchesTag(AbilitiesRoot))
+				{
+					AbilityTag = Tag;
+					break;
+				}
+			}
+		}
+		if (!AbilityTag.IsValid())
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("ability class has no stable Abilities.* tag"));
+		}
+		else if (UsedTags.Contains(AbilityTag))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath,
+				FString::Printf(TEXT("duplicates ability tag '%s'"), *AbilityTag.ToString()));
+		}
+		else
+		{
+			UsedTags.Add(AbilityTag);
+		}
+
+		FGameplayTag InputTag;
+		if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(DefaultAbility))
+		{
+			InputTag = AuraAbility->StartupInputTag;
+		}
+		if (InputTag.IsValid())
+		{
+			if (UsedInputs.Contains(InputTag))
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath,
+					FString::Printf(TEXT("duplicates input slot '%s'"), *InputTag.ToString()));
+			}
+			else
+			{
+				UsedInputs.Add(InputTag);
+			}
+		}
+		if (bLMB && !InputTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("InputTag.LMB"), false)))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("LMB ability class must use InputTag.LMB"));
+		}
+		if (bLMB && AbilityClass->IsChildOf(UAuraPassiveAbility::StaticClass()))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("LMB ability class cannot be passive"));
+		}
+		if (bPassive && !AbilityClass->IsChildOf(UAuraPassiveAbility::StaticClass()))
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("startup passive class must derive from UAuraPassiveAbility"));
+		}
+		bHasOffensive |= bCountsAsSpawnGrant && !bPassive && !AbilityClass->IsChildOf(UAuraPassiveAbility::StaticClass());
+	}
+
 	static bool ProjectileDefinitionExists(const FString& Id)
 	{
-		FString Content;
-		if (!FFileHelper::LoadFileToString(Content, *FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("ProjectileDefinitions.json")))) return false;
-		TSharedPtr<FJsonObject> Root;
-		if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Content), Root) || !Root.IsValid()) return false;
-		const TSharedPtr<FJsonObject>* Definitions = nullptr;
-		return Root->TryGetObjectField(TEXT("projectiles"), Definitions) && Definitions && (*Definitions)->HasField(Id);
+		return !Id.IsEmpty() && FAuraGameplayConfig::FindProjectile(FName(*Id)) != nullptr;
 	}
 
 	static void ValidateDefinition(UAuraAbilityDefinition* Def, const FString& DefPath, bool bPassive, bool bLMB,
@@ -827,9 +897,18 @@ namespace RoleConfigPrivate
 		{
 			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("LMB definition must use InputTag.LMB"));
 		}
+		if (!bPassive && !Def->InputTag.IsValid())
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("spawn offensive definition must have a registered input tag"));
+		}
 		const bool bIsPassive = Def->AbilityType.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Abilities.Type.Passive"), false));
 		const bool bIsOffensive = Def->AbilityType.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Abilities.Type.Offensive"), false));
+		if (!Def->AbilityType.IsValid())
+		{
+			AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("definition has no registered ability type"));
+		}
 		if (bPassive != bIsPassive) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("definition grant category does not match its ability type"));
+		if (!bPassive && !bIsOffensive) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleId, JsonPath, TEXT("spawn definition must use Abilities.Type.Offensive"));
 		bHasOffensive |= bIsOffensive;
 		if (Def->SourceXML.Contains(TEXT("ProjectileDefinition")))
 		{
@@ -1041,23 +1120,29 @@ FAuraRoleLoadResult UAuraAbilitySystemLibrary::ParseRoleInfoJson(const UObject* 
 		ReadStringArray(RoleObj, TEXT("startupAbilityDefinitions"), StartupDefs, Result, RoleName, BasePath, bArraysRequired);
 		ReadStringArray(RoleObj, TEXT("startupPassiveAbilityDefinitions"), PassiveDefs, Result, RoleName, BasePath, bArraysRequired);
 		TSet<FString> UsedClassPaths;
-		auto LoadClasses = [&](const TArray<FString>& Paths, TArray<TSubclassOf<UGameplayAbility>>& Output, const FString& Field)
+		TSet<FGameplayTag> UsedTags, UsedInputs;
+		bool bHasOffensive = false;
+		auto LoadClasses = [&](const TArray<FString>& Paths, TArray<TSubclassOf<UGameplayAbility>>& Output, const FString& Field, bool bPassive, bool bCountsAsSpawnGrant)
 		{
 			for (int32 Index = 0; Index < Paths.Num(); ++Index)
 			{
-				if (UsedClassPaths.Contains(Paths[Index])) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, FString::Printf(TEXT("%s.%s[%d]"), *BasePath, *Field, Index), TEXT("duplicates another ability class path"));
+				const FString JsonPath = FString::Printf(TEXT("%s.%s[%d]"), *BasePath, *Field, Index);
+				if (UsedClassPaths.Contains(Paths[Index])) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, JsonPath, TEXT("duplicates another ability class path"));
 				UsedClassPaths.Add(Paths[Index]);
 				const TSubclassOf<UGameplayAbility> Class = LoadClass<UGameplayAbility>(nullptr, *Paths[Index]);
-				if (!Class) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, FString::Printf(TEXT("%s.%s[%d]"), *BasePath, *Field, Index), FString::Printf(TEXT("failed to load '%s'"), *Paths[Index]));
-				else Output.Add(Class);
+				if (!Class)
+				{
+					AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, JsonPath, FString::Printf(TEXT("failed to load '%s'"), *Paths[Index]));
+					continue;
+				}
+				ValidateAbilityClass(Class, bPassive, false, bCountsAsSpawnGrant, Result, RoleName, JsonPath, UsedTags, UsedInputs, bHasOffensive);
+				Output.Add(Class);
 			}
 		};
-		LoadClasses(StartupClasses, Info.StartupAbilities, TEXT("startupAbilities"));
-		LoadClasses(PassiveClasses, Info.StartupPassiveAbilities, TEXT("startupPassiveAbilities"));
-		LoadClasses(UnlockableClasses, Info.UnlockableAbilities, TEXT("unlockableAbilities"));
+		LoadClasses(StartupClasses, Info.StartupAbilities, TEXT("startupAbilities"), false, true);
+		LoadClasses(PassiveClasses, Info.StartupPassiveAbilities, TEXT("startupPassiveAbilities"), true, false);
+		LoadClasses(UnlockableClasses, Info.UnlockableAbilities, TEXT("unlockableAbilities"), false, false);
 
-		TSet<FGameplayTag> UsedTags, UsedInputs;
-		bool bHasOffensive = false;
 		for (int32 Index = 0; Index < StartupDefs.Num(); ++Index)
 		{
 			UAuraAbilityDefinition* Def = LoadAbilityDefinition(StartupDefs[Index]);
@@ -1083,8 +1168,14 @@ FAuraRoleLoadResult UAuraAbilitySystemLibrary::ParseRoleInfoJson(const UObject* 
 		if (!LMBAbilityPath.IsEmpty())
 		{
 			Info.DefaultLMBAbility = LoadClass<UGameplayAbility>(nullptr, *LMBAbilityPath);
-			if (!Info.DefaultLMBAbility) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".lmbAbility"), FString::Printf(TEXT("failed to load '%s'"), *LMBAbilityPath));
-			else bHasOffensive = true;
+			if (!Info.DefaultLMBAbility)
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".lmbAbility"), FString::Printf(TEXT("failed to load '%s'"), *LMBAbilityPath));
+			}
+			else
+			{
+				ValidateAbilityClass(Info.DefaultLMBAbility, false, true, true, Result, RoleName, BasePath + TEXT(".lmbAbility"), UsedTags, UsedInputs, bHasOffensive);
+			}
 		}
 		if (Info.bCanAttack && !bHasOffensive) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".canAttack"), TEXT("attacking role needs at least one valid offensive spawn grant"));
 		if (!Info.bCanAttack && bHasOffensive) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".canAttack"), TEXT("non-attacking role cannot have offensive spawn grants"));

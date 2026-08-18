@@ -23,6 +23,7 @@ namespace AuraGameplayConfigPrivate
 		TMap<FName, FAuraProjectileDefinition> Projectiles;
 		TMap<FName, FAuraPickupDefinition> Pickups;
 		TMap<FName, FAuraPickupEffectDefinition> Effects;
+		FAuraAttributeDefaults AttributeDefaults;
 		TArray<FAuraLootDefinition> Loot;
 	};
 
@@ -74,11 +75,86 @@ namespace AuraGameplayConfigPrivate
 		return true;
 	}
 
+	bool IsSupportedPickupAttributeTag(const FGameplayTag& Tag, const FAuraGameplayTags& Tags)
+	{
+		return Tag == Tags.Attributes_Primary_Strength
+			|| Tag == Tags.Attributes_Primary_Intelligence
+			|| Tag == Tags.Attributes_Primary_Resilience
+			|| Tag == Tags.Attributes_Primary_Vigor
+			|| Tag == Tags.Attributes_Secondary_Armor
+			|| Tag == Tags.Attributes_Secondary_ArmorPenetration
+			|| Tag == Tags.Attributes_Secondary_BlockChance
+			|| Tag == Tags.Attributes_Secondary_CriticalHitChance
+			|| Tag == Tags.Attributes_Secondary_CriticalHitDamage
+			|| Tag == Tags.Attributes_Secondary_CriticalHitResistance
+			|| Tag == Tags.Attributes_Secondary_HealthRegeneration
+			|| Tag == Tags.Attributes_Secondary_ManaRegeneration
+			|| Tag == Tags.Attributes_Secondary_MaxHealth
+			|| Tag == Tags.Attributes_Secondary_MaxMana
+			|| Tag == Tags.Attributes_Resistance_Fire
+			|| Tag == Tags.Attributes_Resistance_Lightning
+			|| Tag == Tags.Attributes_Resistance_Arcane
+			|| Tag == Tags.Attributes_Resistance_Physical
+			|| Tag == Tags.Attributes_Vital_Health
+			|| Tag == Tags.Attributes_Vital_Mana;
+	}
+
+	bool ParseAttributeGroup(const TSharedPtr<FJsonObject>& Root, const TCHAR* GroupName,
+		const TArray<TPair<const TCHAR*, FGameplayTag>>& Fields, FCache& Target, FString& OutError)
+	{
+		const TSharedPtr<FJsonObject>* Group = nullptr;
+		if (!Root->TryGetObjectField(GroupName, Group) || !Group || !Group->IsValid())
+		{
+			OutError = FString::Printf(TEXT("GameplayEffects.json is missing object '%s'"), GroupName);
+			return false;
+		}
+
+		for (const TPair<const TCHAR*, FGameplayTag>& Field : Fields)
+		{
+			double Value = 0.0;
+			if (!(*Group)->TryGetNumberField(Field.Key, Value) || !FMath::IsFinite(Value))
+			{
+				OutError = FString::Printf(TEXT("GameplayEffects.json '%s.%s' must be a finite number"), GroupName, Field.Key);
+				return false;
+			}
+			Target.AttributeDefaults.Magnitudes.Add(Field.Value, static_cast<float>(Value));
+		}
+		return true;
+	}
+
+	bool ParseAttributeDefaults(const TSharedPtr<FJsonObject>& Root, FCache& Target, FString& OutError)
+	{
+		const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+		const TArray<TPair<const TCHAR*, FGameplayTag>> SecondaryFields = {
+			{ TEXT("Armor"), Tags.Attributes_Secondary_Armor },
+			{ TEXT("ArmorPenetration"), Tags.Attributes_Secondary_ArmorPenetration },
+			{ TEXT("BlockChance"), Tags.Attributes_Secondary_BlockChance },
+			{ TEXT("CriticalHitChance"), Tags.Attributes_Secondary_CriticalHitChance },
+			{ TEXT("CriticalHitDamage"), Tags.Attributes_Secondary_CriticalHitDamage },
+			{ TEXT("CriticalHitResistance"), Tags.Attributes_Secondary_CriticalHitResistance },
+			{ TEXT("HealthRegeneration"), Tags.Attributes_Secondary_HealthRegeneration },
+			{ TEXT("ManaRegeneration"), Tags.Attributes_Secondary_ManaRegeneration },
+			{ TEXT("MaxHealth"), Tags.Attributes_Secondary_MaxHealth },
+			{ TEXT("MaxMana"), Tags.Attributes_Secondary_MaxMana }
+		};
+		const TArray<TPair<const TCHAR*, FGameplayTag>> ResistanceFields = {
+			{ TEXT("Fire"), Tags.Attributes_Resistance_Fire },
+			{ TEXT("Lightning"), Tags.Attributes_Resistance_Lightning },
+			{ TEXT("Arcane"), Tags.Attributes_Resistance_Arcane },
+			{ TEXT("Physical"), Tags.Attributes_Resistance_Physical }
+		};
+
+		Target.AttributeDefaults.Magnitudes.Reset();
+		return ParseAttributeGroup(Root, TEXT("secondaryAttributes"), SecondaryFields, Target, OutError)
+			&& ParseAttributeGroup(Root, TEXT("resistances"), ResistanceFields, Target, OutError);
+	}
+
 	bool ParseEffects(FCache& Target, FString& OutError)
 	{
 		const FString Filename = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config/GameplayEffects.json"));
 		TSharedPtr<FJsonObject> Root;
 		if (!ReadJson(Filename, Root, OutError)) return false;
+		if (!ParseAttributeDefaults(Root, Target, OutError)) return false;
 		const TSharedPtr<FJsonObject>* EffectsObject = nullptr;
 		if (!Root->TryGetObjectField(TEXT("pickupEffects"), EffectsObject) || !EffectsObject || !EffectsObject->IsValid())
 		{
@@ -104,29 +180,60 @@ namespace AuraGameplayConfigPrivate
 				return false;
 			}
 			double Number = 0.;
-			if (Object->TryGetNumberField(TEXT("durationValue"), Number)) Definition.Duration = Number;
+			auto ReadOptionalNumber = [&Object](const TCHAR* Field, double& OutNumber) -> bool
+			{
+				if (!Object->HasField(Field)) return true;
+				return Object->TryGetNumberField(Field, OutNumber) && FMath::IsFinite(OutNumber);
+			};
+			if (!ReadOptionalNumber(TEXT("durationValue"), Number))
+			{
+				OutError = FString::Printf(TEXT("Pickup effect '%s' field 'durationValue' must be a finite number"), *Pair.Key);
+				return false;
+			}
+			if (Object->HasField(TEXT("durationValue"))) Definition.Duration = Number;
 			if (Definition.DurationType == TEXT("duration") && Definition.Duration <= 0.f)
 			{
 				OutError = FString::Printf(TEXT("Pickup effect '%s' requires durationValue > 0"), *Pair.Key);
 				return false;
 			}
-			if (Object->TryGetNumberField(TEXT("period"), Number)) Definition.Period = Number;
+			if (!ReadOptionalNumber(TEXT("period"), Number))
+			{
+				OutError = FString::Printf(TEXT("Pickup effect '%s' field 'period' must be a finite number"), *Pair.Key);
+				return false;
+			}
+			if (Object->HasField(TEXT("period"))) Definition.Period = Number;
 			if (Definition.Period < 0.f || (Definition.Period > 0.f && Definition.DurationType == TEXT("instant")))
 			{
 				OutError = FString::Printf(TEXT("Pickup effect '%s' has invalid period"), *Pair.Key);
 				return false;
 			}
-			Object->TryGetBoolField(TEXT("executeOnApplication"), Definition.bExecuteOnApplication);
-			if (Object->TryGetNumberField(TEXT("health"), Number)) Definition.Magnitudes.Add(Tags.Attributes_Vital_Health, Number);
-			if (Object->TryGetNumberField(TEXT("mana"), Number)) Definition.Magnitudes.Add(Tags.Attributes_Vital_Mana, Number);
+			if (Object->HasField(TEXT("executeOnApplication")) && !Object->TryGetBoolField(TEXT("executeOnApplication"), Definition.bExecuteOnApplication))
+			{
+				OutError = FString::Printf(TEXT("Pickup effect '%s' field 'executeOnApplication' must be boolean"), *Pair.Key);
+				return false;
+			}
+			double Health = 0.;
+			double Mana = 0.;
+			if (!ReadOptionalNumber(TEXT("health"), Health) || !ReadOptionalNumber(TEXT("mana"), Mana))
+			{
+				OutError = FString::Printf(TEXT("Pickup effect '%s' health/mana must be finite numbers"), *Pair.Key);
+				return false;
+			}
+			if (Object->HasField(TEXT("health"))) Definition.Magnitudes.Add(Tags.Attributes_Vital_Health, Health);
+			if (Object->HasField(TEXT("mana"))) Definition.Magnitudes.Add(Tags.Attributes_Vital_Mana, Mana);
 			const TSharedPtr<FJsonObject>* Attributes = nullptr;
-			if (Object->TryGetObjectField(TEXT("attributes"), Attributes) && Attributes && Attributes->IsValid())
+			if (Object->HasField(TEXT("attributes")) && (!Object->TryGetObjectField(TEXT("attributes"), Attributes) || !Attributes || !Attributes->IsValid()))
+			{
+				OutError = FString::Printf(TEXT("Pickup effect '%s' field 'attributes' must be an object"), *Pair.Key);
+				return false;
+			}
+			if (Attributes && Attributes->IsValid())
 			{
 				for (const TPair<FString, TSharedPtr<FJsonValue>>& Attribute : (*Attributes)->Values)
 				{
 					double Magnitude = 0.;
 					const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*Attribute.Key), false);
-					if (!Tag.IsValid() || !Attribute.Value->TryGetNumber(Magnitude))
+					if (!Tag.IsValid() || !IsSupportedPickupAttributeTag(Tag, Tags) || !Attribute.Value->TryGetNumber(Magnitude) || !FMath::IsFinite(Magnitude))
 					{
 						OutError = FString::Printf(TEXT("Pickup effect '%s' has invalid attribute '%s'"), *Pair.Key, *Attribute.Key);
 						return false;
@@ -135,7 +242,12 @@ namespace AuraGameplayConfigPrivate
 				}
 			}
 			const TArray<TSharedPtr<FJsonValue>>* AssetTags = nullptr;
-			if (Object->TryGetArrayField(TEXT("assetTags"), AssetTags) && AssetTags)
+			if (Object->HasField(TEXT("assetTags")) && (!Object->TryGetArrayField(TEXT("assetTags"), AssetTags) || !AssetTags))
+			{
+				OutError = FString::Printf(TEXT("Pickup effect '%s' field 'assetTags' must be an array"), *Pair.Key);
+				return false;
+			}
+			if (AssetTags)
 			{
 				for (const TSharedPtr<FJsonValue>& Value : *AssetTags)
 				{
@@ -318,6 +430,18 @@ namespace AuraGameplayConfigPrivate
 const FAuraProjectileDefinition* FAuraGameplayConfig::FindProjectile(FName Name) { AuraGameplayConfigPrivate::EnsureLoaded(); return AuraGameplayConfigPrivate::Cache.bValid ? AuraGameplayConfigPrivate::Cache.Projectiles.Find(Name) : nullptr; }
 const FAuraPickupDefinition* FAuraGameplayConfig::FindPickup(FName Name) { AuraGameplayConfigPrivate::EnsureLoaded(); return AuraGameplayConfigPrivate::Cache.bValid ? AuraGameplayConfigPrivate::Cache.Pickups.Find(Name) : nullptr; }
 const FAuraPickupEffectDefinition* FAuraGameplayConfig::FindPickupEffect(FName Name) { AuraGameplayConfigPrivate::EnsureLoaded(); return AuraGameplayConfigPrivate::Cache.bValid ? AuraGameplayConfigPrivate::Cache.Effects.Find(Name) : nullptr; }
+bool FAuraGameplayConfig::GetAttributeDefaults(FAuraAttributeDefaults& OutDefaults, FString& OutError)
+{
+	AuraGameplayConfigPrivate::EnsureLoaded();
+	OutError = AuraGameplayConfigPrivate::Cache.Error;
+	if (!AuraGameplayConfigPrivate::Cache.bValid)
+	{
+		OutDefaults.Magnitudes.Reset();
+		return false;
+	}
+	OutDefaults = AuraGameplayConfigPrivate::Cache.AttributeDefaults;
+	return true;
+}
 const TArray<FAuraLootDefinition>& FAuraGameplayConfig::GetLootDefinitions() { AuraGameplayConfigPrivate::EnsureLoaded(); return AuraGameplayConfigPrivate::Cache.Loot; }
 bool FAuraGameplayConfig::ValidateAll(FString& OutError) { AuraGameplayConfigPrivate::EnsureLoaded(); OutError = AuraGameplayConfigPrivate::Cache.Error; return AuraGameplayConfigPrivate::Cache.bValid; }
 int32 FAuraGameplayConfig::GetLoadCount() { return AuraGameplayConfigPrivate::Cache.LoadCount; }

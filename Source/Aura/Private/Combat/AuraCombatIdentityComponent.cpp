@@ -51,6 +51,28 @@ bool UAuraCombatIdentityComponent::InitializeIdentity(const FAuraCombatIdentity&
 	return true;
 }
 
+void UAuraCombatIdentityComponent::RestoreIdentityForRollback(const FAuraCombatIdentity& InIdentity, bool bWasValid)
+{
+	AActor* Owner = GetOwner();
+	if (!IsValid(Owner) || !Owner->HasAuthority())
+	{
+		return;
+	}
+	if (bWasValid)
+	{
+		InitializeIdentity(InIdentity);
+		return;
+	}
+	if (!Identity.IsValid())
+	{
+		return;
+	}
+	Identity = FAuraCombatIdentity();
+	Owner->ForceNetUpdate();
+	OnIdentityChanged.Broadcast(Identity);
+	LogIdentity(TEXT("ServerRollback"));
+}
+
 UAuraCombatIdentityComponent* UAuraCombatIdentityComponent::FindForActor(AActor* Actor)
 {
 	return IsValid(Actor) ? Actor->FindComponentByClass<UAuraCombatIdentityComponent>() : nullptr;

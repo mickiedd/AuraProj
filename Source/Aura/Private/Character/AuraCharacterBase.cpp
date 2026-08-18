@@ -20,6 +20,7 @@
 #include "Combat/AuraCombatIdentityComponent.h"
 #include "Combat/AuraCombatRules.h"
 #include "Combat/AuraCombatStateComponent.h"
+#include "Data/AuraGameplayConfig.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Game/LoadScreenSaveGame.h"
@@ -145,7 +146,9 @@ FAuraRoleApplicationResult AAuraCharacterBase::ApplyRoleAtSpawn(FName InRole, co
 	}
 
 	UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
-	if (!AuraASC || !AuraASC->GetOwnerActor() || AuraASC->GetAvatarActor() != this)
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	if (!AuraASC || !AuraASC->GetOwnerActor() || AuraASC->GetAvatarActor() != this || !CombatIdentityComponent
+		|| (AuraPlayerState && !AuraPlayerState->HasAuthority()))
 	{
 		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::AbilityActorInfoMissing,
 			TEXT("InitAbilityActorInfo/AbilityActorInfoSet must complete for this avatar before role application."));
@@ -190,10 +193,33 @@ FAuraRoleApplicationResult AAuraCharacterBase::ApplyRoleAtSpawn(FName InRole, co
 	}
 
 	const FAuraAppliedRoleState PreviousState = AppliedRoleState;
+	const FAuraCombatIdentity PreviousIdentity = CombatIdentityComponent->GetIdentity();
+	const bool bPreviousIdentityValid = CombatIdentityComponent->HasValidIdentity();
+	const FName PreviousPlayerRole = AuraPlayerState ? AuraPlayerState->GetRole() : NAME_None;
+	FAuraRoleGrantTransactionSnapshot GrantSnapshot;
+	AuraASC->CaptureRoleGrantState(GrantSnapshot);
+	auto RollbackTransaction = [&]()
+	{
+		AuraASC->RollbackRoleGrantState(GrantSnapshot);
+		CombatIdentityComponent->RestoreIdentityForRollback(PreviousIdentity, bPreviousIdentityValid);
+		if (AuraPlayerState && AuraPlayerState->GetRole() != PreviousPlayerRole)
+		{
+			AuraPlayerState->SetRole(PreviousPlayerRole);
+		}
+		AppliedRoleState = PreviousState;
+		if (PreviousState.IsValid()) ApplyRolePresentation(PreviousState.RoleId); else ClearRoleRuntimeState();
+	};
 	const FAuraRoleApplicationResult Presentation = ApplyRolePresentationFromDefinition(InRole, *Candidate);
 	if (!Presentation.bSuccess)
 	{
 		return Presentation;
+	}
+
+	if (!AuraASC->ApplyRoleGrantSet(InRole, RoleInfo->RoleDefinitionVersion, *Candidate, SaveData, GrantError))
+	{
+		RollbackTransaction();
+		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::GrantReconciliationFailed,
+			MoveTemp(GrantError));
 	}
 
 	const bool bAttributesAlreadyInitialized = AuraASC->GetRoleGrantLedger().bAttributesInitialized;
@@ -201,12 +227,17 @@ FAuraRoleApplicationResult AAuraCharacterBase::ApplyRoleAtSpawn(FName InRole, co
 	{
 		if (SaveData && !SaveData->bFirstTimeLoadIn)
 		{
-			UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(this, AbilitySystemComponent,
-				const_cast<ULoadScreenSaveGame*>(SaveData));
+			if (!UAuraAbilitySystemLibrary::InitializeDefaultAttributesFromSaveData(this, AbilitySystemComponent,
+				const_cast<ULoadScreenSaveGame*>(SaveData)))
+			{
+				RollbackTransaction();
+				return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::InvalidRoleCandidate,
+					TEXT("Saved attribute initialization could not stage valid GameplayEffect specs."));
+			}
 		}
 		else if (!InitializeDefaultAttributesForRole(InRole, *Candidate))
 		{
-			if (PreviousState.IsValid()) ApplyRolePresentation(PreviousState.RoleId); else ClearRoleRuntimeState();
+			RollbackTransaction();
 			return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::InvalidRoleCandidate,
 				TEXT("Role attribute initialization could not stage valid GameplayEffect specs."));
 		}
@@ -217,25 +248,18 @@ FAuraRoleApplicationResult AAuraCharacterBase::ApplyRoleAtSpawn(FName InRole, co
 		UAuraAbilitySystemLibrary::TopOffVitalAttributes(AbilitySystemComponent, this);
 	}
 
-	if (!AuraASC->ApplyRoleGrantSet(InRole, RoleInfo->RoleDefinitionVersion, *Candidate, SaveData, GrantError))
-	{
-		if (PreviousState.IsValid()) ApplyRolePresentation(PreviousState.RoleId); else ClearRoleRuntimeState();
-		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::GrantReconciliationFailed,
-			MoveTemp(GrantError));
-	}
-
 	AppliedRoleState = CandidateState;
 	if (!CombatIdentityComponent || !CombatIdentityComponent->InitializeIdentity(CandidateIdentity))
 	{
-		AppliedRoleState = PreviousState;
-		if (PreviousState.IsValid()) ApplyRolePresentation(PreviousState.RoleId); else ClearRoleRuntimeState();
+		RollbackTransaction();
 		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::InvalidRoleCandidate,
 			TEXT("The authoritative combat identity could not be committed."));
 	}
-	if (AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>())
+	if (AuraPlayerState)
 	{
 		if (!AuraPlayerState->SetRole(InRole))
 		{
+			RollbackTransaction();
 			return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::NotAuthority,
 				TEXT("PlayerState rejected the authoritative role commit."));
 		}
@@ -794,61 +818,33 @@ void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> Gameplay
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
 }
 
-void AAuraCharacterBase::LoadAndApplySecondaryAttributes() const
+bool AAuraCharacterBase::LoadAndApplySecondaryAttributes(bool bApplyZeroFallback) const
 {
-	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-
-	// Load GameplayEffects.json for secondary/vital/resistance default values.
-	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("Config"), TEXT("GameplayEffects.json"));
-	FString JsonContent;
-	if (!FFileHelper::LoadFileToString(JsonContent, *ConfigPath))
+	FAuraAttributeDefaults Defaults;
+	FString ConfigError;
+	if (!FAuraGameplayConfig::GetAttributeDefaults(Defaults, ConfigError))
 	{
-		UE_LOG(LogAura, Warning, TEXT("[Attributes] Failed to load GameplayEffects.json: %s — using zero defaults."), *ConfigPath);
-		ApplyEffectToSelf(UAuraAttributeGameplayEffect::StaticClass(), 1.f);
-		return;
+		UE_LOG(LogAura, Warning, TEXT("[Attributes] GameplayEffects.json validation failed: %s"), *ConfigError);
+		if (bApplyZeroFallback)
+		{
+			ApplyEffectToSelf(UAuraAttributeGameplayEffect::StaticClass(), 1.f);
+		}
+		return false;
 	}
 
-	TSharedPtr<FJsonObject> RootObj;
-	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonContent);
-	if (!FJsonSerializer::Deserialize(Reader, RootObj) || !RootObj.IsValid())
-	{
-		UE_LOG(LogAura, Warning, TEXT("[Attributes] Failed to parse GameplayEffects.json — using zero defaults."));
-		ApplyEffectToSelf(UAuraAttributeGameplayEffect::StaticClass(), 1.f);
-		return;
-	}
-
-	// Build the spec and assign SetByCaller magnitudes from JSON.
 	FGameplayEffectContextHandle Context = GetAbilitySystemComponent()->MakeEffectContext();
 	Context.AddSourceObject(this);
 	const FGameplayEffectSpecHandle Spec = GetAbilitySystemComponent()->MakeOutgoingSpec(UAuraAttributeGameplayEffect::StaticClass(), 1.f, Context);
-	UAuraAbilitySystemLibrary::AssignDefaultAttributeMagnitudes(Spec);
-
-	auto AssignFromJson = [&Spec](const TSharedPtr<FJsonObject>& Obj, FGameplayTag Tag, const FString& FieldName)
+	if (!Spec.IsValid())
 	{
-		if (Obj.IsValid() && Obj->HasField(FieldName))
-		{
-			const float Value = static_cast<float>(Obj->GetNumberField(FieldName));
-			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Tag, Value);
-		}
-	};
-
-	const TSharedPtr<FJsonObject>& Secondary = RootObj->GetObjectField(TEXT("secondaryAttributes"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_Armor, TEXT("Armor"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_ArmorPenetration, TEXT("ArmorPenetration"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_BlockChance, TEXT("BlockChance"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitChance, TEXT("CriticalHitChance"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitDamage, TEXT("CriticalHitDamage"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_CriticalHitResistance, TEXT("CriticalHitResistance"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_HealthRegeneration, TEXT("HealthRegeneration"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_ManaRegeneration, TEXT("ManaRegeneration"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxHealth, TEXT("MaxHealth"));
-	AssignFromJson(Secondary, GameplayTags.Attributes_Secondary_MaxMana, TEXT("MaxMana"));
-
-	const TSharedPtr<FJsonObject>& Resistances = RootObj->GetObjectField(TEXT("resistances"));
-	AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Fire, TEXT("Fire"));
-	AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Lightning, TEXT("Lightning"));
-	AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Arcane, TEXT("Arcane"));
-	AssignFromJson(Resistances, GameplayTags.Attributes_Resistance_Physical, TEXT("Physical"));
+		UE_LOG(LogAura, Warning, TEXT("[Attributes] Failed to create the shared attribute GameplayEffect spec."));
+		return false;
+	}
+	UAuraAbilitySystemLibrary::AssignDefaultAttributeMagnitudes(Spec);
+	for (const TPair<FGameplayTag, float>& Pair : Defaults.Magnitudes)
+	{
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(Spec, Pair.Key, Pair.Value);
+	}
 
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 	UE_LOG(LogAura, Log, TEXT("[Attributes] Secondary/vital/resistance applied from GameplayEffects.json."));
@@ -857,13 +853,14 @@ void AAuraCharacterBase::LoadAndApplySecondaryAttributes() const
 	// The data-driven init no longer applies a separate DefaultVitalAttributes GE, so
 	// without this the current Health/Mana stay at 0 and mana-cost abilities abort at CheckCost.
 	UAuraAbilitySystemLibrary::TopOffVitalAttributes(GetAbilitySystemComponent(), this);
+	return true;
 }
 
 void AAuraCharacterBase::InitializeDefaultAttributes() const
 {
 	// Legacy fallback: uses C++ GEs with zero primary magnitudes.
 	ApplyEffectToSelf(UAuraAttributeGameplayEffect::StaticClass(), 1.f);
-	LoadAndApplySecondaryAttributes();
+	LoadAndApplySecondaryAttributes(true);
 }
 
 bool AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole, const FRoleDefaultInfo& RoleDefinition) const
@@ -902,7 +899,10 @@ bool AAuraCharacterBase::InitializeDefaultAttributesForRole(FName InRole, const 
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(PrimarySpec, GameplayTags.Attributes_Primary_Vigor, RoleDefinition.Vigor);
 
 	// Secondary + Vital + Resistance via the same C++ GE, magnitudes from GameplayEffects.json.
-	LoadAndApplySecondaryAttributes();
+	if (!LoadAndApplySecondaryAttributes(false))
+	{
+		return false;
+	}
 
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*PrimarySpec.Data.Get());
 	return true;

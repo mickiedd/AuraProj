@@ -256,6 +256,41 @@ void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 	
 }
 
+void UAuraAbilitySystemComponent::CaptureRoleGrantState(FAuraRoleGrantTransactionSnapshot& OutSnapshot) const
+{
+	OutSnapshot.Ledger = RoleGrantLedger;
+	OutSnapshot.bStartupAbilitiesGiven = bStartupAbilitiesGiven;
+	OutSnapshot.AbilitySpecHandles.Reset();
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		OutSnapshot.AbilitySpecHandles.Add(Spec.Handle);
+	}
+	OutSnapshot.GrantedAbilityDefinitions = GrantedAbilityDefinitions;
+	OutSnapshot.GrantedRoleBySpecHandle = GrantedRoleBySpecHandle;
+}
+
+void UAuraAbilitySystemComponent::RollbackRoleGrantState(const FAuraRoleGrantTransactionSnapshot& Snapshot)
+{
+	TArray<FGameplayAbilitySpecHandle> HandlesToClear;
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (!Snapshot.AbilitySpecHandles.Contains(Spec.Handle))
+		{
+			HandlesToClear.Add(Spec.Handle);
+		}
+	}
+	for (const FGameplayAbilitySpecHandle& Handle : HandlesToClear)
+	{
+		ClearAbility(Handle);
+		GrantedRoleBySpecHandle.Remove(Handle);
+	}
+
+	RoleGrantLedger = Snapshot.Ledger;
+	bStartupAbilitiesGiven = Snapshot.bStartupAbilitiesGiven;
+	GrantedAbilityDefinitions = Snapshot.GrantedAbilityDefinitions;
+	GrantedRoleBySpecHandle = Snapshot.GrantedRoleBySpecHandle;
+}
+
 int32 UAuraAbilitySystemComponent::CountAbilitySpecsByTag(const FGameplayTag& AbilityTag) const
 {
 	if (!AbilityTag.IsValid()) return 0;
@@ -421,6 +456,11 @@ bool UAuraAbilitySystemComponent::ApplyRoleGrantSet(FName RoleId, int32 RoleDefi
 			const bool bActivatePassive = Source.AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive)
 				&& Data.AbilityStatus.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Status_Equipped);
 			const FGameplayAbilitySpecHandle Handle = bActivatePassive ? GiveAbilityAndActivateOnce(Spec) : GiveAbility(Spec);
+			if (!Handle.IsValid())
+			{
+				OutError = FString::Printf(TEXT("Failed to grant saved ability '%s'."), *Data.AbilityTag.ToString());
+				return false;
+			}
 			if (Provenance == EAuraAbilityGrantSource::Role)
 			{
 				RecordRoleSpec(Handle);
@@ -459,6 +499,11 @@ bool UAuraAbilitySystemComponent::ApplyRoleGrantSet(FName RoleId, int32 RoleDefi
 		Spec.GetDynamicSpecSourceTags().AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
 		Spec.GetDynamicSpecSourceTags().AddTag(FAuraGameplayTags::Get().GrantSource_Role);
 		const FGameplayAbilitySpecHandle Handle = Candidate.bPassive ? GiveAbilityAndActivateOnce(Spec) : GiveAbility(Spec);
+		if (!Handle.IsValid())
+		{
+			OutError = FString::Printf(TEXT("Failed to grant role ability '%s'."), *Candidate.AbilityTag.ToString());
+			return false;
+		}
 		RecordRoleSpec(Handle);
 		if (Candidate.bPassive)
 		{

@@ -8,6 +8,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Data/AuraGameplayConfig.h"
+#include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -28,6 +29,9 @@ bool FAuraProjectileDefinitionsTest::RunTest(const FString& Parameters)
 	FString Error;
 	if (!TestTrue(FString::Printf(TEXT("Shipped gameplay definitions validate: %s"), *Error), FAuraGameplayConfig::ValidateAll(Error))) return false;
 	TestEqual(TEXT("All JSON files are parsed once"), FAuraGameplayConfig::GetLoadCount(), 1);
+	FAuraAttributeDefaults AttributeDefaults;
+	TestTrue(TEXT("Shared secondary/resistance defaults validate"), FAuraGameplayConfig::GetAttributeDefaults(AttributeDefaults, Error));
+	TestEqual(TEXT("All secondary and resistance defaults are present"), AttributeDefaults.Magnitudes.Num(), 14);
 
 	const FAuraProjectileDefinition* FireBolt = FAuraGameplayConfig::FindProjectile(TEXT("fireBolt"));
 	const FAuraProjectileDefinition* FireBall = FAuraGameplayConfig::FindProjectile(TEXT("fireBall"));
@@ -129,6 +133,24 @@ bool FAuraPickupDefinitionsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Health potion collision is enabled"), Health->GetSphereCollision()->GetCollisionEnabled(), ECollisionEnabled::QueryOnly);
 	TestNotNull(TEXT("Health potion presentation mesh loads"), Health->GetPickupMesh()->GetStaticMesh().Get());
 	Health->Destroy();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraStrictAbilityDefinitionParsingTest,
+	"Aura.AbilityGraph.StrictDefinitionParsing",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraStrictAbilityDefinitionParsingTest::RunTest(const FString& Parameters)
+{
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	if (!TestNotNull(TEXT("Transient ability definition created"), Definition)) return false;
+
+	const FString InvalidNumber = TEXT("<ability name=\"Strict\" abilityTag=\"Abilities.Fire.FireBolt\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\"><damage type=\"Damage.Fire\" base=\"not-a-number\"/><graph><node class=\"Sequence\"/></graph></ability>");
+	TestFalse(TEXT("Invalid numeric XML is rejected"), Definition->LoadFromXML(InvalidNumber));
+
+	const FString InvalidTag = TEXT("<ability name=\"Strict\" abilityTag=\"Abilities.Missing\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\"><graph><node class=\"Sequence\"/></graph></ability>");
+	TestFalse(TEXT("Unregistered ability tag is rejected"), Definition->LoadFromXML(InvalidTag));
 	return true;
 }
 

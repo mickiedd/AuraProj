@@ -47,6 +47,15 @@ struct AURA_API FAuraRoleGrantLedger
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Role Grants")
 	bool bAttributesInitialized = false;
 };
+
+struct AURA_API FAuraRoleGrantTransactionSnapshot
+{
+	FAuraRoleGrantLedger Ledger;
+	bool bStartupAbilitiesGiven = false;
+	TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
+	TArray<TObjectPtr<UAuraAbilityDefinition>> GrantedAbilityDefinitions;
+	TMap<FGameplayAbilitySpecHandle, FName> GrantedRoleBySpecHandle;
+};
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
@@ -88,6 +97,8 @@ public:
 
 	const FAuraRoleGrantLedger& GetRoleGrantLedger() const { return RoleGrantLedger; }
 	void MarkRoleAttributesInitialized() { RoleGrantLedger.bAttributesInitialized = true; }
+	void CaptureRoleGrantState(FAuraRoleGrantTransactionSnapshot& OutSnapshot) const;
+	void RollbackRoleGrantState(const FAuraRoleGrantTransactionSnapshot& Snapshot);
 	EAuraAbilityGrantSource GetGrantSourceForSpec(const FGameplayAbilitySpec& AbilitySpec, FName& OutGrantedRoleId) const;
 	int32 CountAbilitySpecsByTag(const FGameplayTag& AbilityTag) const;
 

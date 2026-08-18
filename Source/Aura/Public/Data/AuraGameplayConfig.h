@@ -48,6 +48,11 @@ struct AURA_API FAuraPickupEffectDefinition
 	FGameplayTagContainer AssetTags;
 };
 
+struct AURA_API FAuraAttributeDefaults
+{
+	TMap<FGameplayTag, float> Magnitudes;
+};
+
 struct AURA_API FAuraPickupDefinition
 {
 	FName Name;
@@ -91,6 +96,7 @@ public:
 	static const FAuraProjectileDefinition* FindProjectile(FName Name);
 	static const FAuraPickupDefinition* FindPickup(FName Name);
 	static const FAuraPickupEffectDefinition* FindPickupEffect(FName Name);
+	static bool GetAttributeDefaults(FAuraAttributeDefaults& OutDefaults, FString& OutError);
 	static const TArray<FAuraLootDefinition>& GetLootDefinitions();
 	static bool ValidateAll(FString& OutError);
 	static int32 GetLoadCount();

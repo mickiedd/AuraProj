@@ -25,6 +25,8 @@ public:
 
 	/** Server-only initialization/mutation entry point. Rejects invalid identity data. */
 	bool InitializeIdentity(const FAuraCombatIdentity& InIdentity);
+	/** Restores a pre-transaction identity, including the invalid initial state. */
+	void RestoreIdentityForRollback(const FAuraCombatIdentity& InIdentity, bool bWasValid);
 
 	/** Fired after an authoritative commit and after the matching client rep-notify. */
 	FOnAuraCombatIdentityChanged OnIdentityChanged;

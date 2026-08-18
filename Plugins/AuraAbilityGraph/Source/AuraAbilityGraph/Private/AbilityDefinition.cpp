@@ -5,10 +5,49 @@
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AuraAbilityGraphLogChannels.h"
 #include "AuraAbilityTypes.h"
+#include "AuraGameplayTags.h"
+#include "Misc/LexFromString.h"
 #include "Nodes/AbilityActionNode.h"
 #include "XmlFile.h"
 
 static UAuraAbilityActionNode* ParseNodeFromXML(const FXmlNode* XmlNode, UObject* Outer);
+
+static bool ParseXMLFloatAttribute(const FXmlNode* Node, const TCHAR* AttributeName, float& OutValue, bool bRequired)
+{
+    const FString Text = Node ? Node->GetAttribute(AttributeName) : FString();
+    if (Text.IsEmpty())
+    {
+        if (bRequired)
+        {
+            UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] XML element '%s' is missing numeric attribute '%s'"),
+                Node ? *Node->GetTag() : TEXT("<null>"), AttributeName);
+            return false;
+        }
+        return true;
+    }
+    if (!LexTryParseString(OutValue, *Text) || !FMath::IsFinite(OutValue))
+    {
+        UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] XML element '%s' has invalid numeric attribute '%s=%s'"),
+            Node ? *Node->GetTag() : TEXT("<null>"), AttributeName, *Text);
+        return false;
+    }
+    return true;
+}
+
+static bool IsKnownAbilityType(const FGameplayTag& Tag, const FAuraGameplayTags& GameplayTags)
+{
+    return Tag.MatchesTagExact(GameplayTags.Abilities_Type_Offensive)
+        || Tag.MatchesTagExact(GameplayTags.Abilities_Type_Passive)
+        || Tag.MatchesTagExact(GameplayTags.Abilities_Type_None);
+}
+
+static bool IsKnownDamageType(const FGameplayTag& Tag, const FAuraGameplayTags& GameplayTags)
+{
+    return Tag.MatchesTagExact(GameplayTags.Damage_Fire)
+        || Tag.MatchesTagExact(GameplayTags.Damage_Lightning)
+        || Tag.MatchesTagExact(GameplayTags.Damage_Arcane)
+        || Tag.MatchesTagExact(GameplayTags.Damage_Physical);
+}
 
 static UAuraAbilityActionNode* CreateNodeByClassName(const FString& ClassName, UObject* Outer)
 {
@@ -115,25 +154,62 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
         return false;
     }
 
+    const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
     AbilityName = FName(*Root->GetAttribute(TEXT("name")));
-    AbilityTag = FGameplayTag::RequestGameplayTag(FName(*Root->GetAttribute(TEXT("abilityTag"))), false);
-    if (AbilityTag.IsValid())
+    if (AbilityName.IsNone())
     {
-        AbilityTags.AddTag(AbilityTag);
+        UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] XML ability is missing a name"));
+        return false;
     }
+    AbilityTags.Reset();
+    AbilityTag = FGameplayTag::RequestGameplayTag(FName(*Root->GetAttribute(TEXT("abilityTag"))), false);
+    if (!AbilityTag.IsValid())
+    {
+        UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has no registered abilityTag"), *AbilityName.ToString());
+        return false;
+    }
+    AbilityTags.AddTag(AbilityTag);
+
     TArray<FString> AdditionalTags;
     Root->GetAttribute(TEXT("abilityTags")).ParseIntoArray(AdditionalTags, TEXT(","), true);
     for (FString& TagString : AdditionalTags)
     {
         TagString.TrimStartAndEndInline();
         const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*TagString), false);
-        if (Tag.IsValid())
+        if (!Tag.IsValid())
         {
-            AbilityTags.AddTag(Tag);
+            UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has unregistered abilityTags entry '%s'"), *AbilityName.ToString(), *TagString);
+            return false;
         }
+        AbilityTags.AddTag(Tag);
     }
     InputTag = FGameplayTag::RequestGameplayTag(FName(*Root->GetAttribute(TEXT("inputTag"))), false);
+    if (!Root->GetAttribute(TEXT("inputTag")).IsEmpty() && !InputTag.IsValid())
+    {
+        UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has an unregistered inputTag"), *AbilityName.ToString());
+        return false;
+    }
     AbilityType = FGameplayTag::RequestGameplayTag(FName(*Root->GetAttribute(TEXT("type"))), false);
+    if (!AbilityType.IsValid() || !IsKnownAbilityType(AbilityType, GameplayTags))
+    {
+        UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has an unsupported type"), *AbilityName.ToString());
+        return false;
+    }
+
+    CooldownTag = FGameplayTag();
+    CooldownDuration.Value = 0.f;
+    ManaCost = 0.f;
+    DamageEffectClass = UAuraDamageGameplayEffect::StaticClass();
+    DamageType = FGameplayTag();
+    Damage.Value = 0.f;
+    DebuffChance = 20.f;
+    DebuffDamage = 5.f;
+    DebuffDuration = 5.f;
+    DebuffFrequency = 1.f;
+    DeathImpulseMagnitude = 10000.f;
+    KnockbackForceMagnitude = 10000.f;
+    KnockbackChance = 0.f;
+    RootNode = nullptr;
 
     for (const FXmlNode* Child : Root->GetChildrenNodes())
     {
@@ -145,22 +221,24 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
         else if (Tag == TEXT("cooldown"))
         {
             const FString CooldownTagStr = Child->GetAttribute(TEXT("tag"));
-            if (!CooldownTagStr.IsEmpty())
+            CooldownTag = FGameplayTag::RequestGameplayTag(FName(*CooldownTagStr), false);
+            if (!CooldownTag.IsValid())
             {
-                CooldownTag = FGameplayTag::RequestGameplayTag(FName(*CooldownTagStr), false);
+                UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has an invalid cooldown tag"), *AbilityName.ToString());
+                return false;
             }
-            const FString DurationStr = Child->GetAttribute(TEXT("duration"));
-            if (!DurationStr.IsEmpty())
+            if (!ParseXMLFloatAttribute(Child, TEXT("duration"), CooldownDuration.Value, true) || CooldownDuration.Value < 0.f)
             {
-                CooldownDuration.Value = FCString::Atof(*DurationStr);
+                UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has an invalid cooldown duration"), *AbilityName.ToString());
+                return false;
             }
         }
         else if (Tag == TEXT("cost"))
         {
-            const FString ManaStr = Child->GetAttribute(TEXT("mana"));
-            if (!ManaStr.IsEmpty())
+            if (!ParseXMLFloatAttribute(Child, TEXT("mana"), ManaCost, true) || ManaCost < 0.f)
             {
-                ManaCost = FCString::Atof(*ManaStr);
+                UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has an invalid mana cost"), *AbilityName.ToString());
+                return false;
             }
         }
         else if (Tag == TEXT("damage"))
@@ -169,20 +247,38 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
             if (!EffectClassPath.IsEmpty())
             {
                 DamageEffectClass = LoadClass<UGameplayEffect>(nullptr, *EffectClassPath);
+                if (!DamageEffectClass)
+                {
+                    UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' references an invalid damage effect class '%s'"), *AbilityName.ToString(), *EffectClassPath);
+                    return false;
+                }
             }
             const FString DamageTypeStr = Child->GetAttribute(TEXT("type"));
-            if (!DamageTypeStr.IsEmpty())
+            DamageType = FGameplayTag::RequestGameplayTag(FName(*DamageTypeStr), false);
+            if (!DamageType.IsValid() || !IsKnownDamageType(DamageType, GameplayTags))
             {
-                DamageType = FGameplayTag::RequestGameplayTag(FName(*DamageTypeStr), false);
+                UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has an invalid damage type"), *AbilityName.ToString());
+                return false;
             }
-            const FString BaseStr = Child->GetAttribute(TEXT("base"));
-            if (!BaseStr.IsEmpty())
+            if (!ParseXMLFloatAttribute(Child, TEXT("base"), Damage.Value, false)
+                || !ParseXMLFloatAttribute(Child, TEXT("debuffChance"), DebuffChance, false)
+                || !ParseXMLFloatAttribute(Child, TEXT("debuffDamage"), DebuffDamage, false)
+                || !ParseXMLFloatAttribute(Child, TEXT("debuffDuration"), DebuffDuration, false)
+                || !ParseXMLFloatAttribute(Child, TEXT("debuffFrequency"), DebuffFrequency, false)
+                || !ParseXMLFloatAttribute(Child, TEXT("deathImpulseMagnitude"), DeathImpulseMagnitude, false)
+                || !ParseXMLFloatAttribute(Child, TEXT("knockbackForceMagnitude"), KnockbackForceMagnitude, false)
+                || !ParseXMLFloatAttribute(Child, TEXT("knockbackChance"), KnockbackChance, false))
             {
-                Damage.Value = FCString::Atof(*BaseStr);
+                return false;
             }
             const FString CurveTablePath = Child->GetAttribute(TEXT("curveTable"));
             const FString CurveRow = Child->GetAttribute(TEXT("curveRow"));
-            if (!CurveTablePath.IsEmpty() && !CurveRow.IsEmpty())
+            if (CurveTablePath.IsEmpty() != CurveRow.IsEmpty())
+            {
+                UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' must provide both curveTable and curveRow"), *AbilityName.ToString());
+                return false;
+            }
+            if (!CurveTablePath.IsEmpty())
             {
                 if (UCurveTable* CurveTable = LoadObject<UCurveTable>(nullptr, *CurveTablePath))
                 {
@@ -195,13 +291,6 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
                     return false;
                 }
             }
-            DebuffChance = FCString::Atof(*Child->GetAttribute(TEXT("debuffChance")));
-            DebuffDamage = FCString::Atof(*Child->GetAttribute(TEXT("debuffDamage")));
-            DebuffDuration = FCString::Atof(*Child->GetAttribute(TEXT("debuffDuration")));
-            DebuffFrequency = FCString::Atof(*Child->GetAttribute(TEXT("debuffFrequency")));
-            DeathImpulseMagnitude = FCString::Atof(*Child->GetAttribute(TEXT("deathImpulseMagnitude")));
-            KnockbackForceMagnitude = FCString::Atof(*Child->GetAttribute(TEXT("knockbackForceMagnitude")));
-            KnockbackChance = FCString::Atof(*Child->GetAttribute(TEXT("knockbackChance")));
         }
         else if (Tag == TEXT("graph"))
         {
@@ -224,7 +313,7 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
         }
     }
 
-    if (!RootNode && AbilityTag.IsValid())
+    if (!RootNode)
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[AuraAbilityGraph] Ability %s has no <graph> node."), *AbilityTag.ToString());
     }

@@ -198,6 +198,7 @@ void AAuraEffectActor::StartRotation()
 
 void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString& EffectName)
 {
+	if (!HasAuthority()) return;
 	if (!IsValid(TargetActor)) return;
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
 	if (EffectName.IsEmpty()) return;
@@ -230,6 +231,11 @@ void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString&
 	if (EffectDefinition->Period > 0.f) CachedSpec.Data->Period = EffectDefinition->Period;
 	CachedSpec.Data->AppendDynamicAssetTags(EffectDefinition->AssetTags);
 	const FActiveGameplayEffectHandle CachedHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*CachedSpec.Data.Get());
+	if (!CachedHandle.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraEffectActor] Pickup effect '%s' was rejected by the target ASC; pickup remains available."), *EffectName);
+		return;
+	}
 	const bool bCachedInfinite = EffectDefinition->DurationType == TEXT("infinite");
 	if (bCachedInfinite && InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap) ActiveEffectHandles.Add(CachedHandle, TargetASC);
 	if (!bCachedInfinite && bDestroyOnEffectApplication) Destroy();
@@ -422,6 +428,7 @@ void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString&
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
+	if (!HasAuthority()) return;
 	if (!IsValid(TargetActor)) return;
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
 
@@ -441,6 +448,7 @@ void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 
 void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
+	if (!HasAuthority()) return;
 	if (!IsValid(TargetActor)) return;
 	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
 

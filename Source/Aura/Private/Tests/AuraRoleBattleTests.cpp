@@ -1210,7 +1210,7 @@ bool FAuraDay4AllProducerAttributionTest::RunTest(const FString& Parameters)
 	}
 
 	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
-	const FString XML = TEXT("<ability name=\"Day4Attribution\" abilityTag=\"Abilities.Attack\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Damage\"><damage type=\"Damage.Physical\" base=\"10\"/><graph><node class=\"Sequence\"/></graph></ability>");
+	const FString XML = TEXT("<ability name=\"Day4Attribution\" abilityTag=\"Abilities.Attack\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\"><damage type=\"Damage.Physical\" base=\"10\"/><graph><node class=\"Sequence\"/></graph></ability>");
 	TestTrue(TEXT("Attribution definition parses"), Definition && Definition->LoadFromXML(XML));
 	if (Definition)
 	{
@@ -1329,7 +1329,7 @@ bool FAuraDay4PreservedDamageSemanticsTest::RunTest(const FString& Parameters)
 	}
 
 	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
-	const FString XML = TEXT("<ability name=\"Day4Semantics\" abilityTag=\"Abilities.Attack\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Damage\"><damage type=\"Damage.Physical\" base=\"25\" deathImpulseMagnitude=\"500\" knockbackForceMagnitude=\"750\"/><graph><node class=\"Sequence\"/></graph></ability>");
+	const FString XML = TEXT("<ability name=\"Day4Semantics\" abilityTag=\"Abilities.Attack\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\"><damage type=\"Damage.Physical\" base=\"25\" deathImpulseMagnitude=\"500\" knockbackForceMagnitude=\"750\"/><graph><node class=\"Sequence\"/></graph></ability>");
 	if (Definition && Definition->LoadFromXML(XML))
 	{
 		FDamageEffectParams Params;
@@ -1421,6 +1421,19 @@ bool FAuraDay5DuplicateRoleIdsTest::RunTest(const FString& Parameters)
 	const FAuraRoleLoadResult Result = UAuraAbilitySystemLibrary::ParseRoleInfoJson(nullptr, Json);
 	TestFalse(TEXT("Duplicate IDs prevent publication"), Result.bCanPublish);
 	TestTrue(TEXT("Duplicate ID issue exists"), AuraRoleBattleDay5TestsPrivate::HasIssue(Result, TEXT("duplicate stable role ID")));
+	return true;
+}
+
+AURA_DAY5_TEST(FAuraDay5EmptyAbilityEntryRejectedTest, "EmptyAbilityEntryRejected")
+bool FAuraDay5EmptyAbilityEntryRejectedTest::RunTest(const FString& Parameters)
+{
+	FString Json = AuraRoleBattleDay5TestsPrivate::LegacyAuraJson(true);
+	Json.ReplaceInline(
+		TEXT("\"lmbAbility\":\"\""),
+		TEXT("\"startupAbilities\":[\"\"],\"startupPassiveAbilities\":[],\"unlockableAbilities\":[],\"startupAbilityDefinitions\":[],\"startupPassiveAbilityDefinitions\":[],\"lmbAbility\":\"\""));
+	const FAuraRoleLoadResult Result = UAuraAbilitySystemLibrary::ParseRoleInfoJson(nullptr, Json);
+	TestFalse(TEXT("Empty ability array entries prevent publication"), Result.bCanPublish);
+	TestTrue(TEXT("Empty ability array entry is diagnosed"), AuraRoleBattleDay5TestsPrivate::HasIssue(Result, TEXT("must be a non-empty string")));
 	return true;
 }
 

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Aura role and gameplay definition validation hardening</title>
+  <desc id="desc">Before and after flow showing strict packaged data validation, authority-only pickups, role contract validation, and atomic role rollback.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#17253a"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8bd5ff"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #f5f8ff; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #b6c6da; }
+      .section { font: 700 18px Arial, sans-serif; fill: #f5f8ff; }
+      .box-title { font: 700 16px Arial, sans-serif; fill: #f5f8ff; }
+      .body { font: 400 13px Arial, sans-serif; fill: #d8e4f2; }
+      .small { font: 400 12px Arial, sans-serif; fill: #b6c6da; }
+      .before { fill: #3a2530; stroke: #d77b8a; stroke-width: 2; }
+      .after { fill: #173b3a; stroke: #5bd6b2; stroke-width: 2; }
+      .guard { fill: #26365a; stroke: #8bd5ff; stroke-width: 2; }
+      .test { fill: #3b3155; stroke: #c7a7ff; stroke-width: 2; }
+      .line { stroke: #8bd5ff; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #71839c; stroke-width: 1.5; stroke-dasharray: 6 6; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="52" y="52" class="title">Aura gameplay-definition and role-application hardening</text>
+  <text x="52" y="79" class="subtitle">2026-08-17 · fixed data contracts, authority boundaries, and failed-transaction cleanup</text>
+
+  <text x="52" y="126" class="section">Before: permissive paths</text>
+  <rect x="52" y="145" width="250" height="98" rx="12" class="before"/>
+  <text x="72" y="174" class="box-title">Loose JSON / XML</text>
+  <text x="72" y="198" class="body">missing fields and bad numbers</text>
+  <text x="72" y="219" class="body">could become defaults or zero</text>
+  <rect x="350" y="145" width="250" height="98" rx="12" class="before"/>
+  <text x="370" y="174" class="box-title">Partial mutation</text>
+  <text x="370" y="198" class="body">unsupported tags/classes accepted</text>
+  <text x="370" y="219" class="body">or pickup consumed after rejection</text>
+  <rect x="648" y="145" width="250" height="98" rx="12" class="before"/>
+  <text x="668" y="174" class="box-title">Role commit drift</text>
+  <text x="668" y="198" class="body">grants could survive a failed apply</text>
+  <text x="668" y="219" class="body">identity/presentation could diverge</text>
+  <rect x="946" y="145" width="202" height="98" rx="12" class="before"/>
+  <text x="966" y="174" class="box-title">Packaged build</text>
+  <text x="966" y="198" class="body">AbilityDefinitions absent</text>
+  <text x="966" y="219" class="body">at runtime</text>
+  <path d="M302 194 H350 M600 194 H648 M898 194 H946" class="dash"/>
+
+  <text x="52" y="300" class="section">After: validated and transactional flow</text>
+  <rect x="52" y="322" width="245" height="124" rx="12" class="after"/>
+  <text x="72" y="352" class="box-title">Packaged data</text>
+  <text x="72" y="377" class="body">AbilityDefinitions staged as UFS</text>
+  <text x="72" y="399" class="body">shared cache owns validated JSON</text>
+  <text x="72" y="421" class="body">14 secondary/resistance defaults</text>
+  <rect x="335" y="322" width="245" height="124" rx="12" class="guard"/>
+  <text x="355" y="352" class="box-title">Strict contracts</text>
+  <text x="355" y="377" class="body">TryGet + finite numeric checks</text>
+  <text x="355" y="399" class="body">registered/supported tags only</text>
+  <text x="355" y="421" class="body">XML type, class, graph validation</text>
+  <rect x="618" y="322" width="245" height="124" rx="12" class="guard"/>
+  <text x="638" y="352" class="box-title">Authority boundary</text>
+  <text x="638" y="377" class="body">pickup overlap/application is server-only</text>
+  <text x="638" y="399" class="body">invalid effect handles do not consume</text>
+  <text x="638" y="421" class="body">role arrays/classes are reconciled</text>
+  <rect x="901" y="322" width="247" height="124" rx="12" class="after"/>
+  <text x="921" y="352" class="box-title">Atomic role commit</text>
+  <text x="921" y="377" class="body">capture grants, ledger, identity, role</text>
+  <text x="921" y="399" class="body">stage presentation and attributes</text>
+  <text x="921" y="421" class="body">rollback every changed state on failure</text>
+  <path d="M297 384 H335 M580 384 H618 M863 384 H901" class="line"/>
+
+  <rect x="52" y="500" width="1096" height="112" rx="12" class="test"/>
+  <text x="76" y="531" class="box-title">Validation performed in this workspace</text>
+  <text x="76" y="557" class="body">✓ 10 JSON files parsed · ✓ 9 XML files parsed · ✓ gameplay contract check: 14 defaults and staged directory</text>
+  <text x="76" y="581" class="body">✓ no unsupported Abilities.Type.Damage references · ✓ git diff --check · ✓ focused regression tests added</text>
+  <text x="76" y="605" class="small">Unreal compile/automation could not run: UE build tool and Saved test reports are not present in this workspace.</text>
+
+  <path d="M175 446 V500 M458 446 V500 M740 446 V500 M1024 446 V500" class="dash"/>
+  <text x="52" y="680" class="subtitle">Key guard: validate first → mutate on authority → restore the captured snapshot if any commit step fails.</text>
+  <text x="52" y="710" class="small">Related code: AuraGameplayConfig · AuraAbilityDefinition · AuraAbilitySystemComponent · AuraCharacterBase · AuraEffectActor</text>
+</svg>
