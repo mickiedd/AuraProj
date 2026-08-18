@@ -6,7 +6,7 @@
 #include "AuraAbilityGraphLogChannels.h"
 #include "AuraAbilityTypes.h"
 #include "AuraGameplayTags.h"
-#include "Misc/LexFromString.h"
+#include "String/LexFromString.h"
 #include "Nodes/AbilityActionNode.h"
 #include "XmlFile.h"
 

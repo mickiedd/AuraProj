@@ -95,8 +95,8 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
     AAuraProjectile* Projectile = Ctx.AvatarActor->GetWorld()->SpawnActorDeferred<AAuraProjectile>(
         ProjectileClass,
         SpawnTransform,
-        OwnerAbility->GetOwningActorFromActorInfo(),
-        Cast<APawn>(OwnerAbility->GetOwningActorFromActorInfo()),
+        Ctx.AvatarActor,
+        Cast<APawn>(Ctx.AvatarActor),
         ESpawnActorCollisionHandlingMethod::AlwaysSpawn,
         ESpawnActorScaleMethod::MultiplyWithRoot);
     if (!Projectile || (!Node->ProjectileDefinition.IsNone() && !Projectile->ConfigureFromDefinition(Node->ProjectileDefinition)))

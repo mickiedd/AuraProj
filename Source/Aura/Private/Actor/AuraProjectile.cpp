@@ -226,8 +226,12 @@ void AAuraProjectile::Destroyed()
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AActor* SourceAvatarActor = UAuraAbilitySystemLibrary::GetSafeAvatarActor(DamageEffectParams.SourceAbilitySystemComponent);
-	if (SourceAvatarActor == OtherActor) return;
+	if (!IsValidOverlap(OtherActor))
+	{
+		UE_LOG(LogAura, Verbose, TEXT("[Projectile] Overlap ignored for source actor: Projectile=%s Other=%s Owner=%s Instigator=%s"),
+			*GetNameSafe(this), *GetNameSafe(OtherActor), *GetNameSafe(GetOwner()), *GetNameSafe(GetInstigator()));
+		return;
+	}
 	if (bHit) return;
 
 	UE_LOG(LogAura, Log, TEXT("[Projectile] Overlap: Actor=%s Other=%s Loc=%s bHasASC=%s"),
@@ -239,8 +243,12 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 
 void AAuraProjectile::OnSphereHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	AActor* SourceAvatarActor = UAuraAbilitySystemLibrary::GetSafeAvatarActor(DamageEffectParams.SourceAbilitySystemComponent);
-	if (SourceAvatarActor == OtherActor) return;
+	if (!IsValidOverlap(OtherActor))
+	{
+		UE_LOG(LogAura, Verbose, TEXT("[Projectile] Hit ignored for source actor: Projectile=%s Other=%s Owner=%s Instigator=%s"),
+			*GetNameSafe(this), *GetNameSafe(OtherActor), *GetNameSafe(GetOwner()), *GetNameSafe(GetInstigator()));
+		return;
+	}
 	if (bHit) return;
 
 	UE_LOG(LogAura, Log, TEXT("[Projectile] Hit(block): Actor=%s Other=%s Loc=%s bHasASC=%s"),
@@ -281,9 +289,18 @@ void AAuraProjectile::ApplyImpactAndDestroy(AActor* OtherActor)
 
 bool AAuraProjectile::IsValidOverlap(AActor* OtherActor)
 {
-	if (DamageEffectParams.SourceAbilitySystemComponent == nullptr) return false;
+	if (!OtherActor) return false;
+
+	// DamageEffectParams is intentionally not replicated. On a client-owned replica it can be
+	// empty even though the server correctly populated it, so the source avatar must also be
+	// identified through the replicated projectile owner/instigator. Without this guard, the
+	// client's first Pawn overlap is its own character at the muzzle and OnHit() spawns the
+	// explosion on that character before the server reaches the real ground collision.
 	AActor* SourceAvatarActor = UAuraAbilitySystemLibrary::GetSafeAvatarActor(DamageEffectParams.SourceAbilitySystemComponent);
-	if (SourceAvatarActor == OtherActor) return false;
+	if (SourceAvatarActor == OtherActor || GetOwner() == OtherActor || GetInstigator() == OtherActor)
+	{
+		return false;
+	}
 
 	return true;
 }

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+  <title id="title">FireBolt self-impact collision fix</title>
+  <desc id="desc">Runtime log evidence and the before and after FireBolt collision flow showing the client self-overlap guard.</desc>
+  <defs>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#b42318"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#137333"/>
+    </marker>
+    <style>
+      .title { font: 700 29px Arial, sans-serif; fill: #172033; }
+      .subtitle { font: 16px Arial, sans-serif; fill: #526070; }
+      .section { font: 700 20px Arial, sans-serif; fill: #172033; }
+      .label { font: 700 15px Arial, sans-serif; fill: #172033; }
+      .body { font: 14px Arial, sans-serif; fill: #344054; }
+      .mono { font: 13px Consolas, monospace; fill: #172033; }
+      .small { font: 13px Arial, sans-serif; fill: #526070; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="760" fill="#f8fafc"/>
+  <text x="56" y="54" class="title">FireBolt impact location: client self-overlap fix</text>
+  <text x="56" y="84" class="subtitle">Server target data already identified the landscape; the client was spawning impact FX on its own avatar first.</text>
+
+  <rect x="42" y="118" width="1196" height="232" rx="14" fill="#fff1f0" stroke="#f3b5b0" stroke-width="2"/>
+  <text x="70" y="155" class="section" fill="#b42318">Before: client detonates at the caster</text>
+  <rect x="70" y="182" width="250" height="112" rx="10" fill="#ffffff" stroke="#d92d20" stroke-width="2"/>
+  <text x="195" y="211" text-anchor="middle" class="label">Server target data</text>
+  <text x="195" y="238" text-anchor="middle" class="mono">hit=Landscape_1</text>
+  <text x="195" y="262" text-anchor="middle" class="mono">Z=100 ground</text>
+  <line x1="320" y1="238" x2="390" y2="238" stroke="#b42318" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <rect x="395" y="182" width="250" height="112" rx="10" fill="#ffffff" stroke="#d92d20" stroke-width="2"/>
+  <text x="520" y="211" text-anchor="middle" class="label">Client replica</text>
+  <text x="520" y="238" text-anchor="middle" class="mono">Overlap Other=BP_AuraCharacter</text>
+  <text x="520" y="262" text-anchor="middle" class="body">DamageEffectParams empty</text>
+  <line x1="645" y1="238" x2="715" y2="238" stroke="#b42318" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <rect x="720" y="182" width="250" height="112" rx="10" fill="#ffffff" stroke="#d92d20" stroke-width="2"/>
+  <text x="845" y="211" text-anchor="middle" class="label">OnHit on client</text>
+  <text x="845" y="238" text-anchor="middle" class="mono">HasAuth=0</text>
+  <text x="845" y="262" text-anchor="middle" class="body">impact location = character</text>
+  <line x1="970" y1="238" x2="1040" y2="238" stroke="#b42318" stroke-width="3" marker-end="url(#arrow-red)"/>
+  <rect x="1045" y="182" width="155" height="112" rx="10" fill="#ffffff" stroke="#d92d20" stroke-width="2"/>
+  <text x="1122" y="211" text-anchor="middle" class="label">Wrong FX</text>
+  <text x="1122" y="238" text-anchor="middle" class="body">explodes on</text>
+  <text x="1122" y="262" text-anchor="middle" class="body">the caster</text>
+
+  <rect x="42" y="378" width="1196" height="232" rx="14" fill="#ecfdf3" stroke="#9ad7b0" stroke-width="2"/>
+  <text x="70" y="415" class="section" fill="#137333">After: source avatar is ignored, real collision remains authoritative</text>
+  <rect x="70" y="442" width="250" height="112" rx="10" fill="#ffffff" stroke="#34a853" stroke-width="2"/>
+  <text x="195" y="471" text-anchor="middle" class="label">Projectile spawn</text>
+  <text x="195" y="498" text-anchor="middle" class="mono">Owner = Avatar</text>
+  <text x="195" y="522" text-anchor="middle" class="mono">Instigator = Avatar pawn</text>
+  <line x1="320" y1="498" x2="390" y2="498" stroke="#137333" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="395" y="442" width="250" height="112" rx="10" fill="#ffffff" stroke="#34a853" stroke-width="2"/>
+  <text x="520" y="471" text-anchor="middle" class="label">Client self-overlap</text>
+  <text x="520" y="498" text-anchor="middle" class="mono">GetOwner / GetInstigator</text>
+  <text x="520" y="522" text-anchor="middle" class="body">matches OtherActor</text>
+  <line x1="645" y1="498" x2="715" y2="498" stroke="#137333" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="720" y="442" width="250" height="112" rx="10" fill="#ffffff" stroke="#34a853" stroke-width="2"/>
+  <text x="845" y="471" text-anchor="middle" class="label">Guard returns</text>
+  <text x="845" y="498" text-anchor="middle" class="body">no OnHit / no impact FX</text>
+  <text x="845" y="522" text-anchor="middle" class="body">for the caster</text>
+  <line x1="970" y1="498" x2="1040" y2="498" stroke="#137333" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <rect x="1045" y="442" width="155" height="112" rx="10" fill="#ffffff" stroke="#34a853" stroke-width="2"/>
+  <text x="1122" y="471" text-anchor="middle" class="label">Correct FX</text>
+  <text x="1122" y="498" text-anchor="middle" class="body">ground or</text>
+  <text x="1122" y="522" text-anchor="middle" class="body">actual target</text>
+
+  <rect x="42" y="638" width="1196" height="82" rx="12" fill="#eef2ff" stroke="#c7d2fe"/>
+  <text x="70" y="668" class="label">Validation</text>
+  <text x="170" y="668" class="body">FireBolt structural test passed; UE 5.5 Live Coding compile passed (8 actions).</text>
+  <text x="70" y="694" class="small">Existing UE 5.5 deprecation and project dependency warnings remain non-blocking. Runtime log evidence: Saved/Logs/Aura.log.</text>
+</svg>

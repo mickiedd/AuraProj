@@ -29,6 +29,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 XML_PATH = REPO_ROOT / "Content" / "AbilityDefinitions" / "FireBolt.xml"
 PROJECTILE_CONFIG_PATH = REPO_ROOT / "Content" / "Config" / "ProjectileDefinitions.json"
+PROJECTILE_CPP_PATH = REPO_ROOT / "Source" / "Aura" / "Private" / "Actor" / "AuraProjectile.cpp"
+SPAWN_PROJECTILES_CPP_PATH = (REPO_ROOT / "Plugins" / "AuraAbilityGraph" / "Source" /
+                              "AuraAbilityGraph" / "Private" / "Nodes" / "Actions" /
+                              "SpawnProjectilesNode.cpp")
 
 FAILURES = []
 
@@ -140,6 +144,25 @@ def main():
               "DataAbility must hold client graph completion until the authoritative server ends the activation")
         check("ShouldEndAfterGraphCompletion" in source,
               "DataAbility must use the graph-completion authority boundary contract")
+
+    # 9. Client replicas must ignore the source avatar before spawning impact FX. DamageEffectParams
+    # is server-only, so the collision guard must use replicated Owner/Instigator identity.
+    check(PROJECTILE_CPP_PATH.is_file(), f"Missing projectile implementation: {PROJECTILE_CPP_PATH}")
+    if PROJECTILE_CPP_PATH.is_file():
+        projectile_source = PROJECTILE_CPP_PATH.read_text(encoding="utf-8")
+        check("GetOwner() == OtherActor" in projectile_source,
+              "Projectile overlap guard must reject the replicated source Owner")
+        check("GetInstigator() == OtherActor" in projectile_source,
+              "Projectile overlap guard must reject the replicated source Instigator")
+
+    check(SPAWN_PROJECTILES_CPP_PATH.is_file(),
+          f"Missing graph projectile spawner: {SPAWN_PROJECTILES_CPP_PATH}")
+    if SPAWN_PROJECTILES_CPP_PATH.is_file():
+        spawn_source = SPAWN_PROJECTILES_CPP_PATH.read_text(encoding="utf-8")
+        check("            Ctx.AvatarActor," in spawn_source,
+              "Graph projectile Owner must be the avatar so clients can identify self-collision")
+        check("            Cast<APawn>(Ctx.AvatarActor)," in spawn_source,
+              "Graph projectile Instigator must be the avatar pawn when available")
 
     report()
     return 0 if not FAILURES else 1
