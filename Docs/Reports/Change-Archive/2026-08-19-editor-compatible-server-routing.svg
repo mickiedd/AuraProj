@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">UnrealEditor compatible server routing</title>
+  <desc id="desc">An UnrealEditor client reports its runtime and engine root to the Game Server Manager, which starts a matching editor server instead of a packaged server. The two endpoints then share network checksum 1419631917.</desc>
+  <defs>
+    <style>
+      .bg { fill: #0b1220; }
+      .panel { fill: #121d31; stroke: #526a91; stroke-width: 2; }
+      .safe { fill: #123c38; stroke: #45d6a6; stroke-width: 2; }
+      .old { fill: #3a2028; stroke: #ee8494; stroke-width: 2; }
+      .text { fill: #edf4ff; font: 22px Arial, sans-serif; }
+      .small { fill: #b9c9e2; font: 17px Arial, sans-serif; }
+      .label { fill: #73d8ff; font: 18px Arial, sans-serif; font-weight: bold; }
+      .arrow { stroke: #73d8ff; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .badarrow { stroke: #ee8494; stroke-width: 4; fill: none; stroke-dasharray: 10 8; marker-end: url(#badarrow); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#73d8ff"/></marker>
+    <marker id="badarrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#ee8494"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="650"/>
+  <text class="text" x="60" y="58" font-size="30" font-weight="bold">Editor client/server compatibility routing</text>
+  <text class="small" x="60" y="90">The handshake remains strict; the manager aligns the server runtime with the requesting editor.</text>
+
+  <rect class="old" x="70" y="145" width="320" height="170" rx="16"/>
+  <text class="text" x="95" y="185" font-weight="bold">Before</text>
+  <text class="small" x="95" y="220">UnrealEditor client</text>
+  <text class="small" x="95" y="248">NetCL 37670630</text>
+  <text class="small" x="95" y="276">Checksum 1419631917</text>
+  <path class="badarrow" d="M390,230 C500,230 500,230 595,230"/>
+  <rect class="old" x="610" y="145" width="420" height="170" rx="16"/>
+  <text class="text" x="635" y="185" font-weight="bold">Packaged AuraServer</text>
+  <text class="small" x="635" y="220">NetCL 0</text>
+  <text class="small" x="635" y="248">Checksum 1081833902</text>
+  <text class="small" x="635" y="286">UE rejects connection: incompatible version</text>
+
+  <rect class="panel" x="70" y="380" width="320" height="180" rx="16"/>
+  <text class="text" x="95" y="420" font-weight="bold">Editor client request</text>
+  <text class="small" x="95" y="455">clientExecutable</text>
+  <text class="small" x="95" y="480">clientEngineRoot</text>
+  <text class="small" x="95" y="505">network changelist + checksum</text>
+  <path class="arrow" d="M390,470 L545,470"/>
+  <rect class="panel" x="565" y="380" width="260" height="180" rx="16"/>
+  <text class="text" x="590" y="420" font-weight="bold">Game Server</text>
+  <text class="text" x="590" y="450">Manager</text>
+  <text class="small" x="590" y="490">select matching editor</text>
+  <text class="small" x="590" y="515">restart mismatched DS</text>
+  <path class="arrow" d="M825,470 L960,470"/>
+  <rect class="safe" x="980" y="380" width="170" height="180" rx="16"/>
+  <text class="text" x="1000" y="420" font-weight="bold">Editor DS</text>
+  <text class="small" x="1000" y="460">NetCL</text>
+  <text class="small" x="1000" y="485">37670630</text>
+  <text class="small" x="1000" y="525">checksum</text>
+  <text class="small" x="1000" y="550">1419631917</text>
+
+  <text class="label" x="70" y="615">Validation: Aura Win64 Development build passed · editor pair connected · packaged checksum gate still passes</text>
+</svg>

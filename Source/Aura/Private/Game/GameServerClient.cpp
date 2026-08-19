@@ -6,8 +6,11 @@
 #include "Async/TaskGraphInterfaces.h"
 #include "Dom/JsonObject.h"
 #include "HAL/PlatformTime.h"
+#include "HAL/PlatformProcess.h"
 #include "IPAddress.h"
 #include "Json.h"
+#include "Misc/NetworkVersion.h"
+#include "Misc/Paths.h"
 #include "Misc/Guid.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -256,9 +259,22 @@ void UGameServerClient::RequestServer(
 		FString SafeLevelId = LevelId;
 		SafeLevelId.ReplaceInline(TEXT("\""), TEXT("_"));
 		SafeLevelId.ReplaceInline(TEXT("\\"), TEXT("_"));
+		FString ClientExecutable = FPlatformProcess::ExecutableName(false);
+		ClientExecutable.ReplaceInline(TEXT("\""), TEXT("_"));
+		ClientExecutable.ReplaceInline(TEXT("\\"), TEXT("/"));
+		FString ClientEngineRoot = FPaths::ConvertRelativePathToFull(FPaths::EngineDir());
+		ClientEngineRoot.ReplaceInline(TEXT("\""), TEXT("_"));
+		ClientEngineRoot.ReplaceInline(TEXT("\\"), TEXT("/"));
+		const uint32 ClientNetworkChangelist = FNetworkVersion::GetNetworkCompatibleChangelist();
+		const uint32 ClientNetworkVersion = FNetworkVersion::GetLocalNetworkVersion();
 
 		const FString RequestJson = FString::Printf(
-			TEXT("{\"action\":\"request_server\",\"levelId\":\"%s\"}\n"), *SafeLevelId);
+			TEXT("{\"action\":\"request_server\",\"levelId\":\"%s\",\"clientExecutable\":\"%s\",\"clientEngineRoot\":\"%s\",\"clientNetworkChangelist\":%u,\"clientNetworkVersion\":%u}\n"),
+			*SafeLevelId,
+			*ClientExecutable,
+			*ClientEngineRoot,
+			ClientNetworkChangelist,
+			ClientNetworkVersion);
 
 		const TArray<uint8> RequestBytes = StringToUtf8(RequestJson);
 
@@ -280,7 +296,14 @@ void UGameServerClient::RequestServer(
 		}
 
 		UE_LOG(LogGameServerClient, Display,
-			TEXT("[Req=%s] Sent request bytes=%d levelId='%s'"), *RequestId, RequestBytes.Num(), *LevelId);
+			TEXT("[Req=%s] Sent request bytes=%d levelId='%s' executable='%s' engine='%s' netCL=%u checksum=%u"),
+			*RequestId,
+			RequestBytes.Num(),
+			*LevelId,
+			*ClientExecutable,
+			*ClientEngineRoot,
+			ClientNetworkChangelist,
+			ClientNetworkVersion);
 
 		// -----------------------------------------------------------------
 		// 6. Read newline-delimited JSON response

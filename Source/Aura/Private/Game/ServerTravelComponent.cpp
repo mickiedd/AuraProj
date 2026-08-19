@@ -163,9 +163,16 @@ void UServerTravelComponent::HandleNetworkFailure(UWorld* InWorld, UNetDriver* N
 	ClearMonitoringTimers();
 
 	const FString FailureCode = FString::FromInt(static_cast<int32>(FailureType));
+	const bool bVersionMismatch =
+		ErrorString.Contains(TEXT("incompatible version"), ESearchCase::IgnoreCase) ||
+		ErrorString.Contains(TEXT("RemoteNetworkVersion"), ESearchCase::IgnoreCase) ||
+		ErrorString.Contains(TEXT("LocalNetworkVersion"), ESearchCase::IgnoreCase);
+	const FString UserMessage = bVersionMismatch
+		? TEXT("Client/server build mismatch. Rebuild and restart UnrealEditor from the same project and engine build as the server, then retry.")
+		: (ErrorString.IsEmpty() ? TEXT("Please check your network and try again.") : *ErrorString);
 	BroadcastStatusMessage(FString::Printf(TEXT("Network error (code %s). %s"),
 		*FailureCode,
-		ErrorString.IsEmpty() ? TEXT("Please check your network and try again.") : *ErrorString));
+		*UserMessage));
 }
 
 void UServerTravelComponent::BindConnectionFailureDelegates()

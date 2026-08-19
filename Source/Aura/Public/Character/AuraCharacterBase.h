@@ -44,6 +44,7 @@ public:
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 	const UAuraCombatIdentityComponent* GetCombatIdentityComponent() const { return CombatIdentityComponent; }
 	const UAuraCombatStateComponent* GetCombatStateComponent() const { return CombatStateComponent; }
+	UAuraCombatStateComponent* GetCombatStateComponentMutable() const { return CombatStateComponent; }
 	EAuraCombatLifeState GetCombatLifeState() const;
 	bool IsCombatAlive() const;
 	const FAuraCombatIdentity& GetCombatIdentity() const;

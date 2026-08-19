@@ -14,6 +14,7 @@ class UMVVM_LoadSlot;
 class URuntimeAbilityInfo;
 class UCharacterClassInfo;
 class URoleInfo;
+class UAuraPopulationManager;
 class AAuraEnemy;
 class APlayerController;
 class APlayerState;
@@ -123,6 +124,10 @@ public:
 	UPROPERTY(Transient)
 	TObjectPtr<URoleInfo> RoleInfo;
 
+	/** Authority-only Day 09 population owner, initialized before StartPlay. */
+	UPROPERTY(Transient)
+	TObjectPtr<UAuraPopulationManager> PopulationManager;
+
 	/**
 	 * How often (seconds) the server polls Content/Config/.RoleConfig.reload for the editor
 	 * "Reload Role Config" mending tool. When the sentinel is found, RoleInfo is rebuilt from
@@ -195,6 +200,9 @@ public:
 
 	/** Spawn a loaded monster-table entry at a caller-provided location. */
 	AAuraEnemy* SpawnMonsterByIdAtLocation(int32 MonsterId, const FVector& SpawnLocation);
+
+	const UAuraPopulationManager* GetPopulationManager() const { return PopulationManager; }
+	UAuraPopulationManager* GetPopulationManagerMutable() const { return PopulationManager; }
 
 protected:
 	virtual void BeginPlay() override;

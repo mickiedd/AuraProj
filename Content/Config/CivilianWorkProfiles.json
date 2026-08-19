@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "workProfiles": [
+    {
+      "id": "Observer",
+      "movement": {
+        "speed": 120.0,
+        "wanderRadius": 300.0
+      },
+      "threat": {
+        "observeRadius": 900.0,
+        "fleeDistance": 600.0
+      },
+      "schedule": {
+        "startHour": 0.0,
+        "endHour": 24.0,
+        "phase": "All"
+      }
+    }
+  ]
+}

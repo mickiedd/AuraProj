@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="840" viewBox="0 0 1440 840">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#182f43"/>
+    </linearGradient>
+    <linearGradient id="good" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#124955"/>
+      <stop offset="1" stop-color="#16726c"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#73ddd2"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Segoe UI, Arial, sans-serif; fill: #f4f8fb; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #b8c7d3; }
+      .heading { font: 700 20px Segoe UI, Arial, sans-serif; fill: #f4f8fb; }
+      .body { font: 400 15px Segoe UI, Arial, sans-serif; fill: #e1edf2; }
+      .small { font: 400 13px Segoe UI, Arial, sans-serif; fill: #bed0d9; }
+      .bad { fill: #3a3541; stroke: #a8829c; stroke-width: 2; }
+      .good { fill: url(#good); stroke: #73ddd2; stroke-width: 2; }
+      .line { stroke: #73ddd2; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .badge { font: 700 14px Segoe UI, Arial, sans-serif; fill: #062528; }
+    </style>
+  </defs>
+  <rect width="1440" height="840" fill="url(#bg)"/>
+  <text x="64" y="62" class="title">Client/server network-version synchronization</text>
+  <text x="64" y="92" class="subtitle">Close the code-6 mismatch by deploying one synchronized client/server package</text>
+
+  <text x="72" y="145" class="heading">Observed connection</text>
+  <rect x="64" y="172" width="590" height="166" rx="14" class="bad"/>
+  <text x="90" y="210" class="body">GSM returned the correct server: 192.168.1.6:7790</text>
+  <text x="90" y="240" class="small">Server network checksum: 1081833902</text>
+  <text x="90" y="268" class="small">Connecting client checksum: 1419631917</text>
+  <text x="90" y="296" class="small">UE handshake rejected the connection with NetVersionMismatch (code 6).</text>
+  <text x="90" y="324" class="small">This must not be bypassed: stale binaries can have incompatible replication data.</text>
+
+  <text x="752" y="145" class="heading">Correct deployment</text>
+  <rect x="744" y="172" width="632" height="166" rx="14" class="good"/>
+  <text x="770" y="210" class="body">Build and distribute client + server together</text>
+  <text x="770" y="240" class="small">Use the client from the same staged package as the server.</text>
+  <text x="770" y="268" class="small">The package gate now parses LogNetVersion from server and both clients.</text>
+  <text x="770" y="296" class="small">A mismatch fails before role/replication assertions with a rebuild instruction.</text>
+  <text x="770" y="324" class="small">Current synchronized evidence: all three checksums = 1081833902.</text>
+
+  <path d="M 198 432 H 1230" class="line"/>
+  <rect x="72" y="400" width="250" height="72" rx="12" class="good"/>
+  <text x="197" y="430" text-anchor="middle" class="body">Build client</text>
+  <text x="197" y="454" text-anchor="middle" class="small">Aura.exe</text>
+  <rect x="408" y="400" width="250" height="72" rx="12" class="good"/>
+  <text x="533" y="430" text-anchor="middle" class="body">Build server</text>
+  <text x="533" y="454" text-anchor="middle" class="small">AuraServer.exe</text>
+  <rect x="744" y="400" width="250" height="72" rx="12" class="good"/>
+  <text x="869" y="430" text-anchor="middle" class="body">Cook/stage together</text>
+  <text x="869" y="454" text-anchor="middle" class="small">shared package output</text>
+  <rect x="1080" y="400" width="280" height="72" rx="12" class="good"/>
+  <text x="1220" y="430" text-anchor="middle" class="body">Checksum gate</text>
+  <text x="1220" y="454" text-anchor="middle" class="small">reject mismatch early</text>
+
+  <text x="72" y="540" class="heading">Validation evidence</text>
+  <rect x="64" y="562" width="1312" height="116" rx="14" class="good"/>
+  <text x="90" y="598" class="body">Packaged topology passed with server/client checksums: 1081833902 / 1081833902 / 1081833902</text>
+  <text x="90" y="627" class="small">Both packaged clients connected, passed role presentation/mutation checks, and completed respawn assertions.</text>
+  <text x="90" y="653" class="small">The package runner now fails with an actionable message if any checksum differs.</text>
+
+  <rect x="64" y="730" width="270" height="38" rx="19" fill="#8fe3a4"/><text x="199" y="755" text-anchor="middle" class="badge">mismatch diagnosed</text>
+  <rect x="358" y="730" width="260" height="38" rx="19" fill="#8fe3a4"/><text x="488" y="755" text-anchor="middle" class="badge">package gate PASS</text>
+  <rect x="642" y="730" width="320" height="38" rx="19" fill="#8fe3a4"/><text x="802" y="755" text-anchor="middle" class="badge">synchronized topology PASS</text>
+  <rect x="986" y="730" width="390" height="38" rx="19" fill="#8fe3a4"/><text x="1181" y="755" text-anchor="middle" class="badge">safe handshake preserved</text>
+</svg>

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#182b3d"/>
+    </linearGradient>
+    <linearGradient id="after" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#123d4b"/>
+      <stop offset="1" stop-color="#155e63"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#71d6d1"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Segoe UI, Arial, sans-serif; fill: #f4f8fb; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #b8c7d3; }
+      .heading { font: 700 20px Segoe UI, Arial, sans-serif; fill: #f4f8fb; }
+      .body { font: 400 15px Segoe UI, Arial, sans-serif; fill: #d8e4eb; }
+      .small { font: 400 13px Segoe UI, Arial, sans-serif; fill: #b8c7d3; }
+      .badge { font: 700 14px Segoe UI, Arial, sans-serif; fill: #062528; }
+      .before { fill: #2b3443; stroke: #63758a; stroke-width: 2; }
+      .after { fill: url(#after); stroke: #71d6d1; stroke-width: 2; }
+      .line { stroke: #71d6d1; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .divider { stroke: #526578; stroke-width: 2; stroke-dasharray: 8 8; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <text x="64" y="62" class="title">Day 7–9 runtime hardening</text>
+  <text x="64" y="92" class="subtitle">Normal population setup, role safety, real network topology, and packaged-process validation</text>
+
+  <line x1="720" y1="132" x2="720" y2="710" class="divider"/>
+  <text x="72" y="148" class="heading">Before review findings</text>
+  <text x="752" y="148" class="heading">Fixed runtime path</text>
+
+  <rect x="64" y="178" width="590" height="104" rx="12" class="before"/>
+  <text x="88" y="210" class="body">Population setup depended on a weak fixture path</text>
+  <text x="88" y="235" class="small">A runtime volume could start at an unusable location and lack nav anchoring.</text>
+  <text x="88" y="258" class="small">Ground/world-static overlap could reject every civilian spawn.</text>
+
+  <rect x="64" y="306" width="590" height="104" rx="12" class="before"/>
+  <text x="88" y="338" class="body">Civilian identity and config failures could be permissive</text>
+  <text x="88" y="363" class="small">The base character supplied a combat identity even when a role should own it.</text>
+  <text x="88" y="386" class="small">Malformed optional fields and class choices were not fully fail-closed.</text>
+
+  <rect x="64" y="434" width="590" height="104" rx="12" class="before"/>
+  <text x="88" y="466" class="body">Network/package checks could pass without proving topology</text>
+  <text x="88" y="491" class="small">Day 7 wrappers did not assert the real role grant path.</text>
+  <text x="88" y="514" class="small">Packaged mode could fall back to editor assumptions; launcher children could linger.</text>
+
+  <rect x="64" y="562" width="590" height="104" rx="12" class="before"/>
+  <text x="88" y="594" class="body">FireBolt client overlap could be treated as impact</text>
+  <text x="88" y="619" class="small">The projectile needed an explicit source-avatar self-overlap guard.</text>
+  <text x="88" y="642" class="small">The structural regression had to remain part of the final gate.</text>
+
+  <rect x="752" y="178" width="590" height="104" rx="12" class="after"/>
+  <text x="776" y="210" class="body">Nav-safe civilian population</text>
+  <text x="776" y="235" class="small">Runtime fixture anchors to navigation, projects candidates, and checks pawn occupancy only.</text>
+  <text x="776" y="258" class="small">Normal StartupMap flow registers the volume and finalizes canonical civilian members.</text>
+
+  <rect x="752" y="306" width="590" height="104" rx="12" class="after"/>
+  <text x="776" y="338" class="body">Role-owned, fail-closed identity and schema</text>
+  <text x="776" y="363" class="small">Civilian defaults no longer grant a combat identity; role validation is exact and non-hostile.</text>
+  <text x="776" y="386" class="small">Typed optional fields, ranges, classes, levels, and slot overrides are validated.</text>
+
+  <rect x="752" y="434" width="590" height="104" rx="12" class="after"/>
+  <text x="776" y="466" class="body">Authoritative topology and packaged proof</text>
+  <text x="776" y="491" class="small">Listen/Dedicated runners exercise real clients, role grants, replication, late join, and respawn.</text>
+  <text x="776" y="514" class="small">Packaged runner starts staged client/server launchers and tears down their full process trees.</text>
+
+  <rect x="752" y="562" width="590" height="104" rx="12" class="after"/>
+  <text x="776" y="594" class="body">FireBolt self-impact remains blocked</text>
+  <text x="776" y="619" class="small">Source avatar, owner, and instigator overlaps are rejected before impact handling.</text>
+  <text x="776" y="642" class="small">World collision behavior stays explicit and the graph contract passes.</text>
+
+  <path d="M 110 742 H 1330" class="line"/>
+  <text x="72" y="730" class="heading">Validation gate</text>
+  <rect x="72" y="758" width="190" height="38" rx="19" fill="#8fe3a4"/><text x="167" y="783" text-anchor="middle" class="badge">25/25 native</text>
+  <rect x="280" y="758" width="220" height="38" rx="19" fill="#8fe3a4"/><text x="390" y="783" text-anchor="middle" class="badge">Listen + Dedicated</text>
+  <rect x="518" y="758" width="190" height="38" rx="19" fill="#8fe3a4"/><text x="613" y="783" text-anchor="middle" class="badge">Packaged PASS</text>
+  <rect x="726" y="758" width="205" height="38" rx="19" fill="#8fe3a4"/><text x="828" y="783" text-anchor="middle" class="badge">3 UE builds</text>
+  <rect x="949" y="758" width="190" height="38" rx="19" fill="#8fe3a4"/><text x="1044" y="783" text-anchor="middle" class="badge">Static checks</text>
+  <rect x="1157" y="758" width="185" height="38" rx="19" fill="#8fe3a4"/><text x="1249" y="783" text-anchor="middle" class="badge">FireBolt PASS</text>
+  <text x="72" y="846" class="small">Evidence: AuraEditor, Aura, AuraServer Development builds; Day 7/8/9 network smokes; staged Windows client/server topology.</text>
+</svg>

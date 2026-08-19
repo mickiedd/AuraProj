@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <title>Civilian AI and ground placement fix</title>
+  <desc>Nav surface placement raises the capsule center, then the server starts a standard Unreal Behavior Tree that selects reachable destinations and moves Civilians. Non-alive state stops the tree.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 17px Arial, sans-serif; fill: #0f172a; }
+      .text { font: 15px Arial, sans-serif; fill: #334155; }
+      .small { font: 13px Arial, sans-serif; fill: #475569; }
+      .box { stroke: #334155; stroke-width: 2; rx: 14; }
+      .arrow { stroke: #334155; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .guard { stroke: #b45309; stroke-width: 2; stroke-dasharray: 7 5; fill: #fffbeb; rx: 14; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="#f8fafc"/>
+  <text x="50" y="55" class="title">Civilian AI + ground placement — before / after flow</text>
+  <text x="50" y="83" class="text">Server-authoritative spawn correction and standard Unreal BT execution</text>
+
+  <rect x="50" y="125" width="330" height="205" class="box" fill="#fee2e2"/>
+  <text x="75" y="160" class="label">Before</text>
+  <text x="75" y="193" class="text">Nav surface Z used as actor transform Z</text>
+  <text x="75" y="220" class="text">Capsule center started inside the floor</text>
+  <text x="75" y="247" class="text">Collision adjustment lifted the pawn</text>
+  <text x="75" y="274" class="text">AIControllerClass = nullptr</text>
+  <text x="75" y="301" class="text">AutoPossessAI = Disabled</text>
+
+  <rect x="430" y="125" width="330" height="205" class="box" fill="#dcfce7"/>
+  <text x="455" y="160" class="label">Spawn correction</text>
+  <text x="455" y="193" class="text">Project candidate onto navigation</text>
+  <text x="455" y="220" class="text">World Z = floor Z + capsule half-height + 2</text>
+  <text x="455" y="247" class="text">Trace WorldStatic / WorldDynamic floor</text>
+  <text x="455" y="274" class="text">Set movement mode back to Walking</text>
+  <text x="455" y="301" class="text">Ground marker records floorZ and actorZ</text>
+
+  <rect x="810" y="125" width="340" height="205" class="box" fill="#dbeafe"/>
+  <text x="835" y="160" class="label">AI possession</text>
+  <text x="835" y="193" class="text">AAuraCivilianAIController</text>
+  <text x="835" y="220" class="text">PlacedInWorldOrSpawned</text>
+  <text x="835" y="247" class="text">Authority-only startup after Alive</text>
+  <text x="835" y="274" class="text">Native UBehaviorTree + UBlackboardData</text>
+  <text x="835" y="301" class="text">BT started marker</text>
+
+  <path d="M380 225 H425" class="arrow"/>
+  <path d="M760 225 H805" class="arrow"/>
+
+  <rect x="85" y="405" width="300" height="150" class="box" fill="#e0f2fe"/>
+  <text x="110" y="440" class="label">Blackboard contract</text>
+  <text x="110" y="469" class="small">Destination · Activity · HomeLocation</text>
+  <text x="110" y="493" class="small">ThreatActor · ThreatDistance</text>
+  <text x="110" y="517" class="small">Work / Observe / Shelter markers</text>
+
+  <rect x="450" y="405" width="300" height="150" class="box" fill="#dcfce7"/>
+  <text x="475" y="440" class="label">Wander loop</text>
+  <text x="475" y="469" class="small">Project capsule center to nav</text>
+  <text x="475" y="493" class="small">GetRandomReachablePointInRadius</text>
+  <text x="475" y="517" class="small">MoveTo Destination, wait, repeat</text>
+
+  <rect x="815" y="405" width="300" height="150" class="guard"/>
+  <text x="840" y="440" class="label">Life-state guard</text>
+  <text x="840" y="469" class="small">Alive → BT may run</text>
+  <text x="840" y="493" class="small">Dying / Dead / Respawning</text>
+  <text x="840" y="517" class="small">→ StopLogic + StopMovement</text>
+
+  <path d="M980 330 V385" class="arrow"/>
+  <path d="M385 480 H445" class="arrow"/>
+  <path d="M750 480 H810" class="arrow"/>
+  <path d="M600 560 C600 620 235 620 235 560" class="arrow"/>
+
+  <rect x="50" y="625" width="1100" height="42" rx="10" fill="#e2e8f0"/>
+  <text x="70" y="652" class="small">Validation: Aura + AuraServer builds; Civilian static/runtime contracts; 3 BT starts; 6 ground markers; 24 destination selections; Day 7–9, FireBolt, manager, network, and editor-routing regressions.</text>
+</svg>

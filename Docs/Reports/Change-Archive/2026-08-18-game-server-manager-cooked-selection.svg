@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#1a2e42"/>
+    </linearGradient>
+    <linearGradient id="good" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#124955"/>
+      <stop offset="1" stop-color="#16726c"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#73ddd2"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Segoe UI, Arial, sans-serif; fill: #f4f8fb; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #b8c7d3; }
+      .heading { font: 700 20px Segoe UI, Arial, sans-serif; fill: #f4f8fb; }
+      .body { font: 400 15px Segoe UI, Arial, sans-serif; fill: #e1edf2; }
+      .small { font: 400 13px Segoe UI, Arial, sans-serif; fill: #bed0d9; }
+      .before { fill: #303847; stroke: #718093; stroke-width: 2; }
+      .good { fill: url(#good); stroke: #73ddd2; stroke-width: 2; }
+      .line { stroke: #73ddd2; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .badge { font: 700 14px Segoe UI, Arial, sans-serif; fill: #062528; }
+    </style>
+  </defs>
+  <rect width="1440" height="820" fill="url(#bg)"/>
+  <text x="64" y="62" class="title">Game Server Manager cooked-server selection</text>
+  <text x="64" y="92" class="subtitle">Prevent clean Unreal exits when a Development server is pointed at uncooked project content</text>
+
+  <text x="72" y="145" class="heading">Observed failure</text>
+  <rect x="64" y="172" width="590" height="174" rx="14" class="before"/>
+  <text x="90" y="210" class="body">GSM selected Binaries/Win64/AuraServer.exe</text>
+  <text x="90" y="238" class="small">The Development server had no cooked map payload beside it.</text>
+  <text x="90" y="266" class="small">/Game/Maps/StartupMap could not be loaded from loose Content.</text>
+  <text x="90" y="294" class="small">Unreal showed the map dialog and called RequestExit(0).</text>
+  <text x="90" y="322" class="small">GSM reported “exited prematurely” after its startup grace period.</text>
+
+  <text x="752" y="145" class="heading">Corrected selection and startup</text>
+  <rect x="744" y="172" width="632" height="174" rx="14" class="good"/>
+  <text x="770" y="210" class="body">Prefer a cooked/staged server launcher</text>
+  <text x="770" y="238" class="small">Saved/StagedBuilds/WindowsServer/AuraServer.exe is selected first.</text>
+  <text x="770" y="266" class="small">Archived WindowsServer packages are considered next and verified for Paks/IoStore.</text>
+  <text x="770" y="294" class="small">If only uncooked Binaries exist, use UnrealEditor -server or report a clear action.</text>
+  <text x="770" y="322" class="small">Explicit --server-exe/AURA_SERVER_EXE overrides remain honored.</text>
+
+  <path d="M 230 422 H 1215" class="line"/>
+  <rect x="72" y="390" width="250" height="72" rx="12" class="good"/>
+  <text x="197" y="420" text-anchor="middle" class="body">LevelConfig</text>
+  <text x="197" y="444" text-anchor="middle" class="small">StartupMap + port 7790</text>
+  <rect x="408" y="390" width="250" height="72" rx="12" class="good"/>
+  <text x="533" y="420" text-anchor="middle" class="body">Cooked launcher</text>
+  <text x="533" y="444" text-anchor="middle" class="small">staged client/server payload</text>
+  <rect x="744" y="390" width="250" height="72" rx="12" class="good"/>
+  <text x="869" y="420" text-anchor="middle" class="body">Unreal startup</text>
+  <text x="869" y="444" text-anchor="middle" class="small">LoadMap succeeds</text>
+  <rect x="1080" y="390" width="280" height="72" rx="12" class="good"/>
+  <text x="1220" y="420" text-anchor="middle" class="body">GSM ready handshake</text>
+  <text x="1220" y="444" text-anchor="middle" class="small">host:port returned to client</text>
+
+  <text x="72" y="530" class="heading">Live evidence</text>
+  <rect x="64" y="552" width="1312" height="116" rx="14" class="good"/>
+  <text x="90" y="588" class="body">Cooked server selected → StartupMap loaded → population finalized → ready response returned</text>
+  <text x="90" y="617" class="small">[Population][Finalize] generation=1 map=RoleBattleCivilianTest liveMembers=3 success=1</text>
+  <text x="90" y="643" class="small">request response: {"status":"ready","host":"192.168.1.6","port":7790}</text>
+
+  <rect x="64" y="720" width="300" height="38" rx="19" fill="#8fe3a4"/><text x="214" y="745" text-anchor="middle" class="badge">manager contract PASS</text>
+  <rect x="388" y="720" width="260" height="38" rx="19" fill="#8fe3a4"/><text x="518" y="745" text-anchor="middle" class="badge">live GSM PASS</text>
+  <rect x="672" y="720" width="285" height="38" rx="19" fill="#8fe3a4"/><text x="814" y="745" text-anchor="middle" class="badge">map + population PASS</text>
+  <rect x="981" y="720" width="395" height="38" rx="19" fill="#8fe3a4"/><text x="1178" y="745" text-anchor="middle" class="badge">clean exit regression closed</text>
+</svg>

@@ -513,7 +513,8 @@ void AAuraCharacterBase::BeginPlay()
 	if (HasAuthority())
 	{
 		DefaultCombatIdentity = BuildDefaultCombatIdentity();
-		if (!CombatIdentityComponent || !CombatIdentityComponent->InitializeIdentity(DefaultCombatIdentity))
+		if (DefaultCombatIdentity.IsValid()
+			&& (!CombatIdentityComponent || !CombatIdentityComponent->InitializeIdentity(DefaultCombatIdentity)))
 		{
 			UAuraCombatIdentityComponent::LogMissingIdentityOnce(this, TEXT("AAuraCharacterBase::BeginPlay"));
 		}

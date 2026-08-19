@@ -17,6 +17,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "NavigationSystem.h"
 #include "Player/AuraPlayerState.h"
 #include "GameFramework/GameStateBase.h"
 #include "Engine/NetConnection.h"
@@ -24,6 +25,9 @@
 #include "Engine/World.h"
 #include "Actor/LevelJumpPortal.h"
 #include "Character/AuraEnemy.h"
+#include "Character/AuraCivilian.h"
+#include "World/AuraPopulationManager.h"
+#include "World/AuraCivilianSpawnVolume.h"
 #include "Dom/JsonObject.h"
 #include "IPAddress.h"
 #include "Misc/FileHelper.h"
@@ -201,6 +205,7 @@ void AAuraGameModeBase::LoadWorldState(UWorld* World) const
 			}
 		}
 	}
+
 }
 
 void AAuraGameModeBase::TravelToMap(UMVVM_LoadSlot* Slot)
@@ -251,6 +256,16 @@ void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options,
 		if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay5ConfigProbe")))
 		{
 			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] InvalidStartupRejected=1 RoleServiceUnavailable=1"));
+		}
+	}
+
+	PopulationManager = NewObject<UAuraPopulationManager>(this, TEXT("PopulationManager"));
+	if (PopulationManager)
+	{
+		FString PopulationError;
+		if (!PopulationManager->InitializeDefinitions(PopulationError))
+		{
+			UE_LOG(LogAura, Error, TEXT("[Population][InitGame] Population definitions unavailable; no civilians will spawn: %s"), *PopulationError);
 		}
 	}
 }
@@ -635,6 +650,88 @@ void AAuraGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	Maps.Add(DefaultMapName, DefaultMap);
+
+	// Spawn volumes register during Actor BeginPlay. Finalization is deliberately
+	// deferred one tick so all placed volumes are visible to the manager.
+	if (PopulationManager)
+	{
+		bool bDay8NetworkProbe = false;
+		bool bDay9NetworkProbe = false;
+#if !UE_BUILD_SHIPPING
+		bDay8NetworkProbe = FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay8NetworkProbe"));
+		bDay9NetworkProbe = FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay9NetworkProbe"));
+#endif
+
+		if (bDay8NetworkProbe && GetWorld())
+		{
+			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			const FTransform SpawnTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 100.f));
+			if (AAuraCivilian* ProbeCivilian = GetWorld()->SpawnActorDeferred<AAuraCivilian>(
+				AAuraCivilian::StaticClass(), SpawnTransform, nullptr, nullptr, SpawnParameters.SpawnCollisionHandlingOverride))
+			{
+				ProbeCivilian->SetRequestedCivilianRoleId(TEXT("Civilian"));
+				ProbeCivilian->FinishSpawning(SpawnTransform);
+				UE_LOG(LogAura, Display, TEXT("[Day8NetworkProbe][Server] Spawned Civilian=%s Role=%s IdentityValid=%d."),
+					*GetNameSafe(ProbeCivilian), *ProbeCivilian->GetAppliedRoleState().RoleId.ToString(), ProbeCivilian->HasValidCombatIdentity() ? 1 : 0);
+			}
+		}
+		const bool bRoleBattleCivilianFixtureMap = PopulationManager->GetCurrentMapId() == FName(TEXT("RoleBattleCivilianTest"));
+		if ((bDay9NetworkProbe || (bRoleBattleCivilianFixtureMap && !bDay8NetworkProbe)) && GetWorld())
+		{
+			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			if (AAuraCivilianSpawnVolume* FixtureVolume = GetWorld()->SpawnActor<AAuraCivilianSpawnVolume>(
+				AAuraCivilianSpawnVolume::StaticClass(), FTransform::Identity, SpawnParameters))
+			{
+				FixtureVolume->SetSpawnVolumeIdForRuntime(TEXT("MarketCiviliansVolume"));
+				FNavLocation FixtureLocation;
+				if (UNavigationSystemV1* NavigationSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+					NavigationSystem && NavigationSystem->GetRandomPoint(FixtureLocation))
+				{
+					FixtureVolume->SetActorLocation(FixtureLocation.Location);
+					UE_LOG(LogAura, Display, TEXT("[Population][Volume] Runtime fixture volume registered for RoleBattleCivilianTest map at nav=%s."),
+						*FixtureLocation.Location.ToCompactString());
+				}
+				else
+				{
+					UE_LOG(LogAura, Error, TEXT("[Population][Volume] RoleBattleCivilianTest fixture could not find a navigation anchor."));
+				}
+			}
+		}
+		if (!bDay8NetworkProbe)
+		{
+			PopulationManager->ScheduleInitialPopulation();
+		}
+
+#if !UE_BUILD_SHIPPING
+		if (bDay9NetworkProbe && GetWorld())
+		{
+			FTimerDelegate PopulationIdempotenceProbe;
+			PopulationIdempotenceProbe.BindLambda([this]()
+			{
+				if (!PopulationManager)
+				{
+					return;
+				}
+
+				const int32 BeforeLiveMembers = PopulationManager->GetLiveMemberCount();
+				const int32 BeforeGeneration = PopulationManager->GetInitializationGeneration();
+				const bool bFinalizeResult = PopulationManager->FinalizeInitialPopulation();
+				const bool bStable = BeforeLiveMembers == PopulationManager->GetLiveMemberCount()
+					&& BeforeGeneration == PopulationManager->GetInitializationGeneration();
+				UE_LOG(LogAura, Display, TEXT("[Population][Probe] DuplicateFinalize generation=%d liveMembers=%d stable=%d result=%d."),
+					PopulationManager->GetInitializationGeneration(),
+					PopulationManager->GetLiveMemberCount(),
+					bStable ? 1 : 0,
+					bFinalizeResult ? 1 : 0);
+			});
+
+			FTimerHandle PopulationIdempotenceProbeHandle;
+			GetWorldTimerManager().SetTimer(PopulationIdempotenceProbeHandle, PopulationIdempotenceProbe, 1.0f, false);
+		}
+#endif
+	}
 
 	// Poll the editor "Reload Role Config" mending-tool sentinel so a running dedicated server
 	// picks up hand-edits to RoleConfig.json without a restart. New logins/spawns then use the

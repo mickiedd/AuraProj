@@ -69,6 +69,7 @@ class DedicatedServerEntry:
         self.startup_grace: float = startup_grace
 
         self._process: Optional[subprocess.Popen] = None
+        self._server_exe: Optional[Path] = None
         # asyncio.Lock serialises start requests for this level.
         self._start_lock: Optional[asyncio.Lock] = None
 
@@ -88,6 +89,9 @@ class DedicatedServerEntry:
             return None
         return self._process.pid
 
+    def get_server_exe(self) -> Optional[Path]:
+        return self._server_exe
+
     # ------------------------------------------------------------------
     async def ensure_running(self, server_exe: Optional[Path]) -> bool:
         """
@@ -98,13 +102,36 @@ class DedicatedServerEntry:
         """
         async with self._ensure_lock():
             if self.is_running():
-                logger.info(
-                    "DS '%s' already running (pid=%s, port=%d)",
-                    self.level_id,
-                    str(self.get_pid()),
-                    self.port,
-                )
-                return True
+                running_exe = self.get_server_exe()
+                if running_exe is not None and server_exe is not None:
+                    try:
+                        same_executable = running_exe.resolve() == server_exe.resolve()
+                    except OSError:
+                        same_executable = running_exe == server_exe
+                    if not same_executable:
+                        logger.info(
+                            "DS '%s' is running with '%s'; restarting it with '%s' for client compatibility",
+                            self.level_id,
+                            running_exe,
+                            server_exe,
+                        )
+                        self.stop()
+                    else:
+                        logger.info(
+                            "DS '%s' already running (pid=%s, port=%d)",
+                            self.level_id,
+                            str(self.get_pid()),
+                            self.port,
+                        )
+                        return True
+                else:
+                    logger.info(
+                        "DS '%s' already running (pid=%s, port=%d)",
+                        self.level_id,
+                        str(self.get_pid()),
+                        self.port,
+                    )
+                    return True
 
             if server_exe is None:
                 logger.error(
@@ -141,9 +168,11 @@ class DedicatedServerEntry:
                 popen_kwargs["creationflags"] = subprocess.CREATE_NEW_CONSOLE
 
             self._process = subprocess.Popen(args, **popen_kwargs)
+            self._server_exe = server_exe.resolve()
         except Exception as exc:
             logger.error("Failed to launch DS '%s': %s", self.level_id, exc)
             self._process = None
+            self._server_exe = None
             return False
 
         logger.info(
@@ -185,6 +214,7 @@ class DedicatedServerEntry:
                 self._process.kill()
                 logger.info("DS '%s' killed (PID=%d)", self.level_id, self._process.pid)
         self._process = None
+        self._server_exe = None
 
 
 # ---------------------------------------------------------------------------
@@ -294,19 +324,69 @@ class GameServerManager:
                 logger.info("Using server executable from env: %s", p)
                 return p
 
-        candidates = [
+        # A non-editor Development server cannot load loose .umap files from
+        # Content. It needs the cooked payload beside the launcher. Prefer the
+        # current staged server and then the newest archived server package.
+        cooked_candidates: List[Path] = [
+            PROJECT_DIR / "Saved" / "StagedBuilds" / "WindowsServer" / "AuraServer.exe",
+        ]
+        saved_dir = PROJECT_DIR / "Saved"
+        if saved_dir.is_dir():
+            cooked_candidates.extend(
+                package_dir / "WindowsServer" / "AuraServer.exe"
+                for package_dir in sorted(
+                    (path for path in saved_dir.glob("*") if path.is_dir()),
+                    key=lambda path: path.stat().st_mtime,
+                    reverse=True,
+                )
+                if (package_dir / "WindowsServer" / "AuraServer.exe").exists()
+            )
+
+        seen_candidates = set()
+        for candidate in cooked_candidates:
+            candidate = candidate.resolve()
+            if candidate in seen_candidates or not candidate.exists():
+                continue
+            seen_candidates.add(candidate)
+            payload_roots = (
+                candidate.parent / "Aura" / "Content",
+                candidate.parent / "Content",
+            )
+            has_cooked_payload = any(
+                content_root.is_dir()
+                and (
+                    (content_root / "Maps" / "StartupMap.umap").exists()
+                    or any((content_root / "Paks").glob("*.pak"))
+                    or any((content_root / "Paks").glob("*.utoc"))
+                )
+                for content_root in payload_roots
+            )
+            if has_cooked_payload:
+                logger.info("Found cooked server executable: %s", candidate)
+                return candidate
+
+        uncooked_candidates = [
             PROJECT_DIR / "Binaries" / "Win64" / "AuraServer.exe",
             PROJECT_DIR / "Binaries" / "Mac" / "AuraServer",
             PROJECT_DIR / "Binaries" / "Mac" / "Aura-Mac-Shipping",
         ]
-        for candidate in candidates:
-            if candidate.exists():
-                logger.info("Found server executable: %s", candidate)
-                return candidate
+        if any(candidate.exists() for candidate in uncooked_candidates):
+            logger.warning(
+                "Ignoring uncooked AuraServer binary under Binaries; it cannot load "
+                "StartupMap. Stage/cook a server package or use the editor server fallback."
+            )
+
+        editor_exe = self.locate_editor_exe()
+        if editor_exe is not None:
+            logger.warning(
+                "Using UnrealEditor server fallback because no cooked AuraServer package was found: %s",
+                editor_exe,
+            )
+            return editor_exe
 
         logger.warning(
-            "No server executable found. Dedicated servers must be started manually, "
-            "or set AURA_SERVER_EXE env var / --server-exe flag."
+            "No cooked server executable found. Run BuildCookRun to stage a server package, "
+            "set AURA_SERVER_EXE/--server-exe to one, or set UE_EDITOR_EXE for the editor fallback."
         )
         return None
 
@@ -391,6 +471,38 @@ class GameServerManager:
 
         logger.warning("Could not auto-discover UnrealEditor.exe; set UE_EDITOR_EXE explicitly")
         return None
+
+    @staticmethod
+    def _is_editor_client(request: dict) -> bool:
+        executable = str(request.get("clientExecutable", "")).strip().lower()
+        return executable.startswith("unrealeditor")
+
+    def _locate_editor_exe_for_client(self, request: dict) -> Optional[Path]:
+        """Resolve the editor executable that produced this client request.
+
+        An UnrealEditor client and a packaged AuraServer do not share the same
+        network changelist (the editor carries the source engine CL while a
+        packaged target commonly reports NetCL=0).  For local development, use
+        the same engine root reported by the editor client so its server side
+        has the identical network fingerprint.
+        """
+        engine_root = str(request.get("clientEngineRoot", "")).strip()
+        if engine_root:
+            try:
+                root = Path(engine_root).expanduser().resolve()
+                if root.name.lower() == "engine":
+                    candidate = root / "Binaries" / "Win64" / "UnrealEditor.exe"
+                else:
+                    candidate = root / "Engine" / "Binaries" / "Win64" / "UnrealEditor.exe"
+                build_version = root / "Build" / "Build.version" if root.name.lower() == "engine" else root / "Engine" / "Build" / "Build.version"
+                if candidate.is_file() and build_version.is_file():
+                    logger.info("Using UnrealEditor reported by client: %s", candidate)
+                    return candidate
+                logger.warning("Client reported an invalid Unreal Engine root: %s", engine_root)
+            except OSError as exc:
+                logger.warning("Could not resolve client Unreal Engine root '%s': %s", engine_root, exc)
+
+        return self.locate_editor_exe()
 
     # ------------------------------------------------------------------
     def _locate_build_bat(self) -> Optional[Path]:
@@ -655,14 +767,52 @@ class GameServerManager:
                 return
 
             logger.info(
-                "[%s] Request accepted remote=%s:%s levelId='%s'",
+                "[%s] Request accepted remote=%s:%s levelId='%s' clientExecutable='%s' clientEngineRoot='%s' clientNetworkChangelist=%s clientNetworkVersion=%s",
                 request_id,
                 peer[0],
                 peer[1],
                 level_id,
+                str(request.get("clientExecutable", "")),
+                str(request.get("clientEngineRoot", "")),
+                str(request.get("clientNetworkChangelist", "")),
+                str(request.get("clientNetworkVersion", "")),
             )
 
             was_running_before = entry.is_running()
+            editor_client = self._is_editor_client(request)
+            requested_server_exe = (
+                self._locate_editor_exe_for_client(request)
+                if editor_client
+                else self.server_exe
+            )
+            if editor_client and requested_server_exe is None:
+                await self._send_error(
+                    writer,
+                    request_id,
+                    "This UnrealEditor client requires a matching UnrealEditor server. "
+                    "Set UE_EDITOR_EXE or send the request from the configured engine checkout.",
+                )
+                return
+
+            running_server_exe = entry.get_server_exe()
+            executable_changed = (
+                entry.is_running()
+                and running_server_exe is not None
+                and requested_server_exe is not None
+                and running_server_exe.resolve() != requested_server_exe.resolve()
+            )
+            if executable_changed:
+                logger.info(
+                    "[%s] Restarting levelId='%s' to match %s client runtime: '%s' -> '%s'",
+                    request_id,
+                    level_id,
+                    "editor" if editor_client else "packaged",
+                    running_server_exe,
+                    requested_server_exe,
+                )
+                entry.stop()
+                self._clear_ready_state(level_id)
+                was_running_before = False
             if not was_running_before:
                 self._clear_ready_state(level_id)
                 logger.info("[%s] Cleared stale ready state for levelId='%s' before launch", request_id, level_id)
@@ -672,14 +822,14 @@ class GameServerManager:
                 # self.server_exe=None in that case used to force every first
                 # request through a blocking UBT build and exceed the client's
                 # 35-second query budget even though the binary was already ready.
-                if self.server_exe is None or not self.server_exe.exists():
+                if not editor_client and (self.server_exe is None or not self.server_exe.exists()):
                     self.server_exe = self.locate_server_exe()
 
                 is_editor_mode = (
-                    self.server_exe is not None
-                    and self.server_exe.name.lower() == "unrealeditor.exe"
+                    editor_client
+                    or (self.server_exe is not None and self.server_exe.name.lower() == "unrealeditor.exe")
                 )
-                if self.server_exe is None and not is_editor_mode:
+                if requested_server_exe is None and not is_editor_mode:
                     logger.info(
                         "[%s] Server not running — building AuraServer binary before launch (levelId='%s')",
                         request_id, level_id,
@@ -697,8 +847,17 @@ class GameServerManager:
                     # (e.g. the binary was absent at GSM startup).
                     if self.server_exe is None:
                         self.server_exe = self.locate_server_exe()
+                    requested_server_exe = self.server_exe
 
-            ok = await entry.ensure_running(self.server_exe)
+                if requested_server_exe is None:
+                    await self._send_error(
+                        writer,
+                        request_id,
+                        f"No server executable is available for '{level_id}'.",
+                    )
+                    return
+
+            ok = await entry.ensure_running(requested_server_exe)
             if not ok:
                 logger.error("[%s] Failed ensuring DS is running for levelId='%s'", request_id, level_id)
                 await self._send_error(
@@ -728,6 +887,12 @@ class GameServerManager:
                 "status": "ready",
                 "host": str(ready_info.get("host", self.public_host)),
                 "port": int(ready_info.get("port", entry.port)),
+                "serverMode": (
+                    "editor"
+                    if requested_server_exe is not None
+                    and requested_server_exe.name.lower() == "unrealeditor.exe"
+                    else "packaged"
+                ),
             }
             logger.info(
                 "[%s] Responding ready remote=%s:%s host=%s port=%d ds_pid=%s elapsed=%.3fs",

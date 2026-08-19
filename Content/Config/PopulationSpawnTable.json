@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "populations": [
+    {
+      "populationId": "MarketCivilians",
+      "mapId": "RoleBattleCivilianTest",
+      "zoneId": "Market",
+      "roleId": "Civilian",
+      "actorClass": "/Script/Aura.AuraCivilian",
+      "spawnVolumeIds": [
+        "MarketCiviliansVolume"
+      ],
+      "initialCount": 3,
+      "maximumCount": 5,
+      "defaultWorkProfileId": "Observer",
+      "memberOverrides": [
+        {
+          "slotIndex": 1,
+          "merchantDefinitionId": "MarketMerchant"
+        }
+      ],
+      "spawnOnLoad": true,
+      "respawnPolicy": {
+        "enabled": false,
+        "delaySeconds": 0.0,
+        "corpseSeconds": 0.0,
+        "allowedBattlePhases": []
+      }
+    }
+  ]
+}

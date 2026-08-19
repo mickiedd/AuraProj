@@ -5,12 +5,27 @@
   "FriendlyName": "Aura Ability Graph",
   "Description": "Data-driven ability system for Aura",
   "Category": "Aura",
+  "Plugins": [
+    {
+      "Name": "GameplayAbilities",
+      "Enabled": true
+    },
+    {
+      "Name": "Niagara",
+      "Enabled": true
+    },
+    {
+      "Name": "EditorScriptingUtilities",
+      "Enabled": true,
+      "TargetAllowList": [ "Editor" ]
+    }
+  ],
   "Modules": [
     {
       "Name": "AuraAbilityGraph",
       "Type": "Runtime",
       "LoadingPhase": "Default",
-      "Dependencies": [ "GameplayAbilities" ]
+      "Dependencies": [ "GameplayAbilities", "Niagara" ]
     },
     {
       "Name": "AuraAbilityGraphEditor",
