@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760">
+  <title>Role Battle Day 06 - authoritative role application</title>
+  <desc>Before and after flow showing atomic server role application and idempotent persistent ASC grants.</desc>
+  <style>
+    .bg{fill:#0f172a}.panel{fill:#172554;stroke:#60a5fa;stroke-width:2}.before{fill:#3f1d2e;stroke:#fb7185;stroke-width:2}.after{fill:#12352b;stroke:#34d399;stroke-width:2}.guard{fill:#422006;stroke:#fbbf24;stroke-width:2}.text{fill:#e5e7eb;font:18px Arial,sans-serif}.small{fill:#cbd5e1;font:15px Arial,sans-serif}.title{fill:#f8fafc;font:bold 30px Arial,sans-serif}.head{fill:#f8fafc;font:bold 20px Arial,sans-serif}.arrow{stroke:#93c5fd;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#93c5fd"/></marker></defs>
+  <rect class="bg" width="1280" height="760"/>
+  <text class="title" x="48" y="58">Day 06 | Authoritative role application</text>
+  <text class="small" x="48" y="88">One validated spawn transaction; one persistent ASC ledger across pawn replacement</text>
+  <rect class="before" x="48" y="135" width="350" height="220" rx="14"/>
+  <text class="head" x="72" y="175">Before / risk</text>
+  <text class="text" x="72" y="215">Role, presentation, and grants</text>
+  <text class="text" x="72" y="244">could be applied through</text>
+  <text class="text" x="72" y="273">ambiguous paths; respawn</text>
+  <text class="text" x="72" y="302">could duplicate ASC state.</text>
+  <path class="arrow" d="M410 245 H480"/>
+  <rect class="panel" x="500" y="135" width="280" height="220" rx="14"/>
+  <text class="head" x="524" y="175">Authority stages</text>
+  <text class="text" x="524" y="215">role registry</text>
+  <text class="text" x="524" y="244">shell + ASC + assets</text>
+  <text class="text" x="524" y="273">identity + presentation</text>
+  <text class="text" x="524" y="302">complete grant set</text>
+  <path class="arrow" d="M795 245 H865"/>
+  <rect class="after" x="885" y="135" width="347" height="220" rx="14"/>
+  <text class="head" x="909" y="175">After / committed</text>
+  <text class="text" x="909" y="215">AppliedRoleState replicates</text>
+  <text class="text" x="909" y="244">to presentation clients.</text>
+  <text class="text" x="909" y="273">ASC ledger owns grants</text>
+  <text class="text" x="909" y="302">and provenance exactly once.</text>
+  <rect class="guard" x="48" y="410" width="1184" height="125" rx="14"/>
+  <text class="head" x="72" y="450">Guard</text>
+  <text class="text" x="72" y="484">Validation/staging failure publishes nothing; client role mutation and live hot-switch fail closed.</text>
+  <text class="text" x="72" y="513">Pawn replacement rebinds the ASC without duplicating grants, passive activation, cooldowns, attributes, or equipment.</text>
+  <rect class="panel" x="48" y="590" width="1184" height="105" rx="14"/>
+  <text class="head" x="72" y="630">Validation</text>
+  <text class="text" x="72" y="663">12/12 Day 06 tests | 14/14 Day 05 regression | Listen + Dedicated two-client smokes | build and diff checks passed</text>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760">
+  <title>Role Battle Day 08 - replicated Civilian actor</title>
+  <desc>Before and after flow showing a role-derived Civilian actor with protected empty loadout and replicated state.</desc>
+  <style>
+    .bg{fill:#0f172a}.panel{fill:#172554;stroke:#60a5fa;stroke-width:2}.before{fill:#3f1d2e;stroke:#fb7185;stroke-width:2}.after{fill:#12352b;stroke:#34d399;stroke-width:2}.guard{fill:#422006;stroke:#fbbf24;stroke-width:2}.text{fill:#e5e7eb;font:18px Arial,sans-serif}.small{fill:#cbd5e1;font:15px Arial,sans-serif}.title{fill:#f8fafc;font:bold 30px Arial,sans-serif}.head{fill:#f8fafc;font:bold 20px Arial,sans-serif}.arrow{stroke:#93c5fd;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#93c5fd"/></marker></defs>
+  <rect class="bg" width="1280" height="760"/>
+  <text class="title" x="48" y="58">Day 08 | Replicated Civilian actor</text>
+  <text class="small" x="48" y="88">A role-derived ambient actor with health, presentation, and a deliberately empty offensive loadout</text>
+  <rect class="before" x="48" y="135" width="350" height="220" rx="14"/>
+  <text class="head" x="72" y="175">Before</text>
+  <text class="text" x="72" y="215">No Civilian actor shell.</text>
+  <text class="text" x="72" y="244">Ambient identity and GAS</text>
+  <text class="text" x="72" y="273">presentation were not yet</text>
+  <text class="text" x="72" y="302">available as a safe contract.</text>
+  <path class="arrow" d="M410 245 H480"/>
+  <rect class="panel" x="500" y="135" width="300" height="220" rx="14"/>
+  <text class="head" x="524" y="175">Server creates</text>
+  <text class="text" x="524" y="215">validated Civilian role</text>
+  <text class="text" x="524" y="244">ASC + AttributeSet</text>
+  <text class="text" x="524" y="273">positive vitals</text>
+  <text class="text" x="524" y="302">population state</text>
+  <path class="arrow" d="M820 245 H885"/>
+  <rect class="after" x="905" y="135" width="327" height="220" rx="14"/>
+  <text class="head" x="929" y="175">After</text>
+  <text class="text" x="929" y="215">Clients reconstruct role</text>
+  <text class="text" x="929" y="244">identity/presentation,</text>
+  <text class="text" x="929" y="273">including late joiners.</text>
+  <text class="text" x="929" y="302">Offensive grants: zero.</text>
+  <rect class="guard" x="48" y="410" width="1184" height="125" rx="14"/>
+  <text class="head" x="72" y="450">Guard</text>
+  <text class="text" x="72" y="484">Civilian is not a Player/Enemy shell, cannot inherit a player weapon or skill, and is protected by default.</text>
+  <text class="text" x="72" y="513">Only a later authority-side battle policy may opt into Civilian damage.</text>
+  <rect class="panel" x="48" y="590" width="1184" height="105" rx="14"/>
+  <text class="head" x="72" y="630">Validation</text>
+  <text class="text" x="72" y="663">6/6 native tests | Listen + Dedicated identity/loadout/presentation/replication probes | static, syntax, Python, and diff checks passed</text>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760">
+  <title>Seven daily SVG references overview</title>
+  <desc>Overview showing one combined daily map split into seven standalone date-level SVG references.</desc>
+  <style>
+    .bg{fill:#0f172a}.panel{fill:#172554;stroke:#60a5fa;stroke-width:2}.before{fill:#3f1d2e;stroke:#fb7185;stroke-width:2}.after{fill:#12352b;stroke:#34d399;stroke-width:2}.guard{fill:#422006;stroke:#fbbf24;stroke-width:2}.text{fill:#e5e7eb;font:18px Arial,sans-serif}.small{fill:#cbd5e1;font:15px Arial,sans-serif}.title{fill:#f8fafc;font:bold 30px Arial,sans-serif}.head{fill:#f8fafc;font:bold 20px Arial,sans-serif}.arrow{stroke:#93c5fd;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#93c5fd"/></marker></defs>
+  <rect class="bg" width="1280" height="760"/>
+  <text class="title" x="48" y="58">Seven daily SVG references | 2026-08-12</text>
+  <text class="small" x="48" y="88">One date-level visual per day, with the combined reference retained as the source map</text>
+  <rect class="before" x="48" y="135" width="350" height="220" rx="14"/>
+  <text class="head" x="72" y="175">Before</text>
+  <text class="text" x="72" y="215">A combined seven-day map</text>
+  <text class="text" x="72" y="244">made individual dates harder</text>
+  <text class="text" x="72" y="273">to scan and validate.</text>
+  <text class="text" x="72" y="302">Quiet-day detail was buried.</text>
+  <path class="arrow" d="M410 245 H455"/>
+  <rect class="panel" x="475" y="135" width="330" height="220" rx="14"/>
+  <text class="head" x="499" y="175">Split flow</text>
+  <text class="text" x="499" y="215">preserve combined map</text>
+  <text class="text" x="499" y="244">create 2026-08-06 through</text>
+  <text class="text" x="499" y="273">2026-08-12 date views</text>
+  <text class="text" x="499" y="302">link each from one record</text>
+  <path class="arrow" d="M820 245 H885"/>
+  <rect class="after" x="905" y="135" width="327" height="220" rx="14"/>
+  <text class="head" x="929" y="175">After</text>
+  <text class="text" x="929" y="215">7 standalone SVGs</text>
+  <text class="text" x="929" y="244">show behavior, guard,</text>
+  <text class="text" x="929" y="273">surface, and validation</text>
+  <text class="text" x="929" y="302">for each calendar date.</text>
+  <rect class="guard" x="48" y="410" width="1184" height="125" rx="14"/>
+  <text class="head" x="72" y="450">Guard</text>
+  <text class="text" x="72" y="484">A quiet day remains explicitly quiet; the archive does not infer a job or fabricate a change from an empty Git date.</text>
+  <text class="text" x="72" y="513">The split is additive: the combined map and existing daily history remain intact.</text>
+  <rect class="panel" x="48" y="590" width="1184" height="105" rx="14"/>
+  <text class="head" x="72" y="630">Validation</text>
+  <text class="text" x="72" y="663">7 date SVGs + 1 overview SVG | XML parsing passed | each date has commit count, behavior, guard, and validation/read path</text>
+</svg>

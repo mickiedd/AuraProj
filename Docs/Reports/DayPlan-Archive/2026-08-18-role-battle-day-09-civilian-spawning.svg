@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760">
+  <title>Role Battle Day 09 - deterministic Civilian population spawning</title>
+  <desc>Server-owned population flow from validated data through stable slots and late-join replication.</desc>
+  <style>
+    .bg{fill:#0f172a}.panel{fill:#172554;stroke:#60a5fa;stroke-width:2}.before{fill:#3f1d2e;stroke:#fb7185;stroke-width:2}.after{fill:#12352b;stroke:#34d399;stroke-width:2}.guard{fill:#422006;stroke:#fbbf24;stroke-width:2}.text{fill:#e5e7eb;font:18px Arial,sans-serif}.small{fill:#cbd5e1;font:15px Arial,sans-serif}.title{fill:#f8fafc;font:bold 30px Arial,sans-serif}.head{fill:#f8fafc;font:bold 20px Arial,sans-serif}.arrow{stroke:#93c5fd;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#93c5fd"/></marker></defs>
+  <rect class="bg" width="1280" height="760"/>
+  <text class="title" x="48" y="58">Day 09 | Deterministic Civilian population</text>
+  <text class="small" x="48" y="88">Validated data and idempotent volume registration produce stable server-owned member slots</text>
+  <rect class="before" x="48" y="135" width="350" height="220" rx="14"/>
+  <text class="head" x="72" y="175">Before</text>
+  <text class="text" x="72" y="215">No authoritative population</text>
+  <text class="text" x="72" y="244">owner; temporary registries</text>
+  <text class="text" x="72" y="273">could duplicate initialization</text>
+  <text class="text" x="72" y="302">or lose stable member IDs.</text>
+  <path class="arrow" d="M410 245 H455"/>
+  <rect class="panel" x="475" y="135" width="330" height="220" rx="14"/>
+  <text class="head" x="499" y="175">Server flow</text>
+  <text class="text" x="499" y="215">InitGame manager</text>
+  <text class="text" x="499" y="244">validate versioned table</text>
+  <text class="text" x="499" y="273">register volume + reserve</text>
+  <text class="text" x="499" y="302">spawn PopulationId:slot</text>
+  <path class="arrow" d="M820 245 H885"/>
+  <rect class="after" x="905" y="135" width="327" height="220" rx="14"/>
+  <text class="head" x="929" y="175">After</text>
+  <text class="text" x="929" y="215">Stable member state</text>
+  <text class="text" x="929" y="244">replicates to current and</text>
+  <text class="text" x="929" y="273">late-joining clients.</text>
+  <text class="text" x="929" y="302">Duplicate finalize: no-op.</text>
+  <rect class="guard" x="48" y="410" width="1184" height="125" rx="14"/>
+  <text class="head" x="72" y="450">Guard</text>
+  <text class="text" x="72" y="484">Unsafe data rejects as one candidate; only the server owns load, reservation, spawn, and generation publication.</text>
+  <text class="text" x="72" y="513">Rollback and generation checks prevent stale actors, duplicate slots, and accidental enemy-respawn ownership.</text>
+  <rect class="panel" x="48" y="590" width="1184" height="105" rx="14"/>
+  <text class="head" x="72" y="630">Validation</text>
+  <text class="text" x="72" y="663">9/9 native tests | Listen + Dedicated 3-slot and late-join probes | duplicate/no-refill gates | packaged topology and diff checks passed</text>
+</svg>

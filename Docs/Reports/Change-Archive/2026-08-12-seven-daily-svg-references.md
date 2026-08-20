@@ -1,5 +1,7 @@
 # Seven separate daily SVG references archive - 2026-08-12
 
+![Seven daily SVG references overview](2026-08-12-seven-daily-svg-references.svg)
+
 ## Intent
 
 Split the combined seven-day change map into seven standalone, manually readable SVGs so each calendar date has its own before/after behavior, guard, affected surface, and validation reference.

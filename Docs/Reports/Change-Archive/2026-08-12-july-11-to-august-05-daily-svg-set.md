@@ -1,5 +1,7 @@
 # Daily SVG reference set archive - 2026-07-11 to 2026-08-05
 
+![July 11 to August 5 daily SVG reference overview](2026-08-12-july-11-to-august-05-daily-svg-set.svg)
+
 ## Intent
 
 Continue the standalone daily visual reference backward from the existing 2026-08-06 through 2026-08-12 set, covering every calendar date from 2026-07-11 through 2026-08-05.
