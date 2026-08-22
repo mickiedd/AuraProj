@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <title>Role/Battle issue disposition and plan guard flow</title>
+  <desc>Audit findings are separated into active risks, narrowed contracts, and closed or planned items. Provider readiness, unhealthy startup, neutral damage coefficients, and Day 20 scheduling are made explicit.</desc>
+  <style>
+    .bg { fill: #f7f8fb; }
+    .title { font: 700 30px Arial, sans-serif; fill: #172033; }
+    .sub { font: 16px Arial, sans-serif; fill: #526079; }
+    .head { font: 700 20px Arial, sans-serif; fill: #172033; }
+    .body { font: 15px Arial, sans-serif; fill: #27344d; }
+    .small { font: 13px Arial, sans-serif; fill: #526079; }
+    .risk { fill: #fff0ec; stroke: #c7533e; stroke-width: 2; }
+    .narrow { fill: #fff8df; stroke: #c58b1e; stroke-width: 2; }
+    .closed { fill: #eaf7ef; stroke: #328653; stroke-width: 2; }
+    .guard { fill: #eaf2ff; stroke: #3970b8; stroke-width: 2; }
+    .arrow { stroke: #65738b; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#65738b"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1200" height="760"/>
+  <text class="title" x="48" y="56">Role/Battle issue disposition</text>
+  <text class="sub" x="48" y="84">Audit at revision 4fb453a · active risks separated from planned and closed claims</text>
+
+  <rect class="risk" x="48" y="126" rx="16" width="320" height="250"/>
+  <text class="head" x="72" y="164">Active risks</text>
+  <text class="body" x="72" y="202">#1 Provider provisioning</text>
+  <text class="small" x="72" y="226">Authenticated Online Subsystem</text>
+  <text class="small" x="72" y="247">must exist before Day 18.</text>
+  <text class="body" x="72" y="285">#6 Day 20 schedule load</text>
+  <text class="small" x="72" y="309">Phase A cleanup + full Phase B</text>
+  <text class="small" x="72" y="330">matrix need separate checkpoints.</text>
+  <text class="body" x="72" y="368">#10 FireGun path ambiguity</text>
+
+  <rect class="narrow" x="440" y="126" rx="16" width="320" height="250"/>
+  <text class="head" x="464" y="164">Narrowed findings</text>
+  <text class="body" x="464" y="202">#3 Startup failure</text>
+  <text class="small" x="464" y="226">Keep fail-closed behavior;</text>
+  <text class="small" x="464" y="247">publish unhealthy/reject state.</text>
+  <text class="body" x="464" y="285">#9 Neutral damage coefficient</text>
+  <text class="small" x="464" y="309">Document missing-curve fallback</text>
+  <text class="small" x="464" y="330">as 1.0f and add numeric coverage.</text>
+
+  <rect class="closed" x="832" y="126" rx="16" width="320" height="250"/>
+  <text class="head" x="856" y="164">Closed / planned</text>
+  <text class="body" x="856" y="202">#2 real Civilian shell</text>
+  <text class="small" x="856" y="226">Day 08 actor gates passed.</text>
+  <text class="body" x="856" y="260">#4 int64 JSON</text>
+  <text class="small" x="856" y="284">Already specified as Day 15 work.</text>
+  <text class="body" x="856" y="318">#5, #7, #8</text>
+  <text class="small" x="856" y="342">Protocol, ordering, and compile</text>
+  <text class="small" x="856" y="363">guards address the claims.</text>
+
+  <path class="arrow" d="M208 410 L208 482"/>
+  <path class="arrow" d="M600 410 L600 482"/>
+  <path class="arrow" d="M992 410 L992 482"/>
+
+  <rect class="guard" x="48" y="500" rx="16" width="1104" height="184"/>
+  <text class="head" x="76" y="540">Applied plan guards</text>
+  <text class="body" x="76" y="578">Deployment preflight → authenticated provider and two-account identity smoke before Day 18</text>
+  <text class="body" x="76" y="610">Day 12 readiness → closed coordinator is unhealthy and rejects/terminates; no permissive zone fallback</text>
+  <text class="body" x="76" y="642">Damage fallback → named NeutralCoefficient = 1.0f when table or curve is missing</text>
+  <text class="body" x="76" y="674">Day 20 execution → Phase A disposition recorded before the full post-cleanup Phase B matrix</text>
+  <text class="small" x="76" y="710">Validation: diff check, link scan, SVG XML parse, and source/plan consistency checks</text>
+</svg>

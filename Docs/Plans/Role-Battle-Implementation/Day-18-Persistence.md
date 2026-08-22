@@ -15,7 +15,15 @@ Persist BungeeMan's validated role and FireGun grant provenance as part of the p
 - Day 13 provides canonical `PopulationMemberId` values and a deterministic server snapshot.
 - Day 17 provides stable per-instance merchant stock and publishes only complete transaction state.
 - The Day 17 native and two-remote-client network gates pass before save schemas change.
-- Select and configure the deployment's authenticated Online Subsystem provider so it supplies a valid `FUniqueNetIdRepl` for remote connections. `OnlineSubsystemNull`, display names, and locally chosen slot names are not release persistence identities; if no authenticated provider is available, the persistent-profile portion of Day 18 remains blocked.
+- Before entering Day 18, select and configure the deployment's authenticated Online Subsystem provider so it supplies a valid `FUniqueNetIdRepl` for remote connections. `OnlineSubsystemNull`, display names, and locally chosen slot names are not release persistence identities; if no authenticated provider is available, the persistent-profile portion of Day 18 remains blocked.
+
+## Deployment preflight
+
+Provider provisioning is an external release preflight, not an implementation
+task to discover at the end of this day. Record the provider plugin/configuration,
+authenticated test accounts, provider type, and a two-account identity smoke before
+the Day 18 schema work starts. A missing provider fails the persistent-profile gate
+closed; it must not silently downgrade to a local or display-name identity.
 
 ## New files
 
