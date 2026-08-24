@@ -4,13 +4,16 @@
 
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "Combat/AuraCombatTypes.h"
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "Aura/AuraLogChannels.h"
 #include "AuraGameplayTags.h"
+#include "AI/AuraCivilianWorkProfileRegistry.h"
 #include "Character/AuraCivilian.h"
 #include "Engine/World.h"
 #include "Game/AuraGameModeBase.h"
 #include "World/AuraCivilianSpawnVolume.h"
+#include "World/AuraCivilianActivityMarker.h"
 #include "World/AuraPopulationSpawnDefinition.h"
 
 FName UAuraPopulationManager::BuildDeterministicMemberId(FName PopulationId, int32 SlotIndex)
@@ -68,11 +71,121 @@ bool UAuraPopulationManager::InitializeDefinitions(FString& OutError)
 	}
 
 	WorkProfiles = Definition->GetWorkProfiles();
+	WorkProfileRegistry = NewObject<UAuraCivilianWorkProfileRegistry>(this, TEXT("WorkProfileRegistry"));
+	if (!WorkProfileRegistry)
+	{
+		OutError = TEXT("Unable to create the immutable Civilian work-profile registry.");
+		PopulationRows.Empty();
+		return false;
+	}
+	FString WorkProfileError;
+	if (!WorkProfileRegistry->Initialize(WorkProfiles, WorkProfileError))
+	{
+		OutError = WorkProfileError;
+		PopulationRows.Empty();
+		return false;
+	}
 	bDefinitionsInitialized = true;
 	++InitializationGeneration;
 	UE_LOG(LogAura, Display, TEXT("[Population][Init] Published generation=%d rows=%d workProfiles=%d before StartPlay."),
 		InitializationGeneration, PopulationRows.Num(), WorkProfiles.Num());
 	return true;
+}
+
+const FAuraCivilianWorkProfile* UAuraPopulationManager::FindWorkProfile(FName WorkProfileId) const
+{
+	return WorkProfileRegistry ? WorkProfileRegistry->Find(WorkProfileId) : nullptr;
+}
+
+void UAuraPopulationManager::GetLiveMembers(TArray<AAuraCivilian*>& OutMembers) const
+{
+	OutMembers.Reset();
+	for (const TPair<FName, TWeakObjectPtr<AAuraCivilian>>& Pair : LiveMembers)
+	{
+		if (AAuraCivilian* Civilian = Pair.Value.Get())
+		{
+			OutMembers.Add(Civilian);
+		}
+	}
+	OutMembers.Sort([](const AAuraCivilian& A, const AAuraCivilian& B)
+	{
+		return A.GetPopulationMemberState().PopulationMemberId.LexicalLess(B.GetPopulationMemberState().PopulationMemberId);
+	});
+}
+
+void UAuraPopulationManager::RegisterActivityMarker(AAuraCivilianActivityMarker* Marker)
+{
+	if (!Marker || !bDefinitionsInitialized || Marker->GetMarkerId().IsNone()) return;
+	if (const TObjectPtr<AAuraCivilianActivityMarker>* Existing = RegisteredActivityMarkers.Find(Marker->GetMarkerId()))
+	{
+		if (Existing->Get() != Marker)
+		{
+			UE_LOG(LogAura, Error, TEXT("[CivilianAI][Marker] Duplicate marker id=%s actor=%s."),
+				*Marker->GetMarkerId().ToString(), *GetNameSafe(Marker));
+		}
+		return;
+	}
+	RegisteredActivityMarkers.Add(Marker->GetMarkerId(), Marker);
+	UE_LOG(LogAura, Display, TEXT("[CivilianAI][Marker] Registered id=%s zone=%s actor=%s capacity=%d."),
+		*Marker->GetMarkerId().ToString(), *Marker->GetZoneId().ToString(), *GetNameSafe(Marker), Marker->GetCapacity());
+}
+
+void UAuraPopulationManager::UnregisterActivityMarker(AAuraCivilianActivityMarker* Marker)
+{
+	if (!Marker) return;
+	RegisteredActivityMarkers.Remove(Marker->GetMarkerId());
+	ActivityMarkerReservations.Remove(Marker->GetMarkerId());
+}
+
+AAuraCivilianActivityMarker* UAuraPopulationManager::FindActivityMarker(FName MarkerId) const
+{
+	const TObjectPtr<AAuraCivilianActivityMarker>* Marker = RegisteredActivityMarkers.Find(MarkerId);
+	return Marker ? Marker->Get() : nullptr;
+}
+
+void UAuraPopulationManager::GetActivityMarkers(TArray<AAuraCivilianActivityMarker*>& OutMarkers) const
+{
+	OutMarkers.Reset();
+	for (const TPair<FName, TObjectPtr<AAuraCivilianActivityMarker>>& Pair : RegisteredActivityMarkers)
+	{
+		if (AAuraCivilianActivityMarker* Marker = Pair.Value.Get()) OutMarkers.Add(Marker);
+	}
+	OutMarkers.Sort([](const AAuraCivilianActivityMarker& A, const AAuraCivilianActivityMarker& B)
+	{
+		return A.GetMarkerId().LexicalLess(B.GetMarkerId());
+	});
+}
+
+bool UAuraPopulationManager::TryReserveActivityMarker(FName MarkerId, FName PopulationMemberId)
+{
+	if (!HasAnyFlags(RF_ClassDefaultObject) && (!GetWorld() || !GetWorld()->GetAuthGameMode())) return false;
+	AAuraCivilianActivityMarker* Marker = FindActivityMarker(MarkerId);
+	if (!Marker || PopulationMemberId.IsNone() || !Marker->IsEnabled()) return false;
+	TSet<FName>& Reservations = ActivityMarkerReservations.FindOrAdd(MarkerId);
+	if (Reservations.Contains(PopulationMemberId)) return true;
+	if (Reservations.Num() >= FMath::Max(1, Marker->GetCapacity())) return false;
+	Reservations.Add(PopulationMemberId);
+	UE_LOG(LogAura, Verbose, TEXT("[CivilianAI][Marker] Reserved marker=%s member=%s count=%d."),
+		*MarkerId.ToString(), *PopulationMemberId.ToString(), Reservations.Num());
+	return true;
+}
+
+void UAuraPopulationManager::ReleaseActivityMarkerReservation(FName MarkerId, FName PopulationMemberId)
+{
+	if (TSet<FName>* Reservations = ActivityMarkerReservations.Find(MarkerId))
+	{
+		Reservations->Remove(PopulationMemberId);
+		if (Reservations->IsEmpty()) ActivityMarkerReservations.Remove(MarkerId);
+	}
+}
+
+void UAuraPopulationManager::ReleaseAllActivityMarkerReservations(FName PopulationMemberId)
+{
+	for (auto It = ActivityMarkerReservations.CreateIterator(); It; ++It)
+	{
+		It.Value().Remove(PopulationMemberId);
+		if (It.Value().IsEmpty()) It.RemoveCurrent();
+	}
 }
 
 void UAuraPopulationManager::RegisterSpawnVolume(AAuraCivilianSpawnVolume* Volume)
@@ -325,11 +438,27 @@ void UAuraPopulationManager::OnMemberDestroyed(AActor* DestroyedActor)
 {
 	if (const FName* MemberId = ActorToMember.Find(DestroyedActor))
 	{
-		LiveMembers.Remove(*MemberId);
+		const FName MemberIdValue = *MemberId;
+		LiveMembers.Remove(MemberIdValue);
 		UE_LOG(LogAura, Display, TEXT("[Population][Lifecycle] member=%s actor=%s destroyed; slot remains reserved until a future lifecycle day."),
-			*MemberId->ToString(), *GetNameSafe(DestroyedActor));
+			*MemberIdValue.ToString(), *GetNameSafe(DestroyedActor));
 		ActorToMember.Remove(DestroyedActor);
+		ReleaseAllActivityMarkerReservations(MemberIdValue);
 	}
+}
+
+void UAuraPopulationManager::HandlePopulationDeath(const FAuraDeathEvent& Event)
+{
+	if (!Event.IsValid()) return;
+	AAuraCivilian* Civilian = Cast<AAuraCivilian>(Event.VictimActor);
+	if (!Civilian) return;
+	const FAuraPopulationMemberState MemberState = Civilian->GetPopulationMemberState();
+	if (MemberState.PopulationMemberId.IsNone()) return;
+	if (RecordedPopulationDeaths.Contains(MemberState.PopulationMemberId)) return;
+	RecordedPopulationDeaths.Add(MemberState.PopulationMemberId);
+	ReleaseAllActivityMarkerReservations(MemberState.PopulationMemberId);
+	UE_LOG(LogAura, Display, TEXT("[Population][Lifecycle] Recorded authoritative death member=%s sequence=%d; refill remains deferred to Day 13."),
+		*MemberState.PopulationMemberId.ToString(), Event.DeathSequence);
 }
 
 const AAuraCivilian* UAuraPopulationManager::FindLiveMember(FName PopulationMemberId) const

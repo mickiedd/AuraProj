@@ -65,6 +65,8 @@ public:
 	/** Combat Interface */
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;	
 	virtual void Die(const FVector& DeathImpulse) override;
+	/** AttributeSet supplies the server-resolved fatal attribution before the compatibility Die call. */
+	void SetPendingFatalDamageContext(const FAuraFatalDamageContext& InContext);
 	virtual FOnDeathSignature& GetOnDeathDelegate() override;
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
 	virtual bool IsDead_Implementation() const override;
@@ -172,6 +174,8 @@ protected:
 	FTimerHandle Day3NetworkProbeTimerHandle;
 	bool bDay3NetworkProbeStarted = false;
 	bool bDay4NetworkProbeStarted = false;
+	FAuraFatalDamageContext PendingFatalDamageContext;
+	bool bHasPendingFatalDamageContext = false;
 
 	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 

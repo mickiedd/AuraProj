@@ -3,6 +3,8 @@
 #include "Combat/AuraCombatStateComponent.h"
 
 #include "Aura/AuraLogChannels.h"
+#include "AuraGameplayTags.h"
+#include "Combat/AuraCombatIdentityComponent.h"
 #include "GameFramework/Actor.h"
 #include "Net/UnrealNetwork.h"
 
@@ -23,6 +25,7 @@ void UAuraCombatStateComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UAuraCombatStateComponent, LifeState);
+	DOREPLIFETIME(UAuraCombatStateComponent, DeathSequence);
 }
 
 UAuraCombatStateComponent* UAuraCombatStateComponent::FindForActor(AActor* Actor)
@@ -51,7 +54,44 @@ bool UAuraCombatStateComponent::TryTransition(EAuraCombatLifeState ExpectedState
 
 bool UAuraCombatStateComponent::TryEnterDying()
 {
-	return TryTransition(EAuraCombatLifeState::Alive, EAuraCombatLifeState::Dying);
+	FAuraFatalDamageContext Context;
+	Context.VictimActor = GetOwner();
+	FAuraDeathEvent UnusedEvent;
+	return TryEnterDying(Context, UnusedEvent);
+}
+
+bool UAuraCombatStateComponent::TryEnterDying(const FAuraFatalDamageContext& FatalContext, FAuraDeathEvent& OutEvent)
+{
+	AActor* Owner = GetOwner();
+	if (!IsValid(Owner) || !Owner->HasAuthority() || LifeState != EAuraCombatLifeState::Alive)
+	{
+		return false;
+	}
+
+	LifeState = EAuraCombatLifeState::Dying;
+	LastFatalDamageContext = FatalContext;
+	LastFatalDamageContext.VictimActor = Owner;
+	++DeathSequence;
+	LastDeathEvent = FAuraDeathEvent();
+	LastDeathEvent.SourceActor = LastFatalDamageContext.SourceActor;
+	LastDeathEvent.VictimActor = Owner;
+	LastDeathEvent.DeathImpulse = LastFatalDamageContext.DeathImpulse;
+	LastDeathEvent.DamageType = LastFatalDamageContext.DamageType;
+	LastDeathEvent.BattleZoneId = LastFatalDamageContext.BattleZoneId;
+	LastDeathEvent.BattleEventId = LastFatalDamageContext.BattleEventId;
+	if (const UAuraCombatIdentityComponent* Identity = UAuraCombatIdentityComponent::FindForActor(Owner))
+	{
+		LastDeathEvent.DeathPolicyTag = Identity->GetIdentity().DeathPolicyTag;
+	}
+	if (!LastDeathEvent.DeathPolicyTag.IsValid())
+	{
+		LastDeathEvent.DeathPolicyTag = FAuraGameplayTags::Get().Death_PopulationRespawn;
+	}
+	LastDeathEvent.DeathSequence = DeathSequence;
+	OutEvent = LastDeathEvent;
+	NotifyStateChanged();
+	Owner->ForceNetUpdate();
+	return true;
 }
 
 bool UAuraCombatStateComponent::TryEnterDead()
@@ -86,6 +126,13 @@ bool UAuraCombatStateComponent::InitializeInitialState(EAuraCombatLifeState Init
 void UAuraCombatStateComponent::OnRep_LifeState()
 {
 	NotifyStateChanged();
+}
+
+void UAuraCombatStateComponent::OnRep_DeathSequence()
+{
+	LastDeathEvent.DeathSequence = DeathSequence;
+	UE_LOG(LogAura, Verbose, TEXT("[CombatState] Replicated DeathSequence actor=%s sequence=%d."),
+		*GetNameSafe(GetOwner()), DeathSequence);
 }
 
 void UAuraCombatStateComponent::NotifyStateChanged()

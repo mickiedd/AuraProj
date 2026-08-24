@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle pending-change review fixes</title>
+  <desc id="desc">Before and after diagram of enemy targeting, battle policy, civilian navigation, death dispatch, and validation fixes.</desc>
+  <defs>
+    <style>
+      .bg { fill: #0b1220; }
+      .before { fill: #32191f; stroke: #a94755; stroke-width: 2; }
+      .after { fill: #102b25; stroke: #35a67a; stroke-width: 2; }
+      .test { fill: #162641; stroke: #4c86c6; stroke-width: 2; }
+      .title { fill: #f5f7fb; font: 700 30px 'Segoe UI', sans-serif; }
+      .head { fill: #f5f7fb; font: 700 21px 'Segoe UI', sans-serif; }
+      .text { fill: #d5deec; font: 16px 'Segoe UI', sans-serif; }
+      .small { fill: #b8c6d9; font: 14px 'Segoe UI', sans-serif; }
+      .bad { fill: #ff8f9c; font: 700 16px 'Segoe UI', sans-serif; }
+      .good { fill: #73ddb3; font: 700 16px 'Segoe UI', sans-serif; }
+      .arrow { stroke: #8ca4c4; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8ca4c4"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1280" height="820"/>
+  <text class="title" x="52" y="54">Role/Battle pending-change review - corrected runtime boundaries</text>
+  <text class="small" x="52" y="82">2026-08-24 | Enemy AI, battle zones, Civilian recovery, death deduplication, and executable verification</text>
+
+  <rect class="before" x="50" y="112" width="530" height="505" rx="16"/>
+  <text class="head" x="78" y="151">Before: pending implementation hazards</text>
+  <text class="bad" x="78" y="190">Enemy targeting</text>
+  <text class="text" x="78" y="216">Snapshots named the hostile service, but the serialized</text>
+  <text class="text" x="78" y="239">Behavior Trees still depended on FindNearestPlayer.</text>
+  <text class="bad" x="78" y="280">Battle policy</text>
+  <text class="text" x="78" y="306">Zone lookup ignored map identity; permissive zone rules</text>
+  <text class="text" x="78" y="329">could remain active during Peace.</text>
+  <text class="bad" x="78" y="370">Civilian AI</text>
+  <text class="text" x="78" y="396">Threat checks lacked director policy, unreachable shelters</text>
+  <text class="text" x="78" y="419">were reserved repeatedly, and decorator index 1 crashed.</text>
+  <text class="bad" x="78" y="460">Death lifecycle</text>
+  <text class="text" x="78" y="486">Pointer hashes plus sequence numbers could collide or be</text>
+  <text class="text" x="78" y="509">reused, weakening exactly-once dispatch.</text>
+  <text class="bad" x="78" y="550">Validation</text>
+  <text class="text" x="78" y="576">Several checks only searched source text; smoke flags did</text>
+  <text class="text" x="78" y="599">not prove authoritative behavior or client replication.</text>
+
+  <path class="arrow" d="M 596 365 L 680 365"/>
+  <text class="small" x="615" y="347">fix</text>
+
+  <rect class="after" x="700" y="112" width="530" height="505" rx="16"/>
+  <text class="head" x="728" y="151">After: authoritative and fail-closed flow</text>
+  <text class="good" x="728" y="190">Enemy targeting</text>
+  <text class="text" x="728" y="216">Both Behavior Tree packages now reference the migrated</text>
+  <text class="text" x="728" y="239">BTS_FindNearestHostile asset and native service.</text>
+  <text class="good" x="728" y="280">Battle policy</text>
+  <text class="text" x="728" y="306">MapId filters zones; only Conflict can enable configured</text>
+  <text class="text" x="728" y="329">permissions. Other phases and unknown maps deny.</text>
+  <text class="good" x="728" y="370">Civilian AI</text>
+  <text class="text" x="728" y="396">Director snapshots govern threats; path reachability is</text>
+  <text class="text" x="728" y="419">checked before reservation; fallback flees; index is 0.</text>
+  <text class="good" x="728" y="460">Death lifecycle</text>
+  <text class="text" x="728" y="486">FObjectKey identifies each victim and stores its highest</text>
+  <text class="text" x="728" y="509">accepted sequence for deterministic duplicate rejection.</text>
+  <text class="good" x="728" y="550">Validation</text>
+  <text class="text" x="728" y="576">Native behavior assertions plus server probes verify phase,</text>
+  <text class="text" x="728" y="599">deduplication, migrated asset loading, and client replication.</text>
+
+  <rect class="test" x="50" y="650" width="1180" height="125" rx="16"/>
+  <text class="head" x="78" y="689">Verification evidence</text>
+  <text class="text" x="78" y="721">AuraEditor Win64 Development: passed | RoleBattle automation: 107 passed, 0 failed (Days 10-12: 31)</text>
+  <text class="text" x="78" y="750">Focused static contracts: passed | Day 10, Day 11, Day 12 listen-server probes: passed | git diff --check: clean</text>
+</svg>

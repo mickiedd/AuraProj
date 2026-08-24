@@ -159,6 +159,33 @@ FAuraCombatRuleResult FAuraCombatRules::CanReceiveDamage(
 	return Result;
 }
 
+FAuraCombatPolicySnapshot FAuraCombatRules::MakeAuthoritativePolicySnapshot(
+	const UObject* AuthorityWorldContext,
+	const bool bAllowPvP,
+	const bool bAllowPlayerToCivilian,
+	const bool bAllowEnemyToCivilian,
+	const bool bTargetProtected,
+	const FName BattleZoneId,
+	const FName BattleEventId)
+{
+	FAuraCombatPolicySnapshot Snapshot;
+	if (!AuraCombatRulesPrivate::IsAuthorityContext(AuthorityWorldContext) || !AuthorityWorldContext->GetWorld())
+	{
+		return Snapshot;
+	}
+
+	Snapshot.bValid = true;
+	Snapshot.bAllowPvP = bAllowPvP;
+	Snapshot.bAllowPlayerToCivilian = bAllowPlayerToCivilian;
+	Snapshot.bAllowEnemyToCivilian = bAllowEnemyToCivilian;
+	Snapshot.bTargetProtected = bTargetProtected;
+	Snapshot.BattleZoneId = BattleZoneId;
+	Snapshot.BattleEventId = BattleEventId;
+	Snapshot.TrustedWorld = AuthorityWorldContext->GetWorld();
+	Snapshot.TrustCookie = AuraCombatRulesPrivate::TrustedPolicyCookie;
+	return Snapshot;
+}
+
 FAuraCombatRuleResult FAuraCombatRules::Evaluate(
 	const AActor* SourceActor,
 	const AActor* TargetActor,

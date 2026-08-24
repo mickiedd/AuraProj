@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "AuraPopulationTypes.generated.h"
 
 /** Stable, server-authored data carried by a spawned Civilian. */
@@ -73,6 +74,30 @@ struct AURA_API FAuraCivilianWorkProfile
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
 	float FleeDistance = 600.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
+	float WorkDuration = 20.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
+	float WanderDuration = 8.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
+	float CalmDuration = 5.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
+	float MoveTimeout = 8.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
+	float FleeMovementSpeed = 240.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
+	FGameplayTagContainer WorkMarkerTags;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
+	FGameplayTagContainer ObservationMarkerTags;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
+	FGameplayTagContainer ShelterMarkerTags;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population|Work")
 	float ScheduleStartHour = 0.f;

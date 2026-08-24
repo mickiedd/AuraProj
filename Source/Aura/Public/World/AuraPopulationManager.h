@@ -8,7 +8,10 @@
 
 class AAuraCivilian;
 class AAuraCivilianSpawnVolume;
+class AAuraCivilianActivityMarker;
 class UAuraPopulationSpawnDefinition;
+class UAuraCivilianWorkProfileRegistry;
+struct FAuraDeathEvent;
 
 /**
  * Authority-only owner of Day 09 population definitions, slots and live actors.
@@ -32,6 +35,18 @@ public:
 	int32 GetLiveMemberCount() const { return LiveMembers.Num(); }
 	const TArray<FAuraPopulationSpawnRow>& GetPopulationRows() const { return PopulationRows; }
 	FName GetCurrentMapId() const { return FindCurrentMapId(); }
+	const FAuraCivilianWorkProfile* FindWorkProfile(FName WorkProfileId) const;
+	void GetLiveMembers(TArray<AAuraCivilian*>& OutMembers) const;
+
+	void RegisterActivityMarker(AAuraCivilianActivityMarker* Marker);
+	void UnregisterActivityMarker(AAuraCivilianActivityMarker* Marker);
+	AAuraCivilianActivityMarker* FindActivityMarker(FName MarkerId) const;
+	void GetActivityMarkers(TArray<AAuraCivilianActivityMarker*>& OutMarkers) const;
+	bool TryReserveActivityMarker(FName MarkerId, FName PopulationMemberId);
+	void ReleaseActivityMarkerReservation(FName MarkerId, FName PopulationMemberId);
+	void ReleaseAllActivityMarkerReservations(FName PopulationMemberId);
+	void HandlePopulationDeath(const FAuraDeathEvent& Event);
+	int32 GetRecordedPopulationDeathCount() const { return RecordedPopulationDeaths.Num(); }
 
 	/** Canonical identity used by initial spawn and all future refill work. */
 	static FName BuildDeterministicMemberId(FName PopulationId, int32 SlotIndex);
@@ -63,10 +78,16 @@ private:
 
 	UPROPERTY(Transient)
 	TMap<FName, TObjectPtr<AAuraCivilianSpawnVolume>> RegisteredVolumes;
+	TMap<FName, TObjectPtr<AAuraCivilianActivityMarker>> RegisteredActivityMarkers;
+	TMap<FName, TSet<FName>> ActivityMarkerReservations;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAuraCivilianWorkProfileRegistry> WorkProfileRegistry;
 
 	TMap<FName, TWeakObjectPtr<AAuraCivilian>> LiveMembers;
 	TMap<TWeakObjectPtr<AActor>, FName> ActorToMember;
 	TSet<FName> ReservedMemberIds;
+	TSet<FName> RecordedPopulationDeaths;
 
 	bool bDefinitionsInitialized = false;
 	bool bInitialPopulationFinalized = false;

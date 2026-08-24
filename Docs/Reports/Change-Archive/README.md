@@ -13,6 +13,9 @@ The date-only `daily-change-reference.svg` files are source maps for the grouped
 
 ## Indexed job records
 
+- [2026-08-24 - Fix Role/Battle pending-change review issues](2026-08-24-role-battle-review-fixes.md)
+- [2026-08-21 – Implement Role/Battle Days 10-12](2026-08-21-days-10-12-implementation.md)
+
 ### Daily references and archive structure
 
 - [2026-08-11 – Manual daily Git diff and newcomer mind maps](2026-08-11-git-daily-mind-maps.md)

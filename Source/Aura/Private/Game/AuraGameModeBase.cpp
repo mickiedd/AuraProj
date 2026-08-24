@@ -5,6 +5,7 @@
 
 #include "EngineUtils.h"
 #include "Aura/AuraLogChannels.h"
+#include "AuraGameplayTags.h"
 #include "Game/AuraGameInstance.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "GameFramework/PlayerStart.h"
@@ -27,7 +28,15 @@
 #include "Character/AuraEnemy.h"
 #include "Character/AuraCivilian.h"
 #include "World/AuraPopulationManager.h"
+#include "Combat/AuraDeathPolicyDispatcher.h"
+#include "Battle/AuraBattleDirector.h"
 #include "World/AuraCivilianSpawnVolume.h"
+#include "World/AuraCivilianWorkMarker.h"
+#include "World/AuraCivilianObservationMarker.h"
+#include "World/AuraCivilianShelterMarker.h"
+#include "Character/AuraCharacter.h"
+#include "AI/BTService_FindNearestHostile.h"
+#include "Battle/AuraBattleZoneConfig.h"
 #include "Dom/JsonObject.h"
 #include "IPAddress.h"
 #include "Misc/FileHelper.h"
@@ -266,6 +275,39 @@ void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options,
 		if (!PopulationManager->InitializeDefinitions(PopulationError))
 		{
 			UE_LOG(LogAura, Error, TEXT("[Population][InitGame] Population definitions unavailable; no civilians will spawn: %s"), *PopulationError);
+		}
+	}
+	DeathPolicyDispatcher = NewObject<UAuraDeathPolicyDispatcher>(this, TEXT("DeathPolicyDispatcher"));
+	if (DeathPolicyDispatcher)
+	{
+		DeathPolicyDispatcher->Initialize(this);
+		DeathPolicyDispatcher->OnAuthoritativeDeath.AddUObject(this, &AAuraGameModeBase::HandleAuthoritativeDeath);
+	}
+}
+
+void AAuraGameModeBase::HandleAuthoritativeDeath(const FAuraDeathEvent& Event)
+{
+	if (!HasAuthority()) return;
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	if (Event.DeathPolicyTag.MatchesTagExact(GameplayTags.Death_PlayerRespawn))
+	{
+		if (AAuraCharacter* Player = Cast<AAuraCharacter>(Event.VictimActor))
+		{
+			PlayerDied(Player, Player->DeathTime);
+		}
+	}
+	else if (Event.DeathPolicyTag.MatchesTagExact(GameplayTags.Death_EnemyLoot))
+	{
+		if (AAuraEnemy* Enemy = Cast<AAuraEnemy>(Event.VictimActor))
+		{
+			Enemy->ApplyEnemyDeathPolicy(Event);
+		}
+	}
+	else if (Event.DeathPolicyTag.MatchesTagExact(GameplayTags.Death_PopulationRespawn))
+	{
+		if (PopulationManager)
+		{
+			PopulationManager->HandlePopulationDeath(Event);
 		}
 	}
 }
@@ -650,6 +692,15 @@ void AAuraGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	Maps.Add(DefaultMapName, DefaultMap);
+	if (HasAuthority() && GetWorld() && !BattleDirector)
+	{
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		const FTransform DirectorTransform = FTransform::Identity;
+		BattleDirector = GetWorld()->SpawnActorDeferred<AAuraBattleDirector>(AAuraBattleDirector::StaticClass(), DirectorTransform, this, nullptr, SpawnParameters.SpawnCollisionHandlingOverride);
+		if (BattleDirector) BattleDirector->FinishSpawning(DirectorTransform);
+	}
+	RunRoleBattleDays1012NetworkProbe();
 
 	// Spawn volumes register during Actor BeginPlay. Finalization is deliberately
 	// deferred one tick so all placed volumes are visible to the manager.
@@ -681,6 +732,7 @@ void AAuraGameModeBase::BeginPlay()
 		{
 			FActorSpawnParameters SpawnParameters;
 			SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			FVector FixtureMarkerAnchor = FVector::ZeroVector;
 			if (AAuraCivilianSpawnVolume* FixtureVolume = GetWorld()->SpawnActor<AAuraCivilianSpawnVolume>(
 				AAuraCivilianSpawnVolume::StaticClass(), FTransform::Identity, SpawnParameters))
 			{
@@ -689,6 +741,7 @@ void AAuraGameModeBase::BeginPlay()
 				if (UNavigationSystemV1* NavigationSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 					NavigationSystem && NavigationSystem->GetRandomPoint(FixtureLocation))
 				{
+					FixtureMarkerAnchor = FixtureLocation.Location;
 					FixtureVolume->SetActorLocation(FixtureLocation.Location);
 					UE_LOG(LogAura, Display, TEXT("[Population][Volume] Runtime fixture volume registered for RoleBattleCivilianTest map at nav=%s."),
 						*FixtureLocation.Location.ToCompactString());
@@ -697,6 +750,28 @@ void AAuraGameModeBase::BeginPlay()
 				{
 					UE_LOG(LogAura, Error, TEXT("[Population][Volume] RoleBattleCivilianTest fixture could not find a navigation anchor."));
 				}
+			}
+
+			const auto SpawnFixtureMarker = [this, &SpawnParameters, FixtureMarkerAnchor](TSubclassOf<AAuraCivilianActivityMarker> MarkerClass, FName MarkerId, FVector Location)
+			{
+				const FTransform MarkerTransform(FRotator::ZeroRotator, Location);
+				if (AAuraCivilianActivityMarker* Marker = GetWorld()->SpawnActorDeferred<AAuraCivilianActivityMarker>(
+					MarkerClass, MarkerTransform, nullptr, nullptr, SpawnParameters.SpawnCollisionHandlingOverride))
+				{
+					Marker->SetMarkerIdForRuntime(MarkerId);
+					Marker->SetZoneIdForRuntime(TEXT("Market"));
+					Marker->FinishSpawning(MarkerTransform);
+					return Marker;
+				}
+				return static_cast<AAuraCivilianActivityMarker*>(nullptr);
+			};
+			if (bRoleBattleCivilianFixtureMap)
+			{
+				SpawnFixtureMarker(AAuraCivilianWorkMarker::StaticClass(), TEXT("MarketWork_01"), FixtureMarkerAnchor + FVector(0.f, 0.f, 20.f));
+				SpawnFixtureMarker(AAuraCivilianObservationMarker::StaticClass(), TEXT("MarketObserve_01"), FixtureMarkerAnchor + FVector(250.f, 0.f, 20.f));
+				SpawnFixtureMarker(AAuraCivilianShelterMarker::StaticClass(), TEXT("MarketShelter_01"), FixtureMarkerAnchor + FVector(-250.f, 0.f, 20.f));
+				SpawnFixtureMarker(AAuraCivilianShelterMarker::StaticClass(), TEXT("MarketShelter_Unreachable"), FixtureMarkerAnchor + FVector(100000.f, 100000.f, 20.f));
+				UE_LOG(LogAura, Display, TEXT("[CivilianAI][MarkerFixture] Registered work=MarketWork_01 observe=MarketObserve_01 shelter=MarketShelter_01 unreachable=MarketShelter_Unreachable."));
 			}
 		}
 		if (!bDay8NetworkProbe)
@@ -773,6 +848,56 @@ void AAuraGameModeBase::BeginPlay()
 		UE_LOG(LogAura, Display, TEXT("[GSM-Ready] Dedicated server ready notification scheduled (initialDelay=%.2fs)."),
 			GameServerReadyNotifyInitialDelaySeconds);
 	}
+}
+
+void AAuraGameModeBase::RunRoleBattleDays1012NetworkProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (!HasAuthority() || !BattleDirector) return;
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay10NetworkProbe")))
+	{
+		const bool bProfileReady = PopulationManager && PopulationManager->FindWorkProfile(TEXT("Observer"));
+		const UClass* ServiceClass = StaticLoadClass(UBTService::StaticClass(), nullptr,
+			TEXT("/Game/Blueprints/AI/Services/BTS_FindNearestHostile.BTS_FindNearestHostile_C"));
+		const bool bAssetMigrated = ServiceClass && ServiceClass->IsChildOf(UBTService_FindNearestHostile::StaticClass());
+		UE_LOG(LogAura, Display, TEXT("[Day10NetworkProbe][Server] Passed=%d ProfileReady=%d HostileAssetMigrated=%d"),
+			bProfileReady && bAssetMigrated, bProfileReady, bAssetMigrated);
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay11NetworkProbe")))
+	{
+		FAuraDeathEvent ProbeEvent;
+		ProbeEvent.SourceActor = BattleDirector;
+		ProbeEvent.VictimActor = BattleDirector;
+		ProbeEvent.DeathPolicyTag = GameplayTags.Death_EnemyLoot;
+		ProbeEvent.DeathSequence = 1;
+		const bool bFirstAccepted = DeathPolicyDispatcher && DeathPolicyDispatcher->DispatchDeath(ProbeEvent);
+		const bool bDuplicateRejected = DeathPolicyDispatcher && !DeathPolicyDispatcher->DispatchDeath(ProbeEvent);
+		UE_LOG(LogAura, Display, TEXT("[Day11NetworkProbe][Server] Passed=%d FirstAccepted=%d DuplicateRejected=%d"),
+			bFirstAccepted && bDuplicateRejected, bFirstAccepted, bDuplicateRejected);
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay12NetworkProbe")))
+	{
+		const UAuraBattleZoneConfig* Config = BattleDirector->GetZoneConfig();
+		const FAuraCombatPolicySnapshot PeacePolicy = Config
+			? Config->BuildPolicySnapshotForMap(BattleDirector, FVector(2000.f, 0.f, 0.f), TEXT("RoleBattleCivilianTest"), EAuraBattlePhase::Peace, NAME_None)
+			: FAuraCombatPolicySnapshot();
+		const bool bPeaceClosed = PeacePolicy.IsValid() && !PeacePolicy.AllowsPvP();
+		const bool bAlert = BattleDirector->TransitionTo(EAuraBattlePhase::Alert);
+		const FName EventId = BattleDirector->GetActiveBattleEventId();
+		const bool bConflict = BattleDirector->TransitionTo(EAuraBattlePhase::Conflict);
+		const FAuraCombatPolicySnapshot ConflictPolicy = Config
+			? Config->BuildPolicySnapshotForMap(BattleDirector, FVector(2000.f, 0.f, 0.f), TEXT("RoleBattleCivilianTest"), EAuraBattlePhase::Conflict, EventId)
+			: FAuraCombatPolicySnapshot();
+		const bool bConflictOpen = ConflictPolicy.IsValid() && ConflictPolicy.AllowsPvP();
+		const bool bCleanup = BattleDirector->TransitionTo(EAuraBattlePhase::Cleanup);
+		const bool bPeace = BattleDirector->TransitionTo(EAuraBattlePhase::Peace);
+		const bool bEventLifecycle = !EventId.IsNone() && BattleDirector->GetActiveBattleEventId().IsNone();
+		const bool bPassed = bPeaceClosed && bAlert && bConflict && bConflictOpen && bCleanup && bPeace && bEventLifecycle;
+		UE_LOG(LogAura, Display, TEXT("[Day12NetworkProbe][Server] Passed=%d PeaceClosed=%d ConflictOpen=%d EventLifecycle=%d"),
+			bPassed, bPeaceClosed, bConflictOpen, bEventLifecycle);
+	}
+#endif
 }
 
 void AAuraGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)

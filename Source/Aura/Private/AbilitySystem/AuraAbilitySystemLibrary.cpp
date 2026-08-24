@@ -12,6 +12,7 @@
 #include "Engine/EngineTypes.h"
 #include "Engine/OverlapResult.h"
 #include "Game/AuraGameModeBase.h"
+#include "Battle/AuraBattleDirector.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerState.h"
@@ -1724,6 +1725,19 @@ FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const 
 	RuleContext.TrustedWorldContext = SourceAvatarActor;
 	RuleContext.SourceActor = SourceAvatarActor;
 	RuleContext.TargetActor = TargetAvatarActor;
+	if (const AAuraGameModeBase* GameMode = SourceAvatarActor->GetWorld() ? SourceAvatarActor->GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr)
+	{
+		if (const AAuraBattleDirector* BattleDirector = GameMode->GetBattleDirector())
+		{
+			FAuraCombatRuleContext AuthoritativeContext;
+			if (!BattleDirector->ResolveCombatRuleContext(SourceAvatarActor, TargetAvatarActor, AuthoritativeContext))
+			{
+				UE_LOG(LogAura, Verbose, TEXT("[DamageBoundary] Rejected damage: battle director could not resolve authoritative target zone."));
+				return InvalidContext;
+			}
+			RuleContext = AuthoritativeContext;
+		}
+	}
 	const FAuraCombatRuleResult RuleResult = FAuraCombatRules::CanDamage(SourceAvatarActor, TargetAvatarActor, RuleContext);
 	if (!RuleResult.bCanDamage)
 	{

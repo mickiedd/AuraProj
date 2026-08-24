@@ -15,6 +15,9 @@ class URuntimeAbilityInfo;
 class UCharacterClassInfo;
 class URoleInfo;
 class UAuraPopulationManager;
+class UAuraDeathPolicyDispatcher;
+class AAuraBattleDirector;
+struct FAuraDeathEvent;
 class AAuraEnemy;
 class APlayerController;
 class APlayerState;
@@ -128,6 +131,14 @@ public:
 	UPROPERTY(Transient)
 	TObjectPtr<UAuraPopulationManager> PopulationManager;
 
+	/** Server-wide neutral death event boundary; policy handlers bind once here. */
+	UPROPERTY(Transient)
+	TObjectPtr<UAuraDeathPolicyDispatcher> DeathPolicyDispatcher;
+
+	/** Server-owned phase/event and battle-zone resolver. */
+	UPROPERTY(Transient)
+	TObjectPtr<AAuraBattleDirector> BattleDirector;
+
 	/**
 	 * How often (seconds) the server polls Content/Config/.RoleConfig.reload for the editor
 	 * "Reload Role Config" mending tool. When the sentinel is found, RoleInfo is rebuilt from
@@ -203,6 +214,10 @@ public:
 
 	const UAuraPopulationManager* GetPopulationManager() const { return PopulationManager; }
 	UAuraPopulationManager* GetPopulationManagerMutable() const { return PopulationManager; }
+	const UAuraDeathPolicyDispatcher* GetDeathPolicyDispatcher() const { return DeathPolicyDispatcher; }
+	UAuraDeathPolicyDispatcher* GetDeathPolicyDispatcherMutable() const { return DeathPolicyDispatcher; }
+	const AAuraBattleDirector* GetBattleDirector() const { return BattleDirector; }
+	AAuraBattleDirector* GetBattleDirectorMutable() const { return BattleDirector; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -259,6 +274,8 @@ private:
 
 	UFUNCTION()
 	void OnSpawnedItemDestroyed(AActor* DestroyedActor);
+	void HandleAuthoritativeDeath(const FAuraDeathEvent& Event);
+	void RunRoleBattleDays1012NetworkProbe();
 
 	void HandleDedicatedServerReadyNotify();
 	bool TryBuildDedicatedServerReadyContext(FString& OutLevelId, int32& OutServerPort, FString& OutGameServerAddress, int32& OutGameServerPort) const;

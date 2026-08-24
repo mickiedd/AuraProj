@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820">
+  <rect width="1400" height="820" fill="#f7f8fb"/>
+  <text x="60" y="62" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#182235">Role/Battle Days 10–12: before → authoritative slice</text>
+  <text x="60" y="96" font-family="Arial, sans-serif" font-size="17" fill="#526176">Server owns decisions; replicated state carries observations to clients.</text>
+  <rect x="60" y="140" width="360" height="220" rx="16" fill="#fff0f0" stroke="#c94c4c" stroke-width="2"/>
+  <text x="85" y="180" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#8d2d2d">Before</text>
+  <text x="85" y="220" font-family="Arial, sans-serif" font-size="17" fill="#3a2630">Civilian BT: wander-only</text>
+  <text x="85" y="250" font-family="Arial, sans-serif" font-size="17" fill="#3a2630">Die overrides owned consequences</text>
+  <text x="85" y="280" font-family="Arial, sans-serif" font-size="17" fill="#3a2630">Caller zone/event fields trusted</text>
+  <text x="85" y="320" font-family="Arial, sans-serif" font-size="15" fill="#70464d">No shared marker/death/zone authority</text>
+  <path d="M440 250 H505" stroke="#53647a" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="530" y="125" width="250" height="270" rx="16" fill="#eaf4ff" stroke="#3d79ad" stroke-width="2"/>
+  <text x="555" y="165" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#1d5684">Day 10</text>
+  <text x="555" y="205" font-family="Arial, sans-serif" font-size="16" fill="#24384e">Profiles + markers</text>
+  <text x="555" y="235" font-family="Arial, sans-serif" font-size="16" fill="#24384e">Threat → CanDamage</text>
+  <text x="555" y="265" font-family="Arial, sans-serif" font-size="16" fill="#24384e">Shelter → flee fallback</text>
+  <text x="555" y="295" font-family="Arial, sans-serif" font-size="16" fill="#24384e">Work/observe/wander</text>
+  <text x="555" y="345" font-family="Arial, sans-serif" font-size="14" fill="#385b78">Authority-only BT + reservations</text>
+  <path d="M800 250 H865" stroke="#53647a" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="890" y="125" width="250" height="270" rx="16" fill="#edfaef" stroke="#4d9b5e" stroke-width="2"/>
+  <text x="915" y="165" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#2e713c">Day 11</text>
+  <text x="915" y="205" font-family="Arial, sans-serif" font-size="16" fill="#29482f">Alive → Dying winner</text>
+  <text x="915" y="235" font-family="Arial, sans-serif" font-size="16" fill="#29482f">DeathSequence + event</text>
+  <text x="915" y="265" font-family="Arial, sans-serif" font-size="16" fill="#29482f">One GameMode dispatcher</text>
+  <text x="915" y="295" font-family="Arial, sans-serif" font-size="16" fill="#29482f">Player / Enemy / Civilian</text>
+  <text x="915" y="345" font-family="Arial, sans-serif" font-size="14" fill="#3d6e48">Repeated fatal calls are rejected</text>
+  <path d="M1160 250 H1225" stroke="#53647a" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="1245" y="125" width="110" height="270" rx="16" fill="#fff8e8" stroke="#bf8a2e" stroke-width="2"/>
+  <text x="1262" y="165" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#825b13">Day 12</text>
+  <text x="1262" y="205" font-family="Arial, sans-serif" font-size="14" fill="#614b20">Director</text>
+  <text x="1262" y="235" font-family="Arial, sans-serif" font-size="14" fill="#614b20">zones</text>
+  <text x="1262" y="265" font-family="Arial, sans-serif" font-size="14" fill="#614b20">phases</text>
+  <text x="1262" y="295" font-family="Arial, sans-serif" font-size="14" fill="#614b20">stamps</text>
+  <text x="1262" y="345" font-family="Arial, sans-serif" font-size="13" fill="#7b642d">safe wins</text>
+  <rect x="90" y="455" width="1250" height="245" rx="16" fill="#ffffff" stroke="#aab6c7" stroke-width="2"/>
+  <text x="120" y="500" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#243247">Authoritative damage/death flow after Days 10–12</text>
+  <text x="120" y="545" font-family="Arial, sans-serif" font-size="17" fill="#34465c">Damage producer → AAuraBattleDirector resolves target location, phase, safe zone, priority, and lexical tie</text>
+  <text x="120" y="580" font-family="Arial, sans-serif" font-size="17" fill="#34465c">→ FAuraCombatRules → Gameplay Effect context (BattleZoneId/BattleEventId)</text>
+  <text x="120" y="615" font-family="Arial, sans-serif" font-size="17" fill="#34465c">→ fatal context → Alive-only TryEnterDying winner → UAuraDeathPolicyDispatcher exactly once</text>
+  <text x="120" y="650" font-family="Arial, sans-serif" font-size="17" fill="#34465c">→ policy consequence + replicated life/death sequence → late-join-safe client presentation</text>
+  <text x="120" y="683" font-family="Arial, sans-serif" font-size="14" fill="#6a7788">Validation: AuraEditor build passed; 31 named tests and static contracts present; runtime automation is explicitly pending.</text>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#53647a"/></marker></defs>
+</svg>

@@ -23,6 +23,11 @@ Days 10–20 are intentionally absent. Their documents are implementation contra
 | 07 | 2026-08-18 | Aura/BungeeMan role regression and packaged topology | [SVG](2026-08-18-role-battle-day-07-combat-roles.svg) | [record](2026-08-18-role-battle-day-07-combat-roles.md) |
 | 08 | 2026-08-18 | Replicated Civilian actor with protected empty loadout | [SVG](2026-08-18-role-battle-day-08-civilian-actor.svg) | [record](2026-08-18-role-battle-day-08-civilian-actor.md) |
 | 09 | 2026-08-18 | Deterministic authoritative Civilian population spawning | [SVG](2026-08-18-role-battle-day-09-civilian-spawning.svg) | [record](2026-08-18-role-battle-day-09-civilian-spawning.md) |
+| 10 | 2026-08-21 | Server-authoritative Civilian AI, markers, threat sensing, and recovery selection; runtime network gate carried forward | [SVG](2026-08-21-role-battle-day-10-civilian-ai.svg) | [record](2026-08-21-role-battle-day-10-civilian-ai.md) |
+| 11 | 2026-08-21 | Exactly-once death lifecycle and policy routing; runtime network gate carried forward | [SVG](2026-08-21-role-battle-day-11-death-lifecycle.svg) | [record](2026-08-21-role-battle-day-11-death-lifecycle.md) |
+| 12 | 2026-08-21 | Replicated battle director, validated zones, phase lifecycle, and final context stamping; runtime network gate carried forward | [SVG](2026-08-21-role-battle-day-12-battle-director.svg) | [record](2026-08-21-role-battle-day-12-battle-director.md) |
+
+Days 10-12 are now archived as implemented source/data milestones. Their native test namespaces and smoke entry points are present; the direct Unreal automation process did not produce a log in the current environment, so the records preserve that runtime gate as carryover rather than claiming it passed.
 
 ## Maintenance rule
 

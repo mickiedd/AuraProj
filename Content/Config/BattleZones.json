@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "zones": [
+    {
+      "id": "MarketSafe",
+      "mapId": "RoleBattleCivilianTest",
+      "priority": 100,
+      "center": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      "extent": { "x": 1200.0, "y": 1200.0, "z": 1000.0 },
+      "safeZone": true,
+      "policy": {
+        "allowPvP": false,
+        "allowPlayerToCivilian": false,
+        "allowEnemyToCivilian": false,
+        "targetProtected": true
+      }
+    },
+    {
+      "id": "MarketConflict",
+      "mapId": "RoleBattleCivilianTest",
+      "priority": 10,
+      "center": { "x": 0.0, "y": 0.0, "z": 0.0 },
+      "extent": { "x": 5000.0, "y": 5000.0, "z": 1000.0 },
+      "safeZone": false,
+      "policy": {
+        "allowPvP": true,
+        "allowPlayerToCivilian": false,
+        "allowEnemyToCivilian": false,
+        "targetProtected": true
+      }
+    }
+  ]
+}

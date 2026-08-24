@@ -20,6 +20,7 @@
 #include "Combat/AuraCombatIdentityComponent.h"
 #include "Combat/AuraCombatRules.h"
 #include "Combat/AuraCombatStateComponent.h"
+#include "Combat/AuraDeathPolicyDispatcher.h"
 #include "Data/AuraGameplayConfig.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -29,6 +30,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Sound/SoundBase.h"
 #include "Player/AuraPlayerState.h"
+#include "Game/AuraGameModeBase.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "AuraAbilityTypes.h"
@@ -406,7 +408,7 @@ void AAuraCharacterBase::Die(const FVector& DeathImpulse)
 	}
 
 	if (CombatStateComponent->GetLifeState() == EAuraCombatLifeState::Alive
-		&& !CombatStateComponent->TryEnterDying())
+		&& !TryBeginCombatDeath())
 	{
 		return;
 	}
@@ -417,8 +419,25 @@ void AAuraCharacterBase::Die(const FVector& DeathImpulse)
 	}
 
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
+	if (AAuraGameModeBase* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr)
+	{
+		if (UAuraDeathPolicyDispatcher* Dispatcher = GameMode->GetDeathPolicyDispatcherMutable())
+		{
+			Dispatcher->DispatchDeath(CombatStateComponent->GetLastDeathEvent());
+		}
+	}
 	MulticastHandleDeath(DeathImpulse);
 	CombatStateComponent->TryEnterDead();
+}
+
+void AAuraCharacterBase::SetPendingFatalDamageContext(const FAuraFatalDamageContext& InContext)
+{
+	if (HasAuthority())
+	{
+		PendingFatalDamageContext = InContext;
+		PendingFatalDamageContext.VictimActor = this;
+		bHasPendingFatalDamageContext = true;
+	}
 }
 
 FOnDeathSignature& AAuraCharacterBase::GetOnDeathDelegate()
@@ -533,7 +552,13 @@ bool AAuraCharacterBase::IsCombatAlive() const
 
 bool AAuraCharacterBase::TryBeginCombatDeath()
 {
-	return HasAuthority() && CombatStateComponent && CombatStateComponent->TryEnterDying();
+	if (!HasAuthority() || !CombatStateComponent) return false;
+	FAuraFatalDamageContext Context = bHasPendingFatalDamageContext ? PendingFatalDamageContext : FAuraFatalDamageContext();
+	Context.VictimActor = this;
+	if (!bHasPendingFatalDamageContext) Context.DeathImpulse = FVector::ZeroVector;
+	bHasPendingFatalDamageContext = false;
+	FAuraDeathEvent Event;
+	return CombatStateComponent->TryEnterDying(Context, Event);
 }
 
 bool AAuraCharacterBase::MarkCombatReady()

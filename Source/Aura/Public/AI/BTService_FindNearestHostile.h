@@ -3,20 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BehaviorTree/Services/BTService_BlueprintBase.h"
-#include "BTService_FindNearestPlayer.generated.h"
+#include "BehaviorTree/BTService.h"
+#include "BTService_FindNearestHostile.generated.h"
 
-/**
- * 
- */
+/** Day 10 replacement for the old FindNearestPlayer service. */
 UCLASS()
-class AURA_API UBTService_FindNearestPlayer : public UBTService_BlueprintBase
+class AURA_API UBTService_FindNearestHostile : public UBTService
 {
 	GENERATED_BODY()
-protected:
 
+public:
+	UBTService_FindNearestHostile();
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
+protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 	FBlackboardKeySelector TargetToFollowSelector;
 

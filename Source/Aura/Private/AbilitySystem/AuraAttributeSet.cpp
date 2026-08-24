@@ -12,6 +12,9 @@
 #include "Aura/AuraLogChannels.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Combat/AuraCombatRules.h"
+#include "Battle/AuraBattleDirector.h"
+#include "Game/AuraGameModeBase.h"
+#include "Character/AuraCharacterBase.h"
 #include "Interaction/CombatInterface.h"
 #include "Interaction/PlayerInterface.h"
 #include "Player/AuraPlayerController.h"
@@ -153,6 +156,19 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		RuleContext.TrustedWorldContext = Props.TargetAvatarActor;
 		RuleContext.SourceActor = Props.SourceAvatarActor;
 		RuleContext.TargetActor = Props.TargetAvatarActor;
+		if (const AAuraGameModeBase* GameMode = Props.TargetAvatarActor->GetWorld() ? Props.TargetAvatarActor->GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr)
+		{
+			if (const AAuraBattleDirector* BattleDirector = GameMode->GetBattleDirector())
+			{
+				FAuraCombatRuleContext AuthoritativeContext;
+				if (!BattleDirector->ResolveCombatRuleContext(Props.SourceAvatarActor, Props.TargetAvatarActor, AuthoritativeContext))
+				{
+					SetIncomingDamage(0.f);
+					return;
+				}
+				RuleContext = AuthoritativeContext;
+			}
+		}
 		const bool bDamageAllowed = IsValid(Props.SourceAvatarActor)
 			&& IsValid(Props.TargetAvatarActor)
 			&& FAuraCombatRules::CanDamage(Props.SourceAvatarActor, Props.TargetAvatarActor, RuleContext).bCanDamage;
@@ -198,10 +214,20 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props)
 			ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
 			if (CombatInterface)
 			{
-				FVector Impulse = UAuraAbilitySystemLibrary::GetDeathImpulse(Props.EffectContextHandle);
-				CombatInterface->Die(UAuraAbilitySystemLibrary::GetDeathImpulse(Props.EffectContextHandle));
+				const FVector Impulse = UAuraAbilitySystemLibrary::GetDeathImpulse(Props.EffectContextHandle);
+				if (AAuraCharacterBase* TargetCharacter = Cast<AAuraCharacterBase>(Props.TargetAvatarActor))
+				{
+					FAuraFatalDamageContext FatalContext;
+					FatalContext.SourceActor = Props.SourceAvatarActor;
+					FatalContext.VictimActor = Props.TargetAvatarActor;
+					FatalContext.DeathImpulse = Impulse;
+					FatalContext.DamageType = UAuraAbilitySystemLibrary::GetDamageType(Props.EffectContextHandle);
+					FatalContext.BattleZoneId = UAuraAbilitySystemLibrary::GetBattleZoneId(Props.EffectContextHandle);
+					FatalContext.BattleEventId = UAuraAbilitySystemLibrary::GetBattleEventId(Props.EffectContextHandle);
+					TargetCharacter->SetPendingFatalDamageContext(FatalContext);
+				}
+				CombatInterface->Die(Impulse);
 			}
-			SendXPEvent(Props);
 			
 		}
 		else
@@ -244,6 +270,15 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
 	RuleContext.TrustedWorldContext = Props.TargetAvatarActor;
 	RuleContext.SourceActor = Props.SourceAvatarActor;
 	RuleContext.TargetActor = Props.TargetAvatarActor;
+	if (const AAuraGameModeBase* GameMode = Props.TargetAvatarActor->GetWorld() ? Props.TargetAvatarActor->GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr)
+	{
+		if (const AAuraBattleDirector* BattleDirector = GameMode->GetBattleDirector())
+		{
+			FAuraCombatRuleContext AuthoritativeContext;
+			if (!BattleDirector->ResolveCombatRuleContext(Props.SourceAvatarActor, Props.TargetAvatarActor, AuthoritativeContext)) return;
+			RuleContext = AuthoritativeContext;
+		}
+	}
 	if (!FAuraCombatRules::CanDamage(Props.SourceAvatarActor, Props.TargetAvatarActor, RuleContext).bCanDamage)
 	{
 		UE_LOG(LogAura, Verbose, TEXT("[DamageBoundary] Debuff creation rejected by current combat rules Source=%s Target=%s"),

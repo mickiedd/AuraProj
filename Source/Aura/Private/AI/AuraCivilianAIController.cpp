@@ -4,6 +4,9 @@
 
 #include "AI/BTTask_CivilianMoveTo.h"
 #include "AI/BTTask_FindCivilianDestination.h"
+#include "AI/BTService_FindNearestThreat.h"
+#include "AI/BTService_UpdateCivilianContext.h"
+#include "AI/BTDecorator_CivilianAlive.h"
 #include "Aura/AuraLogChannels.h"
 #include "Character/AuraCivilian.h"
 #include "Combat/AuraCombatStateComponent.h"
@@ -18,6 +21,9 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/Tasks/BTTask_Wait.h"
 #include "GameFramework/Pawn.h"
+#include "Game/AuraGameModeBase.h"
+#include "Battle/AuraBattleDirector.h"
+#include "World/AuraPopulationManager.h"
 
 AAuraCivilianAIController::AAuraCivilianAIController()
 {
@@ -87,15 +93,45 @@ void AAuraCivilianAIController::BuildCivilianBehaviorTree()
 
 	CivilianBehaviorTree->BlackboardAsset = CivilianBlackboard;
 	UBTComposite_Sequence* Root = NewObject<UBTComposite_Sequence>(CivilianBehaviorTree, TEXT("CivilianSchedule"));
+	UBTService_FindNearestThreat* FindThreat = NewObject<UBTService_FindNearestThreat>(Root, TEXT("FindNearestThreat"));
+	UBTService_UpdateCivilianContext* UpdateContext = NewObject<UBTService_UpdateCivilianContext>(Root, TEXT("UpdateCivilianContext"));
+	Root->Services.Add(FindThreat);
+	Root->Services.Add(UpdateContext);
 	UBTTask_FindCivilianDestination* FindDestination = NewObject<UBTTask_FindCivilianDestination>(Root, TEXT("FindDestination"));
 	UBTTask_CivilianMoveTo* MoveTo = NewObject<UBTTask_CivilianMoveTo>(Root, TEXT("MoveToDestination"));
 	UBTTask_Wait* Wait = NewObject<UBTTask_Wait>(Root, TEXT("WaitAtDestination"));
 	Wait->WaitTime = FValueOrBBKey_Float(1.5f);
 	Wait->RandomDeviation = FValueOrBBKey_Float(0.5f);
-	Root->Children.Add({ nullptr, FindDestination, {}, {} });
+	FBTCompositeChild FindDestinationChild;
+	FindDestinationChild.ChildTask = FindDestination;
+	FindDestinationChild.Decorators.Add(NewObject<UBTDecorator_CivilianAlive>(Root, TEXT("CivilianAliveDecorator")));
+	FindDestinationChild.DecoratorOps.Add(FBTDecoratorLogic(EBTDecoratorLogic::Test, 0));
+	Root->Children.Add(FindDestinationChild);
 	Root->Children.Add({ nullptr, MoveTo, {}, {} });
 	Root->Children.Add({ nullptr, Wait, {}, {} });
 	CivilianBehaviorTree->RootNode = Root;
+}
+
+FAuraCombatRuleContext AAuraCivilianAIController::BuildThreatRuleContext(const AActor* Candidate, const AActor* Civilian) const
+{
+	FAuraCombatRuleContext Context;
+	Context.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+	Context.TrustedWorldContext = this;
+	Context.SourceActor = Candidate;
+	Context.TargetActor = Civilian;
+	Context.ImpactLocation = Civilian ? Civilian->GetActorLocation() : FVector::ZeroVector;
+	if (const AAuraGameModeBase* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr)
+	{
+		if (const AAuraBattleDirector* BattleDirector = GameMode->GetBattleDirector())
+		{
+			FAuraCombatRuleContext AuthoritativeContext;
+			if (BattleDirector->ResolveCombatRuleContext(Candidate, Civilian, AuthoritativeContext))
+			{
+				return AuthoritativeContext;
+			}
+		}
+	}
+	return Context;
 }
 
 void AAuraCivilianAIController::StartCivilianBehavior()
@@ -138,6 +174,13 @@ void AAuraCivilianAIController::StopCivilianBehavior()
 		if (UAuraCombatStateComponent* State = Civilian->GetCombatStateComponentMutable())
 		{
 			State->OnLifeStateChanged.RemoveAll(this);
+		}
+		if (AAuraGameModeBase* GameMode = Civilian->GetWorld() ? Civilian->GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr)
+		{
+			if (UAuraPopulationManager* Manager = GameMode->GetPopulationManagerMutable())
+			{
+				Manager->ReleaseAllActivityMarkerReservations(Civilian->GetPopulationMemberState().PopulationMemberId);
+			}
 		}
 		Civilian->SetCivilianActivity(EAuraCivilianActivity::Idle);
 	}

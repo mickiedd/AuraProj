@@ -55,6 +55,39 @@ namespace AuraPopulationDefinitionPrivate
 		return true;
 	}
 
+	bool ParseOptionalNonNegativeNumber(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, float& OutValue, TArray<FString>& Errors, const FString& Path)
+	{
+		if (!Object.IsValid() || !Object->HasField(Field)) return true;
+		return ParseNonNegativeNumber(Object, Field, OutValue, Errors, Path);
+	}
+
+	bool ParseOptionalTags(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, FGameplayTagContainer& OutTags, TArray<FString>& Errors, const FString& Path)
+	{
+		if (!Object.IsValid() || !Object->HasField(Field)) return true;
+		const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+		if (!Object->TryGetArrayField(Field, Values) || !Values)
+		{
+			Errors.Add(FString::Printf(TEXT("%s.%s must be an array when present"), *Path, Field));
+			return false;
+		}
+		for (const TSharedPtr<FJsonValue>& Value : *Values)
+		{
+			if (!Value.IsValid() || Value->Type != EJson::String || Value->AsString().TrimStartAndEnd().IsEmpty())
+			{
+				Errors.Add(FString::Printf(TEXT("%s.%s must contain non-empty gameplay-tag strings"), *Path, Field));
+				continue;
+			}
+			const FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*Value->AsString()), false);
+			if (!Tag.IsValid())
+			{
+				Errors.Add(FString::Printf(TEXT("%s.%s contains an unregistered gameplay tag '%s'"), *Path, Field, *Value->AsString()));
+				continue;
+			}
+			OutTags.AddTag(Tag);
+		}
+		return true;
+	}
+
 	bool ParseOptionalName(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, FName& OutValue, TArray<FString>& Errors, const FString& Path)
 	{
 		if (!Object.IsValid() || !Object->HasField(Field)) return true;
@@ -159,10 +192,15 @@ bool UAuraPopulationSpawnDefinition::ParseWorkProfiles(const TSharedPtr<FJsonObj
 		Profile.WorkProfileId = ProfileId;
 		AuraPopulationDefinitionPrivate::ParseNonNegativeNumber(*MovementObject, TEXT("speed"), Profile.MovementSpeed, OutErrors, Path + TEXT(".movement"));
 		AuraPopulationDefinitionPrivate::ParseNonNegativeNumber(*MovementObject, TEXT("wanderRadius"), Profile.WanderRadius, OutErrors, Path + TEXT(".movement"));
+		AuraPopulationDefinitionPrivate::ParseOptionalNonNegativeNumber(*MovementObject, TEXT("fleeSpeed"), Profile.FleeMovementSpeed, OutErrors, Path + TEXT(".movement"));
+		AuraPopulationDefinitionPrivate::ParseOptionalNonNegativeNumber(*MovementObject, TEXT("moveTimeout"), Profile.MoveTimeout, OutErrors, Path + TEXT(".movement"));
 		AuraPopulationDefinitionPrivate::ParseNonNegativeNumber(*ThreatObject, TEXT("observeRadius"), Profile.ObserveRadius, OutErrors, Path + TEXT(".threat"));
 		AuraPopulationDefinitionPrivate::ParseNonNegativeNumber(*ThreatObject, TEXT("fleeDistance"), Profile.FleeDistance, OutErrors, Path + TEXT(".threat"));
+		AuraPopulationDefinitionPrivate::ParseOptionalNonNegativeNumber(*ThreatObject, TEXT("calmDuration"), Profile.CalmDuration, OutErrors, Path + TEXT(".threat"));
 		AuraPopulationDefinitionPrivate::ParseNonNegativeNumber(*ScheduleObject, TEXT("startHour"), Profile.ScheduleStartHour, OutErrors, Path + TEXT(".schedule"));
 		AuraPopulationDefinitionPrivate::ParseNonNegativeNumber(*ScheduleObject, TEXT("endHour"), Profile.ScheduleEndHour, OutErrors, Path + TEXT(".schedule"));
+		AuraPopulationDefinitionPrivate::ParseOptionalNonNegativeNumber(*ScheduleObject, TEXT("workDuration"), Profile.WorkDuration, OutErrors, Path + TEXT(".schedule"));
+		AuraPopulationDefinitionPrivate::ParseOptionalNonNegativeNumber(*ScheduleObject, TEXT("wanderDuration"), Profile.WanderDuration, OutErrors, Path + TEXT(".schedule"));
 		if (Profile.ScheduleStartHour > 24.f || Profile.ScheduleEndHour > 24.f || Profile.ScheduleStartHour > Profile.ScheduleEndHour)
 		{
 			OutErrors.Add(Path + TEXT(".schedule must use hours in [0,24] with startHour <= endHour"));
@@ -171,6 +209,13 @@ bool UAuraPopulationSpawnDefinition::ParseWorkProfiles(const TSharedPtr<FJsonObj
 		if (AuraPopulationDefinitionPrivate::GetRequiredString(*ScheduleObject, TEXT("phase"), Phase, OutErrors, Path + TEXT(".schedule")))
 		{
 			Profile.SchedulePhase = AuraPopulationDefinitionPrivate::ParseName(Phase);
+		}
+		const TSharedPtr<FJsonObject>* MarkerObject = nullptr;
+		if (ProfileObject->TryGetObjectField(TEXT("markerTags"), MarkerObject) && MarkerObject && MarkerObject->IsValid())
+		{
+			AuraPopulationDefinitionPrivate::ParseOptionalTags(*MarkerObject, TEXT("work"), Profile.WorkMarkerTags, OutErrors, Path + TEXT(".markerTags"));
+			AuraPopulationDefinitionPrivate::ParseOptionalTags(*MarkerObject, TEXT("observation"), Profile.ObservationMarkerTags, OutErrors, Path + TEXT(".markerTags"));
+			AuraPopulationDefinitionPrivate::ParseOptionalTags(*MarkerObject, TEXT("shelter"), Profile.ShelterMarkerTags, OutErrors, Path + TEXT(".markerTags"));
 		}
 		WorkProfiles.Add(Profile);
 	}

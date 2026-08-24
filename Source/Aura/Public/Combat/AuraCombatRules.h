@@ -28,6 +28,16 @@ public:
 		const AActor* TargetActor,
 		const FAuraCombatRuleContext& Context = FAuraCombatRuleContext());
 
+	/** Builds a server-trusted snapshot for a resolved battle-zone policy. */
+	static FAuraCombatPolicySnapshot MakeAuthoritativePolicySnapshot(
+		const UObject* AuthorityWorldContext,
+		bool bAllowPvP,
+		bool bAllowPlayerToCivilian,
+		bool bAllowEnemyToCivilian,
+		bool bTargetProtected,
+		FName BattleZoneId,
+		FName BattleEventId);
+
 #if WITH_DEV_AUTOMATION_TESTS
 	/**
 	 * Creates a permissive snapshot only for authority-side automation fixtures.

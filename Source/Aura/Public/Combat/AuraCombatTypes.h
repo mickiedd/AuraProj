@@ -6,6 +6,8 @@
 #include "GameplayTagContainer.h"
 #include "AuraCombatTypes.generated.h"
 
+class AActor;
+
 UENUM(BlueprintType)
 enum class EAuraCombatLifeState : uint8
 {
@@ -48,6 +50,64 @@ enum class EAuraCombatRuleRejectionReason : uint8
 	Dying,
 	Dead,
 	Respawning
+};
+
+USTRUCT(BlueprintType)
+struct AURA_API FAuraFatalDamageContext
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	TObjectPtr<AActor> SourceActor = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	TObjectPtr<AActor> VictimActor = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FVector DeathImpulse = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FGameplayTag DamageType;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FName BattleZoneId = NAME_None;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FName BattleEventId = NAME_None;
+
+	bool IsValid() const { return ::IsValid(SourceActor) || ::IsValid(VictimActor); }
+};
+
+USTRUCT(BlueprintType)
+struct AURA_API FAuraDeathEvent
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	TObjectPtr<AActor> SourceActor = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	TObjectPtr<AActor> VictimActor = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FGameplayTag DeathPolicyTag;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FGameplayTag DamageType;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FVector DeathImpulse = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FName BattleZoneId = NAME_None;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	FName BattleEventId = NAME_None;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat|Death")
+	int32 DeathSequence = 0;
+
+	bool IsValid() const { return ::IsValid(VictimActor) && DeathSequence > 0 && DeathPolicyTag.IsValid(); }
 };
 
 /**

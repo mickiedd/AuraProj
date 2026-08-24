@@ -433,14 +433,6 @@ void AAuraCharacter::Die(const FVector& DeathImpulse)
 	ResetFatalFallState();
 	Super::Die(DeathImpulse);
 
-	if (GetCombatLifeState() == EAuraCombatLifeState::Dead)
-	{
-		if (AAuraGameModeBase* AuraGM = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this)))
-		{
-			AuraGM->PlayerDied(this, DeathTime);
-		}
-	}
-
 	TopDownCameraComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 }
 

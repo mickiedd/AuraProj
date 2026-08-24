@@ -25,6 +25,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	EAuraCombatLifeState GetLifeState() const { return LifeState; }
+	int32 GetDeathSequence() const { return DeathSequence; }
 	bool IsAlive() const { return LifeState == EAuraCombatLifeState::Alive; }
 
 	/** Generic lookup for actors that own a combat-state component. */
@@ -33,6 +34,9 @@ public:
 
 	/** Authority-only transition winner. Returns true only for Alive -> Dying. */
 	bool TryEnterDying();
+	bool TryEnterDying(const FAuraFatalDamageContext& FatalContext, FAuraDeathEvent& OutEvent);
+	const FAuraFatalDamageContext& GetLastFatalDamageContext() const { return LastFatalDamageContext; }
+	const FAuraDeathEvent& GetLastDeathEvent() const { return LastDeathEvent; }
 
 	/** Authority-only presentation/lifecycle transitions. */
 	bool TryEnterDead();
@@ -53,13 +57,21 @@ protected:
 	UFUNCTION()
 	void OnRep_LifeState();
 
+	UFUNCTION()
+	void OnRep_DeathSequence();
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_LifeState, Category = "Combat State")
 	EAuraCombatLifeState LifeState = EAuraCombatLifeState::Respawning;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, ReplicatedUsing = OnRep_DeathSequence, Category = "Combat State")
+	int32 DeathSequence = 0;
 
 private:
 	bool TryTransition(EAuraCombatLifeState ExpectedState, EAuraCombatLifeState NewState);
 	void NotifyStateChanged();
 
 	EAuraCombatLifeState LastNotifiedState = EAuraCombatLifeState::Respawning;
+	FAuraFatalDamageContext LastFatalDamageContext;
+	FAuraDeathEvent LastDeathEvent;
 	bool bInitialStateLocked = false;
 };

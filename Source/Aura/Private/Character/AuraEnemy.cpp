@@ -7,6 +7,7 @@
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "Components/WidgetComponent.h"
 #include "Aura/Aura.h"
@@ -131,11 +132,27 @@ void AAuraEnemy::Die(const FVector& DeathImpulse)
 	{
 		return;
 	}
+	Super::Die(DeathImpulse);
+}
 
+void AAuraEnemy::ApplyEnemyDeathPolicy(const FAuraDeathEvent& Event)
+{
+	if (!HasAuthority()) return;
 	SetLifeSpan(LifeSpan);
 	if (AuraAIController) AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"), true);
 	SpawnDataDrivenLoot();
-	Super::Die(DeathImpulse);
+	if (AActor* SourceActor = Event.SourceActor)
+	{
+		if (ACharacter* SourceCharacter = Cast<ACharacter>(SourceActor))
+		{
+			const int32 TargetLevel = GetPlayerLevel_Implementation();
+			const int32 XPReward = UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(this, GetCharacterClass_Implementation(), TargetLevel);
+			FGameplayEventData Payload;
+			Payload.EventTag = FAuraGameplayTags::Get().Attributes_Meta_IncomingXP;
+			Payload.EventMagnitude = XPReward;
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(SourceCharacter, FAuraGameplayTags::Get().Attributes_Meta_IncomingXP, Payload);
+		}
+	}
 }
 
 void AAuraEnemy::SpawnDataDrivenLoot()

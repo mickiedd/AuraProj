@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "Combat/AuraCombatTypes.h"
+#include "Combat/AuraCombatRuleContext.h"
 #include "AuraCivilianAIController.generated.h"
 
 class UBehaviorTree;
@@ -31,6 +31,9 @@ public:
 	/** Called by AAuraCivilian after role and combat state initialization. */
 	void StartCivilianBehavior();
 	void StopCivilianBehavior();
+
+	/** Builds the directional, server-owned rule query used by civilian threat sensing. */
+	FAuraCombatRuleContext BuildThreatRuleContext(const AActor* Candidate, const AActor* Civilian) const;
 
 	UBehaviorTree* GetCivilianBehaviorTree() const { return CivilianBehaviorTree; }
 	UBlackboardData* GetCivilianBlackboard() const { return CivilianBlackboard; }

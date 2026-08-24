@@ -33,6 +33,8 @@ public:
 	/** Combat Interface */
 	virtual int32 GetPlayerLevel_Implementation() override;
 	virtual void Die(const FVector& DeathImpulse) override;
+	/** Applies the EnemyLoot policy after the dispatcher has accepted the death event. */
+	void ApplyEnemyDeathPolicy(const FAuraDeathEvent& Event);
 	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
 	virtual AActor* GetCombatTarget_Implementation() const override;
 	/** end Combat Interface */

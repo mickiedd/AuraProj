@@ -5,16 +5,21 @@
       "id": "Observer",
       "movement": {
         "speed": 120.0,
-        "wanderRadius": 300.0
+        "wanderRadius": 300.0,
+        "fleeSpeed": 240.0,
+        "moveTimeout": 8.0
       },
       "threat": {
         "observeRadius": 900.0,
-        "fleeDistance": 600.0
+        "fleeDistance": 600.0,
+        "calmDuration": 5.0
       },
       "schedule": {
         "startHour": 0.0,
         "endHour": 24.0,
-        "phase": "All"
+        "phase": "All",
+        "workDuration": 20.0,
+        "wanderDuration": 8.0
       }
     }
   ]
