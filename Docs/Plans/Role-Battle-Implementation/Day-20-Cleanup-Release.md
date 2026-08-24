@@ -14,6 +14,13 @@ Close the Gun Skill before calling the slice releasable: remove or explicitly do
 - No Day 02-19 completion gate is waived or represented only by a manual/log-only observation where an assertion is required.
 - Begin Day 20 from a recorded candidate revision; cleanup changes create a new revision that must pass the entire Phase B pipeline again.
 
+Day 20 is a logical milestone, not a one-calendar-day promise. Phase A is a
+reviewable audit checkpoint and Phase B is a separate release-verification
+checkpoint. Record the Phase A disposition and its remaining schedule estimate
+before starting the expensive Phase B matrix; unresolved Phase A findings keep
+Phase B closed. This preserves the full post-cleanup rerun requirement while
+making the schedule risk visible instead of hiding it in a single-day estimate.
+
 ## Exact code files to inspect or modify
 
 Combat, targeting, roles, and lifecycle:
@@ -177,6 +184,7 @@ The implementation index normally says to change only files listed for a day. Th
 2. Replace safe remaining cases with combat identity/rules access. Keep a compatibility wrapper only when all callers delegate to the shared rule and mark its removal status explicitly.
 3. Resolve `AuraEffectActor::bApplyEffectsToEnemies` through an explicit pickup-eligibility policy. Preserve the current Player/Enemy behavior unless a deliberate, separately tested design change is approved; do not accidentally classify Civilian as Enemy or as universally pickup-eligible.
 4. Verify projectile, FireBall, beam, radial, hitscan, melee, and every AuraAbilityGraph damage action performs the final authority-side permission check and correct source/ability attribution.
+4a. Resolve the BungeeMan gun-path ambiguity: `RoleConfig.json` remains the sole active `FireGun.xml` grant path; either remove `UAuraFireGun`/`GA_FireGun` after an Asset Registry zero-reference check or document the helper as non-active compatibility code with a regression proving no second grant path.
 5. Search every role application and load path. Previous role state must clear before new state is applied, duplicate grants must remain impossible, and runtime hot-swapping stays disabled until transactional ASC cleanup exists.
 6. Search every Civilian path for player respawn, enemy loot/XP, enemy AI, and enemy spawn-table assumptions. Search death/reward paths for duplicate effects.
 7. Audit every economy mutation UFUNCTION, RPC, console command, Blueprint node, test hook, and subsystem entry point. Shipping builds must expose only the player-owned validated purchase RPC; direct grant/mutation/test endpoints must be absent.

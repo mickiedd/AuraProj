@@ -52,15 +52,23 @@ static const AuraDamageStatics& DamageStatics()
 	return DStatics;
 }
 
+namespace AuraDamageConstants
+{
+	// A missing profile/table/curve must preserve the established damage formula
+	// without inventing a class-specific modifier. This value is part of the
+	// Day 04 contract; the issue-disposition follow-up adds numeric coverage.
+	constexpr float NeutralCoefficient = 1.f;
+}
+
 static float GetDamageCoefficient(const UCurveTable* CoefficientTable, const FName RowName, const int32 Level)
 {
 	if (!CoefficientTable)
 	{
-		return 1.f;
+		return AuraDamageConstants::NeutralCoefficient;
 	}
 
 	const FRealCurve* Curve = CoefficientTable->FindCurve(RowName, FString());
-	return Curve ? Curve->Eval(FMath::Max(1, Level)) : 1.f;
+	return Curve ? Curve->Eval(FMath::Max(1, Level)) : AuraDamageConstants::NeutralCoefficient;
 }
 
 UExecCalc_Damage::UExecCalc_Damage()

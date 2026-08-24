@@ -109,7 +109,7 @@ Periodic/debuff effects must copy the original attribution fields instead of cre
 4. Route the native `CauseDamage` helper and all native projectile/ability producers through the shared request.
 5. Update every listed AuraAbilityGraph builder/action with authority, attribution, and rejection handling. A node may prefilter for efficiency but cannot be the only permission check.
 6. Preserve blocked, critical, resistance, knockback, radial falloff, debuff, and hit-react behavior for accepted damage.
-7. Make `ExecCalc_Damage` safe when source/target avatar, `CharacterClassInfo`, coefficient table, or an individual curve is absent. Use documented neutral coefficients for non-enemy profiles; do not add Civilian to `ECharacterClass`.
+7. Make `ExecCalc_Damage` safe when source/target avatar, `CharacterClassInfo`, coefficient table, or an individual curve is absent. The documented neutral coefficient is exactly `1.0f` for `ArmorPenetration`, `EffectiveArmor`, and `CriticalHitResistance` when the table or named curve is missing. Do not add Civilian to `ECharacterClass`.
 8. Verify delayed debuff kills retain original source/controller/PlayerState/role/ability/damage attribution and create one death transition.
 9. Compile any affected Blueprint and refresh its snapshot only if the C++ signature changed.
 

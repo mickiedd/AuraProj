@@ -73,6 +73,8 @@ Day 12 updates server startup to:
 
 Any failure leaves the startup coordinator closed and spawns no partial population. This ordering avoids Actor BeginPlay races and ensures Civilian AI/spawning see zone data from their first gameplay frame.
 
+Closed-startup handling is explicit: a failed initial candidate sets the server readiness state to unhealthy and rejects persistent/interactive login with an actionable reason (or terminates startup when the deployment is configured for fail-fast operation). It must never advertise a ready world with a closed coordinator. There is no permissive default-zone fallback. Last-known-good retention is allowed only for a previously published reload candidate; an initial failure remains not-ready.
+
 ## Versioned battle-zone data contract
 
 `BattleZones.json` contains `schemaVersion` and a `zones` array. Each zone defines:
@@ -181,6 +183,7 @@ Add:
 - `Aura.RoleBattle.Day12.DeathEventCarriesBattleIds`
 - `Aura.RoleBattle.Day12.ValidPhaseTransitions`
 - `Aura.RoleBattle.Day12.EventIdLifecycle`
+- `Aura.RoleBattle.Day12.InitialFailurePublishesUnhealthy`
 
 ## Listen-server and dedicated-server smoke
 

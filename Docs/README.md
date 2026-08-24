@@ -27,6 +27,7 @@
 |---|---|
 | [GAS-Migration-TODOs.md](Tracking/GAS-Migration-TODOs.md) | Status tracker for the GAS → AuraAbilityGraph migration (living document). |
 | [Gameplay-Blueprint-Decoupling-Next-Moves.md](Tracking/Gameplay-Blueprint-Decoupling-Next-Moves.md) | Ordered handoff of remaining decoupling steps. |
+| [Role-Battle-Issue-Dispositions.md](Tracking/Role-Battle-Issue-Dispositions.md) | Canonical disposition of the reviewed Role/Battle issue list and active follow-up risks. |
 
 ## Reports
 

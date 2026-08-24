@@ -8,6 +8,8 @@ This is the execution schedule for `Role-Creation-and-Battle-System-Plan.md`. Ea
 
 Finished milestone mind maps are archived in [Docs/Reports/DayPlan-Archive](../Reports/DayPlan-Archive/README.md).
 
+The current issue dispositions are recorded in [Role/Battle issue dispositions](../Tracking/Role-Battle-Issue-Dispositions.md). The authenticated Online Subsystem provider is a deployment preflight that must be provisioned before Day 18; it is not safe to defer provider selection until persistence implementation begins.
+
 The schedule assumes one developer working in a stable Unreal project branch. A “day” is a logical milestone; it may take more or less than one calendar day.
 
 ## How to use this schedule
@@ -35,6 +37,7 @@ Do not skip gates. In particular, replicated combat state and conservative facti
 - Wallet and inventory live on `AAuraPlayerState` and replicate owner-only.
 - Merchant identity belongs to a stable population member through `MerchantDefinitionId`; the shared Civilian role does not make every Civilian a merchant.
 - Persistence uses authenticated, provider-validated `FUniqueNetIdRepl` player identity and separates per-player saves from one authoritative world snapshot keyed by a server-owned `WorldPersistenceId`.
+- The production Online Subsystem provider, authenticated test accounts, and stable `FUniqueNetIdRepl` validation are recorded before the Day 18 gate. Missing provider configuration blocks persistent-profile work and never falls back to `OnlineSubsystemNull` as a release identity.
 - Listen-server and dedicated-server multi-process acceptance are both required before release.
 
 ## Cross-cutting BungeeMan Gun Skill track
