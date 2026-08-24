@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" role="img" aria-labelledby="title desc">
+  <title id="title">Role/Battle Days 13 to 15 implementation flow</title>
+  <desc id="desc">Civilian death enters deterministic population lifecycle, player interaction is server revalidated through an owned component, and economy data publishes atomically before spawning.</desc>
+  <defs>
+    <style>
+      .bg{fill:#0b1220}.panel{fill:#152238;stroke:#3b82f6;stroke-width:2}.guard{fill:#172f2a;stroke:#34d399;stroke-width:2}.test{fill:#302445;stroke:#c084fc;stroke-width:2}
+      .title{fill:#f8fafc;font:700 30px 'Segoe UI',sans-serif}.head{fill:#f8fafc;font:700 20px 'Segoe UI',sans-serif}.body{fill:#cbd5e1;font:15px 'Segoe UI',sans-serif}.small{fill:#94a3b8;font:13px 'Segoe UI',sans-serif}.arrow{stroke:#60a5fa;stroke-width:3;fill:none;marker-end:url(#end)}
+    </style>
+    <marker id="end" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#60a5fa"/></marker>
+  </defs>
+  <rect class="bg" width="1280" height="820"/>
+  <text class="title" x="54" y="58">Role/Battle Days 13-15: lifecycle to safe commerce data</text>
+  <text class="small" x="54" y="84">Before: dead slots never refilled, cursor logic conflated Enemy targeting, and merchant prices/items had no atomic authority registry.</text>
+
+  <rect class="panel" x="54" y="125" width="350" height="330" rx="14"/>
+  <text class="head" x="78" y="162">Day 13 - Population lifecycle</text>
+  <text class="body" x="78" y="199">Active -&gt; Dying -&gt; Corpse</text>
+  <text class="body" x="78" y="229">-&gt; RefillPending / Suppressed</text>
+  <text class="body" x="78" y="269">Same PopulationId:SlotIndex</text>
+  <text class="body" x="78" y="299">Member-keyed timers; bounded retry</text>
+  <text class="body" x="78" y="329">Phase checked twice; resume once</text>
+  <text class="body" x="78" y="359">Shutdown cancels every callback</text>
+  <rect class="guard" x="78" y="382" width="300" height="50" rx="8"/>
+  <text class="small" x="95" y="412">Enemy respawn ownership unchanged</text>
+
+  <rect class="panel" x="465" y="125" width="350" height="330" rx="14"/>
+  <text class="head" x="489" y="162">Day 14 - Owned interaction</text>
+  <text class="body" x="489" y="199">Relationship + Kind + Life + Options</text>
+  <text class="body" x="489" y="239">Client preview -&gt; PlayerController RPC</text>
+  <text class="body" x="489" y="279">Server re-resolves target and policy</text>
+  <text class="body" x="489" y="309">Life, phase, range, LOS, replay, rate</text>
+  <text class="body" x="489" y="349">Talk / Observe / Shelter handlers</text>
+  <rect class="guard" x="489" y="382" width="300" height="50" rx="8"/>
+  <text class="small" x="513" y="412">Interact is distinct; LMB stays attack</text>
+
+  <rect class="panel" x="876" y="125" width="350" height="330" rx="14"/>
+  <text class="head" x="900" y="162">Day 15 - Economy registry</text>
+  <text class="body" x="900" y="199">Items + Offers + Merchants + Currency</text>
+  <text class="body" x="900" y="239">Canonical base-10 string -&gt; int64</text>
+  <text class="body" x="900" y="279">Duplicate and cross-reference checks</text>
+  <text class="body" x="900" y="309">Per-slot merchant/work validation</text>
+  <text class="body" x="900" y="349">One immutable atomic publication</text>
+  <rect class="guard" x="900" y="382" width="300" height="50" rx="8"/>
+  <text class="small" x="920" y="412">Registry ready before population spawn</text>
+
+  <path class="arrow" d="M404 290 H455"/><path class="arrow" d="M815 290 H866"/>
+
+  <rect class="test" x="54" y="520" width="1172" height="228" rx="14"/>
+  <text class="head" x="78" y="559">Validation and retained evidence</text>
+  <text class="body" x="78" y="600">AuraEditor Development build passed</text>
+  <text class="body" x="78" y="633">Focused native automation: Day 13 10/10 | Day 14 11/11 | Day 15 7/7</text>
+  <text class="body" x="78" y="666">Full Aura automation: 154/154, 0 failures</text>
+  <text class="body" x="78" y="699">Listen + Dedicated baselines: Days 13, 14, 15 passed with two clients and late join</text>
+  <text class="small" x="78" y="728">Later adversarial and packaged matrices remain explicit hardening/release evidence; baseline probes do not replace them.</text>
+</svg>

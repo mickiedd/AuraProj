@@ -60,7 +60,7 @@ namespace AuraDamageConstants
 	constexpr float NeutralCoefficient = 1.f;
 }
 
-static float GetDamageCoefficient(const UCurveTable* CoefficientTable, const FName RowName, const int32 Level)
+float UExecCalc_Damage::ResolveDamageCoefficient(const UCurveTable* CoefficientTable, const FName RowName, const int32 Level)
 {
 	if (!CoefficientTable)
 	{
@@ -247,12 +247,12 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
 	const UCharacterClassInfo* CharacterClassInfo = UAuraAbilitySystemLibrary::GetCharacterClassInfo(SourceAvatar);
 	const UCurveTable* CoefficientTable = CharacterClassInfo ? CharacterClassInfo->DamageCalculationCoefficients : nullptr;
-	const float ArmorPenetrationCoefficient = GetDamageCoefficient(CoefficientTable, FName("ArmorPenetration"), SourcePlayerLevel);
+	const float ArmorPenetrationCoefficient = ResolveDamageCoefficient(CoefficientTable, FName("ArmorPenetration"), SourcePlayerLevel);
 	
 	// ArmorPenetration ignores a percentage of the Target's Armor.	
 	const float EffectiveArmor = TargetArmor * ( 100 - SourceArmorPenetration * ArmorPenetrationCoefficient ) / 100.f;
 
-	const float EffectiveArmorCoefficient = GetDamageCoefficient(CoefficientTable, FName("EffectiveArmor"), TargetPlayerLevel);
+	const float EffectiveArmorCoefficient = ResolveDamageCoefficient(CoefficientTable, FName("EffectiveArmor"), TargetPlayerLevel);
 	// Armor ignores a percentage of incoming Damage.
 	Damage *= ( 100 - EffectiveArmor * EffectiveArmorCoefficient ) / 100.f;
 
@@ -268,7 +268,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().CriticalHitDamageDef, EvaluationParameters, SourceCriticalHitDamage);
 	SourceCriticalHitDamage = FMath::Max<float>(SourceCriticalHitDamage, 0.f);
 
-	const float CriticalHitResistanceCoefficient = GetDamageCoefficient(CoefficientTable, FName("CriticalHitResistance"), TargetPlayerLevel);
+	const float CriticalHitResistanceCoefficient = ResolveDamageCoefficient(CoefficientTable, FName("CriticalHitResistance"), TargetPlayerLevel);
 
 	// Critical Hit Resistance reduces Critical Hit Chance by a certain percentage
 	const float EffectiveCriticalHitChance = SourceCriticalHitChance - TargetCriticalHitResistance * CriticalHitResistanceCoefficient;

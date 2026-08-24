@@ -20,6 +20,8 @@ AAuraBattleDirector::AAuraBattleDirector()
 void AAuraBattleDirector::BeginPlay()
 {
 	Super::BeginPlay();
+	bAuthorityConfigurationReady = false;
+	InitializationError.Empty();
 	if (!HasAuthority())
 	{
 		UE_LOG(LogAura, Display, TEXT("[BattleDirector][Client] Replicated director observed phase=%d event=%s."),
@@ -30,7 +32,8 @@ void AAuraBattleDirector::BeginPlay()
 	FString Error;
 	if (!ZoneConfig || !ZoneConfig->Load(Error))
 	{
-		UE_LOG(LogAura, Error, TEXT("[BattleDirector] Battle zone config rejected: %s"), *Error);
+		InitializationError = Error.IsEmpty() ? TEXT("Battle zone configuration could not be initialized.") : Error;
+		UE_LOG(LogAura, Error, TEXT("[BattleDirector] Battle zone config rejected: %s"), *InitializationError);
 		ZoneConfig = nullptr;
 		return;
 	}
@@ -43,6 +46,7 @@ void AAuraBattleDirector::BeginPlay()
 			Dispatcher->OnAuthoritativeDeath.AddUObject(this, &AAuraBattleDirector::HandleAuthoritativeDeath);
 		}
 	}
+	bAuthorityConfigurationReady = true;
 	ForceNetUpdate();
 	UE_LOG(LogAura, Display, TEXT("[BattleDirector] Ready phase=Peace configVersion=%d hash=%s zones=%d."), ConfigVersion, *ConfigHash, ZoneConfig->GetZones().Num());
 }

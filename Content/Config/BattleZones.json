@@ -16,7 +16,7 @@
       }
     },
     {
-      "id": "MarketConflict",
+      "id": "Market",
       "mapId": "RoleBattleCivilianTest",
       "priority": 10,
       "center": { "x": 0.0, "y": 0.0, "z": 0.0 },

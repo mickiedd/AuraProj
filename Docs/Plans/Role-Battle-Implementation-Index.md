@@ -1,8 +1,8 @@
 # Role and Battle System: Daily Implementation Index
 
-Current completion gate (2026-08-21): Days 10-12 source/data implementation and editor-build contracts are complete. The checked-in listen/dedicated smoke entry points remain available; direct Unreal automation returned exit code 1 before producing a log in this environment and is recorded as an explicit runtime follow-up.
+Current completion gate (2026-08-25): Days 13-15 source/data implementation is integrated on top of the coordinated fail-closed startup. The Day 13-15 focused suites pass 28/28, the full `Aura` suite passes 154/154, and the Day 13, 14, and 15 baseline probes pass in listen and dedicated modes with eight machine-readable assertions per run. The source now owns deterministic Civilian cleanup/refill, a player-owned interaction RPC route, and an authority-only immutable economy registry. Detailed adversarial matrices remain release-hardening evidence; baseline probes are not represented as the later Day 19 security matrix.
 
-Status: Revised execution schedule; Day 01's headless gate was executed conditionally, Days 02–09 are implemented and verified, and Day 10 is next. Day 01's expanded damage inventory closed at the start of Day 04; the final staged packaged topology for the Day 07–09 slice is recorded as passed.
+Status: Revised execution schedule; Day 01's headless gate was executed conditionally, and Days 02-15 are implemented with build, native, and baseline listen/dedicated evidence. Day 16 is the next implementation milestone. Detailed adversarial matrices and packaged-release proof remain assigned to their later hardening/release gates.
 
 This is the execution schedule for `Role-Creation-and-Battle-System-Plan.md`. Each day file is an implementation contract: it identifies prerequisites, source/content/test scope, exact work, verification commands or fixtures, evidence to retain, and a completion gate.
 

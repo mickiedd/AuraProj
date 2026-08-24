@@ -1,6 +1,6 @@
 # Role Creation and Battle System Plan
 
-Status: Revised implementation contract; Day 01 headless gate executed conditionally, Days 02–09 implemented and verified, Day 10 next
+Status: Revised implementation contract; Day 01 headless gate executed conditionally and Days 02-15 are implemented with editor build, native automation, and baseline listen/dedicated evidence. Day 16 is next. Detailed adversarial and packaged matrices remain explicit later hardening/release work.
 
 This plan is based on the current AuraProj code and configuration. It is intended to turn the existing Aura/BungeeMan prototype into a system that can support:
 
@@ -61,15 +61,15 @@ The existing systems already provide a useful foundation:
 | Role parsing and asset lookup | Source/Aura/Public/AbilitySystem/Data/RoleInfo.h and corresponding Private files | Extend into a validated role definition |
 | Role application | Source/Aura/Private/Character/AuraCharacterBase.cpp | Refactor into explicit loadout replacement |
 | Player role persistence | AuraCharacter, AuraPlayerState, Game/LoadScreenSaveGame | Refactor from one process-global slot into stable per-player records |
-| Combat identity (Day 02 complete) | Combat/AuraCombatIdentityComponent and AuraCombatTypes | Keep the replicated component; replace temporary `Combat.Unassigned` through role application on Day 06 |
-| Ability System Component and attributes | AuraCharacterBase, AuraPlayerState, AuraEnemy, AuraAttributeSet | Reuse for the first civilian vertical slice |
-| Damage calculation | ExecCalc_Damage | Keep the calculation, replace the target permission gate |
-| Damage application | AuraAbilitySystemLibrary, AuraProjectile, data-driven action nodes | Route all damage through combat rules |
+| Combat identity | Combat/AuraCombatIdentityComponent and AuraCombatTypes | Replicated role-derived identity is applied to Player, Enemy, and Civilian actors |
+| Ability System Component and attributes | AuraCharacterBase, AuraPlayerState, AuraEnemy, AuraCivilian, AuraAttributeSet | Reused for the first Civilian vertical slice with an empty offensive loadout |
+| Damage calculation | ExecCalc_Damage | Uses the shared permission boundary and neutral `1.0f` coefficient fallback when class curves are unavailable |
+| Damage application | AuraAbilitySystemLibrary, AuraProjectile, data-driven action nodes | Routed through authority-side combat rules and battle attribution |
 | Data-driven abilities | Plugins/AuraAbilityGraph and Content/AbilityDefinitions | Use for Aura and BungeeMan |
-| Enemy behavior | AuraEnemy, AuraAIController, Unreal Behavior Trees, BTService_FindNearestPlayer | Generalize hostile targeting; Day 10 introduces `BTService_FindNearestHostile`; do not copy enemy loot/death behavior to civilians |
+| Enemy behavior | AuraEnemy, AuraAIController, Unreal Behavior Trees, BTService_FindNearestHostile | Faction-aware hostile targeting is migrated; Civilian AI remains a separate non-attacking tree |
 | Pickup effects | AuraEffectActor and Content/Config/PickupDefinitions.json | Reuse for health/mana pickups |
 | Building placement | AuraBuildingComponent and AuraPlacedBuildingActor | Reuse only if civilians can own or interact with buildings |
-| Player/enemy spawning | AuraGameModeBase, AuraEnemySpawnVolume, spawn tables | Preserve existing enemy ownership; add a separate Civilian population manager |
+| Player/enemy/Civilian spawning | AuraGameModeBase, AuraEnemySpawnVolume, AuraPopulationManager | Enemy ownership is preserved while the separate authority-only Civilian population manager owns stable members |
 | Save/load | Game/LoadScreenSaveGame and AuraGameModeBase world state | Split stable per-player data from one load-once world snapshot |
 
 The current RoleConfig.json already contains Aura and BungeeMan. Their existing ability definitions are:
@@ -77,7 +77,7 @@ The current RoleConfig.json already contains Aura and BungeeMan. Their existing 
 - Aura: FireBlast, ArcaneShards, Electrocute, with FireBolt as the LMB ability.
 - BungeeMan: FireGun as the LMB ability, with a rifle mesh and Muzzle socket.
 
-Day 02 has added the replicated combat-identity foundation, but its relationship behavior is intentionally a narrow Player/Enemy compatibility table and Player/Enemy profiles remain `Combat.Unassigned`. There is still no Civilian role/actor, general combat-rules service, commerce system, inventory, currency, Civilian AI, or Civilian population persistence.
+Days 02–12 now provide replicated role-derived combat identity, shared combat rules, the Civilian role/actor and authority-only AI, stable population members, exactly-once death dispatch, and a replicated battle director. Commerce, wallet/inventory, merchant transactions, and authenticated player/world persistence remain future milestones.
 
 ## 3. Critical constraints in the current code
 
@@ -95,7 +95,7 @@ These should be fixed before adding the new role:
 
 6. AAuraEnemy death includes enemy-specific loot, lifespan, and respawn assumptions. Civilian needs a separate death policy.
 
-7. BTService_FindNearestPlayer is player/enemy-specific. It cannot be the basis for civilian behavior or general faction-aware targeting.
+7. Resolved on Day 10: Enemy Behavior Trees now use `BTService_FindNearestHostile`; Civilian behavior uses separate threat, schedule, and destination nodes.
 
 8. The targeting UI mainly recognizes EnemyInterface. Civilian needs targetable/interactable semantics without being treated as an enemy.
 

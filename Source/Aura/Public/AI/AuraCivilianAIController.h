@@ -37,6 +37,7 @@ public:
 
 	UBehaviorTree* GetCivilianBehaviorTree() const { return CivilianBehaviorTree; }
 	UBlackboardData* GetCivilianBlackboard() const { return CivilianBlackboard; }
+	bool IsCivilianBehaviorStarted() const { return bCivilianBehaviorStarted; }
 
 protected:
 	void HandleLifeStateChanged(EAuraCombatLifeState NewState);

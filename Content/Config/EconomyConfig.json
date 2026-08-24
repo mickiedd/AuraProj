@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "currencies": [
+    { "currencyId": "gold" }
+  ],
+  "supportedCurrencyId": "gold",
+  "newProfileStartingBalance": "100",
+  "maximumWalletBalance": "9223372036854775807",
+  "maximumItemSlots": "24"
+}

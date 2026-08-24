@@ -10,6 +10,7 @@
 #include "Combat/AuraDeathPolicyDispatcher.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
+#include "Game/AuraGameModeBase.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "World/AuraPopulationManager.h"
@@ -190,7 +191,9 @@ AURA_DAY1012_TEST(FAuraDay11CivilianNoRewardTest, "Day11.CivilianNoReward")
 bool FAuraDay11CivilianNoRewardTest::RunTest(const FString& Parameters)
 {
 	const FString Source = AuraRoleBattleDays1012TestsPrivate::Read(TEXT("Source/Aura/Private/World/AuraPopulationManager.cpp"));
-	TestTrue(TEXT("Civilian death records lifecycle without refill"), Source.Contains(TEXT("refill remains deferred to Day 13")));
+	TestTrue(TEXT("Civilian death remains reward-free and enters the population lifecycle"),
+		AuraRoleBattleDays1012TestsPrivate::HasAll(Source, { TEXT("Recorded authoritative death"), TEXT("Death_PopulationRespawn"), TEXT("ReleaseAllActivityMarkerReservations") })
+		&& !Source.Contains(TEXT("SpawnDataDrivenLoot")));
 	return true;
 }
 
@@ -320,6 +323,24 @@ bool FAuraDay12EventIdLifecycleTest::RunTest(const FString& Parameters)
 {
 	const FString Source = AuraRoleBattleDays1012TestsPrivate::Read(TEXT("Source/Aura/Private/Battle/AuraBattleDirector.cpp"));
 	TestTrue(TEXT("Event ID is generated only when leaving Peace and cleared on return"), AuraRoleBattleDays1012TestsPrivate::HasAll(Source, { TEXT("bLeavingPeace"), TEXT("bReturningToPeace"), TEXT("ActiveBattleEventId = NAME_None") }));
+	return true;
+}
+
+AURA_DAY1012_TEST(FAuraDay12InitialFailurePublishesUnhealthyTest, "Day12.InitialFailurePublishesUnhealthy")
+bool FAuraDay12InitialFailurePublishesUnhealthyTest::RunTest(const FString& Parameters)
+{
+	TestEqual(TEXT("A complete joint startup publishes Ready"),
+		AAuraGameModeBase::EvaluateWorldReadiness(true, true, true, true, true, true), EAuraWorldReadiness::Ready);
+	TestEqual(TEXT("An invalid initial battle-zone candidate publishes Unhealthy"),
+		AAuraGameModeBase::EvaluateWorldReadiness(true, true, false, true, false, false), EAuraWorldReadiness::Unhealthy);
+	TestEqual(TEXT("A failed population/zone cross-validation publishes Unhealthy"),
+		AAuraGameModeBase::EvaluateWorldReadiness(true, true, true, true, false, false), EAuraWorldReadiness::Unhealthy);
+	TestEqual(TEXT("A rolled-back initial population publishes Unhealthy"),
+		AAuraGameModeBase::EvaluateWorldReadiness(true, true, true, true, true, false), EAuraWorldReadiness::Unhealthy);
+	const FString GameModeSource = AuraRoleBattleDays1012TestsPrivate::Read(TEXT("Source/Aura/Private/Game/AuraGameModeBase.cpp"));
+	TestTrue(TEXT("Unhealthy startup is enforced at login and the GSM readiness boundary"),
+		AuraRoleBattleDays1012TestsPrivate::HasAll(GameModeSource,
+			{ TEXT("World startup is unhealthy"), TEXT("ScheduleDedicatedServerReadyNotification"), TEXT("IsWorldReadyForPlay()") }));
 	return true;
 }
 

@@ -9,6 +9,7 @@
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "Combat/AuraCombatTypes.h"
 #include "Interaction/CombatInterface.h"
+#include "Combat/AuraTargetableInterface.h"
 #include "AuraCharacterBase.generated.h"
 
 class UAuraCombatIdentityComponent;
@@ -30,7 +31,7 @@ class ULoadScreenSaveGame;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAppliedRoleStateChanged, const FAuraAppliedRoleState&);
 
 UCLASS(Abstract)
-class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
+class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface, public IAuraTargetableInterface
 {
 	GENERATED_BODY()
 
@@ -51,6 +52,15 @@ public:
 	const FAuraCombatIdentity& GetDefaultCombatIdentity() const { return DefaultCombatIdentity; }
 	FAuraCombatIdentity GetResolvedDefaultCombatIdentity() const { return BuildDefaultCombatIdentity(); }
 	bool HasValidCombatIdentity() const;
+
+	/** IAuraTargetableInterface: intrinsic data only; observer relationship is resolved elsewhere. */
+	virtual FGameplayTag GetAuraTargetKind() const override;
+	virtual FText GetAuraTargetDisplayName() const override;
+	virtual FName GetAuraTargetZoneId() const override { return NAME_None; }
+	virtual const UAuraCombatIdentityComponent* GetAuraTargetIdentity() const override { return CombatIdentityComponent; }
+	virtual const UAuraCombatStateComponent* GetAuraTargetState() const override { return CombatStateComponent; }
+	virtual float GetAuraTargetHealth() const override;
+	virtual float GetAuraTargetMaxHealth() const override;
 
 	/** Complete authority-only spawn transaction. Never acts as a live role-switch API. */
 	FAuraRoleApplicationResult ApplyRoleAtSpawn(FName InRole, const ULoadScreenSaveGame* SaveData = nullptr);

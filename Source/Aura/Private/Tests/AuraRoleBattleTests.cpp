@@ -5,6 +5,7 @@
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/ExecCalc/ExecCalc_Damage.h"
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
@@ -21,6 +22,7 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Engine/SkeletalMesh.h"
+#include "Engine/CurveTable.h"
 #include "GameFramework/Actor.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "HAL/FileManager.h"
@@ -1191,6 +1193,24 @@ bool FAuraDay4AuthorityRejectionTest::RunTest(const FString& Parameters)
 		InvalidTargetParams.TargetAbilitySystemComponent = nullptr;
 		TestFalse(TEXT("Missing target ASC is rejected"), UAuraAbilitySystemLibrary::ApplyDamageEffect(InvalidTargetParams).IsValid());
 		DestroyDay4DamageFixture(Fixture);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraDay4NeutralDamageCoefficientsTest,
+	"Aura.RoleBattle.Day4.NeutralDamageCoefficients",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraDay4NeutralDamageCoefficientsTest::RunTest(const FString& Parameters)
+{
+	UCurveTable* EmptyTable = NewObject<UCurveTable>(GetTransientPackage());
+	for (const FName RowName : { FName(TEXT("ArmorPenetration")), FName(TEXT("EffectiveArmor")), FName(TEXT("CriticalHitResistance")) })
+	{
+		TestEqual(FString::Printf(TEXT("Missing table uses neutral %s coefficient"), *RowName.ToString()),
+			UExecCalc_Damage::ResolveDamageCoefficient(nullptr, RowName, 1), 1.f);
+		TestEqual(FString::Printf(TEXT("Missing %s row uses neutral coefficient"), *RowName.ToString()),
+			UExecCalc_Damage::ResolveDamageCoefficient(EmptyTable, RowName, 20), 1.f);
 	}
 	return true;
 }

@@ -38,6 +38,11 @@ public:
 
 	void SetCivilianActivity(EAuraCivilianActivity InActivity);
 	EAuraCivilianActivity GetCivilianActivity() const { return CivilianActivity; }
+	virtual FGameplayTag GetAuraTargetKind() const override;
+	virtual FText GetAuraTargetDisplayName() const override;
+	virtual FName GetAuraTargetZoneId() const override { return PopulationMemberState.ZoneId; }
+	virtual void GetAuraInteractionOptions(const AActor* RequestingActor, TArray<FAuraInteractionOption>& OutOptions) const override;
+	virtual bool ExecuteAuraInteraction(const AActor* RequestingActor, FGameplayTag OptionTag) const override;
 
 protected:
 	virtual void BeginPlay() override;

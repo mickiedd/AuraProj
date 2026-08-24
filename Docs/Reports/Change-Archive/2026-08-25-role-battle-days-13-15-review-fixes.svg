@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="650" viewBox="0 0 1100 650" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle Days 13-15 review fixes</title>
+  <desc id="desc">Server-authoritative interaction execution, world readiness and economy loading, strict parsing, and repeated-death metrics with validation.</desc>
+  <rect width="1100" height="650" fill="#101827"/>
+  <text x="48" y="52" fill="#f8fafc" font-family="Arial, sans-serif" font-size="28" font-weight="700">Days 13-15 review fixes</text>
+  <text x="48" y="82" fill="#a5b4fc" font-family="Arial, sans-serif" font-size="16">Fail-closed runtime boundaries after deep review</text>
+
+  <g font-family="Arial, sans-serif" font-size="15">
+    <rect x="48" y="125" width="300" height="155" rx="14" fill="#172554" stroke="#60a5fa" stroke-width="2"/>
+    <text x="70" y="157" fill="#bfdbfe" font-size="19" font-weight="700">Input + target focus</text>
+    <text x="70" y="187" fill="#e0f2fe">Persistent preview controller</text>
+    <text x="70" y="211" fill="#e0f2fe">No-hit clears actor and options</text>
+    <text x="70" y="235" fill="#e0f2fe">F/Enhanced Input + 1/2 selection</text>
+    <text x="70" y="259" fill="#e0f2fe">Native HUD preview fallback</text>
+
+    <rect x="400" y="125" width="300" height="155" rx="14" fill="#1e293b" stroke="#34d399" stroke-width="2"/>
+    <text x="422" y="157" fill="#bbf7d0" font-size="19" font-weight="700">Server interaction route</text>
+    <text x="422" y="187" fill="#dcfce7">Consume ID/rate before rejection</text>
+    <text x="422" y="211" fill="#dcfce7">Requester profile + identity checks</text>
+    <text x="422" y="235" fill="#dcfce7">Target kind/life/zone validation</text>
+    <text x="422" y="259" fill="#dcfce7">Execute handler; success is earned</text>
+
+    <rect x="752" y="125" width="300" height="155" rx="14" fill="#3f1d2e" stroke="#fb7185" stroke-width="2"/>
+    <text x="774" y="157" fill="#fecdd3" font-size="19" font-weight="700">Startup + economy</text>
+    <text x="774" y="187" fill="#ffe4e6">PreLogin only after Ready</text>
+    <text x="774" y="211" fill="#ffe4e6">Map-scoped registry readiness</text>
+    <text x="774" y="235" fill="#ffe4e6">Failed load clears stale snapshot</text>
+    <text x="774" y="259" fill="#ffe4e6">Strict IDs, arrays, tags, assets</text>
+
+    <rect x="195" y="360" width="300" height="150" rx="14" fill="#422006" stroke="#f59e0b" stroke-width="2"/>
+    <text x="217" y="392" fill="#fde68a" font-size="19" font-weight="700">Population metric</text>
+    <text x="217" y="422" fill="#fef3c7">Death events counted, not deduped</text>
+    <text x="217" y="446" fill="#fef3c7">Stable member IDs remain canonical</text>
+    <text x="217" y="470" fill="#fef3c7">Shutdown resets lifecycle counters</text>
+
+    <rect x="605" y="360" width="300" height="150" rx="14" fill="#172554" stroke="#818cf8" stroke-width="2"/>
+    <text x="627" y="392" fill="#c7d2fe" font-size="19" font-weight="700">Validation gates</text>
+    <text x="627" y="422" fill="#e0e7ff">Build: AuraEditor Development</text>
+    <text x="627" y="446" fill="#e0e7ff">Day 13: 10/10   Day 14: 11/11</text>
+    <text x="627" y="470" fill="#e0e7ff">Day 15: 7/7 + static contracts</text>
+
+    <path d="M348 202 H400" stroke="#93c5fd" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M700 202 H752" stroke="#86efac" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M550 280 V335" stroke="#c4b5fd" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M495 435 H605" stroke="#fcd34d" stroke-width="3" marker-end="url(#arrow)"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#c4b5fd"/>
+    </marker>
+  </defs>
+  <text x="48" y="590" fill="#94a3b8" font-family="Arial, sans-serif" font-size="14">Review result: client presentation can suggest; only validated server state can execute.</text>
+</svg>

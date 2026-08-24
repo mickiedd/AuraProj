@@ -65,7 +65,7 @@ def main() -> int:
             "BattleZoneSchemaValidation", "SafeZonePrecedence", "OverlappingSafeZonePriorityAndLexicalTie",
             "PriorityAndLexicalTie", "TargetLocationResolution", "UntrustedCallerContextOverwritten",
             "ProjectileBoundaryReevaluation", "BattleAttributionNetSerialize", "DeathEventCarriesBattleIds",
-            "ValidPhaseTransitions", "EventIdLifecycle",
+            "ValidPhaseTransitions", "EventIdLifecycle", "InitialFailurePublishesUnhealthy",
         ),
     }
     for day, names in expected.items():
@@ -79,7 +79,7 @@ def main() -> int:
     ):
         assert (ROOT / runner).is_file(), runner
 
-    print("Day 10-12 civilian AI, death policy, and battle director contracts: PASS (31 named tests present)")
+    print("Day 10-12 civilian AI, death policy, and battle director contracts: PASS (32 named tests present)")
     return 0
 
 

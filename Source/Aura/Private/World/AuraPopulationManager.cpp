@@ -9,12 +9,16 @@
 #include "Aura/AuraLogChannels.h"
 #include "AuraGameplayTags.h"
 #include "AI/AuraCivilianWorkProfileRegistry.h"
+#include "Battle/AuraBattleZoneConfig.h"
+#include "Battle/AuraBattleDirector.h"
 #include "Character/AuraCivilian.h"
+#include "Combat/AuraCombatStateComponent.h"
 #include "Engine/World.h"
 #include "Game/AuraGameModeBase.h"
 #include "World/AuraCivilianSpawnVolume.h"
 #include "World/AuraCivilianActivityMarker.h"
 #include "World/AuraPopulationSpawnDefinition.h"
+#include "TimerManager.h"
 
 FName UAuraPopulationManager::BuildDeterministicMemberId(FName PopulationId, int32 SlotIndex)
 {
@@ -85,6 +89,27 @@ bool UAuraPopulationManager::InitializeDefinitions(FString& OutError)
 		PopulationRows.Empty();
 		return false;
 	}
+	for (const FAuraPopulationSpawnRow& Row : PopulationRows)
+	{
+		for (int32 SlotIndex = 0; SlotIndex < Row.MaximumCount; ++SlotIndex)
+		{
+			FAuraPopulationMemberState MemberState;
+			if (!ResolveMemberState(Row, SlotIndex, MemberState))
+			{
+				OutError += FString::Printf(TEXT("Unable to resolve population slot %s:%d.\n"), *Row.PopulationId.ToString(), SlotIndex);
+				continue;
+			}
+			FAuraPopulationRuntimeSlot& Slot = RuntimeSlots.Add(MemberState.PopulationMemberId);
+			Slot.Member = MemberState;
+			Slot.Generation = InitializationGeneration + 1;
+			Slot.LastTransitionReason = TEXT("DefinitionLoaded");
+		}
+	}
+	if (!OutError.IsEmpty())
+	{
+		RuntimeSlots.Reset();
+		return false;
+	}
 	bDefinitionsInitialized = true;
 	++InitializationGeneration;
 	UE_LOG(LogAura, Display, TEXT("[Population][Init] Published generation=%d rows=%d workProfiles=%d before StartPlay."),
@@ -111,6 +136,60 @@ void UAuraPopulationManager::GetLiveMembers(TArray<AAuraCivilian*>& OutMembers) 
 	{
 		return A.GetPopulationMemberState().PopulationMemberId.LexicalLess(B.GetPopulationMemberState().PopulationMemberId);
 	});
+}
+
+bool UAuraPopulationManager::ValidateBattleZoneRegistrations(const UAuraBattleZoneConfig* ZoneConfig, FString& OutError) const
+{
+	OutError.Empty();
+	if (!bDefinitionsInitialized || !ZoneConfig)
+	{
+		OutError = TEXT("Population definitions or battle-zone configuration are unavailable.");
+		return false;
+	}
+
+	const auto HasZone = [ZoneConfig](const FName MapId, const FName ZoneId)
+	{
+		for (const FAuraBattleZoneDefinition& Zone : ZoneConfig->GetZones())
+		{
+			if (Zone.MapId == MapId && Zone.ZoneId == ZoneId) return true;
+		}
+		return false;
+	};
+
+	const FName CurrentMapId = FindCurrentMapId();
+	for (const FAuraPopulationSpawnRow& Row : PopulationRows)
+	{
+		if (!HasZone(Row.MapId, Row.ZoneId))
+		{
+			OutError += FString::Printf(TEXT("population '%s' references unknown battle zone '%s' on map '%s'.\n"),
+				*Row.PopulationId.ToString(), *Row.ZoneId.ToString(), *Row.MapId.ToString());
+		}
+		if (Row.bSpawnOnLoad && Row.MapId == CurrentMapId)
+		{
+			for (const FName VolumeId : Row.SpawnVolumeIds)
+			{
+				const TObjectPtr<AAuraCivilianSpawnVolume>* Volume = RegisteredVolumes.Find(VolumeId);
+				if (!Volume || !IsValid(Volume->Get()))
+				{
+					OutError += FString::Printf(TEXT("population '%s' requires unregistered spawn volume '%s'.\n"),
+						*Row.PopulationId.ToString(), *VolumeId.ToString());
+				}
+			}
+		}
+	}
+
+	for (const TPair<FName, TObjectPtr<AAuraCivilianActivityMarker>>& Pair : RegisteredActivityMarkers)
+	{
+		const AAuraCivilianActivityMarker* Marker = Pair.Value;
+		if (Marker && !HasZone(CurrentMapId, Marker->GetZoneId()))
+		{
+			OutError += FString::Printf(TEXT("activity marker '%s' references unknown battle zone '%s' on map '%s'.\n"),
+				*Pair.Key.ToString(), *Marker->GetZoneId().ToString(), *CurrentMapId.ToString());
+		}
+	}
+
+	OutError.TrimEndInline();
+	return OutError.IsEmpty();
 }
 
 void UAuraPopulationManager::RegisterActivityMarker(AAuraCivilianActivityMarker* Marker)
@@ -219,23 +298,6 @@ void UAuraPopulationManager::UnregisterSpawnVolume(AAuraCivilianSpawnVolume* Vol
 	}
 }
 
-void UAuraPopulationManager::ScheduleInitialPopulation()
-{
-	if (!bDefinitionsInitialized || bInitialPopulationFinalized || bFinalizeScheduled || !GetWorld())
-	{
-		return;
-	}
-
-	bFinalizeScheduled = true;
-	FTimerDelegate Delegate;
-	Delegate.BindWeakLambda(this, [this]()
-	{
-		bFinalizeScheduled = false;
-		FinalizeInitialPopulation();
-	});
-	GetWorld()->GetTimerManager().SetTimerForNextTick(Delegate);
-}
-
 bool UAuraPopulationManager::FinalizeInitialPopulation()
 {
 	if (bInitialPopulationFinalized)
@@ -247,10 +309,18 @@ bool UAuraPopulationManager::FinalizeInitialPopulation()
 		return false;
 	}
 
-	bInitialPopulationFinalized = true;
+	if (AAuraGameModeBase* GameMode = GetWorld()->GetAuthGameMode<AAuraGameModeBase>())
+	{
+		BoundBattleDirector = GameMode->GetBattleDirectorMutable();
+		if (AAuraBattleDirector* Director = BoundBattleDirector.Get(); Director && !PhaseChangedDelegateHandle.IsValid())
+		{
+			PhaseChangedDelegateHandle = Director->OnPhaseChanged.AddUObject(this, &UAuraPopulationManager::HandleBattlePhaseChanged);
+		}
+	}
 	const FName CurrentMapId = FindCurrentMapId();
 	if (CurrentMapId.IsNone())
 	{
+		bInitialPopulationFinalized = true;
 		UE_LOG(LogAura, Display, TEXT("[Population][Finalize] Current map is not a configured population map; no rows spawned."));
 		return true;
 	}
@@ -273,7 +343,33 @@ bool UAuraPopulationManager::FinalizeInitialPopulation()
 	}
 	UE_LOG(LogAura, Display, TEXT("[Population][Finalize] generation=%d map=%s liveMembers=%d success=%d."),
 		InitializationGeneration, *CurrentMapId.ToString(), LiveMembers.Num(), bSuccess ? 1 : 0);
+	if (!bSuccess)
+	{
+		RollBackInitialPopulation();
+		return false;
+	}
+	bInitialPopulationFinalized = true;
 	return bSuccess;
+}
+
+void UAuraPopulationManager::RollBackInitialPopulation()
+{
+	TArray<TWeakObjectPtr<AAuraCivilian>> SpawnedActors;
+	LiveMembers.GenerateValueArray(SpawnedActors);
+	for (const TWeakObjectPtr<AAuraCivilian>& Actor : SpawnedActors)
+	{
+		if (AAuraCivilian* Civilian = Actor.Get())
+		{
+			Civilian->OnDestroyed.RemoveDynamic(this, &UAuraPopulationManager::OnMemberDestroyed);
+			Civilian->Destroy();
+		}
+	}
+	LiveMembers.Reset();
+	ActorToMember.Reset();
+	ReservedMemberIds.Reset();
+	ActivityMarkerReservations.Reset();
+	bInitialPopulationFinalized = false;
+	UE_LOG(LogAura, Error, TEXT("[Population][Finalize] Rolled back partial initial population."));
 }
 
 bool UAuraPopulationManager::IsCurrentMapRow(const FAuraPopulationSpawnRow& Row) const
@@ -377,8 +473,14 @@ AAuraCivilianSpawnVolume* UAuraPopulationManager::FindVolumeForRow(const FAuraPo
 
 bool UAuraPopulationManager::SpawnInitialMember(const FAuraPopulationSpawnRow& Row, int32 SlotIndex)
 {
+	return SpawnMember(Row, SlotIndex, TEXT("InitialSpawn"));
+}
+
+bool UAuraPopulationManager::SpawnMember(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, const TCHAR* Reason)
+{
 	const FName MemberId = BuildDeterministicMemberId(Row.PopulationId, SlotIndex);
-	if (MemberId.IsNone() || ReservedMemberIds.Contains(MemberId) || LiveMembers.Contains(MemberId)) return false;
+	FAuraPopulationRuntimeSlot* Slot = RuntimeSlots.Find(MemberId);
+	if (bShuttingDown || MemberId.IsNone() || !Slot || ReservedMemberIds.Contains(MemberId) || LiveMembers.Contains(MemberId)) return false;
 
 	FAuraPopulationMemberState MemberState;
 	if (!ResolveMemberState(Row, SlotIndex, MemberState)) return false;
@@ -418,8 +520,14 @@ bool UAuraPopulationManager::SpawnInitialMember(const FAuraPopulationSpawnRow& R
 			&& Attributes && Attributes->GetHealth() > 0.f && Attributes->GetMaxHealth() > 0.f;
 		if (bValidRole)
 		{
+			ReservedMemberIds.Remove(MemberId);
 			LiveMembers.Add(MemberId, Civilian);
 			ActorToMember.Add(Civilian, MemberId);
+			Slot->Actor = Civilian;
+			Slot->DeathSequence = 0;
+			Slot->RetryCount = 0;
+			BindMemberLifeState(*Slot, Civilian);
+			TransitionSlot(*Slot, EAuraPopulationSlotState::Active, Reason);
 			UE_LOG(LogAura, Display, TEXT("[Population][Spawn] population=%s slot=%d member=%s actor=%s role=%s."),
 				*Row.PopulationId.ToString(), SlotIndex, *MemberId.ToString(), *GetNameSafe(Civilian), *Row.RoleId.ToString());
 			return true;
@@ -440,25 +548,286 @@ void UAuraPopulationManager::OnMemberDestroyed(AActor* DestroyedActor)
 	{
 		const FName MemberIdValue = *MemberId;
 		LiveMembers.Remove(MemberIdValue);
-		UE_LOG(LogAura, Display, TEXT("[Population][Lifecycle] member=%s actor=%s destroyed; slot remains reserved until a future lifecycle day."),
-			*MemberIdValue.ToString(), *GetNameSafe(DestroyedActor));
 		ActorToMember.Remove(DestroyedActor);
 		ReleaseAllActivityMarkerReservations(MemberIdValue);
+		if (FAuraPopulationRuntimeSlot* Slot = RuntimeSlots.Find(MemberIdValue))
+		{
+			UnbindMemberLifeState(*Slot);
+			Slot->Actor.Reset();
+			if (!bShuttingDown && Slot->State == EAuraPopulationSlotState::Active)
+			{
+				TransitionSlot(*Slot, EAuraPopulationSlotState::Suppressed, TEXT("UnexpectedActorDestruction"));
+			}
+			UE_LOG(LogAura, Display, TEXT("[Population][Lifecycle] member=%s actor=%s destroyed state=%d; destruction did not infer death or schedule refill."),
+				*MemberIdValue.ToString(), *GetNameSafe(DestroyedActor), static_cast<int32>(Slot->State));
+		}
 	}
 }
 
 void UAuraPopulationManager::HandlePopulationDeath(const FAuraDeathEvent& Event)
 {
-	if (!Event.IsValid()) return;
+	if (bShuttingDown || !Event.IsValid() || !Event.DeathPolicyTag.MatchesTagExact(FAuraGameplayTags::Get().Death_PopulationRespawn)) return;
 	AAuraCivilian* Civilian = Cast<AAuraCivilian>(Event.VictimActor);
 	if (!Civilian) return;
 	const FAuraPopulationMemberState MemberState = Civilian->GetPopulationMemberState();
 	if (MemberState.PopulationMemberId.IsNone()) return;
-	if (RecordedPopulationDeaths.Contains(MemberState.PopulationMemberId)) return;
-	RecordedPopulationDeaths.Add(MemberState.PopulationMemberId);
+	FAuraPopulationRuntimeSlot* Slot = RuntimeSlots.Find(MemberState.PopulationMemberId);
+	if (!Slot || Slot->Generation != InitializationGeneration || Slot->Actor.Get() != Civilian
+		|| Slot->State != EAuraPopulationSlotState::Active || Event.DeathSequence <= Slot->DeathSequence) return;
+	++RecordedPopulationDeathCount;
+	Slot->DeathSequence = Event.DeathSequence;
+	TransitionSlot(*Slot, EAuraPopulationSlotState::Dying, TEXT("AuthoritativeDeath"));
+	LiveMembers.Remove(MemberState.PopulationMemberId);
 	ReleaseAllActivityMarkerReservations(MemberState.PopulationMemberId);
-	UE_LOG(LogAura, Display, TEXT("[Population][Lifecycle] Recorded authoritative death member=%s sequence=%d; refill remains deferred to Day 13."),
+	UE_LOG(LogAura, Display, TEXT("[Population][Lifecycle] Recorded authoritative death member=%s sequence=%d exactly once."),
 		*MemberState.PopulationMemberId.ToString(), Event.DeathSequence);
+	if (const UAuraCombatStateComponent* State = Civilian->GetCombatStateComponent(); State && State->GetLifeState() == EAuraCombatLifeState::Dead)
+	{
+		HandleMemberLifeStateChanged(MemberState.PopulationMemberId, Slot->Generation, EAuraCombatLifeState::Dead);
+	}
+}
+
+const FAuraPopulationSpawnRow* UAuraPopulationManager::FindRow(FName PopulationId) const
+{
+	return PopulationRows.FindByPredicate([PopulationId](const FAuraPopulationSpawnRow& Row) { return Row.PopulationId == PopulationId; });
+}
+
+void UAuraPopulationManager::TransitionSlot(FAuraPopulationRuntimeSlot& Slot, EAuraPopulationSlotState NewState, const TCHAR* Reason)
+{
+	Slot.State = NewState;
+	Slot.TransitionServerTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	Slot.LastTransitionReason = Reason ? Reason : TEXT("Unknown");
+	UE_LOG(LogAura, Display, TEXT("[Population][Transition] member=%s generation=%d state=%d reason=%s."),
+		*Slot.Member.PopulationMemberId.ToString(), Slot.Generation, static_cast<int32>(Slot.State), *Slot.LastTransitionReason);
+}
+
+void UAuraPopulationManager::BindMemberLifeState(FAuraPopulationRuntimeSlot& Slot, AAuraCivilian* Civilian)
+{
+	UnbindMemberLifeState(Slot);
+	if (!Civilian || !Civilian->GetCombatStateComponentMutable()) return;
+	const FName MemberId = Slot.Member.PopulationMemberId;
+	const int32 Generation = Slot.Generation;
+	Slot.LifeStateDelegateHandle = Civilian->GetCombatStateComponentMutable()->OnLifeStateChanged.AddWeakLambda(this,
+		[this, MemberId, Generation](EAuraCombatLifeState State) { HandleMemberLifeStateChanged(MemberId, Generation, State); });
+}
+
+void UAuraPopulationManager::UnbindMemberLifeState(FAuraPopulationRuntimeSlot& Slot)
+{
+	if (Slot.LifeStateDelegateHandle.IsValid())
+	{
+		if (AAuraCivilian* Civilian = Slot.Actor.Get(); Civilian && Civilian->GetCombatStateComponentMutable())
+		{
+			Civilian->GetCombatStateComponentMutable()->OnLifeStateChanged.Remove(Slot.LifeStateDelegateHandle);
+		}
+		Slot.LifeStateDelegateHandle.Reset();
+	}
+}
+
+void UAuraPopulationManager::HandleMemberLifeStateChanged(FName MemberId, int32 ExpectedGeneration, EAuraCombatLifeState NewState)
+{
+	FAuraPopulationRuntimeSlot* Slot = RuntimeSlots.Find(MemberId);
+	if (bShuttingDown || !Slot || Slot->Generation != ExpectedGeneration || Slot->State != EAuraPopulationSlotState::Dying
+		|| NewState != EAuraCombatLifeState::Dead) return;
+	const FAuraPopulationSpawnRow* Row = FindRow(Slot->Member.PopulationId);
+	if (!Row) return;
+	TransitionSlot(*Slot, EAuraPopulationSlotState::Corpse, TEXT("AuthoritativeDeadState"));
+	ScheduleCorpseCleanup(*Slot, *Row);
+}
+
+void UAuraPopulationManager::ScheduleCorpseCleanup(FAuraPopulationRuntimeSlot& Slot, const FAuraPopulationSpawnRow& Row)
+{
+	if (!GetWorld() || GetWorld()->GetTimerManager().IsTimerActive(Slot.CorpseTimer)) return;
+	const FName MemberId = Slot.Member.PopulationMemberId;
+	const int32 Generation = Slot.Generation;
+	const int32 DeathSequence = Slot.DeathSequence;
+	FTimerDelegate Delegate = FTimerDelegate::CreateWeakLambda(this, [this, MemberId, Generation, DeathSequence]()
+	{
+		ExecuteCorpseCleanup(MemberId, Generation, DeathSequence);
+	});
+	GetWorld()->GetTimerManager().SetTimer(Slot.CorpseTimer, Delegate, FMath::Max(Row.RespawnPolicy.CorpseSeconds, KINDA_SMALL_NUMBER), false);
+}
+
+void UAuraPopulationManager::ExecuteCorpseCleanup(FName MemberId, int32 ExpectedGeneration, int32 ExpectedDeathSequence)
+{
+	FAuraPopulationRuntimeSlot* Slot = RuntimeSlots.Find(MemberId);
+	if (bShuttingDown || !Slot || Slot->Generation != ExpectedGeneration || Slot->DeathSequence != ExpectedDeathSequence
+		|| Slot->State != EAuraPopulationSlotState::Corpse) return;
+	const FAuraPopulationSpawnRow* Row = FindRow(Slot->Member.PopulationId);
+	if (!Row) return;
+	if (AAuraCivilian* Corpse = Slot->Actor.Get())
+	{
+		Corpse->SetActorEnableCollision(false);
+		Corpse->SetActorHiddenInGame(true);
+		UnbindMemberLifeState(*Slot);
+		ActorToMember.Remove(Corpse);
+		Corpse->OnDestroyed.RemoveDynamic(this, &UAuraPopulationManager::OnMemberDestroyed);
+		Corpse->Destroy();
+	}
+	Slot->Actor.Reset();
+	Slot->CorpseTimer.Invalidate();
+	if (!Row->RespawnPolicy.bEnabled || !IsRefillAllowed(*Row))
+	{
+		TransitionSlot(*Slot, EAuraPopulationSlotState::Suppressed, Row->RespawnPolicy.bEnabled ? TEXT("RefillPolicySuppressed") : TEXT("RespawnDisabled"));
+		return;
+	}
+	ScheduleRefill(*Slot, *Row, Row->RespawnPolicy.DelaySeconds, TEXT("CorpseCleaned"));
+}
+
+bool UAuraPopulationManager::IsRefillAllowed(const FAuraPopulationSpawnRow& Row) const
+{
+	const AAuraBattleDirector* Director = BoundBattleDirector.Get();
+	if (!Director || !Director->IsAuthorityConfigurationReady()) return false;
+	const UEnum* PhaseEnum = StaticEnum<EAuraBattlePhase>();
+	const FName PhaseName = PhaseEnum ? FName(*PhaseEnum->GetNameStringByValue(static_cast<int64>(Director->GetCurrentPhase()))) : NAME_None;
+	return Row.RespawnPolicy.AllowedBattlePhases.IsEmpty() || Row.RespawnPolicy.AllowedBattlePhases.Contains(PhaseName);
+}
+
+void UAuraPopulationManager::ScheduleRefill(FAuraPopulationRuntimeSlot& Slot, const FAuraPopulationSpawnRow& Row, float DelaySeconds, const TCHAR* Reason)
+{
+	if (bShuttingDown || !GetWorld() || GetWorld()->GetTimerManager().IsTimerActive(Slot.RefillTimer)) return;
+	if (!IsRefillAllowed(Row))
+	{
+		TransitionSlot(Slot, EAuraPopulationSlotState::Suppressed, TEXT("PhaseDisallowedBeforeSchedule"));
+		return;
+	}
+	TransitionSlot(Slot, EAuraPopulationSlotState::RefillPending, Reason);
+	const FName MemberId = Slot.Member.PopulationMemberId;
+	const int32 Generation = Slot.Generation;
+	FTimerDelegate Delegate = FTimerDelegate::CreateWeakLambda(this, [this, MemberId, Generation]() { ExecuteRefill(MemberId, Generation); });
+	GetWorld()->GetTimerManager().SetTimer(Slot.RefillTimer, Delegate, FMath::Max(DelaySeconds, KINDA_SMALL_NUMBER), false);
+}
+
+void UAuraPopulationManager::ExecuteRefill(FName MemberId, int32 ExpectedGeneration)
+{
+	FAuraPopulationRuntimeSlot* Slot = RuntimeSlots.Find(MemberId);
+	if (bShuttingDown || !Slot || Slot->Generation != ExpectedGeneration || Slot->State != EAuraPopulationSlotState::RefillPending) return;
+	Slot->RefillTimer.Invalidate();
+	const FAuraPopulationSpawnRow* Row = FindRow(Slot->Member.PopulationId);
+	if (!Row || !IsRefillAllowed(*Row))
+	{
+		TransitionSlot(*Slot, EAuraPopulationSlotState::Suppressed, TEXT("PhaseDisallowedAtExecution"));
+		return;
+	}
+	if (SpawnMember(*Row, Slot->Member.PopulationSlotIndex, TEXT("DeterministicRefill"))) return;
+	if (++Slot->RetryCount <= 3)
+	{
+		ScheduleRefill(*Slot, *Row, FMath::Max(1.f, Row->RespawnPolicy.DelaySeconds), TEXT("BoundedSpawnRetry"));
+	}
+	else
+	{
+		TransitionSlot(*Slot, EAuraPopulationSlotState::Suppressed, TEXT("RetryLimitReached"));
+	}
+}
+
+void UAuraPopulationManager::HandleBattlePhaseChanged(EAuraBattlePhase NewPhase)
+{
+	if (bShuttingDown || !GetWorld()) return;
+	for (TPair<FName, FAuraPopulationRuntimeSlot>& Pair : RuntimeSlots)
+	{
+		FAuraPopulationRuntimeSlot& Slot = Pair.Value;
+		const FAuraPopulationSpawnRow* Row = FindRow(Slot.Member.PopulationId);
+		if (!Row || !Row->RespawnPolicy.bEnabled) continue;
+		if (Slot.State == EAuraPopulationSlotState::RefillPending && !IsRefillAllowed(*Row))
+		{
+			GetWorld()->GetTimerManager().ClearTimer(Slot.RefillTimer);
+			TransitionSlot(Slot, EAuraPopulationSlotState::Suppressed, TEXT("PhaseChangedDisallowed"));
+		}
+		else if (Slot.State == EAuraPopulationSlotState::Suppressed && !Slot.Actor.IsValid() && IsRefillAllowed(*Row))
+		{
+			ScheduleRefill(Slot, *Row, Row->RespawnPolicy.DelaySeconds, TEXT("PhaseChangedAllowed"));
+		}
+	}
+}
+
+int32 UAuraPopulationManager::GetTrackedCorpseTimerCount() const
+{
+	int32 Count = 0;
+	if (const UWorld* World = GetWorld()) for (const TPair<FName, FAuraPopulationRuntimeSlot>& Pair : RuntimeSlots)
+	{
+		if (World->GetTimerManager().IsTimerActive(Pair.Value.CorpseTimer)) ++Count;
+	}
+	return Count;
+}
+
+int32 UAuraPopulationManager::GetTrackedRefillTimerCount() const
+{
+	int32 Count = 0;
+	if (const UWorld* World = GetWorld()) for (const TPair<FName, FAuraPopulationRuntimeSlot>& Pair : RuntimeSlots)
+	{
+		if (World->GetTimerManager().IsTimerActive(Pair.Value.RefillTimer)) ++Count;
+	}
+	return Count;
+}
+
+FAuraPopulationDebugSnapshot UAuraPopulationManager::BuildDebugSnapshot() const
+{
+	FAuraPopulationDebugSnapshot Snapshot;
+	Snapshot.SchemaVersion = Definition ? Definition->GetSchemaVersion() : 0;
+	Snapshot.ManagerGeneration = InitializationGeneration;
+	Snapshot.MapId = FindCurrentMapId();
+	if (const AAuraBattleDirector* Director = BoundBattleDirector.Get())
+	{
+		const UEnum* PhaseEnum = StaticEnum<EAuraBattlePhase>();
+		Snapshot.DirectorPhase = PhaseEnum ? FName(*PhaseEnum->GetNameStringByValue(static_cast<int64>(Director->GetCurrentPhase()))) : NAME_None;
+		Snapshot.BattleEventId = Director->GetActiveBattleEventId();
+	}
+	for (const FAuraPopulationSpawnRow& Row : PopulationRows) if (Row.MapId == Snapshot.MapId) Snapshot.MaximumCount += Row.MaximumCount;
+	for (const TPair<FName, FAuraPopulationRuntimeSlot>& Pair : RuntimeSlots)
+	{
+		const FAuraPopulationRuntimeSlot& Slot = Pair.Value;
+		if (Slot.Member.PopulationId.IsNone()) continue;
+		FAuraPopulationSlotSnapshot& Item = Snapshot.Slots.AddDefaulted_GetRef();
+		Item.PopulationId = Slot.Member.PopulationId;
+		Item.SlotIndex = Slot.Member.PopulationSlotIndex;
+		Item.PopulationMemberId = Slot.Member.PopulationMemberId;
+		Item.State = Slot.State;
+		Item.Generation = Slot.Generation;
+		Item.ActorNetworkPath = Slot.Actor.IsValid() ? Slot.Actor->GetPathName() : FString();
+		Item.TransitionServerTime = Slot.TransitionServerTime;
+		Item.LastTransitionReason = Slot.LastTransitionReason;
+		Item.DeathSequence = Slot.DeathSequence;
+		if (const UWorld* World = GetWorld())
+		{
+			Item.RemainingCorpseDelay = FMath::Max(0.f, World->GetTimerManager().GetTimerRemaining(Slot.CorpseTimer));
+			Item.RemainingRefillDelay = FMath::Max(0.f, World->GetTimerManager().GetTimerRemaining(Slot.RefillTimer));
+		}
+		switch (Slot.State)
+		{
+		case EAuraPopulationSlotState::Active: ++Snapshot.ActiveCount; break;
+		case EAuraPopulationSlotState::Corpse: ++Snapshot.CorpseCount; break;
+		case EAuraPopulationSlotState::RefillPending: ++Snapshot.PendingCount; break;
+		case EAuraPopulationSlotState::Suppressed: ++Snapshot.SuppressedCount; break;
+		default: break;
+		}
+	}
+	Snapshot.Slots.Sort([](const FAuraPopulationSlotSnapshot& A, const FAuraPopulationSlotSnapshot& B) { return A.PopulationMemberId.LexicalLess(B.PopulationMemberId); });
+	return Snapshot;
+}
+
+void UAuraPopulationManager::Shutdown()
+{
+	if (bShuttingDown) return;
+	bShuttingDown = true;
+	++InitializationGeneration;
+	if (AAuraBattleDirector* Director = BoundBattleDirector.Get(); Director && PhaseChangedDelegateHandle.IsValid())
+	{
+		Director->OnPhaseChanged.Remove(PhaseChangedDelegateHandle);
+	}
+	PhaseChangedDelegateHandle.Reset();
+	if (UWorld* World = GetWorld()) for (TPair<FName, FAuraPopulationRuntimeSlot>& Pair : RuntimeSlots)
+	{
+		World->GetTimerManager().ClearTimer(Pair.Value.CorpseTimer);
+		World->GetTimerManager().ClearTimer(Pair.Value.RefillTimer);
+		UnbindMemberLifeState(Pair.Value);
+		if (AAuraCivilian* Civilian = Pair.Value.Actor.Get()) Civilian->OnDestroyed.RemoveDynamic(this, &UAuraPopulationManager::OnMemberDestroyed);
+	}
+	ActivityMarkerReservations.Reset();
+	RecordedPopulationDeathCount = 0;
+	ReservedMemberIds.Reset();
+	ActorToMember.Reset();
+	LiveMembers.Reset();
+	RuntimeSlots.Reset();
+	BoundBattleDirector.Reset();
 }
 
 const AAuraCivilian* UAuraPopulationManager::FindLiveMember(FName PopulationMemberId) const

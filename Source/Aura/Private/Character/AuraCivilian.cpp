@@ -120,6 +120,55 @@ void AAuraCivilian::SetCivilianActivity(EAuraCivilianActivity InActivity)
 	}
 }
 
+FGameplayTag AAuraCivilian::GetAuraTargetKind() const
+{
+	return FAuraGameplayTags::Get().Target_Kind_Civilian;
+}
+
+FText AAuraCivilian::GetAuraTargetDisplayName() const
+{
+	return FText::FromString(TEXT("Civilian"));
+}
+
+void AAuraCivilian::GetAuraInteractionOptions(const AActor* RequestingActor, TArray<FAuraInteractionOption>& OutOptions) const
+{
+	OutOptions.Reset();
+	if (!IsCombatAlive()) return;
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	auto AddEnabled = [&OutOptions](const FGameplayTag Tag, const TCHAR* Text)
+	{
+		FAuraInteractionOption& Option = OutOptions.AddDefaulted_GetRef();
+		Option.OptionTag = Tag;
+		Option.DisplayText = FText::FromString(Text);
+		Option.bEnabled = true;
+		Option.DisabledReason = EAuraInteractionResultCode::Success;
+	};
+	AddEnabled(GameplayTags.Interaction_Talk, TEXT("Talk"));
+	AddEnabled(GameplayTags.Interaction_Observe, TEXT("Observe"));
+	if (!PopulationMemberState.MerchantDefinitionId.IsNone())
+	{
+		FAuraInteractionOption& Trade = OutOptions.AddDefaulted_GetRef();
+		Trade.OptionTag = GameplayTags.Interaction_Trade;
+		Trade.DisplayText = FText::FromString(TEXT("Trade"));
+		Trade.bEnabled = false;
+		Trade.DisabledReason = EAuraInteractionResultCode::FeatureUnavailable;
+	}
+}
+
+bool AAuraCivilian::ExecuteAuraInteraction(const AActor* RequestingActor, FGameplayTag OptionTag) const
+{
+	if (!IsValid(RequestingActor) || !IsCombatAlive()) return false;
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	if (!OptionTag.MatchesTagExact(GameplayTags.Interaction_Talk)
+		&& !OptionTag.MatchesTagExact(GameplayTags.Interaction_Observe))
+	{
+		return false;
+	}
+	UE_LOG(LogAura, Display, TEXT("[Interaction][Server] Executed option=%s requester=%s target=%s member=%s."),
+		*OptionTag.ToString(), *GetNameSafe(RequestingActor), *GetNameSafe(this), *PopulationMemberState.PopulationMemberId.ToString());
+	return true;
+}
+
 FAuraCombatIdentity AAuraCivilian::BuildDefaultCombatIdentity() const
 {
 	// Civilian identity is role-owned. Returning an invalid pre-role identity

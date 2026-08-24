@@ -1,6 +1,7 @@
 # Role/Battle issue dispositions
 
-Date: 2026-08-21  
+Date: 2026-08-21
+Last updated: 2026-08-24
 Scope: repository audit at revision `4fb453a`
 
 This is the canonical disposition of the ten-item issue list reviewed against the
@@ -15,12 +16,12 @@ configuration. It separates active risks from planned work and closed claims.
 | 6 | Confirmed schedule risk | Medium | Treat Day 20 Phase A and Phase B as separate reviewable execution checkpoints. Preserve the full post-cleanup rerun requirement and allow schedule buffer. |
 | 10 | Confirmed cleanup debt | Medium | Keep the active BungeeMan path on `FireGun.xml`, then make an explicit remove-or-repurpose decision for the legacy `UAuraFireGun`/`GA_FireGun` path and record zero-reference evidence before release. |
 
-## Narrowed findings
+## Resolved follow-ups
 
 | # | Disposition | Severity | Action |
 | --- | --- | --- | --- |
-| 3 | Safety behavior is intentional; operational handling was underspecified | Medium | Keep all-or-nothing startup and fail-closed damage/population behavior. Add an unhealthy/reject-or-terminate startup outcome so a closed coordinator cannot look ready to clients. |
-| 9 | Runtime fallback exists; its contract was undocumented and weakly tested | Low | Define the neutral coefficient as `1.0f` for every missing table/curve and add a numeric regression, not only a no-crash assertion. |
+| 3 | Closed 2026-08-24 | Medium | Coordinated startup now cross-validates battle/population registrations, rolls back partial population, publishes `Unhealthy`, rejects subsequent login, and withholds GSM readiness. `Aura.RoleBattle.Day12.InitialFailurePublishesUnhealthy` covers the state gate. |
+| 9 | Closed 2026-08-24 | Low | `ExecCalc_Damage` exposes the exact `1.0f` neutral fallback for the three coefficient rows and `Aura.RoleBattle.Day4.NeutralDamageCoefficients` verifies missing-table and missing-row output numerically. |
 
 ## Closed or expected items
 

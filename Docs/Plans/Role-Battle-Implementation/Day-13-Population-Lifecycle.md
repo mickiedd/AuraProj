@@ -181,3 +181,9 @@ Run:
 ## Completion gate
 
 The Day 09 manager owns the complete Civilian-only first-slice lifecycle: exactly-once death accounting, corpse cleanup, phase-aware deterministic same-slot refill, bounded retries, snapshots, and shutdown cancellation. It never registers or respawns an Enemy, and the existing Enemy GameMode path still produces exactly one respawn. All build, native, listen, and dedicated gates pass.
+
+## Implementation evidence - 2026-08-25
+
+Implemented in the existing `UAuraPopulationManager`: explicit slot states, authoritative death/dead transitions, member-keyed corpse/refill timers, three-attempt bounded retry, phase cancellation/resume, same-member refill, immutable debug snapshots, and idempotent shutdown. The Enemy table-spawn callbacks remain in `AAuraGameModeBase`.
+
+Validation: AuraEditor build passed; 10/10 Day 13 tests passed; listen and dedicated baseline reports passed with late-join population replication. Detailed simultaneous-casualty and teardown stress remains part of the later adversarial hardening matrix.

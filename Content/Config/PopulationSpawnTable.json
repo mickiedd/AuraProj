@@ -21,10 +21,10 @@
       ],
       "spawnOnLoad": true,
       "respawnPolicy": {
-        "enabled": false,
-        "delaySeconds": 0.0,
-        "corpseSeconds": 0.0,
-        "allowedBattlePhases": []
+        "enabled": true,
+        "delaySeconds": 3.0,
+        "corpseSeconds": 2.0,
+        "allowedBattlePhases": ["Alert", "Conflict", "Cleanup"]
       }
     }
   ]

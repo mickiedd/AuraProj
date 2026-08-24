@@ -2,6 +2,8 @@
 
 This directory stores the visual completion record for project jobs.
 
+Latest: [2026-08-25 Role/Battle Days 13-15 review fixes](2026-08-25-role-battle-days-13-15-review-fixes.md) - [illustration](2026-08-25-role-battle-days-13-15-review-fixes.svg)
+
 For each implementation or fix job, add:
 
 - `YYYY-MM-DD-<short-slug>.svg` — the human-readable before/after illustration.
@@ -13,7 +15,9 @@ The date-only `daily-change-reference.svg` files are source maps for the grouped
 
 ## Indexed job records
 
+- [2026-08-24 - Align Role/Battle plan guardrails with runtime](2026-08-24-role-battle-plan-guardrails.md)
 - [2026-08-24 - Fix Role/Battle pending-change review issues](2026-08-24-role-battle-review-fixes.md)
+- [2026-08-25 - Fix Day 13-15 review findings](2026-08-25-role-battle-days-13-15-review-fixes.md)
 - [2026-08-21 – Implement Role/Battle Days 10-12](2026-08-21-days-10-12-implementation.md)
 
 ### Daily references and archive structure

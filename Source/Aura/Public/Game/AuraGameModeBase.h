@@ -16,12 +16,21 @@ class UCharacterClassInfo;
 class URoleInfo;
 class UAuraPopulationManager;
 class UAuraDeathPolicyDispatcher;
+class UAuraEconomyRegistrySubsystem;
 class AAuraBattleDirector;
 struct FAuraDeathEvent;
 class AAuraEnemy;
 class APlayerController;
 class APlayerState;
 struct FUniqueNetIdRepl;
+
+UENUM(BlueprintType)
+enum class EAuraWorldReadiness : uint8
+{
+	Initializing,
+	Ready,
+	Unhealthy,
+};
 
 USTRUCT(BlueprintType)
 struct FMonsterSpawnTransformData
@@ -131,6 +140,10 @@ public:
 	UPROPERTY(Transient)
 	TObjectPtr<UAuraPopulationManager> PopulationManager;
 
+	/** Process-lifetime immutable authority economy snapshot; published before population spawning. */
+	UPROPERTY(Transient)
+	TObjectPtr<UAuraEconomyRegistrySubsystem> EconomyRegistry;
+
 	/** Server-wide neutral death event boundary; policy handlers bind once here. */
 	UPROPERTY(Transient)
 	TObjectPtr<UAuraDeathPolicyDispatcher> DeathPolicyDispatcher;
@@ -214,10 +227,16 @@ public:
 
 	const UAuraPopulationManager* GetPopulationManager() const { return PopulationManager; }
 	UAuraPopulationManager* GetPopulationManagerMutable() const { return PopulationManager; }
+	const UAuraEconomyRegistrySubsystem* GetEconomyRegistry() const { return EconomyRegistry; }
 	const UAuraDeathPolicyDispatcher* GetDeathPolicyDispatcher() const { return DeathPolicyDispatcher; }
 	UAuraDeathPolicyDispatcher* GetDeathPolicyDispatcherMutable() const { return DeathPolicyDispatcher; }
 	const AAuraBattleDirector* GetBattleDirector() const { return BattleDirector; }
 	AAuraBattleDirector* GetBattleDirectorMutable() const { return BattleDirector; }
+	EAuraWorldReadiness GetWorldReadiness() const { return WorldReadiness; }
+	const FString& GetWorldReadinessReason() const { return WorldReadinessReason; }
+	bool IsWorldReadyForPlay() const { return WorldReadiness == EAuraWorldReadiness::Ready; }
+	static EAuraWorldReadiness EvaluateWorldReadiness(bool bRoleReady, bool bDispatcherReady, bool bDirectorReady,
+		bool bPopulationReady, bool bCrossValidationReady, bool bPopulationFinalized);
 
 protected:
 	virtual void BeginPlay() override;
@@ -275,6 +294,9 @@ private:
 	UFUNCTION()
 	void OnSpawnedItemDestroyed(AActor* DestroyedActor);
 	void HandleAuthoritativeDeath(const FAuraDeathEvent& Event);
+	void FinalizeRoleBattleStartup();
+	void SetWorldReadiness(EAuraWorldReadiness NewReadiness, const FString& Reason);
+	void ScheduleDedicatedServerReadyNotification();
 	void RunRoleBattleDays1012NetworkProbe();
 
 	void HandleDedicatedServerReadyNotify();
@@ -300,6 +322,12 @@ private:
 	bool bItemSpawnTableLoaded = false;
 	int32 DedicatedServerReadyNotifyAttempts = 0;
 	FTimerHandle DedicatedServerReadyNotifyTimerHandle;
+	FTimerHandle RoleBattleStartupTimerHandle;
+	EAuraWorldReadiness WorldReadiness = EAuraWorldReadiness::Initializing;
+	FString WorldReadinessReason = TEXT("Role/Battle startup is initializing.");
+	/** True only when the economy registry was loaded successfully for this map instance. */
+	bool bEconomyRegistryLoadedForCurrentWorld = false;
+	bool bSkipInitialPopulationForLegacyDay8Probe = false;
 
 	FTimerHandle RoleConfigPollTimerHandle;
 

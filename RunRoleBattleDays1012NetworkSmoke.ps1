@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)] [ValidateSet('10', '11', '12')] [string]$Day,
+    [Parameter(Mandatory = $true)] [ValidateSet('10', '11', '12', '13', '14', '15')] [string]$Day,
     [Parameter(Mandatory = $true)] [ValidateSet('Listen', 'Dedicated')] [string]$Mode,
     [string]$EngineRoot = $(if ($env:UE_ENGINE_ROOT) { $env:UE_ENGINE_ROOT } else { 'C:\Git\UnrealEngine-5.5' }),
     [ValidateRange(1, 65535)] [int]$Port = 17910,
@@ -42,17 +42,30 @@ function Wait-Pattern([string]$Path, [string]$Pattern, $Item) {
     } while ([DateTime]::UtcNow -lt $Deadline)
     return $false
 }
+function Wait-PatternCount([string]$Path, [string]$Pattern, [int]$MinimumCount, $Item) {
+    $Deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    do {
+        if (Test-Path -LiteralPath $Path) {
+            $Count = @(Select-String -LiteralPath $Path -Pattern $Pattern).Count
+            if ($Count -ge $MinimumCount) { return $true }
+        }
+        if ($Item -and (State $Item) -ne 'Running') { return $false }
+        Start-Sleep -Milliseconds 250
+    } while ([DateTime]::UtcNow -lt $Deadline)
+    return $false
+}
 
 try {
-    & python (Join-Path $ProjectRoot 'Scripts\test_role_battle_days_10_12.py')
-    if ($LASTEXITCODE -ne 0) { throw 'Focused Day 10-12 contracts failed.' }
+    $StaticSuite = if ([int]$Day -ge 13) { 'Scripts\test_role_battle_days_13_15.py' } else { 'Scripts\test_role_battle_days_10_12.py' }
+    & python (Join-Path $ProjectRoot $StaticSuite)
+    if ($LASTEXITCODE -ne 0) { throw "Focused Day $Day contracts failed." }
     $Assertions.StaticContracts = $true
     $Map = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?Role=Aura?listen' } else { '/Game/Maps/StartupMap' }
     $ServerArgs = @((Join-Path $ProjectRoot 'Aura.uproject'), $Map, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
     $ServerArgs += if ($Mode -eq 'Listen') { '-game' } else { '-server' }
     $Server = Start-Owned 'Server' $ServerArgs
-    if (-not (Wait-Pattern $ServerLog '\[BattleDirector\] Ready' $Server)) { throw 'Battle director readiness evidence is missing.' }
-    $Assertions.ServerBattleDirectorReady = $true
+    if (-not (Wait-Pattern $ServerLog '\[WorldReadiness\] State=Ready' $Server)) { throw 'Coordinated world-readiness evidence is missing.' }
+    $Assertions.ServerWorldCoordinatorReady = $true
     if (-not (Wait-Pattern $ServerLog "\[Day${Day}NetworkProbe\]\[Server\] Passed=1" $Server)) { throw "Day $Day authoritative probe failed or did not run." }
     $Assertions.ServerDayProbePassed = $true
     $Client1 = Start-Owned 'Client1' @((Join-Path $ProjectRoot 'Aura.uproject'), "127.0.0.1:${Port}?PlayerName=Day${Day}Client1?Role=Aura", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-abslog=$Client1Log")
@@ -61,6 +74,10 @@ try {
     if (-not (Wait-Pattern $Client2Log '\[BattleDirector\]\[Client\] Replicated director observed' $Client2)) { throw 'Client 2 did not observe the replicated battle director.' }
     $Assertions.Client1ReplicatedDirector = $true
     $Assertions.Client2LateJoinReplicatedDirector = $true
+    if (-not (Wait-PatternCount $Client1Log '\[Civilian\]\[Population\] Replicated member=' 3 $Client1)) { throw 'Client 1 did not receive all three population member states.' }
+    if (-not (Wait-PatternCount $Client2Log '\[Civilian\]\[Population\] Replicated member=' 3 $Client2)) { throw 'Client 2 did not receive all three late-join population member states.' }
+    $Assertions.Client1PopulationReplicated = $true
+    $Assertions.Client2LateJoinPopulationReplicated = $true
     $CrashPattern = 'Fatal error:|Assertion failed:|Unhandled Exception|Ensure condition failed'
     foreach ($Log in @($ServerLog, $Client1Log, $Client2Log)) { if ((Test-Path -LiteralPath $Log) -and (Select-String -LiteralPath $Log -Pattern $CrashPattern -Quiet)) { throw "Crash signature found in $Log." } }
     $Assertions.NoCrash = $true

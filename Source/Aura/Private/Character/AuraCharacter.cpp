@@ -436,6 +436,17 @@ void AAuraCharacter::Die(const FVector& DeathImpulse)
 	TopDownCameraComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 }
 
+FGameplayTag AAuraCharacter::GetAuraTargetKind() const
+{
+	return FAuraGameplayTags::Get().Target_Kind_Player;
+}
+
+FText AAuraCharacter::GetAuraTargetDisplayName() const
+{
+	const APlayerState* State = GetPlayerState();
+	return FText::FromString(State && !State->GetPlayerName().IsEmpty() ? State->GetPlayerName() : TEXT("Player"));
+}
+
 void AAuraCharacter::UpdateFatalFallState(float DeltaSeconds)
 {
 	if (!HasAuthority() || !IsCombatAlive() || !bEnableFallDeath)

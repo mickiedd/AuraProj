@@ -29,6 +29,8 @@ public:
 	int32 GetConfigVersion() const { return ConfigVersion; }
 	const FString& GetConfigHash() const { return ConfigHash; }
 	const UAuraBattleZoneConfig* GetZoneConfig() const { return ZoneConfig; }
+	bool IsAuthorityConfigurationReady() const { return bAuthorityConfigurationReady; }
+	const FString& GetInitializationError() const { return InitializationError; }
 
 	bool TransitionTo(EAuraBattlePhase NewPhase);
 	bool ResolveCombatRuleContext(const AActor* SourceActor, const AActor* TargetActor, FAuraCombatRuleContext& OutContext) const;
@@ -59,5 +61,7 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UAuraBattleZoneConfig> ZoneConfig;
 
+	bool bAuthorityConfigurationReady = false;
+	FString InitializationError;
 	int32 BattleEventSequence = 0;
 };

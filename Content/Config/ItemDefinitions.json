@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "itemId": "health_potion",
+      "displayName": "Health Potion",
+      "category": "consumable",
+      "stackLimit": "10",
+      "useAction": ""
+    },
+    {
+      "itemId": "mana_potion",
+      "displayName": "Mana Potion",
+      "category": "consumable",
+      "stackLimit": "10",
+      "useAction": ""
+    }
+  ]
+}

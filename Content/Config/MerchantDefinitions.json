@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "offers": [
+    {
+      "offerId": "market_health_potion",
+      "itemId": "health_potion",
+      "grantQuantity": "1",
+      "buyPrice": "25",
+      "stockPolicy": "finite",
+      "initialStock": "20",
+      "requiredInteractionTag": "Interaction.Trade"
+    },
+    {
+      "offerId": "market_mana_potion",
+      "itemId": "mana_potion",
+      "grantQuantity": "1",
+      "buyPrice": "30",
+      "stockPolicy": "unlimited",
+      "requiredInteractionTag": "Interaction.Trade"
+    }
+  ],
+  "merchants": [
+    {
+      "merchantDefinitionId": "marketmerchant",
+      "offerIds": ["market_health_potion", "market_mana_potion"],
+      "allowedWorkProfileIds": ["observer"],
+      "openSchedule": "placeholder-always-open-no-runtime-effect"
+    }
+  ]
+}

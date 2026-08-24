@@ -189,9 +189,15 @@ Add:
 
 The repeated-fatal test must submit simultaneous/sequential fatal effects and direct compatibility `Die` calls, then assert one transition, one sequence increment, one policy dispatch, one reward decision, and one neutral event.
 
-## Listen-server and dedicated-server smoke
+## Current executable baseline smoke
 
-`RunRoleBattleDay11NetworkSmoke.ps1` supports `-Mode Listen` and `-Mode Dedicated`. Each mode:
+`RunRoleBattleDay11NetworkSmoke.ps1` supports `-Mode Listen` and `-Mode Dedicated`. The 2026-08-24 baseline passes both modes and records eight assertions: static contracts, coordinated world readiness, a real Civilian Alive→Dying winner, repeated-transition rejection, first dispatch plus duplicate rejection, population death accounting and AI stop, director replication on both clients, all three population states on both clients including late join, and no crash signature.
+
+This baseline is executable lifecycle evidence, not the full Day 11 completion gate.
+
+## Remaining completion acceptance matrix
+
+Before Day 11 is marked complete, extend the runner or a successor to:
 
 1. Kills one Player and Enemy from normal authoritative attributed damage; for the pre-Day-12 Civilian case, installs Day 03's `WITH_DEV_AUTOMATION_TESTS` authority-only trusted policy and proves a remote client cannot install or forge it.
 2. Sends repeated fatal hits in the same and following frames.
@@ -201,7 +207,7 @@ The repeated-fatal test must submit simultaneous/sequential fatal effects and di
 6. Connects a late client after all three deaths and verifies durable state/presentation.
 7. Verifies every neutral event carries source, ability, damage type, policy, victim, and sequence; battle fields remain `NAME_None` until Day 12.
 
-The runner enforces bounded startup, death/respawn, assertion, late-join, and teardown timeouts; returns nonzero on any assertion, child-process, crash, timeout, duplicate event, or missing-artifact failure; and stops only processes it created. It writes `Saved/Logs/Day11-{Listen|Dedicated}-{Server|Client1|Client2}.log` and `Saved/Reports/Day11-{Listen|Dedicated}.json` with revision, commands, exit codes, and assertion results.
+The current baseline runner enforces bounded startup, lifecycle assertion, late-join, and teardown timeouts; returns nonzero on any implemented assertion, child-process, crash, timeout, duplicate event, or missing artifact; and stops only processes it created. The completion extension must retain those guarantees while adding Player/Enemy reward and attributed-damage coverage. Reports are written to `Saved/Reports/Day11-{Listen|Dedicated}.json` beside isolated process logs.
 
 Run:
 

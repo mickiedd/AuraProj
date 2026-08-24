@@ -20,7 +20,6 @@ Resolve FireGun damage against the authoritative target location, battle phase, 
 - `Source/Aura/Public/Battle/AuraBattleDirector.h`
 - `Source/Aura/Private/Battle/AuraBattleDirector.cpp`
 - `Source/Aura/Public/Battle/AuraBattleZoneTypes.h`
-- `Source/Aura/Private/Battle/AuraBattleZoneTypes.cpp`
 - `Source/Aura/Public/Battle/AuraBattleZoneConfig.h`
 - `Source/Aura/Private/Battle/AuraBattleZoneConfig.cpp`
 - `Content/Config/BattleZones.json`
@@ -185,9 +184,15 @@ Add:
 - `Aura.RoleBattle.Day12.EventIdLifecycle`
 - `Aura.RoleBattle.Day12.InitialFailurePublishesUnhealthy`
 
-## Listen-server and dedicated-server smoke
+## Current executable baseline smoke
 
-`RunRoleBattleDay12NetworkSmoke.ps1` supports `-Mode Listen` and `-Mode Dedicated`. Each mode:
+`RunRoleBattleDay12NetworkSmoke.ps1` supports `-Mode Listen` and `-Mode Dedicated`. The 2026-08-24 baseline passes both modes and records eight assertions: static contracts, coordinated world readiness after joint registration validation, exactly one authority director, forged context overwrite, Peace/Conflict policy behavior and event lifecycle, director replication on both clients, all three population states on both clients including late join, and no crash signature.
+
+This baseline is executable director/readiness evidence, not the full Day 12 completion gate.
+
+## Remaining completion acceptance matrix
+
+Before Day 12 is marked complete, extend the runner or a successor to:
 
 1. Verifies exactly one server-spawned always-relevant director and no client-owned duplicate.
 2. Compares phase, event ID, zone summaries, version/hash, and OnRep notifications on two clients.
@@ -198,7 +203,7 @@ Add:
 7. Connects a late client during Conflict and verifies complete director state and UI/debug zone result.
 8. Confirms every damage producer still reaches the same final rule boundary.
 
-The runner enforces bounded startup/readiness, phase, assertion, late-join, and teardown timeouts; returns nonzero on any assertion, child-process, crash, timeout, duplicate director, or missing-artifact failure; and stops only processes it created. It writes `Saved/Logs/Day12-{Listen|Dedicated}-{Server|Client1|Client2}.log` and `Saved/Reports/Day12-{Listen|Dedicated}.json` with revision, commands, exit codes, resolved zone IDs, and assertion results.
+The current baseline runner enforces bounded startup/readiness, phase, assertion, late-join, and teardown timeouts; returns nonzero on any implemented assertion, child-process, crash, timeout, duplicate director, or missing artifact; and stops only processes it created. The completion extension must retain those guarantees while adding the delayed-projectile, allowed-casualty, and complete damage-producer matrix. Reports are written to `Saved/Reports/Day12-{Listen|Dedicated}.json` beside isolated process logs.
 
 Run:
 

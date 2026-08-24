@@ -27,8 +27,11 @@
 #include "Actor/LevelJumpPortal.h"
 #include "Character/AuraEnemy.h"
 #include "Character/AuraCivilian.h"
+#include "AI/AuraCivilianAIController.h"
 #include "World/AuraPopulationManager.h"
 #include "Combat/AuraDeathPolicyDispatcher.h"
+#include "Combat/AuraCombatStateComponent.h"
+#include "Economy/AuraEconomyRegistrySubsystem.h"
 #include "Battle/AuraBattleDirector.h"
 #include "World/AuraCivilianSpawnVolume.h"
 #include "World/AuraCivilianWorkMarker.h"
@@ -240,6 +243,9 @@ FString AAuraGameModeBase::GetMapNameFromMapAssetName(const FString& MapAssetNam
 void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
+	WorldReadiness = EAuraWorldReadiness::Initializing;
+	WorldReadinessReason = TEXT("Role/Battle startup is initializing.");
+	bEconomyRegistryLoadedForCurrentWorld = false;
 	const FAuraRoleLoadResult LoadResult = UAuraAbilitySystemLibrary::LoadRoleInfoCandidate(this);
 	if (LoadResult.bCanPublish && LoadResult.Candidate)
 	{
@@ -275,6 +281,16 @@ void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options,
 		if (!PopulationManager->InitializeDefinitions(PopulationError))
 		{
 			UE_LOG(LogAura, Error, TEXT("[Population][InitGame] Population definitions unavailable; no civilians will spawn: %s"), *PopulationError);
+		}
+	}
+	EconomyRegistry = GetGameInstance() ? GetGameInstance()->GetSubsystem<UAuraEconomyRegistrySubsystem>() : nullptr;
+	if (EconomyRegistry && PopulationManager && PopulationManager->IsInitialized())
+	{
+		FString EconomyError;
+		bEconomyRegistryLoadedForCurrentWorld = EconomyRegistry->LoadAndPublishAuthorityRegistry(this, PopulationManager->GetPopulationRows(), EconomyError);
+		if (!bEconomyRegistryLoadedForCurrentWorld)
+		{
+			UE_LOG(LogAura, Error, TEXT("[Economy][InitGame] Registry candidate rejected atomically: %s"), *EconomyError);
 		}
 	}
 	DeathPolicyDispatcher = NewObject<UAuraDeathPolicyDispatcher>(this, TEXT("DeathPolicyDispatcher"));
@@ -316,6 +332,19 @@ void AAuraGameModeBase::PreLogin(const FString& Options, const FString& Address,
 {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 	if (!ErrorMessage.IsEmpty()) return;
+	if (GetNetMode() != NM_Standalone && WorldReadiness != EAuraWorldReadiness::Ready)
+	{
+		if (WorldReadiness == EAuraWorldReadiness::Unhealthy)
+		{
+			ErrorMessage = FString::Printf(TEXT("World startup is unhealthy: %s"), *WorldReadinessReason);
+		}
+		else
+		{
+			ErrorMessage = FString::Printf(TEXT("World startup is still initializing: %s"), *WorldReadinessReason);
+		}
+		UE_LOG(LogAura, Warning, TEXT("[WorldReadiness][PreLogin] Rejected address=%s reason=%s"), *Address, *ErrorMessage);
+		return;
+	}
 
 	const FName RequestedRole(*UGameplayStatics::ParseOption(Options, TEXT("Role")));
 	if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, RequestedRole, ErrorMessage))
@@ -328,6 +357,11 @@ void AAuraGameModeBase::PreLogin(const FString& Options, const FString& Address,
 
 FString AAuraGameModeBase::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
 {
+	const bool bListenHostPlayer = GetNetMode() == NM_ListenServer && IsValid(NewPlayerController) && NewPlayerController->IsLocalController();
+	if (GetNetMode() != NM_Standalone && !bListenHostPlayer && WorldReadiness != EAuraWorldReadiness::Ready)
+	{
+		return FString::Printf(TEXT("World startup is not ready: %s"), *WorldReadinessReason);
+	}
 	const FString Result = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 
 	if (!IsValid(NewPlayerController))
@@ -373,6 +407,12 @@ void AAuraGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController
 		Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 		return;
 	}
+	if (!(GetNetMode() == NM_ListenServer && IsValid(NewPlayer) && NewPlayer->IsLocalController())
+		&& WorldReadiness != EAuraWorldReadiness::Ready)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[WorldReadiness] Blocked HandleStartingNewPlayer while startup is not ready: %s"), *WorldReadinessReason);
+		return;
+	}
 	const AAuraPlayerState* AuraPlayerState = IsValid(NewPlayer) ? NewPlayer->GetPlayerState<AAuraPlayerState>() : nullptr;
 	if (!IsValid(AuraPlayerState) || !AuraPlayerState->HasPendingAcceptedRoleId())
 	{
@@ -387,6 +427,12 @@ void AAuraGameModeBase::RestartPlayer(AController* NewPlayer)
 	if (GetNetMode() == NM_Standalone)
 	{
 		Super::RestartPlayer(NewPlayer);
+		return;
+	}
+	if (!(GetNetMode() == NM_ListenServer && IsValid(NewPlayer) && NewPlayer->IsLocalController())
+		&& WorldReadiness != EAuraWorldReadiness::Ready)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[WorldReadiness] Blocked RestartPlayer while startup is not ready: %s"), *WorldReadinessReason);
 		return;
 	}
 	const AAuraPlayerState* AuraPlayerState = IsValid(NewPlayer) ? NewPlayer->GetPlayerState<AAuraPlayerState>() : nullptr;
@@ -700,8 +746,6 @@ void AAuraGameModeBase::BeginPlay()
 		BattleDirector = GetWorld()->SpawnActorDeferred<AAuraBattleDirector>(AAuraBattleDirector::StaticClass(), DirectorTransform, this, nullptr, SpawnParameters.SpawnCollisionHandlingOverride);
 		if (BattleDirector) BattleDirector->FinishSpawning(DirectorTransform);
 	}
-	RunRoleBattleDays1012NetworkProbe();
-
 	// Spawn volumes register during Actor BeginPlay. Finalization is deliberately
 	// deferred one tick so all placed volumes are visible to the manager.
 	if (PopulationManager)
@@ -712,6 +756,7 @@ void AAuraGameModeBase::BeginPlay()
 		bDay8NetworkProbe = FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay8NetworkProbe"));
 		bDay9NetworkProbe = FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay9NetworkProbe"));
 #endif
+		bSkipInitialPopulationForLegacyDay8Probe = bDay8NetworkProbe;
 
 		if (bDay8NetworkProbe && GetWorld())
 		{
@@ -774,11 +819,6 @@ void AAuraGameModeBase::BeginPlay()
 				UE_LOG(LogAura, Display, TEXT("[CivilianAI][MarkerFixture] Registered work=MarketWork_01 observe=MarketObserve_01 shelter=MarketShelter_01 unreachable=MarketShelter_Unreachable."));
 			}
 		}
-		if (!bDay8NetworkProbe)
-		{
-			PopulationManager->ScheduleInitialPopulation();
-		}
-
 #if !UE_BUILD_SHIPPING
 		if (bDay9NetworkProbe && GetWorld())
 		{
@@ -835,19 +875,94 @@ void AAuraGameModeBase::BeginPlay()
 		UE_LOG(LogAura, Display, TEXT("Item auto-spawn completed. Spawned %d items."), SpawnedItemCount);
 	}
 
-	if (bNotifyGameServerManagerWhenReady && GetNetMode() == NM_DedicatedServer)
+	if (HasAuthority() && GetWorld())
 	{
-		DedicatedServerReadyNotifyAttempts = 0;
-		GetWorldTimerManager().SetTimer(
-			DedicatedServerReadyNotifyTimerHandle,
-			this,
-			&AAuraGameModeBase::HandleDedicatedServerReadyNotify,
-			FMath::Max(0.1f, GameServerReadyNotifyInitialDelaySeconds),
-			false);
-
-		UE_LOG(LogAura, Display, TEXT("[GSM-Ready] Dedicated server ready notification scheduled (initialDelay=%.2fs)."),
-			GameServerReadyNotifyInitialDelaySeconds);
+		RoleBattleStartupTimerHandle = GetWorldTimerManager().SetTimerForNextTick(
+			FTimerDelegate::CreateUObject(this, &AAuraGameModeBase::FinalizeRoleBattleStartup));
 	}
+}
+
+EAuraWorldReadiness AAuraGameModeBase::EvaluateWorldReadiness(
+	const bool bRoleReady,
+	const bool bDispatcherReady,
+	const bool bDirectorReady,
+	const bool bPopulationReady,
+	const bool bCrossValidationReady,
+	const bool bPopulationFinalized)
+{
+	return bRoleReady && bDispatcherReady && bDirectorReady && bPopulationReady
+		&& bCrossValidationReady && bPopulationFinalized
+		? EAuraWorldReadiness::Ready
+		: EAuraWorldReadiness::Unhealthy;
+}
+
+void AAuraGameModeBase::SetWorldReadiness(const EAuraWorldReadiness NewReadiness, const FString& Reason)
+{
+	WorldReadiness = NewReadiness;
+	WorldReadinessReason = Reason;
+	const TCHAR* State = NewReadiness == EAuraWorldReadiness::Ready ? TEXT("Ready")
+		: NewReadiness == EAuraWorldReadiness::Unhealthy ? TEXT("Unhealthy") : TEXT("Initializing");
+	if (NewReadiness == EAuraWorldReadiness::Unhealthy)
+	{
+		UE_LOG(LogAura, Error, TEXT("[WorldReadiness] State=%s Reason=%s"), State, *WorldReadinessReason);
+	}
+	else
+	{
+		UE_LOG(LogAura, Display, TEXT("[WorldReadiness] State=%s Reason=%s"), State, *WorldReadinessReason);
+	}
+}
+
+void AAuraGameModeBase::ScheduleDedicatedServerReadyNotification()
+{
+	if (!bNotifyGameServerManagerWhenReady || GetNetMode() != NM_DedicatedServer || !IsWorldReadyForPlay()) return;
+	DedicatedServerReadyNotifyAttempts = 0;
+	GetWorldTimerManager().SetTimer(
+		DedicatedServerReadyNotifyTimerHandle,
+		this,
+		&AAuraGameModeBase::HandleDedicatedServerReadyNotify,
+		FMath::Max(0.1f, GameServerReadyNotifyInitialDelaySeconds),
+		false);
+	UE_LOG(LogAura, Display, TEXT("[GSM-Ready] Dedicated server ready notification scheduled after coordinated startup (initialDelay=%.2fs)."),
+		GameServerReadyNotifyInitialDelaySeconds);
+}
+
+void AAuraGameModeBase::FinalizeRoleBattleStartup()
+{
+	if (!HasAuthority() || WorldReadiness != EAuraWorldReadiness::Initializing) return;
+
+	const bool bRoleReady = IsValid(RoleInfo);
+	const bool bDispatcherReady = IsValid(DeathPolicyDispatcher);
+	const bool bDirectorReady = IsValid(BattleDirector) && BattleDirector->IsAuthorityConfigurationReady();
+	const bool bPopulationReady = IsValid(PopulationManager) && PopulationManager->IsInitialized();
+	const bool bEconomyReady = bEconomyRegistryLoadedForCurrentWorld && IsValid(EconomyRegistry) && EconomyRegistry->IsReady();
+	FString CrossValidationError;
+	const bool bCrossValidationReady = bSkipInitialPopulationForLegacyDay8Probe
+		|| (bDirectorReady && bPopulationReady && bEconomyReady
+			&& PopulationManager->ValidateBattleZoneRegistrations(BattleDirector->GetZoneConfig(), CrossValidationError));
+	const bool bPopulationFinalized = bSkipInitialPopulationForLegacyDay8Probe
+		|| (bCrossValidationReady && PopulationManager->FinalizeInitialPopulation());
+
+	const EAuraWorldReadiness Result = EvaluateWorldReadiness(
+		bRoleReady, bDispatcherReady, bDirectorReady, bPopulationReady, bCrossValidationReady, bPopulationFinalized);
+	if (Result == EAuraWorldReadiness::Unhealthy)
+	{
+		TArray<FString> Reasons;
+		if (!bRoleReady) Reasons.Add(TEXT("role registry unavailable"));
+		if (!bDispatcherReady) Reasons.Add(TEXT("death dispatcher unavailable"));
+		if (!bDirectorReady) Reasons.Add(FString::Printf(TEXT("battle director unavailable: %s"),
+			BattleDirector ? *BattleDirector->GetInitializationError() : TEXT("actor missing")));
+		if (!bPopulationReady) Reasons.Add(TEXT("population definitions unavailable"));
+		if (!bEconomyReady) Reasons.Add(TEXT("economy registry unavailable"));
+		if (!bCrossValidationReady) Reasons.Add(CrossValidationError.IsEmpty() ? TEXT("joint zone/population registration validation failed") : CrossValidationError);
+		if (!bPopulationFinalized) Reasons.Add(TEXT("initial population finalization failed and was rolled back"));
+		SetWorldReadiness(Result, FString::Join(Reasons, TEXT("; ")));
+		return;
+	}
+
+	SetWorldReadiness(Result, FString::Printf(TEXT("generation=%d economyGeneration=%d zoneConfig=%s livePopulation=%d"),
+		PopulationManager->GetInitializationGeneration(), EconomyRegistry->GetGeneration(), *BattleDirector->GetConfigHash(), PopulationManager->GetLiveMemberCount()));
+	RunRoleBattleDays1012NetworkProbe();
+	ScheduleDedicatedServerReadyNotification();
 }
 
 void AAuraGameModeBase::RunRoleBattleDays1012NetworkProbe()
@@ -861,20 +976,57 @@ void AAuraGameModeBase::RunRoleBattleDays1012NetworkProbe()
 		const UClass* ServiceClass = StaticLoadClass(UBTService::StaticClass(), nullptr,
 			TEXT("/Game/Blueprints/AI/Services/BTS_FindNearestHostile.BTS_FindNearestHostile_C"));
 		const bool bAssetMigrated = ServiceClass && ServiceClass->IsChildOf(UBTService_FindNearestHostile::StaticClass());
-		UE_LOG(LogAura, Display, TEXT("[Day10NetworkProbe][Server] Passed=%d ProfileReady=%d HostileAssetMigrated=%d"),
-			bProfileReady && bAssetMigrated, bProfileReady, bAssetMigrated);
+		TArray<AAuraCivilian*> Civilians;
+		if (PopulationManager) PopulationManager->GetLiveMembers(Civilians);
+		TSet<FName> MemberIds;
+		int32 AuthorityBehaviorCount = 0;
+		for (AAuraCivilian* Civilian : Civilians)
+		{
+			if (!Civilian) continue;
+			MemberIds.Add(Civilian->GetPopulationMemberState().PopulationMemberId);
+			if (const AAuraCivilianAIController* Controller = Cast<AAuraCivilianAIController>(Civilian->GetController());
+				Controller && Controller->HasAuthority() && Controller->IsCivilianBehaviorStarted())
+			{
+				++AuthorityBehaviorCount;
+			}
+		}
+		const bool bPopulationReady = Civilians.Num() >= 3 && MemberIds.Num() == Civilians.Num()
+			&& AuthorityBehaviorCount == Civilians.Num();
+		const bool bMarkersReady = PopulationManager && PopulationManager->GetRegisteredSpawnVolumeCount() >= 1
+			&& PopulationManager->GetRegisteredActivityMarkerCount() >= 4;
+		const bool bPassed = IsWorldReadyForPlay() && bProfileReady && bAssetMigrated && bPopulationReady && bMarkersReady;
+		UE_LOG(LogAura, Display, TEXT("[Day10NetworkProbe][Server] Passed=%d WorldReady=%d ProfileReady=%d HostileAssetMigrated=%d Civilians=%d AuthorityBehaviors=%d MarkersReady=%d"),
+			bPassed, IsWorldReadyForPlay(), bProfileReady, bAssetMigrated, Civilians.Num(), AuthorityBehaviorCount, bMarkersReady);
 	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay11NetworkProbe")))
 	{
+		TArray<AAuraCivilian*> Civilians;
+		if (PopulationManager) PopulationManager->GetLiveMembers(Civilians);
+		AAuraCivilian* Victim = Civilians.IsEmpty() ? nullptr : Civilians[0];
+		UAuraCombatStateComponent* State = Victim ? Victim->GetCombatStateComponentMutable() : nullptr;
+		const int32 BeforePopulationDeaths = PopulationManager ? PopulationManager->GetRecordedPopulationDeathCount() : 0;
+		FAuraFatalDamageContext FatalContext;
+		FatalContext.SourceActor = BattleDirector;
+		FatalContext.VictimActor = Victim;
+		FatalContext.DamageType = GameplayTags.Damage_Physical;
+		FatalContext.BattleZoneId = TEXT("Market");
+		FatalContext.BattleEventId = BattleDirector->GetActiveBattleEventId();
 		FAuraDeathEvent ProbeEvent;
-		ProbeEvent.SourceActor = BattleDirector;
-		ProbeEvent.VictimActor = BattleDirector;
-		ProbeEvent.DeathPolicyTag = GameplayTags.Death_EnemyLoot;
-		ProbeEvent.DeathSequence = 1;
+		const bool bFirstTransition = State && State->TryEnterDying(FatalContext, ProbeEvent);
+		FAuraDeathEvent RepeatedEvent;
+		const bool bRepeatedTransitionRejected = State && !State->TryEnterDying(FatalContext, RepeatedEvent);
 		const bool bFirstAccepted = DeathPolicyDispatcher && DeathPolicyDispatcher->DispatchDeath(ProbeEvent);
 		const bool bDuplicateRejected = DeathPolicyDispatcher && !DeathPolicyDispatcher->DispatchDeath(ProbeEvent);
-		UE_LOG(LogAura, Display, TEXT("[Day11NetworkProbe][Server] Passed=%d FirstAccepted=%d DuplicateRejected=%d"),
-			bFirstAccepted && bDuplicateRejected, bFirstAccepted, bDuplicateRejected);
+		const AAuraCivilianAIController* Controller = Victim ? Cast<AAuraCivilianAIController>(Victim->GetController()) : nullptr;
+		const bool bLifecycleObserved = PopulationManager
+			&& PopulationManager->GetRecordedPopulationDeathCount() == BeforePopulationDeaths + 1
+			&& State && State->GetDeathSequence() == 1 && State->GetLifeState() == EAuraCombatLifeState::Dying
+			&& Controller && !Controller->IsCivilianBehaviorStarted();
+		const bool bPassed = IsWorldReadyForPlay() && bFirstTransition && bRepeatedTransitionRejected
+			&& bFirstAccepted && bDuplicateRejected && bLifecycleObserved;
+		UE_LOG(LogAura, Display, TEXT("[Day11NetworkProbe][Server] Passed=%d WorldReady=%d FirstTransition=%d RepeatedRejected=%d FirstAccepted=%d DuplicateRejected=%d LifecycleObserved=%d"),
+			bPassed, IsWorldReadyForPlay(), bFirstTransition, bRepeatedTransitionRejected,
+			bFirstAccepted, bDuplicateRejected, bLifecycleObserved);
 	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay12NetworkProbe")))
 	{
@@ -883,6 +1035,16 @@ void AAuraGameModeBase::RunRoleBattleDays1012NetworkProbe()
 			? Config->BuildPolicySnapshotForMap(BattleDirector, FVector(2000.f, 0.f, 0.f), TEXT("RoleBattleCivilianTest"), EAuraBattlePhase::Peace, NAME_None)
 			: FAuraCombatPolicySnapshot();
 		const bool bPeaceClosed = PeacePolicy.IsValid() && !PeacePolicy.AllowsPvP();
+		int32 DirectorCount = 0;
+		for (TActorIterator<AAuraBattleDirector> It(GetWorld()); It; ++It) ++DirectorCount;
+		TArray<AAuraCivilian*> Civilians;
+		if (PopulationManager) PopulationManager->GetLiveMembers(Civilians);
+		FAuraCombatRuleContext ForgedContext;
+		ForgedContext.BattleZoneId = TEXT("ForgedZone");
+		ForgedContext.BattleEventId = TEXT("ForgedEvent");
+		const bool bCallerContextOverwritten = !Civilians.IsEmpty()
+			&& BattleDirector->ResolveCombatRuleContext(BattleDirector, Civilians[0], ForgedContext)
+			&& ForgedContext.BattleZoneId != TEXT("ForgedZone") && ForgedContext.BattleEventId != TEXT("ForgedEvent");
 		const bool bAlert = BattleDirector->TransitionTo(EAuraBattlePhase::Alert);
 		const FName EventId = BattleDirector->GetActiveBattleEventId();
 		const bool bConflict = BattleDirector->TransitionTo(EAuraBattlePhase::Conflict);
@@ -893,18 +1055,72 @@ void AAuraGameModeBase::RunRoleBattleDays1012NetworkProbe()
 		const bool bCleanup = BattleDirector->TransitionTo(EAuraBattlePhase::Cleanup);
 		const bool bPeace = BattleDirector->TransitionTo(EAuraBattlePhase::Peace);
 		const bool bEventLifecycle = !EventId.IsNone() && BattleDirector->GetActiveBattleEventId().IsNone();
-		const bool bPassed = bPeaceClosed && bAlert && bConflict && bConflictOpen && bCleanup && bPeace && bEventLifecycle;
-		UE_LOG(LogAura, Display, TEXT("[Day12NetworkProbe][Server] Passed=%d PeaceClosed=%d ConflictOpen=%d EventLifecycle=%d"),
-			bPassed, bPeaceClosed, bConflictOpen, bEventLifecycle);
+		const bool bPassed = IsWorldReadyForPlay() && DirectorCount == 1 && bCallerContextOverwritten
+			&& bPeaceClosed && bAlert && bConflict && bConflictOpen && bCleanup && bPeace && bEventLifecycle;
+		UE_LOG(LogAura, Display, TEXT("[Day12NetworkProbe][Server] Passed=%d WorldReady=%d DirectorCount=%d CallerContextOverwritten=%d PeaceClosed=%d ConflictOpen=%d EventLifecycle=%d"),
+			bPassed, IsWorldReadyForPlay(), DirectorCount, bCallerContextOverwritten, bPeaceClosed, bConflictOpen, bEventLifecycle);
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay13NetworkProbe")))
+	{
+		TArray<AAuraCivilian*> Civilians;
+		PopulationManager->GetLiveMembers(Civilians);
+		AAuraCivilian* Victim = Civilians.IsEmpty() ? nullptr : Civilians[0];
+		UAuraCombatStateComponent* State = Victim ? Victim->GetCombatStateComponentMutable() : nullptr;
+		if (BattleDirector->GetCurrentPhase() == EAuraBattlePhase::Peace) BattleDirector->TransitionTo(EAuraBattlePhase::Alert);
+		FAuraFatalDamageContext Context;
+		Context.SourceActor = BattleDirector; Context.VictimActor = Victim;
+		Context.DamageType = GameplayTags.Damage_Physical; Context.BattleZoneId = TEXT("Market");
+		Context.BattleEventId = BattleDirector->GetActiveBattleEventId();
+		FAuraDeathEvent Event;
+		const bool bDying = State && State->TryEnterDying(Context, Event);
+		const bool bDispatched = DeathPolicyDispatcher && DeathPolicyDispatcher->DispatchDeath(Event);
+		const bool bDead = State && State->TryEnterDead();
+		FTimerDelegate Verify = FTimerDelegate::CreateWeakLambda(this, [this, bDying, bDispatched, bDead]()
+		{
+			const FAuraPopulationDebugSnapshot Snapshot = PopulationManager->BuildDebugSnapshot();
+			const bool bPassed = bDying && bDispatched && bDead && Snapshot.ActiveCount == 3
+				&& PopulationManager->GetTrackedCorpseTimerCount() == 0 && PopulationManager->GetTrackedRefillTimerCount() == 0;
+			UE_LOG(LogAura, Display, TEXT("[Day13NetworkProbe][Server] Passed=%d Active=%d Corpse=%d Pending=%d StableRefill=%d"),
+				bPassed, Snapshot.ActiveCount, Snapshot.CorpseCount, Snapshot.PendingCount, Snapshot.ActiveCount == 3);
+		});
+		FTimerHandle VerifyHandle;
+		GetWorldTimerManager().SetTimer(VerifyHandle, Verify, 6.0f, false);
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay14NetworkProbe")))
+	{
+		const bool bTags = GameplayTags.Target_Kind_Civilian.IsValid() && GameplayTags.Target_Relationship_Protected.IsValid()
+			&& GameplayTags.Target_Life_Alive.IsValid() && GameplayTags.InputTag_Interact.IsValid();
+		const bool bPassed = IsWorldReadyForPlay() && bTags;
+		UE_LOG(LogAura, Display, TEXT("[Day14NetworkProbe][Server] Passed=%d OrthogonalTags=%d PlayerOwnedRoute=1 InteractLMBSeparated=%d"),
+			bPassed, bTags, !GameplayTags.InputTag_Interact.MatchesTagExact(GameplayTags.InputTag_LMB));
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay15NetworkProbe")))
+	{
+		TArray<AAuraCivilian*> Civilians;
+		PopulationManager->GetLiveMembers(Civilians);
+		int32 MerchantCount = 0;
+		for (const AAuraCivilian* Civilian : Civilians)
+			if (Civilian && !Civilian->GetPopulationMemberState().MerchantDefinitionId.IsNone()) ++MerchantCount;
+		const bool bPassed = IsWorldReadyForPlay() && EconomyRegistry && EconomyRegistry->IsReady()
+			&& EconomyRegistry->FindMerchant(TEXT("marketmerchant")) && MerchantCount == 1;
+		UE_LOG(LogAura, Display, TEXT("[Day15NetworkProbe][Server] Passed=%d RegistryReady=%d Generation=%d MerchantMembers=%d OrdinaryMembers=%d"),
+			bPassed, EconomyRegistry && EconomyRegistry->IsReady(), EconomyRegistry ? EconomyRegistry->GetGeneration() : 0,
+			MerchantCount, Civilians.Num() - MerchantCount);
 	}
 #endif
 }
 
 void AAuraGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (PopulationManager)
+	{
+		PopulationManager->Shutdown();
+	}
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(RoleConfigPollTimerHandle);
+		World->GetTimerManager().ClearTimer(RoleBattleStartupTimerHandle);
+		World->GetTimerManager().ClearTimer(DedicatedServerReadyNotifyTimerHandle);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -912,7 +1128,7 @@ void AAuraGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AAuraGameModeBase::HandleDedicatedServerReadyNotify()
 {
-	if (GetNetMode() != NM_DedicatedServer)
+	if (GetNetMode() != NM_DedicatedServer || !IsWorldReadyForPlay())
 	{
 		return;
 	}

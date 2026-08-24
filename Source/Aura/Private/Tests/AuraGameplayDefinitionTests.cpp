@@ -147,9 +147,11 @@ bool FAuraStrictAbilityDefinitionParsingTest::RunTest(const FString& Parameters)
 	if (!TestNotNull(TEXT("Transient ability definition created"), Definition)) return false;
 
 	const FString InvalidNumber = TEXT("<ability name=\"Strict\" abilityTag=\"Abilities.Fire.FireBolt\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\"><damage type=\"Damage.Fire\" base=\"not-a-number\"/><graph><node class=\"Sequence\"/></graph></ability>");
+	AddExpectedError(TEXT("invalid numeric attribute 'base=not-a-number'"), EAutomationExpectedErrorFlags::Contains, 1);
 	TestFalse(TEXT("Invalid numeric XML is rejected"), Definition->LoadFromXML(InvalidNumber));
 
 	const FString InvalidTag = TEXT("<ability name=\"Strict\" abilityTag=\"Abilities.Missing\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\"><graph><node class=\"Sequence\"/></graph></ability>");
+	AddExpectedError(TEXT("has no registered abilityTag"), EAutomationExpectedErrorFlags::Contains, 1);
 	TestFalse(TEXT("Unregistered ability tag is rejected"), Definition->LoadFromXML(InvalidTag));
 	return true;
 }

@@ -148,3 +148,9 @@ Run:
 ## Completion gate
 
 The server has one versioned, atomically published, read-only economy registry; it is ready before population spawning, is the sole authority for price and offer contents, and unambiguously binds only configured population members to merchant definitions.
+
+## Implementation evidence - 2026-08-25
+
+Implemented three schema-versioned JSON fixtures, canonical checked string-to-`int64` parsing, item/offer/merchant/currency cross-validation, normalized duplicate detection, per-slot merchant/work-profile validation, and an authority-only `UGameInstanceSubsystem` that atomically swaps immutable snapshots. Startup requires the economy registry before population finalization; only slot 1 receives `MarketMerchant`.
+
+Validation: AuraEditor build passed; 7/7 Day 15 tests passed; full `Aura` automation passed 154/154; listen and dedicated baseline reports passed with exactly one merchant-bound population member.

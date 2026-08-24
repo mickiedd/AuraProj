@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "GameplayTagContainer.h"
+#include "Combat/AuraTargetingTypes.h"
 #include "AuraPlayerController.generated.h"
 
 
@@ -26,6 +27,8 @@ class UAuraClientDisconnectHandler;
 class UAuraHeartbeatComponent;
 class UAuraBuildingComponent;
 class AAuraCharacter;
+class UAuraInteractionComponent;
+class UTargetInteractionWidgetController;
 
 enum class ETargetingStatus : uint8
 {
@@ -44,6 +47,13 @@ class AURA_API AAuraPlayerController : public APlayerController
 public:
 	AAuraPlayerController();
 	virtual void PlayerTick(float DeltaTime) override;
+	UAuraInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
+	const FAuraTargetDescriptor& GetFocusedTargetDescriptor() const { return FocusedTargetDescriptor; }
+	UTargetInteractionWidgetController* GetTargetInteractionWidgetController() const { return TargetInteractionWidgetController; }
+
+	/** Selects an enabled option from the currently focused target preview. */
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void SetFocusedInteractionOptionIndex(int32 Index);
 
 	UFUNCTION(Exec)
 	void FullAbilities();
@@ -144,6 +154,9 @@ private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> ShiftAction;
 
+	UPROPERTY(EditAnywhere, Category="Input")
+	TObjectPtr<UInputAction> InteractAction;
+
 	void ShiftPressed();
 	void ShiftReleased();
 
@@ -243,6 +256,9 @@ private:
 	bool bCachedShowMouseCursor = true;
 
 	void CursorTrace();
+	void InteractPressed();
+	void InteractionOptionOnePressed();
+	void InteractionOptionTwoPressed();
 	TObjectPtr<AActor> LastActor;
 	TObjectPtr<AActor> ThisActor;
 	FHitResult CursorHit;
@@ -339,4 +355,14 @@ private:
 	bool bRoleBattleDay6ProbeEnabled = false;
 	bool bRoleBattleDay6InitialAuditComplete = false;
 	bool bRoleBattleDay6ClientAuditComplete = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAuraInteractionComponent> InteractionComponent;
+
+	UPROPERTY(Transient, VisibleInstanceOnly, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UTargetInteractionWidgetController> TargetInteractionWidgetController;
+
+	FAuraTargetDescriptor FocusedTargetDescriptor;
+	int32 SelectedInteractionOptionIndex = INDEX_NONE;
+	int32 NextInteractionRequestId = 1;
 };

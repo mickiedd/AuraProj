@@ -243,3 +243,9 @@ Run:
 ## Completion gate
 
 Target relationship, kind, life, and interactions are independent and composable. The client-owned PlayerController component is the only interaction RPC endpoint; the server re-resolves and validates every target/option. Interact and LMB are distinct, attack affordance uses `CanDamage(LocalPlayer, Target)`, and existing plus late clients cannot interact with invalid/dead actors or bypass range, LOS, zone, replay, or ownership checks. All build, native, listen, and dedicated gates pass.
+
+## Implementation evidence - 2026-08-25
+
+Implemented orthogonal descriptor/tags, `IAuraTargetableInterface`, native interaction policies, the replicated PlayerController-owned RPC component, server-side requester/target/option/life/phase/range/LOS/replay/rate validation, a distinct `IA_Interact` asset plus an authoritative native F-key fallback, and a target-prompt widget asset. LMB classification now uses `FAuraCombatRules::CanDamage` and never dispatches interaction. The generator intentionally does not resave the legacy `IMC_AuraContext` or controller Blueprint because those packages predate the repository's current LFS normalization; projects may assign `InteractAction` after normalizing those assets without changing the fallback behavior.
+
+Validation: AuraEditor build passed; 11/11 Day 14 tests passed; listen and dedicated baseline reports passed with two clients and late join. Exhaustive forged-request permutations remain part of the later adversarial hardening matrix.

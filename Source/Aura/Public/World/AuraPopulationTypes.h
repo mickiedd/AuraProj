@@ -6,6 +6,53 @@
 #include "GameplayTagContainer.h"
 #include "AuraPopulationTypes.generated.h"
 
+UENUM(BlueprintType)
+enum class EAuraPopulationSlotState : uint8
+{
+	Empty,
+	Active,
+	Dying,
+	Corpse,
+	RefillPending,
+	Suppressed,
+};
+
+USTRUCT(BlueprintType)
+struct AURA_API FAuraPopulationSlotSnapshot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") FName PopulationId = NAME_None;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 SlotIndex = INDEX_NONE;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") FName PopulationMemberId = NAME_None;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") EAuraPopulationSlotState State = EAuraPopulationSlotState::Empty;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 Generation = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") FString ActorNetworkPath;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") double TransitionServerTime = 0.0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") float RemainingCorpseDelay = 0.f;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") float RemainingRefillDelay = 0.f;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") FString LastTransitionReason;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 DeathSequence = 0;
+};
+
+USTRUCT(BlueprintType)
+struct AURA_API FAuraPopulationDebugSnapshot
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 SchemaVersion = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 ManagerGeneration = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") FName MapId = NAME_None;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") FName DirectorPhase = NAME_None;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") FName BattleEventId = NAME_None;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 ActiveCount = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 CorpseCount = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 PendingCount = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 SuppressedCount = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") int32 MaximumCount = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Population|Snapshot") TArray<FAuraPopulationSlotSnapshot> Slots;
+};
+
 /** Stable, server-authored data carried by a spawned Civilian. */
 USTRUCT(BlueprintType)
 struct AURA_API FAuraPopulationMemberState

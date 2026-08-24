@@ -70,6 +70,16 @@ FAuraCombatIdentity AAuraEnemy::BuildDefaultCombatIdentity() const
 	return Identity;
 }
 
+FGameplayTag AAuraEnemy::GetAuraTargetKind() const
+{
+	return FAuraGameplayTags::Get().Target_Kind_Enemy;
+}
+
+FText AAuraEnemy::GetAuraTargetDisplayName() const
+{
+	return FText::FromString(TEXT("Enemy"));
+}
+
 void AAuraEnemy::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

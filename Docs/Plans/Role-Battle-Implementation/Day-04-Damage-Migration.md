@@ -121,6 +121,7 @@ Add these native tests:
 - `Aura.RoleBattle.Day4.SharedDamageBoundary`
 - `Aura.RoleBattle.Day4.DirectCauseDamageBoundary`
 - `Aura.RoleBattle.Day4.AuthorityRejection`
+- `Aura.RoleBattle.Day4.NeutralDamageCoefficients`
 - `Aura.RoleBattle.Day4.AllProducerAttribution`
 - `Aura.RoleBattle.Day4.NonAliveSourceAndTargetRejection`
 - `Aura.RoleBattle.Day4.PeriodicAttributionAndRevalidation`

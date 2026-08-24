@@ -220,9 +220,15 @@ Add:
 - `Aura.RoleBattle.Day10.EnemyTargetingRegression`
 - `Aura.RoleBattle.Day10.NoFindNearestPlayerReferences`
 
-## Listen-server and dedicated-server smoke
+## Current executable baseline smoke
 
-`RunRoleBattleDay10NetworkSmoke.ps1` supports `-Mode Listen` and `-Mode Dedicated`. In each mode:
+`RunRoleBattleDay10NetworkSmoke.ps1` supports `-Mode Listen` and `-Mode Dedicated`. The 2026-08-24 baseline passes both modes and records eight assertions: static contracts, coordinated world readiness, a server probe proving three stable members with three authority-owned running Behavior Trees plus registered markers and the migrated hostile asset, director replication on both clients, all three population states on both clients including late join, and no crash signature.
+
+This baseline is executable integration evidence, not the full Day 10 completion gate.
+
+## Remaining completion acceptance matrix
+
+Before Day 10 is marked complete, extend the runner or a successor to:
 
 1. Spawn at least three civilians through Day 09 and verify only the server owns their AIControllers.
 2. Observe deterministic work/observe/wander transitions without any ability activation.
@@ -235,7 +241,7 @@ Add:
 9. Search loaded classes, the Asset Registry, both Enemy trees, the Services directory, snapshots, source, and config for `BTService_FindNearestPlayer`/`BTS_FindNearestPlayer`; fail if any old service instance ticks or reference remains.
 10. Compare replicated transforms/activity debug state on two clients and a late joiner.
 
-The runner enforces bounded startup, navigation/action, assertion, late-join, and teardown timeouts; returns nonzero on any assertion, child-process, crash, timeout, stale asset reference, or missing-artifact failure; and stops only processes it created. It writes `Saved/Logs/Day10-{Listen|Dedicated}-{Server|Client1|Client2}.log` and `Saved/Reports/Day10-{Listen|Dedicated}.json` with revision, commands, exit codes, and assertion results.
+The current baseline runner enforces bounded startup, assertion, late-join, and teardown timeouts; returns nonzero on any implemented assertion, child-process, crash, timeout, or missing artifact; and stops only processes it created. The completion extension must retain those guarantees while adding the navigation/action matrix above. Reports are written to `Saved/Reports/Day10-{Listen|Dedicated}.json` beside isolated process logs.
 
 Run:
 

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle plan guardrails aligned with runtime</title>
+  <desc id="desc">Before and after flow for coordinated startup, failure handling, numeric regression, network baselines, and honest completion status.</desc>
+  <defs>
+    <style>
+      .bg{fill:#091321}.panel{fill:#111f34;stroke:#3c5678;stroke-width:2}.bad{fill:#311a24;stroke:#b45066;stroke-width:2}.good{fill:#102d27;stroke:#38aa80;stroke-width:2}.open{fill:#302814;stroke:#c89b38;stroke-width:2}.title{fill:#f5f8fc;font:700 30px 'Segoe UI',sans-serif}.head{fill:#f5f8fc;font:700 20px 'Segoe UI',sans-serif}.text{fill:#d7e1ef;font:16px 'Segoe UI',sans-serif}.small{fill:#b6c6da;font:14px 'Segoe UI',sans-serif}.red{fill:#ff91a3;font:700 16px 'Segoe UI',sans-serif}.green{fill:#73dfb4;font:700 16px 'Segoe UI',sans-serif}.amber{fill:#ffd27a;font:700 16px 'Segoe UI',sans-serif}.arrow{stroke:#8da8cb;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8da8cb"/></marker>
+  </defs>
+  <rect class="bg" width="1280" height="820"/>
+  <text class="title" x="50" y="52">Role/Battle plan guardrails now match executable behavior</text>
+  <text class="small" x="50" y="79">2026-08-24 | Startup coordination, regression coverage, network evidence, and status truthfulness</text>
+
+  <rect class="bad" x="50" y="108" width="350" height="485" rx="16"/>
+  <text class="head" x="76" y="145">Before: split readiness</text>
+  <text class="red" x="76" y="183">Configuration failure</text>
+  <text class="text" x="76" y="210">Director logged and returned, while</text>
+  <text class="text" x="76" y="233">population and GSM readiness continued.</text>
+  <text class="red" x="76" y="276">Population startup</text>
+  <text class="text" x="76" y="303">Finalized independently and could retain</text>
+  <text class="text" x="76" y="326">a partial initial population.</text>
+  <text class="red" x="76" y="369">Tests and probes</text>
+  <text class="text" x="76" y="396">Missing unhealthy-startup and numeric</text>
+  <text class="text" x="76" y="419">coefficient regressions; generic probes.</text>
+  <text class="red" x="76" y="462">Plans</text>
+  <text class="text" x="76" y="489">Stale system map and completion claims</text>
+  <text class="text" x="76" y="512">blurred baseline versus acceptance.</text>
+
+  <path class="arrow" d="M415 350L468 350"/>
+
+  <rect class="good" x="480" y="108" width="750" height="485" rx="16"/>
+  <text class="head" x="506" y="145">After: one coordinated authority gate</text>
+  <rect class="panel" x="510" y="172" width="185" height="72" rx="10"/>
+  <text class="green" x="528" y="200">Load candidates</text>
+  <text class="small" x="528" y="225">roles, population, zones</text>
+  <path class="arrow" d="M698 208L746 208"/>
+  <rect class="panel" x="750" y="172" width="205" height="72" rx="10"/>
+  <text class="green" x="768" y="200">Cross-validate</text>
+  <text class="small" x="768" y="225">map, zone, volume, marker</text>
+  <path class="arrow" d="M958 208L1006 208"/>
+  <rect class="panel" x="1010" y="172" width="185" height="72" rx="10"/>
+  <text class="green" x="1028" y="200">Finalize atomically</text>
+  <text class="small" x="1028" y="225">or roll back Civilians</text>
+
+  <path class="arrow" d="M1102 247L1102 290"/>
+  <rect class="good" x="930" y="296" width="265" height="95" rx="10"/>
+  <text class="green" x="950" y="325">READY</text>
+  <text class="text" x="950" y="350">Run authority probes</text>
+  <text class="text" x="950" y="374">and permit GSM ready notify</text>
+
+  <path class="arrow" d="M852 247L852 290L697 290L697 296"/>
+  <rect class="bad" x="510" y="296" width="375" height="95" rx="10"/>
+  <text class="red" x="530" y="325">UNHEALTHY</text>
+  <text class="text" x="530" y="350">Reject subsequent login; no GSM ready</text>
+  <text class="text" x="530" y="374">and no partial initial population</text>
+
+  <text class="green" x="510" y="435">Executable evidence</text>
+  <text class="text" x="510" y="464">109/109 RoleBattle native tests; Days 10-12: 32/32</text>
+  <text class="text" x="510" y="492">Day 10/11/12 Listen + Dedicated: six passes, eight assertions each</text>
+  <text class="text" x="510" y="520">Neutral 1.0 coefficient and initial-failure readiness regressions included</text>
+  <text class="text" x="510" y="548">Plan manifests and current implementation map synchronized</text>
+
+  <rect class="open" x="50" y="630" width="1180" height="130" rx="16"/>
+  <text class="head" x="76" y="669">Completion boundary retained</text>
+  <text class="amber" x="76" y="702">Day 10 remains the active completion-validation milestone.</text>
+  <text class="text" x="76" y="732">The passed baseline probes are recorded honestly; detailed threat/flee, Player/Enemy reward, delayed-projectile, and full producer matrices still block Day 13.</text>
+</svg>

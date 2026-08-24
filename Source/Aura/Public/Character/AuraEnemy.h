@@ -23,6 +23,8 @@ class AURA_API AAuraEnemy : public AAuraCharacterBase, public IEnemyInterface, p
 public:
 	AAuraEnemy();
 	virtual void PossessedBy(AController* NewController) override;
+	virtual FGameplayTag GetAuraTargetKind() const override;
+	virtual FText GetAuraTargetDisplayName() const override;
 
 	/** Highlight Interface */
 	virtual void HighlightActor_Implementation() override;

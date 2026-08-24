@@ -7,6 +7,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
 #include "EngineUtils.h"
 #include "GameFramework/Controller.h"
 #include "NavigationPath.h"
@@ -26,6 +27,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
+#include "Interaction/AuraInteractionComponent.h"
+#include "Combat/AuraTargetableInterface.h"
+#include "Combat/AuraCombatRules.h"
+#include "UI/WidgetController/TargetInteractionWidgetController.h"
 #include "GameFramework/Character.h"
 #include "Interaction/HighlightInterface.h"
 #include "Framework/Application/SlateApplication.h"
@@ -58,6 +63,7 @@ AAuraPlayerController::AAuraPlayerController()
 	ServerTravelComponent = CreateDefaultSubobject<UServerTravelComponent>(TEXT("ServerTravelComponent"));
 	ClientDisconnectHandler = CreateDefaultSubobject<UAuraClientDisconnectHandler>(TEXT("ClientDisconnectHandler"));
 	HeartbeatComponent = CreateDefaultSubobject<UAuraHeartbeatComponent>(TEXT("HeartbeatComponent"));
+	InteractionComponent = CreateDefaultSubobject<UAuraInteractionComponent>(TEXT("InteractionComponent"));
 
 	// Route Aura-specific cheat commands through UAuraCheatManager. Its Exec
 	// functions are only reachable while cheats are enabled (standalone / listen
@@ -567,14 +573,26 @@ void AAuraPlayerController::CursorTrace()
 
 		LastActor = nullptr;
 		ThisActor = nullptr;
+		FocusedTargetDescriptor = FAuraTargetDescriptor();
+		SelectedInteractionOptionIndex = INDEX_NONE;
+		if (TargetInteractionWidgetController) TargetInteractionWidgetController->ClearPreview();
 		return;
 	}
 	const ECollisionChannel TraceChannel = IsValid(MagicCircle) ? ECC_ExcludePlayers : ECC_Visibility;
 	GetHitResultUnderCursor(TraceChannel, false, CursorHit);
-	if (!CursorHit.bBlockingHit) return;
+	if (!CursorHit.bBlockingHit)
+	{
+		UnHighlightActor(ThisActor);
+		LastActor = ThisActor;
+		ThisActor = nullptr;
+		FocusedTargetDescriptor = FAuraTargetDescriptor();
+		SelectedInteractionOptionIndex = INDEX_NONE;
+		if (TargetInteractionWidgetController) TargetInteractionWidgetController->ClearPreview();
+		return;
+	}
 
 	LastActor = ThisActor;
-	if (IsValid(CursorHit.GetActor()) && CursorHit.GetActor()->Implements<UHighlightInterface>())
+	if (IsValid(CursorHit.GetActor()) && CursorHit.GetActor()->Implements<UAuraTargetableInterface>())
 	{
 		ThisActor = CursorHit.GetActor();
 	}
@@ -587,7 +605,58 @@ void AAuraPlayerController::CursorTrace()
 	{
 		UnHighlightActor(LastActor);
 		HighlightActor(ThisActor);
+		SelectedInteractionOptionIndex = INDEX_NONE;
 	}
+	if (IsValid(ThisActor))
+	{
+		if (TargetInteractionWidgetController
+			&& TargetInteractionWidgetController->BuildPreview(GetPawn(), ThisActor, FocusedTargetDescriptor))
+		{
+			TargetInteractionWidgetController->PublishPreview(FocusedTargetDescriptor);
+		}
+		else
+		{
+			FocusedTargetDescriptor = FAuraTargetDescriptor();
+			SelectedInteractionOptionIndex = INDEX_NONE;
+			if (TargetInteractionWidgetController) TargetInteractionWidgetController->ClearPreview();
+		}
+	}
+	else
+	{
+		FocusedTargetDescriptor = FAuraTargetDescriptor();
+		SelectedInteractionOptionIndex = INDEX_NONE;
+		if (TargetInteractionWidgetController) TargetInteractionWidgetController->ClearPreview();
+	}
+}
+
+void AAuraPlayerController::InteractPressed()
+{
+	if (!InteractionComponent || !IsValid(ThisActor)) return;
+	const FAuraInteractionOption* Selected = FocusedTargetDescriptor.InteractionOptions.IsValidIndex(SelectedInteractionOptionIndex)
+		&& FocusedTargetDescriptor.InteractionOptions[SelectedInteractionOptionIndex].bEnabled
+		? &FocusedTargetDescriptor.InteractionOptions[SelectedInteractionOptionIndex]
+		: FocusedTargetDescriptor.InteractionOptions.FindByPredicate(
+			[](const FAuraInteractionOption& Option) { return Option.bEnabled; });
+	if (Selected)
+	{
+		InteractionComponent->RequestInteraction(ThisActor, Selected->OptionTag, NextInteractionRequestId++);
+	}
+}
+
+void AAuraPlayerController::SetFocusedInteractionOptionIndex(int32 Index)
+{
+	SelectedInteractionOptionIndex = FocusedTargetDescriptor.InteractionOptions.IsValidIndex(Index)
+		&& FocusedTargetDescriptor.InteractionOptions[Index].bEnabled ? Index : INDEX_NONE;
+}
+
+void AAuraPlayerController::InteractionOptionOnePressed()
+{
+	SetFocusedInteractionOptionIndex(0);
+}
+
+void AAuraPlayerController::InteractionOptionTwoPressed()
+{
+	SetFocusedInteractionOptionIndex(1);
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
@@ -617,7 +686,9 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 		FollowTime = 0.f;
 		if (IsValid(ThisActor))
 		{
-			TargetingStatus = ThisActor->Implements<UEnemyInterface>() ? ETargetingStatus::TargetingEnemy : ETargetingStatus::TargetingNonEnemy;
+			FAuraCombatRuleContext PreviewContext;
+			const FAuraCombatRuleResult AttackPreview = FAuraCombatRules::CanDamage(GetPawn(), ThisActor, PreviewContext);
+			TargetingStatus = AttackPreview.bCanDamage ? ETargetingStatus::TargetingEnemy : ETargetingStatus::TargetingNonEnemy;
 		}
 		else
 		{
@@ -899,6 +970,10 @@ void AAuraPlayerController::ClientRejectLogin_Implementation(const FString& Reas
 void AAuraPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	if (!TargetInteractionWidgetController)
+	{
+		TargetInteractionWidgetController = NewObject<UTargetInteractionWidgetController>(this);
+	}
 	if (HasAuthority() && FParse::Param(FCommandLine::Get(), TEXT("AuraRoleBattleDay1SmokeTest")))
 	{
 		bRoleBattleDay1SmokeEnabled = true;
@@ -926,8 +1001,11 @@ void AAuraPlayerController::BeginPlay()
 #endif
 	if (!AuraContext)
 	{
-		UE_LOG(LogAura, Error, TEXT("AAuraPlayerController::BeginPlay: AuraContext (Input Mapping Context) is not set. Input will not be bound."));
-		return;
+		UE_LOG(LogAura, Warning, TEXT("AAuraPlayerController::BeginPlay: AuraContext is not set; using native input fallback where available."));
+	}
+	if (!InteractAction)
+	{
+		InteractAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/Blueprints/Input/InputActions/IA_Interact.IA_Interact"));
 	}
 
 #if !UE_BUILD_SHIPPING
@@ -946,8 +1024,17 @@ void AAuraPlayerController::BeginPlay()
 	}
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	if (Subsystem)
+	if (Subsystem && AuraContext)
 	{
+		if (InteractAction)
+		{
+			bool bMapped = false;
+			for (const FEnhancedActionKeyMapping& Mapping : AuraContext->GetMappings())
+			{
+				if (Mapping.Action == InteractAction && Mapping.Key == EKeys::F) { bMapped = true; break; }
+			}
+			if (!bMapped) AuraContext->MapKey(InteractAction, EKeys::F);
+		}
 		Subsystem->AddMappingContext(AuraContext, 0);
 	}
 
@@ -1421,6 +1508,16 @@ void AAuraPlayerController::SetupInputComponent()
 	InputComponent->BindKey(EKeys::SpaceBar, EInputEvent::IE_Released, this, &AAuraPlayerController::JumpReleased);
 	InputComponent->BindKey(EKeys::LeftControl, EInputEvent::IE_Pressed, this, &AAuraPlayerController::CrouchPressed);
 	InputComponent->BindKey(EKeys::LeftControl, EInputEvent::IE_Released, this, &AAuraPlayerController::CrouchReleased);
+	if (InteractAction && AuraContext)
+	{
+		AuraInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AAuraPlayerController::InteractPressed);
+	}
+	else
+	{
+		InputComponent->BindKey(EKeys::F, EInputEvent::IE_Pressed, this, &AAuraPlayerController::InteractPressed);
+	}
+	InputComponent->BindKey(EKeys::One, EInputEvent::IE_Pressed, this, &AAuraPlayerController::InteractionOptionOnePressed);
+	InputComponent->BindKey(EKeys::Two, EInputEvent::IE_Pressed, this, &AAuraPlayerController::InteractionOptionTwoPressed);
 	// Broom vertical flight: Q ascends, E descends. Held-flags sampled in PlayerTick.
 	InputComponent->BindKey(EKeys::Q, EInputEvent::IE_Pressed, this, &AAuraPlayerController::BroomAscendPressed);
 	InputComponent->BindKey(EKeys::Q, EInputEvent::IE_Released, this, &AAuraPlayerController::BroomAscendReleased);

@@ -43,6 +43,24 @@ public:
 
 	FGameplayTag Interaction_Combatant;
 	FGameplayTag Interaction_Civilian;
+	FGameplayTag Interaction_Talk;
+	FGameplayTag Interaction_Observe;
+	FGameplayTag Interaction_Trade;
+	FGameplayTag Interaction_UseShelter;
+
+	FGameplayTag Target_Relationship_Hostile;
+	FGameplayTag Target_Relationship_Friendly;
+	FGameplayTag Target_Relationship_Neutral;
+	FGameplayTag Target_Relationship_Protected;
+	FGameplayTag Target_Kind_Player;
+	FGameplayTag Target_Kind_Enemy;
+	FGameplayTag Target_Kind_Civilian;
+	FGameplayTag Target_Kind_Shelter;
+	FGameplayTag Target_Kind_World;
+	FGameplayTag Target_Life_Alive;
+	FGameplayTag Target_Life_Dying;
+	FGameplayTag Target_Life_Dead;
+	FGameplayTag Target_Life_Respawning;
 
 	/** Replicated dynamic source tag attached to every role-owned ability spec. */
 	FGameplayTag GrantSource_Role;
@@ -77,6 +95,7 @@ public:
 	FGameplayTag InputTag_4;
 	FGameplayTag InputTag_Passive_1;
 	FGameplayTag InputTag_Passive_2;
+	FGameplayTag InputTag_Interact;
 
 	FGameplayTag Damage;
 	FGameplayTag Damage_Fire;

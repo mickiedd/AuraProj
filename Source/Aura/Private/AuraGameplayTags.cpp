@@ -57,6 +57,24 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FName("Interaction.Combatant"), FString("Combatant interaction profile"));
 	GameplayTags.Interaction_Civilian = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Interaction.Civilian"), FString("Civilian interaction profile"));
+	GameplayTags.Interaction_Talk = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Interaction.Talk"), FString("Talk to a target"));
+	GameplayTags.Interaction_Observe = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Interaction.Observe"), FString("Observe a target"));
+	GameplayTags.Interaction_Trade = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Interaction.Trade"), FString("Trade with a merchant-bound Civilian"));
+	GameplayTags.Interaction_UseShelter = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Interaction.UseShelter"), FString("Use an available shelter"));
+
+	GameplayTags.Target_Relationship_Hostile = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Relationship.Hostile"), FString("Hostile target relationship"));
+	GameplayTags.Target_Relationship_Friendly = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Relationship.Friendly"), FString("Friendly target relationship"));
+	GameplayTags.Target_Relationship_Neutral = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Relationship.Neutral"), FString("Neutral target relationship"));
+	GameplayTags.Target_Relationship_Protected = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Relationship.Protected"), FString("Protected target relationship"));
+	GameplayTags.Target_Kind_Player = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Kind.Player"), FString("Player target kind"));
+	GameplayTags.Target_Kind_Enemy = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Kind.Enemy"), FString("Enemy target kind"));
+	GameplayTags.Target_Kind_Civilian = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Kind.Civilian"), FString("Civilian target kind"));
+	GameplayTags.Target_Kind_Shelter = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Kind.Shelter"), FString("Shelter target kind"));
+	GameplayTags.Target_Kind_World = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Kind.World"), FString("World target kind"));
+	GameplayTags.Target_Life_Alive = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Life.Alive"), FString("Alive target life state"));
+	GameplayTags.Target_Life_Dying = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Life.Dying"), FString("Dying target life state"));
+	GameplayTags.Target_Life_Dead = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Life.Dead"), FString("Dead target life state"));
+	GameplayTags.Target_Life_Respawning = UGameplayTagsManager::Get().AddNativeGameplayTag(FName("Target.Life.Respawning"), FString("Respawning target life state"));
 
 	GameplayTags.GrantSource_Role = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("GrantSource.Role"), FString("Ability spec granted by the currently authorized role"));
@@ -193,6 +211,8 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FName("InputTag.Passive.2"),
 		FString("Input Tag Passive Ability 2")
 		);
+	GameplayTags.InputTag_Interact = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.Interact"), FString("Distinct interaction input tag"));
 
 	GameplayTags.Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Damage"),

@@ -430,6 +430,28 @@ void AAuraCharacterBase::Die(const FVector& DeathImpulse)
 	CombatStateComponent->TryEnterDead();
 }
 
+FGameplayTag AAuraCharacterBase::GetAuraTargetKind() const
+{
+	return FAuraGameplayTags::Get().Target_Kind_World;
+}
+
+FText AAuraCharacterBase::GetAuraTargetDisplayName() const
+{
+	return FText::FromString(GetName());
+}
+
+float AAuraCharacterBase::GetAuraTargetHealth() const
+{
+	const UAuraAttributeSet* Attributes = Cast<UAuraAttributeSet>(AttributeSet);
+	return Attributes ? Attributes->GetHealth() : 0.f;
+}
+
+float AAuraCharacterBase::GetAuraTargetMaxHealth() const
+{
+	const UAuraAttributeSet* Attributes = Cast<UAuraAttributeSet>(AttributeSet);
+	return Attributes ? Attributes->GetMaxHealth() : 0.f;
+}
+
 void AAuraCharacterBase::SetPendingFatalDamageContext(const FAuraFatalDamageContext& InContext)
 {
 	if (HasAuthority())

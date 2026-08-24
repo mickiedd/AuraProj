@@ -9,6 +9,8 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Engine/World.h"
+#include "Game/AuraGameModeBase.h"
+#include "World/AuraPopulationManager.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
@@ -131,6 +133,14 @@ FName UAuraBattleZoneConfig::ResolveCurrentMapId(const UObject* WorldContext)
 {
 	const UWorld* World = IsValid(WorldContext) ? WorldContext->GetWorld() : nullptr;
 	if (!World) return NAME_None;
+	if (const AAuraGameModeBase* GameMode = World->GetAuthGameMode<AAuraGameModeBase>())
+	{
+		if (const UAuraPopulationManager* PopulationManager = GameMode->GetPopulationManager())
+		{
+			const FName ConfiguredMapId = PopulationManager->GetCurrentMapId();
+			if (!ConfiguredMapId.IsNone()) return ConfiguredMapId;
+		}
+	}
 	FString MapName = World->GetMapName();
 	MapName.RemoveFromStart(World->StreamingLevelsPrefix);
 	return FName(*MapName);

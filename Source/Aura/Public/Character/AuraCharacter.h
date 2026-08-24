@@ -27,6 +27,8 @@ public:
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
+	virtual FGameplayTag GetAuraTargetKind() const override;
+	virtual FText GetAuraTargetDisplayName() const override;
 
 	/** Player Interface */
 	virtual void AddToXP_Implementation(int32 InXP) override;
