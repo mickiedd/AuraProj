@@ -87,7 +87,7 @@ private:
 	bool SpawnInitialMember(const FAuraPopulationSpawnRow& Row, int32 SlotIndex);
 	bool SpawnMember(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, const TCHAR* Reason);
 	bool ResolveMemberState(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, FAuraPopulationMemberState& OutState) const;
-	AAuraCivilianSpawnVolume* FindVolumeForRow(const FAuraPopulationSpawnRow& Row, int32 AttemptIndex) const;
+AAuraCivilianSpawnVolume* FindVolumeForRow(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, int32 AttemptIndex) const;
 	void RollBackInitialPopulation();
 	const FAuraPopulationSpawnRow* FindRow(FName PopulationId) const;
 	bool IsRefillAllowed(const FAuraPopulationSpawnRow& Row) const;

@@ -22,9 +22,27 @@ AAuraCivilianSpawnVolume::AAuraCivilianSpawnVolume()
 	Volume->SetBoxExtent(CandidateExtents);
 }
 
+void AAuraCivilianSpawnVolume::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	ApplyCandidateExtents();
+}
+
+void AAuraCivilianSpawnVolume::ApplyCandidateExtents()
+{
+	if (Volume)
+	{
+		Volume->SetBoxExtent(CandidateExtents);
+	}
+}
+
 void AAuraCivilianSpawnVolume::BeginPlay()
 {
 	Super::BeginPlay();
+	// Placed actors serialize both the editable CandidateExtents property and
+	// the component state. Re-apply here so runtime candidates always honor the
+	// persisted village-sized bounds even when the level was saved by automation.
+	ApplyCandidateExtents();
 	if (!HasAuthority()) return;
 
 	if (AAuraGameModeBase* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr)

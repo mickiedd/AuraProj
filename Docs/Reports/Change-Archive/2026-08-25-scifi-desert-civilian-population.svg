@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Scifi Desert civilian population flow</title>
+  <desc id="desc">Before and after diagram for placing 32 easy-to-encounter AI civilians across the 32 outer villages of the Scifi Desert level and validating their native behavior tree startup.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101b2d"/>
+      <stop offset="1" stop-color="#1d2634"/>
+    </linearGradient>
+    <linearGradient id="after" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#193b45"/>
+      <stop offset="1" stop-color="#245146"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#8bd3c7"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill: #f7fbff; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #b9c9d8; }
+      .section { font: 700 18px Arial, sans-serif; fill: #f7fbff; }
+      .boxTitle { font: 700 16px Arial, sans-serif; fill: #f7fbff; }
+      .body { font: 400 14px Arial, sans-serif; fill: #d7e3ed; }
+      .small { font: 400 12px Arial, sans-serif; fill: #b9c9d8; }
+      .metric { font: 700 20px Arial, sans-serif; fill: #8bd3c7; }
+      .beforeBox { fill: #263447; stroke: #64778d; stroke-width: 2; rx: 12; }
+      .afterBox { fill: url(#after); stroke: #71c7b4; stroke-width: 2; rx: 12; }
+      .guard { fill: #4a3827; stroke: #e4ae64; stroke-width: 2; rx: 12; }
+      .line { stroke: #8bd3c7; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #e4ae64; stroke-width: 2; stroke-dasharray: 8 7; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <text x="48" y="50" class="title">Scifi_Desert_Level: village civilian population</text>
+  <text x="48" y="77" class="subtitle">Verified implementation flow for easy-to-encounter AI-Civilians and their native Unreal AI behavior.</text>
+
+  <rect x="48" y="112" width="330" height="240" class="beforeBox"/>
+  <text x="72" y="145" class="section">Before</text>
+  <text x="72" y="178" class="boxTitle">Level had no civilian population row</text>
+  <text x="72" y="208" class="body">No desert village spawn topology was saved</text>
+  <text x="72" y="233" class="body">for the 32 outer settlements.</text>
+  <path d="M72 263 H350" stroke="#64778d" stroke-width="2"/>
+  <text x="72" y="292" class="small">Existing city cluster: 119 building actors</text>
+  <text x="72" y="316" class="small">Civilian role was implemented but not level-tested</text>
+
+  <path d="M395 230 H455" class="line"/>
+  <text x="399" y="212" class="small">level integration</text>
+
+  <rect x="472" y="112" width="330" height="240" class="afterBox"/>
+  <text x="496" y="145" class="section">After: population definition</text>
+  <text x="496" y="178" class="boxTitle">DesertVillageCivilians</text>
+  <text x="496" y="207" class="body">Map: Scifi_Desert_Level</text>
+  <text x="496" y="232" class="body">Role: Civilian | spawn on load</text>
+  <text x="496" y="257" class="metric">32 initial / 32 maximum</text>
+  <text x="496" y="289" class="small">Deterministic slot-aware volume selection</text>
+  <text x="496" y="313" class="small">makes every village a reliable encounter point</text>
+
+  <path d="M819 230 H879" class="line"/>
+  <text x="820" y="212" class="small">runtime spawn</text>
+
+  <rect x="896" y="112" width="256" height="240" class="afterBox"/>
+  <text x="920" y="145" class="section">Village topology</text>
+  <text x="920" y="185" class="metric">32</text>
+  <text x="963" y="185" class="body">spawn volumes</text>
+  <text x="920" y="220" class="metric">48</text>
+  <text x="963" y="220" class="body">activity markers</text>
+  <text x="920" y="255" class="body">32 shelter markers</text>
+  <text x="920" y="278" class="body">8 work + 8 observe markers</text>
+  <text x="920" y="316" class="small">All in zone DesertVillages</text>
+
+  <rect x="48" y="391" width="1104" height="151" class="guard"/>
+  <text x="72" y="425" class="section">Placement guard</text>
+  <path d="M72 453 H1128" class="dash"/>
+  <text x="72" y="482" class="body">Cluster the level buildings, exclude the largest central city cluster, and place one volume per remaining outer village.</text>
+  <text x="72" y="510" class="body">Candidate bounds are reapplied during construction and BeginPlay so serialized village extents are used at runtime.</text>
+
+  <text x="48" y="592" class="section">AI behavior path</text>
+  <rect x="48" y="620" width="205" height="90" class="afterBox"/>
+  <text x="70" y="654" class="boxTitle">AAuraCivilian</text>
+  <text x="70" y="680" class="body">role and identity</text>
+  <text x="70" y="702" class="small">deferred population spawn</text>
+
+  <path d="M270 665 H329" class="line"/>
+  <rect x="346" y="620" width="205" height="90" class="afterBox"/>
+  <text x="368" y="654" class="boxTitle">Native AIController</text>
+  <text x="368" y="680" class="body">BT startup</text>
+  <text x="368" y="702" class="small">server-authoritative</text>
+
+  <path d="M568 665 H627" class="line"/>
+  <rect x="644" y="620" width="205" height="90" class="afterBox"/>
+  <text x="666" y="654" class="boxTitle">Civilian Behavior Tree</text>
+  <text x="666" y="680" class="body">Idle / Wander</text>
+  <text x="666" y="702" class="small">work / observe / shelter</text>
+
+  <path d="M866 665 H925" class="line"/>
+  <rect x="942" y="620" width="210" height="90" class="afterBox"/>
+  <text x="964" y="654" class="boxTitle">Easy encounters</text>
+  <text x="964" y="680" class="body">32 villagers across map</text>
+  <text x="964" y="702" class="small">wander destinations observed</text>
+
+  <rect x="48" y="742" width="1104" height="32" fill="#0c1420" rx="8"/>
+  <text x="68" y="764" class="small">Validation: AuraEditor build passed | static contracts passed | runtime: 32/32 spawns, 32 BT starts, 175 destinations, 0 volume rejections, 0 BT failures</text>
+</svg>

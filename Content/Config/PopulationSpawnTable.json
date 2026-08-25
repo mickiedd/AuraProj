@@ -26,6 +26,58 @@
         "corpseSeconds": 2.0,
         "allowedBattlePhases": ["Alert", "Conflict", "Cleanup"]
       }
+    },
+    {
+      "populationId": "DesertVillageCivilians",
+      "mapId": "Scifi_Desert_Level",
+      "zoneId": "DesertVillages",
+      "roleId": "Civilian",
+      "actorClass": "/Script/Aura.AuraCivilian",
+      "spawnVolumeIds": [
+        "DesertVillageCiviliansVolume_00",
+        "DesertVillageCiviliansVolume_01",
+        "DesertVillageCiviliansVolume_02",
+        "DesertVillageCiviliansVolume_03",
+        "DesertVillageCiviliansVolume_04",
+        "DesertVillageCiviliansVolume_05",
+        "DesertVillageCiviliansVolume_06",
+        "DesertVillageCiviliansVolume_07",
+        "DesertVillageCiviliansVolume_08",
+        "DesertVillageCiviliansVolume_09",
+        "DesertVillageCiviliansVolume_10",
+        "DesertVillageCiviliansVolume_11",
+        "DesertVillageCiviliansVolume_12",
+        "DesertVillageCiviliansVolume_13",
+        "DesertVillageCiviliansVolume_14",
+        "DesertVillageCiviliansVolume_15",
+        "DesertVillageCiviliansVolume_16",
+        "DesertVillageCiviliansVolume_17",
+        "DesertVillageCiviliansVolume_18",
+        "DesertVillageCiviliansVolume_19",
+        "DesertVillageCiviliansVolume_20",
+        "DesertVillageCiviliansVolume_21",
+        "DesertVillageCiviliansVolume_22",
+        "DesertVillageCiviliansVolume_23",
+        "DesertVillageCiviliansVolume_24",
+        "DesertVillageCiviliansVolume_25",
+        "DesertVillageCiviliansVolume_26",
+        "DesertVillageCiviliansVolume_27",
+        "DesertVillageCiviliansVolume_28",
+        "DesertVillageCiviliansVolume_29",
+        "DesertVillageCiviliansVolume_30",
+        "DesertVillageCiviliansVolume_31"
+      ],
+      "initialCount": 32,
+      "maximumCount": 32,
+      "defaultWorkProfileId": "Observer",
+      "memberOverrides": [],
+      "spawnOnLoad": true,
+      "respawnPolicy": {
+        "enabled": false,
+        "delaySeconds": 0.0,
+        "corpseSeconds": 0.0,
+        "allowedBattlePhases": []
+      }
     }
   ]
 }

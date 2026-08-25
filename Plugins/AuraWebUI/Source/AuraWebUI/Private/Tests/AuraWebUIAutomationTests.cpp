@@ -375,14 +375,17 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	const FString HtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/index.html"));
 	const FString LoadingHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/loading.html"));
 	const FString LoginHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/login.html"));
+	const FString ConfigEditorHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/config-editor.html"));
 	FString Descriptor;
 	FString Html;
 	FString LoadingHtml;
 	FString LoginHtml;
+	FString ConfigEditorHtml;
 	TestTrue(TEXT("Plugin descriptor exists"), FFileHelper::LoadFileToString(Descriptor, *DescriptorPath));
 	TestTrue(TEXT("Packaged sample page exists in the plugin"), FFileHelper::LoadFileToString(Html, *HtmlPath));
 	TestTrue(TEXT("Loading page exists in the plugin"), FFileHelper::LoadFileToString(LoadingHtml, *LoadingHtmlPath));
 	TestTrue(TEXT("Login page exists in the plugin"), FFileHelper::LoadFileToString(LoginHtml, *LoginHtmlPath));
+	TestTrue(TEXT("Config editor page exists in the plugin"), FFileHelper::LoadFileToString(ConfigEditorHtml, *ConfigEditorHtmlPath));
 	TestTrue(TEXT("Plugin declares WebBrowserWidget dependency"), Descriptor.Contains(TEXT("WebBrowserWidget")));
 	TestTrue(TEXT("Sample page uses the native WebSocket URL placeholder"), Html.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
 	TestTrue(TEXT("Sample page sends explicit command messages"), Html.Contains(TEXT("type: 'command'")));
@@ -404,6 +407,11 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Login page renders a role selector"), LoginHtml.Contains(TEXT("id=\"roles\"")));
 	TestTrue(TEXT("Login page renders a connect button"), LoginHtml.Contains(TEXT("id=\"connect\"")));
 	TestTrue(TEXT("Login page renders live status text"), LoginHtml.Contains(TEXT("aria-live=\"polite\"")));
+	TestTrue(TEXT("Config editor uses the native WebSocket URL placeholder"), ConfigEditorHtml.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
+	TestTrue(TEXT("Config editor requests the native config list"), ConfigEditorHtml.Contains(TEXT("send(\"config_list\")")));
+	TestTrue(TEXT("Config editor reads files through the bridge"), ConfigEditorHtml.Contains(TEXT("send(\"config_read\"")));
+	TestTrue(TEXT("Config editor saves with an optimistic version"), ConfigEditorHtml.Contains(TEXT("send(\"config_save\"")) && ConfigEditorHtml.Contains(TEXT("version: state.version")));
+	TestTrue(TEXT("Config editor includes structured and raw editing modes"), ConfigEditorHtml.Contains(TEXT("Structured view")) && ConfigEditorHtml.Contains(TEXT("Raw JSON")));
 	return true;
 }
 

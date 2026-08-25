@@ -74,6 +74,7 @@ private:
 
 	void HandleMessage(const FString& Message);
 	void HandleConnectionChanged(bool bConnected);
+	void HandleConfigCommand(const FString& Command, const TSharedPtr<FJsonObject>& Payload);
 	static bool ParseJsonObject(const FString& Message, TSharedPtr<FJsonObject>& OutObject);
 	static FString SerializeJsonValue(const TSharedPtr<FJsonValue>& Value);
 	static FString MakeServerStateJson(const UWebUIBridgeSubsystem& Bridge);

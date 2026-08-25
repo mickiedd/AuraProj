@@ -457,12 +457,15 @@ bool UAuraPopulationManager::ResolveMemberState(const FAuraPopulationSpawnRow& R
 	return OutState.IsValid() && Definition && Definition->FindWorkProfile(OutState.WorkProfileId) != nullptr;
 }
 
-AAuraCivilianSpawnVolume* UAuraPopulationManager::FindVolumeForRow(const FAuraPopulationSpawnRow& Row, int32 AttemptIndex) const
+AAuraCivilianSpawnVolume* UAuraPopulationManager::FindVolumeForRow(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, int32 AttemptIndex) const
 {
 	if (Row.SpawnVolumeIds.Num() == 0) return nullptr;
 	for (int32 Offset = 0; Offset < Row.SpawnVolumeIds.Num(); ++Offset)
 	{
-		const int32 Index = (AttemptIndex + Offset) % Row.SpawnVolumeIds.Num();
+		// Start each deterministic member in a different village volume. This keeps
+		// large world populations distributed while preserving bounded retries when
+		// a particular village has no valid nav/collision-free candidate.
+		const int32 Index = (SlotIndex + AttemptIndex + Offset) % Row.SpawnVolumeIds.Num();
 		if (const TObjectPtr<AAuraCivilianSpawnVolume>* Volume = RegisteredVolumes.Find(Row.SpawnVolumeIds[Index]))
 		{
 			if (IsValid(Volume->Get())) return Volume->Get();
@@ -497,7 +500,7 @@ bool UAuraPopulationManager::SpawnMember(const FAuraPopulationSpawnRow& Row, int
 
 	for (int32 Attempt = 0; Attempt < 8; ++Attempt)
 	{
-		AAuraCivilianSpawnVolume* Volume = FindVolumeForRow(Row, Attempt);
+		AAuraCivilianSpawnVolume* Volume = FindVolumeForRow(Row, SlotIndex, Attempt);
 		FTransform SpawnTransform;
 		if (!Volume || !Volume->GetCandidateTransform(Attempt, SpawnTransform)) continue;
 

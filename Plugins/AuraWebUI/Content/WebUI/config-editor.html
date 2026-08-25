@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aura Config Studio</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, "Segoe UI", sans-serif;
+      --bg: #0b1020;
+      --panel: #121a2d;
+      --panel-2: #18233b;
+      --panel-3: #202d49;
+      --line: #2e3c5d;
+      --text: #eaf0ff;
+      --muted: #91a0bf;
+      --accent: #78b8ff;
+      --accent-strong: #a4d1ff;
+      --good: #60dfa0;
+      --warn: #f5c76d;
+      --bad: #f07d8e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 75% -10%, #1b3155 0, var(--bg) 46%); color: var(--text); }
+    button, input, textarea { font: inherit; }
+    button { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--text); background: var(--panel-3); cursor: pointer; }
+    button:hover { border-color: var(--accent); background: #294166; }
+    button.primary { border-color: #75b7ff; color: #07101d; background: var(--accent); font-weight: 750; }
+    button.primary:disabled { border-color: var(--line); color: #687694; background: #1b2740; cursor: default; }
+    button.quiet { padding: 5px 8px; background: transparent; }
+    input, textarea { border: 1px solid var(--line); border-radius: 7px; color: var(--text); background: #0c1427; outline: none; }
+    input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px #78b8ff22; }
+    input[type="text"], input[type="number"] { width: 100%; padding: 7px 9px; }
+    input[type="checkbox"] { accent-color: var(--accent); width: 17px; height: 17px; }
+    header { height: 72px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: #0c1426dd; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: #07101d; background: linear-gradient(135deg, #9ed3ff, #658cff); font-weight: 900; }
+    h1 { margin: 0; font-size: 19px; letter-spacing: .02em; }
+    .subtitle { margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .header-actions { display: flex; align-items: center; gap: 9px; }
+    .connection { display: flex; align-items: center; gap: 7px; margin-right: 8px; color: var(--muted); font-size: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); }
+    .dot.online { background: var(--good); box-shadow: 0 0 12px #60dfa088; }
+    .workspace { min-height: calc(100vh - 72px); display: grid; grid-template-columns: 300px minmax(0, 1fr); }
+    aside { padding: 18px 14px; border-right: 1px solid var(--line); background: #0e1629cc; overflow: auto; }
+    .side-heading { display: flex; align-items: baseline; justify-content: space-between; margin: 2px 8px 12px; }
+    .side-heading strong { font-size: 13px; }
+    .count { color: var(--muted); font-size: 11px; }
+    .search { margin: 0 4px 13px; position: relative; }
+    .search input { width: 100%; padding: 9px 10px 9px 31px; }
+    .search span { position: absolute; left: 10px; top: 8px; color: var(--muted); }
+    #file-list { display: grid; gap: 5px; }
+    .file-button { width: 100%; display: flex; align-items: center; gap: 9px; padding: 10px; text-align: left; background: transparent; }
+    .file-button.selected { border-color: #6dafff88; background: #243554; }
+    .file-icon { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 6px; color: var(--accent-strong); background: #273a5e; font-size: 11px; font-weight: 800; }
+    .file-copy { min-width: 0; flex: 1; }
+    .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+    .file-meta { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .validity { width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+    .validity.invalid { background: var(--bad); }
+    main { min-width: 0; padding: 22px 26px 30px; overflow: auto; }
+    .empty { min-height: 70vh; display: grid; place-items: center; color: var(--muted); text-align: center; }
+    .empty-card { max-width: 440px; padding: 34px; border: 1px solid var(--line); border-radius: 16px; background: #121a2dcc; }
+    .empty-card h2 { margin: 0 0 8px; color: var(--text); font-size: 18px; }
+    .empty-card p { margin: 0; line-height: 1.6; font-size: 13px; }
+    .editor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .eyebrow { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .09em; }
+    .editor-title { margin: 5px 0 0; font-size: 24px; }
+    .editor-path { margin-top: 5px; color: var(--muted); font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .head-actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; justify-content: flex-end; }
+    .dirty { display: none; padding: 5px 8px; border: 1px solid #f5c76d66; border-radius: 99px; color: var(--warn); background: #f5c76d12; font-size: 11px; }
+    .dirty.visible { display: inline-flex; }
+    .tabs { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: #0c1425; }
+    .tab { border: 0; padding: 7px 11px; color: var(--muted); background: transparent; }
+    .tab.active { color: var(--text); background: var(--panel-3); }
+    .notice { display: none; margin-bottom: 15px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); background: #111b31; font-size: 12px; line-height: 1.45; }
+    .notice.visible { display: block; }
+    .notice.good { border-color: #60dfa044; color: #a8efc9; background: #60dfa00d; }
+    .notice.warn { border-color: #f5c76d55; color: #f8d995; background: #f5c76d0d; }
+    .notice.bad { border-color: #f07d8e55; color: #ffb0bb; background: #f07d8e0d; }
+    #form-view { display: grid; gap: 9px; }
+    .tree-group { border: 1px solid var(--line); border-radius: 10px; background: #111a2eaa; overflow: hidden; }
+    .tree-group > summary { display: flex; align-items: center; gap: 9px; padding: 11px 12px; cursor: pointer; list-style: none; }
+    .tree-group > summary::-webkit-details-marker { display: none; }
+    .tree-group > summary::before { content: "›"; color: var(--muted); font-size: 18px; transform: translateY(-1px); }
+    .tree-group[open] > summary::before { transform: rotate(90deg) translateX(-1px); }
+    .tree-group > summary:hover { background: #1a2944; }
+    .node-label { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 650; }
+    .node-type { color: var(--muted); font-size: 10px; font-family: ui-monospace, monospace; }
+    .node-actions { display: flex; gap: 5px; margin-left: auto; }
+    .node-actions button { padding: 3px 7px; color: var(--muted); font-size: 11px; }
+    .tree-children { display: grid; gap: 6px; padding: 0 10px 10px 27px; }
+    .tree-row { display: grid; grid-template-columns: minmax(125px, 1fr) minmax(180px, 2fr) auto; align-items: center; gap: 9px; min-height: 39px; padding: 5px 8px; border: 1px solid #273653; border-radius: 8px; background: #0d1629; }
+    .tree-row:hover { border-color: #45648e; }
+    .row-key { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c0cceb; font-size: 12px; font-family: ui-monospace, monospace; }
+    .row-control { min-width: 0; }
+    .row-type { color: var(--muted); font-size: 10px; }
+    .null-value { color: var(--muted); font-size: 12px; font-style: italic; }
+    .delete { padding: 4px 7px; color: #ff9caa; background: transparent; }
+    #raw-view { display: none; }
+    #raw-editor { width: 100%; min-height: 66vh; resize: vertical; padding: 16px; color: #cfe0ff; font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; }
+    .raw-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 9px; color: var(--muted); font-size: 11px; }
+    .footer-hint { margin-top: 16px; color: var(--muted); font-size: 11px; }
+    @media (max-width: 800px) {
+      header { padding: 0 14px; }
+      .connection { display: none; }
+      .workspace { grid-template-columns: 1fr; }
+      aside { max-height: 260px; border-right: 0; border-bottom: 1px solid var(--line); }
+      main { padding: 18px 14px 24px; }
+      .editor-head { display: grid; }
+      .head-actions { justify-content: flex-start; }
+      .tree-row { grid-template-columns: 1fr; gap: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <div><h1>Aura Config Studio</h1><div class="subtitle">Interactive JSON authoring for <code>Content/Config</code></div></div>
+    </div>
+    <div class="header-actions">
+      <div class="connection"><span id="connection-dot" class="dot"></span><span id="connection-label">Connecting</span></div>
+      <button id="refresh" class="quiet" title="Refresh file list">↻ Refresh</button>
+    </div>
+  </header>
+  <div class="workspace">
+    <aside>
+      <div class="side-heading"><strong>Configuration files</strong><span id="file-count" class="count">Loading…</span></div>
+      <div class="search"><span>⌕</span><input id="search" type="text" placeholder="Filter files…" autocomplete="off"></div>
+      <div id="file-list"></div>
+    </aside>
+    <main>
+      <div id="empty-state" class="empty"><div class="empty-card"><h2>Select a configuration</h2><p>Choose a JSON file to inspect its structure, edit values inline, or switch to Raw JSON for precise changes.</p></div></div>
+      <section id="editor" hidden>
+        <div class="editor-head">
+          <div><div class="eyebrow">Editing configuration</div><h2 id="editor-title" class="editor-title"></h2><div id="editor-path" class="editor-path"></div></div>
+          <div class="head-actions"><span id="dirty" class="dirty">Unsaved changes</span><button id="save" class="primary" disabled>Save changes</button></div>
+        </div>
+        <div id="notice" class="notice"></div>
+        <div class="tabs"><button id="form-tab" class="tab active">Structured view</button><button id="raw-tab" class="tab">Raw JSON</button></div>
+        <div id="form-view"></div>
+        <div id="raw-view"><textarea id="raw-editor" spellcheck="false"></textarea><div class="raw-actions"><span>Changes are checked again by the native backend before writing.</span><button id="format" class="quiet">Format JSON</button></div></div>
+        <div class="footer-hint">Ctrl/Cmd + S saves the active file. Every successful save creates a neighboring <code>.bak</code> copy.</div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const socketUrl = "__AURA_WEBSOCKET_URL__";
+    const $ = id => document.getElementById(id);
+    const state = { socket: null, files: [], selectedPath: "", document: null, rawText: "", version: "", dirty: false, tab: "form", request: 0, saving: false };
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, character => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[character]));
+    }
+    function pathToken(path) { return encodeURIComponent(JSON.stringify(path)); }
+    function readPathToken(token) { return JSON.parse(decodeURIComponent(token)); }
+    function pretty(value) { return JSON.stringify(value, null, 2); }
+    function formatBytes(bytes) { return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`; }
+    function valueLabel(value) { return Array.isArray(value) ? `array · ${value.length}` : `object · ${Object.keys(value).length}`; }
+    function valueKind(value) { if (value === null) return "null"; if (Array.isArray(value)) return "array"; return typeof value; }
+    function defaultValue() { return ""; }
+
+    function setNotice(message, kind = "") {
+      const notice = $("notice");
+      notice.textContent = message || "";
+      notice.className = `notice${message ? " visible" : ""}${kind ? ` ${kind}` : ""}`;
+    }
+    function setDirty(value) {
+      state.dirty = value;
+      $("dirty").classList.toggle("visible", value);
+      $("save").disabled = !value || state.saving || !state.selectedPath;
+    }
+    function markDirty() {
+      setDirty(true);
+      setNotice("Local changes are ready to save.", "warn");
+      if (state.tab === "form") state.rawText = state.document === null ? "" : pretty(state.document);
+    }
+    function send(command, payload = {}) {
+      if (!state.socket || state.socket.readyState !== WebSocket.OPEN) {
+        setNotice("The native bridge is not connected yet.", "bad");
+        return;
+      }
+      const requestId = `config-${++state.request}`;
+      state.socket.send(JSON.stringify({ type: "command", command, payload: { ...payload, requestId } }));
+    }
+
+    function connect() {
+      state.socket = new WebSocket(socketUrl);
+      state.socket.onopen = () => {
+        $("connection-dot").classList.add("online");
+        $("connection-label").textContent = "Native bridge connected";
+        state.socket.send(JSON.stringify({ type: "ready" }));
+        send("config_list");
+      };
+      state.socket.onclose = () => {
+        $("connection-dot").classList.remove("online");
+        $("connection-label").textContent = "Bridge disconnected";
+        setTimeout(connect, 1000);
+      };
+      state.socket.onerror = () => { $("connection-label").textContent = "Connection error"; };
+      state.socket.onmessage = event => {
+        let message;
+        try { message = JSON.parse(event.data); } catch (_) { return; }
+        if (message.type !== "event") return;
+        handleEvent(message.event, message.payload || {});
+      };
+    }
+
+    function handleEvent(eventName, payload) {
+      if (eventName === "config_list") {
+        state.files = payload.files || [];
+        renderFileList();
+        if (state.selectedPath && state.files.some(file => file.path === state.selectedPath)) {
+          const selected = state.files.find(file => file.path === state.selectedPath);
+          $("editor-path").textContent = selected.path;
+        } else if (!state.selectedPath && state.files.length) {
+          selectFile(state.files[0].path);
+        }
+        return;
+      }
+      if (eventName === "config_loaded") {
+        if (payload.path !== state.selectedPath) return;
+        state.version = payload.version || "";
+        state.rawText = payload.json || "";
+        state.document = null;
+        try { state.document = JSON.parse(state.rawText); } catch (_) {}
+        setDirty(false);
+        renderEditor();
+        setNotice(payload.valid ? "Loaded and validated by native C++." : (payload.validationError || "Invalid JSON; repair it in Raw JSON."), payload.valid ? "good" : "bad");
+        return;
+      }
+      if (eventName === "config_saved") {
+        if (payload.path !== state.selectedPath) return;
+        state.version = payload.version || state.version;
+        state.saving = false;
+        setDirty(false);
+        setNotice(`Saved safely. Backup created at ${payload.backupPath || "the neighboring .bak file"}.`, "good");
+        send("config_list");
+        return;
+      }
+      if (eventName === "config_error") {
+        state.saving = false;
+        $("save").disabled = !state.dirty;
+        setNotice(payload.error || "The native config operation failed.", "bad");
+      }
+    }
+
+    function renderFileList() {
+      const filter = $("search").value.trim().toLowerCase();
+      const visible = state.files.filter(file => file.path.toLowerCase().includes(filter));
+      $("file-count").textContent = `${state.files.length} file${state.files.length === 1 ? "" : "s"}`;
+      $("file-list").innerHTML = visible.length ? visible.map(file => `
+        <button class="file-button${file.path === state.selectedPath ? " selected" : ""}" data-file-path="${escapeHtml(file.path)}">
+          <span class="file-icon">{ }</span><span class="file-copy"><span class="file-name">${escapeHtml(file.path)}</span><span class="file-meta">${formatBytes(file.bytes || 0)} · ${file.valid ? "valid JSON" : "invalid JSON"}</span></span><span class="validity${file.valid ? "" : " invalid"}"></span>
+        </button>`).join("") : `<div class="file-meta" style="padding:14px 9px">No matching configurations.</div>`;
+      document.querySelectorAll("[data-file-path]").forEach(button => button.addEventListener("click", () => selectFile(button.dataset.filePath)));
+    }
+
+    function selectFile(path) {
+      if (state.dirty && state.selectedPath !== path && !window.confirm("Discard unsaved changes and open another configuration?")) return;
+      state.selectedPath = path;
+      const file = state.files.find(item => item.path === path);
+      $("empty-state").hidden = true;
+      $("editor").hidden = false;
+      $("editor-title").textContent = path.split("/").pop();
+      $("editor-path").textContent = path;
+      $("form-view").innerHTML = `<div class="empty"><div class="empty-card"><p>Loading ${escapeHtml(path)}…</p></div></div>`;
+      state.document = null;
+      state.rawText = "";
+      state.version = file ? file.version : "";
+      setDirty(false);
+      setNotice("Reading the file through the native bridge…");
+      renderFileList();
+      send("config_read", { path });
+    }
+
+    function getAtPath(path) {
+      return path.reduce((current, key) => current == null ? undefined : current[key], state.document);
+    }
+    function setAtPath(path, value) {
+      if (!path.length) { state.document = value; return; }
+      const parent = getAtPath(path.slice(0, -1));
+      parent[path[path.length - 1]] = value;
+    }
+    function removeAtPath(path) {
+      if (!path.length) return;
+      const parent = getAtPath(path.slice(0, -1));
+      const key = path[path.length - 1];
+      if (Array.isArray(parent)) parent.splice(Number(key), 1); else delete parent[key];
+    }
+
+    function primitiveControl(value, path) {
+      const token = pathToken(path);
+      if (typeof value === "boolean") return `<input class="primitive" type="checkbox" data-action="edit" data-path="${token}" ${value ? "checked" : ""}>`;
+      if (typeof value === "number") return `<input class="primitive" type="number" step="any" value="${escapeHtml(value)}" data-action="edit" data-path="${token}">`;
+      if (typeof value === "string") return `<input class="primitive" type="text" value="${escapeHtml(value)}" data-action="edit" data-path="${token}">`;
+      return `<span class="null-value">null</span><button class="quiet" data-action="set-empty-string" data-path="${token}">Set text</button>`;
+    }
+
+    function renderNode(value, path, label, root = false) {
+      if (value === null || typeof value !== "object") {
+        return `<div class="tree-row"><span class="row-key">${escapeHtml(label)}</span><span class="row-control">${primitiveControl(value, path)}</span><span class="row-type">${valueKind(value)}</span></div>`;
+      }
+      const array = Array.isArray(value);
+      const entries = array ? value.map((item, index) => [index, item]) : Object.entries(value);
+      const token = pathToken(path);
+      const children = entries.length ? entries.map(([key, item]) => `${renderNode(item, path.concat([String(key)]), String(key))}<button class="delete" data-action="remove" data-path="${pathToken(path.concat([String(key)]))}">Remove ${array ? "item" : "field"}</button>`).join("") : `<div class="file-meta" style="padding:8px">Empty ${array ? "array" : "object"}</div>`;
+      return `<details class="tree-group" ${root || path.length < 1 ? "open" : ""}><summary><span class="node-label">${escapeHtml(label)}</span><span class="node-type">${valueLabel(value)}</span><span class="node-actions"><button class="quiet" data-action="add" data-path="${token}">+ ${array ? "item" : "field"}</button></span></summary><div class="tree-children">${children}</div></details>`;
+    }
+
+    function renderEditor() {
+      if (!state.selectedPath) return;
+      if (state.document === null) {
+        $("form-view").innerHTML = `<div class="empty"><div class="empty-card"><h2>Raw JSON needs repair</h2><p>This document is not parseable. Use the Raw JSON tab to fix it, then save.</p></div></div>`;
+      } else {
+        $("form-view").innerHTML = renderNode(state.document, [], state.selectedPath.split("/").pop(), true);
+      }
+      $("raw-editor").value = state.rawText;
+      $("form-view").style.display = state.tab === "form" ? "grid" : "none";
+      $("raw-view").style.display = state.tab === "raw" ? "block" : "none";
+      $("form-tab").classList.toggle("active", state.tab === "form");
+      $("raw-tab").classList.toggle("active", state.tab === "raw");
+    }
+
+    function save() {
+      if (!state.selectedPath || state.saving) return;
+      const text = state.tab === "raw" ? $("raw-editor").value : pretty(state.document);
+      let parsed;
+      try { parsed = JSON.parse(text); } catch (error) { setNotice(`JSON parse error: ${error.message}`, "bad"); return; }
+      if (!parsed || typeof parsed !== "object") { setNotice("A config must have an object or array at its root.", "bad"); return; }
+      state.document = parsed;
+      state.rawText = pretty(parsed);
+      state.saving = true;
+      $("save").disabled = true;
+      setNotice("Validating and writing through native C++…");
+      send("config_save", { path: state.selectedPath, json: state.rawText, version: state.version });
+    }
+
+    $("refresh").addEventListener("click", () => send("config_list"));
+    $("search").addEventListener("input", renderFileList);
+    $("save").addEventListener("click", save);
+    $("form-tab").addEventListener("click", () => { state.tab = "form"; renderEditor(); });
+    $("raw-tab").addEventListener("click", () => { state.tab = "raw"; $("raw-editor").value = state.document === null ? state.rawText : pretty(state.document); renderEditor(); });
+    $("format").addEventListener("click", () => { try { $("raw-editor").value = pretty(JSON.parse($("raw-editor").value)); setNotice("Raw JSON formatted locally.", "good"); } catch (error) { setNotice(`JSON parse error: ${error.message}`, "bad"); } });
+    $("raw-editor").addEventListener("input", () => { state.rawText = $("raw-editor").value; markDirty(); });
+    $("form-view").addEventListener("input", event => {
+      const target = event.target;
+      if (!target.dataset.path || target.dataset.action !== "edit") return;
+      const path = readPathToken(target.dataset.path);
+      const current = getAtPath(path);
+      const value = typeof current === "boolean" ? target.checked : typeof current === "number" ? Number(target.value) : target.value;
+      setAtPath(path, value);
+      markDirty();
+    });
+    $("form-view").addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      event.preventDefault();
+      const path = readPathToken(button.dataset.path);
+      const action = button.dataset.action;
+      if (action === "remove") {
+        removeAtPath(path);
+        markDirty();
+        renderEditor();
+      } else if (action === "set-empty-string") {
+        setAtPath(path, "");
+        markDirty();
+        renderEditor();
+      } else if (action === "add") {
+        const parent = getAtPath(path);
+        if (Array.isArray(parent)) parent.push(defaultValue());
+        else {
+          const key = window.prompt("New property name:");
+          if (!key || Object.prototype.hasOwnProperty.call(parent, key)) return;
+          parent[key] = defaultValue();
+        }
+        markDirty();
+        renderEditor();
+      }
+    });
+    document.addEventListener("keydown", event => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); save(); } });
+    connect();
+  </script>
+</body>
+</html>

@@ -13,7 +13,10 @@ import time
 import logging
 
 # Engine's remote_execution.py (the client implementation of the protocol).
-ENGINE_REMOTE = r"C:/Git/UnrealEngine-5.5/Engine/Plugins/Experimental/PythonScriptPlugin/Content/Python"
+ENGINE_REMOTE = os.path.join(
+    os.environ.get("UE_ENGINE_ROOT", r"C:/Git/UnrealEngine-5.5"),
+    "Engine", "Plugins", "Experimental", "PythonScriptPlugin", "Content", "Python"
+)
 sys.path.insert(0, ENGINE_REMOTE)
 
 import remote_execution as _re  # noqa: E402

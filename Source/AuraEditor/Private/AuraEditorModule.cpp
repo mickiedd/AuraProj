@@ -237,6 +237,12 @@ private:
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"));
 
 		MenuBuilder.AddMenuEntry(
+			LOCTEXT("OpenConfigStudioLabel", "Open Config Studio (PIE)"),
+			LOCTEXT("OpenConfigStudioTooltip", "Open the embedded Content/Config JSON editor in the active Play-in-Editor session. Start PIE first if no session is running."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Edit"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnOpenConfigStudioClicked)));
+
+		MenuBuilder.AddMenuEntry(
 			LOCTEXT("StopAllDedicatedServersLabel", "Stop All Dedicated Servers"),
 			LOCTEXT("StopAllDedicatedServersTooltip", "Stop every launched dedicated server process for this project."),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Delete"),
@@ -416,14 +422,14 @@ private:
 					}
 					else
 					{
-						SendCheatCommandToPIE(Info.Name);
+						SendConsoleCommandToPIE(Info.Name);
 					}
 				})));
 		}
 	}
 
 	/** Sends a console command to every running PIE session's in-game console. */
-	void SendCheatCommandToPIE(const FString& Command) const
+	void SendConsoleCommandToPIE(const FString& Command) const
 	{
 		bool bSent = false;
 
@@ -452,17 +458,23 @@ private:
 
 		if (bSent)
 		{
-			UE_LOG(LogAuraEditor, Display, TEXT("Cheat command sent to PIE: %s"), *Command);
+			UE_LOG(LogAuraEditor, Display, TEXT("Console command sent to PIE: %s"), *Command);
 		}
 		else
 		{
-			UE_LOG(LogAuraEditor, Warning, TEXT("Cheat command not sent (no PIE session running): %s"), *Command);
+			UE_LOG(LogAuraEditor, Warning, TEXT("Console command not sent (no PIE session running): %s"), *Command);
 			FMessageDialog::Open(
 				EAppMsgType::Ok,
 				FText::Format(
-					LOCTEXT("CheatNoPIERunning", "No Play-in-Editor session is running.\n\nStart a PIE session first (cheats are auto-enabled in non-shipping builds), then reopen the Launch menu and pick the command again.\n\nCommand: {0}"),
+					LOCTEXT("ConsoleCommandNoPIERunning", "No Play-in-Editor session is running.\n\nStart a PIE session first, then reopen the Launch menu and pick the command again.\n\nCommand: {0}"),
 					FText::FromString(Command)));
 		}
+	}
+
+	void OnOpenConfigStudioClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("Config Studio menu option clicked"));
+		SendConsoleCommandToPIE(TEXT("AuraWebUI.ConfigEditor"));
 	}
 
 	/**
@@ -489,7 +501,7 @@ private:
 					return;
 				}
 
-				SendCheatCommandToPIE(Info.Name + TEXT(" ") + Args);
+				SendConsoleCommandToPIE(Info.Name + TEXT(" ") + Args);
 			}));
 
 		const TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().GetActiveTopLevelWindow();
@@ -497,7 +509,7 @@ private:
 		{
 			// No window to host the popup; fall back to running the bare command
 			// (the cheat will report missing arguments in the PIE console).
-			SendCheatCommandToPIE(Info.Name);
+			SendConsoleCommandToPIE(Info.Name);
 			return;
 		}
 
