@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Server readiness and Behavior Tree blackboard fix</title>
+  <desc id="desc">Before and after flow showing the missing desert battle zone and invalid native Behavior Tree helper calls replaced by a registered fail-closed zone and owner-component blackboard access, with build and live network validation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#172033"/>
+    </linearGradient>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#fb7185"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34d399"/>
+    </marker>
+    <style>
+      .title{font:700 30px 'Segoe UI',sans-serif;fill:#f8fafc}.sub{font:400 15px 'Segoe UI',sans-serif;fill:#94a3b8}
+      .head{font:700 20px 'Segoe UI',sans-serif}.boxTitle{font:700 16px 'Segoe UI',sans-serif;fill:#f8fafc}
+      .body{font:400 14px 'Segoe UI',sans-serif;fill:#cbd5e1}.small{font:600 13px 'Segoe UI',sans-serif;fill:#e2e8f0}
+      .before{fill:#261521;stroke:#fb7185;stroke-width:2}.after{fill:#10251f;stroke:#34d399;stroke-width:2}
+      .neutral{fill:#172033;stroke:#475569;stroke-width:1.5}.test{fill:#14213a;stroke:#60a5fa;stroke-width:1.5}
+      .redLine{stroke:#fb7185;stroke-width:2.5;fill:none;marker-end:url(#arrowRed)}
+      .greenLine{stroke:#34d399;stroke-width:2.5;fill:none;marker-end:url(#arrowGreen)}
+    </style>
+  </defs>
+  <rect width="1200" height="720" rx="18" fill="url(#bg)"/>
+  <text x="54" y="54" class="title">Server readiness + native BT blackboard repair</text>
+  <text x="54" y="82" class="sub">Two independent failures repaired and guarded by source, build, runtime, and real client-join checks</text>
+
+  <text x="70" y="126" class="head" fill="#fb7185">BEFORE — startup blocked and logs flooded</text>
+  <text x="640" y="126" class="head" fill="#34d399">AFTER — fail-closed, ready, and joinable</text>
+
+  <rect x="55" y="148" width="500" height="92" rx="12" class="before"/>
+  <text x="77" y="177" class="boxTitle">Population → missing zone</text>
+  <text x="77" y="202" class="body">DesertVillageCivilians references DesertVillages</text>
+  <text x="77" y="222" class="body">BattleZones.json contains no matching map + zone pair</text>
+  <path d="M305 240 L305 270" class="redLine"/>
+  <rect x="55" y="271" width="500" height="92" rx="12" class="before"/>
+  <text x="77" y="300" class="boxTitle">Cross-validation fails globally</text>
+  <text x="77" y="325" class="body">WorldReadiness = Unhealthy; population finalization rolls back</text>
+  <text x="77" y="345" class="body">No GSM ready notice → PreLogin rejection / client timeout</text>
+
+  <rect x="55" y="390" width="500" height="92" rx="12" class="before"/>
+  <text x="77" y="419" class="boxTitle">Native BT service → Blueprint helper</text>
+  <text x="77" y="444" class="body">UBTFunctionLibrary tries to recover an instanced node owner</text>
+  <text x="77" y="464" class="body">OwnerComp / BTComponent are null → repeated runtime ensures</text>
+
+  <rect x="625" y="148" width="520" height="92" rx="12" class="after"/>
+  <text x="647" y="177" class="boxTitle">Registered DesertVillages zone</text>
+  <text x="647" y="202" class="body">Map-wide bounds on Scifi_Desert_Level</text>
+  <text x="647" y="222" class="body">Fail-closed policy: no PvP or Civilian damage; protected targets</text>
+  <path d="M885 240 L885 270" class="greenLine"/>
+  <rect x="625" y="271" width="520" height="92" rx="12" class="after"/>
+  <text x="647" y="300" class="boxTitle">Cross-validation and population finalize</text>
+  <text x="647" y="325" class="body">WorldReadiness = Ready → GSM acknowledges on attempt 1</text>
+  <text x="647" y="345" class="body">Clients are welcomed; Login and Join succeed on both maps</text>
+
+  <rect x="625" y="390" width="520" height="92" rx="12" class="after"/>
+  <text x="647" y="419" class="boxTitle">Native BT service → supplied OwnerComp</text>
+  <text x="647" y="444" class="body">OwnerComp.GetBlackboardComponent() writes both selectors</text>
+  <text x="647" y="464" class="body">Repeated AI ticks: 0 OwnerComp ensures, 0 script errors</text>
+
+  <rect x="55" y="525" width="1090" height="140" rx="14" class="test"/>
+  <text x="78" y="556" class="head" fill="#93c5fd">VALIDATION</text>
+  <rect x="78" y="576" width="230" height="60" rx="9" class="neutral"/>
+  <text x="96" y="600" class="small">Static contracts</text>
+  <text x="96" y="621" class="body">zone cross-reference + BT guard</text>
+  <rect x="326" y="576" width="230" height="60" rx="9" class="neutral"/>
+  <text x="344" y="600" class="small">AuraEditor build</text>
+  <text x="344" y="621" class="body">Win64 Development passed</text>
+  <rect x="574" y="576" width="260" height="60" rx="9" class="neutral"/>
+  <text x="592" y="600" class="small">Live managed servers</text>
+  <text x="592" y="621" class="body">Sci-Fi 32 + Role Battle 3 live</text>
+  <rect x="852" y="576" width="270" height="60" rx="9" class="neutral"/>
+  <text x="870" y="600" class="small">Network + runtime</text>
+  <text x="870" y="621" class="body">2/2 joins; 0 BT ensures/crashes</text>
+  <text x="55" y="695" class="sub">Affected flow: config registry → coordinated readiness → GSM discovery → PreLogin/Join • AI flow: TickNode → blackboard selectors</text>
+</svg>

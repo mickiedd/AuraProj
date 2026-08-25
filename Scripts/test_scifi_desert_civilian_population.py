@@ -56,6 +56,31 @@ def check_population_config(failures: list[str]) -> None:
     require(row.get("memberOverrides") == [], "desert civilians must not inherit market overrides", failures)
     require(row.get("spawnOnLoad") is True, "desert civilians must spawn on load", failures)
 
+    try:
+        battle_config = json.loads(read("Content/Config/BattleZones.json"))
+    except (OSError, json.JSONDecodeError) as exc:
+        failures.append(f"battle-zone config cannot be parsed: {exc}")
+        return
+
+    zones = [
+        zone for zone in battle_config.get("zones", [])
+        if zone.get("id") == row.get("zoneId") and zone.get("mapId") == row.get("mapId")
+    ]
+    require(len(zones) == 1,
+            "DesertVillageCivilians must reference exactly one registered zone on Scifi_Desert_Level", failures)
+    if len(zones) == 1:
+        zone = zones[0]
+        policy = zone.get("policy", {})
+        extent = zone.get("extent", {})
+        require(all(extent.get(axis, 0) > 0 for axis in ("x", "y", "z")),
+                "DesertVillages must have positive map-wide bounds", failures)
+        require(policy == {
+            "allowPvP": False,
+            "allowPlayerToCivilian": False,
+            "allowEnemyToCivilian": False,
+            "targetProtected": True,
+        }, "DesertVillages must remain fail-closed", failures)
+
 
 def check_topology_script(failures: list[str]) -> None:
     script = read("Scripts/configure_desert_civilian_level.py")
@@ -75,6 +100,7 @@ def check_topology_script(failures: list[str]) -> None:
 def check_native_distribution_and_bounds(failures: list[str]) -> None:
     manager = read("Source/Aura/Private/World/AuraPopulationManager.cpp")
     volume = read("Source/Aura/Private/World/AuraCivilianSpawnVolume.cpp")
+    hostile_service = read("Source/Aura/Private/AI/BTService_FindNearestHostile.cpp")
     require("FindVolumeForRow(Row, SlotIndex, Attempt)" in manager,
             "population manager is not using slot-aware volume selection", failures)
     require("const int32 Index = (SlotIndex + AttemptIndex + Offset) % Row.SpawnVolumeIds.Num();" in manager,
@@ -85,6 +111,10 @@ def check_native_distribution_and_bounds(failures: list[str]) -> None:
             "spawn volume does not apply candidate bounds during runtime", failures)
     require("Volume->SetBoxExtent(CandidateExtents);" in volume,
             "spawn volume does not copy CandidateExtents to its collision component", failures)
+    require("OwnerComp.GetBlackboardComponent()" in hostile_service,
+            "native hostile service does not use its owning Behavior Tree component", failures)
+    require("UBTFunctionLibrary" not in hostile_service,
+            "native hostile service must not use Blueprint-only blackboard helpers", failures)
 
 
 def check_topology_log(log_path: Path, failures: list[str]) -> None:
@@ -125,6 +155,12 @@ def check_runtime_log(log_path: Path, failures: list[str]) -> None:
     require("[Population][Volume] Candidate rejected" not in log,
             "runtime rejected one or more village spawn candidates", failures)
     require("Failed to start BT" not in log, "runtime contains a Behavior Tree startup failure", failures)
+    require("[WorldReadiness] State=Ready" in log, "runtime world never reached Ready", failures)
+    require("[WorldReadiness] State=Unhealthy" not in log, "runtime world became unhealthy", failures)
+    require("ensureAsRuntimeWarning condition failed: OwnerComp != nullptr" not in log,
+            "runtime contains native Behavior Tree owner-component ensures", failures)
+    require("ensureAsRuntimeWarning condition failed: BTComponent != nullptr" not in log,
+            "runtime contains native Behavior Tree component ensures", failures)
     destination_count = log.count("[CivilianAI][BT]") - log.count("[CivilianAI][BT] No reachable destination")
     require(destination_count >= 3, "runtime did not exercise civilian destinations", failures)
 

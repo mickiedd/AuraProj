@@ -50,13 +50,21 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 	
 	UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), OverlayWidgetClass);
 	OverlayWidget = Cast<UAuraUserWidget>(Widget);
+
+	// WBP_HealthManaSpells assigns each spell globe's InputTag in PreConstruct.
+	// Build the Slate tree before publishing initial ability info so those tags are
+	// ready when the globe listeners receive their first payload.
+	Widget->TakeWidget();
 	
 	const FWidgetControllerParams WidgetControllerParams(PC, PS, ASC, AS);
 	UOverlayWidgetController* WidgetController = GetOverlayWidgetController(WidgetControllerParams);
 
 	OverlayWidget->SetWidgetController(WidgetController);
-	WidgetController->BroadcastInitialValues();
 	Widget->AddToViewport();
+
+	// Adding the widget can run PreConstruct again, and WBP_SpellGlobe clears its
+	// brush there. Publish only after the final attachment lifecycle has completed.
+	WidgetController->BroadcastInitialValues();
 }
 
 void AAuraHUD::ToggleLocationDisplay()

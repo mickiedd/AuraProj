@@ -17,12 +17,15 @@ void UOverlayWidgetController::OnMountedTagChanged(const FGameplayTag MountedTag
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
-
 	OnHealthChanged.Broadcast(GetAuraAS()->GetHealth());
 	OnMaxHealthChanged.Broadcast(GetAuraAS()->GetMaxHealth());
 	OnManaChanged.Broadcast(GetAuraAS()->GetMana());
 	OnMaxManaChanged.Broadcast(GetAuraAS()->GetMaxMana());
-	
+
+	// The HUD installs its Blueprint listeners after this controller is created and
+	// its ASC callbacks are bound. Replay any abilities that replicated before the
+	// widgets were ready so their initial icons cannot be lost to that ordering.
+	BroadcastAbilityInfo();
 }
 
 void UOverlayWidgetController::BindCallbacksToDependencies()
@@ -67,10 +70,6 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 	{
 		GetAuraASC()->AbilityEquipped.AddUObject(this, &UOverlayWidgetController::OnAbilityEquipped);
 		GetAuraASC()->AbilitiesGivenDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastAbilityInfo);
-		if (GetAuraASC()->bStartupAbilitiesGiven)
-		{
-			BroadcastAbilityInfo();
-		}
 
 		// Listen for mount state changes
 		AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Player_Mounted_Broom, EGameplayTagEventType::NewOrRemoved)

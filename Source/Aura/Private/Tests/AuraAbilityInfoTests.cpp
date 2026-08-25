@@ -12,13 +12,20 @@
 #include "AuraAbilityGraph/Public/DataAbility.h"
 #include "AuraAbilityGraph/Public/Nodes/Actions/SpawnShardsNode.h"
 #include "AuraAbilityGraph/Public/Tests/TestDataAbility.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/Image.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "Player/AuraPlayerState.h"
+#include "Tests/Fixtures/AuraWidgetControllerTestReceiver.h"
+#include "UI/Widget/AuraUserWidget.h"
+#include "UI/WidgetController/OverlayWidgetController.h"
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraAbilityInfoBoundaryTest,
@@ -132,6 +139,195 @@ bool FAuraAbilityRuntimeResolutionTest::RunTest(const FString& Parameters)
 	const FAuraAbilityInfo TagOnly = ASC->GetRuntimeAbilityInfoForTag(AbilityTag);
 	TestEqual(TEXT("Tag lookup resolves the same ability type"), TagOnly.AbilityType, Merged.AbilityType);
 	TestEqual(TEXT("Tag lookup resolves the same cooldown"), TagOnly.CooldownTag, Merged.CooldownTag);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraOverlayStartupAbilityReplayTest,
+	"Aura.UI.Overlay.StartupAbilitiesReplayedAfterWidgetBinding",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraOverlayStartupAbilityReplayTest::RunTest(const FString& Parameters)
+{
+	UWorld* TestWorld = UWorld::CreateWorld(EWorldType::Game, /*bInformEngineOfWorld=*/false);
+	if (!TestNotNull(TEXT("Transient test world created"), TestWorld)) return false;
+	TestWorld->AddToRoot();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AAuraPlayerState* PlayerState = TestWorld->SpawnActor<AAuraPlayerState>(AAuraPlayerState::StaticClass(), FTransform::Identity, SpawnParams);
+	if (!TestNotNull(TEXT("PlayerState fixture spawned"), PlayerState))
+	{
+		TestWorld->RemoveFromRoot();
+		TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
+		return false;
+	}
+
+	UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(PlayerState->GetAbilitySystemComponent());
+	UAttributeSet* Attributes = PlayerState->GetAttributeSet();
+	if (!TestNotNull(TEXT("PlayerState has an Aura ASC"), ASC)
+		|| !TestNotNull(TEXT("PlayerState has attributes"), Attributes))
+	{
+		TestWorld->RemoveFromRoot();
+		TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
+		return false;
+	}
+
+	ASC->InitAbilityActorInfo(PlayerState, PlayerState);
+	const FGameplayTag StatusTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Status.Equipped"));
+	const TArray<TPair<FGameplayTag, FGameplayTag>> ExpectedLoadout = {
+		{ FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt")), FGameplayTag::RequestGameplayTag(TEXT("InputTag.LMB")) },
+		{ FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBlast")), FGameplayTag::RequestGameplayTag(TEXT("InputTag.1")) },
+		{ FGameplayTag::RequestGameplayTag(TEXT("Abilities.Arcane.ArcaneShards")), FGameplayTag::RequestGameplayTag(TEXT("InputTag.2")) },
+		{ FGameplayTag::RequestGameplayTag(TEXT("Abilities.Lightning.Electrocute")), FGameplayTag::RequestGameplayTag(TEXT("InputTag.3")) }
+	};
+	for (const TPair<FGameplayTag, FGameplayTag>& ExpectedAbility : ExpectedLoadout)
+	{
+		FGameplayAbilitySpec AbilitySpec(UAuraDataAbility::StaticClass(), 1);
+		AbilitySpec.GetDynamicSpecSourceTags().AddTag(ExpectedAbility.Key);
+		AbilitySpec.GetDynamicSpecSourceTags().AddTag(ExpectedAbility.Value);
+		AbilitySpec.GetDynamicSpecSourceTags().AddTag(StatusTag);
+		ASC->GiveAbility(AbilitySpec);
+	}
+	ASC->bStartupAbilitiesGiven = true;
+
+	TSubclassOf<UOverlayWidgetController> ControllerClass = LoadClass<UOverlayWidgetController>(
+		nullptr, TEXT("/Game/Blueprints/UI/WidgetController/BP_OverlayWidgetController.BP_OverlayWidgetController_C"));
+	UOverlayWidgetController* Controller = ControllerClass
+		? NewObject<UOverlayWidgetController>(GetTransientPackage(), ControllerClass)
+		: nullptr;
+	if (!TestNotNull(TEXT("Runtime overlay controller Blueprint can be instantiated"), Controller))
+	{
+		TestWorld->RemoveFromRoot();
+		TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
+		return false;
+	}
+	Controller->SetWidgetControllerParams(FWidgetControllerParams(nullptr, PlayerState, ASC, Attributes));
+
+	// Reproduce the real failure ordering: startup specs exist and ASC callbacks are
+	// bound before the overlay's spell-globe listeners receive their controller.
+	Controller->BindCallbacksToDependencies();
+	TSubclassOf<UAuraUserWidget> OverlayClass = LoadClass<UAuraUserWidget>(
+		nullptr, TEXT("/Game/Blueprints/UI/Overlay/WBP_Overlay.WBP_Overlay_C"));
+	UAuraUserWidget* Overlay = OverlayClass ? CreateWidget<UAuraUserWidget>(TestWorld, OverlayClass) : nullptr;
+	if (!TestNotNull(TEXT("Real overlay Blueprint can be instantiated"), Overlay))
+	{
+		TestWorld->RemoveFromRoot();
+		TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
+		return false;
+	}
+	// Match AAuraHUD: PreConstruct establishes the spell-globe input tags before
+	// controller assignment and the initial ability replay.
+	Overlay->TakeWidget();
+	Overlay->SetWidgetController(Controller);
+	auto ReadObjectProperty = [](UObject* Owner, const FName PropertyName) -> UObject*
+	{
+		if (!Owner) return nullptr;
+		const FObjectPropertyBase* Property = FindFProperty<FObjectPropertyBase>(Owner->GetClass(), PropertyName);
+		return Property ? Property->GetObjectPropertyValue_InContainer(Owner) : nullptr;
+	};
+	UObject* HealthManaSpells = ReadObjectProperty(Overlay, TEXT("WBP_HealthManaSpells"));
+	const TArray<TPair<FName, FGameplayTag>> ExpectedGlobes = {
+		{ TEXT("SpellGlobe_LMB"), FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt")) },
+		{ TEXT("SpellGlobe_1"), FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBlast")) },
+		{ TEXT("SpellGlobe_2"), FGameplayTag::RequestGameplayTag(TEXT("Abilities.Arcane.ArcaneShards")) },
+		{ TEXT("SpellGlobe_3"), FGameplayTag::RequestGameplayTag(TEXT("Abilities.Lightning.Electrocute")) }
+	};
+	if (TestNotNull(TEXT("Overlay contains the health/mana/spells widget"), HealthManaSpells))
+	{
+		// Adding a real overlay to the viewport can invoke PreConstruct again. The
+		// spell-globe Blueprint clears its brush there, so exercise that final clear
+		// before the post-attachment initial replay.
+		for (const TPair<FName, FGameplayTag>& ExpectedGlobe : ExpectedGlobes)
+		{
+			if (UAuraUserWidget* SpellGlobe = Cast<UAuraUserWidget>(ReadObjectProperty(HealthManaSpells, ExpectedGlobe.Key)))
+			{
+				SpellGlobe->PreConstruct(false);
+			}
+		}
+	}
+
+	UAuraWidgetControllerTestReceiver* Receiver = NewObject<UAuraWidgetControllerTestReceiver>();
+	Controller->AbilityInfoDelegate.AddDynamic(Receiver, &UAuraWidgetControllerTestReceiver::ReceiveAbilityInfo);
+	TestEqual(TEXT("Binding dependencies does not publish before widgets bind"), Receiver->ReceivedAbilityInfo.Num(), 0);
+
+	Controller->BroadcastInitialValues();
+	TestEqual(TEXT("Initial values replay every already-replicated startup ability"), Receiver->ReceivedAbilityInfo.Num(), ExpectedLoadout.Num());
+	const TArray<UObject*> AbilityInfoListeners = Controller->AbilityInfoDelegate.GetAllObjects();
+	FString ListenerNames;
+	for (const UObject* Listener : AbilityInfoListeners)
+	{
+		if (!ListenerNames.IsEmpty()) ListenerNames += TEXT(", ");
+		ListenerNames += GetNameSafe(Listener);
+	}
+	AddInfo(FString::Printf(TEXT("AbilityInfoDelegate listeners (%d): %s"), AbilityInfoListeners.Num(), *ListenerNames));
+	for (const TPair<FGameplayTag, FGameplayTag>& ExpectedAbility : ExpectedLoadout)
+	{
+		const FAuraAbilityInfo* ReplayedInfo = Receiver->ReceivedAbilityInfo.FindByPredicate(
+			[&ExpectedAbility](const FAuraAbilityInfo& Info)
+			{
+				return Info.AbilityTag.MatchesTagExact(ExpectedAbility.Key);
+			});
+		if (TestNotNull(FString::Printf(TEXT("Startup replay includes %s"), *ExpectedAbility.Key.ToString()), ReplayedInfo))
+		{
+			TestEqual(FString::Printf(TEXT("%s keeps its input slot"), *ExpectedAbility.Key.ToString()), ReplayedInfo->InputTag, ExpectedAbility.Value);
+			TestEqual(FString::Printf(TEXT("%s keeps its equipped status"), *ExpectedAbility.Key.ToString()), ReplayedInfo->StatusTag, StatusTag);
+		}
+	}
+
+	if (TestNotNull(TEXT("Overlay contains the health/mana/spells widget"), HealthManaSpells))
+	{
+		for (const TPair<FName, FGameplayTag>& ExpectedGlobe : ExpectedGlobes)
+		{
+			UAuraUserWidget* SpellGlobe = Cast<UAuraUserWidget>(ReadObjectProperty(HealthManaSpells, ExpectedGlobe.Key));
+			if (!TestNotNull(FString::Printf(TEXT("Real overlay contains %s"), *ExpectedGlobe.Key.ToString()), SpellGlobe)) continue;
+			TestEqual(FString::Printf(TEXT("%s receives the overlay controller"), *ExpectedGlobe.Key.ToString()), SpellGlobe->GetWidgetController(), static_cast<UObject*>(Controller));
+			const FStructProperty* InputTagProperty = FindFProperty<FStructProperty>(SpellGlobe->GetClass(), TEXT("InputTag"));
+			const FGameplayTag* ActualInputTag = InputTagProperty
+				? InputTagProperty->ContainerPtrToValuePtr<FGameplayTag>(SpellGlobe)
+				: nullptr;
+			const FGameplayTag ExpectedInputTag = ExpectedLoadout.FindByPredicate(
+				[&ExpectedGlobe](const TPair<FGameplayTag, FGameplayTag>& Ability)
+				{
+					return Ability.Key.MatchesTagExact(ExpectedGlobe.Value);
+				})->Value;
+			TestTrue(
+				FString::Printf(TEXT("%s keeps its configured input tag"), *ExpectedGlobe.Key.ToString()),
+				ActualInputTag && ActualInputTag->MatchesTagExact(ExpectedInputTag));
+
+			UImage* SpellIcon = Cast<UImage>(ReadObjectProperty(SpellGlobe, TEXT("Image_SpellIcon")));
+			if (!TestNotNull(FString::Printf(TEXT("%s contains its icon image"), *ExpectedGlobe.Key.ToString()), SpellIcon)) continue;
+			const FAuraAbilityInfo* ExpectedInfo = Receiver->ReceivedAbilityInfo.FindByPredicate(
+				[&ExpectedGlobe](const FAuraAbilityInfo& Info)
+				{
+					return Info.AbilityTag.MatchesTagExact(ExpectedGlobe.Value);
+				});
+			TestTrue(
+				FString::Printf(TEXT("%s renders the expected ability icon"), *ExpectedGlobe.Key.ToString()),
+				ExpectedInfo && SpellIcon->GetBrush().GetResourceObject() == ExpectedInfo->Icon);
+		}
+	}
+
+	FString HUDSource;
+	const FString HUDSourcePath = FPaths::ProjectDir() / TEXT("Source/Aura/Private/UI/HUD/AuraHUD.cpp");
+	if (TestTrue(TEXT("AuraHUD implementation is readable"), FFileHelper::LoadFileToString(HUDSource, *HUDSourcePath)))
+	{
+		const int32 InitOverlayOffset = HUDSource.Find(TEXT("void AAuraHUD::InitOverlay"));
+		const FString InitOverlaySource = InitOverlayOffset != INDEX_NONE ? HUDSource.Mid(InitOverlayOffset) : FString();
+		const int32 TakeWidgetOffset = InitOverlaySource.Find(TEXT("Widget->TakeWidget();"));
+		const int32 SetControllerOffset = InitOverlaySource.Find(TEXT("OverlayWidget->SetWidgetController(WidgetController);"));
+		const int32 AddViewportOffset = InitOverlaySource.Find(TEXT("Widget->AddToViewport();"));
+		const int32 BroadcastOffset = InitOverlaySource.Find(TEXT("WidgetController->BroadcastInitialValues();"));
+		TestTrue(
+			TEXT("AuraHUD builds tags, binds listeners, completes viewport PreConstruct, then replays abilities"),
+			TakeWidgetOffset != INDEX_NONE
+			&& TakeWidgetOffset < SetControllerOffset
+			&& SetControllerOffset < AddViewportOffset
+			&& AddViewportOffset < BroadcastOffset);
+	}
+
+	TestWorld->RemoveFromRoot();
+	TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
 	return true;
 }
 

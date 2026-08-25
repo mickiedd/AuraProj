@@ -5,7 +5,6 @@
 #include "AIController.h"
 #include "Aura/AuraLogChannels.h"
 #include "AuraGameplayTags.h"
-#include "BehaviorTree/BTFunctionLibrary.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Character/AuraCharacterBase.h"
 #include "Combat/AuraCombatRules.h"
@@ -63,8 +62,10 @@ void UBTService_FindNearestHostile::TickNode(UBehaviorTreeComponent& OwnerComp, 
 		}
 	}
 
-	UBTFunctionLibrary::SetBlackboardValueAsObject(this, TargetToFollowSelector, ClosestActor);
-	UBTFunctionLibrary::SetBlackboardValueAsFloat(this, DistanceToTargetSelector, ClosestDistance);
+	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
+	if (!Blackboard) return;
+	Blackboard->SetValueAsObject(TargetToFollowSelector.SelectedKeyName, ClosestActor);
+	Blackboard->SetValueAsFloat(DistanceToTargetSelector.SelectedKeyName, ClosestDistance);
 	if (UWorld* World = Hostile->GetWorld())
 	{
 		const float Now = World->GetTimeSeconds();

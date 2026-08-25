@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="660" viewBox="0 0 1200 660" role="img" aria-labelledby="title desc">
+  <title id="title">Startup ability PreConstruct ordering fix</title>
+  <desc id="desc">The original HUD broadcast happened before UMG PreConstruct assigned spell-globe input tags. The corrected flow builds the Slate widget, assigns tags, binds the controller, and then broadcasts four startup abilities. A real Blueprint widget test validates rendered brushes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <marker id="badArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#fb7185"/>
+    </marker>
+    <marker id="goodArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34d399"/>
+    </marker>
+    <style>
+      .title{font:700 30px 'Segoe UI',sans-serif;fill:#f8fafc}.sub{font:400 15px 'Segoe UI',sans-serif;fill:#a5b4fc}
+      .head{font:700 20px 'Segoe UI',sans-serif}.boxTitle{font:700 16px 'Segoe UI',sans-serif;fill:#f8fafc}
+      .body{font:400 14px 'Segoe UI',sans-serif;fill:#cbd5e1}.small{font:600 13px 'Segoe UI',sans-serif;fill:#e2e8f0}
+      .bad{fill:#2b1722;stroke:#fb7185;stroke-width:2}.good{fill:#102820;stroke:#34d399;stroke-width:2}
+      .test{fill:#172554;stroke:#60a5fa;stroke-width:1.6}.slot{fill:#1e293b;stroke:#94a3b8;stroke-width:1.2}
+      .badLine{stroke:#fb7185;stroke-width:2.5;fill:none;marker-end:url(#badArrow)}
+      .goodLine{stroke:#34d399;stroke-width:2.5;fill:none;marker-end:url(#goodArrow)}
+    </style>
+  </defs>
+  <rect width="1200" height="660" rx="18" fill="url(#bg)"/>
+  <text x="52" y="52" class="title">Startup skills: build UMG before publishing ability info</text>
+  <text x="52" y="80" class="sub">Root cause moved one layer deeper: listeners existed, but their slot tags did not yet exist</text>
+
+  <text x="62" y="122" class="head" fill="#fb7185">BEFORE - correct payload, unusable listener state</text>
+  <rect x="52" y="142" width="510" height="76" rx="12" class="bad"/>
+  <text x="74" y="171" class="boxTitle">CreateWidget produces the UUserWidget object</text>
+  <text x="74" y="195" class="body">Nested Slate tree and PreConstruct are still deferred</text>
+  <path d="M307 218 L307 243" class="badLine"/>
+  <rect x="52" y="244" width="510" height="76" rx="12" class="bad"/>
+  <text x="74" y="273" class="boxTitle">Controller binds and broadcasts four abilities</text>
+  <text x="74" y="297" class="body">Spell globes compare against invalid InputTag values</text>
+  <path d="M307 320 L307 345" class="badLine"/>
+  <rect x="52" y="346" width="510" height="76" rx="12" class="bad"/>
+  <text x="74" y="375" class="boxTitle">AddToViewport finally runs PreConstruct</text>
+  <text x="74" y="399" class="body">Tags become valid after the only startup event was missed</text>
+
+  <text x="638" y="122" class="head" fill="#34d399">AFTER - listener state ready before replay</text>
+  <rect x="626" y="142" width="522" height="76" rx="12" class="good"/>
+  <text x="648" y="171" class="boxTitle">CreateWidget, then TakeWidget</text>
+  <text x="648" y="195" class="body">Slate tree builds and WBP PreConstruct assigns all slot tags</text>
+  <path d="M887 218 L887 243" class="goodLine"/>
+  <rect x="626" y="244" width="522" height="76" rx="12" class="good"/>
+  <text x="648" y="273" class="boxTitle">Assign controller and bind globe listeners</text>
+  <text x="648" y="297" class="body">LMB, RMB, 1-4, and passive widgets are ready</text>
+  <path d="M887 320 L887 345" class="goodLine"/>
+  <rect x="626" y="346" width="522" height="76" rx="12" class="good"/>
+  <text x="648" y="375" class="boxTitle">BroadcastInitialValues renders all startup skills</text>
+  <text x="648" y="399" class="body">Fire Bolt, Fire Blast, Arcane Shards, and Electrocute</text>
+
+  <rect x="52" y="462" width="1096" height="142" rx="14" class="test"/>
+  <text x="76" y="493" class="head" fill="#93c5fd">REAL WIDGET REGRESSION</text>
+  <rect x="76" y="514" width="245" height="58" rx="9" class="slot"/>
+  <text x="94" y="538" class="small">Real Blueprint classes</text>
+  <text x="94" y="558" class="body">WBP_Overlay + BP controller</text>
+  <rect x="338" y="514" width="245" height="58" rx="9" class="slot"/>
+  <text x="356" y="538" class="small">Listener and tag guards</text>
+  <text x="356" y="558" class="body">8 globes + 4 active slots</text>
+  <rect x="600" y="514" width="245" height="58" rx="9" class="slot"/>
+  <text x="618" y="538" class="small">Rendered resource guard</text>
+  <text x="618" y="558" class="body">4 icon brushes match metadata</text>
+  <rect x="862" y="514" width="262" height="58" rx="9" class="slot"/>
+  <text x="880" y="538" class="small">Runtime + suite</text>
+  <text x="880" y="558" class="body">Live patch + refresh; 9/9 pass</text>
+  <text x="52" y="635" class="sub">Guarded order: CreateWidget -&gt; TakeWidget/PreConstruct -&gt; SetWidgetController -&gt; BroadcastInitialValues -&gt; AddToViewport</text>
+</svg>

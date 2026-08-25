@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Startup ability HUD replay fix</title>
+  <desc id="desc">Before and after event ordering for startup abilities. Previously ability information was broadcast before spell widgets bound. Now initial values replay all abilities after widget binding, with automation coverage for four Aura skills.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#172554"/>
+    </linearGradient>
+    <marker id="redArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#fb7185"/>
+    </marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34d399"/>
+    </marker>
+    <style>
+      .title { font: 700 30px 'Segoe UI', sans-serif; fill: #f8fafc; }
+      .subtitle { font: 400 15px 'Segoe UI', sans-serif; fill: #a5b4fc; }
+      .heading { font: 700 20px 'Segoe UI', sans-serif; }
+      .boxTitle { font: 700 16px 'Segoe UI', sans-serif; fill: #f8fafc; }
+      .body { font: 400 14px 'Segoe UI', sans-serif; fill: #cbd5e1; }
+      .small { font: 600 13px 'Segoe UI', sans-serif; fill: #e2e8f0; }
+      .before { fill: #2b1722; stroke: #fb7185; stroke-width: 2; }
+      .after { fill: #102820; stroke: #34d399; stroke-width: 2; }
+      .test { fill: #172554; stroke: #60a5fa; stroke-width: 1.6; }
+      .slot { fill: #1e293b; stroke: #94a3b8; stroke-width: 1.2; }
+      .redLine { stroke: #fb7185; stroke-width: 2.5; fill: none; marker-end: url(#redArrow); }
+      .greenLine { stroke: #34d399; stroke-width: 2.5; fill: none; marker-end: url(#greenArrow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" rx="18" fill="url(#background)"/>
+  <text x="52" y="52" class="title">Startup ability icons: listener-order replay</text>
+  <text x="52" y="80" class="subtitle">Affected flow: replicated ASC specs -&gt; overlay controller -&gt; spell-globe Blueprint listeners</text>
+
+  <text x="62" y="124" class="heading" fill="#fb7185">BEFORE - event lost</text>
+  <rect x="52" y="144" width="510" height="82" rx="12" class="before"/>
+  <text x="74" y="174" class="boxTitle">1. Four specs replicate before HUD setup</text>
+  <text x="74" y="199" class="body">ASC marks startup abilities given; slots LMB, 1, 2, and 3 are valid</text>
+  <path d="M307 226 L307 253" class="redLine"/>
+  <rect x="52" y="254" width="510" height="82" rx="12" class="before"/>
+  <text x="74" y="284" class="boxTitle">2. BindCallbacks broadcasts immediately</text>
+  <text x="74" y="309" class="body">AbilityInfoDelegate has no spell-globe listeners yet</text>
+  <path d="M307 336 L307 363" class="redLine"/>
+  <rect x="52" y="364" width="510" height="82" rx="12" class="before"/>
+  <text x="74" y="394" class="boxTitle">3. Widgets bind; initial values omit abilities</text>
+  <text x="74" y="419" class="body">Health and mana update, but all skill globes remain empty</text>
+
+  <text x="638" y="124" class="heading" fill="#34d399">AFTER - deterministic replay</text>
+  <rect x="626" y="144" width="522" height="82" rx="12" class="after"/>
+  <text x="648" y="174" class="boxTitle">1. Controller binds ASC callbacks only</text>
+  <text x="648" y="199" class="body">No presentation event is emitted before widget listeners exist</text>
+  <path d="M887 226 L887 253" class="greenLine"/>
+  <rect x="626" y="254" width="522" height="82" rx="12" class="after"/>
+  <text x="648" y="284" class="boxTitle">2. AAuraHUD assigns the widget controller</text>
+  <text x="648" y="309" class="body">Spell globes bind AbilityInfoDelegate with their input tags ready</text>
+  <path d="M887 336 L887 363" class="greenLine"/>
+  <rect x="626" y="364" width="522" height="82" rx="12" class="after"/>
+  <text x="648" y="394" class="boxTitle">3. BroadcastInitialValues replays current specs</text>
+  <text x="648" y="419" class="body">Early specs render now; late specs still use AbilitiesGivenDelegate</text>
+
+  <rect x="52" y="486" width="1096" height="158" rx="14" class="test"/>
+  <text x="76" y="518" class="heading" fill="#93c5fd">EXECUTABLE REGRESSION COVERAGE</text>
+  <rect x="76" y="538" width="200" height="70" rx="10" class="slot"/>
+  <text x="94" y="565" class="small">LMB - Fire Bolt</text>
+  <text x="94" y="588" class="body">Equipped + icon event</text>
+  <rect x="292" y="538" width="200" height="70" rx="10" class="slot"/>
+  <text x="310" y="565" class="small">1 - Fire Blast</text>
+  <text x="310" y="588" class="body">Equipped + icon event</text>
+  <rect x="508" y="538" width="200" height="70" rx="10" class="slot"/>
+  <text x="526" y="565" class="small">2 - Arcane Shards</text>
+  <text x="526" y="588" class="body">Equipped + icon event</text>
+  <rect x="724" y="538" width="200" height="70" rx="10" class="slot"/>
+  <text x="742" y="565" class="small">3 - Electrocute</text>
+  <text x="742" y="588" class="body">Equipped + icon event</text>
+  <rect x="940" y="538" width="184" height="70" rx="10" class="slot"/>
+  <text x="958" y="565" class="small">Validation</text>
+  <text x="958" y="588" class="body">1 focused + 9 suite</text>
+  <text x="52" y="675" class="subtitle">Guard: every pre-existing equipped ability is replayed only after the HUD listener boundary is ready</text>
+</svg>

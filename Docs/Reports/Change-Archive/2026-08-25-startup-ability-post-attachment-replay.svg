@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">Startup ability post-attachment replay</title>
+  <desc id="desc">Before, initial icons were applied and then cleared by a second PreConstruct during viewport attachment, so they returned only after skill activation. After, initial ability information is replayed after attachment and restores all four icon brushes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#312e81"/></linearGradient>
+    <marker id="red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fb7185"/></marker>
+    <marker id="green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#34d399"/></marker>
+    <style>
+      .title{font:700 30px 'Segoe UI',sans-serif;fill:#f8fafc}.sub{font:400 15px 'Segoe UI',sans-serif;fill:#c7d2fe}
+      .head{font:700 20px 'Segoe UI',sans-serif}.boxTitle{font:700 16px 'Segoe UI',sans-serif;fill:#f8fafc}
+      .body{font:400 14px 'Segoe UI',sans-serif;fill:#cbd5e1}.small{font:600 13px 'Segoe UI',sans-serif;fill:#e2e8f0}
+      .bad{fill:#2b1722;stroke:#fb7185;stroke-width:2}.good{fill:#102820;stroke:#34d399;stroke-width:2}.test{fill:#172554;stroke:#60a5fa;stroke-width:1.6}
+      .badLine{stroke:#fb7185;stroke-width:2.5;fill:none;marker-end:url(#red)}.goodLine{stroke:#34d399;stroke-width:2.5;fill:none;marker-end:url(#green)}
+    </style>
+  </defs>
+  <rect width="1200" height="620" rx="18" fill="url(#bg)"/>
+  <text x="52" y="52" class="title">Startup icons must replay after viewport attachment</text>
+  <text x="52" y="80" class="sub">Observed symptom: icons are empty at login, then appear when any skill produces a later UI update</text>
+
+  <text x="62" y="124" class="head" fill="#fb7185">BEFORE</text>
+  <rect x="52" y="144" width="510" height="72" rx="12" class="bad"/>
+  <text x="74" y="173" class="boxTitle">Tags ready + controller listeners bound</text><text x="74" y="196" class="body">Initial replay correctly applies four icon brushes</text>
+  <path d="M307 216 L307 239" class="badLine"/>
+  <rect x="52" y="240" width="510" height="72" rx="12" class="bad"/>
+  <text x="74" y="269" class="boxTitle">AddToViewport runs PreConstruct again</text><text x="74" y="292" class="body">WBP_SpellGlobe calls ClearGlobe after the replay</text>
+  <path d="M307 312 L307 335" class="badLine"/>
+  <rect x="52" y="336" width="510" height="72" rx="12" class="bad"/>
+  <text x="74" y="365" class="boxTitle">First skill activation sends a later update</text><text x="74" y="388" class="body">Icons finally become visible, masking the startup ordering bug</text>
+
+  <text x="638" y="124" class="head" fill="#34d399">AFTER</text>
+  <rect x="626" y="144" width="522" height="72" rx="12" class="good"/>
+  <text x="648" y="173" class="boxTitle">TakeWidget establishes tags</text><text x="648" y="196" class="body">Controller assignment binds all spell-globe listeners</text>
+  <path d="M887 216 L887 239" class="goodLine"/>
+  <rect x="626" y="240" width="522" height="72" rx="12" class="good"/>
+  <text x="648" y="269" class="boxTitle">AddToViewport completes final PreConstruct</text><text x="648" y="292" class="body">Any lifecycle clear happens before ability publication</text>
+  <path d="M887 312 L887 335" class="goodLine"/>
+  <rect x="626" y="336" width="522" height="72" rx="12" class="good"/>
+  <text x="648" y="365" class="boxTitle">BroadcastInitialValues restores all four brushes</text><text x="648" y="388" class="body">Icons are visible immediately; no activation is required</text>
+
+  <rect x="52" y="448" width="1096" height="116" rx="14" class="test"/>
+  <text x="76" y="480" class="head" fill="#93c5fd">REGRESSION GUARD</text>
+  <text x="76" y="510" class="small">Real WBP overlay + Blueprint controller</text><text x="76" y="534" class="body">Final PreConstruct clear -&gt; four-slot replay -&gt; four matching icon resources</text>
+  <text x="680" y="510" class="small">Validation</text><text x="680" y="534" class="body">Focused UI pass; 9/9 ability suite; DebugGame build; Development Live Coding pass</text>
+  <text x="52" y="596" class="sub">Final order: CreateWidget -&gt; TakeWidget -&gt; SetWidgetController -&gt; AddToViewport -&gt; BroadcastInitialValues</text>
+</svg>

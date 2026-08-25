@@ -13,6 +13,7 @@ def read(relative: str) -> str:
 
 def main() -> int:
     zones = json.loads(read("Content/Config/BattleZones.json"))
+    populations = json.loads(read("Content/Config/PopulationSpawnTable.json"))
     profiles = json.loads(read("Content/Config/CivilianWorkProfiles.json"))
     tests = read("Source/Aura/Private/Tests/AuraRoleBattleDays1012Tests.cpp")
     destination = read("Source/Aura/Private/AI/BTTask_FindCivilianDestination.cpp")
@@ -32,6 +33,11 @@ def main() -> int:
     assert zones["schemaVersion"] == 1 and len(zones["zones"]) >= 2
     assert any(zone["safeZone"] for zone in zones["zones"])
     assert all("policy" in zone and "priority" in zone for zone in zones["zones"])
+    zone_keys = {(zone["mapId"], zone["id"]) for zone in zones["zones"]}
+    assert all(
+        (row["mapId"], row["zoneId"]) in zone_keys
+        for row in populations["populations"]
+    ), "every population row must reference a registered zone on the same map"
 
     for needle in (
         "CanDamage(Candidate, Civilian",

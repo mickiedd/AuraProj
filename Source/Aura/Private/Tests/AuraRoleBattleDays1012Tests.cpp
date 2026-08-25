@@ -132,6 +132,8 @@ bool FAuraDay10FindNearestHostileBlackboardContractTest::RunTest(const FString& 
 {
 	const FString Source = AuraRoleBattleDays1012TestsPrivate::Read(TEXT("Source/Aura/Private/AI/BTService_FindNearestHostile.cpp"));
 	TestTrue(TEXT("Hostile service preserves selectors"), AuraRoleBattleDays1012TestsPrivate::HasAll(Source, { TEXT("TargetToFollow"), TEXT("DistanceToTarget"), TEXT("TNumericLimits<float>::Max()") }));
+	TestTrue(TEXT("Native service writes through the supplied owner component"), Source.Contains(TEXT("OwnerComp.GetBlackboardComponent()")));
+	TestFalse(TEXT("Native service does not use Blueprint-only BT helpers"), Source.Contains(TEXT("UBTFunctionLibrary")));
 	return true;
 }
 
