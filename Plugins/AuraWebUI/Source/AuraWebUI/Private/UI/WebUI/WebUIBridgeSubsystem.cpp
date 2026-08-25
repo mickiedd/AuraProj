@@ -3,11 +3,44 @@
 #include "UI/WebUI/WebUIBridgeSubsystem.h"
 
 #include "JsonObjectConverter.h"
+#include "UI/Config/WebUIConfigService.h"
 #include "Misc/DateTime.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Engine/World.h"
 #include "UI/WebUI/WebUIWebSocketServer.h"
+
+namespace WebUIBridgePrivate
+{
+	FString SerializeObject(const TSharedRef<FJsonObject>& Object)
+	{
+		FString Serialized;
+		const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Serialized);
+		FJsonSerializer::Serialize(Object, Writer);
+		Writer->Close();
+		return Serialized;
+	}
+
+	FString GetRequestId(const TSharedPtr<FJsonObject>& Payload)
+	{
+		FString RequestId;
+		if (Payload.IsValid())
+		{
+			Payload->TryGetStringField(TEXT("requestId"), RequestId);
+		}
+		return RequestId;
+	}
+
+	TSharedRef<FJsonObject> MakeResponse(const FString& RequestId)
+	{
+		TSharedRef<FJsonObject> Response = MakeShared<FJsonObject>();
+		if (!RequestId.IsEmpty())
+		{
+			Response->SetStringField(TEXT("requestId"), RequestId);
+		}
+		return Response;
+	}
+}
 
 UWebUIBridgeSubsystem::~UWebUIBridgeSubsystem() = default;
 
@@ -188,6 +221,15 @@ void UWebUIBridgeSubsystem::HandleMessage(const FString& Message)
 	}
 	const TSharedPtr<FJsonValue>* PayloadValue = Object->Values.Find(TEXT("payload"));
 	const FString PayloadJson = PayloadValue ? SerializeJsonValue(*PayloadValue) : TEXT("{}");
+	TSharedPtr<FJsonObject> PayloadObject;
+	if (PayloadValue && PayloadValue->IsValid() && (*PayloadValue)->Type == EJson::Object)
+	{
+		PayloadObject = (*PayloadValue)->AsObject();
+	}
+	if (!PayloadObject.IsValid())
+	{
+		PayloadObject = MakeShared<FJsonObject>();
+	}
 
 	if (Command == TEXT("ping"))
 	{
@@ -198,8 +240,129 @@ void UWebUIBridgeSubsystem::HandleMessage(const FString& Message)
 	{
 		SendEvent(TEXT("state"), MakeServerStateJson(*this));
 	}
+	else if (Command == TEXT("config_list")
+		|| Command == TEXT("config_read")
+		|| Command == TEXT("config_save"))
+	{
+		HandleConfigCommand(Command, PayloadObject);
+	}
 
 	OnCommand.Broadcast(Command, PayloadJson);
+}
+
+void UWebUIBridgeSubsystem::HandleConfigCommand(const FString& Command, const TSharedPtr<FJsonObject>& Payload)
+{
+	const FString RequestId = WebUIBridgePrivate::GetRequestId(Payload);
+	if (Command == TEXT("config_list"))
+	{
+		TArray<FWebUIConfigFileInfo> Files;
+		FString Error;
+		if (!FWebUIConfigService::ListConfigFiles(Files, Error))
+		{
+			TSharedRef<FJsonObject> Response = WebUIBridgePrivate::MakeResponse(RequestId);
+			Response->SetStringField(TEXT("error"), Error);
+			SendEvent(TEXT("config_error"), WebUIBridgePrivate::SerializeObject(Response));
+			return;
+		}
+
+		TArray<TSharedPtr<FJsonValue>> FileValues;
+		for (const FWebUIConfigFileInfo& File : Files)
+		{
+			TSharedRef<FJsonObject> FileObject = MakeShared<FJsonObject>();
+			FileObject->SetStringField(TEXT("path"), File.RelativePath);
+			FileObject->SetNumberField(TEXT("bytes"), static_cast<double>(File.Bytes));
+			FileObject->SetStringField(TEXT("version"), File.Version);
+			FileObject->SetStringField(TEXT("modifiedUtc"), File.ModifiedUtc);
+			FileObject->SetBoolField(TEXT("valid"), File.bValid);
+			if (!File.ValidationError.IsEmpty())
+			{
+				FileObject->SetStringField(TEXT("validationError"), File.ValidationError);
+			}
+			FileValues.Add(MakeShared<FJsonValueObject>(FileObject));
+		}
+
+		TSharedRef<FJsonObject> Response = WebUIBridgePrivate::MakeResponse(RequestId);
+		Response->SetStringField(TEXT("directory"), TEXT("Content/Config"));
+		Response->SetArrayField(TEXT("files"), FileValues);
+		SendEvent(TEXT("config_list"), WebUIBridgePrivate::SerializeObject(Response));
+		return;
+	}
+
+	FString Path;
+	if (!Payload.IsValid() || !Payload->TryGetStringField(TEXT("path"), Path) || Path.IsEmpty())
+	{
+		TSharedRef<FJsonObject> Response = WebUIBridgePrivate::MakeResponse(RequestId);
+		Response->SetStringField(TEXT("error"), TEXT("A config path is required."));
+		SendEvent(TEXT("config_error"), WebUIBridgePrivate::SerializeObject(Response));
+		return;
+	}
+
+	if (Command == TEXT("config_read"))
+	{
+		FString Json;
+		FString Version;
+		FString ModifiedUtc;
+		FString ValidationError;
+		FString Error;
+		int64 Bytes = 0;
+		bool bValid = false;
+		if (!FWebUIConfigService::LoadConfigFile(Path, Json, Version, Bytes, ModifiedUtc, bValid, ValidationError, Error))
+		{
+			TSharedRef<FJsonObject> Response = WebUIBridgePrivate::MakeResponse(RequestId);
+			Response->SetStringField(TEXT("path"), Path);
+			Response->SetStringField(TEXT("error"), Error);
+			SendEvent(TEXT("config_error"), WebUIBridgePrivate::SerializeObject(Response));
+			return;
+		}
+
+		TSharedRef<FJsonObject> Response = WebUIBridgePrivate::MakeResponse(RequestId);
+		Response->SetStringField(TEXT("path"), Path);
+		Response->SetStringField(TEXT("json"), Json);
+		Response->SetStringField(TEXT("version"), Version);
+		Response->SetNumberField(TEXT("bytes"), static_cast<double>(Bytes));
+		Response->SetStringField(TEXT("modifiedUtc"), ModifiedUtc);
+		Response->SetBoolField(TEXT("valid"), bValid);
+		if (!ValidationError.IsEmpty())
+		{
+			Response->SetStringField(TEXT("validationError"), ValidationError);
+		}
+		SendEvent(TEXT("config_loaded"), WebUIBridgePrivate::SerializeObject(Response));
+		return;
+	}
+
+	FString Json;
+	FString ExpectedVersion;
+	if (!Payload->TryGetStringField(TEXT("json"), Json))
+	{
+		TSharedRef<FJsonObject> Response = WebUIBridgePrivate::MakeResponse(RequestId);
+		Response->SetStringField(TEXT("path"), Path);
+		Response->SetStringField(TEXT("error"), TEXT("The save request did not include JSON text."));
+		SendEvent(TEXT("config_error"), WebUIBridgePrivate::SerializeObject(Response));
+		return;
+	}
+	Payload->TryGetStringField(TEXT("version"), ExpectedVersion);
+
+	FString NewVersion;
+	FString ModifiedUtc;
+	FString BackupPath;
+	FString Error;
+	int64 Bytes = 0;
+	if (!FWebUIConfigService::SaveConfigFile(Path, Json, ExpectedVersion, NewVersion, Bytes, ModifiedUtc, BackupPath, Error))
+	{
+		TSharedRef<FJsonObject> Response = WebUIBridgePrivate::MakeResponse(RequestId);
+		Response->SetStringField(TEXT("path"), Path);
+		Response->SetStringField(TEXT("error"), Error);
+		SendEvent(TEXT("config_error"), WebUIBridgePrivate::SerializeObject(Response));
+		return;
+	}
+
+	TSharedRef<FJsonObject> Response = WebUIBridgePrivate::MakeResponse(RequestId);
+	Response->SetStringField(TEXT("path"), Path);
+	Response->SetStringField(TEXT("version"), NewVersion);
+	Response->SetNumberField(TEXT("bytes"), static_cast<double>(Bytes));
+	Response->SetStringField(TEXT("modifiedUtc"), ModifiedUtc);
+	Response->SetStringField(TEXT("backupPath"), BackupPath);
+	SendEvent(TEXT("config_saved"), WebUIBridgePrivate::SerializeObject(Response));
 }
 
 void UWebUIBridgeSubsystem::HandleConnectionChanged(bool bConnected)

@@ -74,7 +74,11 @@ try {
             '8' { 6 }
             '9' { 9 }
         }
-        $SuccessCount = ([regex]::Matches($LogText, 'Result=\{Success\}')).Count
+        # Unreal localizes the automation result token. Accept the English
+        # and Simplified Chinese forms while retaining the exact count gate.
+        # Keep the localized token as a Unicode escape so Windows PowerShell
+        # can parse this UTF-8 script consistently on non-English machines.
+        $SuccessCount = ([regex]::Matches($LogText, 'Result=\{Success\}|Result=\{\u6210\u529F\}')).Count
         if ($SuccessCount -ne $ExpectedTestCount) {
             throw "Automation log recorded $SuccessCount successful tests; expected $ExpectedTestCount."
         }

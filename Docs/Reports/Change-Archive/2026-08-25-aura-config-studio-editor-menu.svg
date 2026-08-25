@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="440" viewBox="0 0 1120 440" role="img" aria-labelledby="title desc">
+  <title id="title">Aura Editor Config Studio menu flow</title>
+  <desc id="desc">The Launch dropdown sends the Config Studio console command to the active PIE session, with a guard when no PIE session is running.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#91a7c0"/>
+    </marker>
+    <style>
+      .bg { fill: #101827; }
+      .box { fill: #18283b; stroke: #5f7894; stroke-width: 2; rx: 12; }
+      .guard { fill: #2d253f; stroke: #ad8ce0; stroke-width: 2; rx: 12; }
+      .good { fill: #173b36; stroke: #55c2a4; stroke-width: 2; rx: 12; }
+      .text { fill: #eef5ff; font: 16px Arial, sans-serif; text-anchor: middle; }
+      .small { fill: #b8c8da; font: 13px Arial, sans-serif; text-anchor: middle; }
+      .arrow { stroke: #91a7c0; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1120" height="440"/>
+  <text x="560" y="38" class="text" style="font-size:22px;font-weight:bold">Config Studio in the Aura Editor Launch dropdown</text>
+  <rect x="40" y="140" width="190" height="110" class="box"/>
+  <text x="135" y="178" class="text">Launch dropdown</text>
+  <text x="135" y="205" class="small">Open Config Studio</text>
+  <text x="135" y="226" class="small">(PIE)</text>
+  <path d="M230 195 H300" class="arrow"/>
+  <rect x="305" y="125" width="210" height="140" class="guard"/>
+  <text x="410" y="164" class="text">PIE session guard</text>
+  <text x="410" y="191" class="small">find active game viewport</text>
+  <text x="410" y="212" class="small">and in-game console</text>
+  <text x="410" y="239" class="small">otherwise show guidance</text>
+  <path d="M515 195 H585" class="arrow"/>
+  <rect x="590" y="140" width="190" height="110" class="box"/>
+  <text x="685" y="178" class="text">Native command</text>
+  <text x="685" y="205" class="small">AuraWebUI.ConfigEditor</text>
+  <text x="685" y="226" class="small">sent to PIE</text>
+  <path d="M780 195 H850" class="arrow"/>
+  <rect x="855" y="140" width="220" height="110" class="good"/>
+  <text x="965" y="178" class="text">Config Studio opens</text>
+  <text x="965" y="205" class="small">embedded WebView</text>
+  <text x="965" y="226" class="small">Content/Config/*.json</text>
+  <text x="560" y="335" class="small">Validation: AuraEditor Win64 Development build; menu/source contract checks; diff and archive checks.</text>
+  <text x="560" y="360" class="small">The option intentionally targets PIE, matching the existing runtime console-command integration.</text>
+</svg>

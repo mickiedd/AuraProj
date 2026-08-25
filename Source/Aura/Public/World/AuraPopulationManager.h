@@ -62,7 +62,7 @@ private:
 	bool ValidateRoleAndClass(const FAuraPopulationSpawnRow& Row, FString& OutError) const;
 	bool SpawnInitialMember(const FAuraPopulationSpawnRow& Row, int32 SlotIndex);
 	bool ResolveMemberState(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, FAuraPopulationMemberState& OutState) const;
-	AAuraCivilianSpawnVolume* FindVolumeForRow(const FAuraPopulationSpawnRow& Row, int32 AttemptIndex) const;
+	AAuraCivilianSpawnVolume* FindVolumeForRow(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, int32 AttemptIndex) const;
 
 	UFUNCTION()
 	void OnMemberDestroyed(AActor* DestroyedActor);

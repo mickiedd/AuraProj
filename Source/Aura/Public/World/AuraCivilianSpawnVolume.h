@@ -17,6 +17,7 @@ class AURA_API AAuraCivilianSpawnVolume : public AActor
 public:
 	AAuraCivilianSpawnVolume();
 
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -25,6 +26,8 @@ public:
 	bool GetCandidateTransform(int32 AttemptIndex, FTransform& OutTransform) const;
 
 protected:
+	void ApplyCandidateExtents();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Population")
 	TObjectPtr<UBoxComponent> Volume;
 

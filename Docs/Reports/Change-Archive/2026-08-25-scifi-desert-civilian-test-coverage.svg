@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Scifi Desert civilian test coverage</title>
+  <desc id="desc">Regression test coverage added for the Scifi Desert civilian population, including source data checks, saved topology evidence, runtime evidence, and the localized automation result guard.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101a2b"/>
+      <stop offset="1" stop-color="#202b38"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#8bd3c7"/>
+    </marker>
+    <style>
+      .title { font: 700 29px Arial, sans-serif; fill: #f7fbff; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #bccbd8; }
+      .section { font: 700 18px Arial, sans-serif; fill: #f7fbff; }
+      .boxTitle { font: 700 15px Arial, sans-serif; fill: #f7fbff; }
+      .body { font: 400 13px Arial, sans-serif; fill: #d8e4ed; }
+      .small { font: 400 12px Arial, sans-serif; fill: #bccbd8; }
+      .metric { font: 700 20px Arial, sans-serif; fill: #8bd3c7; }
+      .box { fill: #193d46; stroke: #71c7b4; stroke-width: 2; rx: 12; }
+      .guard { fill: #493827; stroke: #e5b368; stroke-width: 2; rx: 12; }
+      .neutral { fill: #293747; stroke: #657b90; stroke-width: 2; rx: 12; }
+      .line { stroke: #8bd3c7; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #e5b368; stroke-width: 2; stroke-dasharray: 8 7; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="46" y="48" class="title">Scifi Desert civilian change: regression coverage</text>
+  <text x="46" y="75" class="subtitle">The level integration now has a repeatable test case for data, saved topology, runtime spawning, and AI startup.</text>
+
+  <rect x="46" y="112" width="330" height="190" class="neutral"/>
+  <text x="70" y="145" class="section">Before coverage</text>
+  <text x="70" y="178" class="body">Level change was validated by a one-off</text>
+  <text x="70" y="201" class="body">commandlet and runtime log inspection.</text>
+  <text x="70" y="239" class="small">No focused regression test asserted:</text>
+  <text x="70" y="261" class="small">32 volume IDs, 48 markers, or saved-level presence</text>
+
+  <path d="M393 207 H450" class="line"/>
+  <text x="395" y="188" class="small">add test gate</text>
+
+  <rect x="468" y="112" width="340" height="190" class="box"/>
+  <text x="492" y="145" class="section">New focused test case</text>
+  <text x="492" y="178" class="boxTitle">test_scifi_desert_civilian_population.py</text>
+  <text x="492" y="208" class="body">Data: map, role, counts, ordered 00-31 IDs</text>
+  <text x="492" y="232" class="body">Source: village exclusion and bound sync guards</text>
+  <text x="492" y="256" class="body">Topology log: 32 villages, 32 volumes, 48 markers</text>
+  <text x="492" y="280" class="small">Runtime log checks are optional but used in CI/manual smoke</text>
+
+  <path d="M825 207 H882" class="line"/>
+  <text x="827" y="188" class="small">evidence gate</text>
+
+  <rect x="900" y="112" width="254" height="190" class="box"/>
+  <text x="924" y="145" class="section">Runtime assertions</text>
+  <text x="924" y="181" class="metric">32 / 32</text>
+  <text x="1017" y="181" class="body">civilian spawns</text>
+  <text x="924" y="213" class="metric">32</text>
+  <text x="984" y="213" class="body">BT starts</text>
+  <text x="924" y="245" class="metric">175</text>
+  <text x="984" y="245" class="body">destinations</text>
+  <text x="924" y="277" class="small">0 volume rejects, 0 BT failures</text>
+
+  <rect x="46" y="342" width="1108" height="150" class="guard"/>
+  <text x="70" y="376" class="section">Test-runner guard fixed</text>
+  <path d="M70 401 H1130" class="dash"/>
+  <text x="70" y="430" class="body">Unreal emitted localized Result={success} text as Result={Chinese success}; the runner now accepts both tokens.</text>
+  <text x="70" y="456" class="body">The exact expected count remains enforced, so localization no longer creates a false failure.</text>
+
+  <text x="46" y="540" class="section">Verified test flow</text>
+  <rect x="46" y="568" width="205" height="92" class="box"/>
+  <text x="68" y="602" class="boxTitle">Focused regression</text>
+  <text x="68" y="629" class="body">PASS with saved logs</text>
+  <text x="68" y="649" class="small">data + topology + runtime</text>
+
+  <path d="M268 614 H325" class="line"/>
+  <rect x="342" y="568" width="205" height="92" class="box"/>
+  <text x="364" y="602" class="boxTitle">Civilian AI contracts</text>
+  <text x="364" y="629" class="body">PASS with runtime log</text>
+  <text x="364" y="649" class="small">grounding + BT + movement</text>
+
+  <path d="M564 614 H621" class="line"/>
+  <rect x="638" y="568" width="205" height="92" class="box"/>
+  <text x="660" y="602" class="boxTitle">Role/Battle regressions</text>
+  <text x="660" y="629" class="body">Days 7-12 PASS</text>
+  <text x="660" y="649" class="small">Listen smokes green</text>
+
+  <path d="M860 614 H917" class="line"/>
+  <rect x="934" y="568" width="220" height="92" class="box"/>
+  <text x="956" y="602" class="boxTitle">Project contracts</text>
+  <text x="956" y="629" class="body">FireBolt, manager, routing</text>
+  <text x="956" y="649" class="small">PASS; Python and diff clean</text>
+
+  <rect x="46" y="694" width="1108" height="34" fill="#0c1420" rx="8"/>
+  <text x="65" y="717" class="small">Environment note: packaged network checksum test remains gated on a source-built Unreal server target; UAT reports this installed distribution does not support server targets.</text>
+</svg>
