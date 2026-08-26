@@ -15,6 +15,7 @@
 #include "Combat/AuraCombatStateComponent.h"
 #include "Engine/World.h"
 #include "Game/AuraGameModeBase.h"
+#include "Misc/Paths.h"
 #include "World/AuraCivilianSpawnVolume.h"
 #include "World/AuraCivilianActivityMarker.h"
 #include "World/AuraPopulationSpawnDefinition.h"
@@ -384,17 +385,76 @@ FName UAuraPopulationManager::FindCurrentMapId() const
 		return NAME_None;
 	}
 
+	const UWorld* World = GetWorld();
+	const auto StripPackageObjectSuffix = [](FString Value)
+	{
+		Value.ReplaceInline(TEXT("\\"), TEXT("/"));
+		int32 ObjectSeparator = INDEX_NONE;
+		if (Value.FindChar(TEXT('.'), ObjectSeparator))
+		{
+			Value.LeftInline(ObjectSeparator);
+		}
+		return Value;
+	};
+	const auto StripPlayPrefix = [World](FString Value)
+	{
+		Value.TrimStartAndEndInline();
+		if (!World->StreamingLevelsPrefix.IsEmpty())
+		{
+			Value.RemoveFromStart(World->StreamingLevelsPrefix);
+		}
+
+		// PIE can leave its generated prefix in the level name/package even when
+		// StreamingLevelsPrefix has already been cleared. Keep this local to the
+		// map-name fallback so ordinary configured map IDs remain unchanged.
+		const auto StripIndexedPrefix = [&Value](const TCHAR* Prefix)
+		{
+			if (!Value.StartsWith(Prefix, ESearchCase::IgnoreCase)) return;
+			const int32 PrefixEnd = Value.Find(TEXT("_"), ESearchCase::IgnoreCase, ESearchDir::FromStart, FCString::Strlen(Prefix));
+			if (PrefixEnd != INDEX_NONE) Value.RightChopInline(PrefixEnd + 1);
+		};
+		StripIndexedPrefix(TEXT("UEDPIE_"));
+		StripIndexedPrefix(TEXT("PIE_"));
+		return Value;
+	};
+	const auto GetAssetName = [](const FString& MapPath)
+	{
+		FString AssetName = FPaths::GetCleanFilename(MapPath);
+		AssetName.RemoveFromEnd(TEXT(".umap"), ESearchCase::IgnoreCase);
+		return AssetName;
+	};
+
 	FString CurrentPackage = GetWorld()->PersistentLevel->GetOutermost()->GetName();
-	CurrentPackage.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+	CurrentPackage = StripPackageObjectSuffix(CurrentPackage);
+	CurrentPackage.RemoveFromStart(World->StreamingLevelsPrefix);
 	for (const TPair<FName, FString>& Pair : Definition->GetLevelMapPaths())
 	{
-		if (CurrentPackage.Equals(Pair.Value, ESearchCase::IgnoreCase) || CurrentPackage.EndsWith(Pair.Value, ESearchCase::IgnoreCase))
+		const FString ConfiguredPackage = StripPackageObjectSuffix(Pair.Value);
+		if (CurrentPackage.Equals(ConfiguredPackage, ESearchCase::IgnoreCase) || CurrentPackage.EndsWith(ConfiguredPackage, ESearchCase::IgnoreCase))
 		{
 			return Pair.Key;
 		}
 	}
 
-	const FString CurrentLevelName = GetWorld()->GetMapName();
+	const FString CurrentLevelName = StripPlayPrefix(World->GetMapName());
+	const FString CurrentPackageAssetName = StripPlayPrefix(FPaths::GetCleanFilename(CurrentPackage));
+	FName AssetNameMatch = NAME_None;
+	for (const TPair<FName, FString>& Pair : Definition->GetLevelMapPaths())
+	{
+		const FString ConfiguredAssetName = GetAssetName(Pair.Value);
+		if (CurrentLevelName.Equals(ConfiguredAssetName, ESearchCase::IgnoreCase)
+			|| CurrentPackageAssetName.Equals(ConfiguredAssetName, ESearchCase::IgnoreCase))
+		{
+			if (!AssetNameMatch.IsNone() && AssetNameMatch != Pair.Key)
+			{
+				// An asset-name fallback is only safe when it identifies one level.
+				return NAME_None;
+			}
+			AssetNameMatch = Pair.Key;
+		}
+	}
+	if (!AssetNameMatch.IsNone()) return AssetNameMatch;
+
 	for (const TPair<FName, FString>& Pair : Definition->GetLevelMapPaths())
 	{
 		if (CurrentLevelName.Equals(Pair.Key.ToString(), ESearchCase::IgnoreCase)) return Pair.Key;
