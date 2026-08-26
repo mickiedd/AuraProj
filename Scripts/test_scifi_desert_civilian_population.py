@@ -115,6 +115,8 @@ def check_native_distribution_and_bounds(failures: list[str]) -> None:
             "native hostile service does not use its owning Behavior Tree component", failures)
     require("UBTFunctionLibrary" not in hostile_service,
             "native hostile service must not use Blueprint-only blackboard helpers", failures)
+    require("StripIndexedPrefix(TEXT(\"UEDPIE_\"))" in manager and "GetAssetName" in manager,
+            "population manager does not resolve configured maps from PIE-generated level names", failures)
 
 
 def check_topology_log(log_path: Path, failures: list[str]) -> None:

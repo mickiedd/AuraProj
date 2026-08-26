@@ -59,14 +59,14 @@ static bool GShouldExitAfterSmokeTest = false;
 static bool SmokeTest_XMLParsing()
 {
 	const FString SampleXML = TEXT(
-		"<ability name=\"Fireball\" abilityTag=\"Abilities.Skill.Fireball\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\">"
-		"  <cooldown tag=\"Abilities.Cooldown.Fireball\" duration=\"5\"/>"
+		"<ability name=\"Fireball\" abilityTag=\"Abilities.Fire.FireBolt\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\">"
+		"  <cooldown tag=\"Cooldown.Fire.FireBolt\" duration=\"5\"/>"
 		"  <cost mana=\"20\"/>"
-		"  <damage type=\"Abilities.Damage.Fire\" base=\"100\" debuffChance=\"0.2\" debuffDamage=\"10\" debuffDuration=\"3\" debuffFrequency=\"1\" deathImpulseMagnitude=\"5000\" knockbackForceMagnitude=\"2000\" knockbackChance=\"0.1\"/>"
+		"  <damage type=\"Damage.Fire\" base=\"100\" debuffChance=\"0.2\" debuffDamage=\"10\" debuffDuration=\"3\" debuffFrequency=\"1\" deathImpulseMagnitude=\"5000\" knockbackForceMagnitude=\"2000\" knockbackChance=\"0.1\"/>"
 		"  <graph>"
 		"    <node class=\"Sequence\" id=\"1\">"
 		"      <node class=\"SpawnProjectile\" id=\"2\">"
-		"        <property name=\"SocketTag\" value=\"Combat.Socket.Projectile\"/>"
+		"        <property name=\"SocketTag\" value=\"CombatSocket.Weapon\"/>"
 		"        <property name=\"ProjectileClass\" value=\"/Script/Aura.AuraProjectile\"/>"
 		"      </node>"
 		"    </node>"
@@ -182,7 +182,7 @@ static bool SmokeTest_NodeRegistry()
 static bool SmokeTest_SequenceExecution()
 {
 	const FString SampleXML = TEXT(
-		"<ability name=\"SequenceSmokeTest\" abilityTag=\"Abilities.Test.SequenceSmokeTest\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\">"
+		"<ability name=\"SequenceSmokeTest\" abilityTag=\"Abilities.Attack\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\">"
 		"  <graph>"
 		"    <node class=\"Sequence\" id=\"1\">"
 		"      <node class=\"PlayMontage\" id=\"2\"/>"
@@ -250,8 +250,8 @@ static bool SmokeTest_SequenceExecution()
 static bool SmokeTest_CooldownTagExtraction()
 {
 	const FString SampleXML = TEXT(
-		"<ability name=\"CooldownTest\" abilityTag=\"Abilities.Skill.CooldownTest\" inputTag=\"InputTag.RMB\" type=\"Abilities.Type.Offensive\">"
-		"  <cooldown tag=\"Abilities.Cooldown.TestAbility\" duration=\"10\"/>"
+		"<ability name=\"CooldownTest\" abilityTag=\"Abilities.Fire.FireBolt\" inputTag=\"InputTag.RMB\" type=\"Abilities.Type.Offensive\">"
+		"  <cooldown tag=\"Cooldown.Fire.FireBolt\" duration=\"10\"/>"
 		"  <graph><node class=\"Sequence\" id=\"1\"/></graph>"
 		"</ability>"
 	);
@@ -446,7 +446,7 @@ static bool SmokeTest_FireGunMigration()
 		"<ability name=\"FireGun\" abilityTag=\"Abilities.Gun.Fire\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\">"
 		"  <cooldown tag=\"Cooldown.Gun.Fire\" duration=\"0.2\"/>"
 		"  <cost mana=\"0\"/>"
-		"  <damage effectClass=\"/Game/Blueprints/AbilitySystem/Aura/Effects/GE_Damage.GE_Damage\" type=\"Damage.Physical\" base=\"5\" deathImpulseMagnitude=\"1000\" knockbackChance=\"0\"/>"
+		"  <damage effectClass=\"\" type=\"Damage.Physical\" base=\"5\" deathImpulseMagnitude=\"1000\" knockbackChance=\"0\"/>"
 		"  <graph>"
 		"    <node class=\"Sequence\" id=\"1\">"
 		"      <node class=\"WaitForTargetData\" id=\"2\"/>"
@@ -2173,7 +2173,7 @@ static bool SmokeTest_TargetDataValidation()
 static bool SmokeTest_DamageEffectParams()
 {
 	const FString SampleXML = TEXT(
-		"<ability name=\"DamageParamSmoke\" abilityTag=\"Abilities.Test.DamageParamSmoke\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\">"
+		"<ability name=\"DamageParamSmoke\" abilityTag=\"Abilities.Attack\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\">"
 		"  <damage type=\"Damage.Fire\" base=\"100\" deathImpulseMagnitude=\"500\" knockbackForceMagnitude=\"750\" knockbackChance=\"50\"/>"
 		"  <graph><node class=\"Sequence\"/></graph>"
 		"</ability>"

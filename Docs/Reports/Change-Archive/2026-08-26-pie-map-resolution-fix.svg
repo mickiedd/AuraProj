@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="620" viewBox="0 0 1120 620" role="img" aria-labelledby="title desc">
+  <title id="title">PIE map resolution fix</title>
+  <desc id="desc">Before and after flow for resolving the Unreal PIE-generated map package to the configured Scifi Desert level ID, followed by successful population finalization and world readiness.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f5f7fb; }
+      .panel { fill: #ffffff; stroke: #c8d2e1; stroke-width: 2; }
+      .bad { fill: #fff0f0; stroke: #d46b6b; stroke-width: 2; }
+      .good { fill: #effaf3; stroke: #53a66c; stroke-width: 2; }
+      .title { font: 700 26px Arial, sans-serif; fill: #18324b; }
+      .heading { font: 700 18px Arial, sans-serif; fill: #18324b; }
+      .body { font: 15px Arial, sans-serif; fill: #34465c; }
+      .small { font: 13px Arial, sans-serif; fill: #526579; }
+      .arrow { stroke: #6b7f95; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7f95"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1120" height="620"/>
+  <text class="title" x="56" y="52">AuraProj | PIE map-resolution readiness fix</text>
+  <text class="small" x="56" y="78">2026-08-26 · Scifi Desert Civilian population startup</text>
+
+  <rect class="bad" x="56" y="120" width="450" height="190" rx="14"/>
+  <text class="heading" x="82" y="153">Before: PIE name was not recognized</text>
+  <text class="body" x="82" y="184">PIE package: UEDPIE_0_L_showcase_level</text>
+  <text class="body" x="82" y="211">FindCurrentMapId() → None</text>
+  <text class="body" x="82" y="238">DesertVillages marker validation failed</text>
+  <text class="body" x="82" y="265">32 civilian spawns rolled back</text>
+  <text class="body" x="82" y="292">WorldReadiness = Unhealthy</text>
+
+  <path class="arrow" d="M 518 215 L 596 215"/>
+
+  <rect class="good" x="614" y="120" width="450" height="190" rx="14"/>
+  <text class="heading" x="640" y="153">After: robust configured-map lookup</text>
+  <text class="body" x="640" y="184">Strip PIE prefixes and package suffixes</text>
+  <text class="body" x="640" y="211">Compare package path first</text>
+  <text class="body" x="640" y="238">Fallback to unique asset name: L_showcase_level</text>
+  <text class="body" x="640" y="265">Unknown or ambiguous maps still fail closed</text>
+  <text class="body" x="640" y="292">Resolved ID: Scifi_Desert_Level</text>
+
+  <path class="arrow" d="M 839 330 L 839 390"/>
+  <rect class="panel" x="290" y="405" width="540" height="125" rx="14"/>
+  <text class="heading" x="316" y="439">Verified PIE outcome</text>
+  <text class="body" x="316" y="468">Population finalized: 32 live members · success=1</text>
+  <text class="body" x="316" y="495">WorldReadiness: Ready · no unknown-zone or rollback errors</text>
+  <text class="small" x="316" y="518">Build · PIE runtime · focused contract · 156/156 native automation</text>
+</svg>
