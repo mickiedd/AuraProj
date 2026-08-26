@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" role="img" aria-labelledby="title desc">
+  <title id="title">Aura project WebUI default policy</title>
+  <desc id="desc">Decision flow for implementing new in-game HUD work in WebUI, with native WBP retained as a fallback and behavior delegate target.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#151d2b"/>
+      <stop offset="1" stop-color="#0c111a"/>
+    </linearGradient>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #f6d887; }
+      .heading { font: 700 21px Arial, sans-serif; fill: #ffe8ad; }
+      .label { font: 17px Arial, sans-serif; fill: #f3ead5; }
+      .small { font: 14px Arial, sans-serif; fill: #c8c1af; }
+      .box { stroke: #cb9631; stroke-width: 2; rx: 14; }
+      .web { fill: #2a2118; }
+      .native { fill: #252a34; stroke: #8195b2; }
+      .guard { fill: #1d2938; stroke: #5d789c; }
+      .arrow { fill: none; stroke: #edc45f; stroke-width: 3; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #90a4c0; stroke-width: 2; stroke-dasharray: 8 6; marker-end: url(#arrowMuted); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#edc45f"/></marker>
+    <marker id="arrowMuted" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#90a4c0"/></marker>
+  </defs>
+
+  <rect width="1100" height="560" fill="url(#bg)"/>
+  <text x="550" y="42" text-anchor="middle" class="title">Project UI default: WebUI first</text>
+
+  <rect x="45" y="95" width="250" height="145" class="box web"/>
+  <text x="170" y="130" text-anchor="middle" class="heading">New HUD request</text>
+  <text x="70" y="169" class="label">panel | bar | indicator</text>
+  <text x="70" y="199" class="label">or interactive control</text>
+
+  <rect x="425" y="70" width="300" height="195" class="box web"/>
+  <text x="575" y="108" text-anchor="middle" class="heading">AuraWebUI (default)</text>
+  <text x="455" y="150" class="label">transparent bounded host</text>
+  <text x="455" y="179" class="label">bridge state + commands</text>
+  <text x="455" y="208" class="label">ready/disconnect fallback</text>
+  <text x="455" y="239" class="small">visual PIE verification required</text>
+
+  <rect x="835" y="95" width="220" height="145" class="box native"/>
+  <text x="945" y="130" text-anchor="middle" class="heading">Native WBP</text>
+  <text x="860" y="169" class="label">compatibility layer</text>
+  <text x="860" y="199" class="label">fallback / delegate target</text>
+
+  <path d="M295 167H425" class="arrow"/>
+  <path d="M725 167H835" class="dash"/>
+  <text x="775" y="146" text-anchor="middle" class="small">only when needed</text>
+
+  <rect x="45" y="330" width="1010" height="118" class="box guard"/>
+  <text x="70" y="367" class="heading">Implementation guardrails</text>
+  <text x="70" y="401" class="label">Use bridge events for replicated state; forward existing native delegates instead of duplicating gameplay logic.</text>
+  <text x="70" y="430" class="label">Hide native widgets after WebUI readiness; restore them if the browser disconnects.</text>
+
+  <rect x="45" y="480" width="1010" height="48" fill="#10151f" stroke="#536783" stroke-width="1" rx="9"/>
+  <text x="70" y="510" class="small">Recorded in durable project memory on 2026-08-27; linked to the verified vitals/action HUD archive.</text>
+</svg>

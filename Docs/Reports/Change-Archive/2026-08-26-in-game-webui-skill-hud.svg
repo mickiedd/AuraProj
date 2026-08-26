@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">In-game Web UI skill HUD migration</title>
+  <desc id="desc">A bounded web skill panel is layered over the native Aura HUD, receiving ability events and returning validated press, hold, and release commands.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17223a"/>
+      <stop offset="1" stop-color="#0a0f1e"/>
+    </linearGradient>
+    <linearGradient id="web" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6b431e"/>
+      <stop offset="1" stop-color="#1a1009"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#f0c665"/>
+    </marker>
+    <style>
+      .label { font: 600 20px 'Segoe UI', sans-serif; fill: #eef4ff; }
+      .small { font: 15px 'Segoe UI', sans-serif; fill: #b9c9e5; }
+      .code { font: 14px Consolas, monospace; fill: #ffe7a3; }
+      .box { stroke: #7286ae; stroke-width: 2; rx: 14; }
+      .gold { stroke: #d09b35; stroke-width: 2; }
+    </style>
+  </defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <text x="60" y="52" class="label" font-size="28">Aura in-game Web UI HUD</text>
+  <text x="60" y="79" class="small">Only the bottom skill strip moves to HTML; the game world and native HUD remain intact.</text>
+
+  <rect x="60" y="120" width="500" height="300" class="box" fill="#263754"/>
+  <text x="86" y="157" class="label">Native game HUD (fallback)</text>
+  <circle cx="140" cy="250" r="66" fill="#651b2c" stroke="#d09b35" stroke-width="5"/>
+  <circle cx="480" cy="250" r="66" fill="#1b3984" stroke="#d09b35" stroke-width="5"/>
+  <text x="105" y="350" class="small">health / mana / menus</text>
+  <rect x="200" y="300" width="220" height="70" rx="9" fill="#172237" stroke="#7286ae"/>
+  <text x="248" y="342" class="small">native widgets</text>
+
+  <rect x="610" y="120" width="530" height="300" class="box" fill="#171c2c"/>
+  <text x="636" y="157" class="label">Partial Web UI skill panel</text>
+  <rect x="650" y="190" width="450" height="165" rx="14" fill="url(#web)" class="gold"/>
+  <text x="850" y="219" text-anchor="middle" class="small" fill="#f0c665">SKILLS</text>
+  <g fill="#25170d" stroke="#d09b35" stroke-width="3">
+    <circle cx="700" cy="280" r="34"/><circle cx="780" cy="280" r="34"/><circle cx="860" cy="280" r="34"/><circle cx="940" cy="280" r="34"/><circle cx="1020" cy="280" r="34"/>
+  </g>
+  <g class="small" text-anchor="middle"><text x="700" y="340">LMB</text><text x="780" y="340">RMB</text><text x="860" y="340">1</text><text x="940" y="340">2</text><text x="1020" y="340">3</text></g>
+  <text x="655" y="388" class="small">UGameViewportSubsystem anchors + offsets prevent overflow</text>
+
+  <rect x="100" y="500" width="300" height="112" class="box" fill="#202c47"/>
+  <text x="125" y="535" class="label">UOverlayWidgetController</text>
+  <text x="125" y="565" class="code">AbilityInfoDelegate</text>
+  <text x="125" y="589" class="code">skill_panel_ability</text>
+
+  <rect x="470" y="500" width="270" height="112" class="box" fill="#202c47"/>
+  <text x="495" y="535" class="label">WebSocket bridge</text>
+  <text x="495" y="565" class="code">127.0.0.1:18765</text>
+  <text x="495" y="589" class="code">JSON events / commands</text>
+
+  <rect x="810" y="500" width="290" height="112" class="box" fill="#202c47"/>
+  <text x="835" y="535" class="label">AAuraPlayerController</text>
+  <text x="835" y="565" class="code">pressed / held / released</text>
+  <text x="835" y="589" class="code">native GAS input gates</text>
+
+  <path d="M250 500 L250 430 L720 430 L720 355" fill="none" stroke="#f0c665" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M400 556 L470 556" fill="none" stroke="#f0c665" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M740 556 L810 556" fill="none" stroke="#f0c665" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="280" y="455" class="small">ability state</text>
+  <text x="420" y="535" class="small">events</text>
+  <text x="753" y="535" class="small">commands</text>
+
+  <rect x="60" y="650" width="1080" height="2" fill="#50658d"/>
+  <text x="60" y="678" class="small">Validation: DebugGame build • AuraWebUI suite 4/4 • web HUD contract • startup ability replay • Aura.Abilities suite</text>
+</svg>

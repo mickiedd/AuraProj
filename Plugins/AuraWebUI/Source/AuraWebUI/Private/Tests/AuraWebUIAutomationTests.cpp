@@ -376,16 +376,27 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	const FString LoadingHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/loading.html"));
 	const FString LoginHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/login.html"));
 	const FString ConfigEditorHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/config-editor.html"));
+	const FString SkillPanelHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/skill-panel.html"));
+	const FString WebUIWidgetSourcePath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Source/AuraWebUI/Private/UI/WebUI/WebUIWidget.cpp"));
 	FString Descriptor;
 	FString Html;
 	FString LoadingHtml;
 	FString LoginHtml;
 	FString ConfigEditorHtml;
+	FString SkillPanelHtml;
 	TestTrue(TEXT("Plugin descriptor exists"), FFileHelper::LoadFileToString(Descriptor, *DescriptorPath));
 	TestTrue(TEXT("Packaged sample page exists in the plugin"), FFileHelper::LoadFileToString(Html, *HtmlPath));
 	TestTrue(TEXT("Loading page exists in the plugin"), FFileHelper::LoadFileToString(LoadingHtml, *LoadingHtmlPath));
 	TestTrue(TEXT("Login page exists in the plugin"), FFileHelper::LoadFileToString(LoginHtml, *LoginHtmlPath));
 	TestTrue(TEXT("Config editor page exists in the plugin"), FFileHelper::LoadFileToString(ConfigEditorHtml, *ConfigEditorHtmlPath));
+	TestTrue(TEXT("Skill panel page exists in the plugin"), FFileHelper::LoadFileToString(SkillPanelHtml, *SkillPanelHtmlPath));
+	FString WebUIWidgetSource;
+	if (TestTrue(TEXT("Web UI widget implementation is readable"), FFileHelper::LoadFileToString(WebUIWidgetSource, *WebUIWidgetSourcePath)))
+	{
+		TestTrue(TEXT("Web UI widget configures native browser transparency before Slate creation"),
+			WebUIWidgetSource.Contains(TEXT("bSupportsTransparency"))
+			&& WebUIWidgetSource.Contains(TEXT("SetPropertyValue_InContainer")));
+	}
 	TestTrue(TEXT("Plugin declares WebBrowserWidget dependency"), Descriptor.Contains(TEXT("WebBrowserWidget")));
 	TestTrue(TEXT("Sample page uses the native WebSocket URL placeholder"), Html.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
 	TestTrue(TEXT("Sample page sends explicit command messages"), Html.Contains(TEXT("type: 'command'")));
@@ -412,6 +423,28 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Config editor reads files through the bridge"), ConfigEditorHtml.Contains(TEXT("send(\"config_read\"")));
 	TestTrue(TEXT("Config editor saves with an optimistic version"), ConfigEditorHtml.Contains(TEXT("send(\"config_save\"")) && ConfigEditorHtml.Contains(TEXT("version: state.version")));
 	TestTrue(TEXT("Config editor includes structured and raw editing modes"), ConfigEditorHtml.Contains(TEXT("Structured view")) && ConfigEditorHtml.Contains(TEXT("Raw JSON")));
+	TestTrue(TEXT("Skill panel uses the native WebSocket URL placeholder"), SkillPanelHtml.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
+	TestTrue(TEXT("Skill panel requests a startup replay when the page is ready"), SkillPanelHtml.Contains(TEXT("skill_panel_ready")));
+	TestTrue(TEXT("Skill panel renders ability-info events"), SkillPanelHtml.Contains(TEXT("skill_panel_ability")));
+	TestTrue(TEXT("Skill panel sends press, held, and release commands"),
+		SkillPanelHtml.Contains(TEXT("skill_ability_pressed"))
+		&& SkillPanelHtml.Contains(TEXT("skill_ability_held"))
+		&& SkillPanelHtml.Contains(TEXT("skill_ability_released")));
+	TestTrue(TEXT("Skill panel forwards held input while the pointer remains down"), SkillPanelHtml.Contains(TEXT("setInterval(() => send('skill_ability_held'")));
+	TestTrue(TEXT("Skill HUD renders health and mana values and progress fills"),
+		SkillPanelHtml.Contains(TEXT("id=\"healthValue\""))
+		&& SkillPanelHtml.Contains(TEXT("id=\"healthFill\""))
+		&& SkillPanelHtml.Contains(TEXT("id=\"manaValue\""))
+		&& SkillPanelHtml.Contains(TEXT("id=\"manaFill\""))
+		&& SkillPanelHtml.Contains(TEXT("hud_vitals")));
+	TestTrue(TEXT("Skill HUD renders the Attributes, Spells, and Close controls"),
+		SkillPanelHtml.Contains(TEXT("hud_attributes_clicked"))
+		&& SkillPanelHtml.Contains(TEXT("hud_spells_clicked"))
+		&& SkillPanelHtml.Contains(TEXT("hud_close_clicked")));
+	TestTrue(TEXT("Skill HUD is bounded by responsive CSS instead of a full-screen loading layout"),
+		SkillPanelHtml.Contains(TEXT("grid-template-columns: minmax(205px, 1fr)"))
+		&& SkillPanelHtml.Contains(TEXT("background: transparent"))
+		&& !SkillPanelHtml.Contains(TEXT("min-height: 100vh")));
 	return true;
 }
 

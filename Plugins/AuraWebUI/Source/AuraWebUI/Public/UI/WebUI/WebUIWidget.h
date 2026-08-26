@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Layout/Margin.h"
+#include "Widgets/Layout/Anchors.h"
 #include "WebUIWidget.generated.h"
 
 class UWebBrowser;
@@ -33,6 +35,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Web UI")
 	UWebBrowser* GetWebBrowser() const { return WebBrowser; }
 
+	/** Runtime diagnostics used by HUD automation to prove which page was mounted. */
+	UFUNCTION(BlueprintPure, Category = "Web UI")
+	FString GetLastLoadedHtmlAssetPath() const { return LastLoadedHtmlAssetPath; }
+
+	UFUNCTION(BlueprintPure, Category = "Web UI")
+	int32 GetLastLoadedHtmlBytes() const { return LastLoadedHtmlBytes; }
+
+	/** Whether the native browser host was configured for alpha compositing. */
+	UFUNCTION(BlueprintPure, Category = "Web UI")
+	bool IsBrowserTransparencyEnabled() const { return bBrowserTransparencyEnabled; }
+
+	/**
+	 * Apply a responsive viewport layout before AddToViewport().  The browser
+	 * remains an ordinary UMG widget, so a page can occupy a bounded HUD region
+	 * without taking over the entire game viewport.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Web UI|Layout")
+	void ConfigureViewportLayout(const FAnchors& Anchors, const FMargin& Offsets, const FVector2D& Alignment);
+
 	/** Plugin-relative path under the plugin Content directory. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Web UI")
 	FString HtmlAssetPath = TEXT("WebUI/index.html");
@@ -40,6 +61,15 @@ public:
 	/** Allow the browser page to create its local WebSocket connection automatically. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Web UI")
 	bool bAutoConnectBridge = true;
+
+	UPROPERTY(Transient)
+	FString LastLoadedHtmlAssetPath;
+
+	UPROPERTY(Transient)
+	int32 LastLoadedHtmlBytes = 0;
+
+	UPROPERTY(Transient)
+	bool bBrowserTransparencyEnabled = false;
 
 protected:
 	UPROPERTY(meta = (BindWidgetOptional))

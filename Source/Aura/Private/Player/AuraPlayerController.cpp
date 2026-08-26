@@ -348,6 +348,21 @@ void AAuraPlayerController::ExecuteAddMonster(int32 MonsterId)
 	ClientMessage(FString::Printf(TEXT("AddMonster: spawned monster id %d nearby."), MonsterId));
 }
 
+void AAuraPlayerController::WebAbilityInputTagPressed(const FGameplayTag& InputTag)
+{
+	AbilityInputTagPressed(InputTag);
+}
+
+void AAuraPlayerController::WebAbilityInputTagHeld(const FGameplayTag& InputTag)
+{
+	AbilityInputTagHeld(InputTag);
+}
+
+void AAuraPlayerController::WebAbilityInputTagReleased(const FGameplayTag& InputTag)
+{
+	AbilityInputTagReleased(InputTag);
+}
+
 void AAuraPlayerController::ServerTransferToRandomPlayer_Implementation()
 {
 	ExecuteTransferToRandomPlayer();

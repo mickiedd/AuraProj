@@ -16,10 +16,15 @@
 #include "Components/Image.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "Blueprint/GameViewportSubsystem.h"
 #include "Player/AuraPlayerState.h"
+#include "Player/AuraPlayerController.h"
 #include "Tests/Fixtures/AuraWidgetControllerTestReceiver.h"
 #include "UI/Widget/AuraUserWidget.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
+#include "UI/HUD/AuraHUD.h"
+#include "UI/WebUI/WebUIBridgeSubsystem.h"
+#include "UI/WebUI/WebUIWidget.h"
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -326,6 +331,201 @@ bool FAuraOverlayStartupAbilityReplayTest::RunTest(const FString& Parameters)
 			&& AddViewportOffset < BroadcastOffset);
 	}
 
+	TestWorld->RemoveFromRoot();
+	TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraWebSkillPanelHUDContractTest,
+	"Aura.UI.WebSkillPanel.HUDContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraWebSkillPanelHUDContractTest::RunTest(const FString& Parameters)
+{
+	FString HUDSource;
+	const FString HUDSourcePath = FPaths::ProjectDir() / TEXT("Source/Aura/Private/UI/HUD/AuraHUD.cpp");
+	if (!TestTrue(TEXT("AuraHUD implementation is readable for the web skill-panel contract"), FFileHelper::LoadFileToString(HUDSource, *HUDSourcePath)))
+	{
+		return false;
+	}
+
+	TestTrue(TEXT("HUD creates the partial skill-panel web page"), HUDSource.Contains(TEXT("WebUI/skill-panel.html")));
+	TestTrue(TEXT("HUD applies responsive viewport anchors and offsets"), HUDSource.Contains(TEXT("ConfigureViewportLayout")) && HUDSource.Contains(TEXT("FAnchors(0.04f, 0.72f, 0.96f, 0.98f)")) && HUDSource.Contains(TEXT("FMargin(20.f, 0.f, -20.f, 0.f)")));
+	TestTrue(TEXT("HUD publishes ability state through the bridge"), HUDSource.Contains(TEXT("skill_panel_ability")) && HUDSource.Contains(TEXT("HandleAbilityInfoForWebUI")));
+	TestTrue(TEXT("HUD publishes health and mana state through the bridge"),
+		HUDSource.Contains(TEXT("hud_vitals"))
+		&& HUDSource.Contains(TEXT("HandleHealthChangedForWebUI"))
+		&& HUDSource.Contains(TEXT("HandleManaChangedForWebUI")));
+	TestTrue(TEXT("HUD replays startup abilities after the browser reports ready"), HUDSource.Contains(TEXT("skill_panel_ready")) && HUDSource.Contains(TEXT("BroadcastAbilityInfo()")));
+	TestTrue(TEXT("HUD reloads the skill page after mounting and gives it a top viewport layer"),
+		HUDSource.Contains(TEXT("SkillPanelWebUI->AddToViewport(200)"))
+		&& HUDSource.Contains(TEXT("SkillPanelWebUI->ReloadWebUI()"))
+		&& HUDSource.Contains(TEXT("SkillPanelWebUI->bAutoConnectBridge = false")));
+	TestTrue(TEXT("HUD uses the local player viewport context with a headless world fallback"),
+		HUDSource.Contains(TEXT("PC->GetLocalPlayer()"))
+		&& HUDSource.Contains(TEXT("CreateWidget<UWebUIWidget>(PC"))
+		&& HUDSource.Contains(TEXT("CreateWidget<UWebUIWidget>(World")));
+	TestTrue(TEXT("HUD replaces native spell globes only after Web UI readiness"),
+		HUDSource.Contains(TEXT("SetNativeSkillGlobeVisibility(false)"))
+		&& HUDSource.Contains(TEXT("SetNativeSkillGlobeVisibility(true)")));
+	TestTrue(TEXT("HUD routes web press, held, and release commands to the player controller"),
+		HUDSource.Contains(TEXT("skill_ability_pressed"))
+		&& HUDSource.Contains(TEXT("skill_ability_held"))
+		&& HUDSource.Contains(TEXT("skill_ability_released"))
+		&& HUDSource.Contains(TEXT("WebAbilityInputTagPressed"))
+		&& HUDSource.Contains(TEXT("WebAbilityInputTagHeld"))
+		&& HUDSource.Contains(TEXT("WebAbilityInputTagReleased")));
+	TestTrue(TEXT("HUD routes Web UI menu controls through native overlay button delegates"),
+		HUDSource.Contains(TEXT("hud_attributes_clicked"))
+		&& HUDSource.Contains(TEXT("hud_spells_clicked"))
+		&& HUDSource.Contains(TEXT("hud_close_clicked"))
+		&& HUDSource.Contains(TEXT("OnClicked.Broadcast")));
+	TestTrue(TEXT("HUD restores native vitals and action buttons when the browser disconnects"),
+		HUDSource.Contains(TEXT("SetNativeVitalsAndActionVisibility(false)"))
+		&& HUDSource.Contains(TEXT("SetNativeVitalsAndActionVisibility(true)")));
+	TestTrue(TEXT("HUD restricts browser input to known gameplay input tags"), HUDSource.Contains(TEXT("InputTag_Passive_2")));
+	const UClass* HUDClass = AAuraHUD::StaticClass();
+	TestNotNull(TEXT("Web command handler is reflected for dynamic delegate binding"), HUDClass->FindFunctionByName(TEXT("HandleWebUICommand")));
+	TestNotNull(TEXT("Web connection handler is reflected for dynamic delegate binding"), HUDClass->FindFunctionByName(TEXT("HandleWebUIConnectionChanged")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraWebSkillPanelHUDRuntimeTest,
+	"Aura.UI.WebSkillPanel.RuntimeMountAndFallback",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraWebSkillPanelHUDRuntimeTest::RunTest(const FString& Parameters)
+{
+	UWorld* TestWorld = UWorld::CreateWorld(EWorldType::Game, /*bInformEngineOfWorld=*/false);
+	if (!TestNotNull(TEXT("Transient Web HUD test world created"), TestWorld))
+	{
+		return false;
+	}
+	TestWorld->AddToRoot();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AAuraPlayerState* PlayerState = TestWorld->SpawnActor<AAuraPlayerState>(AAuraPlayerState::StaticClass(), FTransform::Identity, SpawnParams);
+	AAuraPlayerController* PlayerController = TestWorld->SpawnActor<AAuraPlayerController>(AAuraPlayerController::StaticClass(), FTransform::Identity, SpawnParams);
+	AAuraHUD* HUD = TestWorld->SpawnActor<AAuraHUD>(AAuraHUD::StaticClass(), FTransform::Identity, SpawnParams);
+	if (!TestNotNull(TEXT("Web HUD PlayerState fixture spawned"), PlayerState)
+		|| !TestNotNull(TEXT("Web HUD local PlayerController fixture spawned"), PlayerController)
+		|| !TestNotNull(TEXT("Web HUD fixture spawned"), HUD))
+	{
+		TestWorld->RemoveFromRoot();
+		TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
+		return false;
+	}
+
+	const TSubclassOf<UAuraUserWidget> OverlayClass = LoadClass<UAuraUserWidget>(
+		nullptr, TEXT("/Game/Blueprints/UI/Overlay/WBP_Overlay.WBP_Overlay_C"));
+	const TSubclassOf<UOverlayWidgetController> ControllerClass = LoadClass<UOverlayWidgetController>(
+		nullptr, TEXT("/Game/Blueprints/UI/WidgetController/BP_OverlayWidgetController.BP_OverlayWidgetController_C"));
+	if (!TestNotNull(TEXT("Runtime overlay class loaded for Web HUD"), OverlayClass.Get())
+		|| !TestNotNull(TEXT("Runtime overlay controller class loaded for Web HUD"), ControllerClass.Get()))
+	{
+		TestWorld->RemoveFromRoot();
+		TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
+		return false;
+	}
+
+	auto SetObjectProperty = [](UObject* Owner, const FName PropertyName, UObject* Value)
+	{
+		if (FObjectPropertyBase* Property = FindFProperty<FObjectPropertyBase>(Owner->GetClass(), PropertyName))
+		{
+			Property->SetObjectPropertyValue_InContainer(Owner, Value);
+		}
+	};
+	SetObjectProperty(HUD, TEXT("OverlayWidgetClass"), OverlayClass.Get());
+	SetObjectProperty(HUD, TEXT("OverlayWidgetControllerClass"), ControllerClass.Get());
+
+	UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(PlayerState->GetAbilitySystemComponent());
+	UAttributeSet* Attributes = PlayerState->GetAttributeSet();
+	if (!TestNotNull(TEXT("Web HUD PlayerState has an Aura ASC"), ASC)
+		|| !TestNotNull(TEXT("Web HUD PlayerState has attributes"), Attributes))
+	{
+		TestWorld->RemoveFromRoot();
+		TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
+		return false;
+	}
+	ASC->InitAbilityActorInfo(PlayerState, PlayerState);
+
+	HUD->InitOverlay(PlayerController, PlayerState, ASC, Attributes);
+	auto ReadObjectProperty = [](UObject* Owner, const FName PropertyName) -> UObject*
+	{
+		if (!Owner) return nullptr;
+		const FObjectPropertyBase* Property = FindFProperty<FObjectPropertyBase>(Owner->GetClass(), PropertyName);
+		return Property ? Property->GetObjectPropertyValue_InContainer(Owner) : nullptr;
+	};
+
+	UWebUIWidget* SkillPanel = Cast<UWebUIWidget>(ReadObjectProperty(HUD, TEXT("SkillPanelWebUI")));
+	UWebUIBridgeSubsystem* Bridge = TestWorld->GetSubsystem<UWebUIBridgeSubsystem>();
+	TestNotNull(TEXT("HUD mounts a Web UI skill-panel widget"), SkillPanel);
+	TestNotNull(TEXT("HUD runtime fixture owns the Web UI bridge"), Bridge);
+	if (SkillPanel && Bridge)
+	{
+		TestTrue(TEXT("HUD binds its Web UI command handler to the live bridge"), Bridge->OnCommand.IsBound());
+		const TArray<UObject*> CommandListeners = Bridge->OnCommand.GetAllObjects();
+		FString CommandListenerNames;
+		for (const UObject* Listener : CommandListeners)
+		{
+			if (!CommandListenerNames.IsEmpty()) CommandListenerNames += TEXT(", ");
+			CommandListenerNames += GetNameSafe(Listener);
+		}
+		AddInfo(FString::Printf(TEXT("Web UI command listeners (%d): %s"), CommandListeners.Num(), *CommandListenerNames));
+		TestNotNull(TEXT("Mounted skill panel creates a native WebBrowser root"), SkillPanel->GetWebBrowser());
+		TestTrue(TEXT("Mounted skill panel enables transparent browser compositing"), SkillPanel->IsBrowserTransparencyEnabled());
+		TestEqual(TEXT("Mounted skill panel loads the skill-panel page"), SkillPanel->GetLastLoadedHtmlAssetPath(), FString(TEXT("WebUI/skill-panel.html")));
+		TestTrue(TEXT("Mounted skill panel loads non-empty HTML"), SkillPanel->GetLastLoadedHtmlBytes() > 1000);
+
+		if (UGameViewportSubsystem* ViewportSubsystem = UGameViewportSubsystem::Get(TestWorld))
+		{
+			if (ViewportSubsystem->IsWidgetAdded(SkillPanel))
+			{
+				const FGameViewportWidgetSlot Slot = ViewportSubsystem->GetWidgetSlot(SkillPanel);
+				TestEqual(TEXT("Web skill panel is mounted above native HUD layers"), Slot.ZOrder, 200);
+				TestTrue(TEXT("Web skill panel uses a non-zero-height bottom viewport band"),
+					Slot.Anchors.Minimum.Y == 0.72f && Slot.Anchors.Maximum.Y == 0.98f
+					&& Slot.Anchors.Maximum.Y > Slot.Anchors.Minimum.Y
+					&& Slot.Offsets.Top == 0.f && Slot.Offsets.Bottom == 0.f);
+			}
+			else
+			{
+				AddInfo(TEXT("Headless automation has no game viewport; verified the mounted widget host, browser root, and loaded skill page instead."));
+			}
+		}
+
+		UAuraUserWidget* Overlay = Cast<UAuraUserWidget>(ReadObjectProperty(HUD, TEXT("OverlayWidget")));
+		UObject* HealthManaSpells = Overlay ? ReadObjectProperty(Overlay, TEXT("WBP_HealthManaSpells")) : nullptr;
+		UUserWidget* HealthManaSpellsWidget = Cast<UUserWidget>(HealthManaSpells);
+		UWidget* SpellGlobe = HealthManaSpellsWidget ? HealthManaSpellsWidget->GetWidgetFromName(TEXT("SpellGlobe_LMB")) : nullptr;
+		TestNotNull(TEXT("Runtime overlay exposes the native LMB spell globe"), SpellGlobe);
+		if (SpellGlobe)
+		{
+			TestTrue(TEXT("Native spell globe starts visible before browser readiness"), SpellGlobe->GetVisibility() != ESlateVisibility::Collapsed);
+			TestNotNull(TEXT("HUD exposes the reflected skill-panel command function"), HUD->GetClass()->FindFunctionByName(TEXT("HandleWebUICommand")));
+			HUD->HandleWebUICommand(TEXT("skill_panel_ready"), TEXT("{}"));
+			AddInfo(FString::Printf(TEXT("LMB spell-globe visibility after browser readiness=%d (Collapsed=%d)"),
+				static_cast<int32>(SpellGlobe->GetVisibility()),
+				static_cast<int32>(ESlateVisibility::Collapsed)));
+			TestEqual(TEXT("Browser readiness collapses the native spell globe"), SpellGlobe->GetVisibility(), ESlateVisibility::Collapsed);
+			TestNotNull(TEXT("HUD exposes the reflected skill-panel connection function"), HUD->GetClass()->FindFunctionByName(TEXT("HandleWebUIConnectionChanged")));
+			const int32 ForwardedActionsBefore = HUD->GetWebHudForwardedActionCount();
+			HUD->HandleWebUICommand(TEXT("hud_attributes_clicked"), TEXT("{}"));
+			HUD->HandleWebUICommand(TEXT("hud_spells_clicked"), TEXT("{}"));
+			HUD->HandleWebUICommand(TEXT("hud_close_clicked"), TEXT("{}"));
+			TestEqual(TEXT("Web HUD forwards Attributes, Spells, and Close clicks to native handlers"),
+				HUD->GetWebHudForwardedActionCount(), ForwardedActionsBefore + 3);
+			HUD->HandleWebUIConnectionChanged(false);
+			TestTrue(TEXT("Browser disconnect restores the native spell globe fallback"), SpellGlobe->GetVisibility() != ESlateVisibility::Collapsed);
+		}
+	}
+
+	HUD->Destroy();
+	PlayerController->Destroy();
+	PlayerState->Destroy();
 	TestWorld->RemoveFromRoot();
 	TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
 	return true;

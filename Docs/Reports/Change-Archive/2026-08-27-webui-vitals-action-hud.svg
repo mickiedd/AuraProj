@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Web UI vitals and action HUD flow</title>
+  <desc id="desc">Health and mana delegates flow to Web UI progress controls, while Web UI action commands invoke the existing native overlay button delegates. Readiness and disconnect preserve a native fallback.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#171b27"/>
+      <stop offset="1" stop-color="#0d1018"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d19a32"/>
+      <stop offset="1" stop-color="#f6d477"/>
+    </linearGradient>
+    <style>
+      .title { font: 700 27px Arial, sans-serif; fill: #f7d98a; }
+      .heading { font: 700 19px Arial, sans-serif; fill: #ffe7a7; }
+      .label { font: 16px Arial, sans-serif; fill: #f4ead1; }
+      .small { font: 14px Arial, sans-serif; fill: #d6c9aa; }
+      .code { font: 14px Consolas, monospace; fill: #ffe6ad; }
+      .box { fill: #1d2533; stroke: #bc8a2f; stroke-width: 2; rx: 12; }
+      .web { fill: #2a2117; stroke: #e1ad3e; stroke-width: 2; rx: 12; }
+      .native { fill: #24202b; stroke: #7d91b0; stroke-width: 2; rx: 12; }
+      .arrow { fill: none; stroke: url(#gold); stroke-width: 3; marker-end: url(#arrowhead); }
+      .muted-arrow { fill: none; stroke: #8da0bd; stroke-width: 2; stroke-dasharray: 7 6; marker-end: url(#arrowheadMuted); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#f2c962"/></marker>
+    <marker id="arrowheadMuted" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#8da0bd"/></marker>
+  </defs>
+
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="600" y="42" text-anchor="middle" class="title">In-game Web UI vitals and action HUD</text>
+
+  <rect x="35" y="75" width="275" height="170" class="box"/>
+  <text x="172" y="106" text-anchor="middle" class="heading">Overlay controller</text>
+  <text x="60" y="139" class="label">OnHealthChanged</text>
+  <text x="60" y="164" class="label">OnMaxHealthChanged</text>
+  <text x="60" y="189" class="label">OnManaChanged</text>
+  <text x="60" y="214" class="label">OnMaxManaChanged</text>
+
+  <rect x="365" y="75" width="280" height="170" class="box"/>
+  <text x="505" y="106" text-anchor="middle" class="heading">AAuraHUD</text>
+  <text x="390" y="144" class="code">SendVitalsToWebUI()</text>
+  <text x="390" y="174" class="code">event: hud_vitals</text>
+  <text x="390" y="204" class="small">snapshot + live delegate updates</text>
+
+  <rect x="700" y="65" width="465" height="190" class="web"/>
+  <text x="932" y="98" text-anchor="middle" class="heading">skill-panel.html (transparent host)</text>
+  <circle cx="785" cy="151" r="35" fill="#76151d" stroke="#e1ad3e" stroke-width="3"/>
+  <text x="785" y="155" text-anchor="middle" class="small">100 / 100</text>
+  <rect x="745" y="196" width="80" height="10" rx="5" fill="#461017" stroke="#d7a73f"/>
+  <rect x="746" y="197" width="76" height="8" rx="4" fill="#e04c45"/>
+  <text x="870" y="143" class="label">Health orb + fill</text>
+  <circle cx="785" cy="226" r="0" fill="none"/>
+  <circle cx="1035" cy="151" r="35" fill="#182f91" stroke="#e1ad3e" stroke-width="3"/>
+  <text x="1035" y="155" text-anchor="middle" class="small">50 / 50</text>
+  <rect x="995" y="196" width="80" height="10" rx="5" fill="#101b55" stroke="#d7a73f"/>
+  <rect x="996" y="197" width="76" height="8" rx="4" fill="#4d8bff"/>
+  <text x="870" y="207" class="label">Mana orb + fill</text>
+
+  <path d="M310 160H365" class="arrow"/>
+  <path d="M645 160H700" class="arrow"/>
+
+  <rect x="35" y="300" width="275" height="175" class="web"/>
+  <text x="172" y="333" text-anchor="middle" class="heading">Web controls</text>
+  <rect x="65" y="365" width="100" height="38" rx="5" fill="#801617" stroke="#e1ad3e" stroke-width="2"/>
+  <text x="115" y="390" text-anchor="middle" class="label">Attributes</text>
+  <rect x="180" y="365" width="75" height="38" rx="5" fill="#801617" stroke="#e1ad3e" stroke-width="2"/>
+  <text x="217" y="390" text-anchor="middle" class="label">Spells</text>
+  <rect x="120" y="420" width="52" height="35" rx="5" fill="#801617" stroke="#e1ad3e" stroke-width="2"/>
+  <text x="146" y="444" text-anchor="middle" class="label">X</text>
+  <text x="60" y="465" class="small">data-command click events</text>
+
+  <rect x="365" y="300" width="280" height="175" class="box"/>
+  <text x="505" y="333" text-anchor="middle" class="heading">WebSocket bridge</text>
+  <text x="390" y="375" class="code">hud_attributes_clicked</text>
+  <text x="390" y="405" class="code">hud_spells_clicked</text>
+  <text x="390" y="435" class="code">hud_close_clicked</text>
+
+  <rect x="700" y="300" width="465" height="175" class="native"/>
+  <text x="932" y="333" text-anchor="middle" class="heading">Existing native overlay</text>
+  <text x="730" y="378" class="label">recursive WBP lookup</text>
+  <text x="730" y="407" class="code">UButton::OnClicked.Broadcast()</text>
+  <text x="730" y="440" class="small">AttributeMenuButton | SpellMenuButton | Button_Quit</text>
+
+  <path d="M310 387H365" class="arrow"/>
+  <path d="M645 387H700" class="arrow"/>
+
+  <rect x="35" y="525" width="1130" height="72" class="native"/>
+  <text x="60" y="555" class="heading">Readiness guard</text>
+  <text x="255" y="555" class="label">skill_panel_ready -&gt; collapse 2 vitals + 3 action widgets</text>
+  <text x="255" y="580" class="label">browser disconnect -&gt; restore native widgets and fallback behavior</text>
+
+  <rect x="35" y="625" width="1130" height="60" fill="#10151f" stroke="#536783" stroke-width="1" rx="10"/>
+  <text x="60" y="651" class="code">PASS: AuraEditor build | HUDContract + RuntimeMountAndFallback | ContentContract | node --check | PIE screenshot + click log</text>
+  <text x="60" y="673" class="small">Mount guard: bAutoConnectBridge=false + one post-mount load prevents duplicate WebSocket pages.</text>
+</svg>

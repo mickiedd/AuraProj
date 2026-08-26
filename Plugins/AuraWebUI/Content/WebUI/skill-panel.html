@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aura - Skills</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Georgia, 'Times New Roman', serif;
+      --gold: #c9952f;
+      --gold-bright: #f1c25d;
+      --ink: #100c08;
+      --panel: rgba(19, 13, 8, .94);
+      --muted: #c9b58d;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+    body { margin: 0; overflow: hidden; background: transparent; color: #f7e9c8; }
+    main { width: 100%; height: 100%; padding: 8px 18px 6px; }
+    .hud { position: relative; display: grid; grid-template-columns: minmax(205px, 1fr) minmax(560px, 4fr) minmax(205px, 1fr); align-items: end; gap: clamp(8px, 1.2vw, 18px); width: 100%; height: 100%; }
+    .panel {
+      width: 100%;
+      height: 100%;
+      min-height: 128px;
+      max-height: 220px;
+      padding: 12px clamp(12px, 2vw, 28px) 10px;
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(48, 29, 13, .94), var(--panel));
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .48), inset 0 0 0 1px rgba(255, 224, 135, .18);
+    }
+    .vital { align-self: end; display: flex; flex-direction: column; justify-content: end; min-width: 0; gap: 7px; padding: 0 4px 1px; }
+    .vital-content { display: flex; align-items: end; gap: 8px; min-width: 0; }
+    .vital.mana .vital-content { flex-direction: row-reverse; }
+    .vital-orb { display: grid; place-items: center; flex: 0 0 auto; width: clamp(86px, 9vw, 142px); aspect-ratio: 1; border: 3px solid var(--gold); border-radius: 50%; box-shadow: inset 0 0 0 6px rgba(0, 0, 0, .48), inset 0 0 18px rgba(255, 220, 135, .12), 0 0 0 2px rgba(255, 221, 126, .18); }
+    .vital.health .vital-orb { background: radial-gradient(circle at 34% 28%, #bf302b 0, #5b0d12 55%, #140406 100%); }
+    .vital.mana .vital-orb { background: radial-gradient(circle at 34% 28%, #376ae4 0, #152b87 55%, #050a2d 100%); }
+    .vital-orb::after { content: ''; width: 12%; height: 12%; align-self: start; justify-self: end; margin: 13% 14% 0 0; border-radius: 50%; background: rgba(255, 255, 255, .9); box-shadow: 0 0 7px rgba(255, 255, 255, .75); }
+    .vital-value { z-index: 1; grid-area: 1 / 1; align-self: end; margin-bottom: 20%; color: #fff5dc; font: 700 clamp(12px, 1.3vw, 18px) 'Segoe UI', sans-serif; text-shadow: 0 2px 3px #000; white-space: nowrap; }
+    .vital-readout { display: grid; gap: 5px; min-width: 0; padding-bottom: 8px; }
+    .vital-name { color: var(--gold-bright); font-size: clamp(11px, 1.1vw, 15px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .vital-track { width: clamp(90px, 10vw, 150px); height: 13px; overflow: hidden; border: 1px solid var(--gold); border-radius: 7px; background: rgba(5, 4, 3, .76); box-shadow: inset 0 1px 3px #000; }
+    .vital-fill { display: block; width: 0%; height: 100%; transition: width .16s ease; }
+    .vital-fill.health { background: linear-gradient(90deg, #7e1017, #eb4d42); box-shadow: 0 0 8px rgba(235, 77, 66, .72); }
+    .vital-fill.mana { background: linear-gradient(90deg, #172c9b, #4d8bff); box-shadow: 0 0 8px rgba(77, 139, 255, .72); }
+    .menu-actions { display: flex; align-items: center; gap: 7px; min-height: 34px; }
+    .vital.mana .menu-actions { justify-content: end; }
+    .menu-button { min-height: 33px; padding: 5px 13px; border: 2px solid var(--gold); border-radius: 4px; background: linear-gradient(180deg, #9f1717, #4e0909); color: #fff0ce; font: 700 clamp(10px, 1.05vw, 14px) Georgia, serif; letter-spacing: .08em; text-shadow: 0 1px 2px #000; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255, 226, 148, .24), 0 2px 4px rgba(0, 0, 0, .45); }
+    .menu-button:hover { filter: brightness(1.2); border-color: #ffe09a; }
+    .menu-button:active { transform: translateY(1px); filter: brightness(.92); }
+    .menu-button.close { width: 37px; padding-inline: 0; font-size: 17px; }
+    .heading { display: flex; justify-content: center; align-items: center; gap: 14px; color: var(--gold-bright); font-size: clamp(12px, 1.3vw, 17px); font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+    .heading::before, .heading::after { content: ''; height: 1px; flex: 1; background: linear-gradient(90deg, transparent, var(--gold)); }
+    .heading::after { background: linear-gradient(90deg, var(--gold), transparent); }
+    .skills { display: flex; justify-content: center; align-items: end; gap: clamp(7px, 1.1vw, 16px); height: calc(100% - 27px); }
+    .slot { min-width: 54px; flex: 0 1 94px; display: grid; justify-items: center; gap: 5px; color: var(--muted); font-size: clamp(11px, 1.15vw, 15px); }
+    .slot.passive { min-width: 45px; flex-basis: 64px; }
+    .orb {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: clamp(48px, 6vw, 82px);
+      aspect-ratio: 1;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 25%, #5b4630 0, #20150c 52%, #090705 100%);
+      box-shadow: inset 0 0 0 4px rgba(0, 0, 0, .42), 0 0 0 1px rgba(255, 221, 126, .26);
+      cursor: pointer;
+      user-select: none;
+      transition: transform .08s ease, border-color .08s ease, filter .08s ease;
+    }
+    .passive .orb { width: clamp(38px, 4.4vw, 60px); }
+    .orb:hover { border-color: #ffe09a; filter: brightness(1.15); }
+    .orb.pressed { transform: translateY(2px) scale(.96); border-color: #fff0b0; filter: brightness(1.28); }
+    .orb.empty { cursor: default; }
+    .orb.empty:hover { border-color: var(--gold); filter: none; }
+    .icon { width: 68%; height: 68%; object-fit: contain; border-radius: 50%; pointer-events: none; }
+    .fallback { display: grid; place-items: center; width: 68%; height: 68%; border-radius: 50%; color: #ffe5a2; background: radial-gradient(circle, #9b422d, #32140f 70%); font-family: 'Segoe UI', sans-serif; font-size: clamp(11px, 1.25vw, 17px); font-weight: 800; text-shadow: 0 1px 2px #000; }
+    .label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .status { position: absolute; right: 4%; bottom: 4%; width: 11px; height: 11px; border: 1px solid #ffe39a; border-radius: 50%; background: #6dd6a2; box-shadow: 0 0 7px #6dd6a2; }
+    .status.locked { background: #8d3d31; box-shadow: none; }
+    .tooltip { position: absolute; left: 50%; bottom: calc(100% + 8px); z-index: 2; display: none; transform: translateX(-50%); width: max-content; max-width: 220px; padding: 5px 8px; border: 1px solid var(--gold); border-radius: 5px; background: rgba(9, 7, 5, .96); color: #ffe8b3; font: 12px 'Segoe UI', sans-serif; pointer-events: none; }
+    .orb:hover .tooltip { display: block; }
+    @media (max-width: 980px) { .hud { grid-template-columns: minmax(145px, 1fr) minmax(420px, 3fr) minmax(145px, 1fr); gap: 5px; } .vital-orb { width: clamp(68px, 8vw, 105px); } .vital-readout { display: none; } .menu-button { padding-inline: 7px; } }
+    @media (max-width: 620px) { main { padding-inline: 4px; } .hud { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; gap: 4px; } .vital { flex-direction: row; align-items: end; justify-content: space-between; } .vital-content { gap: 4px; } .vital-orb { width: 58px; } .vital-readout { display: grid; padding-bottom: 0; } .vital-track { width: 75px; } .vital.health { grid-row: 1; } .vital.mana { grid-row: 3; } .panel { grid-row: 2; padding-inline: 5px; } .skills { gap: 3px; } .slot { min-width: 37px; } .slot.passive { min-width: 33px; } .heading { letter-spacing: .08em; } .menu-button { min-height: 27px; font-size: 10px; } }
+  </style>
+</head>
+<body>
+  <main aria-label="In-game HUD">
+    <div class="hud">
+      <section class="vital health" aria-label="Health">
+        <div class="vital-content">
+          <div class="vital-orb"><span class="vital-value" id="healthValue">0 / 0</span></div>
+          <div class="vital-readout"><span class="vital-name">Health</span><div class="vital-track"><span class="vital-fill health" id="healthFill"></span></div></div>
+        </div>
+        <div class="menu-actions"><button class="menu-button" type="button" data-command="hud_attributes_clicked">Attributes</button></div>
+      </section>
+      <section class="panel" aria-label="Skills">
+        <div class="heading">Skills</div>
+        <div class="skills" id="skills"></div>
+      </section>
+      <section class="vital mana" aria-label="Mana">
+        <div class="vital-content">
+          <div class="vital-orb"><span class="vital-value" id="manaValue">0 / 0</span></div>
+          <div class="vital-readout"><span class="vital-name">Mana</span><div class="vital-track"><span class="vital-fill mana" id="manaFill"></span></div></div>
+        </div>
+        <div class="menu-actions"><button class="menu-button" type="button" data-command="hud_spells_clicked">Spells</button><button class="menu-button close" type="button" data-command="hud_close_clicked" aria-label="Close">X</button></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const socketUrl = "__AURA_WEBSOCKET_URL__";
+    const slots = [
+      { key: 'InputTag.LMB', label: 'LMB' },
+      { key: 'InputTag.RMB', label: 'RMB' },
+      { key: 'InputTag.1', label: '1' },
+      { key: 'InputTag.2', label: '2' },
+      { key: 'InputTag.3', label: '3' },
+      { key: 'InputTag.4', label: '4' },
+      { key: 'InputTag.Passive.1', label: 'Passive', passive: true },
+      { key: 'InputTag.Passive.2', label: 'Passive', passive: true }
+    ];
+    const states = new Map();
+    const pressed = new Map();
+    const skills = document.getElementById('skills');
+    const healthValue = document.getElementById('healthValue');
+    const healthFill = document.getElementById('healthFill');
+    const manaValue = document.getElementById('manaValue');
+    const manaFill = document.getElementById('manaFill');
+    let socket;
+
+    function send(command, payload = {}) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'command', command, payload }));
+      }
+    }
+
+    function initials(tag) {
+      const value = String(tag || '').split('.').pop() || '?';
+      return value.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '?';
+    }
+
+    function renderSlot(slot) {
+      const info = states.get(slot.key);
+      const wrapper = document.createElement('div');
+      wrapper.className = `slot${slot.passive ? ' passive' : ''}`;
+      const orb = document.createElement('button');
+      orb.type = 'button';
+      orb.className = `orb${info ? '' : ' empty'}`;
+      orb.setAttribute('aria-label', `${slot.label}: ${info ? info.abilityTag : 'empty'}`);
+      orb.dataset.inputTag = slot.key;
+      if (info) {
+        if (info.icon && info.icon.startsWith('data:image/')) {
+          const image = document.createElement('img');
+          image.className = 'icon';
+          image.alt = '';
+          image.src = info.icon;
+          orb.appendChild(image);
+        } else {
+          const fallback = document.createElement('span');
+          fallback.className = 'fallback';
+          fallback.textContent = initials(info.abilityTag);
+          orb.appendChild(fallback);
+        }
+        const status = document.createElement('span');
+        status.className = `status${String(info.statusTag || '').includes('Locked') ? ' locked' : ''}`;
+        orb.appendChild(status);
+        const tooltip = document.createElement('span');
+        tooltip.className = 'tooltip';
+        tooltip.textContent = info.abilityTag || slot.label;
+        orb.appendChild(tooltip);
+        if (!slot.passive) {
+          orb.addEventListener('pointerdown', event => beginPress(slot.key, orb, event));
+          orb.addEventListener('pointerup', event => endPress(slot.key, orb, event));
+          orb.addEventListener('pointercancel', event => endPress(slot.key, orb, event));
+          orb.addEventListener('lostpointercapture', event => endPress(slot.key, orb, event));
+        }
+      }
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = slot.label;
+      wrapper.append(orb, label);
+      return wrapper;
+    }
+
+    function render() {
+      skills.replaceChildren(...slots.map(renderSlot));
+    }
+
+    function renderVital(value, maximum, valueNode, fillNode) {
+      const current = Number.isFinite(Number(value)) ? Math.max(0, Number(value)) : 0;
+      const max = Number.isFinite(Number(maximum)) ? Math.max(0, Number(maximum)) : 0;
+      const ratio = max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
+      valueNode.textContent = `${Math.round(current)} / ${Math.round(max)}`;
+      fillNode.style.width = `${ratio * 100}%`;
+    }
+
+    function applyVitals(payload = {}) {
+      renderVital(payload.health, payload.maxHealth, healthValue, healthFill);
+      renderVital(payload.mana, payload.maxMana, manaValue, manaFill);
+    }
+
+    document.querySelectorAll('[data-command]').forEach(button => {
+      button.addEventListener('click', () => send(button.dataset.command));
+    });
+
+    function beginPress(inputTag, orb, event) {
+      if (event) event.preventDefault();
+      if (pressed.has(inputTag) || !states.has(inputTag)) return;
+      pressed.set(inputTag, setInterval(() => send('skill_ability_held', { inputTag }), 50));
+      orb.classList.add('pressed');
+      if (orb.setPointerCapture && event && event.pointerId !== undefined) orb.setPointerCapture(event.pointerId);
+      send('skill_ability_pressed', { inputTag });
+    }
+
+    function endPress(inputTag, orb, event) {
+      if (event) event.preventDefault();
+      const timer = pressed.get(inputTag);
+      if (!timer) return;
+      if (timer) clearInterval(timer);
+      pressed.delete(inputTag);
+      orb.classList.remove('pressed');
+      send('skill_ability_released', { inputTag });
+    }
+
+    function applyAbility(payload = {}) {
+      const inputTag = String(payload.inputTag || '');
+      if (!inputTag) return;
+      if (payload.clear) states.delete(inputTag);
+      else states.set(inputTag, payload);
+      render();
+    }
+
+    function connect() {
+      socket = new WebSocket(socketUrl);
+      socket.onopen = () => {
+        send('skill_panel_ready');
+        socket.send(JSON.stringify({ type: 'ready' }));
+      };
+      socket.onclose = () => setTimeout(connect, 250);
+      socket.onerror = () => {};
+      socket.onmessage = event => {
+        let packet;
+        try { packet = JSON.parse(event.data); } catch (_) { return; }
+        if (packet.type !== 'event') return;
+        if (packet.event === 'skill_panel_ability') applyAbility(packet.payload);
+        else if (packet.event === 'hud_vitals') applyVitals(packet.payload);
+      };
+    }
+
+    applyVitals();
+    render();
+    connect();
+  </script>
+</body>
+</html>

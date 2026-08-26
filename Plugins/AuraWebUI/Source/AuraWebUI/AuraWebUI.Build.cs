@@ -16,7 +16,9 @@ public class AuraWebUI : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"UMG",
-			"WebBrowserWidget"
+			"WebBrowserWidget",
+			"SlateCore",
+			"Slate"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

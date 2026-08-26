@@ -72,6 +72,11 @@ public:
 	/** Request a server-authoritative monster spawn near the controlled pawn. */
 	void RequestAddMonster(int32 MonsterId);
 
+	/** Input entry points used by the in-game Web UI skill panel. */
+	void WebAbilityInputTagPressed(const FGameplayTag& InputTag);
+	void WebAbilityInputTagHeld(const FGameplayTag& InputTag);
+	void WebAbilityInputTagReleased(const FGameplayTag& InputTag);
+
 	// ---- UGC Building Exec Commands ----------------------------------------
 
 	/**

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650">
+  <rect width="1200" height="650" fill="#101722"/>
+  <text x="55" y="55" fill="#f4d37b" font-family="Arial, sans-serif" font-size="28" font-weight="700">In-game Web UI HUD - viewport geometry fix</text>
+  <text x="55" y="88" fill="#b9c7d8" font-family="Arial, sans-serif" font-size="16">The bridge and page were ready; the old slot described a zero-height browser.</text>
+
+  <rect x="55" y="125" width="500" height="360" rx="12" fill="#1d2a3a" stroke="#61738b" stroke-width="2"/>
+  <text x="80" y="160" fill="#ff9b87" font-family="Arial, sans-serif" font-size="21" font-weight="700">Before</text>
+  <text x="80" y="190" fill="#d6dee9" font-family="Consolas, monospace" font-size="15">Anchors: (0.04, 1.0) -&gt; (0.96, 1.0)</text>
+  <text x="80" y="217" fill="#d6dee9" font-family="Consolas, monospace" font-size="15">Offsets: (20, -220, -20, -18)</text>
+  <rect x="90" y="255" width="430" height="175" fill="#29394c" stroke="#7d8ca0"/>
+  <line x1="100" y1="422" x2="510" y2="422" stroke="#f3b340" stroke-width="3"/>
+  <rect x="175" y="419" width="250" height="2" fill="#ff5e57"/>
+  <text x="125" y="460" fill="#ffb5a8" font-family="Arial, sans-serif" font-size="15">Bottom anchor + negative size = height zero</text>
+  <text x="190" y="395" fill="#ff7667" font-family="Arial, sans-serif" font-size="18" font-weight="700">browser not visible</text>
+
+  <path d="M570 305 H625" stroke="#f4d37b" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="575" y="282" fill="#f4d37b" font-family="Arial, sans-serif" font-size="15">fix</text>
+
+  <rect x="645" y="125" width="500" height="360" rx="12" fill="#1d2a3a" stroke="#61738b" stroke-width="2"/>
+  <text x="670" y="160" fill="#9cf0be" font-family="Arial, sans-serif" font-size="21" font-weight="700">After</text>
+  <text x="670" y="190" fill="#d6dee9" font-family="Consolas, monospace" font-size="15">Anchors: (0.04, 0.72) -&gt; (0.96, 0.98)</text>
+  <text x="670" y="217" fill="#d6dee9" font-family="Consolas, monospace" font-size="15">Offsets: (20, 0, -20, 0)</text>
+  <rect x="680" y="255" width="430" height="175" fill="#29394c" stroke="#7d8ca0"/>
+  <rect x="700" y="300" width="390" height="105" rx="10" fill="#2b190c" stroke="#d3a03b" stroke-width="3"/>
+  <text x="855" y="330" fill="#f4d37b" font-family="Georgia, serif" font-size="19" font-weight="700">SKILLS</text>
+  <g fill="#3b2c1d" stroke="#d3a03b" stroke-width="2">
+    <circle cx="735" cy="370" r="23"/><circle cx="790" cy="370" r="23"/><circle cx="845" cy="370" r="23"/><circle cx="900" cy="370" r="23"/><circle cx="955" cy="370" r="23"/><circle cx="1010" cy="370" r="23"/><circle cx="1045" cy="370" r="18"/><circle cx="1080" cy="370" r="18"/>
+  </g>
+  <text x="772" y="460" fill="#9cf0be" font-family="Arial, sans-serif" font-size="15">visible non-zero-height bottom band</text>
+
+  <rect x="55" y="525" width="1090" height="75" rx="10" fill="#172335" stroke="#3e5875"/>
+  <text x="80" y="555" fill="#b9c7d8" font-family="Arial, sans-serif" font-size="15">Validation: Development build | HUDContract PASS | RuntimeMountAndFallback PASS | PIE screenshot PASS</text>
+  <text x="80" y="580" fill="#b9c7d8" font-family="Arial, sans-serif" font-size="15">Runtime marker: skill-panel.html (8,841 bytes), context=LocalPlayer, skill_panel_ready</text>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f4d37b"/></marker>
+  </defs>
+</svg>

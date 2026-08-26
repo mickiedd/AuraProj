@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" role="img" aria-labelledby="title desc">
+  <title id="title">Transparent in-game Web UI skill HUD</title>
+  <desc id="desc">Before and after diagram showing an opaque browser host replaced by alpha compositing, with automated and visual validation.</desc>
+  <defs>
+    <linearGradient id="game" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b7783d"/>
+      <stop offset="1" stop-color="#6f4527"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b2412" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#160d07" stop-opacity="0.90"/>
+    </linearGradient>
+    <style>
+      .heading { font: 700 24px Arial, sans-serif; fill: #f5d58a; }
+      .label { font: 16px Arial, sans-serif; fill: #f7ead1; }
+      .small { font: 14px Arial, sans-serif; fill: #ead5b2; }
+      .code { font: 14px Consolas, monospace; fill: #ffe6ad; }
+      .card { stroke: #d5a33c; stroke-width: 2; rx: 12; }
+    </style>
+  </defs>
+  <rect width="1100" height="560" fill="#17120f"/>
+  <text x="550" y="38" text-anchor="middle" class="heading">Web UI HUD background compositing</text>
+
+  <rect x="35" y="65" width="475" height="315" class="card" fill="#241b18"/>
+  <text x="272" y="94" text-anchor="middle" class="heading">Before</text>
+  <rect x="60" y="115" width="425" height="215" fill="url(#game)"/>
+  <path d="M60 170h425M60 225h425M60 280h425M170 115v215M280 115v215M390 115v215" stroke="#d6a36c" stroke-opacity="0.35"/>
+  <rect x="78" y="138" width="389" height="170" fill="#050505"/>
+  <rect x="125" y="170" width="295" height="105" fill="url(#panel)" stroke="#d5a33c" stroke-width="2" rx="12"/>
+  <text x="272" y="199" text-anchor="middle" class="label">SKILLS</text>
+  <circle cx="180" cy="232" r="23" fill="#24190f" stroke="#d5a33c" stroke-width="2"/>
+  <circle cx="272" cy="232" r="23" fill="#24190f" stroke="#d5a33c" stroke-width="2"/>
+  <circle cx="364" cy="232" r="23" fill="#24190f" stroke="#d5a33c" stroke-width="2"/>
+  <text x="272" y="298" text-anchor="middle" class="small">opaque native host paints black around page</text>
+
+  <path d="M525 220h50" stroke="#f5d58a" stroke-width="3"/>
+  <path d="M560 210l18 10-18 10" fill="none" stroke="#f5d58a" stroke-width="3"/>
+
+  <rect x="590" y="65" width="475" height="315" class="card" fill="#241b18"/>
+  <text x="827" y="94" text-anchor="middle" class="heading">After</text>
+  <rect x="615" y="115" width="425" height="215" fill="url(#game)"/>
+  <path d="M615 170h425M615 225h425M615 280h425M725 115v215M835 115v215M945 115v215" stroke="#d6a36c" stroke-opacity="0.35"/>
+  <rect x="680" y="170" width="295" height="105" fill="url(#panel)" stroke="#d5a33c" stroke-width="2" rx="12"/>
+  <text x="827" y="199" text-anchor="middle" class="label">SKILLS</text>
+  <circle cx="735" cy="232" r="23" fill="#24190f" stroke="#d5a33c" stroke-width="2"/>
+  <circle cx="827" cy="232" r="23" fill="#24190f" stroke="#d5a33c" stroke-width="2"/>
+  <circle cx="919" cy="232" r="23" fill="#24190f" stroke="#d5a33c" stroke-width="2"/>
+  <text x="827" y="298" text-anchor="middle" class="small">game viewport visible outside transparent host</text>
+
+  <rect x="90" y="420" width="920" height="100" fill="#0e0b09" stroke="#5d4828" stroke-width="1" rx="10"/>
+  <text x="115" y="448" class="code">EnsureWebBrowser()</text>
+  <text x="115" y="473" class="code">FindFProperty&lt;FBoolProperty&gt;(..., "bSupportsTransparency")</text>
+  <text x="115" y="498" class="code">SetPropertyValue_InContainer(..., true)  -&gt;  Slate/CEF alpha compositing</text>
+</svg>

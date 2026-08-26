@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Web UI delegate reflection guard</title>
+  <desc id="desc">The OnRep PlayerState lifecycle creates the skill panel, dynamic delegates require reflected HUD handlers, and automation verifies both reflected functions.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17233c"/>
+      <stop offset="1" stop-color="#0b1020"/>
+    </linearGradient>
+    <linearGradient id="bad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6e2631"/>
+      <stop offset="1" stop-color="#32131c"/>
+    </linearGradient>
+    <linearGradient id="good" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e654f"/>
+      <stop offset="1" stop-color="#12362f"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#e9c56b"/>
+    </marker>
+    <style>
+      .title { font: 700 29px 'Segoe UI', sans-serif; fill: #f5f7ff; }
+      .heading { font: 700 20px 'Segoe UI', sans-serif; fill: #f5f7ff; }
+      .body { font: 15px 'Segoe UI', sans-serif; fill: #c5d2e8; }
+      .code { font: 14px Consolas, monospace; fill: #ffe7a3; }
+      .small { font: 13px 'Segoe UI', sans-serif; fill: #aebbd2; }
+      .box { stroke: #7185ad; stroke-width: 2; rx: 14; }
+      .arrow { stroke: #e9c56b; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .check { fill: #7ce0b5; font: 700 21px 'Segoe UI', sans-serif; }
+      .cross { fill: #ff8e91; font: 700 21px 'Segoe UI', sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="54" y="54" class="title">Aura Web UI delegate binding guard</text>
+  <text x="54" y="83" class="body">The replication callback exposed a reflection problem in the new partial HUD, not a Pawn state-data problem.</text>
+
+  <rect x="54" y="125" width="1092" height="100" class="box" fill="#263653"/>
+  <text x="82" y="163" class="heading">1. Client lifecycle</text>
+  <text x="82" y="193" class="code">Pawn.OnRep_PlayerState → AAuraHUD::InitializeSkillPanelWebUI()</text>
+  <text x="670" y="163" class="small">This is where the log's script stack points.</text>
+  <text x="670" y="191" class="small">It creates the bridge-backed skill panel.</text>
+
+  <path d="M600 225 L600 266" class="arrow"/>
+
+  <rect x="54" y="275" width="510" height="205" class="box" fill="url(#bad)"/>
+  <text x="82" y="313" class="heading">Before: unreflected handlers</text>
+  <text x="82" y="347" class="code">OnCommand.AddDynamic(this,</text>
+  <text x="82" y="371" class="code">  &amp;AAuraHUD::HandleWebUICommand)</text>
+  <text x="82" y="405" class="code">OnConnectionChanged.AddDynamic(...)</text>
+  <text x="82" y="442" class="cross">× IsBound() ensure</text>
+  <text x="240" y="442" class="small">UFUNCTION lookup failed</text>
+
+  <rect x="636" y="275" width="510" height="205" class="box" fill="url(#good)"/>
+  <text x="664" y="313" class="heading">After: reflected handlers</text>
+  <text x="664" y="347" class="code">UFUNCTION() HandleWebUICommand(...)</text>
+  <text x="664" y="377" class="code">UFUNCTION() HandleWebUIConnectionChanged(...)</text>
+  <text x="664" y="421" class="check">✓ dynamic binding resolves</text>
+  <text x="664" y="451" class="small">Browser commands and connection replay remain enabled.</text>
+
+  <path d="M600 480 L600 522" class="arrow"/>
+
+  <rect x="54" y="532" width="1092" height="155" class="box" fill="#1d2a43"/>
+  <text x="82" y="570" class="heading">2. Regression gate</text>
+  <text x="82" y="603" class="code">Aura.UI.WebSkillPanel.HUDContract</text>
+  <text x="82" y="631" class="body">FindFunctionByName(HandleWebUICommand)</text>
+  <text x="82" y="655" class="body">FindFunctionByName(HandleWebUIConnectionChanged)</text>
+  <text x="700" y="603" class="check">✓ 1 focused test passed</text>
+  <text x="700" y="631" class="check">✓ AuraWebUI 4/4</text>
+  <text x="700" y="659" class="check">✓ Overlay 1/1 · Abilities 9/9</text>
+</svg>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Native WBP skill bar replaced by the in-game Web UI panel</title>
+  <desc id="desc">The native health and mana widgets remain as fallback while native spell globes are collapsed after the browser skill panel reports ready.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17233c"/>
+      <stop offset="1" stop-color="#0b1020"/>
+    </linearGradient>
+    <linearGradient id="web" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#75481f"/>
+      <stop offset="1" stop-color="#211208"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#f0c665"/>
+    </marker>
+    <style>
+      .title { font: 700 28px 'Segoe UI', sans-serif; fill: #f5f7ff; }
+      .heading { font: 700 20px 'Segoe UI', sans-serif; fill: #f5f7ff; }
+      .body { font: 15px 'Segoe UI', sans-serif; fill: #c5d2e8; }
+      .small { font: 13px 'Segoe UI', sans-serif; fill: #afbed8; }
+      .code { font: 14px Consolas, monospace; fill: #ffe7a3; }
+      .box { stroke: #7185ad; stroke-width: 2; rx: 14; }
+      .arrow { stroke: #f0c665; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .good { fill: #80e0b7; font: 700 19px 'Segoe UI', sans-serif; }
+      .muted { fill: #ff9a9d; font: 700 19px 'Segoe UI', sans-serif; }
+    </style>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="54" y="52" class="title">Aura skill-bar ownership handoff</text>
+  <text x="54" y="81" class="body">The old WBP overlay stays alive for health/mana, but its native spell globes no longer compete with the HTML panel.</text>
+
+  <rect x="54" y="120" width="1092" height="108" class="box" fill="#263653"/>
+  <text x="82" y="159" class="heading">Mount the configured page</text>
+  <text x="82" y="190" class="code">AddToViewport(200) → ReloadWebUI(WebUI/skill-panel.html)</text>
+  <text x="720" y="159" class="small">Top z-order prevents the old skill strip from covering the browser.</text>
+  <text x="720" y="188" class="small">The explicit reload protects the assigned asset path.</text>
+
+  <path d="M600 228 L600 270" class="arrow"/>
+
+  <rect x="54" y="280" width="510" height="210" class="box" fill="#2e2432"/>
+  <text x="82" y="318" class="heading">Native WBP overlay</text>
+  <circle cx="144" cy="392" r="43" fill="#6a2430" stroke="#d09b35" stroke-width="4"/>
+  <circle cx="466" cy="392" r="43" fill="#1b3b88" stroke="#d09b35" stroke-width="4"/>
+  <text x="104" y="465" class="small">health</text>
+  <text x="435" y="465" class="small">mana</text>
+  <text x="256" y="355" class="muted">SpellGlobe_* widgets</text>
+  <text x="192" y="438" class="small">collapsed only after browser ready</text>
+
+  <rect x="636" y="280" width="510" height="210" class="box" fill="url(#web)"/>
+  <text x="664" y="318" class="heading">Visible Web UI skill panel</text>
+  <rect x="678" y="348" width="426" height="94" rx="11" fill="#211309" stroke="#d09b35" stroke-width="3"/>
+  <g fill="#35200f" stroke="#d09b35" stroke-width="2">
+    <circle cx="727" cy="397" r="25"/><circle cx="790" cy="397" r="25"/><circle cx="853" cy="397" r="25"/><circle cx="916" cy="397" r="25"/><circle cx="979" cy="397" r="25"/><circle cx="1042" cy="397" r="25"/>
+  </g>
+  <text x="664" y="469" class="good">skill_panel_ready → native globes hidden</text>
+
+  <path d="M600 490 L600 532" class="arrow"/>
+
+  <rect x="54" y="542" width="1092" height="154" class="box" fill="#1d2a43"/>
+  <text x="82" y="580" class="heading">Fallback contract</text>
+  <text x="82" y="612" class="code">browser disconnect → SetNativeSkillGlobeVisibility(true)</text>
+  <text x="82" y="642" class="body">Health and mana remain native throughout; only the skill ownership changes.</text>
+  <text x="760" y="612" class="good">✓ HUD contract passed</text>
+  <text x="760" y="640" class="good">✓ AuraWebUI 4/4</text>
+  <text x="760" y="668" class="good">✓ DebugGame build passed</text>
+</svg>

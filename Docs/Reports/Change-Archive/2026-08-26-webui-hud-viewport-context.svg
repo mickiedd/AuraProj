@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="title desc">
+  <title id="title">Web UI HUD viewport ownership and visibility guard</title>
+  <desc id="desc">The skill panel now uses the local player viewport in gameplay, retains a world fallback for headless automation, and is verified through build and runtime tests.</desc>
+  <defs>
+    <style>
+      .bg { fill: #10141b; }
+      .title { fill: #f4d58d; font: 700 26px 'Segoe UI', sans-serif; }
+      .subtitle { fill: #b8c4d6; font: 15px 'Segoe UI', sans-serif; }
+      .node { fill: #1d2b3b; stroke: #d8a84e; stroke-width: 2; rx: 14; }
+      .guard { fill: #2f2430; stroke: #ee9b66; stroke-width: 2; rx: 14; }
+      .test { fill: #20362c; stroke: #75c99a; stroke-width: 2; rx: 14; }
+      .label { fill: #f6f8fb; font: 600 17px 'Segoe UI', sans-serif; text-anchor: middle; }
+      .small { fill: #d1d9e6; font: 14px 'Segoe UI', sans-serif; text-anchor: middle; }
+      .arrow { stroke: #d8a84e; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .guardline { stroke: #ee9b66; stroke-width: 3; fill: none; marker-end: url(#guardhead); }
+      .testline { stroke: #75c99a; stroke-width: 3; fill: none; marker-end: url(#testhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#d8a84e"/></marker>
+    <marker id="guardhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#ee9b66"/></marker>
+    <marker id="testhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#75c99a"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="540"/>
+  <text class="title" x="48" y="52">In-game WebUI HUD — viewport ownership guard</text>
+  <text class="subtitle" x="48" y="80">The browser surface now follows the real local-player viewport while automation remains world-context safe.</text>
+
+  <rect class="node" x="55" y="145" width="250" height="118"/>
+  <text class="label" x="180" y="180">AAuraHUD::InitOverlay</text>
+  <text class="small" x="180" y="208">create skill-panel host</text>
+  <text class="small" x="180" y="231">mount at z-order 200</text>
+
+  <rect class="guard" x="370" y="125" width="330" height="158"/>
+  <text class="label" x="535" y="162">Viewport context guard</text>
+  <text class="small" x="535" y="192">local player exists → CreateWidget(PC)</text>
+  <text class="small" x="535" y="217">headless/no local player → CreateWidget(World)</text>
+  <text class="small" x="535" y="242">avoids invisible/non-owned browser host</text>
+
+  <rect class="node" x="765" y="145" width="290" height="118"/>
+  <text class="label" x="910" y="180">UWebBrowser</text>
+  <text class="small" x="910" y="208">skill-panel.html</text>
+  <text class="small" x="910" y="231">bounded bottom-center HUD</text>
+
+  <path class="arrow" d="M305 204 H365"/>
+  <path class="guardline" d="M705 204 H760"/>
+
+  <rect class="test" x="95" y="360" width="300" height="112"/>
+  <text class="label" x="245" y="395">RuntimeMountAndFallback</text>
+  <text class="small" x="245" y="423">8,841-byte page + browser root</text>
+  <text class="small" x="245" y="446">ready hides / disconnect restores</text>
+
+  <rect class="test" x="475" y="360" width="300" height="112"/>
+  <text class="label" x="625" y="395">HUDContract</text>
+  <text class="small" x="625" y="423">ownership branch + z-order/reload</text>
+  <text class="small" x="625" y="446">reflected handlers and fallback</text>
+
+  <rect class="test" x="855" y="360" width="250" height="112"/>
+  <text class="label" x="980" y="395">Build + WebUI suite</text>
+  <text class="small" x="980" y="423">AuraEditor build passed</text>
+  <text class="small" x="980" y="446">bridge loopback 4/4</text>
+
+  <path class="testline" d="M535 285 V330 H245 V355"/>
+  <path class="testline" d="M535 285 V355"/>
+  <path class="testline" d="M910 285 V330 H980 V355"/>
+</svg>
