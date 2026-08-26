@@ -60,6 +60,48 @@ static void ScanDirForXml(const FString& Dir, TArray<FString>& OutPaths)
 	}
 }
 
+/** Return true only for well-formed BehaviorU test trees. Other XML under an AutoTests
+ * directory (for example an ability-definition export) must not be treated as a test. */
+static bool IsRunnableBehaviorUTest(const FString& FilePath)
+{
+	FXmlFile Doc;
+	if (!Doc.LoadFile(FilePath))
+	{
+		return false;
+	}
+
+	const FXmlNode* Root = Doc.GetRootNode();
+	if (!Root || Root->GetTag() != TEXT("behavior"))
+	{
+		UE_LOG(LogAuraTest, Warning, TEXT("[AutoTest] Skipping non-BehaviorU XML: %s"), *FilePath);
+		return false;
+	}
+
+	if (!Root->FindChildNode(TEXT("node")))
+	{
+		UE_LOG(LogAuraTest, Warning, TEXT("[AutoTest] Skipping BehaviorU XML without a root node: %s"), *FilePath);
+		return false;
+	}
+
+	return true;
+}
+
+static TArray<FAutoTestInfo> GetFiniteSuiteTests(const TArray<FAutoTestInfo>& AllTests)
+{
+	TArray<FAutoTestInfo> FiniteTests;
+	FiniteTests.Reserve(AllTests.Num());
+	for (const FAutoTestInfo& Info : AllTests)
+	{
+		if (Info.Tags.Contains(TEXT("autorun")))
+		{
+			UE_LOG(LogAuraTest, Log, TEXT("[AutoTest] RunAll skipping explicit stress test '%s' (tag=autorun)."), *Info.Name);
+			continue;
+		}
+		FiniteTests.Add(Info);
+	}
+	return FiniteTests;
+}
+
 /** Parse test metadata from the <behavior> root <property> children. */
 static FAutoTestInfo ParseTestInfo(const FString& FilePath)
 {
@@ -176,7 +218,10 @@ TArray<FAutoTestInfo> UAutoTestRunnerSubsystem::DiscoverTests() const
 	Infos.Reserve(Paths.Num());
 	for (const FString& P : Paths)
 	{
-		Infos.Add(ParseTestInfo(P));
+		if (IsRunnableBehaviorUTest(P))
+		{
+			Infos.Add(ParseTestInfo(P));
+		}
 	}
 	return Infos;
 }
@@ -224,7 +269,7 @@ void UAutoTestRunnerSubsystem::RunAll()
 	{
 		Refresh();
 	}
-	StartSuite(DiscoveredTests);
+	StartSuite(GetFiniteSuiteTests(DiscoveredTests));
 }
 
 void UAutoTestRunnerSubsystem::RunByFilter(const FString& Filter)
@@ -243,7 +288,7 @@ void UAutoTestRunnerSubsystem::RunByFilter(const FString& Filter)
 	const FString Trimmed = Filter.TrimStartAndEnd();
 	if (Trimmed.IsEmpty() || Trimmed == TEXT("all"))
 	{
-		Selected = DiscoveredTests;
+		Selected = GetFiniteSuiteTests(DiscoveredTests);
 	}
 	else if (Trimmed.StartsWith(TEXT("name:")))
 	{
@@ -616,6 +661,13 @@ bool UAutoTestRunnerSubsystem::OnTick(float DeltaSeconds)
 
 	if (CurrentContext->IsTerminal())
 	{
+		// The BehaviorU agent remains registered until FinalizeTest. Prevent a
+		// terminal tree from restarting on the next worker tick during the
+		// one-frame result-flush window.
+		if (TestAgent)
+		{
+			TestAgent->SetWorkerTickEnabled(false);
+		}
 		bPendingFinalize = true;
 		return true;
 	}

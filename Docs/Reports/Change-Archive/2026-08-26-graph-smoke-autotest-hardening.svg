@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Aura graph smoke and AutoTest hardening</title>
+  <desc id="desc">Before and after flow showing corrected graph fixtures, filtered AutoTest discovery, terminal tick stopping, and validation results.</desc>
+  <style>
+    .bg { fill: #f7f8fa; }
+    .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 18; }
+    .before { fill: #fff1f2; stroke: #fb7185; stroke-width: 2; rx: 14; }
+    .after { fill: #ecfdf5; stroke: #34d399; stroke-width: 2; rx: 14; }
+    .result { fill: #eff6ff; stroke: #60a5fa; stroke-width: 2; rx: 14; }
+    .title { font: 700 28px -apple-system, BlinkMacSystemFont, sans-serif; fill: #0f172a; }
+    .heading { font: 700 19px -apple-system, BlinkMacSystemFont, sans-serif; fill: #0f172a; }
+    .body { font: 15px -apple-system, BlinkMacSystemFont, sans-serif; fill: #334155; }
+    .small { font: 13px -apple-system, BlinkMacSystemFont, sans-serif; fill: #475569; }
+    .bad { font: 700 15px -apple-system, BlinkMacSystemFont, sans-serif; fill: #be123c; }
+    .good { font: 700 15px -apple-system, BlinkMacSystemFont, sans-serif; fill: #047857; }
+    .arrow { stroke: #64748b; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1200" height="720"/>
+  <text class="title" x="50" y="55">AuraProj validation hardening</text>
+  <text class="small" x="50" y="82">2026-08-26 · graph smoke fixtures and AutoTest execution boundaries</text>
+
+  <rect class="panel" x="40" y="115" width="350" height="500"/>
+  <text class="heading" x="65" y="155">Before</text>
+  <rect class="before" x="65" y="180" width="300" height="110"/>
+  <text class="bad" x="85" y="210">Graph smoke: 21 passed / 5 failed</text>
+  <text class="body" x="85" y="238">Unregistered test tags</text>
+  <text class="body" x="85" y="262">and obsolete GE_Damage path</text>
+  <rect class="before" x="65" y="315" width="300" height="125"/>
+  <text class="bad" x="85" y="345">AutoTest RunAll was unsafe</text>
+  <text class="body" x="85" y="373">Ability XML was discovered as</text>
+  <text class="body" x="85" y="397">BehaviorU; AutoRunMap was infinite</text>
+  <rect class="before" x="65" y="465" width="300" height="105"/>
+  <text class="bad" x="85" y="495">Terminal test could tick again</text>
+  <text class="body" x="85" y="523">A post-Pass assertion appeared</text>
+  <text class="body" x="85" y="547">in the report.</text>
+
+  <path class="arrow" d="M 405 360 L 475 360"/>
+
+  <rect class="panel" x="475" y="115" width="350" height="500"/>
+  <text class="heading" x="500" y="155">After</text>
+  <rect class="after" x="500" y="180" width="300" height="110"/>
+  <text class="good" x="520" y="210">Registered production tags</text>
+  <text class="body" x="520" y="238">and current native damage effect</text>
+  <text class="body" x="520" y="262">used by graph fixtures</text>
+  <rect class="after" x="500" y="315" width="300" height="125"/>
+  <text class="good" x="520" y="345">Discovery validates root type</text>
+  <text class="body" x="520" y="373">Only BehaviorU trees enter tests;</text>
+  <text class="body" x="520" y="397">autorun-tagged stress tests stay explicit</text>
+  <rect class="after" x="500" y="465" width="300" height="105"/>
+  <text class="good" x="520" y="495">Terminal agent ticking disabled</text>
+  <text class="body" x="520" y="523">before the result-flush frame,</text>
+  <text class="body" x="520" y="547">preventing duplicate assertions</text>
+
+  <path class="arrow" d="M 840 360 L 910 360"/>
+
+  <rect class="result" x="910" y="115" width="250" height="500"/>
+  <text class="heading" x="935" y="155">Validation</text>
+  <text class="good" x="935" y="205">26 / 26 graph smoke</text>
+  <text class="body" x="935" y="230">0 failed</text>
+  <text class="good" x="935" y="285">AutoTest RunAll</text>
+  <text class="body" x="935" y="310">1 / 1 passed</text>
+  <text class="body" x="935" y="335">0 failed assertions</text>
+  <text class="good" x="935" y="390">Native automation</text>
+  <text class="body" x="935" y="415">156 / 156 passed</text>
+  <text class="good" x="935" y="470">Python contracts</text>
+  <text class="body" x="935" y="495">8 passed</text>
+  <text class="small" x="935" y="545">Packaged network evidence</text>
+  <text class="small" x="935" y="568">remains Windows-only</text>
+</svg>
