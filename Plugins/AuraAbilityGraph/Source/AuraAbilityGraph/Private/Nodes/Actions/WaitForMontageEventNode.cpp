@@ -15,6 +15,7 @@
 #include "GameplayTagContainer.h"
 #include "UObject/UnrealType.h"
 #include "TimerManager.h"
+#include "GameFramework/Actor.h"
 
 static const UPlayMontageNode* FindPlayMontageNode(const UAuraAbilityActionNode* Node)
 {
@@ -91,6 +92,10 @@ void UWaitForMontageEventNode::LoadFromProperties(int32 Version, const TArray<FA
         {
             Timeout = FCString::Atof(*Property.Value);
         }
+        else if (Property.Name == TEXT("AuthorityFallbackDelay"))
+        {
+            AuthorityFallbackDelay = FCString::Atof(*Property.Value);
+        }
     }
 }
 
@@ -164,6 +169,7 @@ EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecution
     // of a second in normal play, so this only trips when something is genuinely wrong.
     const UWaitForMontageEventNode* EventNode = Cast<UWaitForMontageEventNode>(NodeDef);
     const float TimeoutSec = EventNode ? EventNode->Timeout : 0.f;
+    const float AuthorityFallbackDelaySec = EventNode ? EventNode->AuthorityFallbackDelay : 0.f;
     if (TimeoutSec > 0.f && OwnerAbility)
     {
         if (UWorld* World = OwnerAbility->GetWorld())
@@ -182,7 +188,34 @@ EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecution
         }
     }
 
-    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart waiting for event (timeout=%.2f)"), TimeoutSec);
+    // Montage gameplay events are generated locally. On a dedicated server the
+    // montage can be valid and the client can observe the notify while the server
+    // never evaluates it. Let the ability definition opt into a short authority
+    // fallback so authority-only gameplay actions are not blocked by presentation.
+    if (AuthorityFallbackDelaySec > 0.f
+        && Ctx.AvatarActor
+        && Ctx.AvatarActor->HasAuthority()
+        && OwnerAbility)
+    {
+        if (UWorld* World = OwnerAbility->GetWorld())
+        {
+            FTimerDelegate FallbackDel;
+            FallbackDel.BindWeakLambda(OwnerAbility, [ThisObj = TWeakObjectPtr<UWaitForMontageEventTask>(this)]()
+            {
+                if (UWaitForMontageEventTask* Task = ThisObj.Get())
+                {
+                    Task->OnAuthorityFallback();
+                }
+            });
+            World->GetTimerManager().SetTimer(
+                AuthorityFallbackHandle,
+                FallbackDel,
+                AuthorityFallbackDelaySec,
+                false);
+        }
+    }
+
+    UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart waiting for event (timeout=%.2f authorityFallback=%.2f)"), TimeoutSec, AuthorityFallbackDelaySec);
     return EAuraAbilityActionStatus::Running;
 }
 
@@ -199,10 +232,27 @@ void UWaitForMontageEventTask::OnTimeout()
     }
 }
 
+void UWaitForMontageEventTask::OnAuthorityFallback()
+{
+    AuthorityFallbackHandle.Invalidate();
+    if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
+    {
+        UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForMontageEvent] Authority fallback advanced the graph after the montage event was not observed"));
+        if (DataAbility->PendingMontageEventTask.IsValid())
+        {
+            DataAbility->PendingMontageEventTask->EndTask();
+            DataAbility->PendingMontageEventTask.Reset();
+        }
+        PendingStatus = EAuraAbilityActionStatus::Success;
+        DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Success);
+    }
+}
+
 void UWaitForMontageEventTask::OnEventReceived(FGameplayEventData EventData)
 {
     UE_LOG(LogAuraAbilityGraph, VeryVerbose, TEXT("[WaitForMontageEvent] OnEventReceived received"));
     TimeoutHandle.Invalidate();   // event arrived — cancel the safety-net timeout
+    AuthorityFallbackHandle.Invalidate();
     PendingStatus = EAuraAbilityActionStatus::Success;
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
@@ -221,6 +271,7 @@ void UWaitForMontageEventTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAb
     if (UWorld* World = OwnerAbility ? OwnerAbility->GetWorld() : nullptr)
     {
         World->GetTimerManager().ClearTimer(TimeoutHandle);
+        World->GetTimerManager().ClearTimer(AuthorityFallbackHandle);
     }
 }
 
@@ -229,5 +280,6 @@ void UWaitForMontageEventTask::Cancel(FAuraAbilityExecutionContext& Ctx)
     if (UWorld* World = OwnerAbility ? OwnerAbility->GetWorld() : nullptr)
     {
         World->GetTimerManager().ClearTimer(TimeoutHandle);
+        World->GetTimerManager().ClearTimer(AuthorityFallbackHandle);
     }
 }

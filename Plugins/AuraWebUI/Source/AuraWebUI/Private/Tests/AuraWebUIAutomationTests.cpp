@@ -376,7 +376,11 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	const FString LoadingHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/loading.html"));
 	const FString LoginHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/login.html"));
 	const FString ConfigEditorHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/config-editor.html"));
-	const FString HudHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/hud.html"));
+	const TArray<FString> HudPanelNames = {
+		TEXT("hud-left-top.html"),
+		TEXT("hud-right-top.html"),
+		TEXT("hud-bottom.html")
+	};
 	const FString SkillPanelHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/skill-panel.html"));
 	const FString DefaultEnginePath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("DefaultEngine.ini"));
 	const TArray<FString> ManualSkillIconNames = {
@@ -396,7 +400,7 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	FString LoadingHtml;
 	FString LoginHtml;
 	FString ConfigEditorHtml;
-	FString HudHtml;
+	TArray<FString> HudPanelHtml;
 	FString SkillPanelHtml;
 	FString DefaultEngine;
 	TestTrue(TEXT("Plugin descriptor exists"), FFileHelper::LoadFileToString(Descriptor, *DescriptorPath));
@@ -404,7 +408,13 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Loading page exists in the plugin"), FFileHelper::LoadFileToString(LoadingHtml, *LoadingHtmlPath));
 	TestTrue(TEXT("Login page exists in the plugin"), FFileHelper::LoadFileToString(LoginHtml, *LoginHtmlPath));
 	TestTrue(TEXT("Config editor page exists in the plugin"), FFileHelper::LoadFileToString(ConfigEditorHtml, *ConfigEditorHtmlPath));
-	TestTrue(TEXT("Full gameplay HUD page exists in the plugin"), FFileHelper::LoadFileToString(HudHtml, *HudHtmlPath));
+	for (const FString& PanelName : HudPanelNames)
+	{
+		FString PanelHtml;
+		const FString PanelPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI"), PanelName);
+		TestTrue(FString::Printf(TEXT("Gameplay HUD panel exists: %s"), *PanelName), FFileHelper::LoadFileToString(PanelHtml, *PanelPath));
+		HudPanelHtml.Add(MoveTemp(PanelHtml));
+	}
 	TestTrue(TEXT("Skill panel page exists in the plugin"), FFileHelper::LoadFileToString(SkillPanelHtml, *SkillPanelHtmlPath));
 	TestTrue(TEXT("Project game-map configuration is readable"), FFileHelper::LoadFileToString(DefaultEngine, *DefaultEnginePath));
 	for (const FString& IconName : ManualSkillIconNames)
@@ -456,40 +466,17 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Config editor reads files through the bridge"), ConfigEditorHtml.Contains(TEXT("send(\"config_read\"")));
 	TestTrue(TEXT("Config editor saves with an optimistic version"), ConfigEditorHtml.Contains(TEXT("send(\"config_save\"")) && ConfigEditorHtml.Contains(TEXT("version: state.version")));
 	TestTrue(TEXT("Config editor includes structured and raw editing modes"), ConfigEditorHtml.Contains(TEXT("Structured view")) && ConfigEditorHtml.Contains(TEXT("Raw JSON")));
-	TestTrue(TEXT("Gameplay HUD uses the native WebSocket URL placeholder"), HudHtml.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
-	TestTrue(TEXT("Gameplay HUD reports readiness and sends all core gameplay commands"),
-		HudHtml.Contains(TEXT("hud_ready"))
-		&& HudHtml.Contains(TEXT("hud_attribute_upgrade"))
-		&& HudHtml.Contains(TEXT("hud_spell_slot"))
-		&& HudHtml.Contains(TEXT("hud_interaction_activate"))
-		&& HudHtml.Contains(TEXT("hud_quit_confirm")));
-	TestTrue(TEXT("Gameplay HUD consumes full controller state events"),
-		HudHtml.Contains(TEXT("hud_vitals"))
-		&& HudHtml.Contains(TEXT("hud_progress"))
-		&& HudHtml.Contains(TEXT("hud_spell_catalog"))
-		&& HudHtml.Contains(TEXT("hud_interaction")));
-	TestTrue(TEXT("Gameplay HUD is transparent and full-screen"), HudHtml.Contains(TEXT("background:transparent")) && HudHtml.Contains(TEXT("position:fixed;inset:0")));
-	TestTrue(TEXT("Gameplay HUD forwards world LMB input through WebUI and releases it globally"),
-		HudHtml.Contains(TEXT("startGameplayLmb"))
-		&& HudHtml.Contains(TEXT("releaseGameplayLmb"))
-		&& HudHtml.Contains(TEXT("window.addEventListener('pointerup'"))
-		&& HudHtml.Contains(TEXT("window.addEventListener('blur'"))
-		&& HudHtml.Contains(TEXT("InputTag.LMB")));
-	TestTrue(TEXT("Gameplay HUD uses modern ability icon treatments"),
-		HudHtml.Contains(TEXT("skill::before"))
-		&& HudHtml.Contains(TEXT("skill.offensive"))
-		&& HudHtml.Contains(TEXT("saturate(1.14)"))
-		&& HudHtml.Contains(TEXT("skill.equipped")));
-	TestTrue(TEXT("Gameplay HUD renders PNG icons supplied by the native bridge"),
-		HudHtml.Contains(TEXT("img.src=info.icon"))
-		&& HudHtml.Contains(TEXT("img.className=info.icon?'show':''")));
-	TestTrue(TEXT("Gameplay HUD uses the canonical native passive input tags"),
-		HudHtml.Contains(TEXT("const passiveSlots=['InputTag.Passive.1','InputTag.Passive.2'];"))
-		&& !HudHtml.Contains(TEXT("InputTag.Passive_1"))
-		&& !HudHtml.Contains(TEXT("InputTag.Passive_2")));
-	TestTrue(TEXT("Gameplay HUD does not forward input from passive abilities"),
-		HudHtml.Contains(TEXT("const isPassive=passiveSlots.includes(slot)||type.includes('passive');"))
-		&& HudHtml.Contains(TEXT("if(info.abilityTag&&!isPassive)")));
+	TestTrue(TEXT("Every gameplay HUD panel uses the native WebSocket URL placeholder"), HudPanelHtml.Num() == HudPanelNames.Num() && HudPanelHtml[0].Contains(TEXT("__AURA_WEBSOCKET_URL__")) && HudPanelHtml[1].Contains(TEXT("__AURA_WEBSOCKET_URL__")) && HudPanelHtml[2].Contains(TEXT("__AURA_WEBSOCKET_URL__")));
+	TestTrue(TEXT("HUD panels report readiness on their shared bridge"), HudPanelHtml[0].Contains(TEXT("hud_ready")) && HudPanelHtml[1].Contains(TEXT("hud_ready")) && HudPanelHtml[2].Contains(TEXT("hud_ready")));
+	TestTrue(TEXT("Bottom HUD panel consumes vitals, abilities, and interaction events"), HudPanelHtml[2].Contains(TEXT("hud_vitals")) && HudPanelHtml[2].Contains(TEXT("skill_panel_ability")) && HudPanelHtml[2].Contains(TEXT("hud_interaction")));
+	TestTrue(TEXT("Right-top HUD panel owns menus and their controller commands"), HudPanelHtml[1].Contains(TEXT("hud_attribute_upgrade")) && HudPanelHtml[1].Contains(TEXT("hud_spell_slot")) && HudPanelHtml[1].Contains(TEXT("hud_quit_confirm")) && HudPanelHtml[1].Contains(TEXT("hud_menu_closed")));
+	TestTrue(TEXT("Left-top HUD panel owns progress and transient messages"), HudPanelHtml[0].Contains(TEXT("hud_progress")) && HudPanelHtml[0].Contains(TEXT("hud_message")) && HudPanelHtml[0].Contains(TEXT("hud_level_up")));
+	TestTrue(TEXT("Gameplay HUD panels are transparent and not full-screen HTML surfaces"), HudPanelHtml[0].Contains(TEXT("background:transparent")) && HudPanelHtml[1].Contains(TEXT("background:transparent")) && HudPanelHtml[2].Contains(TEXT("background:transparent")) && !HudPanelHtml[0].Contains(TEXT("position:fixed;inset:0")) && !HudPanelHtml[1].Contains(TEXT("position:fixed;inset:0")) && !HudPanelHtml[2].Contains(TEXT("position:fixed;inset:0")));
+	TestTrue(TEXT("Gameplay HUD does not synthesize level LMB clicks from browser pointer events"), !HudPanelHtml[0].Contains(TEXT("startGameplayLmb")) && !HudPanelHtml[1].Contains(TEXT("startGameplayLmb")) && !HudPanelHtml[2].Contains(TEXT("startGameplayLmb")) && HudPanelHtml[2].Contains(TEXT("skill_ability_pressed")) && HudPanelHtml[2].Contains(TEXT("skill_ability_released")));
+	TestTrue(TEXT("Gameplay HUD uses modern ability icon treatments"), HudPanelHtml[2].Contains(TEXT("skill::before")) && HudPanelHtml[2].Contains(TEXT("skill.offensive")) && HudPanelHtml[2].Contains(TEXT("saturate(1.14)")) && HudPanelHtml[2].Contains(TEXT("skill.equipped")));
+	TestTrue(TEXT("Gameplay HUD renders PNG icons supplied by the native bridge"), HudPanelHtml[2].Contains(TEXT("img.src=info.icon")) && HudPanelHtml[2].Contains(TEXT("img.className=info.icon?'show':''")));
+	TestTrue(TEXT("Gameplay HUD uses the canonical native passive input tags"), HudPanelHtml[2].Contains(TEXT("const passiveSlots=['InputTag.Passive.1','InputTag.Passive.2'];")) && !HudPanelHtml[2].Contains(TEXT("InputTag.Passive_1")) && !HudPanelHtml[2].Contains(TEXT("InputTag.Passive_2")));
+	TestTrue(TEXT("Gameplay HUD does not forward input from passive abilities"), HudPanelHtml[2].Contains(TEXT("const isPassive=passiveSlots.includes(slot)||type.includes('passive');")) && HudPanelHtml[2].Contains(TEXT("if(info.abilityTag&&!isPassive)")));
 	TestTrue(TEXT("Editor startup returns to the WebUI login flow"), DefaultEngine.Contains(TEXT("EditorStartupMap=/Game/Maps/Login.Login")));
 	TestTrue(TEXT("Game startup returns to the WebUI login flow"), DefaultEngine.Contains(TEXT("GameDefaultMap=/Game/Maps/Login.Login")));
 	TestTrue(TEXT("Skill panel uses the native WebSocket URL placeholder"), SkillPanelHtml.Contains(TEXT("__AURA_WEBSOCKET_URL__")));

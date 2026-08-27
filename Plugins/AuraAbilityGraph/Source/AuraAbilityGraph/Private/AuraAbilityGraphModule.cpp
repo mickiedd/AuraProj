@@ -455,6 +455,8 @@ static bool SmokeTest_FireGunMigration()
 		"      </node>"
 		"      <node class=\"WaitForMontageEvent\" id=\"4\">"
 		"        <property name=\"EventTag\" value=\"Event.Montage.FireGun\"/>"
+		"        <property name=\"Timeout\" value=\"5\"/>"
+		"        <property name=\"AuthorityFallbackDelay\" value=\"0.35\"/>"
 		"      </node>"
 		"      <node class=\"SpawnProjectile\" id=\"5\">"
 		"        <property name=\"SocketTag\" value=\"CombatSocket.Weapon\"/>"
@@ -573,6 +575,11 @@ static bool SmokeTest_FireGunMigration()
 		if (EventNode->EventTag.ToString() != TEXT("Event.Montage.FireGun"))
 		{
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] WaitForMontageEvent EventTag mismatch: got '%s'"), *EventNode->EventTag.ToString());
+			return false;
+		}
+		if (EventNode->Timeout <= 0.f || EventNode->AuthorityFallbackDelay <= 0.f || EventNode->AuthorityFallbackDelay >= EventNode->Timeout)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireGunFileGraph: WaitForMontageEvent requires fallback before timeout"));
 			return false;
 		}
 	}
@@ -764,9 +771,14 @@ static bool SmokeTest_FireBoltFileGraph()
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: WaitForMontageEvent EventTag='%s', expected Event.Montage.FireBolt"), *EventNode->EventTag.ToString());
 			return false;
 		}
+		if (EventNode->Timeout <= 0.f || EventNode->AuthorityFallbackDelay <= 0.f)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBoltFileGraph: WaitForMontageEvent requires finite Timeout and AuthorityFallbackDelay"));
+			return false;
+		}
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] FireBoltFileGraph PASSED (PlayMontage->WaitForMontageEvent->SpawnProjectiles, no Wait)."));
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] FireBoltFileGraph PASSED (PlayMontage->WaitForMontageEvent->SpawnProjectiles with authority fallback, no Wait)."));
 	return true;
 }
 
@@ -1042,9 +1054,14 @@ static bool SmokeTest_ArcaneShardsFileGraph()
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: EventTag mismatch: got '%s'"), *EventNode->EventTag.ToString());
 			return false;
 		}
+		if (EventNode->Timeout <= 0.f || EventNode->AuthorityFallbackDelay <= 0.f)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ArcaneShardsFileGraph: WaitForMontageEvent requires finite Timeout and AuthorityFallbackDelay"));
+			return false;
+		}
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ArcaneShardsFileGraph PASSED (graph structure, montage event, and replicated shard cue dispatch)."));
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] ArcaneShardsFileGraph PASSED (graph structure, montage event, authority fallback, and replicated shard cue dispatch)."));
 	return true;
 }
 
@@ -1213,6 +1230,11 @@ static bool SmokeTest_ElectrocuteFileGraph()
 		if (EventNode->EventTag.ToString() != TEXT("Event.Montage.Electrocute"))
 		{
 			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: EventTag mismatch: got '%s'"), *EventNode->EventTag.ToString());
+			return false;
+		}
+		if (EventNode->Timeout <= 0.f || EventNode->AuthorityFallbackDelay <= 0.f || EventNode->AuthorityFallbackDelay >= EventNode->Timeout)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] ElectrocuteFileGraph: WaitForMontageEvent requires fallback before timeout"));
 			return false;
 		}
 	}

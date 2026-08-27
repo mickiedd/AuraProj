@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420" height="880" viewBox="0 0 1420 880" role="img" aria-labelledby="title desc">
+  <title id="title">Player skill authority safety coverage</title>
+  <desc id="desc">Coverage map for the five input-bound player skills, showing direct and montage-gated authority effect paths and the shared regression checks.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#79dfff"/></marker>
+    <style>
+      .bg{fill:#08111f}.title{font:700 30px Arial,sans-serif;fill:#eef7ff}.subtitle{font:15px Arial,sans-serif;fill:#afc4d9}.section{font:700 19px Arial,sans-serif;fill:#ffd66b}.label{font:700 14px Arial,sans-serif;fill:#eef7ff}.body{font:14px Arial,sans-serif;fill:#c9d9e8}.small{font:12px Arial,sans-serif;fill:#a7bbcf}.code{font:13px Consolas,monospace;fill:#b9edff}.good{fill:#112d37;stroke:#6be1ff;stroke-width:2}.neutral{fill:#18283b;stroke:#718ba7;stroke-width:2}.guard{fill:#142d24;stroke:#7bddaa;stroke-width:2}.warn{fill:#3c3018;stroke:#ffd66b;stroke-width:2}.bad{fill:#321c2b;stroke:#e27991;stroke-width:2}.arrow{stroke:#79dfff;stroke-width:3;fill:none;marker-end:url(#arrow)}.check{fill:#a7f3c4;font:700 14px Arial,sans-serif}.cross{fill:#ff9fb0;font:700 14px Arial,sans-serif}.divider{stroke:#405a75;stroke-width:2;stroke-dasharray:8 7}
+    </style>
+  </defs>
+  <rect class="bg" width="1420" height="880"/>
+  <text x="52" y="50" class="title">All input-bound player skills: authority effect safety coverage</text>
+  <text x="52" y="79" class="subtitle">The regression scans the skill inventory, then verifies the exact graph boundary that caused FireBolt and ArcaneShards to show no effect.</text>
+
+  <text x="58" y="126" class="section">PLAYER SKILL INVENTORY</text>
+  <rect x="42" y="147" width="260" height="255" rx="14" class="neutral"/>
+  <text x="66" y="181" class="label">Input-bound definitions</text>
+  <text x="72" y="216" class="code">InputTag.1  FireBlast</text>
+  <text x="72" y="247" class="code">InputTag.2  ArcaneShards</text>
+  <text x="72" y="278" class="code">InputTag.3  Electrocute</text>
+  <text x="72" y="309" class="code">InputTag.LMB FireBolt</text>
+  <text x="72" y="340" class="code">InputTag.LMB FireGun</text>
+  <text x="66" y="378" class="check">All five discovered dynamically</text>
+
+  <path d="M 302 274 L 352 274" class="arrow"/>
+  <rect x="354" y="147" width="302" height="255" rx="14" class="guard"/>
+  <text x="380" y="181" class="label">Inventory-wide regression</text>
+  <text x="380" y="218" class="body">For every input-bound skill:</text>
+  <text x="380" y="247" class="code">graph root + effect node</text>
+  <text x="380" y="276" class="code">valid input + event tags</text>
+  <text x="380" y="305" class="code">loaded montage asset</text>
+  <text x="380" y="334" class="code">reachability after wait</text>
+  <text x="380" y="378" class="check">PlayerSkillAuthoritySafety</text>
+
+  <text x="698" y="126" class="section">DIRECT EFFECT PATH</text>
+  <rect x="682" y="147" width="322" height="255" rx="14" class="good"/>
+  <rect x="708" y="192" width="124" height="58" rx="8" class="neutral"/>
+  <text x="730" y="217" class="label">FireBlast</text>
+  <text x="730" y="237" class="code">InputTag.1</text>
+  <path d="M 832 221 L 868 221" class="arrow"/>
+  <rect x="870" y="192" width="108" height="58" rx="8" class="guard"/>
+  <text x="883" y="217" class="label">Spawn</text>
+  <text x="883" y="237" class="code">authority</text>
+  <text x="708" y="294" class="body">No montage wait is required.</text>
+  <text x="708" y="326" class="check">Test requires a reachable effect node.</text>
+  <text x="708" y="358" class="small">Direct projectile paths stay covered too.</text>
+
+  <text x="1042" y="126" class="section">MONTAGE-GATED EFFECT PATH</text>
+  <rect x="1026" y="147" width="352" height="255" rx="14" class="good"/>
+  <rect x="1050" y="192" width="112" height="58" rx="8" class="neutral"/>
+  <text x="1061" y="217" class="label">Four skills</text>
+  <text x="1061" y="237" class="code">2,3,LMB,LMB</text>
+  <path d="M 1162 221 L 1190 221" class="arrow"/>
+  <rect x="1192" y="192" width="162" height="58" rx="8" class="guard"/>
+  <text x="1208" y="217" class="label">Montage event wait</text>
+  <text x="1208" y="237" class="code">5s / fallback .35s</text>
+  <path d="M 1273 250 L 1273 284" class="arrow"/>
+  <rect x="1050" y="286" width="304" height="58" rx="8" class="guard"/>
+  <text x="1068" y="311" class="label">Authority effect after wait</text>
+  <text x="1068" y="331" class="code">shards / beam / projectile / gun FX</text>
+  <text x="1050" y="378" class="check">Event must be authored on the loaded montage.</text>
+
+  <line x1="42" y1="438" x2="1378" y2="438" class="divider"/>
+  <text x="58" y="480" class="section">REGRESSION SIGNALS</text>
+  <rect x="42" y="500" width="410" height="128" rx="12" class="bad"/>
+  <text x="66" y="532" class="label">Any of these now fails validation</text>
+  <text x="66" y="562" class="cross">missing fallback or timeout</text>
+  <text x="66" y="587" class="cross">event/wait order or authored tag mismatch</text>
+  <text x="66" y="612" class="cross">no downstream authority effect node</text>
+  <path d="M 452 564 L 500 564" class="arrow"/>
+  <rect x="502" y="500" width="410" height="128" rx="12" class="warn"/>
+  <text x="526" y="532" class="label">Failure caught before runtime</text>
+  <text x="526" y="562" class="body">A skill cannot silently stop at</text>
+  <text x="526" y="587" class="code">WaitForMontageEvent</text>
+  <text x="526" y="612" class="body">without a checked recovery path.</text>
+  <path d="M 912 564 L 960 564" class="arrow"/>
+  <rect x="962" y="500" width="416" height="128" rx="12" class="guard"/>
+  <text x="986" y="532" class="label">Expected authority flow</text>
+  <text x="986" y="562" class="code">wait → effect → replicated presentation</text>
+  <text x="986" y="592" class="check">all current skills share a tested boundary</text>
+
+  <rect x="42" y="680" width="1336" height="142" rx="14" class="neutral"/>
+  <text x="66" y="714" class="section">VALIDATION</text>
+  <text x="66" y="744" class="body">AuraEditor build; PlayerSkillAuthoritySafety 1/1; Aura.Abilities 10/10;</text>
+  <text x="66" y="770" class="body">AuraAbilityGraph smoke 26/26; XML parsing and git diff --check passed.</text>
+  <text x="66" y="798" class="small">FireBlast, ArcaneShards, Electrocute, FireBolt, and FireGun are all explicitly discovered and checked.</text>
+</svg>

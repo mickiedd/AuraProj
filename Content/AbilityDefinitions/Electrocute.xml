@@ -18,6 +18,10 @@
       </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.Electrocute"/>
+        <!-- Dedicated servers may not receive the local montage event; never leave the ability active forever. -->
+        <property name="Timeout" value="5"/>
+        <!-- The server owns beam gameplay; do not block it on a client-local montage notify. -->
+        <property name="AuthorityFallbackDelay" value="0.35"/>
       </node>
 
       <!-- Beam setup -->

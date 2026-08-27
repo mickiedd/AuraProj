@@ -127,8 +127,12 @@ void AAuraHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		WebUIBridge->OnConnectionChanged.RemoveDynamic(this, &AAuraHUD::HandleWebUIConnectionChanged);
 	}
 
-	if (WebHUD && IsValid(WebHUD)) WebHUD->RemoveFromParent();
-	WebHUD = nullptr;
+	if (WebHUDLeftTop && IsValid(WebHUDLeftTop)) WebHUDLeftTop->RemoveFromParent();
+	if (WebHUDRightTop && IsValid(WebHUDRightTop)) WebHUDRightTop->RemoveFromParent();
+	if (WebHUDBottom && IsValid(WebHUDBottom)) WebHUDBottom->RemoveFromParent();
+	WebHUDLeftTop = nullptr;
+	WebHUDRightTop = nullptr;
+	WebHUDBottom = nullptr;
 	WebUIBridge = nullptr;
 	bWebHUDReady = false;
 	AbilityIconDataUriCache.Empty();
@@ -191,7 +195,7 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 
 void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 {
-	if (!PC || !PC->IsLocalController() || WebHUD) return;
+	if (!PC || !PC->IsLocalController() || WebHUDLeftTop || WebHUDRightTop || WebHUDBottom) return;
 
 	UWorld* World = GetWorld();
 	if (!World) return;
@@ -202,21 +206,39 @@ void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 		return;
 	}
 
-	// Use the local-player context in gameplay so the browser shares the active
+	// Use the local-player context in gameplay so each browser shares the active
 	// viewport. The world context keeps headless editor automation constructible.
-	WebHUD = PC->GetLocalPlayer()
-		? CreateWidget<UWebUIWidget>(PC, UWebUIWidget::StaticClass())
-		: CreateWidget<UWebUIWidget>(World, UWebUIWidget::StaticClass());
-	if (!WebHUD)
+	WebHUDLeftTop = CreateWebHUDPanel(
+		PC,
+		TEXT("WebUI/hud-left-top.html"),
+		FAnchors(0.f, 0.f, 0.f, 0.f),
+		FMargin(24.f, 24.f, 360.f, 250.f),
+		TEXT("left-top"));
+	WebHUDRightTop = CreateWebHUDPanel(
+		PC,
+		TEXT("WebUI/hud-right-top.html"),
+		FAnchors(1.f, 0.f, 1.f, 0.f),
+		// Non-stretched axes use Right/Bottom as fixed size, not CSS-style margins.
+		FMargin(-390.f, 24.f, 366.f, 210.f),
+		TEXT("right-top"));
+	WebHUDBottom = CreateWebHUDPanel(
+		PC,
+		TEXT("WebUI/hud-bottom.html"),
+		FAnchors(0.f, 1.f, 1.f, 1.f),
+		FMargin(24.f, -124.f, 24.f, 100.f),
+		TEXT("bottom"));
+	if (!WebHUDLeftTop || !WebHUDRightTop || !WebHUDBottom)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AuraHUD] Failed to create the full-screen WebUI HUD host"));
+		UE_LOG(LogTemp, Error, TEXT("[AuraHUD] Failed to create all three bounded WebUI HUD panels"));
+		if (WebHUDLeftTop && IsValid(WebHUDLeftTop)) WebHUDLeftTop->RemoveFromParent();
+		if (WebHUDRightTop && IsValid(WebHUDRightTop)) WebHUDRightTop->RemoveFromParent();
+		if (WebHUDBottom && IsValid(WebHUDBottom)) WebHUDBottom->RemoveFromParent();
+		WebHUDLeftTop = nullptr;
+		WebHUDRightTop = nullptr;
+		WebHUDBottom = nullptr;
 		WebUIBridge = nullptr;
 		return;
 	}
-
-	WebHUD->HtmlAssetPath = TEXT("WebUI/hud.html");
-	WebHUD->bAutoConnectBridge = false;
-	WebHUD->ConfigureViewportLayout(FAnchors(0.f, 0.f, 1.f, 1.f), FMargin(0.f), FVector2D(0.f, 0.f));
 
 	if (OverlayWidgetController)
 	{
@@ -255,13 +277,61 @@ void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 
 	WebUIBridge->OnCommand.AddDynamic(this, &AAuraHUD::HandleWebUICommand);
 	WebUIBridge->OnConnectionChanged.AddDynamic(this, &AAuraHUD::HandleWebUIConnectionChanged);
-	WebHUD->AddToViewport(200);
-	WebHUD->ReloadWebUI();
-	WebHUD->SetVisibility(ESlateVisibility::Visible);
-	UE_LOG(LogTemp, Display, TEXT("[AuraHUD] Full-screen WebUI HUD mounted (context=%s owningPlayer=%s browser=%s)"),
-		PC->GetLocalPlayer() ? TEXT("LocalPlayer") : TEXT("WorldFallback"),
-		*GetNameSafe(WebHUD->GetOwningPlayer()),
-		*GetNameSafe(WebHUD->GetWebBrowser()));
+	UE_LOG(LogTemp, Display, TEXT("[AuraHUD] Bounded WebUI HUD mounted: left-top=%s right-top=%s bottom=%s context=%s"),
+		*GetNameSafe(WebHUDLeftTop->GetWebBrowser()),
+		*GetNameSafe(WebHUDRightTop->GetWebBrowser()),
+		*GetNameSafe(WebHUDBottom->GetWebBrowser()),
+		PC->GetLocalPlayer() ? TEXT("LocalPlayer") : TEXT("WorldFallback"));
+}
+
+UWebUIWidget* AAuraHUD::CreateWebHUDPanel(APlayerController* PC, const FString& HtmlPath, const FAnchors& Anchors, const FMargin& Offsets, const TCHAR* PanelName)
+{
+	if (!PC) return nullptr;
+	UWorld* World = GetWorld();
+	if (!World) return nullptr;
+
+	UWebUIWidget* Panel = PC->GetLocalPlayer()
+		? CreateWidget<UWebUIWidget>(PC, UWebUIWidget::StaticClass())
+		: CreateWidget<UWebUIWidget>(World, UWebUIWidget::StaticClass());
+	if (!Panel)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[AuraHUD] Failed to create WebUI HUD panel '%s'"), PanelName);
+		return nullptr;
+	}
+
+	Panel->HtmlAssetPath = HtmlPath;
+	Panel->bAutoConnectBridge = false;
+	Panel->ConfigureViewportLayout(Anchors, Offsets, FVector2D(0.f, 0.f));
+	Panel->AddToViewport(200);
+	Panel->ReloadWebUI();
+	Panel->SetVisibility(ESlateVisibility::Visible);
+	return Panel;
+}
+
+void AAuraHUD::SetWebHUDMenuLayout(bool bExpanded)
+{
+	if (!WebHUDRightTop) return;
+	if (bExpanded)
+	{
+		WebHUDRightTop->ConfigureViewportLayout(FAnchors(0.f, 0.f, 1.f, 1.f), FMargin(0.f), FVector2D(0.f, 0.f));
+	}
+	else
+	{
+		WebHUDRightTop->ConfigureViewportLayout(FAnchors(1.f, 0.f, 1.f, 0.f), FMargin(-390.f, 24.f, 366.f, 210.f), FVector2D(0.f, 0.f));
+	}
+}
+
+void AAuraHUD::SetWebHUDInteractionLayout(bool bExpanded)
+{
+	if (!WebHUDBottom) return;
+	if (bExpanded)
+	{
+		WebHUDBottom->ConfigureViewportLayout(FAnchors(0.f, 1.f, 1.f, 1.f), FMargin(24.f, -420.f, 24.f, 396.f), FVector2D(0.f, 0.f));
+	}
+	else
+	{
+		WebHUDBottom->ConfigureViewportLayout(FAnchors(0.f, 1.f, 1.f, 1.f), FMargin(24.f, -124.f, 24.f, 100.f), FVector2D(0.f, 0.f));
+	}
 }
 
 void AAuraHUD::SendInitialWebHUDState()
@@ -292,10 +362,12 @@ void AAuraHUD::HandleWebUICommand(const FString& Command, const FString& Payload
 		if (SpellMenuWidgetController) SpellMenuWidgetController->BroadcastInitialValues();
 		return;
 	}
-	if (Command == TEXT("hud_attributes_clicked")) { SendAttributeCatalogToWebUI(); return; }
-	if (Command == TEXT("hud_spells_clicked")) { SendSpellCatalogToWebUI(); return; }
+	if (Command == TEXT("hud_attributes_clicked")) { SetWebHUDMenuLayout(true); SendAttributeCatalogToWebUI(); return; }
+	if (Command == TEXT("hud_spells_clicked")) { SetWebHUDMenuLayout(true); SendSpellCatalogToWebUI(); return; }
+	if (Command == TEXT("hud_menu_closed")) { SetWebHUDMenuLayout(false); return; }
 	if (Command == TEXT("hud_close_clicked"))
 	{
+		SetWebHUDMenuLayout(true);
 		if (WebUIBridge)
 		{
 			const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
@@ -306,6 +378,7 @@ void AAuraHUD::HandleWebUICommand(const FString& Command, const FString& Payload
 	}
 	if (Command == TEXT("hud_quit_cancel"))
 	{
+		SetWebHUDMenuLayout(false);
 		if (WebUIBridge)
 		{
 			const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
@@ -614,6 +687,7 @@ void AAuraHUD::HandleSpellReassignedForWebUI(const FGameplayTag& AbilityTag)
 void AAuraHUD::SendInteractionToWebUI(const FAuraTargetDescriptor& Descriptor)
 {
 	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+	SetWebHUDInteractionLayout(true);
 	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
 	AuraHUDPrivate::SetTagField(Payload, TEXT("relationshipTag"), Descriptor.RelationshipTag);
 	AuraHUDPrivate::SetTagField(Payload, TEXT("kindTag"), Descriptor.KindTag);
@@ -645,6 +719,7 @@ void AAuraHUD::HandleTargetPreviewClearedForWebUI()
 {
 	LastInteractionPayloadJson.Empty();
 	if (WebUIBridge && WebUIBridge->IsServerRunning()) WebUIBridge->SendEvent(TEXT("hud_interaction_cleared"), TEXT("{}"));
+	SetWebHUDInteractionLayout(false);
 }
 
 void AAuraHUD::SendLocationToWebUI()

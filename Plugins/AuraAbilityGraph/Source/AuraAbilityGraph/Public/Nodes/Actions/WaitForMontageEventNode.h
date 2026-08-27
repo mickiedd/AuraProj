@@ -28,6 +28,13 @@ public:
     // hanging un-retriggerable.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WaitForMontageEvent")
     float Timeout = 0.f;
+
+    // Dedicated servers do not always evaluate the locally-authored montage notify.
+    // A positive value lets an authority advance this wait after the cast presentation
+    // window, while clients continue to use the actual montage event. 0 disables the
+    // authority fallback for abilities whose server montage event is reliable.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WaitForMontageEvent")
+    float AuthorityFallbackDelay = 0.f;
 };
 
 UCLASS()
@@ -48,5 +55,10 @@ private:
     // with Failure so the ability ends (cancelled) instead of hanging Running forever.
     void OnTimeout();
 
+    // Advances the authoritative graph when the local montage event is unavailable on a
+    // dedicated server, allowing authority-only actions such as projectile spawning to run.
+    void OnAuthorityFallback();
+
     FTimerHandle TimeoutHandle;
+    FTimerHandle AuthorityFallbackHandle;
 };

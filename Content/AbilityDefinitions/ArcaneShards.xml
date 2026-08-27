@@ -17,6 +17,8 @@
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.ArcaneShards"/>
         <property name="Timeout" value="5"/>
+        <!-- The server owns shard gameplay; do not block it on a client-local montage notify. -->
+        <property name="AuthorityFallbackDelay" value="0.35"/>
       </node>
       <node class="SpawnShards">
         <property name="GameplayCueTag" value="GameplayCue.ArcaneShards"/>

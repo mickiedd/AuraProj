@@ -16,6 +16,9 @@
       </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.FireGun"/>
+        <property name="Timeout" value="5"/>
+        <!-- The server owns projectile gameplay; do not block it on a client-local montage notify. -->
+        <property name="AuthorityFallbackDelay" value="0.35"/>
       </node>
       <node class="SpawnProjectile">
         <property name="SocketTag" value="CombatSocket.Weapon"/>

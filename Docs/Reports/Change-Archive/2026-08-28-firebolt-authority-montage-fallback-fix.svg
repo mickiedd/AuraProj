@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420" height="900" viewBox="0 0 1420 900" role="img" aria-labelledby="title desc">
+  <title id="title">FireBolt LMB authority montage fallback fix</title>
+  <desc id="desc">Before and after flow showing FireBolt activation stopping at a server montage-event wait, then continuing through an authority fallback to replicated projectiles and visual effects.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#79dfff"/></marker>
+    <style>
+      .bg{fill:#08111f}.title{font:700 30px Arial,sans-serif;fill:#eef7ff}.subtitle{font:15px Arial,sans-serif;fill:#afc4d9}.section{font:700 19px Arial,sans-serif;fill:#ffd66b}.label{font:700 14px Arial,sans-serif;fill:#eef7ff}.body{font:14px Arial,sans-serif;fill:#c9d9e8}.small{font:12px Arial,sans-serif;fill:#a7bbcf}.code{font:13px Consolas,monospace;fill:#b9edff}.bad{fill:#321c2b;stroke:#e27991;stroke-width:2}.good{fill:#112d37;stroke:#6be1ff;stroke-width:2}.neutral{fill:#18283b;stroke:#718ba7;stroke-width:2}.guard{fill:#142d24;stroke:#7bddaa;stroke-width:2}.warn{fill:#3c3018;stroke:#ffd66b;stroke-width:2}.arrow{stroke:#79dfff;stroke-width:3;fill:none;marker-end:url(#arrow)}.cross{fill:#ff9fb0;font:700 14px Arial,sans-serif}.check{fill:#a7f3c4;font:700 14px Arial,sans-serif}.divider{stroke:#405a75;stroke-width:2;stroke-dasharray:8 7}
+    </style>
+  </defs>
+  <rect class="bg" width="1420" height="900"/>
+  <text x="52" y="50" class="title">FireBolt LMB: server montage wait no longer suppresses effects</text>
+  <text x="52" y="79" class="subtitle">The input and activation were already healthy; the missing stage was authority-side projectile spawning after a montage event that the server never observed.</text>
+
+  <text x="58" y="126" class="section">BEFORE: SERVER CANCELS BEFORE SPAWN</text>
+  <rect x="42" y="147" width="646" height="520" rx="14" class="bad"/>
+  <rect x="68" y="180" width="142" height="64" rx="9" class="neutral"/>
+  <text x="86" y="205" class="label">WebUI LMB</text>
+  <text x="86" y="226" class="code">pressed</text>
+  <path d="M 210 212 L 248 212" class="arrow"/>
+  <rect x="250" y="180" width="142" height="64" rx="9" class="neutral"/>
+  <text x="267" y="205" class="label">ASC input</text>
+  <text x="267" y="226" class="code">accepted</text>
+  <path d="M 392 212 L 430 212" class="arrow"/>
+  <rect x="432" y="180" width="178" height="64" rx="9" class="good"/>
+  <text x="449" y="205" class="label">FireBolt ability</text>
+  <text x="449" y="226" class="code">cost + cooldown</text>
+
+  <path d="M 521 244 L 521 286" class="arrow"/>
+  <rect x="350" y="289" width="260" height="86" rx="9" class="warn"/>
+  <text x="369" y="315" class="label">Server event wait</text>
+  <text x="369" y="338" class="code">Event.Montage.FireBolt</text>
+  <text x="369" y="358" class="small">no server-local notify observed</text>
+  <path d="M 350 332 L 267 332" class="arrow"/>
+  <rect x="68" y="289" width="180" height="86" rx="9" class="bad"/>
+  <text x="87" y="316" class="label">Wait stays Running</text>
+  <text x="87" y="339" class="small">until timeout</text>
+  <text x="87" y="360" class="cross">graph cannot spawn</text>
+
+  <path d="M 158 375 L 158 427" class="arrow"/>
+  <rect x="68" y="430" width="542" height="100" rx="9" class="bad"/>
+  <text x="88" y="458" class="label">Timeout → Failure → EndAbility(cancelled)</text>
+  <text x="88" y="482" class="code">no SpawnProjectiles / no AuraProjectile</text>
+  <text x="88" y="507" class="cross">no replicated flight trail, impact, or sound</text>
+
+  <path d="M 339 530 L 339 579" class="arrow"/>
+  <rect x="68" y="582" width="542" height="58" rx="9" class="bad"/>
+  <text x="86" y="617" class="cross">LMB activation appears to have no effect</text>
+
+  <line x1="710" y1="130" x2="710" y2="667" class="divider"/>
+
+  <text x="760" y="126" class="section">AFTER: AUTHORITY FALLBACK REACHES PROJECTILES</text>
+  <rect x="738" y="147" width="640" height="520" rx="14" class="good"/>
+  <rect x="764" y="180" width="142" height="64" rx="9" class="neutral"/>
+  <text x="782" y="205" class="label">WebUI LMB</text>
+  <text x="782" y="226" class="code">pressed</text>
+  <path d="M 906 212 L 944 212" class="arrow"/>
+  <rect x="946" y="180" width="142" height="64" rx="9" class="neutral"/>
+  <text x="963" y="205" class="label">ASC input</text>
+  <text x="963" y="226" class="code">accepted</text>
+  <path d="M 1088 212 L 1126 212" class="arrow"/>
+  <rect x="1128" y="180" width="218" height="64" rx="9" class="good"/>
+  <text x="1147" y="205" class="label">FireBolt ability</text>
+  <text x="1147" y="226" class="code">cost + cooldown</text>
+
+  <path d="M 1237 244 L 1237 286" class="arrow"/>
+  <rect x="1040" y="289" width="306" height="86" rx="9" class="guard"/>
+  <text x="1060" y="315" class="label">Event wait with authority fallback</text>
+  <text x="1060" y="338" class="code">event wins | fallback = 0.35s</text>
+  <text x="1060" y="358" class="small">server advances if notify is absent</text>
+  <path d="M 1040 332 L 954 332" class="arrow"/>
+  <rect x="764" y="289" width="188" height="86" rx="9" class="guard"/>
+  <text x="784" y="316" class="label">Authority advances</text>
+  <text x="784" y="339" class="small">wait task ends safely</text>
+  <text x="784" y="360" class="check">graph continues</text>
+
+  <path d="M 858 375 L 858 427" class="arrow"/>
+  <rect x="764" y="430" width="582" height="100" rx="9" class="guard"/>
+  <text x="784" y="458" class="label">SpawnProjectiles runs on the authoritative server</text>
+  <text x="784" y="482" class="code">AuraProjectile × 5 → replicated clients</text>
+  <text x="784" y="507" class="check">flight trail, impact effect, and configured sounds can display</text>
+
+  <path d="M 1055 530 L 1055 579" class="arrow"/>
+  <rect x="764" y="582" width="582" height="58" rx="9" class="good"/>
+  <text x="784" y="617" class="check">Normal client event path and cost/cooldown rules remain intact</text>
+
+  <rect x="42" y="710" width="1336" height="140" rx="14" class="neutral"/>
+  <text x="66" y="743" class="section">VALIDATION</text>
+  <text x="66" y="773" class="body">AuraEditor Win64 Development build; Aura.AbilityGraph.FireBoltAuthorityFallback 1/1;</text>
+  <text x="66" y="797" class="body">Aura.AbilityGraph 3/3; graph smoke 26/26; Aura.UI.WebSkillPanel 2/2; diff check passed.</text>
+  <text x="66" y="824" class="small">The new contract parses FireBolt.xml and verifies LMB, Event.Montage.FireBolt, finite timeout, and 0.35s authority fallback.</text>
+</svg>

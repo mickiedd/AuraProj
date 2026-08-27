@@ -9,14 +9,84 @@
 #include "Components/SphereComponent.h"
 #include "Data/AuraGameplayConfig.h"
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
+#include "AuraAbilityGraph/Public/Nodes/Actions/PlayMontageNode.h"
+#include "AuraAbilityGraph/Public/Nodes/Actions/WaitForMontageEventNode.h"
+#include "Animation/AnimMontage.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "Sound/SoundBase.h"
+#include "UObject/UnrealType.h"
+
+static void CollectAbilityGraphNodes(const UAuraAbilityActionNode* Node, TArray<const UAuraAbilityActionNode*>& OutNodes)
+{
+	if (!Node)
+	{
+		return;
+	}
+
+	OutNodes.Add(Node);
+	for (const UAuraAbilityActionNode* Child : Node->Children)
+	{
+		CollectAbilityGraphNodes(Child, OutNodes);
+	}
+}
+
+static bool IsAuthorityEffectNode(const UAuraAbilityActionNode* Node)
+{
+	if (!Node)
+	{
+		return false;
+	}
+
+	return Node->NodeClassName == TEXT("ApplyDamage")
+		|| Node->NodeClassName == TEXT("CauseDamage")
+		|| Node->NodeClassName == TEXT("HitscanTrace")
+		|| Node->NodeClassName == TEXT("SpawnProjectile")
+		|| Node->NodeClassName == TEXT("SpawnProjectiles")
+		|| Node->NodeClassName == TEXT("SpawnShards")
+		|| Node->NodeClassName == TEXT("SpawnBeamVisuals")
+		|| Node->NodeClassName == TEXT("MulticastGunFX")
+		|| Node->NodeClassName == TEXT("ElectrocuteBeam");
+}
+
+static bool MontageContainsGameplayEventTagForTest(const UAnimMontage* Montage, const FGameplayTag& EventTag)
+{
+	if (!Montage || !EventTag.IsValid())
+	{
+		return false;
+	}
+
+	for (const FAnimNotifyEvent& NotifyEvent : Montage->Notifies)
+	{
+		const UObject* NotifyObject = NotifyEvent.Notify
+			? static_cast<const UObject*>(NotifyEvent.Notify)
+			: static_cast<const UObject*>(NotifyEvent.NotifyStateClass);
+		if (!NotifyObject)
+		{
+			continue;
+		}
+
+		const FStructProperty* EventTagProperty = CastField<FStructProperty>(NotifyObject->GetClass()->FindPropertyByName(TEXT("EventTag")));
+		if (!EventTagProperty || EventTagProperty->Struct != FGameplayTag::StaticStruct())
+		{
+			continue;
+		}
+
+		const FGameplayTag* AuthoredTag = EventTagProperty->ContainerPtrToValuePtr<FGameplayTag>(NotifyObject);
+		if (AuthoredTag && *AuthoredTag == EventTag)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraProjectileDefinitionsTest,
@@ -153,6 +223,312 @@ bool FAuraStrictAbilityDefinitionParsingTest::RunTest(const FString& Parameters)
 	const FString InvalidTag = TEXT("<ability name=\"Strict\" abilityTag=\"Abilities.Missing\" inputTag=\"InputTag.LMB\" type=\"Abilities.Type.Offensive\"><graph><node class=\"Sequence\"/></graph></ability>");
 	AddExpectedError(TEXT("has no registered abilityTag"), EAutomationExpectedErrorFlags::Contains, 1);
 	TestFalse(TEXT("Unregistered ability tag is rejected"), Definition->LoadFromXML(InvalidTag));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraElectrocuteRetriableDefinitionTest,
+	"Aura.AbilityGraph.ElectrocuteRetriable",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraElectrocuteRetriableDefinitionTest::RunTest(const FString& Parameters)
+{
+	const FString XmlPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions/Electrocute.xml"));
+	FString Xml;
+	if (!TestTrue(TEXT("Electrocute definition is readable"), FFileHelper::LoadFileToString(Xml, *XmlPath)))
+	{
+		return false;
+	}
+
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	if (!TestNotNull(TEXT("Electrocute definition object created"), Definition)
+		|| !TestTrue(TEXT("Electrocute definition parses"), Definition->LoadFromXML(Xml)))
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("Electrocute remains assigned to Num.3"), Definition->InputTag, FGameplayTag::RequestGameplayTag(TEXT("InputTag.3")));
+	if (!TestNotNull(TEXT("Electrocute graph root exists"), Definition->RootNode.Get()))
+	{
+		return false;
+	}
+
+	const UWaitForMontageEventNode* MontageEventNode = nullptr;
+	for (const UAuraAbilityActionNode* Child : Definition->RootNode->Children)
+	{
+		if (const UWaitForMontageEventNode* Candidate = Cast<UWaitForMontageEventNode>(Child))
+		{
+			MontageEventNode = Candidate;
+			break;
+		}
+	}
+
+	if (!TestNotNull(TEXT("Electrocute contains its montage-event wait"), MontageEventNode))
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("Electrocute waits for the expected montage event"), MontageEventNode->EventTag, FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.Electrocute")));
+	TestTrue(TEXT("Electrocute montage wait has a finite recovery timeout"), MontageEventNode->Timeout > 0.f);
+	TestEqual(TEXT("Electrocute montage wait uses the five-second recovery timeout"), MontageEventNode->Timeout, 5.f);
+	TestTrue(TEXT("Electrocute montage wait has an authority fallback delay"), MontageEventNode->AuthorityFallbackDelay > 0.f);
+	TestEqual(TEXT("Electrocute uses the configured authority fallback delay"), MontageEventNode->AuthorityFallbackDelay, 0.35f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraFireBoltAuthorityFallbackDefinitionTest,
+	"Aura.AbilityGraph.FireBoltAuthorityFallback",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraFireBoltAuthorityFallbackDefinitionTest::RunTest(const FString& Parameters)
+{
+	const FString XmlPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions/FireBolt.xml"));
+	FString Xml;
+	if (!TestTrue(TEXT("FireBolt definition is readable"), FFileHelper::LoadFileToString(Xml, *XmlPath)))
+	{
+		return false;
+	}
+
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	if (!TestNotNull(TEXT("FireBolt definition object created"), Definition)
+		|| !TestTrue(TEXT("FireBolt definition parses"), Definition->LoadFromXML(Xml)))
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("FireBolt remains assigned to LMB"), Definition->InputTag, FGameplayTag::RequestGameplayTag(TEXT("InputTag.LMB")));
+	if (!TestNotNull(TEXT("FireBolt graph root exists"), Definition->RootNode.Get()))
+	{
+		return false;
+	}
+
+	const UWaitForMontageEventNode* MontageEventNode = nullptr;
+	for (const UAuraAbilityActionNode* Child : Definition->RootNode->Children)
+	{
+		if (const UWaitForMontageEventNode* Candidate = Cast<UWaitForMontageEventNode>(Child))
+		{
+			MontageEventNode = Candidate;
+			break;
+		}
+	}
+
+	if (!TestNotNull(TEXT("FireBolt contains its montage-event wait"), MontageEventNode))
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("FireBolt waits for the expected montage event"), MontageEventNode->EventTag, FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.FireBolt")));
+	TestTrue(TEXT("FireBolt montage wait has a finite recovery timeout"), MontageEventNode->Timeout > 0.f);
+	TestTrue(TEXT("FireBolt montage wait has an authority fallback delay"), MontageEventNode->AuthorityFallbackDelay > 0.f);
+	TestEqual(TEXT("FireBolt uses the configured authority fallback delay"), MontageEventNode->AuthorityFallbackDelay, 0.35f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraArcaneShardsAuthorityFallbackDefinitionTest,
+	"Aura.AbilityGraph.ArcaneShardsAuthorityFallback",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraArcaneShardsAuthorityFallbackDefinitionTest::RunTest(const FString& Parameters)
+{
+	const FString XmlPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions/ArcaneShards.xml"));
+	FString Xml;
+	if (!TestTrue(TEXT("ArcaneShards definition is readable"), FFileHelper::LoadFileToString(Xml, *XmlPath)))
+	{
+		return false;
+	}
+
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	if (!TestNotNull(TEXT("ArcaneShards definition object created"), Definition)
+		|| !TestTrue(TEXT("ArcaneShards definition parses"), Definition->LoadFromXML(Xml)))
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("ArcaneShards remains assigned to Num.2"), Definition->InputTag, FGameplayTag::RequestGameplayTag(TEXT("InputTag.2")));
+	if (!TestNotNull(TEXT("ArcaneShards graph root exists"), Definition->RootNode.Get()))
+	{
+		return false;
+	}
+
+	const UWaitForMontageEventNode* MontageEventNode = nullptr;
+	for (const UAuraAbilityActionNode* Child : Definition->RootNode->Children)
+	{
+		if (const UWaitForMontageEventNode* Candidate = Cast<UWaitForMontageEventNode>(Child))
+		{
+			MontageEventNode = Candidate;
+			break;
+		}
+	}
+
+	if (!TestNotNull(TEXT("ArcaneShards contains its montage-event wait"), MontageEventNode))
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("ArcaneShards waits for the expected montage event"), MontageEventNode->EventTag, FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.ArcaneShards")));
+	TestTrue(TEXT("ArcaneShards montage wait has a finite recovery timeout"), MontageEventNode->Timeout > 0.f);
+	TestTrue(TEXT("ArcaneShards montage wait has an authority fallback delay"), MontageEventNode->AuthorityFallbackDelay > 0.f);
+	TestEqual(TEXT("ArcaneShards uses the configured authority fallback delay"), MontageEventNode->AuthorityFallbackDelay, 0.35f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraPlayerSkillAuthoritySafetyTest,
+	"Aura.Abilities.PlayerSkillAuthoritySafety",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraPlayerSkillAuthoritySafetyTest::RunTest(const FString& Parameters)
+{
+	const FString AbilityDirectory = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions"));
+	TArray<FString> AbilityFiles;
+	IFileManager::Get().FindFiles(AbilityFiles, *(AbilityDirectory / TEXT("*.xml")), true, false);
+	if (!TestTrue(TEXT("Ability definition directory contains XML files"), AbilityFiles.Num() > 0))
+	{
+		return false;
+	}
+
+	const TArray<FName> ExpectedPlayerSkills = {
+		FName(TEXT("FireBlast")),
+		FName(TEXT("ArcaneShards")),
+		FName(TEXT("Electrocute")),
+		FName(TEXT("FireBolt")),
+		FName(TEXT("FireGun"))
+	};
+	const TArray<FName> ExpectedInputTags = {
+		FName(TEXT("InputTag.1")),
+		FName(TEXT("InputTag.2")),
+		FName(TEXT("InputTag.3")),
+		FName(TEXT("InputTag.LMB"))
+	};
+
+	TSet<FName> FoundPlayerSkills;
+	TSet<FName> FoundInputTags;
+	int32 InputBoundSkillCount = 0;
+
+	for (const FString& AbilityFile : AbilityFiles)
+	{
+		const FString AbilityPath = FPaths::Combine(AbilityDirectory, AbilityFile);
+		FString Xml;
+		if (!TestTrue(FString::Printf(TEXT("Ability XML is readable: %s"), *AbilityFile), FFileHelper::LoadFileToString(Xml, *AbilityPath)))
+		{
+			continue;
+		}
+
+		UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+		if (!TestNotNull(FString::Printf(TEXT("Ability definition object created: %s"), *AbilityFile), Definition)
+			|| !TestTrue(FString::Printf(TEXT("Ability XML parses: %s"), *AbilityFile), Definition->LoadFromXML(Xml)))
+		{
+			continue;
+		}
+
+		// Enemy definitions intentionally have no inputTag and are not player skills.
+		if (!Definition->InputTag.IsValid())
+		{
+			continue;
+		}
+
+		++InputBoundSkillCount;
+		const FString SkillName = Definition->AbilityName.ToString();
+		const FName SkillNameKey = Definition->AbilityName;
+		const FName InputTagName = Definition->InputTag.GetTagName();
+		FoundPlayerSkills.Add(SkillNameKey);
+		FoundInputTags.Add(InputTagName);
+
+		TestTrue(FString::Printf(TEXT("Input-bound skill uses a registered gameplay input tag: %s (%s)"), *SkillName, *InputTagName.ToString()), Definition->InputTag.IsValid());
+		if (!TestNotNull(FString::Printf(TEXT("Input-bound skill graph root exists: %s"), *SkillName), Definition->RootNode.Get()))
+		{
+			continue;
+		}
+
+		TArray<const UAuraAbilityActionNode*> Nodes;
+		CollectAbilityGraphNodes(Definition->RootNode.Get(), Nodes);
+		int32 WaitCount = 0;
+		int32 WaitIndex = INDEX_NONE;
+		int32 PlayMontageIndex = INDEX_NONE;
+		int32 AuthorityEffectIndex = INDEX_NONE;
+		int32 AuthorityEffectAfterWaitIndex = INDEX_NONE;
+		const UPlayMontageNode* PlayMontageNode = nullptr;
+		const UWaitForMontageEventNode* MontageEventNode = nullptr;
+
+		for (int32 NodeIndex = 0; NodeIndex < Nodes.Num(); ++NodeIndex)
+		{
+			const UAuraAbilityActionNode* Node = Nodes[NodeIndex];
+			if (!Node)
+			{
+				continue;
+			}
+
+			if (const UPlayMontageNode* Candidate = Cast<UPlayMontageNode>(Node))
+			{
+				if (PlayMontageIndex == INDEX_NONE)
+				{
+					PlayMontageIndex = NodeIndex;
+					PlayMontageNode = Candidate;
+				}
+			}
+
+			if (const UWaitForMontageEventNode* Candidate = Cast<UWaitForMontageEventNode>(Node))
+			{
+				++WaitCount;
+				if (WaitIndex == INDEX_NONE)
+				{
+					WaitIndex = NodeIndex;
+					MontageEventNode = Candidate;
+				}
+			}
+
+			if (IsAuthorityEffectNode(Node))
+			{
+				if (AuthorityEffectIndex == INDEX_NONE)
+				{
+					AuthorityEffectIndex = NodeIndex;
+				}
+				if (WaitIndex != INDEX_NONE && NodeIndex > WaitIndex && AuthorityEffectAfterWaitIndex == INDEX_NONE)
+				{
+					AuthorityEffectAfterWaitIndex = NodeIndex;
+				}
+			}
+		}
+
+		if (WaitCount > 0)
+		{
+			TestEqual(FString::Printf(TEXT("Montage-gated skill has exactly one event wait: %s"), *SkillName), WaitCount, 1);
+			if (TestNotNull(FString::Printf(TEXT("Montage-gated skill event wait exists: %s"), *SkillName), MontageEventNode))
+			{
+				TestTrue(FString::Printf(TEXT("Montage event tag is valid: %s"), *SkillName), MontageEventNode->EventTag.IsValid());
+				TestTrue(FString::Printf(TEXT("Montage wait has a finite timeout: %s"), *SkillName), MontageEventNode->Timeout > 0.f);
+				TestTrue(FString::Printf(TEXT("Montage wait has an authority fallback: %s"), *SkillName), MontageEventNode->AuthorityFallbackDelay > 0.f);
+				TestTrue(FString::Printf(TEXT("Authority fallback precedes timeout: %s"), *SkillName), MontageEventNode->AuthorityFallbackDelay < MontageEventNode->Timeout);
+				TestNotNull(FString::Printf(TEXT("Montage-gated skill has a loaded montage asset: %s"), *SkillName), PlayMontageNode ? PlayMontageNode->Montage.Get() : nullptr);
+				TestTrue(FString::Printf(TEXT("Montage authors the configured gameplay event: %s"), *SkillName), PlayMontageNode && MontageContainsGameplayEventTagForTest(PlayMontageNode->Montage, MontageEventNode->EventTag));
+			}
+			TestTrue(FString::Printf(TEXT("Montage-gated skill has a PlayMontage node: %s"), *SkillName), PlayMontageIndex != INDEX_NONE);
+			if (PlayMontageIndex != INDEX_NONE && WaitIndex != INDEX_NONE)
+			{
+				TestEqual(FString::Printf(TEXT("Montage event wait immediately follows PlayMontage: %s"), *SkillName), WaitIndex, PlayMontageIndex + 1);
+			}
+			TestTrue(FString::Printf(TEXT("Montage-gated skill has an authority effect after its wait: %s"), *SkillName), AuthorityEffectAfterWaitIndex != INDEX_NONE);
+		}
+		else
+		{
+			// FireBlast is intentionally a direct, non-montage skill; it still needs a
+			// reachable authority effect node so the activation cannot be presentation-only.
+			TestTrue(FString::Printf(TEXT("Direct skill has an authority effect node: %s"), *SkillName), AuthorityEffectIndex != INDEX_NONE);
+		}
+	}
+
+	TestTrue(TEXT("All current input-bound player skills were discovered"), InputBoundSkillCount >= ExpectedPlayerSkills.Num());
+	for (const FName& SkillName : ExpectedPlayerSkills)
+	{
+		TestTrue(FString::Printf(TEXT("Player skill definition is covered: %s"), *SkillName.ToString()), FoundPlayerSkills.Contains(SkillName));
+	}
+	for (const FName& InputTag : ExpectedInputTags)
+	{
+		TestTrue(FString::Printf(TEXT("Player input tag is represented by a skill definition: %s"), *InputTag.ToString()), FoundInputTags.Contains(InputTag));
+	}
+
 	return true;
 }
 

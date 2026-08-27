@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "Layout/Margin.h"
+#include "Widgets/Layout/Anchors.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
 #include "Combat/AuraTargetingTypes.h"
@@ -53,6 +55,9 @@ protected:
 
 private:
 	void InitializeWebHUD(APlayerController* PC);
+	UWebUIWidget* CreateWebHUDPanel(APlayerController* PC, const FString& HtmlPath, const FAnchors& Anchors, const FMargin& Offsets, const TCHAR* PanelName);
+	void SetWebHUDMenuLayout(bool bExpanded);
+	void SetWebHUDInteractionLayout(bool bExpanded);
 	void SendInitialWebHUDState();
 	void SendPlayerProgressToWebUI();
 	void SendAttributeCatalogToWebUI();
@@ -132,9 +137,15 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerClass;
 
-	/** Full-screen transparent WebUI host for the gameplay HUD. */
+	/** Three bounded browser surfaces keep HUD interaction local to its visible panel. */
 	UPROPERTY()
-	TObjectPtr<UWebUIWidget> WebHUD;
+	TObjectPtr<UWebUIWidget> WebHUDLeftTop;
+
+	UPROPERTY()
+	TObjectPtr<UWebUIWidget> WebHUDRightTop;
+
+	UPROPERTY()
+	TObjectPtr<UWebUIWidget> WebHUDBottom;
 
 	UPROPERTY()
 	TObjectPtr<UWebUIBridgeSubsystem> WebUIBridge;

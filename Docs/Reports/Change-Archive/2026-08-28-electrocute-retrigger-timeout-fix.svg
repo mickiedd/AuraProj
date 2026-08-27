@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="820" viewBox="0 0 1320 820" role="img" aria-labelledby="title desc">
+  <title id="title">Electrocute Num.3 retrigger timeout fix</title>
+  <desc id="desc">Before and after flow showing Electrocute stuck active while the server waits forever for a montage event, then recovering through a finite timeout and authoritative ability end.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#79dfff"/></marker>
+    <style>
+      .bg{fill:#08111f}.title{font:700 29px Arial,sans-serif;fill:#eef7ff}.subtitle{font:15px Arial,sans-serif;fill:#afc4d9}.section{font:700 19px Arial,sans-serif;fill:#ffd66b}.label{font:700 14px Arial,sans-serif;fill:#eef7ff}.body{font:14px Arial,sans-serif;fill:#c9d9e8}.small{font:12px Arial,sans-serif;fill:#a7bbcf}.code{font:13px Consolas,monospace;fill:#b9edff}.bad{fill:#321c2b;stroke:#e27991;stroke-width:2}.good{fill:#112d37;stroke:#6be1ff;stroke-width:2}.neutral{fill:#18283b;stroke:#718ba7;stroke-width:2}.guard{fill:#142d24;stroke:#7bddaa;stroke-width:2}.warn{fill:#3c3018;stroke:#ffd66b;stroke-width:2}.arrow{stroke:#79dfff;stroke-width:3;fill:none;marker-end:url(#arrow)}.cross{fill:#ff9fb0;font:700 15px Arial,sans-serif}.check{fill:#a7f3c4;font:700 14px Arial,sans-serif}.divider{stroke:#405a75;stroke-width:2;stroke-dasharray:8 7}
+    </style>
+  </defs>
+  <rect class="bg" width="1320" height="820"/>
+  <text x="52" y="50" class="title">Num.3 Electrocute: permanent-active graph recovery</text>
+  <text x="52" y="79" class="subtitle">The input route was healthy; the authoritative graph lacked a finite exit when its montage event was not observed.</text>
+
+  <text x="58" y="126" class="section">BEFORE: SERVER WAIT NEVER ENDS</text>
+  <rect x="42" y="147" width="590" height="432" rx="14" class="bad"/>
+  <rect x="68" y="180" width="150" height="64" rx="9" class="neutral"/>
+  <text x="84" y="205" class="label">WebUI Num.3</text>
+  <text x="84" y="226" class="code">pressed / held</text>
+  <path d="M 218 212 L 258 212" class="arrow"/>
+  <rect x="260" y="180" width="150" height="64" rx="9" class="neutral"/>
+  <text x="278" y="205" class="label">ASC input</text>
+  <text x="278" y="226" class="code">InputTag.3</text>
+  <path d="M 410 212 L 450 212" class="arrow"/>
+  <rect x="452" y="180" width="150" height="64" rx="9" class="good"/>
+  <text x="469" y="205" class="label">First activation</text>
+  <text x="469" y="226" class="code">accepted</text>
+
+  <path d="M 527 244 L 527 287" class="arrow"/>
+  <rect x="382" y="290" width="220" height="76" rx="9" class="warn"/>
+  <text x="400" y="316" class="label">Server graph wait</text>
+  <text x="400" y="339" class="code">Event.Montage.Electrocute</text>
+  <text x="400" y="357" class="small">Timeout = 0 (forever)</text>
+  <path d="M 382 328 L 272 328" class="arrow"/>
+  <rect x="72" y="290" width="198" height="76" rx="9" class="bad"/>
+  <text x="90" y="317" class="label">Graph remains Running</text>
+  <text x="90" y="341" class="small">No EndAbility on server</text>
+  <text x="90" y="358" class="cross">active spec is never cleared</text>
+
+  <path d="M 171 366 L 171 418" class="arrow"/>
+  <rect x="72" y="421" width="498" height="86" rx="9" class="bad"/>
+  <text x="94" y="449" class="label">Second Num.3 press arrives</text>
+  <text x="94" y="472" class="code">Found Electrocute ... IsActive=true</text>
+  <text x="94" y="493" class="cross">Held path skips TryActivateAbility</text>
+  <text x="74" y="548" class="cross">Cooldown is not the blocker: the ability is still active.</text>
+
+  <line x1="660" y1="130" x2="660" y2="585" class="divider"/>
+
+  <text x="704" y="126" class="section">AFTER: FINITE RECOVERY EXIT</text>
+  <rect x="688" y="147" width="590" height="432" rx="14" class="good"/>
+  <rect x="714" y="180" width="150" height="64" rx="9" class="neutral"/>
+  <text x="730" y="205" class="label">WebUI Num.3</text>
+  <text x="730" y="226" class="code">pressed / held</text>
+  <path d="M 864 212 L 904 212" class="arrow"/>
+  <rect x="906" y="180" width="150" height="64" rx="9" class="neutral"/>
+  <text x="924" y="205" class="label">ASC input</text>
+  <text x="924" y="226" class="code">InputTag.3</text>
+  <path d="M 1056 212 L 1096 212" class="arrow"/>
+  <rect x="1098" y="180" width="150" height="64" rx="9" class="good"/>
+  <text x="1114" y="205" class="label">Activation</text>
+  <text x="1114" y="226" class="code">accepted</text>
+
+  <path d="M 1173 244 L 1173 287" class="arrow"/>
+  <rect x="1028" y="290" width="220" height="76" rx="9" class="guard"/>
+  <text x="1046" y="316" class="label">Montage event wait</text>
+  <text x="1046" y="339" class="code">Timeout = 5 seconds</text>
+  <text x="1046" y="357" class="small">event wins when available</text>
+  <path d="M 1028 328 L 918 328" class="arrow"/>
+  <rect x="718" y="290" width="198" height="76" rx="9" class="guard"/>
+  <text x="738" y="317" class="label">Event or timeout</text>
+  <text x="738" y="341" class="small">timeout cancels safely</text>
+  <text x="738" y="358" class="check">finite graph lifetime</text>
+
+  <path d="M 817 366 L 817 418" class="arrow"/>
+  <rect x="718" y="421" width="498" height="86" rx="9" class="guard"/>
+  <text x="740" y="449" class="label">Authoritative EndAbility replicates to client</text>
+  <text x="740" y="472" class="code">IsActive=false after cleanup</text>
+  <text x="740" y="493" class="check">Next Num.3 press can call TryActivateAbility</text>
+  <text x="718" y="548" class="check">Normal cooldown and cost checks remain enforced.</text>
+
+  <rect x="42" y="628" width="1236" height="142" rx="14" class="neutral"/>
+  <text x="66" y="661" class="section">VALIDATION</text>
+  <text x="66" y="691" class="body">AuraEditor Win64 Development build passed; Aura.AbilityGraph.ElectrocuteRetriable 1/1;</text>
+  <text x="66" y="716" class="body">Aura.AbilityGraph 2/2; Aura.UI.WebSkillPanel 2/2; git diff --check passed.</text>
+  <text x="66" y="746" class="small">Regression contract parses Electrocute.xml and verifies InputTag.3, Event.Montage.Electrocute, and Timeout &gt; 0.</text>
+</svg>

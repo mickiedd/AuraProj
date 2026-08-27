@@ -2,7 +2,7 @@
 
 This directory stores the visual completion record for project jobs.
 
-Latest: [2026-08-27 Gameplay HUD input safety and modern icon pass](2026-08-27-gameplay-hud-input-and-icons.md) - [illustration](2026-08-27-gameplay-hud-input-and-icons.svg)
+Latest: [2026-08-28 player-skill authority safety coverage](2026-08-28-player-skill-authority-safety-coverage.md) - [illustration](2026-08-28-player-skill-authority-safety-coverage.svg)
 
 For each implementation or fix job, add:
 
@@ -30,6 +30,18 @@ The date-only `daily-change-reference.svg` files are source maps for the grouped
 - [2026-08-13 – Finished DayPlan mind-map archive](2026-08-13-finished-dayplan-mind-maps.md)
 
 ### Implementation and fix records
+
+- [2026-08-28 - Player-skill authority safety coverage](2026-08-28-player-skill-authority-safety-coverage.md)
+
+- [2026-08-28 - ArcaneShards Num.2 authority montage fallback fix](2026-08-28-arcane-shards-authority-montage-fallback-fix.md)
+
+- [2026-08-28 - FireBolt LMB authority montage fallback fix](2026-08-28-firebolt-authority-montage-fallback-fix.md)
+
+- [2026-08-28 - Electrocute Num.3 retrigger timeout fix](2026-08-28-electrocute-retrigger-timeout-fix.md)
+
+- [2026-08-28 - WebUI three-panel HUD offset fix](2026-08-28-webui-three-panel-offset-fix.md)
+
+- [2026-08-28 - WebUI three-panel HUD and level input isolation](2026-08-28-webui-three-panel-input-isolation.md)
 
 - [2026-08-11 – Aura damage and modular beam fixes](2026-08-11-aura-damage-beam-fixes.md)
 - [2026-08-11 – Large Control Rig snapshot in Git LFS](2026-08-11-lfs-large-snapshot.md)
