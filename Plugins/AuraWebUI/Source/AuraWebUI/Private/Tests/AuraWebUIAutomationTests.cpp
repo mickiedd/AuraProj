@@ -376,6 +376,7 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	const FString LoadingHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/loading.html"));
 	const FString LoginHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/login.html"));
 	const FString ConfigEditorHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/config-editor.html"));
+	const FString HudHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/hud.html"));
 	const FString SkillPanelHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/skill-panel.html"));
 	const FString WebUIWidgetSourcePath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Source/AuraWebUI/Private/UI/WebUI/WebUIWidget.cpp"));
 	FString Descriptor;
@@ -383,12 +384,14 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	FString LoadingHtml;
 	FString LoginHtml;
 	FString ConfigEditorHtml;
+	FString HudHtml;
 	FString SkillPanelHtml;
 	TestTrue(TEXT("Plugin descriptor exists"), FFileHelper::LoadFileToString(Descriptor, *DescriptorPath));
 	TestTrue(TEXT("Packaged sample page exists in the plugin"), FFileHelper::LoadFileToString(Html, *HtmlPath));
 	TestTrue(TEXT("Loading page exists in the plugin"), FFileHelper::LoadFileToString(LoadingHtml, *LoadingHtmlPath));
 	TestTrue(TEXT("Login page exists in the plugin"), FFileHelper::LoadFileToString(LoginHtml, *LoginHtmlPath));
 	TestTrue(TEXT("Config editor page exists in the plugin"), FFileHelper::LoadFileToString(ConfigEditorHtml, *ConfigEditorHtmlPath));
+	TestTrue(TEXT("Full gameplay HUD page exists in the plugin"), FFileHelper::LoadFileToString(HudHtml, *HudHtmlPath));
 	TestTrue(TEXT("Skill panel page exists in the plugin"), FFileHelper::LoadFileToString(SkillPanelHtml, *SkillPanelHtmlPath));
 	FString WebUIWidgetSource;
 	if (TestTrue(TEXT("Web UI widget implementation is readable"), FFileHelper::LoadFileToString(WebUIWidgetSource, *WebUIWidgetSourcePath)))
@@ -423,6 +426,30 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Config editor reads files through the bridge"), ConfigEditorHtml.Contains(TEXT("send(\"config_read\"")));
 	TestTrue(TEXT("Config editor saves with an optimistic version"), ConfigEditorHtml.Contains(TEXT("send(\"config_save\"")) && ConfigEditorHtml.Contains(TEXT("version: state.version")));
 	TestTrue(TEXT("Config editor includes structured and raw editing modes"), ConfigEditorHtml.Contains(TEXT("Structured view")) && ConfigEditorHtml.Contains(TEXT("Raw JSON")));
+	TestTrue(TEXT("Gameplay HUD uses the native WebSocket URL placeholder"), HudHtml.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
+	TestTrue(TEXT("Gameplay HUD reports readiness and sends all core gameplay commands"),
+		HudHtml.Contains(TEXT("hud_ready"))
+		&& HudHtml.Contains(TEXT("hud_attribute_upgrade"))
+		&& HudHtml.Contains(TEXT("hud_spell_slot"))
+		&& HudHtml.Contains(TEXT("hud_interaction_activate"))
+		&& HudHtml.Contains(TEXT("hud_quit_confirm")));
+	TestTrue(TEXT("Gameplay HUD consumes full controller state events"),
+		HudHtml.Contains(TEXT("hud_vitals"))
+		&& HudHtml.Contains(TEXT("hud_progress"))
+		&& HudHtml.Contains(TEXT("hud_spell_catalog"))
+		&& HudHtml.Contains(TEXT("hud_interaction")));
+	TestTrue(TEXT("Gameplay HUD is transparent and full-screen"), HudHtml.Contains(TEXT("background:transparent")) && HudHtml.Contains(TEXT("position:fixed;inset:0")));
+	TestTrue(TEXT("Gameplay HUD forwards world LMB input through WebUI and releases it globally"),
+		HudHtml.Contains(TEXT("startGameplayLmb"))
+		&& HudHtml.Contains(TEXT("releaseGameplayLmb"))
+		&& HudHtml.Contains(TEXT("window.addEventListener('pointerup'"))
+		&& HudHtml.Contains(TEXT("window.addEventListener('blur'"))
+		&& HudHtml.Contains(TEXT("InputTag.LMB")));
+	TestTrue(TEXT("Gameplay HUD uses modern ability icon treatments"),
+		HudHtml.Contains(TEXT("skill::before"))
+		&& HudHtml.Contains(TEXT("skill.offensive"))
+		&& HudHtml.Contains(TEXT("saturate(1.14)"))
+		&& HudHtml.Contains(TEXT("skill.equipped")));
 	TestTrue(TEXT("Skill panel uses the native WebSocket URL placeholder"), SkillPanelHtml.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
 	TestTrue(TEXT("Skill panel requests a startup replay when the page is ready"), SkillPanelHtml.Contains(TEXT("skill_panel_ready")));
 	TestTrue(TEXT("Skill panel renders ability-info events"), SkillPanelHtml.Contains(TEXT("skill_panel_ability")));

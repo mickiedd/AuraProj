@@ -22,6 +22,8 @@
 #include "Tests/Fixtures/AuraWidgetControllerTestReceiver.h"
 #include "UI/Widget/AuraUserWidget.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
+#include "UI/WidgetController/AttributeMenuWidgetController.h"
+#include "UI/WidgetController/SpellMenuWidgetController.h"
 #include "UI/HUD/AuraHUD.h"
 #include "UI/WebUI/WebUIBridgeSubsystem.h"
 #include "UI/WebUI/WebUIWidget.h"
@@ -319,16 +321,12 @@ bool FAuraOverlayStartupAbilityReplayTest::RunTest(const FString& Parameters)
 	{
 		const int32 InitOverlayOffset = HUDSource.Find(TEXT("void AAuraHUD::InitOverlay"));
 		const FString InitOverlaySource = InitOverlayOffset != INDEX_NONE ? HUDSource.Mid(InitOverlayOffset) : FString();
-		const int32 TakeWidgetOffset = InitOverlaySource.Find(TEXT("Widget->TakeWidget();"));
-		const int32 SetControllerOffset = InitOverlaySource.Find(TEXT("OverlayWidget->SetWidgetController(WidgetController);"));
-		const int32 AddViewportOffset = InitOverlaySource.Find(TEXT("Widget->AddToViewport();"));
-		const int32 BroadcastOffset = InitOverlaySource.Find(TEXT("WidgetController->BroadcastInitialValues();"));
-		TestTrue(
-			TEXT("AuraHUD builds tags, binds listeners, completes viewport PreConstruct, then replays abilities"),
-			TakeWidgetOffset != INDEX_NONE
-			&& TakeWidgetOffset < SetControllerOffset
-			&& SetControllerOffset < AddViewportOffset
-			&& AddViewportOffset < BroadcastOffset);
+		TestTrue(TEXT("AuraHUD initializes controllers and replays state without constructing WBP_Overlay"),
+			InitOverlaySource.Contains(TEXT("GetOverlayWidgetController(WidgetControllerParams)"))
+			&& InitOverlaySource.Contains(TEXT("InitializeWebHUD(PC)"))
+			&& InitOverlaySource.Contains(TEXT("BroadcastInitialValues()"))
+			&& !InitOverlaySource.Contains(TEXT("CreateWidget<UUserWidget>"))
+			&& !InitOverlaySource.Contains(TEXT("OverlayWidget->AddToViewport")));
 	}
 
 	TestWorld->RemoveFromRoot();
@@ -350,25 +348,27 @@ bool FAuraWebSkillPanelHUDContractTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	TestTrue(TEXT("HUD creates the partial skill-panel web page"), HUDSource.Contains(TEXT("WebUI/skill-panel.html")));
-	TestTrue(TEXT("HUD applies responsive viewport anchors and offsets"), HUDSource.Contains(TEXT("ConfigureViewportLayout")) && HUDSource.Contains(TEXT("FAnchors(0.04f, 0.72f, 0.96f, 0.98f)")) && HUDSource.Contains(TEXT("FMargin(20.f, 0.f, -20.f, 0.f)")));
+	TestTrue(TEXT("HUD creates the full gameplay WebUI page"), HUDSource.Contains(TEXT("WebUI/hud.html")));
+	TestTrue(TEXT("HUD covers the full viewport with a transparent WebUI host"), HUDSource.Contains(TEXT("ConfigureViewportLayout")) && HUDSource.Contains(TEXT("FAnchors(0.f, 0.f, 1.f, 1.f)")) && HUDSource.Contains(TEXT("FMargin(0.f)")));
 	TestTrue(TEXT("HUD publishes ability state through the bridge"), HUDSource.Contains(TEXT("skill_panel_ability")) && HUDSource.Contains(TEXT("HandleAbilityInfoForWebUI")));
 	TestTrue(TEXT("HUD publishes health and mana state through the bridge"),
 		HUDSource.Contains(TEXT("hud_vitals"))
 		&& HUDSource.Contains(TEXT("HandleHealthChangedForWebUI"))
 		&& HUDSource.Contains(TEXT("HandleManaChangedForWebUI")));
-	TestTrue(TEXT("HUD replays startup abilities after the browser reports ready"), HUDSource.Contains(TEXT("skill_panel_ready")) && HUDSource.Contains(TEXT("BroadcastAbilityInfo()")));
-	TestTrue(TEXT("HUD reloads the skill page after mounting and gives it a top viewport layer"),
-		HUDSource.Contains(TEXT("SkillPanelWebUI->AddToViewport(200)"))
-		&& HUDSource.Contains(TEXT("SkillPanelWebUI->ReloadWebUI()"))
-		&& HUDSource.Contains(TEXT("SkillPanelWebUI->bAutoConnectBridge = false")));
+	TestTrue(TEXT("HUD replays all controller state after the browser reports ready"), HUDSource.Contains(TEXT("hud_ready")) && HUDSource.Contains(TEXT("BroadcastAbilityInfo()")) && HUDSource.Contains(TEXT("BroadcastInitialValues()")));
+	TestTrue(TEXT("HUD reloads the full page after mounting and gives it a top viewport layer"),
+		HUDSource.Contains(TEXT("WebHUD->AddToViewport(200)"))
+		&& HUDSource.Contains(TEXT("WebHUD->ReloadWebUI()"))
+		&& HUDSource.Contains(TEXT("WebHUD->bAutoConnectBridge = false")));
 	TestTrue(TEXT("HUD uses the local player viewport context with a headless world fallback"),
 		HUDSource.Contains(TEXT("PC->GetLocalPlayer()"))
 		&& HUDSource.Contains(TEXT("CreateWidget<UWebUIWidget>(PC"))
 		&& HUDSource.Contains(TEXT("CreateWidget<UWebUIWidget>(World")));
-	TestTrue(TEXT("HUD replaces native spell globes only after Web UI readiness"),
-		HUDSource.Contains(TEXT("SetNativeSkillGlobeVisibility(false)"))
-		&& HUDSource.Contains(TEXT("SetNativeSkillGlobeVisibility(true)")));
+	TestTrue(TEXT("HUD does not instantiate or toggle the legacy native overlay"),
+		!HUDSource.Contains(TEXT("CreateWidget<UUserWidget>"))
+		&& !HUDSource.Contains(TEXT("SetNativeSkillGlobeVisibility"))
+		&& !HUDSource.Contains(TEXT("TriggerNativeOverlayButton"))
+		&& !HUDSource.Contains(TEXT("OnClicked.Broadcast")));
 	TestTrue(TEXT("HUD routes web press, held, and release commands to the player controller"),
 		HUDSource.Contains(TEXT("skill_ability_pressed"))
 		&& HUDSource.Contains(TEXT("skill_ability_held"))
@@ -376,14 +376,21 @@ bool FAuraWebSkillPanelHUDContractTest::RunTest(const FString& Parameters)
 		&& HUDSource.Contains(TEXT("WebAbilityInputTagPressed"))
 		&& HUDSource.Contains(TEXT("WebAbilityInputTagHeld"))
 		&& HUDSource.Contains(TEXT("WebAbilityInputTagReleased")));
-	TestTrue(TEXT("HUD routes Web UI menu controls through native overlay button delegates"),
+	TestTrue(TEXT("HUD releases WebUI-originated LMB input when the browser disconnects"),
+		HUDSource.Contains(TEXT("bWebGameplayLMBDown"))
+		&& HUDSource.Contains(TEXT("HandleWebUIConnectionChanged"))
+		&& HUDSource.Contains(TEXT("InputTag_LMB")));
+	TestTrue(TEXT("HUD routes Web UI menu controls through controller-backed WebUI commands"),
 		HUDSource.Contains(TEXT("hud_attributes_clicked"))
 		&& HUDSource.Contains(TEXT("hud_spells_clicked"))
 		&& HUDSource.Contains(TEXT("hud_close_clicked"))
-		&& HUDSource.Contains(TEXT("OnClicked.Broadcast")));
-	TestTrue(TEXT("HUD restores native vitals and action buttons when the browser disconnects"),
-		HUDSource.Contains(TEXT("SetNativeVitalsAndActionVisibility(false)"))
-		&& HUDSource.Contains(TEXT("SetNativeVitalsAndActionVisibility(true)")));
+		&& HUDSource.Contains(TEXT("hud_quit_confirm"))
+		&& HUDSource.Contains(TEXT("hud_spell_slot"))
+		&& HUDSource.Contains(TEXT("hud_attribute_upgrade")));
+	TestTrue(TEXT("HUD publishes interaction previews and location through WebUI"),
+		HUDSource.Contains(TEXT("hud_interaction"))
+		&& HUDSource.Contains(TEXT("hud_location"))
+		&& HUDSource.Contains(TEXT("WebInteractPressed")));
 	TestTrue(TEXT("HUD restricts browser input to known gameplay input tags"), HUDSource.Contains(TEXT("InputTag_Passive_2")));
 	const UClass* HUDClass = AAuraHUD::StaticClass();
 	TestNotNull(TEXT("Web command handler is reflected for dynamic delegate binding"), HUDClass->FindFunctionByName(TEXT("HandleWebUICommand")));
@@ -419,12 +426,15 @@ bool FAuraWebSkillPanelHUDRuntimeTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	const TSubclassOf<UAuraUserWidget> OverlayClass = LoadClass<UAuraUserWidget>(
-		nullptr, TEXT("/Game/Blueprints/UI/Overlay/WBP_Overlay.WBP_Overlay_C"));
 	const TSubclassOf<UOverlayWidgetController> ControllerClass = LoadClass<UOverlayWidgetController>(
 		nullptr, TEXT("/Game/Blueprints/UI/WidgetController/BP_OverlayWidgetController.BP_OverlayWidgetController_C"));
-	if (!TestNotNull(TEXT("Runtime overlay class loaded for Web HUD"), OverlayClass.Get())
-		|| !TestNotNull(TEXT("Runtime overlay controller class loaded for Web HUD"), ControllerClass.Get()))
+	const TSubclassOf<UAttributeMenuWidgetController> AttributeControllerClass = LoadClass<UAttributeMenuWidgetController>(
+		nullptr, TEXT("/Game/Blueprints/UI/WidgetController/BP_AttributeMenuWidgetController.BP_AttributeMenuWidgetController_C"));
+	const TSubclassOf<USpellMenuWidgetController> SpellControllerClass = LoadClass<USpellMenuWidgetController>(
+		nullptr, TEXT("/Game/Blueprints/UI/WidgetController/BP_SpellMenuWidgetController.BP_SpellMenuWidgetController_C"));
+	if (!TestNotNull(TEXT("Runtime overlay controller class loaded for Web HUD"), ControllerClass.Get())
+		|| !TestNotNull(TEXT("Runtime attribute controller class loaded for Web HUD"), AttributeControllerClass.Get())
+		|| !TestNotNull(TEXT("Runtime spell controller class loaded for Web HUD"), SpellControllerClass.Get()))
 	{
 		TestWorld->RemoveFromRoot();
 		TestWorld->DestroyWorld(/*bInformEngineOfWorld=*/false);
@@ -438,8 +448,9 @@ bool FAuraWebSkillPanelHUDRuntimeTest::RunTest(const FString& Parameters)
 			Property->SetObjectPropertyValue_InContainer(Owner, Value);
 		}
 	};
-	SetObjectProperty(HUD, TEXT("OverlayWidgetClass"), OverlayClass.Get());
 	SetObjectProperty(HUD, TEXT("OverlayWidgetControllerClass"), ControllerClass.Get());
+	SetObjectProperty(HUD, TEXT("AttributeMenuWidgetControllerClass"), AttributeControllerClass.Get());
+	SetObjectProperty(HUD, TEXT("SpellMenuWidgetControllerClass"), SpellControllerClass.Get());
 
 	UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(PlayerState->GetAbilitySystemComponent());
 	UAttributeSet* Attributes = PlayerState->GetAttributeSet();
@@ -460,11 +471,11 @@ bool FAuraWebSkillPanelHUDRuntimeTest::RunTest(const FString& Parameters)
 		return Property ? Property->GetObjectPropertyValue_InContainer(Owner) : nullptr;
 	};
 
-	UWebUIWidget* SkillPanel = Cast<UWebUIWidget>(ReadObjectProperty(HUD, TEXT("SkillPanelWebUI")));
+	UWebUIWidget* WebHUD = Cast<UWebUIWidget>(ReadObjectProperty(HUD, TEXT("WebHUD")));
 	UWebUIBridgeSubsystem* Bridge = TestWorld->GetSubsystem<UWebUIBridgeSubsystem>();
-	TestNotNull(TEXT("HUD mounts a Web UI skill-panel widget"), SkillPanel);
+	TestNotNull(TEXT("HUD mounts a full gameplay WebUI widget"), WebHUD);
 	TestNotNull(TEXT("HUD runtime fixture owns the Web UI bridge"), Bridge);
-	if (SkillPanel && Bridge)
+	if (WebHUD && Bridge)
 	{
 		TestTrue(TEXT("HUD binds its Web UI command handler to the live bridge"), Bridge->OnCommand.IsBound());
 		const TArray<UObject*> CommandListeners = Bridge->OnCommand.GetAllObjects();
@@ -475,52 +486,32 @@ bool FAuraWebSkillPanelHUDRuntimeTest::RunTest(const FString& Parameters)
 			CommandListenerNames += GetNameSafe(Listener);
 		}
 		AddInfo(FString::Printf(TEXT("Web UI command listeners (%d): %s"), CommandListeners.Num(), *CommandListenerNames));
-		TestNotNull(TEXT("Mounted skill panel creates a native WebBrowser root"), SkillPanel->GetWebBrowser());
-		TestTrue(TEXT("Mounted skill panel enables transparent browser compositing"), SkillPanel->IsBrowserTransparencyEnabled());
-		TestEqual(TEXT("Mounted skill panel loads the skill-panel page"), SkillPanel->GetLastLoadedHtmlAssetPath(), FString(TEXT("WebUI/skill-panel.html")));
-		TestTrue(TEXT("Mounted skill panel loads non-empty HTML"), SkillPanel->GetLastLoadedHtmlBytes() > 1000);
+		TestNotNull(TEXT("Mounted Web HUD creates a native WebBrowser root"), WebHUD->GetWebBrowser());
+		TestTrue(TEXT("Mounted Web HUD enables transparent browser compositing"), WebHUD->IsBrowserTransparencyEnabled());
+		TestEqual(TEXT("Mounted Web HUD loads the full hud page"), WebHUD->GetLastLoadedHtmlAssetPath(), FString(TEXT("WebUI/hud.html")));
+		TestTrue(TEXT("Mounted Web HUD loads non-empty HTML"), WebHUD->GetLastLoadedHtmlBytes() > 1000);
 
 		if (UGameViewportSubsystem* ViewportSubsystem = UGameViewportSubsystem::Get(TestWorld))
 		{
-			if (ViewportSubsystem->IsWidgetAdded(SkillPanel))
+			if (ViewportSubsystem->IsWidgetAdded(WebHUD))
 			{
-				const FGameViewportWidgetSlot Slot = ViewportSubsystem->GetWidgetSlot(SkillPanel);
-				TestEqual(TEXT("Web skill panel is mounted above native HUD layers"), Slot.ZOrder, 200);
-				TestTrue(TEXT("Web skill panel uses a non-zero-height bottom viewport band"),
-					Slot.Anchors.Minimum.Y == 0.72f && Slot.Anchors.Maximum.Y == 0.98f
-					&& Slot.Anchors.Maximum.Y > Slot.Anchors.Minimum.Y
+				const FGameViewportWidgetSlot Slot = ViewportSubsystem->GetWidgetSlot(WebHUD);
+				TestEqual(TEXT("Web HUD is mounted above native HUD layers"), Slot.ZOrder, 200);
+				TestTrue(TEXT("Web HUD covers the full viewport"),
+					Slot.Anchors.Minimum.X == 0.f && Slot.Anchors.Minimum.Y == 0.f
+					&& Slot.Anchors.Maximum.X == 1.f && Slot.Anchors.Maximum.Y == 1.f
 					&& Slot.Offsets.Top == 0.f && Slot.Offsets.Bottom == 0.f);
 			}
 			else
 			{
-				AddInfo(TEXT("Headless automation has no game viewport; verified the mounted widget host, browser root, and loaded skill page instead."));
+			AddInfo(TEXT("Headless automation has no game viewport; verified the mounted Web HUD host, browser root, and loaded page instead."));
 			}
 		}
-
-		UAuraUserWidget* Overlay = Cast<UAuraUserWidget>(ReadObjectProperty(HUD, TEXT("OverlayWidget")));
-		UObject* HealthManaSpells = Overlay ? ReadObjectProperty(Overlay, TEXT("WBP_HealthManaSpells")) : nullptr;
-		UUserWidget* HealthManaSpellsWidget = Cast<UUserWidget>(HealthManaSpells);
-		UWidget* SpellGlobe = HealthManaSpellsWidget ? HealthManaSpellsWidget->GetWidgetFromName(TEXT("SpellGlobe_LMB")) : nullptr;
-		TestNotNull(TEXT("Runtime overlay exposes the native LMB spell globe"), SpellGlobe);
-		if (SpellGlobe)
-		{
-			TestTrue(TEXT("Native spell globe starts visible before browser readiness"), SpellGlobe->GetVisibility() != ESlateVisibility::Collapsed);
-			TestNotNull(TEXT("HUD exposes the reflected skill-panel command function"), HUD->GetClass()->FindFunctionByName(TEXT("HandleWebUICommand")));
-			HUD->HandleWebUICommand(TEXT("skill_panel_ready"), TEXT("{}"));
-			AddInfo(FString::Printf(TEXT("LMB spell-globe visibility after browser readiness=%d (Collapsed=%d)"),
-				static_cast<int32>(SpellGlobe->GetVisibility()),
-				static_cast<int32>(ESlateVisibility::Collapsed)));
-			TestEqual(TEXT("Browser readiness collapses the native spell globe"), SpellGlobe->GetVisibility(), ESlateVisibility::Collapsed);
-			TestNotNull(TEXT("HUD exposes the reflected skill-panel connection function"), HUD->GetClass()->FindFunctionByName(TEXT("HandleWebUIConnectionChanged")));
-			const int32 ForwardedActionsBefore = HUD->GetWebHudForwardedActionCount();
-			HUD->HandleWebUICommand(TEXT("hud_attributes_clicked"), TEXT("{}"));
-			HUD->HandleWebUICommand(TEXT("hud_spells_clicked"), TEXT("{}"));
-			HUD->HandleWebUICommand(TEXT("hud_close_clicked"), TEXT("{}"));
-			TestEqual(TEXT("Web HUD forwards Attributes, Spells, and Close clicks to native handlers"),
-				HUD->GetWebHudForwardedActionCount(), ForwardedActionsBefore + 3);
-			HUD->HandleWebUIConnectionChanged(false);
-			TestTrue(TEXT("Browser disconnect restores the native spell globe fallback"), SpellGlobe->GetVisibility() != ESlateVisibility::Collapsed);
-		}
+		TestNotNull(TEXT("HUD exposes the reflected WebUI command function"), HUD->GetClass()->FindFunctionByName(TEXT("HandleWebUICommand")));
+		TestNotNull(TEXT("HUD exposes the reflected WebUI connection function"), HUD->GetClass()->FindFunctionByName(TEXT("HandleWebUIConnectionChanged")));
+		HUD->HandleWebUICommand(TEXT("hud_ready"), TEXT("{}"));
+		HUD->HandleWebUIConnectionChanged(false);
+		TestEqual(TEXT("Web HUD never forwards controls to native WBP handlers"), HUD->GetWebHudForwardedActionCount(), 0);
 	}
 
 	HUD->Destroy();

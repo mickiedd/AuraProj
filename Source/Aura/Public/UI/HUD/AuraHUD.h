@@ -5,15 +5,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
+#include "AbilitySystem/Data/AttributeInfo.h"
+#include "Combat/AuraTargetingTypes.h"
+#include "UI/WidgetController/OverlayWidgetController.h"
 #include "AuraHUD.generated.h"
 
 class UAttributeMenuWidgetController;
 class UAttributeSet;
 class UAbilitySystemComponent;
-class UOverlayWidgetController;
-class UAuraUserWidget;
 struct FWidgetControllerParams;
 class USpellMenuWidgetController;
+class UTargetInteractionWidgetController;
 class UWebUIBridgeSubsystem;
 class UWebUIWidget;
 class UTexture2D;
@@ -50,11 +52,18 @@ protected:
 	virtual void DrawHUD() override;
 
 private:
-	void InitializeSkillPanelWebUI(APlayerController* PC, UOverlayWidgetController* WidgetController);
-	void SetNativeSkillGlobeVisibility(bool bVisible);
-	void SetNativeVitalsAndActionVisibility(bool bVisible);
-	bool TriggerNativeOverlayButton(const TArray<FName>& CandidateNames, const TCHAR* CommandName);
+	void InitializeWebHUD(APlayerController* PC);
+	void SendInitialWebHUDState();
+	void SendPlayerProgressToWebUI();
+	void SendAttributeCatalogToWebUI();
+	void SendSpellCatalogToWebUI();
+	void SendInteractionToWebUI(const FAuraTargetDescriptor& Descriptor);
+	void SendLocationToWebUI();
 	void SendVitalsToWebUI();
+	bool ParseWebPayload(const FString& PayloadJson, TSharedPtr<FJsonObject>& OutPayload) const;
+	bool IsKnownAbilityTag(const FGameplayTag& AbilityTag) const;
+	bool IsKnownAttributeTag(const FGameplayTag& AttributeTag) const;
+	bool IsKnownSpellSlot(const FGameplayTag& SlotTag) const;
 
 	UFUNCTION()
 	void HandleAbilityInfoForWebUI(const FAuraAbilityInfo& Info);
@@ -71,32 +80,60 @@ private:
 	UFUNCTION()
 	void HandleMaxManaChangedForWebUI(float NewValue);
 
+	UFUNCTION()
+	void HandleMessageForWebUI(FUIWidgetRow Row);
+
+	UFUNCTION()
+	void HandleXPPercentChangedForWebUI(float NewValue);
+
+	UFUNCTION()
+	void HandlePlayerLevelChangedForWebUI(int32 NewLevel, bool bLevelUp);
+
+	UFUNCTION()
+	void HandleMountedChangedForWebUI(bool bIsMounted);
+
+	UFUNCTION()
+	void HandleAttributeInfoForWebUI(const FAuraAttributeInfo& Info);
+
+	UFUNCTION()
+	void HandleAttributePointsChangedForWebUI(int32 NewValue);
+
+	UFUNCTION()
+	void HandleSpellPointsChangedForWebUI(int32 NewValue);
+
+	UFUNCTION()
+	void HandleSpellSelectionForWebUI(bool bSpendPointsButtonEnabled, bool bEquipButtonEnabled, FString DescriptionString, FString NextLevelDescriptionString);
+
+	UFUNCTION()
+	void HandleWaitForEquipForWebUI(const FGameplayTag& AbilityType);
+
+	UFUNCTION()
+	void HandleStopWaitingForEquipForWebUI(const FGameplayTag& AbilityType);
+
+	UFUNCTION()
+	void HandleSpellReassignedForWebUI(const FGameplayTag& AbilityTag);
+
+	UFUNCTION()
+	void HandleTargetPreviewForWebUI(const FAuraTargetDescriptor& Descriptor);
+
+	UFUNCTION()
+	void HandleTargetPreviewClearedForWebUI();
+
 	FString BuildAbilityIconDataUri(const UTexture2D* Icon);
 	bool TryGetWebAbilityInputTag(const FString& InputTagName, FGameplayTag& OutInputTag) const;
 	bool bShowLocation = false;
 
 
 private:
-
-	UPROPERTY()
-	TObjectPtr<UAuraUserWidget>  OverlayWidget;	
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UAuraUserWidget> OverlayWidgetClass;
-
 	UPROPERTY()
 	TObjectPtr<UOverlayWidgetController> OverlayWidgetController;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerClass;
 
-	/** Enable the responsive partial web skill panel alongside the native HUD. */
-	UPROPERTY(EditAnywhere, Category = "Web UI|Skill Panel")
-	bool bEnableSkillPanelWebUI = true;
-
-	/** Web UI host for the bottom skill panel. Native health/mana remain as fallback. */
+	/** Full-screen transparent WebUI host for the gameplay HUD. */
 	UPROPERTY()
-	TObjectPtr<UWebUIWidget> SkillPanelWebUI;
+	TObjectPtr<UWebUIWidget> WebHUD;
 
 	UPROPERTY()
 	TObjectPtr<UWebUIBridgeSubsystem> WebUIBridge;
@@ -104,14 +141,22 @@ private:
 	/** Cache icon data URLs because ability broadcasts can repeat on replication. */
 	TMap<FString, FString> AbilityIconDataUriCache;
 
-	/** Native spell globes are hidden only after the browser confirms the web panel is ready. */
-	bool bWebSkillPanelReady = false;
+	/** The browser reports ready before cached state is replayed. */
+	bool bWebHUDReady = false;
+	/** True while WebUI-originated LMB input is held, so browser disconnects can release it safely. */
+	bool bWebGameplayLMBDown = false;
 
 	/** Last replicated vitals, replayed when the Web UI reports that it is ready. */
 	float WebHealth = 0.f;
 	float WebMaxHealth = 0.f;
 	float WebMana = 0.f;
 	float WebMaxMana = 0.f;
+	float WebXPPercent = 0.f;
+	int32 WebPlayerLevel = 1;
+	int32 WebAttributePoints = 0;
+	int32 WebSpellPoints = 0;
+	FString LastInteractionPayloadJson;
+	FString LastLocationPayloadJson;
 	int32 WebHudForwardedActionCount = 0;
 
 	UPROPERTY()

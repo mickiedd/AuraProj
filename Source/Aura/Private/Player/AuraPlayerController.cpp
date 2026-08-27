@@ -363,6 +363,11 @@ void AAuraPlayerController::WebAbilityInputTagReleased(const FGameplayTag& Input
 	AbilityInputTagReleased(InputTag);
 }
 
+void AAuraPlayerController::WebInteractPressed()
+{
+	InteractPressed();
+}
+
 void AAuraPlayerController::ServerTransferToRandomPlayer_Implementation()
 {
 	ExecuteTransferToRandomPlayer();

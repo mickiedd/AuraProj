@@ -76,6 +76,8 @@ public:
 	void WebAbilityInputTagPressed(const FGameplayTag& InputTag);
 	void WebAbilityInputTagHeld(const FGameplayTag& InputTag);
 	void WebAbilityInputTagReleased(const FGameplayTag& InputTag);
+	/** Input entry point used by the in-game Web UI interaction prompt. */
+	void WebInteractPressed();
 
 	// ---- UGC Building Exec Commands ----------------------------------------
 

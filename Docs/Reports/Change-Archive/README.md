@@ -2,7 +2,7 @@
 
 This directory stores the visual completion record for project jobs.
 
-Latest: [2026-08-25 Role/Battle Days 13-15 review fixes](2026-08-25-role-battle-days-13-15-review-fixes.md) - [illustration](2026-08-25-role-battle-days-13-15-review-fixes.svg)
+Latest: [2026-08-27 Gameplay HUD input safety and modern icon pass](2026-08-27-gameplay-hud-input-and-icons.md) - [illustration](2026-08-27-gameplay-hud-input-and-icons.svg)
 
 For each implementation or fix job, add:
 

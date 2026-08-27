@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Gameplay HUD WebUI input safety and modern icon treatment</title>
+  <desc id="desc">Before and after diagram showing global WebUI mouse release handling and the refreshed ability icon styling while keeping the gameplay HUD WebUI only.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#071321"/><stop offset="1" stop-color="#162b42"/></linearGradient>
+    <linearGradient id="after" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#12314a"/><stop offset="1" stop-color="#1b2048"/></linearGradient>
+    <style>
+      .title{font:700 30px Arial,sans-serif;fill:#f4f8ff}.sub{font:400 16px Arial,sans-serif;fill:#a8bfd3}.head{font:700 18px Arial,sans-serif;fill:#071421}.body{font:400 15px Arial,sans-serif;fill:#d4e3ef}.small{font:400 13px Arial,sans-serif;fill:#9fb7cb}.code{font:600 14px ui-monospace,monospace;fill:#bdeeff}.good{font:700 15px Arial,sans-serif;fill:#92f0c2}.warn{font:700 15px Arial,sans-serif;fill:#ffd977}.label{font:700 12px Arial,sans-serif;fill:#8ea9bf;letter-spacing:1.3px}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#65dcff"/></marker>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="56" y="58" class="title">Gameplay HUD input safety + modern icons</text>
+  <text x="56" y="86" class="sub">UE5.5 • fullscreen WebUI browser • reliable LMB lifecycle • no native HUD fallback</text>
+
+  <rect x="56" y="125" width="360" height="450" rx="18" fill="#f4f7fa" stroke="#d36e78" stroke-width="2"/>
+  <rect x="56" y="125" width="360" height="48" rx="18" fill="#c45162"/>
+  <text x="82" y="156" class="head">BEFORE · browser capture gap</text>
+  <text x="82" y="214" class="body" fill="#23384d">Fullscreen UWebBrowser captures LMB</text>
+  <text x="82" y="250" class="body" fill="#23384d">Release listener lived on one button</text>
+  <text x="82" y="286" class="body" fill="#23384d">Pointer leaves button or focus is lost</text>
+  <text x="82" y="322" class="body" fill="#23384d">Native ability can remain held</text>
+  <text x="82" y="386" class="warn">World clicks had no reliable WebUI route</text>
+  <text x="82" y="414" class="warn">Old slot icons were flat and hard to read</text>
+  <text x="82" y="480" class="small" fill="#41576a">CSS pointer-events alone cannot change</text>
+  <text x="82" y="502" class="small" fill="#41576a">Slate's full browser viewport hit testing.</text>
+
+  <path d="M430 350 C475 350 485 350 530 350" fill="none" stroke="#65dcff" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="530" y="125" width="614" height="450" rx="18" fill="url(#after)" stroke="#59c58f" stroke-width="2"/>
+  <rect x="530" y="125" width="614" height="48" rx="18" fill="#329967"/>
+  <text x="556" y="156" class="head">AFTER · WebUI owns the input lifecycle</text>
+
+  <rect x="556" y="200" width="252" height="150" rx="12" fill="#0c2137" stroke="#65dcff"/>
+  <text x="578" y="228" class="label">WORLD POINTER</text>
+  <text x="578" y="262" class="code">pointerdown</text>
+  <text x="578" y="288" class="code">pointerup / cancel</text>
+  <text x="578" y="314" class="code">window blur</text>
+  <text x="578" y="338" class="small">UI controls excluded</text>
+
+  <rect x="834" y="200" width="276" height="150" rx="12" fill="#0c2137" stroke="#65dcff"/>
+  <text x="856" y="228" class="label">VALIDATED BRIDGE</text>
+  <text x="856" y="262" class="code">InputTag.LMB pressed</text>
+  <text x="856" y="288" class="code">held every 120ms</text>
+  <text x="856" y="314" class="code">released on disconnect</text>
+  <path d="M808 275 L834 275" stroke="#65dcff" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="556" y="382" width="554" height="145" rx="12" fill="#0c2137" stroke="#a98cff"/>
+  <text x="578" y="411" class="label">MODERN WEBUI SKILL ICONS</text>
+  <rect x="578" y="432" width="66" height="68" rx="12" fill="#753f68" stroke="#ff9588"/>
+  <circle cx="611" cy="462" r="20" fill="#e47775" opacity=".8"/><text x="599" y="468" class="head">✦</text><text x="588" y="490" class="small">LMB</text>
+  <rect x="660" y="432" width="66" height="68" rx="12" fill="#4c4e9d" stroke="#c19aff"/>
+  <circle cx="693" cy="462" r="20" fill="#9a7be5" opacity=".8"/><text x="681" y="468" class="head">✧</text><text x="674" y="490" class="small">RMB</text>
+  <text x="754" y="449" class="body">glass frame + gradient overlay</text>
+  <text x="754" y="476" class="body">offensive/passive color accents</text>
+  <text x="754" y="503" class="body">key badge + readable label + equipped glow</text>
+
+  <rect x="56" y="620" width="1088" height="85" rx="16" fill="#0e2234" stroke="#436981"/>
+  <text x="82" y="652" class="good">Validation</text>
+  <text x="190" y="652" class="body">AuraEditor build passed • Web HUD 2/2 • AuraWebUI 4/4</text>
+  <text x="82" y="680" class="small">JavaScript syntax, SVG XML, disconnect-release contract, modern icon contract, and diff checks passed.</text>
+</svg>
