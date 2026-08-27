@@ -351,6 +351,16 @@ bool FAuraWebSkillPanelHUDContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("HUD creates the full gameplay WebUI page"), HUDSource.Contains(TEXT("WebUI/hud.html")));
 	TestTrue(TEXT("HUD covers the full viewport with a transparent WebUI host"), HUDSource.Contains(TEXT("ConfigureViewportLayout")) && HUDSource.Contains(TEXT("FAnchors(0.f, 0.f, 1.f, 1.f)")) && HUDSource.Contains(TEXT("FMargin(0.f)")));
 	TestTrue(TEXT("HUD publishes ability state through the bridge"), HUDSource.Contains(TEXT("skill_panel_ability")) && HUDSource.Contains(TEXT("HandleAbilityInfoForWebUI")));
+	TestTrue(TEXT("HUD sends authored PNG skill icons through the bridge"),
+		HUDSource.Contains(TEXT("BuildManualSkillIconDataUri"))
+		&& HUDSource.Contains(TEXT("firebolt.png"))
+		&& HUDSource.Contains(TEXT("gunfire.png"))
+		&& HUDSource.Contains(TEXT("electrocute.png"))
+		&& HUDSource.Contains(TEXT("fireblast.png"))
+		&& HUDSource.Contains(TEXT("arcaneshards.png"))
+		&& HUDSource.Contains(TEXT("haloofprotection.png"))
+		&& HUDSource.Contains(TEXT("lifesiphon.png"))
+		&& HUDSource.Contains(TEXT("manasiphon.png")));
 	TestTrue(TEXT("HUD publishes health and mana state through the bridge"),
 		HUDSource.Contains(TEXT("hud_vitals"))
 		&& HUDSource.Contains(TEXT("HandleHealthChangedForWebUI"))

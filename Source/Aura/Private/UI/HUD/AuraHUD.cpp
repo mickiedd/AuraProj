@@ -11,8 +11,10 @@
 #include "Dom/JsonObject.h"
 #include "Engine/Texture2D.h"
 #include "ImageUtils.h"
+#include "Interfaces/IPluginManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/Base64.h"
+#include "Misc/FileHelper.h"
 #include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
 #include "Serialization/JsonReader.h"
@@ -38,6 +40,21 @@ namespace AuraHUDPrivate
 	void SetTagField(const TSharedRef<FJsonObject>& Object, const TCHAR* FieldName, const FGameplayTag& Tag)
 	{
 		Object->SetStringField(FieldName, Tag.IsValid() ? Tag.ToString() : FString());
+	}
+
+	const TCHAR* GetManualSkillIconFilename(const FGameplayTag& AbilityTag)
+	{
+		const FString TagName = AbilityTag.ToString();
+		if (TagName == TEXT("Abilities.None")) return TEXT("empty.png");
+		if (TagName == TEXT("Abilities.Fire.FireBolt")) return TEXT("firebolt.png");
+		if (TagName == TEXT("Abilities.Gun.Fire")) return TEXT("gunfire.png");
+		if (TagName == TEXT("Abilities.Lightning.Electrocute")) return TEXT("electrocute.png");
+		if (TagName == TEXT("Abilities.Fire.FireBlast")) return TEXT("fireblast.png");
+		if (TagName == TEXT("Abilities.Arcane.ArcaneShards")) return TEXT("arcaneshards.png");
+		if (TagName == TEXT("Abilities.Passive.HaloOfProtection")) return TEXT("haloofprotection.png");
+		if (TagName == TEXT("Abilities.Passive.LifeSiphon")) return TEXT("lifesiphon.png");
+		if (TagName == TEXT("Abilities.Passive.ManaSiphon")) return TEXT("manasiphon.png");
+		return nullptr;
 	}
 }
 
@@ -115,6 +132,7 @@ void AAuraHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	WebUIBridge = nullptr;
 	bWebHUDReady = false;
 	AbilityIconDataUriCache.Empty();
+	ManualSkillIconDataUriCache.Empty();
 	LastInteractionPayloadJson.Empty();
 	LastLocationPayloadJson.Empty();
 
@@ -487,7 +505,8 @@ void AAuraHUD::SendSpellCatalogToWebUI()
 			Entry->SetNumberField(TEXT("levelRequirement"), Metadata.LevelRequirement);
 			Entry->SetStringField(TEXT("description"), Description);
 			Entry->SetStringField(TEXT("nextDescription"), NextDescription);
-			Entry->SetStringField(TEXT("icon"), BuildAbilityIconDataUri(Metadata.Icon));
+			const FString ManualIconDataUri = BuildManualSkillIconDataUri(Metadata.AbilityTag);
+			Entry->SetStringField(TEXT("icon"), ManualIconDataUri.IsEmpty() ? BuildAbilityIconDataUri(Metadata.Icon) : ManualIconDataUri);
 			Entry->SetStringField(TEXT("iconName"), Metadata.Icon ? Metadata.Icon->GetPathName() : FString());
 			Entry->SetNumberField(TEXT("level"), 0);
 			if (const FGameplayAbilitySpec* Spec = ASC->GetSpecFromAbilityTag(Metadata.AbilityTag)) Entry->SetNumberField(TEXT("level"), Spec->Level);
@@ -511,7 +530,8 @@ void AAuraHUD::HandleAbilityInfoForWebUI(const FAuraAbilityInfo& Info)
 	Payload->SetNumberField(TEXT("levelRequirement"), Info.LevelRequirement);
 	const bool bClear = Info.AbilityTag.MatchesTagExact(GameplayTags.Abilities_None);
 	Payload->SetBoolField(TEXT("clear"), bClear);
-	Payload->SetStringField(TEXT("icon"), bClear ? FString() : BuildAbilityIconDataUri(Info.Icon));
+	const FString ManualIconDataUri = BuildManualSkillIconDataUri(Info.AbilityTag);
+	Payload->SetStringField(TEXT("icon"), ManualIconDataUri.IsEmpty() ? (bClear ? FString() : BuildAbilityIconDataUri(Info.Icon)) : ManualIconDataUri);
 	Payload->SetStringField(TEXT("iconName"), Info.Icon ? Info.Icon->GetPathName() : FString());
 	WebUIBridge->SendEvent(TEXT("skill_panel_ability"), AuraHUDPrivate::SerializeObject(Payload));
 }
@@ -710,6 +730,40 @@ FString AAuraHUD::BuildAbilityIconDataUri(const UTexture2D* Icon)
 	FImageUtils::CompressImageArray(Width, Height, Pixels, PngBytes);
 	if (PngBytes.Num() > 0) DataUri = FString::Printf(TEXT("data:image/png;base64,%s"), *FBase64::Encode(PngBytes));
 	AbilityIconDataUriCache.Add(CacheKey, DataUri);
+	return DataUri;
+}
+
+FString AAuraHUD::BuildManualSkillIconDataUri(const FGameplayTag& AbilityTag)
+{
+	const FString CacheKey = AbilityTag.ToString();
+	if (const FString* Cached = ManualSkillIconDataUriCache.Find(CacheKey)) return *Cached;
+
+	const TCHAR* IconFilename = AuraHUDPrivate::GetManualSkillIconFilename(AbilityTag);
+	if (!IconFilename)
+	{
+		ManualSkillIconDataUriCache.Add(CacheKey, FString());
+		return FString();
+	}
+
+	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("AuraWebUI"));
+	if (!Plugin.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraHUD] AuraWebUI plugin was not found while loading manual skill icon %s"), *CacheKey);
+		ManualSkillIconDataUriCache.Add(CacheKey, FString());
+		return FString();
+	}
+
+	const FString IconPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/skill-icons"), IconFilename);
+	TArray<uint8> PngBytes;
+	if (!FFileHelper::LoadFileToArray(PngBytes, *IconPath) || PngBytes.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[AuraHUD] Manual WebUI skill icon is unavailable: %s"), *IconPath);
+		ManualSkillIconDataUriCache.Add(CacheKey, FString());
+		return FString();
+	}
+
+	const FString DataUri = FString::Printf(TEXT("data:image/png;base64,%s"), *FBase64::Encode(PngBytes));
+	ManualSkillIconDataUriCache.Add(CacheKey, DataUri);
 	return DataUri;
 }
 

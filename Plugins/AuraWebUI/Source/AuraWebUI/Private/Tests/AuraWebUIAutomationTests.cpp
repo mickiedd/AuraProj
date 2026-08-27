@@ -379,6 +379,17 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	const FString HudHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/hud.html"));
 	const FString SkillPanelHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/skill-panel.html"));
 	const FString DefaultEnginePath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("DefaultEngine.ini"));
+	const TArray<FString> ManualSkillIconNames = {
+		TEXT("empty.png"),
+		TEXT("firebolt.png"),
+		TEXT("gunfire.png"),
+		TEXT("electrocute.png"),
+		TEXT("fireblast.png"),
+		TEXT("arcaneshards.png"),
+		TEXT("haloofprotection.png"),
+		TEXT("lifesiphon.png"),
+		TEXT("manasiphon.png")
+	};
 	const FString WebUIWidgetSourcePath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Source/AuraWebUI/Private/UI/WebUI/WebUIWidget.cpp"));
 	FString Descriptor;
 	FString Html;
@@ -396,6 +407,22 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Full gameplay HUD page exists in the plugin"), FFileHelper::LoadFileToString(HudHtml, *HudHtmlPath));
 	TestTrue(TEXT("Skill panel page exists in the plugin"), FFileHelper::LoadFileToString(SkillPanelHtml, *SkillPanelHtmlPath));
 	TestTrue(TEXT("Project game-map configuration is readable"), FFileHelper::LoadFileToString(DefaultEngine, *DefaultEnginePath));
+	for (const FString& IconName : ManualSkillIconNames)
+	{
+		TArray<uint8> IconBytes;
+		const FString IconPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/skill-icons"), IconName);
+		TestTrue(FString::Printf(TEXT("Manual skill PNG exists: %s"), *IconName), FFileHelper::LoadFileToArray(IconBytes, *IconPath) && IconBytes.Num() > 8);
+		if (IconBytes.Num() >= 8)
+		{
+			const uint8 PngSignature[] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+			bool bPngSignatureMatches = true;
+			for (int32 Index = 0; Index < UE_ARRAY_COUNT(PngSignature); ++Index)
+			{
+				bPngSignatureMatches &= IconBytes[Index] == PngSignature[Index];
+			}
+			TestTrue(FString::Printf(TEXT("Manual skill asset is a PNG: %s"), *IconName), bPngSignatureMatches);
+		}
+	}
 	FString WebUIWidgetSource;
 	if (TestTrue(TEXT("Web UI widget implementation is readable"), FFileHelper::LoadFileToString(WebUIWidgetSource, *WebUIWidgetSourcePath)))
 	{
@@ -453,6 +480,9 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 		&& HudHtml.Contains(TEXT("skill.offensive"))
 		&& HudHtml.Contains(TEXT("saturate(1.14)"))
 		&& HudHtml.Contains(TEXT("skill.equipped")));
+	TestTrue(TEXT("Gameplay HUD renders PNG icons supplied by the native bridge"),
+		HudHtml.Contains(TEXT("img.src=info.icon"))
+		&& HudHtml.Contains(TEXT("img.className=info.icon?'show':''")));
 	TestTrue(TEXT("Gameplay HUD uses the canonical native passive input tags"),
 		HudHtml.Contains(TEXT("const passiveSlots=['InputTag.Passive.1','InputTag.Passive.2'];"))
 		&& !HudHtml.Contains(TEXT("InputTag.Passive_1"))

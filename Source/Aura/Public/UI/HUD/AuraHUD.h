@@ -120,6 +120,7 @@ private:
 	void HandleTargetPreviewClearedForWebUI();
 
 	FString BuildAbilityIconDataUri(const UTexture2D* Icon);
+	FString BuildManualSkillIconDataUri(const FGameplayTag& AbilityTag);
 	bool TryGetWebAbilityInputTag(const FString& InputTagName, FGameplayTag& OutInputTag) const;
 	bool bShowLocation = false;
 
@@ -140,6 +141,8 @@ private:
 
 	/** Cache icon data URLs because ability broadcasts can repeat on replication. */
 	TMap<FString, FString> AbilityIconDataUriCache;
+	/** Cache the authored PNG skill icons sent through the WebUI bridge. */
+	TMap<FString, FString> ManualSkillIconDataUriCache;
 
 	/** The browser reports ready before cached state is replayed. */
 	bool bWebHUDReady = false;

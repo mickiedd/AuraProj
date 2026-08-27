@@ -10,7 +10,7 @@ public class Aura : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "GameplayTags", "UMG", "OnlineSubsystemUtils", "ModelViewViewModel", "AuraAbilityGraph", "AuraWebUI" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayTasks", "NavigationSystem", "Niagara", "AIModule", "Slate", "SlateCore", "Json", "JsonUtilities", "Sockets", "Networking", "ImageWrapper" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayTasks", "NavigationSystem", "Niagara", "AIModule", "Slate", "SlateCore", "Json", "JsonUtilities", "Sockets", "Networking", "ImageWrapper", "Projects" });
 		
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
