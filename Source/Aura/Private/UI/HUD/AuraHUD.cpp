@@ -677,9 +677,9 @@ bool AAuraHUD::IsKnownAttributeTag(const FGameplayTag& AttributeTag) const
 bool AAuraHUD::IsKnownSpellSlot(const FGameplayTag& SlotTag) const
 {
 	if (!SlotTag.IsValid()) return false;
-	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
-	return SlotTag == Tags.InputTag_LMB || SlotTag == Tags.InputTag_RMB || SlotTag == Tags.InputTag_1 || SlotTag == Tags.InputTag_2
-		|| SlotTag == Tags.InputTag_3 || SlotTag == Tags.InputTag_4 || SlotTag == Tags.InputTag_Passive_1 || SlotTag == Tags.InputTag_Passive_2;
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	return SlotTag == GameplayTags.InputTag_LMB || SlotTag == GameplayTags.InputTag_RMB || SlotTag == GameplayTags.InputTag_1 || SlotTag == GameplayTags.InputTag_2
+		|| SlotTag == GameplayTags.InputTag_3 || SlotTag == GameplayTags.InputTag_4 || SlotTag == GameplayTags.InputTag_Passive_1 || SlotTag == GameplayTags.InputTag_Passive_2;
 }
 bool AAuraHUD::TryGetWebAbilityInputTag(const FString& InputTagName, FGameplayTag& OutInputTag) const
 {

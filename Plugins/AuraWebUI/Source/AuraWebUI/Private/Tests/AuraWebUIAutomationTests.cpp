@@ -378,6 +378,7 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	const FString ConfigEditorHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/config-editor.html"));
 	const FString HudHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/hud.html"));
 	const FString SkillPanelHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/skill-panel.html"));
+	const FString DefaultEnginePath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("DefaultEngine.ini"));
 	const FString WebUIWidgetSourcePath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Source/AuraWebUI/Private/UI/WebUI/WebUIWidget.cpp"));
 	FString Descriptor;
 	FString Html;
@@ -386,6 +387,7 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	FString ConfigEditorHtml;
 	FString HudHtml;
 	FString SkillPanelHtml;
+	FString DefaultEngine;
 	TestTrue(TEXT("Plugin descriptor exists"), FFileHelper::LoadFileToString(Descriptor, *DescriptorPath));
 	TestTrue(TEXT("Packaged sample page exists in the plugin"), FFileHelper::LoadFileToString(Html, *HtmlPath));
 	TestTrue(TEXT("Loading page exists in the plugin"), FFileHelper::LoadFileToString(LoadingHtml, *LoadingHtmlPath));
@@ -393,6 +395,7 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Config editor page exists in the plugin"), FFileHelper::LoadFileToString(ConfigEditorHtml, *ConfigEditorHtmlPath));
 	TestTrue(TEXT("Full gameplay HUD page exists in the plugin"), FFileHelper::LoadFileToString(HudHtml, *HudHtmlPath));
 	TestTrue(TEXT("Skill panel page exists in the plugin"), FFileHelper::LoadFileToString(SkillPanelHtml, *SkillPanelHtmlPath));
+	TestTrue(TEXT("Project game-map configuration is readable"), FFileHelper::LoadFileToString(DefaultEngine, *DefaultEnginePath));
 	FString WebUIWidgetSource;
 	if (TestTrue(TEXT("Web UI widget implementation is readable"), FFileHelper::LoadFileToString(WebUIWidgetSource, *WebUIWidgetSourcePath)))
 	{
@@ -450,6 +453,15 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 		&& HudHtml.Contains(TEXT("skill.offensive"))
 		&& HudHtml.Contains(TEXT("saturate(1.14)"))
 		&& HudHtml.Contains(TEXT("skill.equipped")));
+	TestTrue(TEXT("Gameplay HUD uses the canonical native passive input tags"),
+		HudHtml.Contains(TEXT("const passiveSlots=['InputTag.Passive.1','InputTag.Passive.2'];"))
+		&& !HudHtml.Contains(TEXT("InputTag.Passive_1"))
+		&& !HudHtml.Contains(TEXT("InputTag.Passive_2")));
+	TestTrue(TEXT("Gameplay HUD does not forward input from passive abilities"),
+		HudHtml.Contains(TEXT("const isPassive=passiveSlots.includes(slot)||type.includes('passive');"))
+		&& HudHtml.Contains(TEXT("if(info.abilityTag&&!isPassive)")));
+	TestTrue(TEXT("Editor startup returns to the WebUI login flow"), DefaultEngine.Contains(TEXT("EditorStartupMap=/Game/Maps/Login.Login")));
+	TestTrue(TEXT("Game startup returns to the WebUI login flow"), DefaultEngine.Contains(TEXT("GameDefaultMap=/Game/Maps/Login.Login")));
 	TestTrue(TEXT("Skill panel uses the native WebSocket URL placeholder"), SkillPanelHtml.Contains(TEXT("__AURA_WEBSOCKET_URL__")));
 	TestTrue(TEXT("Skill panel requests a startup replay when the page is ready"), SkillPanelHtml.Contains(TEXT("skill_panel_ready")));
 	TestTrue(TEXT("Skill panel renders ability-info events"), SkillPanelHtml.Contains(TEXT("skill_panel_ability")));

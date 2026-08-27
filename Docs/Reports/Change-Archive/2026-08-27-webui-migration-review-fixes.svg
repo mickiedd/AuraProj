@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">WebUI migration review fixes</title>
+  <desc id="desc">Before and after flow for the Aura gameplay HUD WebUI migration fixes: the C++ build guard, canonical passive input tags, passive input protection, and Login startup maps.</desc>
+  <defs>
+    <linearGradient id="header" x1="0" x2="1">
+      <stop offset="0" stop-color="#132238"/>
+      <stop offset="1" stop-color="#24506b"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0b1320" flood-opacity="0.16"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#426a85"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #ffffff; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #cde7f2; }
+      .section { font: 700 18px Arial, sans-serif; fill: #132238; }
+      .label { font: 700 15px Arial, sans-serif; fill: #132238; }
+      .body { font: 400 14px Arial, sans-serif; fill: #34495e; }
+      .small { font: 400 13px Arial, sans-serif; fill: #466070; }
+      .good { font: 700 14px Arial, sans-serif; fill: #176b4d; }
+      .bad { font: 700 14px Arial, sans-serif; fill: #9c3d36; }
+      .box { rx: 12; filter: url(#shadow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="#f5f8fb"/>
+  <rect width="1200" height="92" fill="url(#header)"/>
+  <text x="52" y="42" class="title">Aura WebUI migration review fixes</text>
+  <text x="52" y="68" class="subtitle">Restore a buildable, protocol-aligned gameplay HUD and the normal Login entry flow</text>
+
+  <text x="52" y="130" class="section">Before</text>
+  <text x="646" y="130" class="section">After</text>
+
+  <rect x="42" y="150" width="500" height="132" class="box" fill="#fff0ef" stroke="#e7aaa4"/>
+  <text x="66" y="180" class="label">HUD C++ compile</text>
+  <text x="66" y="207" class="bad">C4458: local “Tags” hides AActor::Tags</text>
+  <text x="66" y="232" class="body">AuraEditor target stops before gameplay validation.</text>
+  <text x="66" y="256" class="small">IsKnownSpellSlot cannot be compiled.</text>
+
+  <path d="M542 216 L646 216" stroke="#426a85" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="658" y="150" width="500" height="132" class="box" fill="#eaf8f1" stroke="#9bd3b9"/>
+  <text x="682" y="180" class="label">HUD C++ compile</text>
+  <text x="682" y="207" class="good">GameplayTags local has a unique name</text>
+  <text x="682" y="232" class="body">Native slot validation compiles and remains fail-closed.</text>
+  <text x="682" y="256" class="small">AuraEditor rebuild completes.</text>
+
+  <rect x="42" y="310" width="500" height="152" class="box" fill="#fff0ef" stroke="#e7aaa4"/>
+  <text x="66" y="340" class="label">Passive slots and input</text>
+  <text x="66" y="367" class="bad">WebUI: InputTag.Passive_1 / Passive_2</text>
+  <text x="66" y="392" class="body">Native: InputTag.Passive.1 / Passive.2</text>
+  <text x="66" y="417" class="body">Passive buttons also receive active press/hold/release handlers.</text>
+  <text x="66" y="442" class="small">Display and equip requests can fail or activate passives.</text>
+
+  <path d="M542 386 L646 386" stroke="#426a85" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="658" y="310" width="500" height="152" class="box" fill="#eaf8f1" stroke="#9bd3b9"/>
+  <text x="682" y="340" class="label">Passive slots and input</text>
+  <text x="682" y="367" class="good">Shared passiveSlots use native dotted tags</text>
+  <text x="682" y="392" class="body">Rendering and equip picker use the same canonical list.</text>
+  <text x="682" y="417" class="body">Passive abilities render, but never forward gameplay input.</text>
+  <text x="682" y="442" class="small">Active slots retain press/hold/release behavior.</text>
+
+  <rect x="42" y="490" width="500" height="112" class="box" fill="#fff0ef" stroke="#e7aaa4"/>
+  <text x="66" y="520" class="label">Startup flow</text>
+  <text x="66" y="547" class="bad">Editor and game default maps load Showcase directly</text>
+  <text x="66" y="574" class="body">Normal Login/WebUI role selection is bypassed.</text>
+
+  <path d="M542 546 L646 546" stroke="#426a85" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="658" y="490" width="500" height="112" class="box" fill="#eaf8f1" stroke="#9bd3b9"/>
+  <text x="682" y="520" class="label">Startup flow</text>
+  <text x="682" y="547" class="good">Editor and game default maps return to Login</text>
+  <text x="682" y="574" class="body">Login/WebUI level and role selection is reachable again.</text>
+
+  <rect x="42" y="638" width="1116" height="80" rx="12" fill="#e9f1f7" stroke="#b4cad9"/>
+  <text x="66" y="668" class="label">Validation gates</text>
+  <text x="66" y="694" class="body">AuraEditor build passed · AuraWebUI 4/4 · WebSkillPanel HUDContract + RuntimeMountAndFallback 2/2 · JS syntax passed · diff check passed</text>
+</svg>
