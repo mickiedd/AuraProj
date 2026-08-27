@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">WebUI bottom HUD clipping fix</title>
+  <desc id="desc">Before and after diagram showing the bottom WebUI HUD browser host growing from 100 to 116 pixels so the 104 pixel skill strip, labels, and border fit inside the native viewport.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#75d9ff"/></marker>
+    <style>
+      .bg{fill:#08111f}.title{font:700 28px Arial,sans-serif;fill:#eef7ff}.subtitle{font:15px Arial,sans-serif;fill:#a9bfd6}.section{font:700 19px Arial,sans-serif;fill:#ffd66b}.label{font:700 14px Arial,sans-serif;fill:#eef7ff}.body{font:14px Arial,sans-serif;fill:#c5d6e8}.small{font:12px Arial,sans-serif;fill:#9eb1c8}.code{font:13px Consolas,monospace;fill:#b9eaff}.bad{fill:#2b1825;stroke:#d96b86;stroke-width:2}.good{fill:#112a36;stroke:#65dcff;stroke-width:2}.game{fill:#162337;stroke:#6e87a3;stroke-width:2}.panel{fill:#173e51;stroke:#65dcff;stroke-width:2}.clip{fill:#3a2330;stroke:#ff879d;stroke-width:2;stroke-dasharray:7 5}.guard{fill:#142a22;stroke:#78d6a3;stroke-width:2}.warn{fill:#3b2f16;stroke:#ffd66b;stroke-width:2}.arrow{stroke:#75d9ff;stroke-width:3;fill:none;marker-end:url(#arrow)}.check{fill:#a7f3c4;font:700 14px Arial,sans-serif}.cross{fill:#ff9eaf;font:700 16px Arial,sans-serif}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="760"/>
+  <text x="52" y="50" class="title">Bottom WebUI HUD: remove skill-strip clipping</text>
+  <text x="52" y="78" class="subtitle">The native browser host was shorter than the responsive HTML strip it contained, so the bottom labels and border could be cut off.</text>
+
+  <text x="70" y="125" class="section">BEFORE: 100px HOST</text>
+  <rect x="52" y="145" width="500" height="300" rx="14" class="bad"/>
+  <rect x="78" y="185" width="448" height="220" rx="10" class="game"/>
+  <text x="232" y="213" class="body">bottom viewport band</text>
+  <rect x="132" y="255" width="340" height="100" rx="12" class="panel"/>
+  <rect x="148" y="267" width="54" height="76" rx="9" fill="#873454" stroke="#ffbf75" stroke-width="2"/>
+  <rect x="212" y="267" width="54" height="76" rx="9" fill="#315a8d" stroke="#9fdcff" stroke-width="2"/>
+  <rect x="276" y="267" width="54" height="76" rx="9" fill="#873454" stroke="#ffbf75" stroke-width="2"/>
+  <rect x="340" y="267" width="54" height="76" rx="9" fill="#635091" stroke="#d5c0ff" stroke-width="2"/>
+  <rect x="404" y="267" width="54" height="76" rx="9" fill="#315a8d" stroke="#9fdcff" stroke-width="2"/>
+  <path d="M 132 345 L 472 345" stroke="#ff879d" stroke-width="3" stroke-dasharray="8 5"/>
+  <text x="162" y="360" class="small">host cutoff</text>
+  <text x="78" y="430" class="cross">102px content exceeded the 100px browser height.</text>
+
+  <path d="M 568 294 L 632 294" class="arrow"/>
+  <text x="574" y="272" class="small">add 16px host headroom</text>
+
+  <text x="660" y="125" class="section">AFTER: 116px HOST</text>
+  <rect x="648" y="145" width="500" height="300" rx="14" class="good"/>
+  <rect x="674" y="185" width="448" height="220" rx="10" class="game"/>
+  <text x="828" y="213" class="body">bottom viewport band</text>
+  <rect x="728" y="247" width="340" height="104" rx="12" class="panel"/>
+  <rect x="744" y="261" width="54" height="76" rx="9" fill="#873454" stroke="#ffbf75" stroke-width="2"/>
+  <rect x="808" y="261" width="54" height="76" rx="9" fill="#315a8d" stroke="#9fdcff" stroke-width="2"/>
+  <rect x="872" y="261" width="54" height="76" rx="9" fill="#873454" stroke="#ffbf75" stroke-width="2"/>
+  <rect x="936" y="261" width="54" height="76" rx="9" fill="#635091" stroke="#d5c0ff" stroke-width="2"/>
+  <rect x="1000" y="261" width="54" height="76" rx="9" fill="#315a8d" stroke="#9fdcff" stroke-width="2"/>
+  <text x="728" y="375" class="check">tiles, labels, and bottom border remain inside the host</text>
+
+  <text x="70" y="490" class="section">LAYOUT GUARDS AND VALIDATION</text>
+  <rect x="52" y="515" width="1096" height="175" rx="14" fill="#0d1c2d" stroke="#304d69" stroke-width="2"/>
+  <rect x="78" y="545" width="300" height="112" rx="9" class="warn"/>
+  <text x="98" y="575" class="label">UMG bottom slot</text>
+  <text x="98" y="601" class="code">top: -140, height: 116</text>
+  <text x="98" y="625" class="code">bottom margin: 24px</text>
+  <text x="98" y="646" class="small">same screen position; more drawable room</text>
+  <path d="M 392 601 L 452 601" class="arrow"/>
+  <rect x="462" y="545" width="300" height="112" rx="9" class="guard"/>
+  <text x="482" y="575" class="label">HTML skill strip</text>
+  <text x="482" y="601" class="code">min-height: 104px</text>
+  <text x="482" y="625" class="body">centered responsive tiles</text>
+  <text x="482" y="647" class="check">no overflow cutoff</text>
+  <path d="M 776 601 L 836 601" class="arrow"/>
+  <rect x="846" y="545" width="276" height="112" rx="9" class="guard"/>
+  <text x="866" y="575" class="label">Validation</text>
+  <text x="866" y="599" class="check">Aura game link passed</text>
+  <text x="866" y="621" class="check">HUD/content contracts passed</text>
+  <text x="866" y="643" class="check">diff check passed</text>
+  <text x="866" y="665" class="small">Editor link: RiderLink DLL lock</text>
+</svg>

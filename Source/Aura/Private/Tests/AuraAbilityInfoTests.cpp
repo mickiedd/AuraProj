@@ -358,7 +358,7 @@ bool FAuraWebSkillPanelHUDContractTest::RunTest(const FString& Parameters)
 		&& HUDSource.Contains(TEXT("FAnchors(1.f, 0.f, 1.f, 0.f)"))
 		&& HUDSource.Contains(TEXT("FAnchors(0.f, 1.f, 1.f, 1.f)"))
 		&& HUDSource.Contains(TEXT("FMargin(-390.f, 24.f, 366.f, 210.f)"))
-		&& HUDSource.Contains(TEXT("FMargin(24.f, -124.f, 24.f, 100.f)"))
+		&& HUDSource.Contains(TEXT("FMargin(24.f, -140.f, 24.f, 116.f)"))
 		&& HUDSource.Contains(TEXT("FMargin(24.f, -420.f, 24.f, 396.f)")));
 	TestTrue(TEXT("HUD publishes ability state through the bridge"), HUDSource.Contains(TEXT("skill_panel_ability")) && HUDSource.Contains(TEXT("HandleAbilityInfoForWebUI")));
 	TestTrue(TEXT("HUD sends authored PNG skill icons through the bridge"),
@@ -546,7 +546,8 @@ bool FAuraWebSkillPanelHUDRuntimeTest::RunTest(const FString& Parameters)
 					&& RightTopSlot.Anchors.Minimum.X == 1.f && RightTopSlot.Anchors.Maximum.X == 1.f
 					&& BottomSlot.Anchors.Minimum.Y == 1.f && BottomSlot.Anchors.Maximum.Y == 1.f
 					&& RightTopSlot.Offsets.Right > 0.f && RightTopSlot.Offsets.Bottom > 0.f
-					&& BottomSlot.Offsets.Right > 0.f && BottomSlot.Offsets.Bottom > 0.f);
+					&& BottomSlot.Offsets.Right > 0.f && BottomSlot.Offsets.Top == -140.f
+					&& BottomSlot.Offsets.Bottom >= 116.f);
 			}
 			else
 			{

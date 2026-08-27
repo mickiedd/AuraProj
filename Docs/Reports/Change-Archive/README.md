@@ -2,7 +2,7 @@
 
 This directory stores the visual completion record for project jobs.
 
-Latest: [2026-08-28 player-skill authority safety coverage](2026-08-28-player-skill-authority-safety-coverage.md) - [illustration](2026-08-28-player-skill-authority-safety-coverage.svg)
+Latest: [2026-08-28 WebUI bottom HUD clipping fix](2026-08-28-webui-bottom-hud-clip-fix.md) - [illustration](2026-08-28-webui-bottom-hud-clip-fix.svg)
 
 For each implementation or fix job, add:
 
@@ -30,6 +30,8 @@ The date-only `daily-change-reference.svg` files are source maps for the grouped
 - [2026-08-13 – Finished DayPlan mind-map archive](2026-08-13-finished-dayplan-mind-maps.md)
 
 ### Implementation and fix records
+
+- [2026-08-28 - WebUI bottom HUD clipping fix](2026-08-28-webui-bottom-hud-clip-fix.md)
 
 - [2026-08-28 - Player-skill authority safety coverage](2026-08-28-player-skill-authority-safety-coverage.md)
 

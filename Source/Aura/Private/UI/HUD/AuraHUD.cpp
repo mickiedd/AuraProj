@@ -225,7 +225,10 @@ void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 		PC,
 		TEXT("WebUI/hud-bottom.html"),
 		FAnchors(0.f, 1.f, 1.f, 1.f),
-		FMargin(24.f, -124.f, 24.f, 100.f),
+		// The skill strip is 102px tall at the widest responsive tile size.
+		// Reserve additional browser height so its bottom border and labels are
+		// not clipped by the native WebBrowser host.
+		FMargin(24.f, -140.f, 24.f, 116.f),
 		TEXT("bottom"));
 	if (!WebHUDLeftTop || !WebHUDRightTop || !WebHUDBottom)
 	{
@@ -330,7 +333,7 @@ void AAuraHUD::SetWebHUDInteractionLayout(bool bExpanded)
 	}
 	else
 	{
-		WebHUDBottom->ConfigureViewportLayout(FAnchors(0.f, 1.f, 1.f, 1.f), FMargin(24.f, -124.f, 24.f, 100.f), FVector2D(0.f, 0.f));
+		WebHUDBottom->ConfigureViewportLayout(FAnchors(0.f, 1.f, 1.f, 1.f), FMargin(24.f, -140.f, 24.f, 116.f), FVector2D(0.f, 0.f));
 	}
 }
 
