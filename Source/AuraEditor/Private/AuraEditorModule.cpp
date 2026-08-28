@@ -253,6 +253,12 @@ private:
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStartGameServerManagerClicked)));
 
 		MenuBuilder.AddMenuEntry(
+			LOCTEXT("OpenBTDebuggerLabel", "Open BT Log Debugger"),
+			LOCTEXT("OpenBTDebuggerTooltip", "Open the visual Behavior Tree log debugger and switch individual BT log streams on or off."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Search"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnOpenBTDebuggerClicked)));
+
+		MenuBuilder.AddMenuEntry(
 			GetBuildClientMenuLabel(),
 			GetBuildClientMenuTooltip(),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "MainFrame.PackageProject"),
@@ -2380,6 +2386,79 @@ private:
 		}
 
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartGameServerManagerComplete", "Game server manager launch request sent."));
+	}
+
+	void OnOpenBTDebuggerClicked() const
+	{
+		UE_LOG(LogAuraEditor, Display, TEXT("BT log debugger menu option clicked"));
+
+		const FString ScriptPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Scripts/bt_debugger.py"));
+		if (!FPaths::FileExists(ScriptPath))
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("BT debugger launch aborted: script file does not exist | Path='%s'"), *ScriptPath);
+			FMessageDialog::Open(
+				EAppMsgType::Ok,
+				FText::Format(
+					LOCTEXT("BTDebuggerMissingScript", "Could not find the BT debugger script at:\n{0}"),
+					FText::FromString(ScriptPath)));
+			return;
+		}
+
+		const FString ProjectRoot = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+		const FString ScriptArguments = FString::Printf(
+			TEXT("\"%s\" --project-root \"%s\""),
+			*ScriptPath,
+			*ProjectRoot);
+
+		// Keep the debugger independent from the server process. It owns only a read/follow view
+		// of the server log and applies display-side filters in its own process.
+		const TArray<FString> PythonExecutables =
+		{
+			TEXT("python"),
+			TEXT("py"),
+			TEXT("python3")
+		};
+
+		for (const FString& PythonExecutable : PythonExecutables)
+		{
+			const FString PythonArguments = PythonExecutable == TEXT("py")
+				? FString::Printf(TEXT("-3 %s"), *ScriptArguments)
+				: ScriptArguments;
+			uint32 ProcessId = 0;
+			const bool bLaunchDetached = true;
+			const bool bLaunchHidden = true;
+			const bool bLaunchReallyHidden = true;
+
+			UE_LOG(LogAuraEditor, Display, TEXT("Launching BT debugger | Executable='%s' | Script='%s' | ProjectRoot='%s'"),
+				*PythonExecutable,
+				*ScriptPath,
+				*ProjectRoot);
+
+			FProcHandle ProcHandle = FPlatformProcess::CreateProc(
+				*PythonExecutable,
+				*PythonArguments,
+				bLaunchDetached,
+				bLaunchHidden,
+				bLaunchReallyHidden,
+				&ProcessId,
+				0,
+				*ProjectRoot,
+				nullptr);
+
+			if (ProcHandle.IsValid())
+			{
+				UE_LOG(LogAuraEditor, Display, TEXT("BT debugger launched | Executable='%s' | PID=%u"), *PythonExecutable, ProcessId);
+				FPlatformProcess::CloseProc(ProcHandle);
+				FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("BTDebuggerLaunchComplete", "BT Log Debugger opened."));
+				return;
+			}
+
+			UE_LOG(LogAuraEditor, Warning, TEXT("BT debugger launch attempt failed | Executable='%s'"), *PythonExecutable);
+		}
+
+		FMessageDialog::Open(
+			EAppMsgType::Ok,
+			LOCTEXT("BTDebuggerLaunchFailed", "Failed to launch the BT Log Debugger. Ensure Python 3 with Tkinter is installed and available on PATH."));
 	}
 
 	void OnBuildClientClicked() const

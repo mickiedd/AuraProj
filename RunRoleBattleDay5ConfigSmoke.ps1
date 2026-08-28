@@ -28,6 +28,9 @@ $Client2Log = Join-Path $LogDirectory "Day05-$Mode-Client2.log"
 $InvalidClientLog = Join-Path $LogDirectory "Day05-$Mode-InvalidClient.log"
 $InvalidStartupLog = Join-Path $LogDirectory "Day05-$Mode-InvalidStartup.log"
 $ReportPath = Join-Path $ReportDirectory "Day05-$Mode.json"
+$RunId = [Guid]::NewGuid().ToString('N')
+$InvalidWorldPersistenceId = "RoleBattleDay5-Invalid-$Mode-$RunId"
+$ValidWorldPersistenceId = "RoleBattleDay5-Valid-$Mode-$RunId"
 
 if ([string]::IsNullOrWhiteSpace($EngineRoot) -or -not (Test-Path -LiteralPath $EditorExe)) { throw 'UE_ENGINE_ROOT is missing or UnrealEditor-Cmd.exe was not found.' }
 if (-not (Test-Path -LiteralPath $ProjectFile)) { throw "Aura.uproject was not found at '$ProjectFile'." }
@@ -96,7 +99,7 @@ try {
     # Prove a never-good startup stays unavailable. This process is owned and bounded.
     [IO.File]::WriteAllText($RoleConfigPath, '{"roleDefinitionVersion":2,"defaultRole":"Missing","roles":[]}')
     $InvalidMap = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?listen' } else { '/Game/Maps/StartupMap' }
-    $InvalidServer = Start-OwnedProcess 'InvalidStartupServer' @($ProjectFile, $InvalidMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ListenPort", '-WorldPersistenceId=RoleBattleDay5Invalid', '-AuraPersistenceProvider=NULL', '-RoleBattleDay5ConfigProbe', "-abslog=$InvalidStartupLog")
+    $InvalidServer = Start-OwnedProcess 'InvalidStartupServer' @($ProjectFile, $InvalidMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ListenPort", "-WorldPersistenceId=$InvalidWorldPersistenceId", '-AuraPersistenceProvider=NULL', '-RoleBattleDay5ConfigProbe', "-abslog=$InvalidStartupLog")
     if (-not (Wait-ForPattern $InvalidStartupLog '\[Day5ConfigProbe\]\[Server\] InvalidStartupRejected=1 RoleServiceUnavailable=1' $StartupTimeoutSeconds $InvalidServer)) {
         throw 'Invalid startup was not rejected before the startup timeout.'
     }
@@ -107,7 +110,7 @@ try {
     Start-Sleep -Milliseconds 1100
 
     $ServerMap = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?listen' } else { '/Game/Maps/StartupMap' }
-    $Server = Start-OwnedProcess 'Server' @($ProjectFile, $ServerMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ListenPort", '-WorldPersistenceId=RoleBattleDay5Valid', '-AuraPersistenceProvider=NULL', '-RoleBattleDay5ConfigProbe', "-abslog=$ServerLog")
+    $Server = Start-OwnedProcess 'Server' @($ProjectFile, $ServerMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ListenPort", "-WorldPersistenceId=$ValidWorldPersistenceId", '-AuraPersistenceProvider=NULL', '-RoleBattleDay5ConfigProbe', "-abslog=$ServerLog")
     if (-not (Wait-ForPattern $ServerLog '\[Day5ConfigProbe\]\[Server\] ValidStartup=1.*SavedDefaultValidation=1' $StartupTimeoutSeconds $Server)) {
         throw 'Valid startup publication did not complete before timeout.'
     }
@@ -181,7 +184,7 @@ finally {
         $Failure = if ($Failure) { "$Failure Owned process teardown timed out." } else { 'Owned process teardown timed out.' }
     }
     $Report = [ordered]@{
-        SchemaVersion=1; Mode=$Mode; ServerRuntime='UnrealEditor-Cmd server'; Port=$ListenPort
+        SchemaVersion=1; Mode=$Mode; ServerRuntime='UnrealEditor-Cmd server'; Port=$ListenPort; WorldPersistenceIds=@($InvalidWorldPersistenceId, $ValidWorldPersistenceId)
         StartedUtc=$StartedUtc; CompletedUtc=[DateTime]::UtcNow.ToString('o'); Assertions=$Assertions
         Processes=@($OwnedProcesses | ForEach-Object { [ordered]@{ Name=$_.Name; ProcessId=$_.Process.Id; Arguments=$_.Arguments; Status=$_.Status; ExitCode=$_.ExitCode } })
         Artifacts=[ordered]@{ ServerLog=$ServerLog; Client1Log=$Client1Log; Client2Log=$Client2Log; InvalidClientLog=$InvalidClientLog; InvalidStartupLog=$InvalidStartupLog; Report=$ReportPath }

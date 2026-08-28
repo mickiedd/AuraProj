@@ -14,8 +14,12 @@ $ServerLog = Join-Path $LogDirectory 'Day07-Packaged-Server.log'
 $Client1Log = Join-Path $LogDirectory 'Day07-Packaged-Client1.log'
 $Client2Log = Join-Path $LogDirectory 'Day07-Packaged-Client2.log'
 $ReportPath = Join-Path $ReportDirectory 'Day07-Packaged.json'
-$FixtureRoot = Join-Path $ProjectRoot 'Saved\RoleBattleDay7-Packaged'
-$RequiredDefinitions = @('FireBolt.xml', 'FireBlast.xml', 'ArcaneShards.xml', 'Electrocute.xml', 'FireGun.xml')
+$RunId = [Guid]::NewGuid().ToString('N')
+$FixtureRoot = Join-Path $ProjectRoot "Saved\RoleBattleDay7-Packaged-$RunId"
+$AbilityDefinitionRoot = Join-Path $ProjectRoot 'Content\AbilityDefinitions'
+$RequiredDefinitions = @(Get-ChildItem -LiteralPath $AbilityDefinitionRoot -File -Filter '*.xml' | Sort-Object Name | Select-Object -ExpandProperty Name)
+if ($RequiredDefinitions.Count -eq 0) { throw "No shipped ability-definition XML files were found under '$AbilityDefinitionRoot'." }
+$WorldPersistenceId = "RoleBattleDay7Packaged-$RunId"
 
 function Resolve-FullPath([string]$Path) { return [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $Path).Path) }
 function Test-Pattern([string]$Path, [string]$Pattern) { return (Test-Path -LiteralPath $Path) -and [bool](Select-String -LiteralPath $Path -Pattern $Pattern -Quiet) }
@@ -99,6 +103,7 @@ $OwnedProcesses = @()
 $Assertions = [ordered]@{
     PackagedClientExecutable = $ClientExe.FullName
     PackagedServerExecutable = $ServerExe.FullName
+    AbilityDefinitionFiles = @($RequiredDefinitions)
     PackagedDefinitionManifest = $true
 }
 $Passed = $false
@@ -113,7 +118,7 @@ try {
 
     $Server = Start-Owned 'Server' $ServerExe.FullName $ServerExe.Directory.FullName @(
         '/Game/Maps/StartupMap', '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
-        "-port=$Port", '-RoleBattleDay6NetworkProbe', '-WorldPersistenceId=RoleBattleDay7Packaged', '-AuraPersistenceProvider=NULL', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog"
+        "-port=$Port", '-RoleBattleDay6NetworkProbe', "-WorldPersistenceId=$WorldPersistenceId", '-AuraPersistenceProvider=NULL', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog"
     )
     $OwnedProcesses += $Server
     if (-not (Wait-ForPattern $ServerLog 'GameNetDriver.*Listening|Browse:.*StartupMap' 45 $Server)) { throw 'Packaged server did not reach its listening startup gate.' }

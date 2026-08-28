@@ -156,9 +156,12 @@ Run from the repository root:
 & "$env:UE_ENGINE_ROOT\Engine\Binaries\Win64\UnrealEditor.exe" '.\Aura.uproject' -AuraAbilityGraphSmokeTest -unattended -nop4 -nullrhi '-abslog=Saved/Logs/Day7AbilityGraph.log'
 
 & '.\RunRoleBattleDay1Smoke.bat'
-& '.\RunRoleBattleDay4DamageSmoke.ps1'
-& '.\RunRoleBattleDay5ConfigSmoke.ps1'
-& '.\RunRoleBattleDay6NetworkSmoke.ps1'
+& '.\RunRoleBattleDay4DamageSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay4DamageSmoke.ps1' -Mode Dedicated
+& '.\RunRoleBattleDay5ConfigSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay5ConfigSmoke.ps1' -Mode Dedicated
+& '.\RunRoleBattleDay6NetworkSmoke.ps1' -Mode Listen
+& '.\RunRoleBattleDay6NetworkSmoke.ps1' -Mode Dedicated
 & '.\RunRoleBattleDay7ListenSmoke.ps1'
 & '.\RunRoleBattleDay7DedicatedSmoke.ps1'
 

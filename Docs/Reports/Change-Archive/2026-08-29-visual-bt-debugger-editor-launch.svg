@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" role="img" aria-labelledby="title desc">
+  <title id="title">AuraEditor launch entry for the visual Behavior Tree log debugger</title>
+  <desc id="desc">The AuraEditor Launch dropdown starts the standalone visual BT debugger through a Python runtime, which reads and follows the server log and applies per-BT display filters without changing server logging.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7dd3fc"/></marker>
+    <style>
+      .bg{fill:#08111f}.title{font:700 29px Arial,sans-serif;fill:#eef7ff}.subtitle{font:15px Arial,sans-serif;fill:#b7c9dc}.section{font:700 18px Arial,sans-serif;fill:#ffd66b}.label{font:700 15px Arial,sans-serif;fill:#eef7ff}.body{font:14px Arial,sans-serif;fill:#c9d9e8}.small{font:12px Arial,sans-serif;fill:#a9bdd0}.code{font:13px Consolas,monospace;fill:#b9edff}.panel{fill:#111e30;stroke:#415d7b;stroke-width:2}.input{fill:#17283d;stroke:#6a91b7;stroke-width:2}.good{fill:#102e37;stroke:#6be1ff;stroke-width:2}.guard{fill:#142d24;stroke:#7bddaa;stroke-width:2}.warn{fill:#3b3018;stroke:#ffd66b;stroke-width:2}.arrow{stroke:#7dd3fc;stroke-width:3;fill:none;marker-end:url(#arrow)}.divider{stroke:#405a75;stroke-width:2;stroke-dasharray:8 7}.check{fill:#a7f3c4;font:700 14px Arial,sans-serif}.cross{fill:#ffb1bd;font:700 14px Arial,sans-serif}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="820"/>
+  <text x="48" y="48" class="title">AuraEditor → visual BT log debugger</text>
+  <text x="48" y="77" class="subtitle">The Launch dropdown now opens the standalone UI with the current project root.</text>
+
+  <text x="48" y="125" class="section">Editor entry point</text>
+  <rect x="48" y="150" width="315" height="205" rx="14" class="panel"/>
+  <text x="72" y="185" class="label">Launch combo menu</text>
+  <rect x="72" y="205" width="267" height="42" rx="7" class="input"/>
+  <text x="90" y="232" class="body">▶  Start Game Server Manager</text>
+  <rect x="72" y="253" width="267" height="54" rx="7" class="good"/>
+  <text x="90" y="277" class="label">⌕  Open BT Log Debugger</text>
+  <text x="90" y="296" class="small">per-BT display switches</text>
+  <text x="72" y="334" class="small">FAuraEditorModule::OnOpenBTDebuggerClicked</text>
+
+  <path d="M363 252H475" class="arrow"/>
+  <text x="385" y="235" class="small">menu action</text>
+
+  <text x="495" y="125" class="section">Launch guard and process</text>
+  <rect x="475" y="150" width="330" height="205" rx="14" class="panel"/>
+  <text x="499" y="185" class="label">Resolve project tool</text>
+  <text x="499" y="218" class="code">Scripts/bt_debugger.py</text>
+  <text x="499" y="246" class="code">--project-root &lt;ProjectDir&gt;</text>
+  <text x="499" y="282" class="check">✓ File exists → launch detached UI</text>
+  <text x="499" y="310" class="small">python → py -3 → python3</text>
+  <text x="499" y="338" class="cross">× Missing file/runtime → clear dialog</text>
+
+  <path d="M805 252H917" class="arrow"/>
+  <text x="826" y="235" class="small">read-only process</text>
+
+  <text x="937" y="125" class="section">Visual debugger</text>
+  <rect x="917" y="150" width="315" height="205" rx="14" class="good"/>
+  <text x="941" y="185" class="label">BT Log Debugger window</text>
+  <rect x="941" y="205" width="112" height="120" rx="8" class="input"/>
+  <text x="954" y="228" class="small">BTs / sources</text>
+  <text x="954" y="255" class="body">✓ Civilian</text>
+  <text x="954" y="280" class="body">— Enemy</text>
+  <text x="954" y="305" class="body">✓ Tasks</text>
+  <rect x="1067" y="205" width="141" height="120" rx="8" class="input"/>
+  <text x="1080" y="228" class="small">server log view</text>
+  <text x="1080" y="255" class="code">Follow live</text>
+  <text x="1080" y="280" class="code">Selected only</text>
+  <text x="1080" y="305" class="code">Search…</text>
+
+  <line x1="48" y1="405" x2="1232" y2="405" class="divider"/>
+  <text x="48" y="448" class="section">Behavior and boundary</text>
+
+  <rect x="48" y="475" width="350" height="215" rx="14" class="input"/>
+  <text x="72" y="512" class="label">Existing Unreal server log</text>
+  <text x="72" y="548" class="code">Saved/Logs/*Server*.log</text>
+  <text x="72" y="582" class="body">The tool scans known BT identities,</text>
+  <text x="72" y="605" class="body">correlates contextual messages, and</text>
+  <text x="72" y="628" class="body">follows appended lines.</text>
+  <text x="72" y="665" class="small">No server command or log mutation</text>
+
+  <path d="M398 582H510" class="arrow"/>
+  <text x="414" y="563" class="small">parse + correlate</text>
+
+  <rect x="510" y="475" width="350" height="215" rx="14" class="guard"/>
+  <text x="534" y="512" class="label">Per-source display policy</text>
+  <text x="534" y="552" class="body">Show / hide each discovered BT</text>
+  <text x="534" y="579" class="body">All enabled / Selected only</text>
+  <text x="534" y="606" class="body">Unattributed BT messages remain</text>
+  <text x="534" y="633" class="body">available under a safe aggregate row.</text>
+  <text x="534" y="670" class="check">✓ Filtering is display-side only</text>
+
+  <path d="M860 582H972" class="arrow"/>
+  <text x="881" y="563" class="small">filtered view</text>
+
+  <rect x="972" y="475" width="260" height="215" rx="14" class="warn"/>
+  <text x="996" y="512" class="label">Future server-side mode</text>
+  <text x="996" y="550" class="body">Needs stable BT identifiers</text>
+  <text x="996" y="577" class="body">or dedicated log categories</text>
+  <text x="996" y="616" class="small">Then add a runtime control</text>
+  <text x="996" y="638" class="small">channel per agent/tree.</text>
+  <text x="996" y="674" class="cross">Not part of this launch change</text>
+
+  <text x="48" y="765" class="small">Validation: 6/6 BT debugger unit tests · Python compile · menu/handler/project-root static integration checks · git diff --check</text>
+</svg>

@@ -22,6 +22,8 @@ $ServerLog = Join-Path $LogDirectory "$DayLabel-$Mode-Server.log"
 $Client1Log = Join-Path $LogDirectory "$DayLabel-$Mode-Client1.log"
 $Client2Log = Join-Path $LogDirectory "$DayLabel-$Mode-Client2.log"
 $ReportPath = Join-Path $ReportDirectory "$DayLabel-$Mode.json"
+$RunId = [Guid]::NewGuid().ToString('N')
+$WorldPersistenceId = "RoleBattleDay${Day}-$Mode-$RunId"
 
 if (-not (Test-Path -LiteralPath $EditorExe)) { throw "UnrealEditor-Cmd.exe was not found at '$EditorExe'." }
 New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
@@ -75,7 +77,7 @@ function Wait-Pattern([string]$Path, [string]$Pattern, [pscustomobject]$Process)
 
 try {
     $ServerMap = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?Role=Aura?listen' } else { '/Game/Maps/StartupMap' }
-    $ServerArgs = @($ProjectFile, $ServerMap, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-WorldPersistenceId=RoleBattleDay${Day}", '-AuraPersistenceProvider=NULL', "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
+    $ServerArgs = @($ProjectFile, $ServerMap, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-WorldPersistenceId=$WorldPersistenceId", '-AuraPersistenceProvider=NULL', "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
     if ($Mode -eq 'Dedicated') { $ServerArgs += '-server' } else { $ServerArgs += '-game' }
     $Server = Start-Owned 'Server' $ServerArgs
 
@@ -162,7 +164,7 @@ finally {
     $Missing = @($Required | Where-Object { -not (Test-Path -LiteralPath $_) })
     if ($Missing.Count -gt 0) { $Passed = $false; $Failure = if ($Failure) { "$Failure Missing: $($Missing -join ', ')" } else { "Missing: $($Missing -join ', ')" } }
     $Report = [ordered]@{
-        SchemaVersion=1; Day=$Day; Mode=$Mode; Port=$Port; StartedUtc=$StartedUtc; CompletedUtc=[DateTime]::UtcNow.ToString('o')
+        SchemaVersion=1; Day=$Day; Mode=$Mode; Port=$Port; WorldPersistenceId=$WorldPersistenceId; StartedUtc=$StartedUtc; CompletedUtc=[DateTime]::UtcNow.ToString('o')
         Assertions=$Assertions
         Processes=@($OwnedProcesses | ForEach-Object { [ordered]@{ Name=$_.Name; ProcessId=$_.Process.Id; Arguments=$_.Arguments; Status=$_.Status; ExitCode=$_.ExitCode } })
         Artifacts=[ordered]@{ ServerLog=$ServerLog; Client1Log=$Client1Log; Client2Log=$Client2Log; Report=$ReportPath }

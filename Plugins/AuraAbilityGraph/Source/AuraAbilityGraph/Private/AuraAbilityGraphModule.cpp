@@ -2541,8 +2541,9 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 
 	if (GShouldExitAfterSmokeTest)
 	{
-		UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Requesting editor exit..."));
-		FPlatformMisc::RequestExit(false);
+		const uint8 ExitStatus = Failed > 0 ? 1 : 0;
+		UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] Requesting editor exit with status %d..."), ExitStatus);
+		FPlatformMisc::RequestExitWithStatus(true, ExitStatus);
 	}
 }
 

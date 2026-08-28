@@ -43,6 +43,8 @@ New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
 New-Item -ItemType Directory -Path $reportDirectory -Force | Out-Null
 
 $selectedModes = if ($Mode -eq 'Both') { @('Listen', 'Dedicated') } else { @($Mode) }
+$runId = [Guid]::NewGuid().ToString('N')
+$worldPersistenceIdBase = "RoleBattleDay2-$runId"
 $revision = [string]((& git -C $projectRoot rev-parse HEAD 2>$null))
 if ([string]::IsNullOrWhiteSpace($revision)) {
     $revision = 'unknown'
@@ -224,6 +226,7 @@ foreach ($selectedMode in $selectedModes) {
         SchemaVersion = 1
         Revision = $revision
         Mode = $selectedMode
+        WorldPersistenceId = "${worldPersistenceIdBase}-$selectedMode"
         ServerRuntime = 'EditorServer'
         Port = $port
         StartedUtc = [DateTime]::UtcNow.ToString('o')
@@ -265,7 +268,7 @@ foreach ($selectedMode in $selectedModes) {
                     '-nosound',
                     '-NoSplash',
                     "-port=$port",
-                    "-WorldPersistenceId=RoleBattleDay2$selectedMode", '-AuraPersistenceProvider=NULL',
+                    "-WorldPersistenceId=${worldPersistenceIdBase}-$selectedMode", '-AuraPersistenceProvider=NULL',
                     "-abslog=$serverLog"
                 )
             }
@@ -282,7 +285,7 @@ foreach ($selectedMode in $selectedModes) {
                     '-nosound',
                     '-NoSplash',
                     "-port=$port",
-                    "-WorldPersistenceId=RoleBattleDay2$selectedMode", '-AuraPersistenceProvider=NULL',
+                    "-WorldPersistenceId=${worldPersistenceIdBase}-$selectedMode", '-AuraPersistenceProvider=NULL',
                     "-abslog=$serverLog"
                 )
             }
@@ -299,7 +302,7 @@ foreach ($selectedMode in $selectedModes) {
                 '-nosound',
                 '-NoSplash',
                 "-port=$port",
-                "-WorldPersistenceId=RoleBattleDay2$selectedMode", '-AuraPersistenceProvider=NULL',
+                "-WorldPersistenceId=${worldPersistenceIdBase}-$selectedMode", '-AuraPersistenceProvider=NULL',
                 "-abslog=$serverLog"
             )
         }

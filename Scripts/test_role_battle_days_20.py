@@ -129,7 +129,8 @@ def test_day19_runner_still_requires_cooked_dedicated_map() -> None:
 
 def test_packaged_topology_supplies_world_health_contract() -> None:
     runner = read("RunRoleBattleDay7PackagedTopology.ps1")
-    assert "-WorldPersistenceId=RoleBattleDay7Packaged" in runner
+    assert '$WorldPersistenceId = "RoleBattleDay7Packaged-$RunId"' in runner
+    assert '"-WorldPersistenceId=$WorldPersistenceId"' in runner
 
 
 def test_legacy_network_runners_supply_world_health_contract() -> None:

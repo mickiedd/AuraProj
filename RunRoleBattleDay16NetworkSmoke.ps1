@@ -18,6 +18,7 @@ $Client2Log = Join-Path $LogDirectory "$DayLabel-$Mode-Client2.log"
 $ReportPath = Join-Path $ReportDirectory "$DayLabel-$Mode.json"
 $RunId = [Guid]::NewGuid().ToString('N')
 $FixtureRoot = Join-Path $ProjectRoot "Saved\RoleBattleDay16-$Mode-$RunId"
+$WorldPersistenceId = "RoleBattleDay16-$Mode-$RunId"
 if (-not (Test-Path -LiteralPath $EditorExe)) { throw "UnrealEditor-Cmd.exe was not found at '$EditorExe'." }
 New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
 New-Item -ItemType Directory -Path $ReportDirectory -Force | Out-Null
@@ -58,7 +59,7 @@ try {
     foreach ($Directory in @($ServerUserDir, $Client1UserDir, $Client2UserDir)) { New-Item -ItemType Directory -Path $Directory -Force | Out-Null }
 
     $Map = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?Role=Aura?listen' } else { '/Game/Maps/StartupMap' }
-    $ServerArgs = @((Join-Path $ProjectRoot 'Aura.uproject'), $Map, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", '-RoleBattleDay16NetworkProbe', '-WorldPersistenceId=RoleBattleDay16', '-AuraPersistenceProvider=NULL', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog")
+    $ServerArgs = @((Join-Path $ProjectRoot 'Aura.uproject'), $Map, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", '-RoleBattleDay16NetworkProbe', "-WorldPersistenceId=$WorldPersistenceId", '-AuraPersistenceProvider=NULL', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog")
     $ServerArgs += if ($Mode -eq 'Listen') { '-game' } else { '-server' }
     $Server = Start-Owned 'Server' $ServerArgs
     if (-not (Wait-Pattern $ServerLog '\[WorldReadiness\] State=Ready' $Server)) { throw 'Server world readiness did not complete.' }
@@ -101,7 +102,7 @@ finally {
         Remove-Item -LiteralPath $ResolvedFixtureRoot -Recurse -Force
         $FixtureRemoved = -not (Test-Path -LiteralPath $ResolvedFixtureRoot)
     }
-    $Report = [ordered]@{ SchemaVersion = 1; Day = 16; Mode = $Mode; Port = $Port; StartedUtc = $StartedAt.ToString('o'); FinishedUtc = [DateTime]::UtcNow.ToString('o'); Assertions = $Assertions; Passed = $Passed; Failure = $Failure; Processes = $ReportProcesses; Artifacts = [ordered]@{ ServerLog = $ServerLog; Client1Log = $Client1Log; Client2Log = $Client2Log; Report = $ReportPath }; IsolatedFixtureRemoved = $FixtureRemoved }
+    $Report = [ordered]@{ SchemaVersion = 1; Day = 16; Mode = $Mode; Port = $Port; WorldPersistenceId = $WorldPersistenceId; StartedUtc = $StartedAt.ToString('o'); FinishedUtc = [DateTime]::UtcNow.ToString('o'); Assertions = $Assertions; Passed = $Passed; Failure = $Failure; Processes = $ReportProcesses; Artifacts = [ordered]@{ ServerLog = $ServerLog; Client1Log = $Client1Log; Client2Log = $Client2Log; Report = $ReportPath }; IsolatedFixtureRemoved = $FixtureRemoved }
     $Report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
 }
 if (-not $Passed) { Write-Error "[Day16NetworkSmoke][$Mode] FAIL: $Failure"; exit 1 }

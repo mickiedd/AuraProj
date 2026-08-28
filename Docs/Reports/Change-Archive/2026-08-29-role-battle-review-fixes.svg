@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle review fixes and validation flow</title>
+  <desc id="desc">Before and after diagram for smoke-test exit propagation, Day 7 gate composition, packaged XML coverage, collision-safe respawn, and per-run persistence isolation.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+    <style>
+      .title { font: 700 30px 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .section { font: 700 20px 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .box-title { font: 700 17px 'Segoe UI', Arial, sans-serif; fill: #0f172a; }
+      .body { font: 400 15px 'Segoe UI', Arial, sans-serif; fill: #334155; }
+      .small { font: 400 14px 'Segoe UI', Arial, sans-serif; fill: #475569; }
+      .pass { font: 700 15px 'Segoe UI', Arial, sans-serif; fill: #166534; }
+      .before { fill: #fff1f2; stroke: #fb7185; stroke-width: 2; }
+      .after { fill: #ecfdf5; stroke: #34d399; stroke-width: 2; }
+      .guard { fill: #eff6ff; stroke: #60a5fa; stroke-width: 2; }
+      .validation { fill: #f8fafc; stroke: #94a3b8; stroke-width: 2; }
+      .arrow { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1400" height="900" fill="#ffffff"/>
+  <text x="70" y="58" class="title">Role/Battle review fixes — reliable gates and isolated runs</text>
+  <text x="70" y="88" class="subtitle">Applied after reviewing d5df0a8 findings; existing respawn and inventory fixes were verified and preserved.</text>
+
+  <text x="70" y="138" class="section">Before: evidence could be misleading</text>
+  <rect x="70" y="160" width="360" height="148" rx="14" class="before"/>
+  <text x="92" y="190" class="box-title">Smoke wrapper</text>
+  <text x="92" y="218" class="body">Editor launch could hang forever.</text>
+  <text x="92" y="242" class="body">A log-only result could look green.</text>
+  <text x="92" y="266" class="body">Failure status was not propagated.</text>
+  <text x="92" y="292" class="small">Fixed Aura.log could also be locked.</text>
+
+  <rect x="70" y="336" width="360" height="148" rx="14" class="before"/>
+  <text x="92" y="366" class="box-title">Review and Day 7 gates</text>
+  <text x="92" y="394" class="body">PowerShell function scope lost results.</text>
+  <text x="92" y="418" class="body">Day 7 could stop on a prerequisite.</text>
+  <text x="92" y="442" class="body">Only five of nine XMLs were checked.</text>
+  <text x="92" y="468" class="small">Docs omitted mandatory -Mode values.</text>
+
+  <rect x="70" y="512" width="360" height="148" rx="14" class="before"/>
+  <text x="92" y="542" class="box-title">Repeated smoke invocations</text>
+  <text x="92" y="570" class="body">Several runners reused world IDs.</text>
+  <text x="92" y="594" class="body">A prior run could affect later evidence.</text>
+  <text x="92" y="618" class="body">Some runner children shared exit scope.</text>
+  <text x="92" y="644" class="small">Existing collision-safe spawn was retained.</text>
+
+  <path d="M450 410 C510 410, 520 410, 565 410" class="arrow"/>
+  <text x="470" y="382" class="small">verified fixes</text>
+
+  <text x="600" y="138" class="section">After: every gate has an observable boundary</text>
+  <rect x="600" y="160" width="730" height="148" rx="14" class="after"/>
+  <text x="625" y="190" class="box-title">Bounded AuraAbilityGraph smoke flow</text>
+  <rect x="625" y="216" width="175" height="60" rx="10" class="guard"/>
+  <text x="642" y="240" class="body">unique log path</text>
+  <text x="642" y="261" class="small">per invocation</text>
+  <path d="M810 246 L855 246" class="arrow"/>
+  <rect x="865" y="216" width="190" height="60" rx="10" class="guard"/>
+  <text x="882" y="240" class="body">180 s supervisor</text>
+  <text x="882" y="261" class="small">kills timed-out tree</text>
+  <path d="M1065 246 L1110 246" class="arrow"/>
+  <rect x="1120" y="216" width="180" height="60" rx="10" class="guard"/>
+  <text x="1136" y="240" class="body">exit + log gate</text>
+  <text x="1136" y="261" class="small">0 failures required</text>
+  <text x="625" y="294" class="pass">PASS only after clean exit code 0, parseable result, and explicit exit request</text>
+
+  <rect x="600" y="336" width="350" height="148" rx="14" class="after"/>
+  <text x="625" y="366" class="box-title">Review suite aggregation</text>
+  <text x="625" y="394" class="body">script-scoped typed result list</text>
+  <text x="625" y="418" class="body">preserves every runner exit code</text>
+  <text x="625" y="442" class="body">CSV and aggregate use same records</text>
+  <text x="625" y="468" class="pass">Regression: 2 rows, 1 failure → exit 1</text>
+
+  <rect x="980" y="336" width="350" height="148" rx="14" class="after"/>
+  <text x="1005" y="366" class="box-title">Day 7 packaged and composed gates</text>
+  <text x="1005" y="394" class="body">all shipped AbilityDefinitions/*.xml</text>
+  <text x="1005" y="418" class="body">Day7SpecificStatus is separate</text>
+  <text x="1005" y="442" class="body">Day6PrerequisiteStatus is separate</text>
+  <text x="1005" y="468" class="pass">Aggregate fails when either required side fails</text>
+
+  <rect x="600" y="512" width="730" height="148" rx="14" class="after"/>
+  <text x="625" y="542" class="box-title">Runtime and persistence safety</text>
+  <text x="625" y="570" class="body">Per-run WorldPersistenceId + fixture namespace for role-battle smoke runners.</text>
+  <text x="625" y="594" class="body">Existing bounded collision-safe pawn offsets remain the Day 6 spawn fallback.</text>
+  <text x="625" y="618" class="body">Day 7 commands now pass explicit Listen/Dedicated modes.</text>
+  <text x="625" y="644" class="pass">No gameplay change was made where review evidence did not prove a defect.</text>
+
+  <text x="70" y="720" class="section">Validation completed</text>
+  <rect x="70" y="742" width="1260" height="104" rx="14" class="validation"/>
+  <text x="95" y="774" class="body">AuraEditor Win64 Development build: PASS</text>
+  <text x="430" y="774" class="body">AuraAbilityGraph smoke: 26 passed / 0 failed, wrapper exit 0</text>
+  <text x="95" y="802" class="body">PowerShell parse checks: 13/13 PASS</text>
+  <text x="430" y="802" class="body">Python contracts: Days 7–20 + review-fix contracts PASS</text>
+  <text x="95" y="830" class="body">git diff --check: PASS</text>
+  <text x="430" y="830" class="body">Full multiplayer and packaged archive gates remain environment-dependent</text>
+</svg>

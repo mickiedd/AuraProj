@@ -25,6 +25,8 @@ $ServerCandidates = @(
 $CookedStartupMap = Join-Path $ProjectRoot 'Saved\Cooked\WindowsServer\Aura\Content\Maps\StartupMap.umap'
 $LogDirectory = Join-Path $ProjectRoot 'Saved\Logs'
 $ReportDirectory = Join-Path $ProjectRoot 'Saved\Reports'
+$RunId = [Guid]::NewGuid().ToString('N')
+$WorldPersistenceId = "RoleBattleDay3-$Mode-$RunId"
 
 if ([string]::IsNullOrWhiteSpace($Mode)) {
     Write-Error 'Specify -Mode Listen or -Mode Dedicated explicitly.'
@@ -128,7 +130,7 @@ try {
         $(if ($ServerRuntime -eq 'PackagedDedicated') { $ServerMap } else { $ProjectFile }),
         $(if ($ServerRuntime -eq 'PackagedDedicated') { '' } else { $ServerMap }),
         '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
-        "-port=$Port", '-RoleBattleDay3NetworkProbe', "-WorldPersistenceId=RoleBattleDay3$Mode", '-AuraPersistenceProvider=NULL', "-abslog=$ServerLog"
+        "-port=$Port", '-RoleBattleDay3NetworkProbe', "-WorldPersistenceId=$WorldPersistenceId", '-AuraPersistenceProvider=NULL', "-abslog=$ServerLog"
     ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
     $Server = Start-OwnedProcess 'Server' $ServerExe $ServerArguments
     $OwnedProcesses += $Server
@@ -199,6 +201,7 @@ finally {
     $Report = [ordered]@{
         SchemaVersion = 1
         Mode = $Mode
+        WorldPersistenceId = $WorldPersistenceId
         ServerRuntime = $ServerRuntime
         Port = $Port
         StartedUtc = $StartedUtc

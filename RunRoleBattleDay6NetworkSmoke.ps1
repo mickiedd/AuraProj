@@ -28,6 +28,7 @@ $Client2Log = Join-Path $LogDirectory "Day06-$Mode-Client2.log"
 $ReportPath = Join-Path $ReportDirectory "Day06-$Mode.json"
 $RunId = [Guid]::NewGuid().ToString('N')
 $FixtureRoot = Join-Path $ProjectRoot "Saved\RoleBattleDay6-$Mode-$RunId"
+$WorldPersistenceId = "RoleBattleDay6-$Mode-$RunId"
 
 if ([string]::IsNullOrWhiteSpace($EngineRoot) -or -not (Test-Path -LiteralPath $EditorExe)) { throw 'UE_ENGINE_ROOT is missing or UnrealEditor-Cmd.exe was not found.' }
 if (-not (Test-Path -LiteralPath $ProjectFile)) { throw "Aura.uproject was not found at '$ProjectFile'." }
@@ -94,7 +95,7 @@ try {
     $ServerMap = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?listen' } else { '/Game/Maps/StartupMap' }
     $Server = Start-OwnedProcess 'Server' @(
         $ProjectFile, $ServerMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
-        "-port=$Port", '-RoleBattleDay6NetworkProbe', '-WorldPersistenceId=RoleBattleDay6', '-AuraPersistenceProvider=NULL', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog"
+        "-port=$Port", '-RoleBattleDay6NetworkProbe', "-WorldPersistenceId=$WorldPersistenceId", '-AuraPersistenceProvider=NULL', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog"
     )
     if (-not (Wait-ForPattern $ServerLog 'GameNetDriver.*Listening|Browse:.*StartupMap' $StartupTimeoutSeconds $Server)) {
         throw 'Server did not reach its listening startup gate.'
@@ -167,7 +168,7 @@ finally {
         $FixtureRemoved = -not (Test-Path -LiteralPath $ResolvedFixtureRoot)
     }
     $Report = [ordered]@{
-        SchemaVersion=1; Mode=$Mode; Port=$Port; StartedUtc=$StartedUtc; CompletedUtc=[DateTime]::UtcNow.ToString('o')
+        SchemaVersion=1; Mode=$Mode; Port=$Port; WorldPersistenceId=$WorldPersistenceId; StartedUtc=$StartedUtc; CompletedUtc=[DateTime]::UtcNow.ToString('o')
         Assertions=$Assertions
         Processes=@($OwnedProcesses | ForEach-Object { [ordered]@{ Name=$_.Name; ProcessId=$_.Process.Id; Arguments=$_.Arguments; Status=$_.Status; ExitCode=$_.ExitCode } })
         Artifacts=[ordered]@{ ServerLog=$ServerLog; Client1Log=$Client1Log; Client2Log=$Client2Log; Report=$ReportPath }

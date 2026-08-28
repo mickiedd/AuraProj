@@ -17,6 +17,8 @@ $ServerLog = Join-Path $LogDirectory "$DayLabel-$Mode-Server.log"
 $Client1Log = Join-Path $LogDirectory "$DayLabel-$Mode-Client1.log"
 $Client2Log = Join-Path $LogDirectory "$DayLabel-$Mode-Client2.log"
 $ReportPath = Join-Path $ReportDirectory "$DayLabel-$Mode.json"
+$RunId = [Guid]::NewGuid().ToString('N')
+$WorldPersistenceId = "RoleBattleDay${Day}-$Mode-$RunId"
 if (-not (Test-Path -LiteralPath $EditorExe)) { throw "UnrealEditor-Cmd.exe was not found at '$EditorExe'." }
 New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
 New-Item -ItemType Directory -Path $ReportDirectory -Force | Out-Null
@@ -61,7 +63,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Focused Day $Day contracts failed." }
     $Assertions.StaticContracts = $true
     $Map = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?Role=Aura?listen' } else { '/Game/Maps/StartupMap' }
-    $ServerArgs = @((Join-Path $ProjectRoot 'Aura.uproject'), $Map, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-WorldPersistenceId=RoleBattleDay${Day}", '-AuraPersistenceProvider=NULL', "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
+    $ServerArgs = @((Join-Path $ProjectRoot 'Aura.uproject'), $Map, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-WorldPersistenceId=$WorldPersistenceId", '-AuraPersistenceProvider=NULL', "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
     $ServerArgs += if ($Mode -eq 'Listen') { '-game' } else { '-server' }
     $Server = Start-Owned 'Server' $ServerArgs
     if (-not (Wait-Pattern $ServerLog '\[WorldReadiness\] State=Ready' $Server)) { throw 'Coordinated world-readiness evidence is missing.' }
@@ -90,7 +92,7 @@ finally {
         try { $Item.ExitCode = $Item.Process.ExitCode } catch { $Item.ExitCode = $null }
         $Item.Status = 'Stopped'
     }
-    $Report = [ordered]@{ SchemaVersion=1; Day=$Day; Mode=$Mode; Port=$Port; Assertions=$Assertions; Passed=$Passed; Failure=$Failure; Artifacts=[ordered]@{ServerLog=$ServerLog; Client1Log=$Client1Log; Client2Log=$Client2Log; Report=$ReportPath} }
+    $Report = [ordered]@{ SchemaVersion=1; Day=$Day; Mode=$Mode; Port=$Port; WorldPersistenceId=$WorldPersistenceId; Assertions=$Assertions; Passed=$Passed; Failure=$Failure; Artifacts=[ordered]@{ServerLog=$ServerLog; Client1Log=$Client1Log; Client2Log=$Client2Log; Report=$ReportPath} }
     $Report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
 }
 if (-not $Passed) { Write-Error "[$DayLabel`NetworkSmoke][$Mode] FAIL: $Failure"; exit 1 }
