@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">Role and Battle HUD test coverage</title>
+  <desc id="desc">The UI test coverage expands from page and mount checks to panel contracts, command gates, reconnect replay, runtime population state, and manual multiplayer acceptance.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#081525"/><stop offset="1" stop-color="#18324a"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".3"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#72d8ff"/></marker>
+    <style>
+      .title{font:700 28px Inter,Arial,sans-serif;fill:#f3f8ff}.subtitle{font:400 15px Inter,Arial,sans-serif;fill:#abc2d7}.head{font:700 17px Inter,Arial,sans-serif;fill:#fff}.body{font:400 14px Inter,Arial,sans-serif;fill:#d7e8f5}.small{font:400 12px Inter,Arial,sans-serif;fill:#9ebbd0}.code{font:700 12px ui-monospace,Consolas,monospace;fill:#ffe08a}.pass{font:700 12px Inter,Arial,sans-serif;fill:#8ff0c1}.edge{stroke:#3e7695;stroke-width:1.5}.flow{stroke:#72d8ff;stroke-width:2.5;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1400" height="820" rx="22" fill="url(#bg)"/>
+  <text x="52" y="58" class="title">Role/Battle HUD test coverage</text>
+  <text x="52" y="86" class="subtitle">The screenshot exposed a discoverability risk; this increment closes the gap between “HTML exists” and “the player-facing state flow is verifiable.”</text>
+
+  <g filter="url(#shadow)">
+    <rect x="52" y="136" width="300" height="510" rx="16" fill="#10283d" class="edge"/>
+    <text x="78" y="176" class="head">Before: partial confidence</text>
+    <rect x="78" y="204" width="248" height="84" rx="10" fill="#18364c" class="edge"/>
+    <text x="96" y="232" class="head">Static asset checks</text>
+    <text x="96" y="254" class="body">Files, placeholders, event names</text><text x="96" y="276" class="body">and transparent CSS tokens</text>
+    <rect x="78" y="306" width="248" height="84" rx="10" fill="#18364c" class="edge"/>
+    <text x="96" y="334" class="head">Mount checks</text>
+    <text x="96" y="356" class="body">Three browser hosts, assets,</text><text x="96" y="378" class="body">viewport geometry, z-order</text>
+    <rect x="78" y="408" width="248" height="84" rx="10" fill="#3d2f2b" stroke="#9b785d"/>
+    <text x="96" y="436" class="head">Missing behavior proof</text>
+    <text x="96" y="458" class="body">State transitions, command gates,</text><text x="96" y="480" class="body">reconnect, and population values</text>
+    <text x="78" y="548" class="small">The screenshot’s “Loading role” state</text><text x="78" y="568" class="small">could pass the old checks unnoticed.</text>
+    <text x="78" y="610" class="code">risk: default UI can look healthy</text>
+  </g>
+
+  <path d="M352 392 C414 392 414 392 474 392" class="flow"/><text x="374" y="377" class="small">coverage increment</text>
+
+  <g filter="url(#shadow)">
+    <rect x="474" y="136" width="442" height="510" rx="16" fill="#0d2235" class="edge"/>
+    <text x="500" y="176" class="head">After: automated behavior contracts</text>
+    <rect x="500" y="204" width="390" height="66" rx="10" fill="#12374a" class="edge"/>
+    <text x="520" y="232" class="code">RoleBattleHUDContract</text><text x="520" y="254" class="body">left / bottom / right fields and commands</text>
+    <rect x="500" y="286" width="390" height="66" rx="10" fill="#12374a" class="edge"/>
+    <text x="520" y="314" class="code">BattlePopulationSummary</text><text x="520" y="336" class="body">active · maximum · pending · casualty bounds</text>
+    <rect x="500" y="368" width="390" height="66" rx="10" fill="#12374a" class="edge"/>
+    <text x="520" y="396" class="code">HUDContract + ContentContract</text><text x="520" y="418" class="body">mount, bridge, transparency, legacy regressions</text>
+    <rect x="500" y="450" width="390" height="66" rx="10" fill="#12374a" class="edge"/>
+    <text x="520" y="478" class="code">reconnect / authority guards</text><text x="520" y="500" class="body">delegate wiring, cache reset, native purchase route</text>
+    <text x="500" y="562" class="pass">PASS · compiled and executed in Unreal Editor</text>
+    <text x="500" y="588" class="small">Four focused tests now cover the player-visible data path</text><text x="500" y="608" class="small">without trusting browser-provided gameplay values.</text>
+  </g>
+
+  <path d="M916 248 C974 248 974 208 1030 208" class="flow"/><path d="M916 382 C974 382 974 382 1030 382" class="flow"/><path d="M916 516 C974 516 974 556 1030 556" class="flow"/>
+
+  <g filter="url(#shadow)">
+    <rect x="1030" y="136" width="318" height="510" rx="16" fill="#10283d" class="edge"/>
+    <text x="1056" y="176" class="head">Player acceptance</text>
+    <rect x="1056" y="204" width="266" height="86" rx="10" fill="#183c4e" class="edge"/>
+    <text x="1074" y="232" class="head">State changes</text>
+    <text x="1074" y="254" class="body">role · life · phase/event</text><text x="1074" y="276" class="body">Civilian death/refill summary</text>
+    <rect x="1056" y="308" width="266" height="86" rx="10" fill="#183c4e" class="edge"/>
+    <text x="1074" y="336" class="head">Commerce</text>
+    <text x="1074" y="358" class="body">affordable / insufficient funds</text><text x="1074" y="380" class="body">sold-out / owner privacy</text>
+    <rect x="1056" y="412" width="266" height="86" rx="10" fill="#183c4e" class="edge"/>
+    <text x="1074" y="440" class="head">Topology &amp; reload</text>
+    <text x="1074" y="462" class="body">late join · reconnect · two clients</text><text x="1074" y="484" class="body">bounded geometry · native clicks</text>
+    <text x="1056" y="552" class="code">manual visual / network matrix</text>
+    <text x="1056" y="578" class="small">Automation proves contracts; these cases</text><text x="1056" y="598" class="small">prove what the player actually sees.</text>
+  </g>
+
+  <text x="52" y="708" class="head">Final gate</text>
+  <text x="52" y="734" class="body">AuraEditor build · RoleBattleHUDContract · BattlePopulationSummary · HUDContract · ContentContract · Node JavaScript parse · SVG XML · diff check</text>
+  <text x="52" y="774" class="small">No existing user worktree changes were reset; this increment only adds the missing UI test coverage and its documentation.</text>
+</svg>

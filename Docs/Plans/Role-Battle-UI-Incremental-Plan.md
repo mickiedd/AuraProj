@@ -52,8 +52,35 @@ Commands remain narrow and validated: `hud_interaction_select`, `hud_interaction
 2. Add an explicit save/load transition indicator if persistence exposes a replicated in-progress state; the current HUD intentionally reports only the authoritative loaded/session result.
 3. Add dedicated visual QA captures for the three panels at the supported packaged resolutions and for late-join replay.
 
+## UI test matrix
+
+Automated coverage now checks the following contracts:
+
+1. Each HUD page exists, loads through the native WebSocket URL placeholder, and reports readiness.
+2. The left-top panel consumes role, identity, life, persistence, phase, event, active/max/pending population, and casualty fields.
+3. The bottom panel consumes orthogonal target relationship/life/activity data, attack permission, and the explicit Interact route.
+4. Trade opens only through the native merchant affordance and remains separate from Interact execution.
+5. The right-top panel consumes owner-only wallet/inventory state, merchant stock/offers, and authoritative purchase results.
+6. Native HUD delegates are bound for role, currency, inventory, and purchase-result updates.
+7. Browser disconnects clear replay caches so a fresh `hud_ready` receives current state.
+8. Merchant opening and purchase commands are guarded by focused native target, active merchant, Trade availability, and the native interaction component.
+9. The replicated battle-director population summary accepts valid values and clamps invalid negative values.
+10. All three pages parse in Node.js, mount in the transient WebUI runtime test, and retain bounded transparent geometry.
+
+Manual acceptance cases remain necessary for visual and multi-process behavior:
+
+- Start a new session and confirm the role name replaces “Loading role,” life leaves the default badge, and the battle summary becomes populated.
+- Enter Peace → Alert/Conflict and confirm phase/event text changes without reopening the HUD.
+- Focus a Civilian, observe activity changes, kill it, and confirm the target prompt clears while population pending/casualty text updates.
+- Focus a merchant, select Trade, buy an affordable item, then repeat with insufficient funds and sold-out stock; verify each result is readable.
+- Open Bag before and after a purchase and confirm wallet/inventory state is local to the owning player.
+- Disconnect/reconnect or reload the browser panels and confirm the current state reappears without waiting for a gameplay mutation.
+- Join as a second client and confirm it cannot see the first client’s wallet/inventory or merchant transaction state.
+- Verify the panels remain readable at supported resolutions and blank level clicks remain native gameplay input.
+
 ## Validation
 
-- `AuraWebUI` static HUD contract tests assert role/life/battle/population/persistence, Civilian activity/combat protection, and owner-only economy/merchant events.
+- `AuraWebUI.Plugin.RoleBattleHUDContract` asserts panel-specific role/battle/interaction/economy fields, reconnect replay, and native command gates.
+- `Aura.UI.WebHUD.BattlePopulationSummary` exercises the runtime replicated summary source and fail-closed bounds.
 - `git diff --check` validates the source, HTML, and documentation changes.
 - JavaScript syntax checks and the AuraEditor Win64 DebugGame build are required before this increment is considered releasable.

@@ -508,4 +508,88 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraWebUIRoleBattleHUDContractTest,
+	"AuraWebUI.Plugin.RoleBattleHUDContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraWebUIRoleBattleHUDContractTest::RunTest(const FString& Parameters)
+{
+	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("AuraWebUI"));
+	if (!TestTrue(TEXT("AuraWebUI plugin is discoverable for the Role/Battle HUD contract"), Plugin.IsValid()))
+	{
+		return false;
+	}
+
+	const FString HUDDirectory = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI"));
+	FString LeftTop;
+	FString RightTop;
+	FString Bottom;
+	const bool bLoaded =
+		TestTrue(TEXT("Role/Battle left-top HUD page is readable"), FFileHelper::LoadFileToString(LeftTop, *FPaths::Combine(HUDDirectory, TEXT("hud-left-top.html"))))
+		&& TestTrue(TEXT("Role/Battle right-top HUD page is readable"), FFileHelper::LoadFileToString(RightTop, *FPaths::Combine(HUDDirectory, TEXT("hud-right-top.html"))))
+		&& TestTrue(TEXT("Role/Battle bottom HUD page is readable"), FFileHelper::LoadFileToString(Bottom, *FPaths::Combine(HUDDirectory, TEXT("hud-bottom.html"))));
+	if (!bLoaded)
+	{
+		return false;
+	}
+
+	TestTrue(TEXT("Left-top consumes replicated role and life state fields"),
+		LeftTop.Contains(TEXT("hud_role_state"))
+		&& LeftTop.Contains(TEXT("lifeStateName"))
+		&& LeftTop.Contains(TEXT("persistentProfile"))
+		&& LeftTop.Contains(TEXT("combatProfile")));
+	TestTrue(TEXT("Left-top consumes battle phase, event, and population lifecycle fields"),
+		LeftTop.Contains(TEXT("hud_battle_state"))
+		&& LeftTop.Contains(TEXT("populationActive"))
+		&& LeftTop.Contains(TEXT("populationMaximum"))
+		&& LeftTop.Contains(TEXT("populationPending"))
+		&& LeftTop.Contains(TEXT("populationCasualties")));
+	TestTrue(TEXT("Bottom renders orthogonal target, activity, and combat affordance fields"),
+		Bottom.Contains(TEXT("p.relationshipTag"))
+		&& Bottom.Contains(TEXT("p.lifeTag"))
+		&& Bottom.Contains(TEXT("p.activity"))
+		&& Bottom.Contains(TEXT("p.attackAllowed"))
+		&& Bottom.Contains(TEXT("Combat protected"))
+		&& Bottom.Contains(TEXT("hud_interaction_activate")));
+	TestTrue(TEXT("Bottom keeps Trade discoverability separate from Interact execution"),
+		Bottom.Contains(TEXT("Interaction.Trade"))
+		&& Bottom.Contains(TEXT("hud_merchant_open"))
+		&& Bottom.Contains(TEXT("Shop ready"))
+		&& Bottom.Contains(TEXT("hud_interaction_activate")));
+	TestTrue(TEXT("Right-top renders owner economy, inventory, and merchant result state"),
+		RightTop.Contains(TEXT("hud_economy"))
+		&& RightTop.Contains(TEXT("inventoryModal"))
+		&& RightTop.Contains(TEXT("hud_merchant"))
+		&& RightTop.Contains(TEXT("hud_merchant_buy"))
+		&& RightTop.Contains(TEXT("hud_merchant_result"))
+		&& RightTop.Contains(TEXT("commerceResultName")));
+
+	FString HUDSource;
+	const FString HUDSourcePath = FPaths::ProjectDir() / TEXT("Source/Aura/Private/UI/HUD/AuraHUD.cpp");
+	if (TestTrue(TEXT("AuraHUD source is readable for state-flow checks"), FFileHelper::LoadFileToString(HUDSource, *HUDSourcePath)))
+	{
+		TestTrue(TEXT("HUD binds role, currency, inventory, and purchase-result delegates"),
+			HUDSource.Contains(TEXT("HandleRoleChangedForWebUI"))
+			&& HUDSource.Contains(TEXT("HandleCurrencyChangedForWebUI"))
+			&& HUDSource.Contains(TEXT("HandleInventoryChangedForWebUI"))
+			&& HUDSource.Contains(TEXT("HandlePurchaseResultForWebUI")));
+		TestTrue(TEXT("HUD clears replay caches when the browser disconnects"),
+			HUDSource.Contains(TEXT("if (!bConnected)"))
+			&& HUDSource.Contains(TEXT("LastRoleStatePayloadJson.Empty()"))
+			&& HUDSource.Contains(TEXT("LastBattleStatePayloadJson.Empty()"))
+			&& HUDSource.Contains(TEXT("LastMerchantPayloadJson.Empty()")));
+		TestTrue(TEXT("HUD gates merchant opening on native Trade and active merchant state"),
+			HUDSource.Contains(TEXT("bTradeAvailable"))
+			&& HUDSource.Contains(TEXT("Merchant->IsMerchantActive()"))
+			&& HUDSource.Contains(TEXT("Interaction_Trade")));
+		TestTrue(TEXT("HUD routes purchases through the focused native interaction component"),
+			HUDSource.Contains(TEXT("GetFocusedTargetActor()"))
+			&& HUDSource.Contains(TEXT("RequestPurchase"))
+			&& HUDSource.Contains(TEXT("GetInteractionComponent()")));
+	}
+
+	return !HasAnyErrors();
+}
+
 #endif

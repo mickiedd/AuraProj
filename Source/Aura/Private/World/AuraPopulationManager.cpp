@@ -389,19 +389,24 @@ bool UAuraPopulationManager::FinalizeInitialPopulation()
 	{
 		if (!Row.bSpawnOnLoad || Row.MapId != CurrentMapId) continue;
 		int32 SpawnedCount = 0;
-		bool bHasRestoredSlot = false;
+		bool bHasRestoredState = false;
+		int32 EmptyRestoredSlotCount = 0;
 		TArray<int32> MissingSlotIndices;
 		for (int32 SlotIndex = 0; SlotIndex < Row.MaximumCount; ++SlotIndex)
 		{
 			const FName MemberId = BuildDeterministicMemberId(Row.PopulationId, SlotIndex);
-			if (!bPersistenceSnapshotConfigured || !RestoredSlotIds.Contains(MemberId))
+			const bool bHasSavedSlot = bPersistenceSnapshotConfigured && RestoredSlotIds.Contains(MemberId);
+			FAuraPopulationRuntimeSlot* RuntimeSlot = RuntimeSlots.Find(MemberId);
+			if (!bHasSavedSlot || !RuntimeSlot || RuntimeSlot->State == EAuraPopulationSlotState::Empty)
 			{
 				MissingSlotIndices.Add(SlotIndex);
+				if (bHasSavedSlot && RuntimeSlot && RuntimeSlot->State == EAuraPopulationSlotState::Empty)
+				{
+					++EmptyRestoredSlotCount;
+				}
 				continue;
 			}
-			bHasRestoredSlot = true;
-			FAuraPopulationRuntimeSlot* RuntimeSlot = RuntimeSlots.Find(MemberId);
-			if (!RuntimeSlot) continue;
+			bHasRestoredState = true;
 			if (RuntimeSlot->State == EAuraPopulationSlotState::Active)
 			{
 				if (SpawnInitialMember(Row, SlotIndex)) ++SpawnedCount;
@@ -413,7 +418,12 @@ bool UAuraPopulationManager::FinalizeInitialPopulation()
 				bSuccess = false;
 			}
 		}
-		if (!bHasRestoredSlot)
+		if (EmptyRestoredSlotCount > 0)
+		{
+			UE_LOG(LogAura, Display, TEXT("[Population][Persistence] Reconciled population=%s emptySavedSlots=%d as missing initial members."),
+				*Row.PopulationId.ToString(), EmptyRestoredSlotCount);
+		}
+		if (!bHasRestoredState)
 		{
 			for (int32 SlotIndex = 0; SlotIndex < Row.MaximumCount && SpawnedCount < Row.InitialCount; ++SlotIndex)
 			{
@@ -428,7 +438,7 @@ bool UAuraPopulationManager::FinalizeInitialPopulation()
 				if (SpawnInitialMember(Row, SlotIndex)) ++SpawnedCount;
 			}
 		}
-		if (!bHasRestoredSlot && SpawnedCount != Row.InitialCount)
+		if (!bHasRestoredState && SpawnedCount != Row.InitialCount)
 		{
 			bSuccess = false;
 			UE_LOG(LogAura, Error, TEXT("[Population][Finalize] Failed to reach initialCount=%d for population=%s; spawned=%d."),

@@ -111,6 +111,9 @@ def check_native_distribution_and_bounds(failures: list[str]) -> None:
             "spawn volume does not apply candidate bounds during runtime", failures)
     require("Volume->SetBoxExtent(CandidateExtents);" in volume,
             "spawn volume does not copy CandidateExtents to its collision component", failures)
+    require("RuntimeSlot->State == EAuraPopulationSlotState::Empty" in manager
+            and "emptySavedSlots" in manager,
+            "population manager must reconcile persisted Empty slots into initial members", failures)
     require("OwnerComp.GetBlackboardComponent()" in hostile_service,
             "native hostile service does not use its owning Behavior Tree component", failures)
     require("UBTFunctionLibrary" not in hostile_service,
