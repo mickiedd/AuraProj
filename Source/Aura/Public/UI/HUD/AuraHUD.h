@@ -9,6 +9,7 @@
 #include "AbilitySystem/Data/AbilityInfo.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
 #include "Combat/AuraTargetingTypes.h"
+#include "Economy/AuraEconomyTypes.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AuraHUD.generated.h"
 
@@ -21,6 +22,8 @@ class UTargetInteractionWidgetController;
 class UWebUIBridgeSubsystem;
 class UWebUIWidget;
 class UTexture2D;
+class UAuraMerchantComponent;
+struct FAuraInventorySlot;
 /**
  * 
  */
@@ -65,6 +68,11 @@ private:
 	void SendInteractionToWebUI(const FAuraTargetDescriptor& Descriptor);
 	void SendLocationToWebUI();
 	void SendVitalsToWebUI();
+	void SendRoleStateToWebUI();
+	void SendBattleStateToWebUI();
+	void SendEconomyStateToWebUI();
+	void SendMerchantToWebUI(UAuraMerchantComponent* MerchantComponent, bool bVisible);
+	void SendMerchantClearedToWebUI();
 	bool ParseWebPayload(const FString& PayloadJson, TSharedPtr<FJsonObject>& OutPayload) const;
 	bool IsKnownAbilityTag(const FGameplayTag& AbilityTag) const;
 	bool IsKnownAttributeTag(const FGameplayTag& AttributeTag) const;
@@ -124,6 +132,12 @@ private:
 	UFUNCTION()
 	void HandleTargetPreviewClearedForWebUI();
 
+	void HandleCurrencyChangedForWebUI(int64 NewBalance, uint32 NewRevision);
+	void HandleInventoryChangedForWebUI(const TArray<FAuraInventorySlot>& Slots, uint32 NewRevision);
+	void HandlePurchaseResultForWebUI(const FGuid& SessionNonce, uint64 RequestId, EAuraCommerceResultCode ResultCode,
+		uint32 WalletRevision, uint32 InventoryRevision, uint32 StockRevision);
+	void HandleRoleChangedForWebUI(FName NewRole);
+
 	FString BuildAbilityIconDataUri(const UTexture2D* Icon);
 	FString BuildManualSkillIconDataUri(const FGameplayTag& AbilityTag);
 	bool TryGetWebAbilityInputTag(const FString& InputTagName, FGameplayTag& OutInputTag) const;
@@ -171,6 +185,12 @@ private:
 	int32 WebSpellPoints = 0;
 	FString LastInteractionPayloadJson;
 	FString LastLocationPayloadJson;
+	FString LastRoleStatePayloadJson;
+	FString LastBattleStatePayloadJson;
+	FString LastMerchantPayloadJson;
+	TWeakObjectPtr<UAuraMerchantComponent> WebMerchantComponent;
+	bool bMerchantUIOpen = false;
+	EAuraCombatLifeState LastWebLifeState = EAuraCombatLifeState::Respawning;
 	int32 WebHudForwardedActionCount = 0;
 
 	UPROPERTY()

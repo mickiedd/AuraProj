@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1060" viewBox="0 0 1500 1060">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#203b4b"/>
+    </linearGradient>
+    <linearGradient id="good" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#124b57"/>
+      <stop offset="1" stop-color="#19776d"/>
+    </linearGradient>
+    <linearGradient id="warn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#57421f"/>
+      <stop offset="1" stop-color="#765d27"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#77ded2"/>
+    </marker>
+    <style>
+      .title { font: 700 31px Segoe UI, Arial, sans-serif; fill: #f6fbfd; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #b9ccd5; }
+      .heading { font: 700 21px Segoe UI, Arial, sans-serif; fill: #f6fbfd; }
+      .boxTitle { font: 700 17px Segoe UI, Arial, sans-serif; fill: #f6fbfd; }
+      .body { font: 400 15px Segoe UI, Arial, sans-serif; fill: #e0edf1; }
+      .small { font: 400 13px Segoe UI, Arial, sans-serif; fill: #bed0d8; }
+      .before { fill: #303846; stroke: #738192; stroke-width: 2; }
+      .after { fill: url(#good); stroke: #77ded2; stroke-width: 2; }
+      .panel { fill: #102636; stroke: #34596e; stroke-width: 2; }
+      .note { fill: url(#warn); stroke: #dfb86c; stroke-width: 2; }
+      .line { stroke: #77ded2; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .divider { stroke: #466276; stroke-width: 2; stroke-dasharray: 8 8; }
+      .badge { font: 700 14px Segoe UI, Arial, sans-serif; fill: #062528; }
+    </style>
+  </defs>
+
+  <rect width="1500" height="1060" fill="url(#bg)"/>
+  <text x="60" y="58" class="title">Role/Battle review fixes and submission gate</text>
+  <text x="60" y="87" class="subtitle">Deep review closed the persistence, lifecycle, authority, routing, and smoke-fixture gaps in the pending change set</text>
+
+  <text x="68" y="135" class="heading">Before: independent or bypassable paths</text>
+  <text x="810" y="135" class="heading">After: guarded, durable paths</text>
+  <line x1="750" y1="112" x2="750" y2="925" class="divider"/>
+
+  <rect x="60" y="165" width="600" height="120" rx="14" class="before"/>
+  <text x="86" y="198" class="boxTitle">Login and respawn</text>
+  <text x="86" y="224" class="body">Prepared profile remained reusable after login.</text>
+  <text x="86" y="249" class="body">Respawn could reapply a stale pre-mutation snapshot.</text>
+  <text x="86" y="275" class="small">Logout could observe incomplete initialization.</text>
+
+  <rect x="60" y="315" width="600" height="120" rx="14" class="before"/>
+  <text x="86" y="348" class="boxTitle">Purchase persistence</text>
+  <text x="86" y="374" class="body">Player and world records were not one commit boundary.</text>
+  <text x="86" y="399" class="body">A persistence failure could leave an in-memory purchase.</text>
+  <text x="86" y="425" class="small">Dormant merchant state was easy to lose at respawn.</text>
+
+  <rect x="60" y="465" width="600" height="120" rx="14" class="before"/>
+  <text x="86" y="498" class="boxTitle">Authority and routing</text>
+  <text x="86" y="524" class="body">Broom component RPCs did not identify the requesting rider.</text>
+  <text x="86" y="549" class="body">Editor executable matching accepted broad name prefixes.</text>
+  <text x="86" y="575" class="small">Listen hosts could bypass an unhealthy readiness state.</text>
+
+  <rect x="60" y="615" width="600" height="120" rx="14" class="before"/>
+  <text x="86" y="648" class="boxTitle">Smoke fixtures</text>
+  <text x="86" y="674" class="body">Runs could inherit the Steam provider or shared save state.</text>
+  <text x="86" y="699" class="body">Repeated tests could contaminate one another.</text>
+  <text x="86" y="725" class="small">Zero-price definitions could disagree with runtime policy.</text>
+
+  <rect x="810" y="165" width="600" height="120" rx="14" class="after"/>
+  <text x="836" y="198" class="boxTitle">Login snapshot becomes one-shot</text>
+  <text x="836" y="224" class="body">Authenticate and validate role/economy before spawn.</text>
+  <text x="836" y="249" class="body">Save the initialized state, then clear the pending snapshot.</text>
+  <text x="836" y="275" class="small">Logout saves only a ready profile.</text>
+
+  <rect x="810" y="315" width="600" height="120" rx="14" class="after"/>
+  <text x="836" y="348" class="boxTitle">Purchase → checkpoint → result</text>
+  <text x="836" y="374" class="body">Mutate wallet, inventory, and merchant on authority.</text>
+  <text x="836" y="399" class="body">Verify player + world records, write one manifest, then succeed.</text>
+  <text x="836" y="425" class="small">Failure restores all state and returns PersistenceFailed/RollbackFailed.</text>
+
+  <rect x="810" y="465" width="600" height="120" rx="14" class="after"/>
+  <text x="836" y="498" class="boxTitle">Merchant lifecycle and restore</text>
+  <text x="836" y="524" class="body">Death publishes unavailable; dormant stock is retained.</text>
+  <text x="836" y="549" class="body">Respawn registration applies the validated pending stock.</text>
+  <text x="836" y="575" class="small">Immutable definition and complete-offer checks guard restore.</text>
+
+  <rect x="810" y="615" width="600" height="120" rx="14" class="after"/>
+  <text x="836" y="648" class="boxTitle">Controller-owned broom authority</text>
+  <text x="836" y="674" class="body">Every client mount/dismount enters the owning controller.</text>
+  <text x="836" y="699" class="body">Mounted ownership, range, finite inputs, and single attachment are checked.</text>
+  <text x="836" y="725" class="small">Editor routing uses an exact executable allowlist.</text>
+
+  <rect x="810" y="765" width="600" height="120" rx="14" class="after"/>
+  <text x="836" y="798" class="boxTitle">Deterministic validation harness</text>
+  <text x="836" y="824" class="body">Explicit development provider + per-run Saved fixture directories.</text>
+  <text x="836" y="849" class="body">Listen/Dedicated smoke paths and source contracts share the guards.</text>
+  <text x="836" y="875" class="small">Config load rejects zero buy prices consistently with runtime.</text>
+
+  <path d="M 660 225 C 710 225, 710 225, 790 225" class="line"/>
+  <path d="M 660 375 C 710 375, 710 375, 790 375" class="line"/>
+  <path d="M 660 525 C 710 525, 710 525, 790 525" class="line"/>
+  <path d="M 660 675 C 710 675, 710 675, 790 825" class="line"/>
+
+  <rect x="60" y="950" width="1350" height="70" rx="14" class="panel"/>
+  <text x="86" y="979" class="boxTitle">Validation evidence</text>
+  <text x="255" y="979" class="body">All Scripts contracts • AuraEditor Win64 Development build • Python/JSON/XML/PowerShell checks • git diff --check</text>
+  <text x="86" y="1005" class="small">Runtime evidence: Day 16 Listen/Dedicated, Day 17 Listen/Dedicated, Day 18 Listen, Day 19 Listen. Submission note: stage intended files only; restrict GSM to trusted LAN/loopback.</text>
+</svg>

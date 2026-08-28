@@ -11,7 +11,10 @@ class USoundBase;
 struct FHitResult;
 
 /**
- * BungeeMan's LMB gun skill — fires a real bullet projectile (AAuraBullet) from the gun muzzle
+ * This is a non-active compatibility helper for BungeeMan's LMB gun skill. The active runtime definition is
+ * `Content/AbilityDefinitions/FireGun.xml`; this class is retained only for compatibility with
+ * already-authored packages and is not granted or selected by RoleConfig. It fires a real bullet
+ * projectile (AAuraBullet) from the gun muzzle
  * toward the cursor target. The bullet travels fast + straight, deals damage on overlap via the
  * shared AuraDamageGameplayAbility damage params, and plays its own impact FX. Cooldown-only
  * (no Mana cost); fire rate is gated by the Cooldown.Gun.Fire GameplayEffect.

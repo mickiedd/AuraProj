@@ -8,8 +8,19 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 #include "AbilitySystem/Data/LevelUpInfo.h"
+#include "Battle/AuraBattleDirector.h"
+#include "Character/AuraCharacterBase.h"
+#include "Character/AuraCivilian.h"
+#include "Combat/AuraCombatIdentityComponent.h"
+#include "Combat/AuraCombatStateComponent.h"
 #include "Dom/JsonObject.h"
+#include "Economy/AuraCurrencyComponent.h"
+#include "Economy/AuraEconomyRegistrySubsystem.h"
+#include "Economy/AuraInventoryComponent.h"
+#include "Economy/AuraMerchantComponent.h"
+#include "EngineUtils.h"
 #include "Engine/Texture2D.h"
+#include "Interaction/AuraInteractionComponent.h"
 #include "ImageUtils.h"
 #include "Interfaces/IPluginManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -40,6 +51,16 @@ namespace AuraHUDPrivate
 	void SetTagField(const TSharedRef<FJsonObject>& Object, const TCHAR* FieldName, const FGameplayTag& Tag)
 	{
 		Object->SetStringField(FieldName, Tag.IsValid() ? Tag.ToString() : FString());
+	}
+
+	template <typename TEnum>
+	FString EnumName(TEnum Value)
+	{
+		if (const UEnum* Enum = StaticEnum<TEnum>())
+		{
+			return Enum->GetNameStringByValue(static_cast<int64>(Value));
+		}
+		return FString();
 	}
 
 	const TCHAR* GetManualSkillIconFilename(const FGameplayTag& AbilityTag)
@@ -119,6 +140,16 @@ void AAuraHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			TargetController->OnTargetPreview.RemoveDynamic(this, &AAuraHUD::HandleTargetPreviewForWebUI);
 			TargetController->OnTargetPreviewCleared.RemoveDynamic(this, &AAuraHUD::HandleTargetPreviewClearedForWebUI);
 		}
+		if (UAuraInteractionComponent* Interaction = AuraPC->GetInteractionComponent())
+		{
+			Interaction->OnPurchaseResult.RemoveAll(this);
+		}
+		if (AAuraPlayerState* PlayerState = AuraPC->GetPlayerState<AAuraPlayerState>())
+		{
+			if (PlayerState->GetCurrencyComponent()) PlayerState->GetCurrencyComponent()->OnCurrencyChanged.RemoveAll(this);
+			if (PlayerState->GetInventoryComponent()) PlayerState->GetInventoryComponent()->OnInventoryChanged.RemoveAll(this);
+			PlayerState->OnRoleChangedDelegate.RemoveAll(this);
+		}
 	}
 
 	if (WebUIBridge)
@@ -139,6 +170,11 @@ void AAuraHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	ManualSkillIconDataUriCache.Empty();
 	LastInteractionPayloadJson.Empty();
 	LastLocationPayloadJson.Empty();
+	LastRoleStatePayloadJson.Empty();
+	LastBattleStatePayloadJson.Empty();
+	LastMerchantPayloadJson.Empty();
+	WebMerchantComponent = nullptr;
+	bMerchantUIOpen = false;
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -276,6 +312,26 @@ void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 			TargetController->OnTargetPreview.AddDynamic(this, &AAuraHUD::HandleTargetPreviewForWebUI);
 			TargetController->OnTargetPreviewCleared.AddDynamic(this, &AAuraHUD::HandleTargetPreviewClearedForWebUI);
 		}
+		if (UAuraInteractionComponent* Interaction = AuraPC->GetInteractionComponent())
+		{
+			Interaction->OnPurchaseResult.RemoveAll(this);
+			Interaction->OnPurchaseResult.AddUObject(this, &AAuraHUD::HandlePurchaseResultForWebUI);
+		}
+		if (AAuraPlayerState* PlayerState = AuraPC->GetPlayerState<AAuraPlayerState>())
+		{
+			if (UAuraCurrencyComponent* Currency = PlayerState->GetCurrencyComponent())
+			{
+				Currency->OnCurrencyChanged.RemoveAll(this);
+				Currency->OnCurrencyChanged.AddUObject(this, &AAuraHUD::HandleCurrencyChangedForWebUI);
+			}
+			if (UAuraInventoryComponent* Inventory = PlayerState->GetInventoryComponent())
+			{
+				Inventory->OnInventoryChanged.RemoveAll(this);
+				Inventory->OnInventoryChanged.AddUObject(this, &AAuraHUD::HandleInventoryChangedForWebUI);
+			}
+			PlayerState->OnRoleChangedDelegate.RemoveAll(this);
+			PlayerState->OnRoleChangedDelegate.AddUObject(this, &AAuraHUD::HandleRoleChangedForWebUI);
+		}
 	}
 
 	WebUIBridge->OnCommand.AddDynamic(this, &AAuraHUD::HandleWebUICommand);
@@ -345,6 +401,9 @@ void AAuraHUD::SendInitialWebHUDState()
 	SendAttributeCatalogToWebUI();
 	SendSpellCatalogToWebUI();
 	SendLocationToWebUI();
+	SendRoleStateToWebUI();
+	SendBattleStateToWebUI();
+	SendEconomyStateToWebUI();
 	if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController()))
 	{
 		const FAuraTargetDescriptor& Descriptor = AuraPC->GetFocusedTargetDescriptor();
@@ -392,6 +451,31 @@ void AAuraHUD::HandleWebUICommand(const FString& Command, const FString& Payload
 	}
 	if (Command == TEXT("hud_quit_confirm")) { UGameplayStatics::OpenLevel(this, FName(TEXT("LoadMenu"))); return; }
 	if (Command == TEXT("hud_location_toggle")) { ToggleLocationDisplay(); return; }
+	if (Command == TEXT("hud_inventory_clicked")) { SetWebHUDMenuLayout(true); SendEconomyStateToWebUI(); return; }
+	if (Command == TEXT("hud_merchant_close"))
+	{
+		bMerchantUIOpen = false;
+		SendMerchantToWebUI(WebMerchantComponent.Get(), false);
+		SetWebHUDMenuLayout(false);
+		return;
+	}
+	if (Command == TEXT("hud_merchant_open"))
+	{
+		AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController());
+		AAuraCivilian* Civilian = AuraPC ? Cast<AAuraCivilian>(AuraPC->GetFocusedTargetActor()) : nullptr;
+		UAuraMerchantComponent* Merchant = Civilian ? Civilian->GetMerchantComponent() : nullptr;
+		const bool bTradeAvailable = AuraPC
+			&& AuraPC->GetFocusedTargetDescriptor().InteractionOptions.ContainsByPredicate(
+				[](const FAuraInteractionOption& Option) { return Option.OptionTag.MatchesTagExact(FAuraGameplayTags::Get().Interaction_Trade) && Option.bEnabled; });
+		if (Merchant && Merchant->IsMerchantActive() && bTradeAvailable)
+		{
+			bMerchantUIOpen = true;
+			WebMerchantComponent = Merchant;
+			SetWebHUDMenuLayout(true);
+			SendMerchantToWebUI(Merchant, true);
+		}
+		return;
+	}
 
 	TSharedPtr<FJsonObject> Payload;
 	if (!ParseWebPayload(PayloadJson, Payload))
@@ -443,13 +527,29 @@ void AAuraHUD::HandleWebUICommand(const FString& Command, const FString& Payload
 		double Index = -1.0;
 		if (Payload->TryGetNumberField(TEXT("index"), Index))
 		{
-			if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController())) AuraPC->SetFocusedInteractionOptionIndex(FMath::TruncToInt(Index));
+			if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController()))
+			{
+				AuraPC->SetFocusedInteractionOptionIndex(FMath::TruncToInt(Index));
+			}
 		}
 		return;
 	}
 	if (Command == TEXT("hud_interaction_activate"))
 	{
 		if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController())) AuraPC->WebInteractPressed();
+		return;
+	}
+	if (Command == TEXT("hud_merchant_buy"))
+	{
+		FString OfferId;
+		if (!Payload->TryGetStringField(TEXT("offerId"), OfferId)) return;
+		AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController());
+		AAuraCivilian* Civilian = AuraPC ? Cast<AAuraCivilian>(AuraPC->GetFocusedTargetActor()) : nullptr;
+		UAuraMerchantComponent* Merchant = Civilian ? Civilian->GetMerchantComponent() : nullptr;
+		if (AuraPC && AuraPC->GetInteractionComponent() && Merchant && Merchant->IsMerchantActive() && bMerchantUIOpen)
+		{
+			AuraPC->GetInteractionComponent()->RequestPurchase(Merchant->GetOwner(), FName(*OfferId));
+		}
 		return;
 	}
 	if (Command != TEXT("skill_ability_pressed") && Command != TEXT("skill_ability_held") && Command != TEXT("skill_ability_released")) return;
@@ -490,6 +590,13 @@ void AAuraHUD::HandleWebUIConnectionChanged(bool bConnected)
 			AuraPC->WebAbilityInputTagReleased(FAuraGameplayTags::Get().InputTag_LMB);
 		}
 		bWebGameplayLMBDown = false;
+	}
+	if (!bConnected)
+	{
+		LastInteractionPayloadJson.Empty();
+		LastRoleStatePayloadJson.Empty();
+		LastBattleStatePayloadJson.Empty();
+		LastMerchantPayloadJson.Empty();
 	}
 	bWebHUDReady = false;
 	UE_LOG(LogTemp, Display, TEXT("[AuraHUD] WebUI HUD %s; no native HUD fallback is enabled"), bConnected ? TEXT("connected") : TEXT("disconnected"));
@@ -539,6 +646,198 @@ void AAuraHUD::SendPlayerProgressToWebUI()
 	Payload->SetNumberField(TEXT("attributePoints"), WebAttributePoints);
 	Payload->SetNumberField(TEXT("spellPoints"), WebSpellPoints);
 	WebUIBridge->SendEvent(TEXT("hud_progress"), AuraHUDPrivate::SerializeObject(Payload));
+}
+
+void AAuraHUD::SendRoleStateToWebUI()
+{
+	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+
+	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	AAuraPlayerController* PC = Cast<AAuraPlayerController>(GetOwningPlayerController());
+	AAuraPlayerState* PS = PC ? PC->GetPlayerState<AAuraPlayerState>() : nullptr;
+	AAuraCharacterBase* Character = PC ? Cast<AAuraCharacterBase>(PC->GetPawn()) : nullptr;
+	if (Character)
+	{
+		const FAuraAppliedRoleState& RoleState = Character->GetAppliedRoleState();
+		const FAuraCombatIdentity& Identity = Character->GetCombatIdentity();
+		Payload->SetStringField(TEXT("roleId"), RoleState.RoleId.ToString());
+		AuraHUDPrivate::SetTagField(Payload, TEXT("entityType"), RoleState.EntityTypeTag);
+		AuraHUDPrivate::SetTagField(Payload, TEXT("economyProfile"), RoleState.EconomyProfileTag);
+		AuraHUDPrivate::SetTagField(Payload, TEXT("interactionProfile"), RoleState.InteractionProfileTag);
+		AuraHUDPrivate::SetTagField(Payload, TEXT("faction"), Identity.FactionTag);
+		AuraHUDPrivate::SetTagField(Payload, TEXT("controlType"), Identity.ControlTypeTag);
+		AuraHUDPrivate::SetTagField(Payload, TEXT("combatProfile"), Identity.CombatProfileTag);
+		AuraHUDPrivate::SetTagField(Payload, TEXT("deathPolicy"), Identity.DeathPolicyTag);
+		Payload->SetBoolField(TEXT("targetable"), Identity.bTargetable);
+		Payload->SetBoolField(TEXT("canAttack"), Identity.bCanAttack);
+		Payload->SetBoolField(TEXT("canBeDamaged"), Identity.bCanBeDamaged);
+		Payload->SetBoolField(TEXT("allowFriendlyFire"), Identity.bAllowFriendlyFire);
+		Payload->SetBoolField(TEXT("identityValid"), Character->HasValidCombatIdentity());
+
+		const EAuraCombatLifeState LifeState = Character->GetCombatLifeState();
+		Payload->SetNumberField(TEXT("lifeState"), static_cast<int32>(LifeState));
+		Payload->SetStringField(TEXT("lifeStateName"), AuraHUDPrivate::EnumName(LifeState));
+		if (LifeState != LastWebLifeState && WebUIBridge->IsServerRunning())
+		{
+			const TSharedRef<FJsonObject> LifePayload = MakeShared<FJsonObject>();
+			LifePayload->SetStringField(TEXT("message"), FString::Printf(TEXT("Life state: %s"), *AuraHUDPrivate::EnumName(LifeState)));
+			WebUIBridge->SendEvent(TEXT("hud_message"), AuraHUDPrivate::SerializeObject(LifePayload));
+			LastWebLifeState = LifeState;
+		}
+	}
+	else
+	{
+		Payload->SetStringField(TEXT("lifeStateName"), TEXT("Unknown"));
+		Payload->SetBoolField(TEXT("identityValid"), false);
+	}
+
+	if (PS)
+	{
+		Payload->SetStringField(TEXT("roleId"), Character ? Character->GetAppliedRoleState().RoleId.ToString() : PS->GetRole().ToString());
+		Payload->SetNumberField(TEXT("economyState"), static_cast<int32>(PS->GetEconomyInitializationState()));
+		Payload->SetStringField(TEXT("economyStateName"), AuraHUDPrivate::EnumName(PS->GetEconomyInitializationState()));
+		Payload->SetBoolField(TEXT("persistentProfile"), PS->GetEconomyInitializationState() == EAuraEconomyInitializationState::LoadedPersistent);
+	}
+
+	const FString PayloadJson = AuraHUDPrivate::SerializeObject(Payload);
+	if (PayloadJson == LastRoleStatePayloadJson) return;
+	LastRoleStatePayloadJson = PayloadJson;
+	WebUIBridge->SendEvent(TEXT("hud_role_state"), PayloadJson);
+}
+
+void AAuraHUD::SendBattleStateToWebUI()
+{
+	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+
+	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	Payload->SetStringField(TEXT("phaseName"), TEXT("Unknown"));
+	Payload->SetNumberField(TEXT("phase"), static_cast<int32>(EAuraBattlePhase::Peace));
+	Payload->SetStringField(TEXT("eventId"), FString());
+	Payload->SetNumberField(TEXT("populationActive"), 0);
+	Payload->SetNumberField(TEXT("populationMaximum"), 0);
+	Payload->SetNumberField(TEXT("populationPending"), 0);
+	Payload->SetNumberField(TEXT("populationCasualties"), 0);
+	Payload->SetBoolField(TEXT("available"), false);
+	for (TActorIterator<AAuraBattleDirector> It(GetWorld()); It; ++It)
+	{
+		const AAuraBattleDirector* Director = *It;
+		if (!Director) continue;
+		const EAuraBattlePhase Phase = Director->GetCurrentPhase();
+		Payload->SetNumberField(TEXT("phase"), static_cast<int32>(Phase));
+		Payload->SetStringField(TEXT("phaseName"), AuraHUDPrivate::EnumName(Phase));
+		Payload->SetStringField(TEXT("eventId"), Director->GetActiveBattleEventId().ToString());
+		Payload->SetNumberField(TEXT("configVersion"), Director->GetConfigVersion());
+		Payload->SetNumberField(TEXT("populationActive"), Director->GetPopulationActiveCount());
+		Payload->SetNumberField(TEXT("populationMaximum"), Director->GetPopulationMaximumCount());
+		Payload->SetNumberField(TEXT("populationPending"), Director->GetPopulationPendingCount());
+		Payload->SetNumberField(TEXT("populationCasualties"), Director->GetPopulationCasualtyCount());
+		Payload->SetBoolField(TEXT("available"), true);
+		break;
+	}
+
+	const FString PayloadJson = AuraHUDPrivate::SerializeObject(Payload);
+	if (PayloadJson == LastBattleStatePayloadJson) return;
+	LastBattleStatePayloadJson = PayloadJson;
+	WebUIBridge->SendEvent(TEXT("hud_battle_state"), PayloadJson);
+}
+
+void AAuraHUD::SendEconomyStateToWebUI()
+{
+	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+
+	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	AAuraPlayerController* PC = Cast<AAuraPlayerController>(GetOwningPlayerController());
+	AAuraPlayerState* PS = PC ? PC->GetPlayerState<AAuraPlayerState>() : nullptr;
+	const UAuraCurrencyComponent* Currency = PS ? PS->GetCurrencyComponent() : nullptr;
+	const UAuraInventoryComponent* Inventory = PS ? PS->GetInventoryComponent() : nullptr;
+	Payload->SetStringField(TEXT("currencyId"), Currency ? Currency->GetCurrencyId().ToString() : FString());
+	Payload->SetNumberField(TEXT("balance"), Currency ? static_cast<double>(Currency->GetBalance()) : 0.0);
+	Payload->SetNumberField(TEXT("walletRevision"), Currency ? Currency->GetRevision() : 0);
+	Payload->SetNumberField(TEXT("inventoryRevision"), Inventory ? Inventory->GetRevision() : 0);
+	Payload->SetNumberField(TEXT("usedSlots"), Inventory ? Inventory->GetUsedSlotCount() : 0);
+	Payload->SetStringField(TEXT("initializationState"), PS ? AuraHUDPrivate::EnumName(PS->GetEconomyInitializationState()) : FString(TEXT("Unknown")));
+
+	int32 MaxSlots = 0;
+	if (const UWorld* World = GetWorld())
+	{
+		if (const UGameInstance* GameInstance = World->GetGameInstance())
+		{
+			if (const UAuraEconomyRegistrySubsystem* Registry = GameInstance->GetSubsystem<UAuraEconomyRegistrySubsystem>())
+			{
+				if (Registry->IsReady()) MaxSlots = static_cast<int32>(Registry->GetSnapshot()->Settings.MaximumItemSlots);
+			}
+		}
+	}
+	Payload->SetNumberField(TEXT("maxSlots"), MaxSlots);
+
+	TArray<TSharedPtr<FJsonValue>> Items;
+	if (Inventory)
+	{
+		const UAuraEconomyRegistrySubsystem* Registry = nullptr;
+		if (const UWorld* World = GetWorld())
+		{
+			if (const UGameInstance* GameInstance = World->GetGameInstance()) Registry = GameInstance->GetSubsystem<UAuraEconomyRegistrySubsystem>();
+		}
+		for (const FAuraInventorySlot& Slot : Inventory->GetSlots())
+		{
+			const TSharedRef<FJsonObject> Item = MakeShared<FJsonObject>();
+			Item->SetStringField(TEXT("itemId"), Slot.ItemId.ToString());
+			Item->SetNumberField(TEXT("quantity"), static_cast<double>(Slot.Quantity));
+			if (Registry)
+			{
+				if (const FAuraItemDefinition* Definition = Registry->FindItem(Slot.ItemId)) Item->SetStringField(TEXT("displayName"), Definition->DisplayName.ToString());
+			}
+			Items.Add(MakeShared<FJsonValueObject>(Item));
+		}
+	}
+	Payload->SetArrayField(TEXT("items"), Items);
+	WebUIBridge->SendEvent(TEXT("hud_economy"), AuraHUDPrivate::SerializeObject(Payload));
+}
+
+void AAuraHUD::SendMerchantToWebUI(UAuraMerchantComponent* MerchantComponent, bool bVisible)
+{
+	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+
+	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	Payload->SetBoolField(TEXT("visible"), bVisible && MerchantComponent && MerchantComponent->IsMerchantActive());
+	if (MerchantComponent)
+	{
+		const FAuraMerchantPresentation& Presentation = MerchantComponent->GetPresentation();
+		Payload->SetStringField(TEXT("populationMemberId"), Presentation.PopulationMemberId.ToString());
+		Payload->SetStringField(TEXT("merchantDefinitionId"), Presentation.MerchantDefinitionId.ToString());
+		Payload->SetBoolField(TEXT("available"), Presentation.bAvailable);
+		Payload->SetNumberField(TEXT("stockRevision"), Presentation.StockRevision);
+		TArray<TSharedPtr<FJsonValue>> Offers;
+		for (const FAuraMerchantOfferPresentation& Offer : Presentation.Offers)
+		{
+			const TSharedRef<FJsonObject> OfferObject = MakeShared<FJsonObject>();
+			OfferObject->SetStringField(TEXT("offerId"), Offer.OfferId.ToString());
+			OfferObject->SetStringField(TEXT("itemId"), Offer.ItemId.ToString());
+			OfferObject->SetStringField(TEXT("itemDisplayName"), Offer.ItemDisplayName.ToString());
+			OfferObject->SetNumberField(TEXT("grantQuantity"), static_cast<double>(Offer.GrantQuantity));
+			OfferObject->SetNumberField(TEXT("buyPrice"), static_cast<double>(Offer.BuyPrice));
+			OfferObject->SetNumberField(TEXT("stockPolicy"), static_cast<int32>(Offer.StockPolicy));
+			OfferObject->SetStringField(TEXT("stockPolicyName"), AuraHUDPrivate::EnumName(Offer.StockPolicy));
+			OfferObject->SetNumberField(TEXT("currentStock"), static_cast<double>(Offer.CurrentStock));
+			OfferObject->SetNumberField(TEXT("stockRevision"), Offer.StockRevision);
+			OfferObject->SetBoolField(TEXT("available"), Offer.bAvailable);
+			Offers.Add(MakeShared<FJsonValueObject>(OfferObject));
+		}
+		Payload->SetArrayField(TEXT("offers"), Offers);
+	}
+
+	const FString PayloadJson = AuraHUDPrivate::SerializeObject(Payload);
+	if (PayloadJson == LastMerchantPayloadJson) return;
+	LastMerchantPayloadJson = PayloadJson;
+	WebUIBridge->SendEvent(TEXT("hud_merchant"), PayloadJson);
+}
+
+void AAuraHUD::SendMerchantClearedToWebUI()
+{
+	bMerchantUIOpen = false;
+	WebMerchantComponent = nullptr;
+	LastMerchantPayloadJson.Empty();
+	if (WebUIBridge && WebUIBridge->IsServerRunning()) WebUIBridge->SendEvent(TEXT("hud_merchant_cleared"), TEXT("{}"));
 }
 
 void AAuraHUD::SendAttributeCatalogToWebUI()
@@ -699,6 +998,18 @@ void AAuraHUD::SendInteractionToWebUI(const FAuraTargetDescriptor& Descriptor)
 	Payload->SetNumberField(TEXT("health"), Descriptor.Health);
 	Payload->SetNumberField(TEXT("maxHealth"), Descriptor.MaxHealth);
 	Payload->SetBoolField(TEXT("attackAllowed"), Descriptor.bLocallyAttackAllowed);
+	AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController());
+	AAuraCivilian* Civilian = AuraPC ? Cast<AAuraCivilian>(AuraPC->GetFocusedTargetActor()) : nullptr;
+	UAuraMerchantComponent* Merchant = Civilian ? Civilian->GetMerchantComponent() : nullptr;
+	if (Civilian)
+	{
+		const FAuraPopulationMemberState& MemberState = Civilian->GetPopulationMemberState();
+		Payload->SetStringField(TEXT("populationMemberId"), MemberState.PopulationMemberId.ToString());
+		Payload->SetStringField(TEXT("workProfileId"), MemberState.WorkProfileId.ToString());
+		Payload->SetStringField(TEXT("zoneId"), MemberState.ZoneId.ToString());
+		Payload->SetStringField(TEXT("activity"), AuraHUDPrivate::EnumName(Civilian->GetCivilianActivity()));
+		Payload->SetBoolField(TEXT("merchantAvailable"), Merchant && Merchant->IsMerchantActive());
+	}
 	TArray<TSharedPtr<FJsonValue>> Options;
 	for (int32 Index = 0; Index < Descriptor.InteractionOptions.Num(); ++Index)
 	{
@@ -713,16 +1024,60 @@ void AAuraHUD::SendInteractionToWebUI(const FAuraTargetDescriptor& Descriptor)
 	}
 	Payload->SetArrayField(TEXT("options"), Options);
 	const FString PayloadJson = AuraHUDPrivate::SerializeObject(Payload);
-	if (PayloadJson == LastInteractionPayloadJson) return;
-	LastInteractionPayloadJson = PayloadJson;
-	WebUIBridge->SendEvent(TEXT("hud_interaction"), PayloadJson);
+	if (PayloadJson != LastInteractionPayloadJson)
+	{
+		LastInteractionPayloadJson = PayloadJson;
+		WebUIBridge->SendEvent(TEXT("hud_interaction"), PayloadJson);
+	}
+	if (Merchant)
+	{
+		WebMerchantComponent = Merchant;
+		SendMerchantToWebUI(Merchant, bMerchantUIOpen);
+	}
+	else if (bMerchantUIOpen || WebMerchantComponent.IsValid())
+	{
+		SendMerchantClearedToWebUI();
+	}
 }
 void AAuraHUD::HandleTargetPreviewForWebUI(const FAuraTargetDescriptor& Descriptor) { SendInteractionToWebUI(Descriptor); }
 void AAuraHUD::HandleTargetPreviewClearedForWebUI()
 {
 	LastInteractionPayloadJson.Empty();
 	if (WebUIBridge && WebUIBridge->IsServerRunning()) WebUIBridge->SendEvent(TEXT("hud_interaction_cleared"), TEXT("{}"));
+	if (bMerchantUIOpen || WebMerchantComponent.IsValid()) SendMerchantClearedToWebUI();
 	SetWebHUDInteractionLayout(false);
+}
+
+void AAuraHUD::HandleCurrencyChangedForWebUI(int64 NewBalance, uint32 NewRevision)
+{
+	SendEconomyStateToWebUI();
+}
+
+void AAuraHUD::HandleInventoryChangedForWebUI(const TArray<FAuraInventorySlot>& Slots, uint32 NewRevision)
+{
+	SendEconomyStateToWebUI();
+}
+
+void AAuraHUD::HandlePurchaseResultForWebUI(const FGuid& SessionNonce, uint64 RequestId, EAuraCommerceResultCode ResultCode,
+	uint32 WalletRevision, uint32 InventoryRevision, uint32 StockRevision)
+{
+	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	Payload->SetStringField(TEXT("sessionNonce"), SessionNonce.ToString());
+	Payload->SetNumberField(TEXT("requestId"), static_cast<double>(RequestId));
+	Payload->SetNumberField(TEXT("resultCode"), static_cast<int32>(ResultCode));
+	Payload->SetStringField(TEXT("resultName"), AuraHUDPrivate::EnumName(ResultCode));
+	Payload->SetNumberField(TEXT("walletRevision"), WalletRevision);
+	Payload->SetNumberField(TEXT("inventoryRevision"), InventoryRevision);
+	Payload->SetNumberField(TEXT("stockRevision"), StockRevision);
+	WebUIBridge->SendEvent(TEXT("hud_merchant_result"), AuraHUDPrivate::SerializeObject(Payload));
+	SendEconomyStateToWebUI();
+}
+
+void AAuraHUD::HandleRoleChangedForWebUI(FName NewRole)
+{
+	LastRoleStatePayloadJson.Empty();
+	SendRoleStateToWebUI();
 }
 
 void AAuraHUD::SendLocationToWebUI()
@@ -855,6 +1210,8 @@ void AAuraHUD::DrawHUD()
 {
 	Super::DrawHUD();
 	SendLocationToWebUI();
+	SendRoleStateToWebUI();
+	SendBattleStateToWebUI();
 	if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController()))
 	{
 		const FAuraTargetDescriptor& Descriptor = AuraPC->GetFocusedTargetDescriptor();

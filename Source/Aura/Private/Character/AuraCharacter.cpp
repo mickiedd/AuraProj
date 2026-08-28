@@ -20,6 +20,8 @@
 #include "Components/TextRenderComponent.h"
 #include "Game/AuraGameModeBase.h"
 #include "Game/LoadScreenSaveGame.h"
+#include "Game/AuraPersistenceSubsystem.h"
+#include "Game/AuraPlayerSaveGame.h"
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -141,10 +143,6 @@ void AAuraCharacter::PossessedBy(AController* NewController)
 		MarkCombatReady();
 	}
 
-	if (AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this)))
-	{
-		AuraGameMode->LoadWorldState(GetWorld());
-	}
 }
 
 bool AAuraCharacter::LoadProgress()
@@ -171,9 +169,23 @@ bool AAuraCharacter::LoadProgress()
 		RejectLogin(TEXT("The persistent PlayerState ability system is unavailable."));
 		return false;
 	}
-
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
-	const ULoadScreenSaveGame* SaveData = nullptr;
+	UAuraPlayerSaveGame* PersistentProfile = AuraPlayerState->GetPendingPersistentProfile();
+	const ULoadScreenSaveGame* SaveData = PersistentProfile && !PersistentProfile->bFirstTimeLoadIn ? PersistentProfile : nullptr;
+	if (SaveData)
+	{
+		FString PersistenceError;
+		if (!AuraPlayerState->ApplyPersistentProfile(*PersistentProfile, PersistenceError))
+		{
+			RejectLogin(PersistenceError.IsEmpty() ? TEXT("The persistent profile could not be applied before pawn initialization.") : PersistenceError);
+			return false;
+		}
+	}
+	else if (!AuraPlayerState->InitializeEconomyForNewProfileOnce())
+	{
+		RejectLogin(TEXT("The authority economy registry is unavailable; player economy initialization was refused."));
+		return false;
+	}
 	FName AuthorizedRole = NAME_None;
 	if (GetNetMode() != NM_Standalone)
 	{
@@ -182,7 +194,13 @@ bool AAuraCharacter::LoadProgress()
 			RejectLogin(TEXT("The server did not retain an accepted role for this connection."));
 			return false;
 		}
-		AuthorizedRole = AuraPlayerState->GetPendingAcceptedRoleId();
+		AuthorizedRole = SaveData && !SaveData->Role.IsNone() ? SaveData->Role : AuraPlayerState->GetPendingAcceptedRoleId();
+		if (SaveData && !AuraPlayerState->GetPendingAcceptedRoleId().IsNone()
+			&& AuraPlayerState->GetPendingAcceptedRoleId() != AuthorizedRole)
+		{
+			RejectLogin(TEXT("The requested role does not match the authenticated persistent profile."));
+			return false;
+		}
 	}
 	else
 	{
@@ -216,6 +234,21 @@ bool AAuraCharacter::LoadProgress()
 			: Result.Message);
 		return false;
 	}
+	if (AuraGameMode && AuraGameMode->GetPersistenceSubsystemMutable()
+		&& AuraGameMode->GetPersistenceSubsystem()->IsPersistentLoginRequired())
+	{
+		FString PersistenceError;
+		if (!AuraGameMode->GetPersistenceSubsystemMutable()->SavePlayerProfile(
+			AuraPlayerState, Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent),
+			Cast<UAuraAttributeSet>(GetAttributeSet()), &PersistenceError))
+		{
+			RejectLogin(PersistenceError.IsEmpty() ? TEXT("The persistent profile could not be durably saved after initialization.") : PersistenceError);
+			return false;
+		}
+	}
+	// The prepared profile is a one-shot login snapshot. Keeping it on the
+	// PlayerState would make a later respawn re-apply the pre-mutation state.
+	AuraPlayerState->SetPendingPersistentProfile(nullptr);
 	return true;
 }
 

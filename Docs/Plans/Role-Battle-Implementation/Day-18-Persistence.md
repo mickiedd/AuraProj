@@ -213,3 +213,14 @@ Run:
 ## Completion gate
 
 Versioned server persistence cleanly separates validated per-player records from one shared world record. Two players and reconnect restore isolated role/economy state, while population and per-instance merchant stock restore deterministically exactly once before gameplay initialization.
+
+## Completion evidence (2026-08-28)
+
+- `build_test.bat`: AuraEditor Win64 Development passed after fail-closed profile application, manifest checksum, fixture deserialization, and merchant probe hardening.
+- All repository Python contracts passed: 13/13.
+- Focused native automation: 15/15 Day 18 persistence tests passed.
+- Full `Aura` native automation: 198/198 tests passed, 0 failed.
+- `RunRoleBattleDay18PersistenceSmoke.ps1 -Mode Listen`: passed two-profile purchase/checkpoint, reconnect wallet isolation, stale nonce rejection, duplicate identity rejection, world isolation, provider mismatch rejection, population/merchant restore, crash scan, and bounded teardown.
+- `RunRoleBattleDay18PersistenceSmoke.ps1 -Mode Dedicated`: passed the same assertions.
+- `git diff --check`: passed; only existing line-ending warnings were reported.
+- The checked-in `RoleBattleLegacyV0.sav` is a real `GVAS` SaveGame fixture and is deserialized by the native migration test. The live two-client identity path uses explicit non-shipping fixtures; production persistence still requires the configured authenticated Online Subsystem provider.

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Role/Battle Day 19 multiplayer hardening matrix</title>
+  <desc id="desc">Authoritative multiplayer security, replay, lifecycle, and performance validation across Listen and Dedicated server modes.</desc>
+  <rect width="1200" height="760" fill="#0b1220"/>
+  <rect x="42" y="38" width="1116" height="684" rx="24" fill="#111c31" stroke="#314566" stroke-width="2"/>
+  <text x="82" y="102" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="34" font-weight="700">Day 19 · Multiplayer hardening</text>
+  <text x="82" y="138" fill="#9fb4d0" font-family="Segoe UI,Arial,sans-serif" font-size="18">Final gate: authoritative state, replay safety, privacy, lifecycle, and bounded performance</text>
+  <rect x="82" y="174" width="1036" height="82" rx="14" fill="#123b35" stroke="#2dd4a8" stroke-width="2"/>
+  <text x="112" y="211" fill="#8ff0d2" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700">PASS · 25/25 focused · 223/223 full native · 14/14 Python</text>
+  <text x="112" y="239" fill="#c9f9eb" font-family="Segoe UI,Arial,sans-serif" font-size="16">Listen and Dedicated live matrices both passed with 100 ms / 20 ms / 2% emulation</text>
+  <text x="82" y="309" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700">Validation lanes</text>
+  <g font-family="Segoe UI,Arial,sans-serif">
+    <rect x="82" y="333" width="314" height="214" rx="16" fill="#182943"/>
+    <text x="108" y="374" fill="#7dd3fc" font-size="20" font-weight="700">Authority &amp; privacy</text>
+    <text x="108" y="411" fill="#dbeafe" font-size="16">Server-only mutations</text>
+    <text x="108" y="439" fill="#dbeafe" font-size="16">Owner-only economy</text>
+    <text x="108" y="467" fill="#dbeafe" font-size="16">Protected civilian rules</text>
+    <text x="108" y="495" fill="#dbeafe" font-size="16">FireGun attribution</text>
+    <text x="108" y="523" fill="#dbeafe" font-size="16">No Shipping probe path</text>
+    <rect x="443" y="333" width="314" height="214" rx="16" fill="#182943"/>
+    <text x="469" y="374" fill="#c4b5fd" font-size="20" font-weight="700">Replay &amp; lifecycle</text>
+    <text x="469" y="411" fill="#ede9fe" font-size="16">Cache bounded to 256</text>
+    <text x="469" y="439" fill="#ede9fe" font-size="16">Exact-once contention</text>
+    <text x="469" y="467" fill="#ede9fe" font-size="16">Gap and stale nonce reject</text>
+    <text x="469" y="495" fill="#ede9fe" font-size="16">Late join and reconnect</text>
+    <text x="469" y="523" fill="#ede9fe" font-size="16">Merchant death closure</text>
+    <rect x="804" y="333" width="314" height="214" rx="16" fill="#182943"/>
+    <text x="830" y="374" fill="#fcd34d" font-size="20" font-weight="700">Bounded performance</text>
+    <text x="830" y="411" fill="#fef3c7" font-size="16">Listen: CPU p95 0.45%</text>
+    <text x="830" y="439" fill="#fef3c7" font-size="16">Dedicated: CPU p95 0.12%</text>
+    <text x="830" y="467" fill="#fef3c7" font-size="16">Memory growth &lt; 6 MiB</text>
+    <text x="830" y="495" fill="#fef3c7" font-size="16">Bandwidth max &lt; 10 KiB/s</text>
+    <text x="830" y="523" fill="#fef3c7" font-size="16">30 s warmup · 60 s sample</text>
+  </g>
+  <line x1="82" y1="592" x2="1118" y2="592" stroke="#314566" stroke-width="2"/>
+  <circle cx="112" cy="640" r="10" fill="#2dd4a8"/>
+  <text x="138" y="647" fill="#dbeafe" font-family="Segoe UI,Arial,sans-serif" font-size="17">Listen PASS</text>
+  <circle cx="332" cy="640" r="10" fill="#2dd4a8"/>
+  <text x="358" y="647" fill="#dbeafe" font-family="Segoe UI,Arial,sans-serif" font-size="17">Dedicated PASS</text>
+  <circle cx="580" cy="640" r="10" fill="#60a5fa"/>
+  <text x="606" y="647" fill="#dbeafe" font-family="Segoe UI,Arial,sans-serif" font-size="17">Cooked StartupMap preflight</text>
+  <circle cx="904" cy="640" r="10" fill="#fcd34d"/>
+  <text x="930" y="647" fill="#dbeafe" font-family="Segoe UI,Arial,sans-serif" font-size="17">Existing map fixture documented</text>
+  <text x="82" y="690" fill="#7186a4" font-family="Segoe UI,Arial,sans-serif" font-size="14">2026-08-28 · Development validation; authenticated provider remains required for production identity</text>
+</svg>

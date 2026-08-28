@@ -9,6 +9,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Combat/AuraPickupEligibility.h"
 #include "Data/AuraGameplayConfig.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "AuraGameplayTags.h"
@@ -200,7 +201,7 @@ void AAuraEffectActor::ApplyDataDrivenEffect(AActor* TargetActor, const FString&
 {
 	if (!HasAuthority()) return;
 	if (!IsValid(TargetActor)) return;
-	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
+	if (!FAuraPickupEligibility::CanReceive(TargetActor, bApplyEffectsToEnemies)) return;
 	if (EffectName.IsEmpty()) return;
 
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
@@ -430,7 +431,7 @@ void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
 	if (!HasAuthority()) return;
 	if (!IsValid(TargetActor)) return;
-	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
+	if (!FAuraPickupEligibility::CanReceive(TargetActor, bApplyEffectsToEnemies)) return;
 
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap && !InstantEffectName.IsEmpty())
 	{
@@ -450,7 +451,7 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
 	if (!HasAuthority()) return;
 	if (!IsValid(TargetActor)) return;
-	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
+	if (!FAuraPickupEligibility::CanReceive(TargetActor, bApplyEffectsToEnemies)) return;
 
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap && !InstantEffectName.IsEmpty())
 	{

@@ -49,9 +49,9 @@ public:
 
 	/**
 	 * Manually trigger the server-lost path: stash the Login-screen message and
-	 * ClientTravel back to the Login level. Used by the UAuraCheatManager "KickOutSelf"
-	 * command so a tester can force a disconnect-to-Login without waiting for a real
-	 * network drop. Idempotent (guarded by bHandled, same as the real detectors).
+	 * ClientTravel back to the Login level. Used by development/test harnesses to force a
+	 * disconnect-to-Login without waiting for a real network drop. Idempotent (guarded by
+	 * bHandled, same as the real detectors).
 	 */
 	void RequestServerLost(const FString& Reason);
 

@@ -213,6 +213,23 @@ The legacy `.uasset` and `.snapshot.json` files listed in Section 4.2 above stil
 
 ---
 
+## Day 20 closeout follow-ups
+
+Day 20 removes the obsolete cheat/RPC mutation surface, centralizes pickup/combat eligibility, and
+documents the active FireGun XML path. The following are intentionally outside the completed
+vertical slice and remain tracked rather than being silently implied as shipped:
+
+- [ ] Add data-driven ammunition, reload, weapon durability, and fire-mode state to FireGun.
+- [ ] Add reputation/crime consequences and the server-owned economy policy for future businesses.
+- [ ] Add richer business schedules and stock restock rules after the current merchant contract is
+  extended with versioned manifests.
+- [ ] Keep role hot swapping disabled; if it becomes a product requirement, design a new
+  authority-only respawn transaction instead of reopening live role mutation.
+- [ ] Define offline timer semantics for corpse/refill and merchant stock timers across server
+  downtime.
+- [ ] Optimize large civilian crowds with a measured replication/behavior budget before increasing
+  the fixed Day 19 fixture.
+
 ## ⬜ Verification & Testing
 
 ### Phase 4 Verification Steps

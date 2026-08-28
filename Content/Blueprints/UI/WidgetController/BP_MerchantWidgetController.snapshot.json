@@ -1,0 +1,6 @@
+{
+  "asset": "BP_MerchantWidgetController",
+  "nativeClass": "/Script/Aura.MerchantWidgetController",
+  "delegates": ["OnMerchantPresentation", "OnPurchaseResult"],
+  "valueAuthority": "server replication and explicit owner result"
+}

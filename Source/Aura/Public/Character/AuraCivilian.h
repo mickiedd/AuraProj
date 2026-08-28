@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Character/AuraCharacterBase.h"
+#include "Combat/AuraCombatTypes.h"
 #include "AI/AuraCivilianBehaviorTypes.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "World/AuraPopulationTypes.h"
@@ -11,6 +12,7 @@
 
 class UWidgetComponent;
 class AAuraCivilianAIController;
+class UAuraMerchantComponent;
 
 /**
  * Day 08 role-derived ambient actor. It owns one replicated ASC and one
@@ -38,6 +40,7 @@ public:
 
 	void SetCivilianActivity(EAuraCivilianActivity InActivity);
 	EAuraCivilianActivity GetCivilianActivity() const { return CivilianActivity; }
+	UAuraMerchantComponent* GetMerchantComponent() const { return MerchantComponent; }
 	virtual FGameplayTag GetAuraTargetKind() const override;
 	virtual FText GetAuraTargetDisplayName() const override;
 	virtual FName GetAuraTargetZoneId() const override { return PopulationMemberState.ZoneId; }
@@ -50,6 +53,7 @@ protected:
 	virtual FGameplayTag GetRequiredRoleEntityType() const override;
 	virtual FGameplayTag GetRequiredRoleControlType() const override;
 	virtual void InitAbilityActorInfo() override;
+	void HandleMerchantLifeStateChanged(EAuraCombatLifeState NewState);
 
 	UFUNCTION()
 	void OnRep_PopulationMemberState();
@@ -65,6 +69,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Civilian|UI")
 	TObjectPtr<UWidgetComponent> HealthBar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Civilian|Economy")
+	TObjectPtr<UAuraMerchantComponent> MerchantComponent;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnAttributeChangedSignature OnHealthChanged;

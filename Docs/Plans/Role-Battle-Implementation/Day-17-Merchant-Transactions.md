@@ -167,3 +167,14 @@ Run:
 ## Completion gate
 
 The first business loop works end to end through a player-owned request endpoint: stable Civilian merchant binding, immutable server offer resolution, replay-safe atomic commit, owner Client result, replicated UI state, and no client authority over price or inventory outcome.
+
+## Completion evidence (2026-08-28)
+
+- `build_test.bat`: AuraEditor Win64 Development passed after final life-state, range, rollback, authority-guard, and deterministic contention-probe hardening.
+- All repository Python contracts passed: 12/12.
+- Focused native automation: 13/13 Day 17 tests passed.
+- Full `Aura` native automation: 183/183 tests passed, 0 failed.
+- `RunRoleBattleDay17NetworkSmoke.ps1 -Mode Listen`: passed exactly-once last-stock contention, owner result correlation, replay behavior, non-owner privacy, merchant-death UI closure, crash scanning, and bounded teardown.
+- `RunRoleBattleDay17NetworkSmoke.ps1 -Mode Dedicated`: passed the same assertions.
+- `git diff --check`: passed; only existing line-ending warnings were reported.
+- Live fixture deviation: the runner uses the existing configured `StartupMap.umap`; no fake `RoleBattleMerchantTest.umap` or binary merchant `.uasset` placeholders were added. Native widget/controller classes and JSON snapshots provide the BP-ready compatibility surface while the gameplay HUD remains WebUI-first under the project UI rule.

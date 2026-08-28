@@ -44,6 +44,8 @@ public:
 	bool InitializeDefinitions(FString& OutError);
 	void RegisterSpawnVolume(AAuraCivilianSpawnVolume* Volume);
 	void UnregisterSpawnVolume(AAuraCivilianSpawnVolume* Volume);
+	/** Applies one validated server snapshot before initial spawning; clients never call this. */
+	bool ApplyPersistenceSnapshot(const TArray<FAuraPopulationSlotSnapshot>& Snapshot, FString& OutError);
 	bool FinalizeInitialPopulation();
 	bool ValidateBattleZoneRegistrations(const UAuraBattleZoneConfig* ZoneConfig, FString& OutError) const;
 	void Shutdown();
@@ -59,6 +61,8 @@ public:
 	FName GetCurrentMapId() const { return FindCurrentMapId(); }
 	const FAuraCivilianWorkProfile* FindWorkProfile(FName WorkProfileId) const;
 	void GetLiveMembers(TArray<AAuraCivilian*>& OutMembers) const;
+	/** Returns true when a configured merchant slot is intentionally dormant and may restore stock later. */
+	bool IsDormantMerchantMember(FName PopulationMemberId, FName MerchantDefinitionId) const;
 
 	void RegisterActivityMarker(AAuraCivilianActivityMarker* Marker);
 	void UnregisterActivityMarker(AAuraCivilianActivityMarker* Marker);
@@ -86,6 +90,7 @@ private:
 	bool ValidateRoleAndClass(const FAuraPopulationSpawnRow& Row, FString& OutError) const;
 	bool SpawnInitialMember(const FAuraPopulationSpawnRow& Row, int32 SlotIndex);
 	bool SpawnMember(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, const TCHAR* Reason);
+	bool RestoreDormantSlot(FAuraPopulationRuntimeSlot& Slot, const FAuraPopulationSpawnRow& Row, const FAuraPopulationSlotSnapshot& Snapshot);
 	bool ResolveMemberState(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, FAuraPopulationMemberState& OutState) const;
 AAuraCivilianSpawnVolume* FindVolumeForRow(const FAuraPopulationSpawnRow& Row, int32 SlotIndex, int32 AttemptIndex) const;
 	void RollBackInitialPopulation();
@@ -95,6 +100,7 @@ AAuraCivilianSpawnVolume* FindVolumeForRow(const FAuraPopulationSpawnRow& Row, i
 	void BindMemberLifeState(FAuraPopulationRuntimeSlot& Slot, AAuraCivilian* Civilian);
 	void UnbindMemberLifeState(FAuraPopulationRuntimeSlot& Slot);
 	void HandleMemberLifeStateChanged(FName MemberId, int32 ExpectedGeneration, EAuraCombatLifeState NewState);
+	void PublishPopulationSummary();
 	void ScheduleCorpseCleanup(FAuraPopulationRuntimeSlot& Slot, const FAuraPopulationSpawnRow& Row);
 	void ExecuteCorpseCleanup(FName MemberId, int32 ExpectedGeneration, int32 ExpectedDeathSequence);
 	void ScheduleRefill(FAuraPopulationRuntimeSlot& Slot, const FAuraPopulationSpawnRow& Row, float DelaySeconds, const TCHAR* Reason);
@@ -127,11 +133,14 @@ AAuraCivilianSpawnVolume* FindVolumeForRow(const FAuraPopulationSpawnRow& Row, i
 	/** Number of accepted authoritative death events; repeated deaths of one stable member count separately. */
 	int32 RecordedPopulationDeathCount = 0;
 	TMap<FName, FAuraPopulationRuntimeSlot> RuntimeSlots;
+	TSet<FName> RestoredSlotIds;
+	TMap<FName, FAuraPopulationSlotSnapshot> RestoredSlotSnapshots;
 	TWeakObjectPtr<class AAuraBattleDirector> BoundBattleDirector;
 	FDelegateHandle PhaseChangedDelegateHandle;
 
 	bool bDefinitionsInitialized = false;
 	bool bInitialPopulationFinalized = false;
+	bool bPersistenceSnapshotConfigured = false;
 	bool bShuttingDown = false;
 	int32 InitializationGeneration = 0;
 };

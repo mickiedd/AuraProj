@@ -103,7 +103,11 @@ function Stop-OwnedProcess {
     try { $Owned.ExitCode = $Process.ExitCode } catch { $Owned.ExitCode = $null }
 }
 
-$ServerLog = Join-Path $LogDirectory "Day04-$Mode-Server.log"
+$ServerLog = if ($ServerRuntime -eq 'PackagedDedicated') {
+    Join-Path $ProjectRoot 'Saved\Cooked\WindowsServer\Aura\Saved\Logs\Day04-Dedicated-Server.log'
+} else {
+    Join-Path $LogDirectory "Day04-$Mode-Server.log"
+}
 $Client1Log = Join-Path $LogDirectory "Day04-$Mode-Client1.log"
 $Client2Log = Join-Path $LogDirectory "Day04-$Mode-Client2.log"
 $ReportPath = Join-Path $ReportDirectory "Day04-$Mode.json"
@@ -123,7 +127,7 @@ try {
         $(if ($ServerRuntime -eq 'PackagedDedicated') { $ServerMap } else { $ProjectFile }),
         $(if ($ServerRuntime -eq 'PackagedDedicated') { '' } else { $ServerMap }),
         '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
-        "-port=$ListenPort", '-RoleBattleDay4DamageProbe', "-abslog=$ServerLog"
+        "-port=$ListenPort", '-RoleBattleDay4DamageProbe', "-WorldPersistenceId=RoleBattleDay4$Mode", '-AuraPersistenceProvider=NULL', "-abslog=$ServerLog"
     ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
     $Server = Start-OwnedProcess 'Server' $ServerExe $ServerArguments
     $OwnedProcesses += $Server

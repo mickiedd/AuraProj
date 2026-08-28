@@ -75,7 +75,7 @@ function Wait-Pattern([string]$Path, [string]$Pattern, [pscustomobject]$Process)
 
 try {
     $ServerMap = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?Role=Aura?listen' } else { '/Game/Maps/StartupMap' }
-    $ServerArgs = @($ProjectFile, $ServerMap, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
+    $ServerArgs = @($ProjectFile, $ServerMap, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-WorldPersistenceId=RoleBattleDay${Day}", '-AuraPersistenceProvider=NULL', "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
     if ($Mode -eq 'Dedicated') { $ServerArgs += '-server' } else { $ServerArgs += '-game' }
     $Server = Start-Owned 'Server' $ServerArgs
 

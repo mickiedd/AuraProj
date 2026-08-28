@@ -1,0 +1,8 @@
+{
+  "asset": "WBP_Merchant",
+  "nativeClass": "/Script/Aura.AuraMerchantWidget",
+  "controller": "/Script/Aura.MerchantWidgetController",
+  "presentationSource": "replicated merchant presentation",
+  "purchaseSource": "owned interaction component",
+  "closeConditions": ["merchant unavailable", "merchant actor destroyed", "interaction range lost"]
+}

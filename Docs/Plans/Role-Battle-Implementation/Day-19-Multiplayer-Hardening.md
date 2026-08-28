@@ -185,6 +185,22 @@ Run from the repository root after the Day 18 prerequisite gate is recorded:
 
 The two mode invocations are mandatory; a single topology pass, an in-process-only AutoTest run, or a log-only result does not satisfy the Day 19 gate.
 
+## Completion evidence (2026-08-28)
+
+- `build_test.bat`: AuraEditor Win64 Development passed.
+- `BuildDedicatedServer.bat`: AuraServer Win64 Development passed.
+- Focused native automation: 25/25 Day 19 tests passed.
+- Full `Aura` native automation: 223/223 tests passed, with zero failure signals.
+- All repository Python contracts passed: 14/14; the Day 19 suite passed 14/14 checks.
+- WindowsServer cook for `/Game/Maps/StartupMap`: exit code 0 with zero cook errors; `DefaultGame.ini` now explicitly includes the map.
+- Listen runner on port 20019 and Dedicated runner on port 20029 both passed the Day 18 prerequisite, security matrix, late join, exact-once contention, replay-gap/nonce rejection, owner privacy, crash scan, and 30-second warmup plus 60-second sample under 100 ms lag, 20 ms jitter, and 2% packet loss.
+- External process samples were 12 per mode. Listen observed CPU p95/p99 0.45%/0.45%, memory growth 4.51 MiB, and max client bandwidth 9 KiB/s; Dedicated observed 0.12%/0.12%, 5.24 MiB, and 4 KiB/s.
+- `git diff --check` passed with only existing line-ending warnings.
+
+The live matrix uses the existing configured `StartupMap.umap`; no fake Day 19 binary map was introduced. The probe records the configured 37 population slots and 6 enemy rows separately from the live actor counts of 3 civilians, 2 enemies, and 1 merchant. Fixture identities and mutation probes are explicitly development-only; production still requires the configured authenticated Online Subsystem provider.
+
+Archive: [Day 19 multiplayer hardening](../../Reports/Change-Archive/2026-08-28-role-battle-day-19-multiplayer.md) with [illustration](../../Reports/Change-Archive/2026-08-28-role-battle-day-19-multiplayer.svg).
+
 ## Functional fixture
 
 Each topology contains:

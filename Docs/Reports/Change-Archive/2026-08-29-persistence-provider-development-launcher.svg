@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Development persistence provider launcher fix</title>
+  <desc id="desc">The previous client null identity was rejected by a Steam-configured development server. The launcher now passes a development-only NULL provider override while preserving the production Steam configuration.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1428"/>
+      <stop offset="1" stop-color="#111d35"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f87171"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4ade80"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Segoe UI, Arial, sans-serif; fill: #f8fafc; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #a8b8d6; }
+      .section { font: 700 20px Segoe UI, Arial, sans-serif; fill: #f8fafc; }
+      .label { font: 700 15px Segoe UI, Arial, sans-serif; fill: #e6edf9; }
+      .body { font: 400 14px Segoe UI, Arial, sans-serif; fill: #c5d2e8; }
+      .mono { font: 600 13px Consolas, monospace; fill: #dbeafe; }
+      .tiny { font: 400 12px Segoe UI, Arial, sans-serif; fill: #9fb0cf; }
+      .box { fill: #162540; stroke: #36527b; stroke-width: 1.5; rx: 12; }
+      .danger { fill: #321f2a; stroke: #ef6b73; stroke-width: 1.5; rx: 12; }
+      .success { fill: #17332e; stroke: #4ade80; stroke-width: 1.5; rx: 12; }
+      .neutral { fill: #1e293b; stroke: #64748b; stroke-width: 1.5; rx: 12; }
+    </style>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="56" y="58" class="title">Persistence provider mismatch — development launcher fix</text>
+  <text x="56" y="88" class="subtitle">The server and client must use the same provider identity before PreLogin can prepare a persistent profile.</text>
+
+  <text x="56" y="135" class="section">Observed failure</text>
+  <rect x="56" y="154" width="250" height="92" class="danger" filter="url(#shadow)"/>
+  <text x="181" y="184" text-anchor="middle" class="label">Client identity</text>
+  <text x="181" y="211" text-anchor="middle" class="mono">provider = null</text>
+  <line x1="315" y1="200" x2="420" y2="200" stroke="#f87171" stroke-width="3" marker-end="url(#arrowRed)"/>
+  <rect x="430" y="154" width="280" height="92" class="danger" filter="url(#shadow)"/>
+  <text x="570" y="184" text-anchor="middle" class="label">Authority server</text>
+  <text x="570" y="211" text-anchor="middle" class="mono">expected = Steam</text>
+  <line x1="719" y1="200" x2="824" y2="200" stroke="#f87171" stroke-width="3" marker-end="url(#arrowRed)"/>
+  <rect x="834" y="154" width="310" height="92" class="danger" filter="url(#shadow)"/>
+  <text x="989" y="184" text-anchor="middle" class="label">PreLogin</text>
+  <text x="989" y="211" text-anchor="middle" class="mono">Network error (code 8)</text>
+
+  <text x="56" y="300" class="section">Corrected development flow</text>
+  <rect x="56" y="320" width="220" height="112" class="box" filter="url(#shadow)"/>
+  <text x="166" y="350" text-anchor="middle" class="label">Local launcher</text>
+  <text x="166" y="377" text-anchor="middle" class="mono">StartGameServer</text>
+  <text x="166" y="404" text-anchor="middle" class="tiny">Windows or macOS</text>
+  <line x1="285" y1="376" x2="340" y2="376" stroke="#4ade80" stroke-width="3" marker-end="url(#arrowGreen)"/>
+
+  <rect x="350" y="320" width="245" height="112" class="success" filter="url(#shadow)"/>
+  <text x="472" y="350" text-anchor="middle" class="label">Explicit override</text>
+  <text x="472" y="377" text-anchor="middle" class="mono">AURA_PERSISTENCE_PROVIDER</text>
+  <text x="472" y="404" text-anchor="middle" class="mono">default: NULL</text>
+  <line x1="604" y1="376" x2="659" y2="376" stroke="#4ade80" stroke-width="3" marker-end="url(#arrowGreen)"/>
+
+  <rect x="669" y="320" width="245" height="112" class="success" filter="url(#shadow)"/>
+  <text x="791" y="350" text-anchor="middle" class="label">Game Server Manager</text>
+  <text x="791" y="377" text-anchor="middle" class="mono">--persistence-provider</text>
+  <text x="791" y="404" text-anchor="middle" class="mono">NULL</text>
+  <line x1="924" y1="376" x2="979" y2="376" stroke="#4ade80" stroke-width="3" marker-end="url(#arrowGreen)"/>
+
+  <rect x="989" y="320" width="155" height="112" class="success" filter="url(#shadow)"/>
+  <text x="1066" y="350" text-anchor="middle" class="label">Managed DS</text>
+  <text x="1066" y="377" text-anchor="middle" class="mono">-AuraPersistence</text>
+  <text x="1066" y="400" text-anchor="middle" class="mono">Provider=NULL</text>
+
+  <line x1="1066" y1="443" x2="1066" y2="493" stroke="#4ade80" stroke-width="3" marker-end="url(#arrowGreen)"/>
+  <rect x="824" y="503" width="320" height="90" class="success" filter="url(#shadow)"/>
+  <text x="984" y="533" text-anchor="middle" class="label">Provider identity matches</text>
+  <text x="984" y="560" text-anchor="middle" class="mono">null == expected NULL → accepted</text>
+  <line x1="824" y1="548" x2="716" y2="548" stroke="#4ade80" stroke-width="3" marker-end="url(#arrowGreen)"/>
+  <rect x="376" y="503" width="330" height="90" class="success" filter="url(#shadow)"/>
+  <text x="541" y="533" text-anchor="middle" class="label">Persistent profile preparation</text>
+  <text x="541" y="560" text-anchor="middle" class="body">continues through authenticated PreLogin</text>
+
+  <rect x="56" y="642" width="1088" height="72" class="neutral"/>
+  <text x="78" y="670" class="label">Production safety</text>
+  <text x="78" y="694" class="body">DefaultEngine.ini remains ExpectedProviderName=Steam. The command-line override is compiled out in Shipping; set AURA_PERSISTENCE_PROVIDER=Steam for a local Steam-backed development run.</text>
+  <text x="56" y="742" class="tiny">Validation: 15/15 Python contracts • focused Game Server Manager launch contract • CLI help • Python compile • git diff --check</text>
+</svg>

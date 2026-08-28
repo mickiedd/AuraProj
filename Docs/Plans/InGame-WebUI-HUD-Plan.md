@@ -6,6 +6,10 @@ Status: complete. The gameplay HUD is WebUI-only, split into three bounded brows
 
 Move the complete gameplay HUD to the existing in-game Web UI bridge: health, mana, progress, skills, attributes, spells, interaction, messages, location, and quit flow. Use independent transparent bottom, left-top, and right-top browser surfaces, preserve GAS press/hold/release behavior for explicit skill controls, and keep blank level clicks in the native viewport.
 
+## Role/battle coverage
+
+The player-facing coverage for the completed Day 01–18 role/battle milestones is tracked in [Role/Battle UI Incremental Plan](Role-Battle-UI-Incremental-Plan.md). It maps each server-side change to a HUD signal and defines the `hud_role_state`, `hud_battle_state`, `hud_interaction`, `hud_economy`, `hud_merchant`, and `hud_merchant_result` event contract.
+
 ## Contract
 
 Unreal sends `skill_panel_ability` events for equipped slots plus `hud_vitals`, `hud_progress`, `hud_attribute`, `hud_spell_catalog`, `hud_interaction`, `hud_message`, `hud_location`, and modal state events. The page requests a replay with `hud_ready` and sends validated skill, attribute, spell, interaction, location, and quit commands.

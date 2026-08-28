@@ -67,8 +67,9 @@ bool FAuraInteractionPolicy::Resolve(const AActor* Requester, const AActor* Targ
 	}
 	else if (OptionTag.MatchesTagExact(Tags.Interaction_Trade))
 	{
-		OutFailure = EAuraInteractionResultCode::FeatureUnavailable;
-		return false;
+		OutPolicy.HandlerId = TEXT("Trade"); OutPolicy.MaxRangeCm = 250.f;
+		OutPolicy.AllowedTargetKinds.Add(Tags.Target_Kind_Civilian);
+		OutPolicy.AllowedPhases = {EAuraBattlePhase::Peace, EAuraBattlePhase::Alert};
 	}
 	else return false;
 
@@ -110,8 +111,12 @@ bool FAuraInteractionPolicy::Resolve(const AActor* Requester, const AActor* Targ
 	const FAuraCombatPolicySnapshot ZoneSnapshot = ZoneConfig
 		? ZoneConfig->BuildPolicySnapshot(Director, Target->GetActorLocation(), Director->GetCurrentPhase(), Director->GetActiveBattleEventId())
 		: FAuraCombatPolicySnapshot();
-	if (!ZoneSnapshot.IsValid()
-		|| (!Targetable->GetAuraTargetZoneId().IsNone() && Targetable->GetAuraTargetZoneId() != ZoneSnapshot.GetBattleZoneId()))
+	const FName TargetZoneId = Targetable->GetAuraTargetZoneId();
+	const FString ResolvedZoneId = ZoneSnapshot.GetBattleZoneId().ToString();
+	const bool bTargetZoneMatches = TargetZoneId.IsNone()
+		|| TargetZoneId == ZoneSnapshot.GetBattleZoneId()
+		|| ResolvedZoneId.StartsWith(TargetZoneId.ToString(), ESearchCase::IgnoreCase);
+	if (!ZoneSnapshot.IsValid() || !bTargetZoneMatches)
 	{
 		OutFailure = EAuraInteractionResultCode::ZoneDenied; return false;
 	}

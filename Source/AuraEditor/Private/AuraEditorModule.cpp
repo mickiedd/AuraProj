@@ -43,7 +43,6 @@
 #include "Styling/AppStyle.h"
 #include "ToolMenus.h"
 
-#include "Player/AuraCheatManager.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Engine/Console.h"
 #include "Engine/Engine.h"
@@ -53,7 +52,6 @@
 #include "UObject/Class.h"
 #include "UObject/UnrealType.h"
 #include "Widgets/Input/SCheckBox.h"
-#include "Widgets/Input/STextEntryPopup.h"
 
 #define LOCTEXT_NAMESPACE "FAuraEditorModule"
 
@@ -321,111 +319,7 @@ private:
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnAddNavMeshBoundsVolumeClicked)));
 		MenuBuilder.EndSection();
 
-		MenuBuilder.BeginSection("AuraCheatCommandsSection", LOCTEXT("AuraCheatCommandsSectionLabel", "Cheat Commands"));
-		BuildCheatCommandMenu(MenuBuilder);
-		MenuBuilder.EndSection();
-
 		return MenuBuilder.MakeWidget();
-	}
-
-	// ---- Cheat command combo list ------------------------------------------
-
-	struct FCheatCommandInfo
-	{
-		FString Name;
-		FString Signature;
-		bool bHasParameters = false;
-	};
-
-	/**
-	 * Enumerate the Exec UFUNCTIONs declared on UAuraCheatManager (own class only,
-	 * excluding inherited engine cheats) so the menu auto-updates whenever a new
-	 * cheat is added to the runtime class.
-	 */
-	void GatherCheatCommands(TArray<FCheatCommandInfo>& OutCommands) const
-	{
-		const UClass* CheatClass = UAuraCheatManager::StaticClass();
-		if (CheatClass == nullptr)
-		{
-			return;
-		}
-
-		for (TFieldIterator<UFunction> It(CheatClass, EFieldIteratorFlags::ExcludeSuper, EFieldIteratorFlags::ExcludeDeprecated); It; ++It)
-		{
-			const UFunction* Func = *It;
-			if (Func == nullptr || !Func->HasAnyFunctionFlags(FUNC_Exec))
-			{
-				continue;
-			}
-
-			FCheatCommandInfo Info;
-			Info.Name = Func->GetName();
-
-			FString ParamList;
-			for (TFieldIterator<FProperty> ParamIt(Func); ParamIt; ++ParamIt)
-			{
-				const FProperty* Param = *ParamIt;
-				if (Param == nullptr || Param->HasAnyPropertyFlags(CPF_ReturnParm))
-				{
-					continue;
-				}
-
-				if (!ParamList.IsEmpty())
-				{
-					ParamList += TEXT(", ");
-				}
-				ParamList += FString::Printf(TEXT("%s %s"), *Param->GetCPPType(), *Param->GetName());
-			}
-
-			Info.bHasParameters = !ParamList.IsEmpty();
-			Info.Signature = FString::Printf(TEXT("%s(%s)"), *Info.Name, *ParamList);
-			OutCommands.Add(MoveTemp(Info));
-		}
-
-		OutCommands.Sort([](const FCheatCommandInfo& A, const FCheatCommandInfo& B)
-		{
-			return A.Name < B.Name;
-		});
-	}
-
-	void BuildCheatCommandMenu(FMenuBuilder& MenuBuilder) const
-	{
-		TArray<FCheatCommandInfo> Commands;
-		GatherCheatCommands(Commands);
-
-		if (Commands.IsEmpty())
-		{
-			AddDisabledMenuEntry(
-				MenuBuilder,
-				LOCTEXT("AuraCheatCommandsNoneLabel", "No Aura cheat commands found"),
-				LOCTEXT("AuraCheatCommandsNoneTooltip", "UAuraCheatManager exposed no Exec commands. Rebuild the Aura runtime module and reopen this menu."));
-			return;
-		}
-
-		for (const FCheatCommandInfo& Info : Commands)
-		{
-			const FText Label = FText::FromString(Info.Name);
-			const FText Tooltip = FText::Format(
-				LOCTEXT("AuraCheatCommandTooltip", "Run `{0}` in the PIE console.\nSignature: {1}"),
-				FText::FromString(Info.Name),
-				FText::FromString(Info.Signature));
-
-			MenuBuilder.AddMenuEntry(
-				Label,
-				Tooltip,
-				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateLambda([this, Info]()
-				{
-					if (Info.bHasParameters)
-					{
-						PromptForCheatArguments(Info);
-					}
-					else
-					{
-						SendConsoleCommandToPIE(Info.Name);
-					}
-				})));
-		}
 	}
 
 	/** Sends a console command to every running PIE session's in-game console. */
@@ -475,50 +369,6 @@ private:
 	{
 		UE_LOG(LogAuraEditor, Display, TEXT("Config Studio menu option clicked"));
 		SendConsoleCommandToPIE(TEXT("AuraWebUI.ConfigEditor"));
-	}
-
-	/**
-	 * For parameterized cheat commands, pop up a small text entry at the cursor
-	 * to collect the argument string, then run `<Command> <Args>` in the PIE console.
-	 */
-	void PromptForCheatArguments(const FCheatCommandInfo& Info) const
-	{
-		const TSharedRef<STextEntryPopup> TextEntry = SNew(STextEntryPopup)
-			.Label(FText::Format(LOCTEXT("CheatArgsLabel", "Arguments for {0}:"), FText::FromString(Info.Name)))
-			.HintText(FText::FromString(Info.Signature))
-			.SelectAllTextWhenFocused(false)
-			.ClearKeyboardFocusOnCommit(true)
-			.OnTextCommitted(FOnTextCommitted::CreateLambda([this, Info](const FText& InText, ETextCommit::Type CommitType)
-			{
-				if (CommitType != ETextCommit::OnEnter)
-				{
-					return;
-				}
-
-				const FString Args = InText.ToString().TrimStartAndEnd();
-				if (Args.IsEmpty())
-				{
-					return;
-				}
-
-				SendConsoleCommandToPIE(Info.Name + TEXT(" ") + Args);
-			}));
-
-		const TSharedPtr<SWindow> ParentWindow = FSlateApplication::Get().GetActiveTopLevelWindow();
-		if (!ParentWindow.IsValid())
-		{
-			// No window to host the popup; fall back to running the bare command
-			// (the cheat will report missing arguments in the PIE console).
-			SendConsoleCommandToPIE(Info.Name);
-			return;
-		}
-
-		FSlateApplication::Get().PushMenu(
-			ParentWindow.ToSharedRef(),
-			FWidgetPath(),
-			TextEntry,
-			FSlateApplication::Get().GetCursorPos(),
-			FPopupTransitionEffect(FPopupTransitionEffect::TypeInPopup));
 	}
 
 	struct FDedicatedServerLaunchLevel

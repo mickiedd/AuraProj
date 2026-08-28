@@ -113,7 +113,7 @@ try {
 
     $Server = Start-Owned 'Server' $ServerExe.FullName $ServerExe.Directory.FullName @(
         '/Game/Maps/StartupMap', '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
-        "-port=$Port", '-RoleBattleDay6NetworkProbe', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog"
+        "-port=$Port", '-RoleBattleDay6NetworkProbe', '-WorldPersistenceId=RoleBattleDay7Packaged', '-AuraPersistenceProvider=NULL', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog"
     )
     $OwnedProcesses += $Server
     if (-not (Wait-ForPattern $ServerLog 'GameNetDriver.*Listening|Browse:.*StartupMap' 45 $Server)) { throw 'Packaged server did not reach its listening startup gate.' }

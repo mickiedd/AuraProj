@@ -17,11 +17,13 @@ class URoleInfo;
 class UAuraPopulationManager;
 class UAuraDeathPolicyDispatcher;
 class UAuraEconomyRegistrySubsystem;
+class UAuraPersistenceSubsystem;
 class AAuraBattleDirector;
 struct FAuraDeathEvent;
 class AAuraEnemy;
 class APlayerController;
 class APlayerState;
+class APawn;
 struct FUniqueNetIdRepl;
 
 UENUM(BlueprintType)
@@ -144,6 +146,10 @@ public:
 	UPROPERTY(Transient)
 	TObjectPtr<UAuraEconomyRegistrySubsystem> EconomyRegistry;
 
+	/** Authority-only profile/world persistence coordinator. */
+	UPROPERTY(Transient)
+	TObjectPtr<UAuraPersistenceSubsystem> PersistenceSubsystem;
+
 	/** Server-wide neutral death event boundary; policy handlers bind once here. */
 	UPROPERTY(Transient)
 	TObjectPtr<UAuraDeathPolicyDispatcher> DeathPolicyDispatcher;
@@ -215,8 +221,10 @@ public:
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 	virtual void RestartPlayer(AController* NewPlayer) override;
+	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
@@ -228,6 +236,8 @@ public:
 	const UAuraPopulationManager* GetPopulationManager() const { return PopulationManager; }
 	UAuraPopulationManager* GetPopulationManagerMutable() const { return PopulationManager; }
 	const UAuraEconomyRegistrySubsystem* GetEconomyRegistry() const { return EconomyRegistry; }
+	const UAuraPersistenceSubsystem* GetPersistenceSubsystem() const { return PersistenceSubsystem; }
+	UAuraPersistenceSubsystem* GetPersistenceSubsystemMutable() const { return PersistenceSubsystem; }
 	const UAuraDeathPolicyDispatcher* GetDeathPolicyDispatcher() const { return DeathPolicyDispatcher; }
 	UAuraDeathPolicyDispatcher* GetDeathPolicyDispatcherMutable() const { return DeathPolicyDispatcher; }
 	const AAuraBattleDirector* GetBattleDirector() const { return BattleDirector; }
@@ -235,6 +245,7 @@ public:
 	EAuraWorldReadiness GetWorldReadiness() const { return WorldReadiness; }
 	const FString& GetWorldReadinessReason() const { return WorldReadinessReason; }
 	bool IsWorldReadyForPlay() const { return WorldReadiness == EAuraWorldReadiness::Ready; }
+	int32 GetLoadedMonsterSpawnRowCount() const { return LoadedMonsterSpawnRows.Num(); }
 	static EAuraWorldReadiness EvaluateWorldReadiness(bool bRoleReady, bool bDispatcherReady, bool bDirectorReady,
 		bool bPopulationReady, bool bCrossValidationReady, bool bPopulationFinalized);
 
@@ -275,6 +286,11 @@ protected:
 	UFUNCTION(BlueprintPure, Category = "Item Spawn")
 	const TArray<FItemSpawnTableRow>& GetLoadedItemSpawnRows() const { return LoadedItemSpawnRows; }
 
+#if !UE_BUILD_SHIPPING
+	/** Development-only automation fixture, registered by the non-Shipping console path. */
+	virtual bool ProcessConsoleExec(const TCHAR* Cmd, FOutputDevice& Ar, UObject* Executor) override;
+#endif
+
 private:
 	FString BuildUniquePlayerName(const FString& RequestedName, const FString& DisambiguationToken = FString(), const APlayerState* ExcludedPlayerState = nullptr) const;
 	FString BuildConnectionDisambiguationToken(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId) const;
@@ -298,6 +314,10 @@ private:
 	void SetWorldReadiness(EAuraWorldReadiness NewReadiness, const FString& Reason);
 	void ScheduleDedicatedServerReadyNotification();
 	void RunRoleBattleDays1012NetworkProbe();
+	void RunRoleBattleDay16NetworkProbe();
+	void RunRoleBattleDay17NetworkProbe();
+	void RunRoleBattleDay18PersistenceProbe();
+	void RunRoleBattleDay19NetworkProbe();
 
 	void HandleDedicatedServerReadyNotify();
 	bool TryBuildDedicatedServerReadyContext(FString& OutLevelId, int32& OutServerPort, FString& OutGameServerAddress, int32& OutGameServerPort) const;
@@ -323,11 +343,24 @@ private:
 	int32 DedicatedServerReadyNotifyAttempts = 0;
 	FTimerHandle DedicatedServerReadyNotifyTimerHandle;
 	FTimerHandle RoleBattleStartupTimerHandle;
+	FTimerHandle RoleBattleDay16ProbeTimerHandle;
+	FTimerHandle RoleBattleDay17ProbeTimerHandle;
+	FTimerHandle Day17ProbeCloseTimerHandle;
+	FTimerHandle RoleBattleDay18ProbeTimerHandle;
+	FTimerHandle RoleBattleDay19ProbeTimerHandle;
 	EAuraWorldReadiness WorldReadiness = EAuraWorldReadiness::Initializing;
 	FString WorldReadinessReason = TEXT("Role/Battle startup is initializing.");
 	/** True only when the economy registry was loaded successfully for this map instance. */
 	bool bEconomyRegistryLoadedForCurrentWorld = false;
 	bool bSkipInitialPopulationForLegacyDay8Probe = false;
+	bool bDay16ProbeFixtureMutationApplied = false;
+	bool bDay16ProbeRespawnRequested = false;
+	TWeakObjectPtr<APawn> Day16ProbePreviousPawn;
+	int64 Day16ProbeExpectedBalance = 0;
+	int32 Day16ProbeExpectedInitializationCount = 0;
+	bool bDay17ProbeFixtureReady = false;
+	bool bDay18ProbeFixtureReady = false;
+	bool bDay19ProbeFixtureReady = false;
 
 	FTimerHandle RoleConfigPollTimerHandle;
 

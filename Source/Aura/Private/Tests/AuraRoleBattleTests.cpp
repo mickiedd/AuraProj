@@ -840,6 +840,8 @@ namespace AuraRoleBattleTestsPrivate
 		// Test fixtures
 		TEXT("Source/Aura/Private/Tests/AuraRoleBattleTests.cpp"),
 		TEXT("Source/Aura/Private/Tests/AuraRoleBattleDays1012Tests.cpp"),
+		TEXT("Source/Aura/Private/Tests/AuraRoleBattleMultiplayerTests.cpp"),
+		TEXT("Source/Aura/Private/Tests/AuraGameplayDefinitionTests.cpp"),
 		TEXT("Source/Aura/Private/Tests/AuraPickupGameplayEffectTests.cpp"),
 	};
 	const int32 DamageSymbolNonProducerFileCount = UE_ARRAY_COUNT(DamageSymbolNonProducerFiles);

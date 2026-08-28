@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">Role and Battle UI discoverability flow</title>
+  <desc id="desc">Day 1 through Day 18 authoritative gameplay state flows through the Aura HUD into three bounded WebUI panels, with validated commands returning to the server.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#081525"/><stop offset="1" stop-color="#142b42"/></linearGradient>
+    <linearGradient id="source" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#173c59"/><stop offset="1" stop-color="#10263d"/></linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#234c66"/><stop offset="1" stop-color="#162d46"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".32"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#76d9ff"/></marker>
+    <marker id="returnArrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#ffd56b"/></marker>
+    <style>
+      .title{font:700 28px Inter,Arial,sans-serif;fill:#f3f8ff}.subtitle{font:400 15px Inter,Arial,sans-serif;fill:#a9c1d7}.box-title{font:700 17px Inter,Arial,sans-serif;fill:#fff}.body{font:400 14px Inter,Arial,sans-serif;fill:#d7e8f5}.small{font:400 12px Inter,Arial,sans-serif;fill:#9ebbd0}.tag{font:700 12px ui-monospace,Consolas,monospace;fill:#ffe08a}.arrow-label{font:600 12px Inter,Arial,sans-serif;fill:#76d9ff}.return-label{font:600 12px Inter,Arial,sans-serif;fill:#ffd56b}.line{stroke:#76d9ff;stroke-width:2.5;fill:none;marker-end:url(#arrow)}.return{stroke:#ffd56b;stroke-width:2;stroke-dasharray:8 6;fill:none;marker-end:url(#returnArrow)}
+    </style>
+  </defs>
+  <rect width="1400" height="820" rx="22" fill="url(#bg)"/>
+  <text x="52" y="58" class="title">Role/Battle UI discoverability — Day 01–18</text>
+  <text x="52" y="86" class="subtitle">Before: authoritative changes were implemented but mostly invisible in-game. After: each player-relevant state has a bounded, replayable WebUI signal.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="52" y="142" width="320" height="476" rx="16" fill="url(#source)" stroke="#3d7191"/>
+    <text x="76" y="180" class="box-title">Authoritative state</text>
+    <text x="76" y="204" class="small">Server/replicated sources · no UI-owned truth</text>
+    <rect x="76" y="230" width="272" height="72" rx="10" fill="#102a40" stroke="#2d6686"/>
+    <text x="94" y="256" class="box-title">Days 01–07 · player combat</text>
+    <text x="94" y="278" class="body">Role, identity, life state, loadout,</text><text x="94" y="297" class="body">ability readiness and combat permission</text>
+    <rect x="76" y="320" width="272" height="86" rx="10" fill="#102a40" stroke="#2d6686"/>
+    <text x="94" y="346" class="box-title">Days 08–14 · world interaction</text>
+    <text x="94" y="368" class="body">Civilian activity, stable population,</text><text x="94" y="387" class="body">battle phase, target and Interact policy</text>
+    <rect x="76" y="424" width="272" height="86" rx="10" fill="#102a40" stroke="#2d6686"/>
+    <text x="94" y="450" class="box-title">Days 15–18 · economy/persistence</text>
+    <text x="94" y="472" class="body">Registry items, owner wallet/inventory,</text><text x="94" y="491" class="body">merchant results, player/world restore state</text>
+    <text x="76" y="558" class="tag">AAuraHUD · native delegates · replicated director</text>
+    <text x="76" y="582" class="small">Population summary is published by the server</text>
+    <text x="76" y="600" class="small">from active slots, capacity, and accepted deaths.</text>
+  </g>
+
+  <path d="M372 258 C430 258 430 218 494 218" class="line"/><text x="395" y="231" class="arrow-label">hud_role_state</text>
+  <path d="M372 364 C430 364 430 350 494 350" class="line"/><text x="395" y="343" class="arrow-label">hud_battle_state</text>
+  <path d="M372 470 C430 470 430 482 494 482" class="line"/><text x="395" y="462" class="arrow-label">hud_economy / merchant</text>
+
+  <g filter="url(#shadow)">
+    <rect x="494" y="142" width="390" height="476" rx="16" fill="#0c1e31" stroke="#3d7191"/>
+    <text x="520" y="180" class="box-title">AAuraHUD event contract</text>
+    <text x="520" y="204" class="small">Cached JSON replay on browser ready; changes only emit when state changes.</text>
+    <rect x="520" y="232" width="338" height="60" rx="9" fill="#132d43" stroke="#2d6686"/>
+    <text x="538" y="258" class="tag">hud_role_state</text><text x="538" y="280" class="body">role · faction · life · persistence mode</text>
+    <rect x="520" y="306" width="338" height="60" rx="9" fill="#132d43" stroke="#2d6686"/>
+    <text x="538" y="332" class="tag">hud_battle_state</text><text x="538" y="354" class="body">phase/event · active/max/pending civilians · casualties</text>
+    <rect x="520" y="380" width="338" height="60" rx="9" fill="#132d43" stroke="#2d6686"/>
+    <text x="538" y="406" class="tag">hud_interaction</text><text x="538" y="428" class="body">target relationship · activity · attack/Interact</text>
+    <rect x="520" y="454" width="338" height="60" rx="9" fill="#132d43" stroke="#2d6686"/>
+    <text x="538" y="480" class="tag">hud_economy · hud_merchant</text><text x="538" y="502" class="body">owner state · offers · stock · result revisions</text>
+    <text x="520" y="558" class="tag">guard</text><text x="578" y="558" class="body">browser never supplies price, role, stock, or combat authority</text>
+    <text x="520" y="582" class="small">Commands are routed through the focused native target and</text><text x="520" y="600" class="small">server validation before any gameplay mutation.</text>
+  </g>
+
+  <path d="M884 218 C932 218 932 182 974 182" class="line"/><text x="900" y="196" class="arrow-label">identity + battle</text>
+  <path d="M884 350 C932 350 932 350 974 350" class="line"/><text x="900" y="338" class="arrow-label">target context</text>
+  <path d="M884 482 C932 482 932 518 974 518" class="line"/><text x="900" y="505" class="arrow-label">owner economy</text>
+
+  <g filter="url(#shadow)">
+    <rect x="974" y="142" width="374" height="476" rx="16" fill="#0c1e31" stroke="#3d7191"/>
+    <text x="1000" y="180" class="box-title">Three bounded WebUI panels</text>
+    <rect x="1000" y="214" width="322" height="88" rx="10" fill="url(#panel)" stroke="#4e91ad"/>
+    <text x="1020" y="242" class="box-title">Left-top · “What is happening?”</text>
+    <text x="1020" y="264" class="body">Role/faction/life, battle phase/event,</text><text x="1020" y="284" class="body">civilian active/max/pending and persistence mode</text>
+    <rect x="1000" y="326" width="322" height="88" rx="10" fill="url(#panel)" stroke="#4e91ad"/>
+    <text x="1020" y="354" class="box-title">Bottom · “What can I do?”</text>
+    <text x="1020" y="376" class="body">Skills, target activity, combat protected/ready,</text><text x="1020" y="396" class="body">Interact and Trade affordances</text>
+    <rect x="1000" y="438" width="322" height="88" rx="10" fill="url(#panel)" stroke="#4e91ad"/>
+    <text x="1020" y="466" class="box-title">Right-top · “What do I own?”</text>
+    <text x="1020" y="488" class="body">Wallet/inventory, merchant offers, stock,</text><text x="1020" y="508" class="body">pending purchases and authoritative results</text>
+    <text x="1000" y="570" class="tag">WebUI-only · local player · transparent host</text>
+    <text x="1000" y="594" class="small">Readability is bounded to the relevant panel; blank level clicks</text><text x="1000" y="612" class="small">remain native gameplay input.</text>
+  </g>
+
+  <path d="M1135 642 C1135 718 668 718 668 642" class="return"/><text x="810" y="744" class="return-label">validated commands: select / Interact / Trade / Buy / close</text>
+  <text x="52" y="776" class="small">Validation: AuraEditor build · AuraWebUI.Plugin.ContentContract · Aura.UI.WebSkillPanel.HUDContract · Node syntax checks · git diff --check</text>
+</svg>

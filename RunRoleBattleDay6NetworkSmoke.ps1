@@ -94,7 +94,7 @@ try {
     $ServerMap = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?listen' } else { '/Game/Maps/StartupMap' }
     $Server = Start-OwnedProcess 'Server' @(
         $ProjectFile, $ServerMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
-        "-port=$Port", '-RoleBattleDay6NetworkProbe', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog"
+        "-port=$Port", '-RoleBattleDay6NetworkProbe', '-WorldPersistenceId=RoleBattleDay6', '-AuraPersistenceProvider=NULL', '-SaveToUserDir', "-UserDir=$ServerUserDir", "-abslog=$ServerLog"
     )
     if (-not (Wait-ForPattern $ServerLog 'GameNetDriver.*Listening|Browse:.*StartupMap' $StartupTimeoutSeconds $Server)) {
         throw 'Server did not reach its listening startup gate.'

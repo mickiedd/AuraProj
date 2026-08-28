@@ -19,7 +19,7 @@
 	"Modules": [
 		{
 			"Name": "AuraAutoTestRuntime",
-			"Type": "Runtime",
+			"Type": "DeveloperTool",
 			"LoadingPhase": "Default",
 			"PlatformAllowList": [
 				"Win64",

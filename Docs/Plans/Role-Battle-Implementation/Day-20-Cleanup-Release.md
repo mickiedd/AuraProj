@@ -251,3 +251,9 @@ Create `Docs/Reports/Role-Battle-Vertical-Slice-{completion-date}.md` containing
 ## Completion gate
 
 The slice is complete only when cleanup precedes and survives the full release pipeline, all required commands and artifacts are recorded in the dated report, both packaged listen and dedicated matrices pass with two remote clients, and no required test is skipped. Any failed build, cook, package, staged-data, migration, security, privacy, persistence, or performance gate blocks release.
+
+## Verification disposition (2026-08-28)
+
+Phase A cleanup and all executable local Phase B checks passed after the Day 20 changes, including a regression proving that the historical `GA_MeleeAttack` snapshot is not an active grant path: `EnemyAbilityConfig.json` selects `EnemyMeleeAttack.xml`, which uses `EnemyMeleeDamage`. The evidence is recorded in [Role-Battle-Vertical-Slice-2026-08-28.md](../../Reports/Role-Battle-Vertical-Slice-2026-08-28.md) and the matching [change archive](../../Reports/Change-Archive/2026-08-28-role-battle-day-20-cleanup-release.md).
+
+The formal completion gate remains **blocked**: this host has no configured production Online Subsystem/App ID and no two authorized release accounts, so the required authenticated production identity check and the dependent packaged Shipping Listen/Dedicated two-remote-client matrices cannot be executed honestly. Development fixtures and `OnlineSubsystemNull` remain explicitly non-release identities. Day 20 must not be represented as release-complete, committed as a release milestone, or followed by machine shutdown until that external provider/account preflight passes.

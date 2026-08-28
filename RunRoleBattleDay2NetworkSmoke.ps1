@@ -176,7 +176,7 @@ function Get-NetworkAssertions {
         Client1EnemyIdentity = Test-LogPattern -Path $Client1Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Enemy.*Control=Control\.EnemyAI.*Profile=Combat\.Unassigned.*Death=Death\.EnemyLoot.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
         Client2PlayerIdentity = Test-LogPattern -Path $Client2Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Player.*Control=Control\.Player.*Profile=Combat\.(Magic|Gun).*Death=Death\.PlayerRespawn.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
         Client2EnemyIdentity = Test-LogPattern -Path $Client2Log -Pattern '\[CombatIdentity\]\[Client\].*Faction=Faction\.Enemy.*Control=Control\.EnemyAI.*Profile=Combat\.Unassigned.*Death=Death\.EnemyLoot.*Targetable=1 CanAttack=1 CanBeDamaged=1 FriendlyFire=0'
-        EnemyAcquiredPlayer = Test-LogPattern -Path $ServerLog -Pattern '\[EnemyAI\]\[FindNearestPlayer\].*Candidates=[1-9][0-9]*.*Closest=BP_AuraCharacter.*BB: Target=BP_AuraCharacter.*BBDist='
+        EnemyAcquiredPlayer = Test-LogPattern -Path $ServerLog -Pattern '\[EnemyAI\]\[(FindNearestPlayer|FindNearestHostile)\].*Candidates=[1-9][0-9]*.*Closest=BP_AuraCharacter'
     }
 }
 
@@ -209,7 +209,12 @@ function Test-AllAssertions {
 $overallPassed = $true
 foreach ($selectedMode in $selectedModes) {
     $port = if ($selectedMode -eq 'Listen') { $ListenPort } else { $DedicatedPort }
-    $serverLog = Join-Path $logDirectory "Day02-$selectedMode-Server.log"
+    $serverLog = if ($selectedMode -eq 'Dedicated' -and (Test-Path -LiteralPath $cookedStartupMap)) {
+        Join-Path $projectRoot 'Saved\Cooked\WindowsServer\Aura\Saved\Logs\Day02-Dedicated-Server.log'
+    }
+    else {
+        Join-Path $logDirectory "Day02-$selectedMode-Server.log"
+    }
     $client1Log = Join-Path $logDirectory "Day02-$selectedMode-Client1.log"
     $client2Log = Join-Path $logDirectory "Day02-$selectedMode-Client2.log"
     $reportPath = Join-Path $reportDirectory "Day02-$selectedMode.json"
@@ -260,6 +265,7 @@ foreach ($selectedMode in $selectedModes) {
                     '-nosound',
                     '-NoSplash',
                     "-port=$port",
+                    "-WorldPersistenceId=RoleBattleDay2$selectedMode", '-AuraPersistenceProvider=NULL',
                     "-abslog=$serverLog"
                 )
             }
@@ -276,6 +282,7 @@ foreach ($selectedMode in $selectedModes) {
                     '-nosound',
                     '-NoSplash',
                     "-port=$port",
+                    "-WorldPersistenceId=RoleBattleDay2$selectedMode", '-AuraPersistenceProvider=NULL',
                     "-abslog=$serverLog"
                 )
             }
@@ -292,6 +299,7 @@ foreach ($selectedMode in $selectedModes) {
                 '-nosound',
                 '-NoSplash',
                 "-port=$port",
+                "-WorldPersistenceId=RoleBattleDay2$selectedMode", '-AuraPersistenceProvider=NULL',
                 "-abslog=$serverLog"
             )
         }

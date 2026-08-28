@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle Day 20 cleanup and release gate</title>
+  <desc id="desc">The post-cleanup source audit and local verification pass, while production authentication and the packaged two-account Shipping matrix remain blocked by external provider provisioning.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#071525"/><stop offset="1" stop-color="#20233e"/></linearGradient>
+    <linearGradient id="pass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#147d68"/><stop offset="1" stop-color="#52c98d"/></linearGradient>
+    <linearGradient id="block" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a9573e"/><stop offset="1" stop-color="#e49a55"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".3"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#a9e7ff"/></marker>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="60" y="64" fill="#f4f8ff" font-family="Segoe UI,Arial,sans-serif" font-size="32" font-weight="700">Role/Battle Day 20</text>
+  <text x="60" y="101" fill="#a8c1d4" font-family="Segoe UI,Arial,sans-serif" font-size="20">Cleanup audit → local release verification → external acceptance gate</text>
+
+  <rect x="55" y="150" width="300" height="250" rx="18" fill="url(#pass)" stroke="#b9f5dc" stroke-width="2" filter="url(#shadow)"/>
+  <text x="85" y="190" fill="#063026" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">PHASE A • PASS</text>
+  <text x="85" y="235" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="700">Cleanup audit</text>
+  <text x="85" y="278" fill="#edfff5" font-family="Segoe UI,Arial,sans-serif" font-size="17">shared rules + pickup policy</text>
+  <text x="85" y="309" fill="#edfff5" font-family="Segoe UI,Arial,sans-serif" font-size="17">shipping mutation boundary</text>
+  <text x="85" y="340" fill="#edfff5" font-family="Segoe UI,Arial,sans-serif" font-size="17">role/lifecycle ownership</text>
+  <text x="85" y="374" fill="#063026" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">no unresolved local finding</text>
+
+  <path d="M355 275 L425 275" stroke="#a9e7ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="425" y="150" width="350" height="250" rx="18" fill="#1b4560" stroke="#9fe6ff" stroke-width="2" filter="url(#shadow)"/>
+  <text x="455" y="190" fill="#9fe6ff" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">PHASE B • LOCAL PASS</text>
+  <text x="455" y="235" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="700">Build, test, package</text>
+  <text x="455" y="278" fill="#e9faff" font-family="Segoe UI,Arial,sans-serif" font-size="17">15/15 focused • 213/213 full</text>
+  <text x="455" y="309" fill="#e9faff" font-family="Segoe UI,Arial,sans-serif" font-size="17">15 Python • 26 graph • 6 AutoTest</text>
+  <text x="455" y="340" fill="#e9faff" font-family="Segoe UI,Arial,sans-serif" font-size="17">Shipping staged scan + UDP launch</text>
+  <text x="455" y="374" fill="#9fe6ff" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">all executable local checks green</text>
+
+  <path d="M775 275 L845 275" stroke="#ffc48f" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="845" y="150" width="300" height="250" rx="18" fill="url(#block)" stroke="#ffd29d" stroke-width="2" filter="url(#shadow)"/>
+  <text x="875" y="190" fill="#35180c" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">RELEASE GATE • BLOCKED</text>
+  <text x="875" y="235" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="700">Production provider</text>
+  <text x="875" y="278" fill="#fff5eb" font-family="Segoe UI,Arial,sans-serif" font-size="17">two authenticated accounts</text>
+  <text x="875" y="309" fill="#fff5eb" font-family="Segoe UI,Arial,sans-serif" font-size="17">packaged Shipping Listen</text>
+  <text x="875" y="340" fill="#fff5eb" font-family="Segoe UI,Arial,sans-serif" font-size="17">+ Dedicated matrix</text>
+  <text x="875" y="374" fill="#35180c" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">external provisioning required</text>
+
+  <rect x="55" y="465" width="1090" height="170" rx="18" fill="#102333" stroke="#31566d" stroke-width="2"/>
+  <text x="85" y="510" fill="#9fe6ff" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="700">HONEST RELEASE DISPOSITION</text>
+  <text x="85" y="552" fill="#dceaf3" font-family="Segoe UI,Arial,sans-serif" font-size="18">Local implementation is ready; fixture identities and OnlineSubsystemNull cannot satisfy the production gate.</text>
+  <text x="85" y="586" fill="#ffd29d" font-family="Segoe UI,Arial,sans-serif" font-size="18" font-weight="700">No release-complete claim, commit, or shutdown until provider/accounts and the packaged matrix pass.</text>
+</svg>

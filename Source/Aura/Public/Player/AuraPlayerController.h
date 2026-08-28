@@ -49,6 +49,8 @@ public:
 	virtual void PlayerTick(float DeltaTime) override;
 	UAuraInteractionComponent* GetInteractionComponent() const { return InteractionComponent; }
 	const FAuraTargetDescriptor& GetFocusedTargetDescriptor() const { return FocusedTargetDescriptor; }
+	/** Current cursor-focused target used by the local interaction preview. */
+	AActor* GetFocusedTargetActor() const { return ThisActor; }
 	UTargetInteractionWidgetController* GetTargetInteractionWidgetController() const { return TargetInteractionWidgetController; }
 
 	/** Selects an enabled option from the currently focused target preview. */
@@ -56,21 +58,7 @@ public:
 	void SetFocusedInteractionOptionIndex(int32 Index);
 
 	UFUNCTION(Exec)
-	void FullAbilities();
-
-	UFUNCTION(Exec)
 	void ShowLocation();
-
-	/**
-	 * Teleport the controlled pawn to a randomly chosen other player's pawn.
-	 * Runs server-side so every player is a candidate regardless of client-side
-	 * net-relevancy culling; safe to call from either client or authority (it
-	 * routes through a server RPC when invoked on a non-authoritative controller).
-	 */
-	void RequestTransferToRandomPlayer();
-
-	/** Request a server-authoritative monster spawn near the controlled pawn. */
-	void RequestAddMonster(int32 MonsterId);
 
 	/** Input entry points used by the in-game Web UI skill panel. */
 	void WebAbilityInputTagPressed(const FGameplayTag& InputTag);
@@ -110,19 +98,20 @@ public:
 	void HideMagicCircle();
 
 	void RequestBroomMount(AAuraBroomVehicle* BroomToMount);
+	void RequestBroomDismount(AAuraBroomVehicle* BroomToDismount);
 
 	/** Automation/test hook: fire one of the equipped ability slots (1-4 or LMB) with a
 	 *  simulated press+release. Picks uniformly at random among slots that actually have
 	 *  an ability equipped, so it is a no-op (and logged) when nothing is equipped or
 	 *  ability input is blocked. Invoked by name (UObject reflection) by the AutoTest
 	 *  stress harness so that plugin stays decoupled from Aura. */
-	UFUNCTION(BlueprintCallable, Category = "AutoTest")
+	UFUNCTION(BlueprintCallable, Category = "AutoTest", meta = (DevelopmentOnly))
 	void AutoTestUseRandomEquippedAbility();
 
 	/**
 	 * Server → client: login was rejected (e.g. the selected/default Role has empty mesh or
 	 * animation in RoleConfig.json). Routes the client back to the Login level with an alert
-	 * via the existing AuraClientDisconnectHandler (same path as mid-game server loss / KickOutSelf).
+	 * via the existing AuraClientDisconnectHandler (same path as mid-game server loss).
 	 */
 	UFUNCTION(Client, Reliable)
 	void ClientRejectLogin(const FString& Reason);
@@ -130,27 +119,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetupInputComponent() override;
 
-	UFUNCTION(Server, Reliable)
-	void ServerFullAbilities();
-
-	UFUNCTION(Server, Reliable)
-	void ServerTransferToRandomPlayer();
-
-	UFUNCTION(Server, Reliable)
-	void ServerAddMonster(int32 MonsterId);
-
-	UFUNCTION(Client, Reliable)
-	void ClientRefreshAbilityUI();
-
-	void ExecuteFullAbilities();
-
-	/** Server-authoritative implementation of RequestTransferToRandomPlayer. */
-	void ExecuteTransferToRandomPlayer();
-
-	/** Server-authoritative implementation of RequestAddMonster. */
-	void ExecuteAddMonster(int32 MonsterId);
 private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputMappingContext> AuraContext;
@@ -194,6 +165,8 @@ private:
 
 	void ApplySprintState(bool bShouldSprint);
 	UCharacterMovementComponent* GetControlledCharacterMovement() const;
+	bool IsBroomMountedByControlledCharacter(const AAuraBroomVehicle* Broom) const;
+	bool IsBroomWithinMountRange(const AAuraBroomVehicle* Broom, const ACharacter* CandidateCharacter) const;
 
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float SprintSpeedMultiplier = 1.5f;
@@ -321,6 +294,11 @@ private:
 	void TickRoleBattleDay6NetworkProbe();
 	bool ValidateRoleBattleDay6Pawn(class AAuraCharacter* PlayerCharacter, FString& OutFailure) const;
 	bool AuditRoleBattleDay6SaveReconciliation(FString& OutFailure) const;
+#if !UE_BUILD_SHIPPING
+	void TickRoleBattleDay17NetworkProbeClient();
+	void TickRoleBattleDay18PersistenceProbeClient();
+	void TickRoleBattleDay19NetworkProbeClient();
+#endif
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
@@ -362,6 +340,14 @@ private:
 	bool bRoleBattleDay6ProbeEnabled = false;
 	bool bRoleBattleDay6InitialAuditComplete = false;
 	bool bRoleBattleDay6ClientAuditComplete = false;
+	FTimerHandle RoleBattleDay17ProbeTimerHandle;
+	bool bRoleBattleDay17ProbeSubmitted = false;
+	FTimerHandle RoleBattleDay18ProbeTimerHandle;
+	bool bRoleBattleDay18ProbeSubmitted = false;
+	bool bRoleBattleDay18StaleProbeSubmitted = false;
+	FTimerHandle RoleBattleDay19ProbeTimerHandle;
+	int32 RoleBattleDay19ProbeStep = 0;
+	double RoleBattleDay19NextProbeTime = 0.0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAuraInteractionComponent> InteractionComponent;

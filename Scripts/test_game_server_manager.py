@@ -1,12 +1,23 @@
 """Focused contract checks for dedicated-server executable selection."""
 
+import asyncio
 import ast
+import importlib.util
 import json
+import tempfile
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 MANAGER = ROOT / "Scripts" / "GameServerManager.py"
+
+
+def load_manager_module():
+    spec = importlib.util.spec_from_file_location("aura_game_server_manager", MANAGER)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def main() -> int:
@@ -25,7 +36,78 @@ def main() -> int:
     assert "_is_editor_client" in source
     assert "_locate_editor_exe_for_client" in source
     assert "clientEngineRoot" in source
+    assert "editor_executable_name" in source
+    assert "is_editor_executable" in source
+    assert "persistence_provider" in source
+    assert "--persistence-provider" in source
+    assert "AURA_PERSISTENCE_PROVIDER" in source
     assert '"serverMode"' in source
+
+    manager = load_manager_module()
+    assert manager.editor_executable_name("UnrealEditor-Win64-DebugGame.exe") == (
+        "UnrealEditor-Win64-DebugGame.exe"
+    )
+    assert manager.editor_executable_name("UnrealEditor-Evil.exe") == "UnrealEditor.exe"
+    assert manager.is_editor_executable(Path("UnrealEditor-Win64-DebugGame.exe"))
+    assert manager.is_editor_executable(Path("UnrealEditor-Cmd.exe"))
+    assert not manager.is_editor_executable(Path("AuraServer.exe"))
+
+    captured = {}
+
+    class FakeProcess:
+        pid = 12345
+
+        @staticmethod
+        def poll():
+            return None
+
+    def fake_popen(args, **kwargs):
+        captured["args"] = args
+        captured["kwargs"] = kwargs
+        return FakeProcess()
+
+    original_popen = manager.subprocess.Popen
+    manager.subprocess.Popen = fake_popen
+    try:
+        entry = manager.DedicatedServerEntry(
+            {
+                "id": "DebugGameLaunchContract",
+                "mapPath": "/Game/Maps/StartupMap",
+                "port": 17777,
+                "queryPort": 27017,
+                "launchArgs": ["-game", "-server"],
+            },
+            0,
+            "NULL",
+        )
+        assert asyncio.run(
+            entry._start(Path("UnrealEditor-Win64-DebugGame.exe"))
+        )
+    finally:
+        manager.subprocess.Popen = original_popen
+
+    assert captured["args"][:3] == [
+        "UnrealEditor-Win64-DebugGame.exe",
+        str(manager.PROJECT_FILE),
+        "/Game/Maps/StartupMap?port=17777",
+    ]
+    assert "-AuraPersistenceProvider=NULL" in captured["args"]
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        engine_root = Path(temp_dir) / "Engine"
+        editor_exe = engine_root / "Binaries" / "Win64" / "UnrealEditor-Win64-DebugGame.exe"
+        editor_exe.parent.mkdir(parents=True)
+        editor_exe.touch()
+        (engine_root / "Build").mkdir()
+        (engine_root / "Build" / "Build.version").write_text("{}", encoding="utf-8")
+        gsm = manager.GameServerManager("127.0.0.1", 0, "127.0.0.1", None, 0)
+        resolved = gsm._locate_editor_exe_for_client(
+            {
+                "clientExecutable": "UnrealEditor-Win64-DebugGame.exe",
+                "clientEngineRoot": str(engine_root),
+            }
+        )
+        assert resolved == editor_exe.resolve(), resolved
 
     # This checkout has a staged server from the final packaged validation. If
     # it is present, the manager must be able to recognize the cooked launch

@@ -1,8 +1,8 @@
 # Role and Battle System: Daily Implementation Index
 
-Current completion gate (2026-08-25): Days 13-15 source/data implementation is integrated on top of the coordinated fail-closed startup. The Day 13-15 focused suites pass 28/28, the full `Aura` suite passes 154/154, and the Day 13, 14, and 15 baseline probes pass in listen and dedicated modes with eight machine-readable assertions per run. The source now owns deterministic Civilian cleanup/refill, a player-owned interaction RPC route, and an authority-only immutable economy registry. Detailed adversarial matrices remain release-hardening evidence; baseline probes are not represented as the later Day 19 security matrix.
+Current completion gate (2026-08-28): Days 13-19 source/data implementation is integrated on top of the coordinated fail-closed startup. Day 20 cleanup and local release verification pass: 14/14 focused native tests, 212/212 full `Aura.RoleBattle` tests, 15/15 Python contracts, 26/26 graph smoke, 6/6 AutoTest suites, and clean Shipping staging/UDP launch evidence. The mandatory production-provider/account and packaged Shipping two-client matrix remain blocked by external provisioning, so the Day 20 release gate is open.
 
-Status: Revised execution schedule; Day 01's headless gate was executed conditionally, and Days 02-15 are implemented with build, native, and baseline listen/dedicated evidence. Day 16 is the next implementation milestone. Detailed adversarial matrices and packaged-release proof remain assigned to their later hardening/release gates.
+Status: Revised execution schedule; Day 01's headless gate was executed conditionally, and Days 02-19 are implemented with build, native, static, and required listen/dedicated evidence. Day 20 source cleanup and local verification are complete, but the final release milestone remains blocked by the required authenticated production provider and packaged Shipping two-client matrix. The Day 19 live matrix uses the existing configured StartupMap fixture and records configured versus spawned counts explicitly.
 
 This is the execution schedule for `Role-Creation-and-Battle-System-Plan.md`. Each day file is an implementation contract: it identifies prerequisites, source/content/test scope, exact work, verification commands or fixtures, evidence to retain, and a completion gate.
 
@@ -126,7 +126,7 @@ The remaining work is runtime proof and closeout: exercise the configured `UAura
 - Day 17 - Add replay-safe merchant transactions
 - Day 18 - Add per-player and world persistence
 - Day 19 - Harden multiplayer behavior
-- Day 20 - Complete packaged vertical-slice release
+- Day 20 - Complete packaged vertical-slice release (local gates pass; production-authenticated release gate blocked)
 
 ## Important project rules
 

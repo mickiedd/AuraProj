@@ -1,6 +1,6 @@
 # Role Creation and Battle System Plan
 
-Status: Revised implementation contract; Day 01 headless gate executed conditionally and Days 02-15 are implemented with editor build, native automation, and baseline listen/dedicated evidence. Day 16 is next. Detailed adversarial and packaged matrices remain explicit later hardening/release work.
+Status: Revised implementation contract; Day 01 headless gate executed conditionally and Days 02-19 are implemented with editor/server builds, native automation, static contracts, and required listen/dedicated evidence. Day 20 cleanup and local release verification are complete, but the formal release gate remains blocked by missing production-provider/account provisioning and its dependent packaged Shipping matrix. Day 19 records the existing StartupMap fixture and configured-versus-spawned population counts rather than introducing a fake binary map.
 
 This plan is based on the current AuraProj code and configuration. It is intended to turn the existing Aura/BungeeMan prototype into a system that can support:
 
@@ -77,7 +77,7 @@ The current RoleConfig.json already contains Aura and BungeeMan. Their existing 
 - Aura: FireBlast, ArcaneShards, Electrocute, with FireBolt as the LMB ability.
 - BungeeMan: FireGun as the LMB ability, with a rifle mesh and Muzzle socket.
 
-Days 02–12 now provide replicated role-derived combat identity, shared combat rules, the Civilian role/actor and authority-only AI, stable population members, exactly-once death dispatch, and a replicated battle director. Commerce, wallet/inventory, merchant transactions, and authenticated player/world persistence remain future milestones.
+Days 02–18 now provide replicated role-derived combat identity, shared combat rules, the Civilian role/actor and authority-only AI, stable population members, exactly-once death dispatch, a replicated battle director, validated commerce, owner-only wallet/inventory, replay-safe merchant transactions, and isolated authenticated player/world persistence. Multiplayer hardening and packaged-release proof remain future milestones.
 
 ## 3. Critical constraints in the current code
 

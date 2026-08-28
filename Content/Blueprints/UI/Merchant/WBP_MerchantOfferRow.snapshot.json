@@ -1,0 +1,5 @@
+{
+  "asset": "WBP_MerchantOfferRow",
+  "fields": ["offerId", "itemId", "itemDisplayName", "grantQuantity", "buyPrice", "currentStock", "bAvailable", "stockRevision"],
+  "pendingPolicy": "one request per local request id; no prediction"
+}

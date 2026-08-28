@@ -32,10 +32,22 @@ def main() -> int:
     for marker in (
         "_is_editor_client",
         "_locate_editor_exe_for_client",
+        "editor_executable_name",
+        "is_editor_executable",
         "Restarting levelId",
         "serverMode",
     ):
         assert marker in manager_source, f"manager is missing {marker}"
+
+    assert (
+        'editor_executable_name(request.get("clientExecutable", ""))'
+        in manager_source
+    ), "editor routing must preserve the client executable variant"
+    assert "EDITOR_EXECUTABLE_NAMES" in manager_source
+    assert (
+        'args = [str(server_exe), str(PROJECT_FILE), map_arg]'
+        in manager_source
+    ), "all editor executable variants must receive the project file"
     for marker in ("incompatible version", "RemoteNetworkVersion", "Client/server build mismatch"):
         assert marker in travel_source, f"client failure guidance is missing {marker}"
 

@@ -28,11 +28,17 @@ public:
 	FName GetActiveBattleEventId() const { return ActiveBattleEventId; }
 	int32 GetConfigVersion() const { return ConfigVersion; }
 	const FString& GetConfigHash() const { return ConfigHash; }
+	int32 GetPopulationActiveCount() const { return PopulationActiveCount; }
+	int32 GetPopulationMaximumCount() const { return PopulationMaximumCount; }
+	int32 GetPopulationPendingCount() const { return PopulationPendingCount; }
+	int32 GetPopulationCasualtyCount() const { return PopulationCasualtyCount; }
 	const UAuraBattleZoneConfig* GetZoneConfig() const { return ZoneConfig; }
 	bool IsAuthorityConfigurationReady() const { return bAuthorityConfigurationReady; }
 	const FString& GetInitializationError() const { return InitializationError; }
 
 	bool TransitionTo(EAuraBattlePhase NewPhase);
+	/** Publishes an authority-owned population summary for player-facing battle HUDs. */
+	void UpdatePopulationSummary(int32 ActiveCount, int32 MaximumCount, int32 PendingCount, int32 CasualtyCount);
 	bool ResolveCombatRuleContext(const AActor* SourceActor, const AActor* TargetActor, FAuraCombatRuleContext& OutContext) const;
 
 	FAuraBattlePhaseChanged OnPhaseChanged;
@@ -57,6 +63,18 @@ protected:
 
 	UPROPERTY(Replicated, VisibleInstanceOnly, BlueprintReadOnly, Category = "Battle")
 	FString ConfigHash;
+
+	UPROPERTY(Replicated, VisibleInstanceOnly, BlueprintReadOnly, Category = "Population")
+	int32 PopulationActiveCount = 0;
+
+	UPROPERTY(Replicated, VisibleInstanceOnly, BlueprintReadOnly, Category = "Population")
+	int32 PopulationMaximumCount = 0;
+
+	UPROPERTY(Replicated, VisibleInstanceOnly, BlueprintReadOnly, Category = "Population")
+	int32 PopulationPendingCount = 0;
+
+	UPROPERTY(Replicated, VisibleInstanceOnly, BlueprintReadOnly, Category = "Population")
+	int32 PopulationCasualtyCount = 0;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAuraBattleZoneConfig> ZoneConfig;

@@ -162,7 +162,7 @@ bool FAuraEconomyConfigLoader::LoadFromProjectFiles(const TArray<FAuraPopulation
 		FString ItemId, StockPolicy, RequiredRole, RequiredTag;
 		if (!TryReadStrictString(Object, TEXT("itemId"), ItemId) || (Offer.ItemId = NormalizeId(ItemId)).IsNone()) OutError += Path + TEXT(".itemId is required.\n");
 		ReadInt64(Object, TEXT("grantQuantity"), true, Offer.GrantQuantity, OutError, Path);
-		ReadInt64(Object, TEXT("buyPrice"), false, Offer.BuyPrice, OutError, Path);
+		ReadInt64(Object, TEXT("buyPrice"), true, Offer.BuyPrice, OutError, Path);
 		if (!TryReadStrictString(Object, TEXT("stockPolicy"), StockPolicy)) OutError += Path + TEXT(".stockPolicy is required.\n");
 		else if (StockPolicy.Equals(TEXT("finite"), ESearchCase::IgnoreCase))
 		{

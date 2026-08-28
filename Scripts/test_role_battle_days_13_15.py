@@ -48,6 +48,10 @@ for token in ("!CursorHit.bBlockingHit", "TargetInteractionWidgetController", "S
     require(token in player_controller, f"Day 14 focus/input guard missing: {token}")
 for token in ("WorldReadiness != EAuraWorldReadiness::Ready", "bEconomyRegistryLoadedForCurrentWorld"):
     require(token in game_mode, f"Day 15 startup guard missing: {token}")
+require(
+    "WorldReadiness == EAuraWorldReadiness::Initializing" in game_mode,
+    "Listen-server startup bypass must be limited to the initializing state",
+)
 require("TryReadStrictString" in economy and "Type == EJson::String" in economy, "Day 15 parser must reject non-string IDs and values")
 require("RecordedPopulationDeathCount" in population_header, "Day 13 repeated-death metric must be a counter")
 

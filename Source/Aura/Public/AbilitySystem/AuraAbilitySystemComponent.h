@@ -132,7 +132,6 @@ public:
 	void ServerUpgradeAttribute(const FGameplayTag& AttributeTag);
 
 	void UpdateAbilityStatuses(int32 Level);
-	void GrantAndEquipAllAbilities();
 
 	UFUNCTION(Server, Reliable)
 	void ServerSpendSpellPoint(const FGameplayTag& AbilityTag);

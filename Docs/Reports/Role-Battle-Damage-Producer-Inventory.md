@@ -71,6 +71,7 @@ sync with the compile-time allowlist in `AuraRoleBattleTests.cpp`.
 | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/DataAbility.cpp | non-damage cost/cooldown GEs |
 | Source/Aura/Private/Tests/AuraRoleBattleTests.cpp | test fixture |
 | Source/Aura/Private/Tests/AuraPickupGameplayEffectTests.cpp | test fixture |
+| Source/Aura/Private/Tests/AuraGameplayDefinitionTests.cpp | definition parser test fixture contains a node-name token, not a runtime producer |
 
 ## Before-migration baseline
 

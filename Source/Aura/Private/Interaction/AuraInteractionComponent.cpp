@@ -2,11 +2,13 @@
 
 #include "Interaction/AuraInteractionComponent.h"
 
+#include "Economy/AuraCommerceSubsystem.h"
 #include "Combat/AuraCombatStateComponent.h"
 #include "Combat/AuraTargetableInterface.h"
 #include "Interaction/AuraInteractionPolicy.h"
 #include "Aura/AuraLogChannels.h"
 #include "GameFramework/PlayerController.h"
+#include "Player/AuraPlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/World.h"
 
@@ -19,12 +21,42 @@ UAuraInteractionComponent::UAuraInteractionComponent()
 void UAuraInteractionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(UAuraInteractionComponent, CommerceSessionNonce, COND_OwnerOnly);
 }
 
 void UAuraInteractionComponent::RequestInteraction(AActor* TargetActor, FGameplayTag InteractionOptionTag, int32 ClientRequestId)
 {
 	if (ClientRequestId <= 0) return;
 	ServerRequestInteraction(TargetActor, InteractionOptionTag, ClientRequestId);
+}
+
+void UAuraInteractionComponent::RequestPurchase(AActor* MerchantActor, FName OfferId)
+{
+	if (!IsValid(MerchantActor) || OfferId.IsNone() || !CommerceSessionNonce.IsValid() || NextCommerceRequestId == 0 || NextCommerceRequestId == MAX_uint64) return;
+	ServerRequestPurchase(CommerceSessionNonce, NextCommerceRequestId++, MerchantActor, OfferId);
+}
+
+#if !UE_BUILD_SHIPPING
+void UAuraInteractionComponent::RequestPurchaseWithRequestIdForDevelopmentProbe(AActor* MerchantActor, FName OfferId, uint64 RequestId)
+{
+	if (!IsValid(MerchantActor) || OfferId.IsNone() || !CommerceSessionNonce.IsValid() || RequestId == 0 || RequestId == MAX_uint64) return;
+	ServerRequestPurchase(CommerceSessionNonce, RequestId, MerchantActor, OfferId);
+}
+
+void UAuraInteractionComponent::RequestPurchaseWithSessionNonceForDevelopmentProbe(AActor* MerchantActor, FName OfferId,
+	const FGuid& SessionNonce, uint64 RequestId)
+{
+	if (!IsValid(MerchantActor) || OfferId.IsNone() || !SessionNonce.IsValid() || RequestId == 0 || RequestId == MAX_uint64) return;
+	ServerRequestPurchase(SessionNonce, RequestId, MerchantActor, OfferId);
+}
+#endif
+
+void UAuraInteractionComponent::InitializeCommerceSessionNonce(const FGuid& InSessionNonce)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority() || !InSessionNonce.IsValid()) return;
+	CommerceSessionNonce = InSessionNonce;
+	NextCommerceRequestId = 1;
+	if (AActor* OwnerActor = GetOwner()) OwnerActor->ForceNetUpdate();
 }
 
 void UAuraInteractionComponent::ServerRequestInteraction_Implementation(AActor* TargetActor, FGameplayTag InteractionOptionTag, int32 ClientRequestId)
@@ -89,4 +121,31 @@ void UAuraInteractionComponent::ReturnResult(int32 ClientRequestId, EAuraInterac
 void UAuraInteractionComponent::ClientInteractionResult_Implementation(int32 ClientRequestId, EAuraInteractionResultCode ResultCode)
 {
 	OnInteractionResult.Broadcast(ClientRequestId, ResultCode);
+}
+
+void UAuraInteractionComponent::ServerRequestPurchase_Implementation(FGuid SessionNonce, uint64 RequestId, AActor* MerchantActor, FName OfferId)
+{
+	FAuraPurchaseResult Result;
+	if (UAuraCommerceSubsystem* Commerce = GetWorld() ? GetWorld()->GetSubsystem<UAuraCommerceSubsystem>() : nullptr)
+	{
+		Commerce->ProcessPurchase(Cast<AAuraPlayerController>(GetOwner()), SessionNonce, RequestId, MerchantActor, OfferId, Result);
+	}
+	else
+	{
+		Result.SessionNonce = SessionNonce;
+		Result.RequestId = RequestId;
+		Result.ResultCode = EAuraCommerceResultCode::InvalidSession;
+	}
+	UE_LOG(LogAura, Display, TEXT("[Commerce][Server] PurchaseResult player=%s request=%llu result=%d replay=%d walletRevision=%u inventoryRevision=%u stockRevision=%u."),
+		*GetNameSafe(GetOwner()), Result.RequestId, static_cast<int32>(Result.ResultCode), Result.bReplay ? 1 : 0,
+		Result.WalletRevision, Result.InventoryRevision, Result.StockRevision);
+	ClientPurchaseResult(Result.SessionNonce, Result.RequestId, Result.ResultCode, Result.WalletRevision, Result.InventoryRevision, Result.StockRevision);
+}
+
+void UAuraInteractionComponent::ClientPurchaseResult_Implementation(FGuid SessionNonce, uint64 RequestId, EAuraCommerceResultCode ResultCode,
+	uint32 WalletRevision, uint32 InventoryRevision, uint32 StockRevision)
+{
+	UE_LOG(LogAura, Display, TEXT("[Commerce][Client] PurchaseResult request=%llu result=%d walletRevision=%u inventoryRevision=%u stockRevision=%u."),
+		RequestId, static_cast<int32>(ResultCode), WalletRevision, InventoryRevision, StockRevision);
+	OnPurchaseResult.Broadcast(SessionNonce, RequestId, ResultCode, WalletRevision, InventoryRevision, StockRevision);
 }

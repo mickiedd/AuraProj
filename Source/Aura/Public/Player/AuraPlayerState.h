@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "Economy/AuraEconomyTypes.h"
+#include "Game/AuraPlayerProfileIdentity.h"
 #include "GameFramework/PlayerState.h"
 #include "AuraPlayerState.generated.h"
 
@@ -11,6 +13,9 @@
 class UAbilitySystemComponent;
 class UAttributeSet;
 class ULevelUpInfo;
+class UAuraCurrencyComponent;
+class UAuraInventoryComponent;
+class UAuraPlayerSaveGame;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChanged, int32 /*StatValue*/)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLevelChanged, int32 /*StatValue*/, bool /*bLevelUp*/)
@@ -31,6 +36,22 @@ public:
 	virtual void SetPlayerName(const FString& S) override;
 	virtual void OnRep_PlayerName() override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+	UAuraCurrencyComponent* GetCurrencyComponent() const { return CurrencyComponent; }
+	UAuraInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+
+	/** Initializes configured starting currency once for this authority-owned PlayerState. */
+	bool InitializeEconomyForNewProfileOnce();
+	/** Applies a validated persistent profile before the pawn's role transaction. */
+	bool ApplyPersistentProfile(const UAuraPlayerSaveGame& SaveData, FString& OutError);
+	EAuraEconomyInitializationState GetEconomyInitializationState() const { return EconomyInitializationState; }
+	int32 GetEconomyInitializationCount() const { return EconomyInitializationCount; }
+	/** Logout may checkpoint only after economy, role, and default attributes are committed. */
+	bool IsReadyForPersistentSave() const;
+	void SetProfileIdentity(const FAuraPlayerProfileId& InIdentity) { ProfileIdentity = InIdentity; }
+	const FAuraPlayerProfileId& GetProfileIdentity() const { return ProfileIdentity; }
+	bool HasPersistentProfileIdentity() const { return ProfileIdentity.IsValid(); }
+	void SetPendingPersistentProfile(UAuraPlayerSaveGame* InProfile) { PendingPersistentProfile = InProfile; }
+	UAuraPlayerSaveGame* GetPendingPersistentProfile() const { return PendingPersistentProfile; }
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<ULevelUpInfo> LevelUpInfo;
@@ -76,6 +97,12 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UAuraCurrencyComponent> CurrencyComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UAuraInventoryComponent> InventoryComponent;
+
 private:
 
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Level)
@@ -92,6 +119,19 @@ private:
 
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Role)
 	FName CharacterRole = NAME_None;
+
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_EconomyInitializationState, Transient)
+	EAuraEconomyInitializationState EconomyInitializationState = EAuraEconomyInitializationState::NewEphemeralSession;
+
+	UPROPERTY(VisibleInstanceOnly, Replicated, Transient)
+	int32 EconomyInitializationCount = 0;
+
+	/** Never replicated; the server uses it to bind a PlayerState to one profile record. */
+	UPROPERTY(Transient)
+	FAuraPlayerProfileId ProfileIdentity;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAuraPlayerSaveGame> PendingPersistentProfile;
 
 	/** Authority-only connection request accepted by GameMode; Day 06 consumes this into CharacterRole. */
 	UPROPERTY(Transient)
@@ -111,4 +151,7 @@ private:
 
 	UFUNCTION()
 	void OnRep_Role();
+
+	UFUNCTION()
+	void OnRep_EconomyInitializationState();
 };

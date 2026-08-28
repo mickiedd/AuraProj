@@ -104,7 +104,11 @@ function Stop-OwnedProcess {
 }
 
 $Port = $ListenPort
-$ServerLog = Join-Path $LogDirectory "Day03-$Mode-Server.log"
+$ServerLog = if ($ServerRuntime -eq 'PackagedDedicated') {
+    Join-Path $ProjectRoot 'Saved\Cooked\WindowsServer\Aura\Saved\Logs\Day03-Dedicated-Server.log'
+} else {
+    Join-Path $LogDirectory "Day03-$Mode-Server.log"
+}
 $Client1Log = Join-Path $LogDirectory "Day03-$Mode-Client1.log"
 $Client2Log = Join-Path $LogDirectory "Day03-$Mode-Client2.log"
 $ReportPath = Join-Path $ReportDirectory "Day03-$Mode.json"
@@ -124,7 +128,7 @@ try {
         $(if ($ServerRuntime -eq 'PackagedDedicated') { $ServerMap } else { $ProjectFile }),
         $(if ($ServerRuntime -eq 'PackagedDedicated') { '' } else { $ServerMap }),
         '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
-        "-port=$Port", '-RoleBattleDay3NetworkProbe', "-abslog=$ServerLog"
+        "-port=$Port", '-RoleBattleDay3NetworkProbe', "-WorldPersistenceId=RoleBattleDay3$Mode", '-AuraPersistenceProvider=NULL', "-abslog=$ServerLog"
     ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
     $Server = Start-OwnedProcess 'Server' $ServerExe $ServerArguments
     $OwnedProcesses += $Server
@@ -165,7 +169,7 @@ try {
             Client1PolicyMutationDenied = Test-Pattern $Client1Log '\[Day3NetworkProbe\]\[Client\].*ClientStateMutationAccepted=0.*ClientPolicyMutationAccepted=0'
             Client1StateReplicated = Test-Pattern $Client1Log '\[Day3NetworkProbe\]\[Client\] ReplicatedState=(Dying|Dead)'
             Client2StateMutationDenied = Test-Pattern $Client2Log '\[Day3NetworkProbe\]\[Client\].*ClientStateMutationAccepted=0.*ClientPolicyMutationAccepted=0'
-            EnemyStillTargetsPlayer = Test-Pattern $ServerLog '\[EnemyAI\]\[FindNearestPlayer\].*Closest=.*BP_AuraCharacter'
+            EnemyStillTargetsPlayer = Test-Pattern $ServerLog '\[EnemyAI\]\[FindNearestHostile\].*Closest=.*BP_AuraCharacter'
         }
         if (@($Assertions.Values | Where-Object { -not [bool]$_ }).Count -eq 0) { break }
         Start-Sleep -Seconds 1

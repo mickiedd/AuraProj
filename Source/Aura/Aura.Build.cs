@@ -8,13 +8,10 @@ public class Aura : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "GameplayTags", "UMG", "OnlineSubsystemUtils", "ModelViewViewModel", "AuraAbilityGraph", "AuraWebUI" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "CoreOnline", "Engine", "NetCore", "InputCore", "EnhancedInput", "GameplayAbilities", "GameplayTags", "UMG", "OnlineSubsystemUtils", "OnlineSubsystem", "ModelViewViewModel", "AuraAbilityGraph", "AuraWebUI" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayTasks", "NavigationSystem", "Niagara", "AIModule", "Slate", "SlateCore", "Json", "JsonUtilities", "Sockets", "Networking", "ImageWrapper", "Projects" });
 		
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
-
 		// BehaviorU (BehaviorU) plugin — drives the test behavior tree bound to AuraEnemy.
 		// AuraBehaviorUAgentComponent.h is a public header that includes BehaviorUAgent.h,
 		// so BehaviorURuntime must be a public dependency.

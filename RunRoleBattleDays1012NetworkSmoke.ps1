@@ -61,7 +61,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Focused Day $Day contracts failed." }
     $Assertions.StaticContracts = $true
     $Map = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?Role=Aura?listen' } else { '/Game/Maps/StartupMap' }
-    $ServerArgs = @((Join-Path $ProjectRoot 'Aura.uproject'), $Map, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
+    $ServerArgs = @((Join-Path $ProjectRoot 'Aura.uproject'), $Map, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$Port", "-WorldPersistenceId=RoleBattleDay${Day}", '-AuraPersistenceProvider=NULL', "-RoleBattleDay${Day}NetworkProbe", "-abslog=$ServerLog")
     $ServerArgs += if ($Mode -eq 'Listen') { '-game' } else { '-server' }
     $Server = Start-Owned 'Server' $ServerArgs
     if (-not (Wait-Pattern $ServerLog '\[WorldReadiness\] State=Ready' $Server)) { throw 'Coordinated world-readiness evidence is missing.' }

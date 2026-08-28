@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Role Battle Day 16 wallet and inventory owner-only flow</title>
+  <desc id="desc">PlayerState owns authority wallet and inventory, which replicate only to the owning client and survive pawn respawn. Validation gates are shown below.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#081426"/><stop offset="1" stop-color="#122b3d"/></linearGradient>
+    <linearGradient id="owner" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#19c3a5"/><stop offset="1" stop-color="#36a9ff"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".28"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7ed7ff"/></marker>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="60" y="66" fill="#f3f8ff" font-family="Segoe UI,Arial,sans-serif" font-size="32" font-weight="700">Role/Battle Day 16</text>
+  <text x="60" y="102" fill="#9bb6c9" font-family="Segoe UI,Arial,sans-serif" font-size="20">Wallet + inventory: authority-owned, owner-only, respawn-stable</text>
+
+  <rect x="60" y="150" width="300" height="228" rx="18" fill="#17384d" stroke="#2e7894" stroke-width="2" filter="url(#shadow)"/>
+  <text x="88" y="192" fill="#7ed7ff" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="700">SERVER AUTHORITY</text>
+  <text x="88" y="234" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">AAuraPlayerState</text>
+  <text x="88" y="270" fill="#c7dbea" font-family="Segoe UI,Arial,sans-serif" font-size="18">CurrencyComponent</text>
+  <text x="88" y="300" fill="#c7dbea" font-family="Segoe UI,Arial,sans-serif" font-size="18">InventoryComponent</text>
+  <text x="88" y="342" fill="#8de6bd" font-family="Segoe UI,Arial,sans-serif" font-size="17">validated C++ commits only</text>
+
+  <path d="M360 230 C445 190 470 190 540 230" fill="none" stroke="#7ed7ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M360 300 C445 340 470 340 540 300" fill="none" stroke="#7ed7ff" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="407" y="170" fill="#9bb6c9" font-family="Segoe UI,Arial,sans-serif" font-size="16">COND_OwnerOnly</text>
+  <text x="398" y="382" fill="#ffb4a8" font-family="Segoe UI,Arial,sans-serif" font-size="16">observer sees no state</text>
+
+  <rect x="540" y="150" width="290" height="228" rx="18" fill="url(#owner)" stroke="#9ef3e1" stroke-width="2" filter="url(#shadow)"/>
+  <text x="570" y="192" fill="#062033" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="700">OWNER CONNECTION</text>
+  <text x="570" y="238" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700">Client wallet UI</text>
+  <text x="570" y="278" fill="#e8ffff" font-family="Segoe UI,Arial,sans-serif" font-size="18">balance + revisions</text>
+  <text x="570" y="308" fill="#e8ffff" font-family="Segoe UI,Arial,sans-serif" font-size="18">fast-array item stacks</text>
+  <text x="570" y="346" fill="#062033" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="700">read-only observation</text>
+
+  <rect x="885" y="150" width="255" height="228" rx="18" fill="#3c2638" stroke="#9b5273" stroke-width="2" filter="url(#shadow)"/>
+  <text x="915" y="192" fill="#ffb4d0" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="700">OTHER CLIENT</text>
+  <text x="915" y="242" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">No wallet</text>
+  <text x="915" y="278" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700">No inventory</text>
+  <text x="915" y="324" fill="#ffcfbf" font-family="Segoe UI,Arial,sans-serif" font-size="16">privacy asserted in logs</text>
+
+  <rect x="60" y="445" width="1080" height="190" rx="18" fill="#102333" stroke="#31566d" stroke-width="2"/>
+  <text x="88" y="487" fill="#7ed7ff" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="700">GATED VALIDATION</text>
+  <g fill="#d8e7f2" font-family="Segoe UI,Arial,sans-serif" font-size="18">
+    <text x="88" y="528">✓ 8/8 focused Day 16 native tests</text>
+    <text x="88" y="565">✓ 170/170 full Aura native tests</text>
+    <text x="88" y="602">✓ Listen + Dedicated two-client probes</text>
+    <text x="610" y="528">✓ checked int64 arithmetic</text>
+    <text x="610" y="565">✓ all-or-nothing stack/capacity writes</text>
+    <text x="610" y="602">✓ client grant rejection + respawn persistence</text>
+  </g>
+  <text x="60" y="684" fill="#668ca2" font-family="Segoe UI,Arial,sans-serif" font-size="14">2026-08-28 • AuraProj • Day 16 completion evidence</text>
+</svg>

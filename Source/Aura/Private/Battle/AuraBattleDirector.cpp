@@ -58,6 +58,10 @@ void AAuraBattleDirector::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AAuraBattleDirector, ActiveBattleEventId);
 	DOREPLIFETIME(AAuraBattleDirector, ConfigVersion);
 	DOREPLIFETIME(AAuraBattleDirector, ConfigHash);
+	DOREPLIFETIME(AAuraBattleDirector, PopulationActiveCount);
+	DOREPLIFETIME(AAuraBattleDirector, PopulationMaximumCount);
+	DOREPLIFETIME(AAuraBattleDirector, PopulationPendingCount);
+	DOREPLIFETIME(AAuraBattleDirector, PopulationCasualtyCount);
 }
 
 bool AAuraBattleDirector::TransitionTo(EAuraBattlePhase NewPhase)
@@ -90,6 +94,16 @@ bool AAuraBattleDirector::TransitionTo(EAuraBattlePhase NewPhase)
 	OnPhaseChanged.Broadcast(CurrentPhase);
 	UE_LOG(LogAura, Display, TEXT("[BattleDirector] Phase transition %s -> %s event=%s."), *PreviousName, *NewName, *ActiveBattleEventId.ToString());
 	return true;
+}
+
+void AAuraBattleDirector::UpdatePopulationSummary(int32 ActiveCount, int32 MaximumCount, int32 PendingCount, int32 CasualtyCount)
+{
+	if (!HasAuthority()) return;
+	PopulationActiveCount = FMath::Max(0, ActiveCount);
+	PopulationMaximumCount = FMath::Max(0, MaximumCount);
+	PopulationPendingCount = FMath::Max(0, PendingCount);
+	PopulationCasualtyCount = FMath::Max(0, CasualtyCount);
+	ForceNetUpdate();
 }
 
 bool AAuraBattleDirector::ResolveCombatRuleContext(const AActor* SourceActor, const AActor* TargetActor, FAuraCombatRuleContext& OutContext) const

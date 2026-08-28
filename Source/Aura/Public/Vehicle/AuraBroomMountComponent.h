@@ -15,7 +15,7 @@ struct FHitResult;
  * UAuraBroomMountComponent
  *
  * Owns the broom's mount/dismount state machine: the replicated rider reference,
- * collision-driven mounting (OnBroomMeshHit), server RPCs, the remount grace
+ * collision-driven mounting (OnBroomMeshHit), the remount grace
  * window, character attachment + collision/movement-mode changes, and the
  * Player_Mounted_Broom gameplay tag. Extracted from AAuraBroomVehicle so the
  * rideable-pawn concern stays separate from the mounting-subsystem concern.
@@ -36,10 +36,10 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/** Mount a character: authority mounts directly, clients RPC the server. */
+	/** Mount a character: authority mounts directly, clients route through the owning player controller. */
 	void RequestMount(ACharacter* CharacterToMount);
 
-	/** Dismount the current rider: authority dismounts directly, clients RPC. */
+	/** Dismount the current rider: authority dismounts directly, clients route through the owning player controller. */
 	void RequestDismount();
 
 	UFUNCTION(BlueprintPure, Category = "Broom|Mount")
@@ -59,12 +59,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	UFUNCTION(Server, Reliable)
-	void ServerRequestMount(ACharacter* CharacterToMount);
-
-	UFUNCTION(Server, Reliable)
-	void ServerRequestDismount();
 
 	UFUNCTION()
 	void OnRep_MountedCharacter();

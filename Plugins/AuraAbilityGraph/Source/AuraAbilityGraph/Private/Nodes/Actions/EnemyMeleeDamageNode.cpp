@@ -4,6 +4,7 @@
 
 #include "AbilityDefinition.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "Combat/AuraCombatRules.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraAbilityTypes.h"
 #include "DataAbility.h"
@@ -48,10 +49,19 @@ EAuraAbilityActionStatus UEnemyMeleeDamageTask::OnStart(FAuraAbilityExecutionCon
 
     for (AActor* Target : Targets)
     {
-        if (!IsValid(Target) || !UAuraAbilitySystemLibrary::IsNotFriend(Ctx.AvatarActor, Target))
-        {
-            continue;
-        }
+		if (!IsValid(Target))
+		{
+			continue;
+		}
+		FAuraCombatRuleContext RuleContext;
+		RuleContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+		RuleContext.TrustedWorldContext = Ctx.AvatarActor;
+		RuleContext.SourceActor = Ctx.AvatarActor;
+		RuleContext.TargetActor = Target;
+		if (!FAuraCombatRules::CanDamage(Ctx.AvatarActor, Target, RuleContext).bCanDamage)
+		{
+			continue;
+		}
         UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
         if (!TargetASC)
         {

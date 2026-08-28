@@ -7,6 +7,9 @@
 #include "AI/AuraCivilianAIController.h"
 #include "Aura/AuraLogChannels.h"
 #include "AuraGameplayTags.h"
+#include "Combat/AuraCombatStateComponent.h"
+#include "Economy/AuraCommerceSubsystem.h"
+#include "Economy/AuraMerchantComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -19,6 +22,7 @@ AAuraCivilian::AAuraCivilian()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>(TEXT("AttributeSet"));
+	MerchantComponent = CreateDefaultSubobject<UAuraMerchantComponent>(TEXT("MerchantComponent"));
 
 	HealthBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
 	HealthBar->SetupAttachment(GetRootComponent());
@@ -145,13 +149,13 @@ void AAuraCivilian::GetAuraInteractionOptions(const AActor* RequestingActor, TAr
 	};
 	AddEnabled(GameplayTags.Interaction_Talk, TEXT("Talk"));
 	AddEnabled(GameplayTags.Interaction_Observe, TEXT("Observe"));
-	if (!PopulationMemberState.MerchantDefinitionId.IsNone())
+	if (MerchantComponent && MerchantComponent->IsMerchantActive())
 	{
 		FAuraInteractionOption& Trade = OutOptions.AddDefaulted_GetRef();
 		Trade.OptionTag = GameplayTags.Interaction_Trade;
 		Trade.DisplayText = FText::FromString(TEXT("Trade"));
-		Trade.bEnabled = false;
-		Trade.DisabledReason = EAuraInteractionResultCode::FeatureUnavailable;
+	Trade.bEnabled = true;
+	Trade.DisabledReason = EAuraInteractionResultCode::Success;
 	}
 }
 
@@ -160,7 +164,8 @@ bool AAuraCivilian::ExecuteAuraInteraction(const AActor* RequestingActor, FGamep
 	if (!IsValid(RequestingActor) || !IsCombatAlive()) return false;
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 	if (!OptionTag.MatchesTagExact(GameplayTags.Interaction_Talk)
-		&& !OptionTag.MatchesTagExact(GameplayTags.Interaction_Observe))
+		&& !OptionTag.MatchesTagExact(GameplayTags.Interaction_Observe)
+		&& !(OptionTag.MatchesTagExact(GameplayTags.Interaction_Trade) && MerchantComponent && MerchantComponent->IsMerchantActive()))
 	{
 		return false;
 	}
@@ -200,6 +205,10 @@ void AAuraCivilian::BeginPlay()
 	InitAbilityActorInfo();
 	if (HasAuthority())
 	{
+		if (UAuraCombatStateComponent* CombatState = GetCombatStateComponentMutable())
+		{
+			CombatState->OnLifeStateChanged.AddUObject(this, &ThisClass::HandleMerchantLifeStateChanged);
+		}
 		const FAuraRoleApplicationResult RoleResult = ApplyRoleAtSpawn(RequestedCivilianRoleId);
 		if (!RoleResult.bSuccess)
 		{
@@ -207,6 +216,10 @@ void AAuraCivilian::BeginPlay()
 				*GetNameSafe(this), *RequestedCivilianRoleId.ToString(), *RoleResult.Message);
 			SetActorEnableCollision(false);
 			return;
+		}
+		if (MerchantComponent && !PopulationMemberState.MerchantDefinitionId.IsNone())
+		{
+			MerchantComponent->InitializeAuthorityBinding(PopulationMemberState.PopulationMemberId, PopulationMemberState.MerchantDefinitionId);
 		}
 
 		AlignToGroundForSpawn();
@@ -219,6 +232,22 @@ void AAuraCivilian::BeginPlay()
 		{
 			CivilianController->StartCivilianBehavior();
 		}
+	}
+}
+
+void AAuraCivilian::HandleMerchantLifeStateChanged(EAuraCombatLifeState NewState)
+{
+	if (HasAuthority() && NewState != EAuraCombatLifeState::Alive && MerchantComponent)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (UAuraCommerceSubsystem* Commerce = World->GetSubsystem<UAuraCommerceSubsystem>())
+			{
+				Commerce->MarkMerchantUnavailable(MerchantComponent);
+				return;
+			}
+		}
+		MerchantComponent->SetAuthorityUnavailable();
 	}
 }
 

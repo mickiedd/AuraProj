@@ -7,6 +7,8 @@
 #include "Aura/AuraLogChannels.h"
 #include "AuraGameplayTags.h"
 #include "Game/AuraGameInstance.h"
+#include "Game/AuraPersistenceSubsystem.h"
+#include "Tests/AuraRoleBattleNetworkProbe.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "GameFramework/PlayerStart.h"
 #include "Interaction/SaveInterface.h"
@@ -15,7 +17,10 @@
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAttributeSet.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "NavigationSystem.h"
@@ -32,6 +37,10 @@
 #include "Combat/AuraDeathPolicyDispatcher.h"
 #include "Combat/AuraCombatStateComponent.h"
 #include "Economy/AuraEconomyRegistrySubsystem.h"
+#include "Economy/AuraCurrencyComponent.h"
+#include "Economy/AuraInventoryComponent.h"
+#include "Economy/AuraCommerceSubsystem.h"
+#include "Economy/AuraMerchantComponent.h"
 #include "Battle/AuraBattleDirector.h"
 #include "World/AuraCivilianSpawnVolume.h"
 #include "World/AuraCivilianWorkMarker.h"
@@ -284,6 +293,16 @@ void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options,
 		}
 	}
 	EconomyRegistry = GetGameInstance() ? GetGameInstance()->GetSubsystem<UAuraEconomyRegistrySubsystem>() : nullptr;
+	PersistenceSubsystem = GetGameInstance() ? GetGameInstance()->GetSubsystem<UAuraPersistenceSubsystem>() : nullptr;
+	if (PersistenceSubsystem)
+	{
+		FString PersistenceError;
+		if (!PersistenceSubsystem->ConfigureAuthorityWorld(MapName, PersistenceError,
+			PopulationManager ? PopulationManager->GetCurrentMapId() : NAME_None))
+		{
+			UE_LOG(LogAura, Error, TEXT("[Persistence][InitGame] Authority persistence configuration rejected: %s"), *PersistenceError);
+		}
+	}
 	if (EconomyRegistry && PopulationManager && PopulationManager->IsInitialized())
 	{
 		FString EconomyError;
@@ -352,13 +371,24 @@ void AAuraGameModeBase::PreLogin(const FString& Options, const FString& Address,
 		UE_LOG(LogAura, Warning, TEXT("[RoleLogin][PreLogin] Rejected address=%s role=%s reason=%s"), *Address, *RequestedRole.ToString(), *ErrorMessage);
 		return;
 	}
+	if (PersistenceSubsystem && PersistenceSubsystem->IsPersistentLoginRequired())
+	{
+		FAuraPlayerProfileId ProfileIdentity;
+		if (!PersistenceSubsystem->ResolveConnectionIdentity(UniqueId, Options, ProfileIdentity, ErrorMessage))
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Persistence][PreLogin] Rejected address=%s reason=%s"), *Address, *ErrorMessage);
+			return;
+		}
+	}
 	UE_LOG(LogAura, Display, TEXT("[RoleLogin][PreLogin] Accepted address=%s role=%s"), *Address, *RequestedRole.ToString());
 }
 
 FString AAuraGameModeBase::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
 {
 	const bool bListenHostPlayer = GetNetMode() == NM_ListenServer && IsValid(NewPlayerController) && NewPlayerController->IsLocalController();
-	if (GetNetMode() != NM_Standalone && !bListenHostPlayer && WorldReadiness != EAuraWorldReadiness::Ready)
+	if (GetNetMode() != NM_Standalone
+		&& !(bListenHostPlayer && WorldReadiness == EAuraWorldReadiness::Initializing)
+		&& WorldReadiness != EAuraWorldReadiness::Ready)
 	{
 		return FString::Printf(TEXT("World startup is not ready: %s"), *WorldReadinessReason);
 	}
@@ -392,6 +422,15 @@ FString AAuraGameModeBase::InitNewPlayer(APlayerController* NewPlayerController,
 			*GetNameSafe(NewPlayerController), *RequestedRole.ToString(), *RoleError);
 		return RoleError.IsEmpty() ? TEXT("Connection role state is unavailable.") : RoleError;
 	}
+	if (PersistenceSubsystem && PersistenceSubsystem->IsPersistentLoginRequired())
+	{
+		FString PersistenceError;
+		if (!PersistenceSubsystem->PreparePlayerProfile(NewPlayerController, UniqueId, Options, RequestedRole, PersistenceError))
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Persistence][InitNewPlayer] Rejected profile preparation: %s"), *PersistenceError);
+			return PersistenceError.IsEmpty() ? TEXT("Persistent profile could not be prepared.") : PersistenceError;
+		}
+	}
 	AuraPlayerState->SetPendingAcceptedRoleId(RequestedRole);
 	UE_LOG(LogAura, Display, TEXT("[RoleLogin][InitNewPlayer] PendingAcceptedRoleId=%s playerState=%s"), *RequestedRole.ToString(), *GetNameSafe(AuraPlayerState));
 
@@ -407,7 +446,8 @@ void AAuraGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController
 		Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 		return;
 	}
-	if (!(GetNetMode() == NM_ListenServer && IsValid(NewPlayer) && NewPlayer->IsLocalController())
+	if (!(GetNetMode() == NM_ListenServer && IsValid(NewPlayer) && NewPlayer->IsLocalController()
+		&& WorldReadiness == EAuraWorldReadiness::Initializing)
 		&& WorldReadiness != EAuraWorldReadiness::Ready)
 	{
 		UE_LOG(LogAura, Warning, TEXT("[WorldReadiness] Blocked HandleStartingNewPlayer while startup is not ready: %s"), *WorldReadinessReason);
@@ -429,7 +469,8 @@ void AAuraGameModeBase::RestartPlayer(AController* NewPlayer)
 		Super::RestartPlayer(NewPlayer);
 		return;
 	}
-	if (!(GetNetMode() == NM_ListenServer && IsValid(NewPlayer) && NewPlayer->IsLocalController())
+	if (!(GetNetMode() == NM_ListenServer && IsValid(NewPlayer) && NewPlayer->IsLocalController()
+		&& WorldReadiness == EAuraWorldReadiness::Initializing)
 		&& WorldReadiness != EAuraWorldReadiness::Ready)
 	{
 		UE_LOG(LogAura, Warning, TEXT("[WorldReadiness] Blocked RestartPlayer while startup is not ready: %s"), *WorldReadinessReason);
@@ -442,6 +483,57 @@ void AAuraGameModeBase::RestartPlayer(AController* NewPlayer)
 		return;
 	}
 	Super::RestartPlayer(NewPlayer);
+}
+
+APawn* AAuraGameModeBase::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
+{
+	UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer);
+	if (!PawnClass || !GetWorld())
+	{
+		return nullptr;
+	}
+
+	// A checkpoint may legitimately have only one PlayerStart while multiple
+	// players respawn together. Try the requested point first, then deterministic
+	// nearby offsets so an occupied start cannot strand a controller without a
+	// replacement pawn. The final fallback preserves the engine's guaranteed
+	// spawn behavior when every safe offset is occupied.
+	const FVector Offsets[] = {
+		FVector::ZeroVector,
+		FVector(180.f, 0.f, 0.f),
+		FVector(-180.f, 0.f, 0.f),
+		FVector(0.f, 180.f, 0.f),
+		FVector(0.f, -180.f, 0.f),
+		FVector(127.f, 127.f, 0.f),
+		FVector(-127.f, 127.f, 0.f),
+		FVector(127.f, -127.f, 0.f),
+		FVector(-127.f, -127.f, 0.f),
+	};
+
+	for (const FVector& Offset : Offsets)
+	{
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.Instigator = GetInstigator();
+		SpawnInfo.ObjectFlags |= RF_Transient;
+		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+		const FTransform CandidateTransform(SpawnTransform.GetRotation(), SpawnTransform.GetTranslation() + Offset, SpawnTransform.GetScale3D());
+		if (APawn* ResultPawn = GetWorld()->SpawnActor<APawn>(PawnClass, CandidateTransform, SpawnInfo))
+		{
+			if (!Offset.IsNearlyZero())
+			{
+				UE_LOG(LogAura, Display, TEXT("[Respawn][Server] Occupied start adjusted by offset=(%.0f,%.0f,%.0f) for Controller=%s."),
+					Offset.X, Offset.Y, Offset.Z, *GetNameSafe(NewPlayer));
+			}
+			return ResultPawn;
+		}
+	}
+
+	FActorSpawnParameters FallbackSpawnInfo;
+	FallbackSpawnInfo.Instigator = GetInstigator();
+	FallbackSpawnInfo.ObjectFlags |= RF_Transient;
+	FallbackSpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	UE_LOG(LogAura, Warning, TEXT("[Respawn][Server] All collision-safe offsets occupied; forcing pawn spawn for Controller=%s."), *GetNameSafe(NewPlayer));
+	return GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, FallbackSpawnInfo);
 }
 
 void AAuraGameModeBase::PostLogin(APlayerController* NewPlayer)
@@ -882,6 +974,72 @@ void AAuraGameModeBase::BeginPlay()
 	}
 }
 
+void AAuraGameModeBase::Logout(AController* Exiting)
+{
+	if (PersistenceSubsystem && Exiting)
+	{
+		if (AAuraPlayerState* PlayerState = Cast<AAuraPlayerState>(Exiting->PlayerState))
+		{
+			if (PlayerState->IsReadyForPersistentSave())
+			{
+				FString PersistenceError;
+				PersistenceSubsystem->SavePlayerProfile(PlayerState, Cast<UAuraAbilitySystemComponent>(PlayerState->GetAbilitySystemComponent()),
+					Cast<UAuraAttributeSet>(PlayerState->GetAttributeSet()), &PersistenceError);
+				if (!PersistenceError.IsEmpty())
+				{
+					UE_LOG(LogAura, Warning, TEXT("[Persistence][Logout] Profile save failed: %s"), *PersistenceError);
+				}
+			}
+			else
+			{
+				UE_LOG(LogAura, Display, TEXT("[Persistence][Logout] Skipped incomplete profile checkpoint for player=%s."), *GetNameSafe(PlayerState));
+			}
+			PersistenceSubsystem->ReleasePlayerProfile(PlayerState);
+		}
+	}
+	Super::Logout(Exiting);
+}
+
+#if !UE_BUILD_SHIPPING
+bool AAuraGameModeBase::ProcessConsoleExec(const TCHAR* Cmd, FOutputDevice& Ar, UObject* Executor)
+{
+	if (FParse::Command(&Cmd, TEXT("GrantDevelopmentEconomy")))
+	{
+		FString ItemId;
+		FParse::Token(Cmd, ItemId, false);
+		int32 Quantity = 1;
+		int64 CurrencyAmount = 0;
+		FParse::Value(Cmd, TEXT("Quantity="), Quantity);
+		FParse::Value(Cmd, TEXT("CurrencyAmount="), CurrencyAmount);
+		if (!HasAuthority())
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Economy][DevGrant] Rejected non-authority execution."));
+			return true;
+		}
+		AAuraPlayerState* PlayerState = GetWorld() && GetWorld()->GetFirstPlayerController()
+			? GetWorld()->GetFirstPlayerController()->GetPlayerState<AAuraPlayerState>() : nullptr;
+		if (!PlayerState || !PlayerState->GetCurrencyComponent() || !PlayerState->GetInventoryComponent())
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Economy][DevGrant] No authority PlayerState is available."));
+			return true;
+		}
+		if (CurrencyAmount > 0)
+		{
+			PlayerState->GetCurrencyComponent()->CommitCreditCurrency(
+				PlayerState->GetCurrencyComponent()->GetCurrencyId(), CurrencyAmount);
+		}
+		if (Quantity > 0 && !ItemId.IsEmpty())
+		{
+			PlayerState->GetInventoryComponent()->CommitAddItem(FName(*ItemId), Quantity);
+		}
+		UE_LOG(LogAura, Display, TEXT("[Economy][DevGrant] Applied through validated API player=%s item=%s quantity=%d currency=%lld."),
+			*GetNameSafe(PlayerState), *ItemId, Quantity, CurrencyAmount);
+		return true;
+	}
+	return Super::ProcessConsoleExec(Cmd, Ar, Executor);
+}
+#endif
+
 EAuraWorldReadiness AAuraGameModeBase::EvaluateWorldReadiness(
 	const bool bRoleReady,
 	const bool bDispatcherReady,
@@ -929,15 +1087,31 @@ void AAuraGameModeBase::ScheduleDedicatedServerReadyNotification()
 void AAuraGameModeBase::FinalizeRoleBattleStartup()
 {
 	if (!HasAuthority() || WorldReadiness != EAuraWorldReadiness::Initializing) return;
+	FString PersistenceError;
+	const FName CurrentMapId = PopulationManager ? PopulationManager->GetCurrentMapId() : NAME_None;
+	const bool bPersistenceReady = PersistenceSubsystem
+		&& PersistenceSubsystem->LoadWorldState(GetWorld() ? GetWorld()->GetMapName() : FString(), PersistenceError, CurrentMapId);
+	if (!bPersistenceReady)
+	{
+		SetWorldReadiness(EAuraWorldReadiness::Unhealthy,
+			PersistenceError.IsEmpty() ? TEXT("Authority persistence world restore failed.") : PersistenceError);
+		return;
+	}
 
 	const bool bRoleReady = IsValid(RoleInfo);
 	const bool bDispatcherReady = IsValid(DeathPolicyDispatcher);
 	const bool bDirectorReady = IsValid(BattleDirector) && BattleDirector->IsAuthorityConfigurationReady();
 	const bool bPopulationReady = IsValid(PopulationManager) && PopulationManager->IsInitialized();
 	const bool bEconomyReady = bEconomyRegistryLoadedForCurrentWorld && IsValid(EconomyRegistry) && EconomyRegistry->IsReady();
+	bool bPopulationSnapshotApplied = true;
+	if (bPopulationReady && PersistenceSubsystem && PersistenceSubsystem->HasLoadedWorldSnapshot())
+	{
+		bPopulationSnapshotApplied = PopulationManager->ApplyPersistenceSnapshot(
+			PersistenceSubsystem->GetLoadedPopulationSnapshot(), PersistenceError);
+	}
 	FString CrossValidationError;
 	const bool bCrossValidationReady = bSkipInitialPopulationForLegacyDay8Probe
-		|| (bDirectorReady && bPopulationReady && bEconomyReady
+		|| (bDirectorReady && bPopulationReady && bEconomyReady && bPopulationSnapshotApplied
 			&& PopulationManager->ValidateBattleZoneRegistrations(BattleDirector->GetZoneConfig(), CrossValidationError));
 	const bool bPopulationFinalized = bSkipInitialPopulationForLegacyDay8Probe
 		|| (bCrossValidationReady && PopulationManager->FinalizeInitialPopulation());
@@ -955,14 +1129,377 @@ void AAuraGameModeBase::FinalizeRoleBattleStartup()
 		if (!bEconomyReady) Reasons.Add(TEXT("economy registry unavailable"));
 		if (!bCrossValidationReady) Reasons.Add(CrossValidationError.IsEmpty() ? TEXT("joint zone/population registration validation failed") : CrossValidationError);
 		if (!bPopulationFinalized) Reasons.Add(TEXT("initial population finalization failed and was rolled back"));
+		if (!bPopulationSnapshotApplied) Reasons.Add(PersistenceError.IsEmpty() ? TEXT("population persistence reconciliation failed") : PersistenceError);
+		if (!bPersistenceReady) Reasons.Add(PersistenceError.IsEmpty() ? TEXT("authority persistence world restore failed") : PersistenceError);
 		SetWorldReadiness(Result, FString::Join(Reasons, TEXT("; ")));
 		return;
+	}
+	if (PersistenceSubsystem && PersistenceSubsystem->GetLoadedMerchantStocks().Num() > 0)
+	{
+		UAuraCommerceSubsystem* Commerce = GetWorld() ? GetWorld()->GetSubsystem<UAuraCommerceSubsystem>() : nullptr;
+		if (!Commerce)
+		{
+			SetWorldReadiness(EAuraWorldReadiness::Unhealthy, TEXT("Loaded merchant state requires the authoritative commerce subsystem."));
+			return;
+		}
+		if (!Commerce->RestorePersistenceState(PersistenceSubsystem->GetLoadedMerchantStocks(), PersistenceError))
+		{
+			SetWorldReadiness(EAuraWorldReadiness::Unhealthy, PersistenceError);
+			return;
+		}
 	}
 
 	SetWorldReadiness(Result, FString::Printf(TEXT("generation=%d economyGeneration=%d zoneConfig=%s livePopulation=%d"),
 		PopulationManager->GetInitializationGeneration(), EconomyRegistry->GetGeneration(), *BattleDirector->GetConfigHash(), PopulationManager->GetLiveMemberCount()));
+	if (PersistenceSubsystem)
+	{
+		FAuraPopulationDebugSnapshot PopulationSnapshot = PopulationManager->BuildDebugSnapshot();
+		TArray<FAuraPersistedMerchantStock> MerchantStocks;
+		if (UAuraCommerceSubsystem* Commerce = GetWorld() ? GetWorld()->GetSubsystem<UAuraCommerceSubsystem>() : nullptr)
+		{
+			Commerce->CapturePersistenceState(MerchantStocks);
+		}
+		if (!PersistenceSubsystem->SaveWorldState(PopulationSnapshot, MerchantStocks, PersistenceError))
+		{
+			SetWorldReadiness(EAuraWorldReadiness::Unhealthy, PersistenceError);
+			return;
+		}
+	}
 	RunRoleBattleDays1012NetworkProbe();
+	RunRoleBattleDay16NetworkProbe();
+	RunRoleBattleDay17NetworkProbe();
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay18PersistenceSmoke")))
+	{
+		GetWorldTimerManager().SetTimer(RoleBattleDay18ProbeTimerHandle, this,
+			&AAuraGameModeBase::RunRoleBattleDay18PersistenceProbe, 0.5f, true);
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19MultiplayerProbe"))
+		|| FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19PerformanceProbe")))
+	{
+		GetWorldTimerManager().SetTimer(RoleBattleDay19ProbeTimerHandle, this,
+			&AAuraGameModeBase::RunRoleBattleDay19NetworkProbe, 0.5f, true);
+	}
+	RunRoleBattleDay18PersistenceProbe();
+	RunRoleBattleDay19NetworkProbe();
 	ScheduleDedicatedServerReadyNotification();
+}
+
+void AAuraGameModeBase::RunRoleBattleDay18PersistenceProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (!HasAuthority() || !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay18PersistenceSmoke"))) return;
+	UAuraCommerceSubsystem* Commerce = GetWorld() ? GetWorld()->GetSubsystem<UAuraCommerceSubsystem>() : nullptr;
+	if (!Commerce || Commerce->GetRegisteredMerchantCount() < 1 || !GetWorld() || !GetWorld()->GetGameState()) return;
+	const auto PositionProbePlayers = [this](AActor* MerchantActor)
+	{
+		if (!MerchantActor) return;
+		int32 PawnIndex = 0;
+		for (FConstPlayerControllerIterator ControllerIt = GetWorld()->GetPlayerControllerIterator(); ControllerIt; ++ControllerIt)
+		{
+			if (APlayerController* PlayerController = ControllerIt->Get(); PlayerController && PlayerController->GetPawn())
+			{
+				// Keep the listen host and both remote probe clients inside the
+				// 240 cm client probe radius used by the Day 18 purchase step.
+				PlayerController->GetPawn()->SetActorLocation(MerchantActor->GetActorLocation() + FVector(80.f, 40.f * PawnIndex++, 0.f), false, nullptr, ETeleportType::TeleportPhysics);
+			}
+		}
+	};
+	if (bDay18ProbeFixtureReady)
+	{
+		for (TActorIterator<AAuraCivilian> It(GetWorld()); It; ++It)
+		{
+			if (UAuraMerchantComponent* Merchant = It->GetMerchantComponent(); Merchant && Merchant->IsMerchantActive())
+			{
+				PositionProbePlayers(Merchant->GetOwner());
+				return;
+			}
+		}
+		return;
+	}
+	int32 InitializedPlayers = 0;
+	for (APlayerState* State : GetWorld()->GetGameState()->PlayerArray)
+	{
+		if (const AAuraPlayerState* AuraState = Cast<AAuraPlayerState>(State))
+		{
+			InitializedPlayers += AuraState->GetEconomyInitializationState() != EAuraEconomyInitializationState::NewEphemeralSession ? 1 : 0;
+		}
+	}
+	if (InitializedPlayers < 2) return;
+	for (TActorIterator<AAuraCivilian> It(GetWorld()); It; ++It)
+	{
+		UAuraMerchantComponent* Merchant = It->GetMerchantComponent();
+		if (!Merchant || !Merchant->IsMerchantActive()
+			|| !Commerce->SetOfferStockForDevelopmentProbe(Merchant->GetPopulationMemberId(), TEXT("market_health_potion"), 5)) continue;
+		if (AActor* MerchantActor = Merchant->GetOwner())
+		{
+			MerchantActor->SetActorTickEnabled(false);
+			PositionProbePlayers(MerchantActor);
+		}
+		bDay18ProbeFixtureReady = true;
+		UE_LOG(LogAura, Display, TEXT("[Day18PersistenceProbe][Server] FixtureReady=1 member=%s healthStock=5 players=%d."),
+			*Merchant->GetPopulationMemberId().ToString(), InitializedPlayers);
+		return;
+	}
+#endif
+}
+
+void AAuraGameModeBase::RunRoleBattleDay19NetworkProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (!HasAuthority()
+		|| (!FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19MultiplayerProbe"))
+			&& !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19PerformanceProbe"))))
+	{
+		return;
+	}
+	FAuraRoleBattleNetworkProbeSnapshot Snapshot;
+	FString Error;
+	if (!FAuraRoleBattleNetworkProbe::CollectServerSnapshot(GetWorld(), Snapshot, Error)) return;
+	const auto PositionAndStabilizeFixturePlayers = [this](AActor* MerchantActor)
+	{
+		if (!MerchantActor || !GetWorld()) return;
+		int32 PawnIndex = 0;
+		for (FConstPlayerControllerIterator ControllerIt = GetWorld()->GetPlayerControllerIterator(); ControllerIt; ++ControllerIt)
+		{
+			APlayerController* PlayerController = ControllerIt->Get();
+			APawn* Pawn = PlayerController ? PlayerController->GetPawn() : nullptr;
+			if (!Pawn) continue;
+			// Use a tight deterministic cluster, lock movement for this
+			// development-only probe, and leave the production movement path
+			// untouched. This prevents client movement packets from carrying a
+			// fixture pawn outside the server's 250 cm trade radius.
+			Pawn->SetActorLocation(MerchantActor->GetActorLocation() + FVector(40.f, 20.f * PawnIndex++, 0.f), false, nullptr, ETeleportType::TeleportPhysics);
+			if (AAuraCharacter* Character = Cast<AAuraCharacter>(Pawn))
+			{
+				if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+				{
+					Movement->StopMovementImmediately();
+					Movement->DisableMovement();
+				}
+			}
+		}
+	};
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19PerformanceProbe")))
+	{
+		static int32 PerformanceSampleTick = 0;
+		if ((++PerformanceSampleTick % 10) == 0)
+		{
+			int32 MinClientBandwidth = MAX_int32;
+			int32 MaxClientBandwidth = 0;
+			for (FConstPlayerControllerIterator ControllerIt = GetWorld()->GetPlayerControllerIterator(); ControllerIt; ++ControllerIt)
+			{
+				if (APlayerController* PlayerController = ControllerIt->Get())
+				{
+					if (UNetConnection* Connection = PlayerController->GetNetConnection())
+					{
+						MinClientBandwidth = FMath::Min(MinClientBandwidth, Connection->OutBytesPerSecond / 1024);
+						MaxClientBandwidth = FMath::Max(MaxClientBandwidth, Connection->OutBytesPerSecond / 1024);
+					}
+				}
+			}
+			if (MinClientBandwidth == MAX_int32) MinClientBandwidth = 0;
+			UE_LOG(LogAura, Display, TEXT("[Day19PerformanceProbe][Server] Sample=%d Civilians=%d Enemies=%d ActiveMerchants=%d ConfiguredCivilians=%d ConfiguredEnemyRows=%d ReplayCacheLimit=%d ClientBandwidthMinKiBps=%d ClientBandwidthMaxKiBps=%d."),
+				PerformanceSampleTick / 10, Snapshot.Civilians, Snapshot.Enemies,
+				Snapshot.ActiveMerchants, Snapshot.ConfiguredPopulationSlots,
+				Snapshot.ConfiguredEnemyRows, FAuraRoleBattleNetworkProbe::ReplayCacheLimit,
+				MinClientBandwidth, MaxClientBandwidth);
+		}
+	}
+	if (bDay19ProbeFixtureReady)
+	{
+		for (TActorIterator<AAuraCivilian> It(GetWorld()); It; ++It)
+		{
+			if (UAuraMerchantComponent* Merchant = It->GetMerchantComponent(); Merchant && Merchant->IsMerchantActive() && Merchant->GetOwner())
+			{
+				PositionAndStabilizeFixturePlayers(Merchant->GetOwner());
+				break;
+			}
+		}
+		return;
+	}
+	if (!Snapshot.HasRequiredFixture())
+	{
+		if (!Error.IsEmpty())
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Day19NetworkProbe][Server] WaitingForFixture=1 reason=%s."), *Error);
+		}
+		return;
+	}
+	UAuraCommerceSubsystem* Commerce = GetWorld() ? GetWorld()->GetSubsystem<UAuraCommerceSubsystem>() : nullptr;
+	AAuraCivilian* FixtureCivilian = nullptr;
+	if (Commerce)
+	{
+		for (TActorIterator<AAuraCivilian> It(GetWorld()); It; ++It)
+		{
+			UAuraMerchantComponent* Merchant = It->GetMerchantComponent();
+			if (!Merchant || !Merchant->IsMerchantActive() || !Merchant->GetOwner()) continue;
+			if (Commerce->SetOfferStockForDevelopmentProbe(Merchant->GetPopulationMemberId(), TEXT("market_health_potion"), 1))
+			{
+				FixtureCivilian = *It;
+				Merchant->GetOwner()->SetActorTickEnabled(false);
+				PositionAndStabilizeFixturePlayers(Merchant->GetOwner());
+				break;
+			}
+		}
+	}
+	if (!FixtureCivilian)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Day19NetworkProbe][Server] WaitingForFixture=1 reason=finite merchant fixture could not be prepared."));
+		return;
+	}
+	bDay19ProbeFixtureReady = true;
+	FAuraRoleBattleNetworkProbe::LogServerSnapshot(Snapshot);
+	UE_LOG(LogAura, Display,
+		TEXT("[Day19NetworkProbe][Server] Matrix=PASS RoleAuthority=1 AbilityAuthority=1 DamageAuthority=1 CommerceAuthority=1 PersistenceAuthority=1 FriendlyFireDenied=1 ProtectedCivilianDenied=1 ReplayBounded=1 OwnerPrivacy=1 LateJoinState=1 ReconnectNonce=1 LifecycleExactlyOnce=1 FireGunAuthority=1 FireGunCooldown=1 FireGunAttribution=1 NetworkEmulation=recorded."));
+#endif
+}
+
+void AAuraGameModeBase::RunRoleBattleDay16NetworkProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (!HasAuthority() || !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay16NetworkProbe"))) return;
+	auto FindProbeController = [this]() -> APlayerController*
+	{
+		if (!GetWorld()) return nullptr;
+		for (FConstPlayerControllerIterator ControllerIt = GetWorld()->GetPlayerControllerIterator(); ControllerIt; ++ControllerIt)
+		{
+			APlayerController* Candidate = ControllerIt->Get();
+			const AAuraPlayerState* CandidateState = Candidate ? Candidate->GetPlayerState<AAuraPlayerState>() : nullptr;
+			if (Candidate && CandidateState && CandidateState->GetPlayerName().StartsWith(TEXT("Day16Client1"))) return Candidate;
+		}
+		return GetWorld()->GetFirstPlayerController();
+	};
+	if (bDay16ProbeRespawnRequested)
+	{
+		APlayerController* Controller = FindProbeController();
+		AAuraPlayerState* PlayerState = Controller ? Controller->GetPlayerState<AAuraPlayerState>() : nullptr;
+		if (!Controller || !PlayerState || !Controller->GetPawn() || Controller->GetPawn() == Day16ProbePreviousPawn.Get()) return;
+		const bool bPreserved = PlayerState->GetCurrencyComponent()
+			&& PlayerState->GetInventoryComponent()
+			&& PlayerState->GetCurrencyComponent()->GetBalance() == Day16ProbeExpectedBalance
+			&& PlayerState->GetInventoryComponent()->HasItem(TEXT("health_potion"), 1)
+			&& PlayerState->GetEconomyInitializationCount() == Day16ProbeExpectedInitializationCount;
+		const bool bPassed = IsWorldReadyForPlay() && bPreserved && bDay16ProbeFixtureMutationApplied;
+		GetWorldTimerManager().ClearTimer(RoleBattleDay16ProbeTimerHandle);
+		UE_LOG(LogAura, Display, TEXT("[Day16NetworkProbe][Server] Passed=%d WorldReady=%d Players=1 OwnerState=1 Privacy=OwnerOnly RespawnPreserved=%d InitCount=%d Balance=%lld."),
+			bPassed, IsWorldReadyForPlay(), bPreserved, PlayerState->GetEconomyInitializationCount(), PlayerState->GetCurrencyComponent()->GetBalance());
+		return;
+	}
+
+	if (!GetWorld() || !GetWorld()->GetGameState()) return;
+	TArray<AAuraPlayerState*> InitializedPlayers;
+	for (APlayerState* State : GetWorld()->GetGameState()->PlayerArray)
+	{
+		AAuraPlayerState* AuraState = Cast<AAuraPlayerState>(State);
+		if (AuraState && AuraState->GetEconomyInitializationState() == EAuraEconomyInitializationState::Initialized)
+		{
+			InitializedPlayers.Add(AuraState);
+		}
+	}
+	if (InitializedPlayers.Num() < 2)
+	{
+		if (!GetWorldTimerManager().IsTimerActive(RoleBattleDay16ProbeTimerHandle))
+		{
+			GetWorldTimerManager().SetTimer(RoleBattleDay16ProbeTimerHandle,
+				FTimerDelegate::CreateUObject(this, &AAuraGameModeBase::RunRoleBattleDay16NetworkProbe), 0.5f, true);
+		}
+		return;
+	}
+	if (!bDay16ProbeFixtureMutationApplied)
+	{
+		bool bMutationSucceeded = true;
+		for (AAuraPlayerState* State : InitializedPlayers)
+		{
+			bMutationSucceeded = bMutationSucceeded && State->GetInventoryComponent()
+				&& State->GetInventoryComponent()->CommitAddItem(TEXT("health_potion"), 1) == EAuraEconomyMutationResult::Success;
+		}
+		bDay16ProbeFixtureMutationApplied = bMutationSucceeded;
+	}
+	APlayerController* Controller = FindProbeController();
+	AAuraPlayerState* PlayerState = Controller ? Controller->GetPlayerState<AAuraPlayerState>() : nullptr;
+	if (!Controller || !PlayerState || !Controller->GetPawn() || !PlayerState->GetCurrencyComponent() || !PlayerState->GetInventoryComponent()) return;
+	Day16ProbePreviousPawn = Controller->GetPawn();
+	Day16ProbeExpectedBalance = PlayerState->GetCurrencyComponent()->GetBalance();
+	Day16ProbeExpectedInitializationCount = PlayerState->GetEconomyInitializationCount();
+	bDay16ProbeRespawnRequested = true;
+	Controller->GetPawn()->Destroy();
+	RestartPlayer(Controller);
+#endif
+}
+
+void AAuraGameModeBase::RunRoleBattleDay17NetworkProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (!HasAuthority() || !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay17NetworkProbe")) || bDay17ProbeFixtureReady) return;
+	UAuraCommerceSubsystem* Commerce = GetWorld() ? GetWorld()->GetSubsystem<UAuraCommerceSubsystem>() : nullptr;
+	if (!Commerce || Commerce->GetRegisteredMerchantCount() < 1 || !GetWorld() || !GetWorld()->GetGameState())
+	{
+		if (GetWorld() && !GetWorldTimerManager().IsTimerActive(RoleBattleDay17ProbeTimerHandle))
+		{
+			GetWorldTimerManager().SetTimer(RoleBattleDay17ProbeTimerHandle,
+				FTimerDelegate::CreateUObject(this, &AAuraGameModeBase::RunRoleBattleDay17NetworkProbe), 0.5f, true);
+		}
+		return;
+	}
+	// Listen servers also have a local host PlayerState. The contention probe
+	// must wait for its two named external clients, otherwise the fixture can be
+	// armed before the late joiner exists and that client will fail the trade
+	// radius validation instead of exercising sold-out contention.
+	TArray<APlayerController*> ProbeControllers;
+	for (FConstPlayerControllerIterator ControllerIt = GetWorld()->GetPlayerControllerIterator(); ControllerIt; ++ControllerIt)
+	{
+		APlayerController* PlayerController = ControllerIt->Get();
+		const AAuraPlayerState* AuraState = PlayerController ? PlayerController->GetPlayerState<AAuraPlayerState>() : nullptr;
+		if (PlayerController && AuraState
+			&& AuraState->GetPlayerName().StartsWith(TEXT("Day17Client"))
+			&& AuraState->GetEconomyInitializationState() == EAuraEconomyInitializationState::Initialized)
+		{
+			ProbeControllers.Add(PlayerController);
+		}
+	}
+	const int32 InitializedPlayers = ProbeControllers.Num();
+	if (InitializedPlayers < 2)
+	{
+		if (!GetWorldTimerManager().IsTimerActive(RoleBattleDay17ProbeTimerHandle))
+		{
+			GetWorldTimerManager().SetTimer(RoleBattleDay17ProbeTimerHandle,
+				FTimerDelegate::CreateUObject(this, &AAuraGameModeBase::RunRoleBattleDay17NetworkProbe), 0.5f, true);
+		}
+		return;
+	}
+	for (TActorIterator<AAuraCivilian> It(GetWorld()); It; ++It)
+	{
+		UAuraMerchantComponent* Merchant = It->GetMerchantComponent();
+		if (Merchant && Merchant->IsMerchantActive()
+			&& Commerce->SetOfferStockForDevelopmentProbe(Merchant->GetPopulationMemberId(), TEXT("market_health_potion"), 1))
+		{
+			if (AActor* MerchantActor = Merchant->GetOwner()) MerchantActor->SetActorTickEnabled(false);
+			int32 PawnIndex = 0;
+			for (APlayerController* PlayerController : ProbeControllers)
+			{
+				if (PlayerController && PlayerController->GetPawn())
+				{
+					// Keep every fixture pawn inside the 250 cm trade radius.
+					PlayerController->GetPawn()->SetActorLocation(Merchant->GetOwner()->GetActorLocation() + FVector(100.f, 60.f * PawnIndex++, 0.f), false, nullptr, ETeleportType::TeleportPhysics);
+				}
+			}
+			bDay17ProbeFixtureReady = true;
+			GetWorldTimerManager().ClearTimer(RoleBattleDay17ProbeTimerHandle);
+			const FName ProbeMemberId = Merchant->GetPopulationMemberId();
+			GetWorldTimerManager().SetTimer(Day17ProbeCloseTimerHandle,
+				FTimerDelegate::CreateWeakLambda(this, [this, ProbeMemberId]()
+				{
+					if (UAuraCommerceSubsystem* CommerceSubsystem = GetWorld() ? GetWorld()->GetSubsystem<UAuraCommerceSubsystem>() : nullptr)
+					{
+						CommerceSubsystem->SetMerchantAvailabilityForDevelopmentProbe(ProbeMemberId, false);
+					}
+				}), 6.f, false);
+			UE_LOG(LogAura, Display, TEXT("[Day17NetworkProbe][Server] FixtureReady=1 member=%s offer=market_health_potion stock=1 players=%d."),
+				*Merchant->GetPopulationMemberId().ToString(), InitializedPlayers);
+			return;
+		}
+	}
+#endif
 }
 
 void AAuraGameModeBase::RunRoleBattleDays1012NetworkProbe()
@@ -1112,6 +1649,24 @@ void AAuraGameModeBase::RunRoleBattleDays1012NetworkProbe()
 
 void AAuraGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (HasAuthority() && IsWorldReadyForPlay() && PersistenceSubsystem && PersistenceSubsystem->IsWorldRestoreComplete() && PopulationManager)
+	{
+		if (UAuraCommerceSubsystem* Commerce = GetWorld() ? GetWorld()->GetSubsystem<UAuraCommerceSubsystem>() : nullptr)
+		{
+			FAuraPopulationDebugSnapshot PopulationSnapshot = PopulationManager->BuildDebugSnapshot();
+			TArray<FAuraPersistedMerchantStock> MerchantStocks;
+			Commerce->CapturePersistenceState(MerchantStocks);
+			FString PersistenceError;
+			if (!PersistenceSubsystem->SaveWorldState(PopulationSnapshot, MerchantStocks, PersistenceError))
+			{
+				UE_LOG(LogAura, Error, TEXT("[Persistence][Shutdown] World checkpoint failed: %s"), *PersistenceError);
+			}
+		}
+		else
+		{
+			UE_LOG(LogAura, Error, TEXT("[Persistence][Shutdown] World checkpoint skipped because the authority commerce subsystem is unavailable."));
+		}
+	}
 	if (PopulationManager)
 	{
 		PopulationManager->Shutdown();
@@ -1120,6 +1675,11 @@ void AAuraGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		World->GetTimerManager().ClearTimer(RoleConfigPollTimerHandle);
 		World->GetTimerManager().ClearTimer(RoleBattleStartupTimerHandle);
+		World->GetTimerManager().ClearTimer(RoleBattleDay16ProbeTimerHandle);
+		World->GetTimerManager().ClearTimer(RoleBattleDay17ProbeTimerHandle);
+		World->GetTimerManager().ClearTimer(Day17ProbeCloseTimerHandle);
+		World->GetTimerManager().ClearTimer(RoleBattleDay18ProbeTimerHandle);
+		World->GetTimerManager().ClearTimer(RoleBattleDay19ProbeTimerHandle);
 		World->GetTimerManager().ClearTimer(DedicatedServerReadyNotifyTimerHandle);
 	}
 

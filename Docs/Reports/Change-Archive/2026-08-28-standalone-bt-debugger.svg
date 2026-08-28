@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" role="img" aria-labelledby="title desc">
+  <title id="title">Standalone BT debugger for Unreal server logs</title>
+  <desc id="desc">Flow from an Unreal server log through BT discovery and context correlation into a standalone debugger UI with per-tree display switches, including an unattributed bucket for task messages without tree identity.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7dd3fc"/></marker>
+    <style>
+      .bg{fill:#08111f}.title{font:700 29px Arial,sans-serif;fill:#eef7ff}.subtitle{font:15px Arial,sans-serif;fill:#b7c9dc}.section{font:700 18px Arial,sans-serif;fill:#ffd66b}.label{font:700 14px Arial,sans-serif;fill:#eef7ff}.body{font:14px Arial,sans-serif;fill:#c9d9e8}.small{font:12px Arial,sans-serif;fill:#a9bdd0}.code{font:13px Consolas,monospace;fill:#b9edff}.panel{fill:#111e30;stroke:#415d7b;stroke-width:2}.input{fill:#17283d;stroke:#6a91b7;stroke-width:2}.good{fill:#102e37;stroke:#6be1ff;stroke-width:2}.guard{fill:#142d24;stroke:#7bddaa;stroke-width:2}.warn{fill:#3b3018;stroke:#ffd66b;stroke-width:2}.arrow{stroke:#7dd3fc;stroke-width:3;fill:none;marker-end:url(#arrow)}.divider{stroke:#405a75;stroke-width:2;stroke-dasharray:8 7}.check{fill:#a7f3c4;font:700 14px Arial,sans-serif}.cross{fill:#ffb1bd;font:700 14px Arial,sans-serif}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="820"/>
+  <text x="48" y="48" class="title">Standalone BT Debugger · per-tree log display control</text>
+  <text x="48" y="77" class="subtitle">A bounded, dependency-free Python tool that reads existing Unreal server logs without changing server behavior.</text>
+
+  <text x="52" y="123" class="section">1 · EXISTING SERVER LOG</text>
+  <rect x="42" y="142" width="330" height="242" rx="14" class="input"/>
+  <text x="66" y="176" class="label">Mixed log messages</text>
+  <text x="66" y="207" class="code">BT=BT_EnemyBehaviorTree</text>
+  <text x="66" y="234" class="code">tree=BT_Civilian_Runtime</text>
+  <text x="66" y="261" class="code">[CivilianAI][BT] ...</text>
+  <text x="66" y="288" class="code">[BTTask_MoveToTarget] ...</text>
+  <text x="66" y="329" class="body">Captured file or live appended output</text>
+  <text x="66" y="352" class="small">Server log is read-only to this tool</text>
+  <path d="M372 263H430" class="arrow"/>
+
+  <text x="445" y="123" class="section">2 · DISCOVER + CORRELATE</text>
+  <rect x="432" y="142" width="350" height="242" rx="14" class="panel"/>
+  <text x="456" y="176" class="label">BTLogParser + LogModel</text>
+  <rect x="456" y="198" width="302" height="43" rx="8" class="good"/>
+  <text x="472" y="225" class="code">explicit tree fields → BT identity</text>
+  <rect x="456" y="251" width="302" height="43" rx="8" class="good"/>
+  <text x="472" y="278" class="code">[Context][BT] → mapped tree</text>
+  <rect x="456" y="304" width="302" height="43" rx="8" class="warn"/>
+  <text x="472" y="331" class="code">missing identity → source bucket</text>
+  <text x="456" y="369" class="small">Full scan discovers names; recent entries are bounded</text>
+  <path d="M782 263H840" class="arrow"/>
+
+  <text x="855" y="123" class="section">3 · DEBUGGER UI</text>
+  <rect x="842" y="142" width="396" height="476" rx="14" class="panel"/>
+  <text x="868" y="176" class="label">BTs and log sources</text>
+  <rect x="868" y="194" width="344" height="39" rx="7" class="good"/>
+  <text x="884" y="219" class="code">✓  BT_Civilian_Runtime       5,550</text>
+  <rect x="868" y="241" width="344" height="39" rx="7" class="good"/>
+  <text x="884" y="266" class="code">✓  BT_EnemyBehaviorTree      1,043</text>
+  <rect x="868" y="288" width="344" height="39" rx="7" class="input"/>
+  <text x="884" y="313" class="code">—  BT_TestEnemy             67,819</text>
+  <rect x="868" y="335" width="344" height="39" rx="7" class="warn"/>
+  <text x="884" y="360" class="code">✓  Unattributed BT messages</text>
+  <text x="868" y="404" class="label">Selected: BT_Civilian_Runtime</text>
+  <text x="868" y="431" class="body">☑ Display selected log</text>
+  <text x="868" y="466" class="body">View:  All enabled   ·   Selected only</text>
+  <rect x="868" y="484" width="344" height="86" rx="7" fill="#0b1422" stroke="#304965" stroke-width="1"/>
+  <text x="882" y="510" class="small">1545  [CivilianAI] BT started ...</text>
+  <text x="882" y="534" class="small">1600  [CivilianAI][BT] No reachable ...</text>
+  <text x="882" y="558" class="small">1601  [CivilianAI][BT] destination=...</text>
+  <path d="M1040 632V682" class="arrow"/>
+
+  <line x1="48" y1="664" x2="1232" y2="664" class="divider"/>
+  <text x="52" y="706" class="section">BEHAVIOR GUARANTEE</text>
+  <rect x="42" y="724" width="350" height="62" rx="10" class="guard"/>
+  <text x="64" y="751" class="check">✓ Display-only filtering</text>
+  <text x="64" y="771" class="small">No writes to the log or server process</text>
+  <rect x="420" y="724" width="350" height="62" rx="10" class="guard"/>
+  <text x="442" y="751" class="check">✓ Live tail + bounded memory</text>
+  <text x="442" y="771" class="small">Polls appended lines every 500 ms</text>
+  <rect x="798" y="724" width="440" height="62" rx="10" class="guard"/>
+  <text x="820" y="751" class="check">✓ Validation: 4 real BTs · 5 tests · py_compile</text>
+  <text x="820" y="771" class="small">Task lines remain visible in an explicit unattributed bucket</text>
+</svg>

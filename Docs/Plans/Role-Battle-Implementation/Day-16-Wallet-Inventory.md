@@ -127,3 +127,13 @@ Run:
 ## Completion gate
 
 Each player has exactly one PlayerState-owned wallet and inventory. Only validated server code can mutate them, only the owning connection receives their contents, and both states survive pawn death/respawn without duplicate initialization.
+
+## Completion evidence (2026-08-28)
+
+- `build_test.bat`: AuraEditor Win64 Development passed after the final authority/privacy probe hardening.
+- All repository Python contracts passed, including the unrelated BT debugger regression suite: 11 scripts green.
+- Focused native automation: 8/8 Day 16 tests passed.
+- Full `Aura` native automation: 170/170 tests passed, 0 failed.
+- `RunRoleBattleDay16NetworkSmoke.ps1 -Mode Listen`: passed with server readiness, two clients, owner-only state, observer privacy, client grant rejection, respawn preservation, crash scan, and owned-process teardown assertions.
+- `RunRoleBattleDay16NetworkSmoke.ps1 -Mode Dedicated`: passed with the same assertions.
+- `git diff --check`: passed; generated logs/reports remain runtime artifacts and the pre-existing standalone BT debugger changes were preserved.

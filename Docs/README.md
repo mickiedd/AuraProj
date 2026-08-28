@@ -35,6 +35,7 @@
 |---|---|
 | [GAS-Migration-Audit-2026-08-03.md](Reports/GAS-Migration-Audit-2026-08-03.md) | Corrected audit of the TODO/pending-plan against the source tree. |
 | [Gameplay-Blueprint-Decoupling-Migration-Report.md](Reports/Gameplay-Blueprint-Decoupling-Migration-Report.md) | Implementation report for the decoupling phases. |
+| [Role-Battle-Vertical-Slice-2026-08-28.md](Reports/Role-Battle-Vertical-Slice-2026-08-28.md) | Day 20 local verification report and explicit production-release blocker. |
 | [DayPlan-Archive](Reports/DayPlan-Archive/README.md) | Detailed, manually authored mind maps for every finished Role/Battle day plan. |
 | [Change-Archive](Reports/Change-Archive/README.md) | Calendar-day and job-level visual change records. |
 
@@ -44,3 +45,5 @@
 |---|---|
 | [GAS-Abilities-Documentation.md](Reference/GAS-Abilities-Documentation.md) | Implementation documentation for all data-driven abilities. |
 | [Remote-Python-Editor-Automation.md](Reference/Remote-Python-Editor-Automation.md) | Runbook: drive the editor via UE Remote Execution (`Scripts/remote_run.py`) — add navmesh, spawn actors, recook for the server. |
+| [Role-Battle-Economy-Schema.md](Reference/Role-Battle-Economy-Schema.md) | Version 1 identity, persistence, commerce, and staged-data schema contract. |
+| [Role-Battle-Vertical-Slice-Test-Procedure.md](Reference/Role-Battle-Vertical-Slice-Test-Procedure.md) | Reproducible Listen/Dedicated, persistence, network, and release verification procedure. |

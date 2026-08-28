@@ -21,6 +21,7 @@
 #include "Aura/Aura.h"
 #include "Aura/AuraLogChannels.h"
 #include "Character/AuraEnemy.h"
+#include "Character/AuraCivilian.h"
 #include "Character/AuraCharacter.h"
 #include "Components/DecalComponent.h"
 #include "Components/SplineComponent.h"
@@ -49,9 +50,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Vehicle/AuraBroomVehicle.h"
 #include "Building/AuraBuildingComponent.h"
-#include "Player/AuraCheatManager.h"
 #include "Actor/AuraProjectile.h"
 #include "Data/AuraGameplayConfig.h"
+#include "Economy/AuraCommerceSubsystem.h"
+#include "Economy/AuraMerchantComponent.h"
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
@@ -64,11 +66,23 @@ AAuraPlayerController::AAuraPlayerController()
 	ClientDisconnectHandler = CreateDefaultSubobject<UAuraClientDisconnectHandler>(TEXT("ClientDisconnectHandler"));
 	HeartbeatComponent = CreateDefaultSubobject<UAuraHeartbeatComponent>(TEXT("HeartbeatComponent"));
 	InteractionComponent = CreateDefaultSubobject<UAuraInteractionComponent>(TEXT("InteractionComponent"));
+}
 
-	// Route Aura-specific cheat commands through UAuraCheatManager. Its Exec
-	// functions are only reachable while cheats are enabled (standalone / listen
-	// host / after `enablecheats` on a dedicated server).
-	CheatClass = UAuraCheatManager::StaticClass();
+void AAuraPlayerController::RequestBroomDismount(AAuraBroomVehicle* BroomToDismount)
+{
+	if (!IsValid(BroomToDismount))
+	{
+		UE_LOG(LogAura, Warning, TEXT("RequestBroomDismount ignored: invalid broom. Controller=%s"), *GetNameSafe(this));
+		return;
+	}
+
+	if (HasAuthority())
+	{
+		ServerRequestBroomDismount_Implementation(BroomToDismount);
+		return;
+	}
+
+	ServerRequestBroomDismount(BroomToDismount);
 }
 
 void AAuraPlayerController::RequestBroomMount(AAuraBroomVehicle* BroomToMount)
@@ -81,11 +95,7 @@ void AAuraPlayerController::RequestBroomMount(AAuraBroomVehicle* BroomToMount)
 
 	if (HasAuthority())
 	{
-		ACharacter* ControlledCharacter = GetPawn<ACharacter>();
-		if (IsValid(ControlledCharacter))
-		{
-			BroomToMount->RequestMount(ControlledCharacter);
-		}
+		ServerRequestBroomMount_Implementation(BroomToMount);
 		return;
 	}
 
@@ -120,9 +130,10 @@ void AAuraPlayerController::ServerSetSprinting_Implementation(bool bShouldSprint
 
 void AAuraPlayerController::ServerRequestBroomDismount_Implementation(AAuraBroomVehicle* BroomToDismount)
 {
-	if (!IsValid(BroomToDismount))
+	if (!IsBroomMountedByControlledCharacter(BroomToDismount))
 	{
-		UE_LOG(LogAura, Warning, TEXT("ServerRequestBroomDismount ignored: invalid broom. Controller=%s"), *GetNameSafe(this));
+		UE_LOG(LogAura, Warning, TEXT("ServerRequestBroomDismount ignored: broom is not mounted by this controller. Controller=%s Broom=%s"),
+			*GetNameSafe(this), *GetNameSafe(BroomToDismount));
 		return;
 	}
 
@@ -150,6 +161,25 @@ void AAuraPlayerController::ServerRequestBroomMount_Implementation(AAuraBroomVeh
 		return;
 	}
 
+	if (IsValid(BroomToMount->GetMountedCharacter()) && BroomToMount->GetMountedCharacter() != ControlledCharacter)
+	{
+		UE_LOG(LogAura, Warning, TEXT("ServerRequestBroomMount ignored: broom already has another rider. Controller=%s Broom=%s Rider=%s"),
+			*GetNameSafe(this), *GetNameSafe(BroomToMount), *GetNameSafe(BroomToMount->GetMountedCharacter()));
+		return;
+	}
+	if (!IsBroomWithinMountRange(BroomToMount, ControlledCharacter))
+	{
+		UE_LOG(LogAura, Warning, TEXT("ServerRequestBroomMount ignored: broom is out of range. Controller=%s Broom=%s Character=%s"),
+			*GetNameSafe(this), *GetNameSafe(BroomToMount), *GetNameSafe(ControlledCharacter));
+		return;
+	}
+	if (AActor* ExistingMount = ControlledCharacter->GetAttachParentActor(); IsValid(ExistingMount) && ExistingMount != BroomToMount)
+	{
+		UE_LOG(LogAura, Warning, TEXT("ServerRequestBroomMount ignored: character is already mounted on another actor. Controller=%s Character=%s ExistingMount=%s"),
+			*GetNameSafe(this), *GetNameSafe(ControlledCharacter), *GetNameSafe(ExistingMount));
+		return;
+	}
+
 	UE_LOG(LogAura, Log, TEXT("ServerRequestBroomMount processing. Controller=%s Character=%s Broom=%s"),
 		*GetNameSafe(this),
 		*GetNameSafe(ControlledCharacter),
@@ -160,10 +190,11 @@ void AAuraPlayerController::ServerRequestBroomMount_Implementation(AAuraBroomVeh
 
 void AAuraPlayerController::ServerSetBroomYaw_Implementation(AAuraBroomVehicle* Broom, float WorldYaw)
 {
-	if (!IsValid(Broom))
+	if (!IsBroomMountedByControlledCharacter(Broom) || !FMath::IsFinite(WorldYaw))
 	{
 		return;
 	}
+	WorldYaw = FRotator::NormalizeAxis(WorldYaw);
 
 	// Apply the camera yaw immediately so screen-edge / right-mouse rotation feels instant.
 	FRotator NewRotation = Broom->GetActorRotation();
@@ -184,7 +215,7 @@ void AAuraPlayerController::UpdateMountedBroomYaw(float WorldYaw)
 	}
 
 	AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor());
-	if (!IsValid(MountedBroom))
+	if (!IsBroomMountedByControlledCharacter(MountedBroom) || !FMath::IsFinite(WorldYaw))
 	{
 		return;
 	}
@@ -212,12 +243,35 @@ void AAuraPlayerController::ServerApplyBroomFlightInput_Implementation(AAuraBroo
 		*WorldDirection.ToCompactString(),
 		ScaleValue);
 
-	if (!IsValid(Broom))
+	if (!IsBroomMountedByControlledCharacter(Broom)
+		|| !FMath::IsFinite(WorldDirection.X) || !FMath::IsFinite(WorldDirection.Y) || !FMath::IsFinite(WorldDirection.Z)
+		|| !FMath::IsFinite(ScaleValue))
 	{
 		return;
 	}
 
-	Broom->AddFlightInput(WorldDirection, ScaleValue);
+	const FVector SafeDirection = WorldDirection.GetSafeNormal();
+	if (SafeDirection.IsNearlyZero())
+	{
+		return;
+	}
+
+	Broom->AddFlightInput(SafeDirection, FMath::Clamp(ScaleValue, 0.f, 1.f));
+}
+
+bool AAuraPlayerController::IsBroomMountedByControlledCharacter(const AAuraBroomVehicle* Broom) const
+{
+	const ACharacter* ControlledCharacter = GetPawn<ACharacter>();
+	return IsValid(Broom) && IsValid(ControlledCharacter)
+		&& Broom->GetMountedCharacter() == ControlledCharacter
+		&& ControlledCharacter->GetAttachParentActor() == Broom;
+}
+
+bool AAuraPlayerController::IsBroomWithinMountRange(const AAuraBroomVehicle* Broom, const ACharacter* CandidateCharacter) const
+{
+	constexpr float MountInteractionRange = 300.f;
+	return IsValid(Broom) && IsValid(CandidateCharacter)
+		&& FVector::DistSquared(Broom->GetActorLocation(), CandidateCharacter->GetActorLocation()) <= FMath::Square(MountInteractionRange);
 }
 
 void AAuraPlayerController::ApplySprintState(bool bShouldSprint)
@@ -251,103 +305,6 @@ UCharacterMovementComponent* AAuraPlayerController::GetControlledCharacterMoveme
 	return nullptr;
 }
 
-void AAuraPlayerController::FullAbilities()
-{
-	UE_LOG(LogAura, Log, TEXT("FullAbilities command invoked on %s. HasAuthority=%s Pawn=%s"),
-		*GetNameSafe(this),
-		HasAuthority() ? TEXT("true") : TEXT("false"),
-		*GetNameSafe(GetPawn()));
-
-	if (HasAuthority())
-	{
-		ExecuteFullAbilities();
-		return;
-	}
-
-	ServerFullAbilities();
-}
-
-void AAuraPlayerController::RequestTransferToRandomPlayer()
-{
-	UE_LOG(LogAura, Log, TEXT("TransferToRandomPlayer invoked on %s. HasAuthority=%s Pawn=%s"),
-		*GetNameSafe(this),
-		HasAuthority() ? TEXT("true") : TEXT("false"),
-		*GetNameSafe(GetPawn()));
-
-	if (HasAuthority())
-	{
-		ExecuteTransferToRandomPlayer();
-		return;
-	}
-
-	ServerTransferToRandomPlayer();
-}
-
-void AAuraPlayerController::RequestAddMonster(int32 MonsterId)
-{
-	UE_LOG(LogAura, Log, TEXT("AddMonster invoked on %s. MonsterId=%d HasAuthority=%s Pawn=%s"),
-		*GetNameSafe(this),
-		MonsterId,
-		HasAuthority() ? TEXT("true") : TEXT("false"),
-		*GetNameSafe(GetPawn()));
-
-	if (HasAuthority())
-	{
-		ExecuteAddMonster(MonsterId);
-		return;
-	}
-
-	ServerAddMonster(MonsterId);
-}
-
-void AAuraPlayerController::ServerAddMonster_Implementation(int32 MonsterId)
-{
-	ExecuteAddMonster(MonsterId);
-}
-
-void AAuraPlayerController::ExecuteAddMonster(int32 MonsterId)
-{
-	APawn* MyPawn = GetPawn();
-	if (!IsValid(MyPawn))
-	{
-		UE_LOG(LogAura, Warning, TEXT("AddMonster failed: no controlled pawn for monster id %d."), MonsterId);
-		ClientMessage(TEXT("AddMonster: no controlled pawn."));
-		return;
-	}
-
-	AAuraGameModeBase* GameMode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AAuraGameModeBase>() : nullptr;
-	if (!IsValid(GameMode))
-	{
-		UE_LOG(LogAura, Warning, TEXT("AddMonster failed: no authoritative AuraGameMode for monster id %d."), MonsterId);
-		ClientMessage(TEXT("AddMonster: authoritative game mode unavailable."));
-		return;
-	}
-
-	// Keep the spawn close to the player while avoiding placement directly inside
-	// the player's capsule. The GameMode still applies the table row's level,
-	// class, scale, and respawn settings.
-	const float SpawnDistance = FMath::FRandRange(150.f, 250.f);
-	const float SpawnAngleRadians = FMath::FRandRange(0.f, UE_TWO_PI);
-	const FVector SpawnOffset(
-		FMath::Cos(SpawnAngleRadians) * SpawnDistance,
-		FMath::Sin(SpawnAngleRadians) * SpawnDistance,
-		0.f);
-	const FVector MonsterSpawnLocation = MyPawn->GetActorLocation() + SpawnOffset;
-
-	AAuraEnemy* SpawnedEnemy = GameMode->SpawnMonsterByIdAtLocation(MonsterId, MonsterSpawnLocation);
-	if (!IsValid(SpawnedEnemy))
-	{
-		ClientMessage(FString::Printf(TEXT("AddMonster: failed to spawn monster id %d."), MonsterId));
-		return;
-	}
-
-	UE_LOG(LogAura, Log, TEXT("AddMonster spawned monster id %d near %s at %s."),
-		MonsterId,
-		*GetNameSafe(MyPawn),
-		*MonsterSpawnLocation.ToCompactString());
-	ClientMessage(FString::Printf(TEXT("AddMonster: spawned monster id %d nearby."), MonsterId));
-}
-
 void AAuraPlayerController::WebAbilityInputTagPressed(const FGameplayTag& InputTag)
 {
 	AbilityInputTagPressed(InputTag);
@@ -366,69 +323,6 @@ void AAuraPlayerController::WebAbilityInputTagReleased(const FGameplayTag& Input
 void AAuraPlayerController::WebInteractPressed()
 {
 	InteractPressed();
-}
-
-void AAuraPlayerController::ServerTransferToRandomPlayer_Implementation()
-{
-	ExecuteTransferToRandomPlayer();
-}
-
-void AAuraPlayerController::ExecuteTransferToRandomPlayer()
-{
-	APawn* MyPawn = GetPawn();
-	if (!MyPawn)
-	{
-		UE_LOG(LogAura, Warning, TEXT("TransferToRandomPlayer: no controlled pawn for %s."), *GetNameSafe(this));
-		ClientMessage(TEXT("TransferToRandomPlayer: no local pawn to move."));
-		return;
-	}
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return;
-	}
-
-	// Run on the server so every player pawn is a candidate: a far-away player's
-	// pawn may be net-culled on the invoking client and not even exist there, but
-	// the authoritative world still has it. Filter to pawns whose controller owns a
-	// live NetConnection (real remote players), excluding our own pawn.
-	TArray<APawn*> Candidates;
-	for (TActorIterator<APawn> It(World); It; ++It)
-	{
-		APawn* CandidatePawn = *It;
-		if (!CandidatePawn || CandidatePawn == MyPawn)
-		{
-			continue;
-		}
-
-		AController* CandidateController = CandidatePawn->GetController();
-		if (!CandidateController || !CandidateController->GetNetConnection())
-		{
-			continue;
-		}
-
-		Candidates.Add(CandidatePawn);
-	}
-
-	if (Candidates.IsEmpty())
-	{
-		UE_LOG(LogAura, Log, TEXT("TransferToRandomPlayer: no other connected player pawns found."));
-		ClientMessage(TEXT("TransferToRandomPlayer: no other connected players to teleport to."));
-		return;
-	}
-
-	APawn* TargetPawn = Candidates[FMath::RandRange(0, Candidates.Num() - 1)];
-	const FVector TargetLocation = TargetPawn->GetActorLocation();
-	const FRotator TargetRotation = TargetPawn->GetActorRotation();
-
-	// Teleport (no sweep) so we don't collide-slide on arrival; bNoCheck=true
-	// resets velocity/kinematics cleanly at the destination.
-	MyPawn->TeleportTo(TargetLocation, TargetRotation, /*bIsTest=*/false, /*bNoCheck=*/true);
-
-	UE_LOG(LogAura, Log, TEXT("TransferToRandomPlayer: moved %s -> %s (loc=%s)."),
-		*MyPawn->GetName(), *TargetPawn->GetName(), *TargetLocation.ToString());
-	ClientMessage(FString::Printf(TEXT("TransferToRandomPlayer: teleported to %s."), *TargetPawn->GetName()));
 }
 
 void AAuraPlayerController::ShowLocation()
@@ -818,6 +712,9 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 
 void AAuraPlayerController::AutoTestUseRandomEquippedAbility()
 {
+	#if UE_BUILD_SHIPPING
+	return;
+	#else
 	if (!IsAbilityInputReady())
 	{
 		UE_LOG(LogAura, Log, TEXT("[AutoTest] UseRandomAbility: ability input not ready yet."));
@@ -870,6 +767,7 @@ void AAuraPlayerController::AutoTestUseRandomEquippedAbility()
 	{
 		AbilityInputTagReleased(Chosen);
 	}
+	#endif
 }
 
 bool AAuraPlayerController::HasEquippedAbilityForInputTag(const FGameplayTag& InputTag)
@@ -916,66 +814,11 @@ bool AAuraPlayerController::IsAbilityInputReady() const
 	return IsValid(GetPawn());
 }
 
-void AAuraPlayerController::ServerFullAbilities_Implementation()
-{
-	UE_LOG(LogAura, Log, TEXT("ServerFullAbilities received for controller %s Pawn=%s"),
-		*GetNameSafe(this),
-		*GetNameSafe(GetPawn()));
-
-	ExecuteFullAbilities();
-}
-
-void AAuraPlayerController::ExecuteFullAbilities()
-{
-	UAuraAbilitySystemComponent* ASC = GetASC();
-	UE_LOG(LogAura, Log, TEXT("ExecuteFullAbilities starting on controller %s ASC=%s Avatar=%s"),
-		*GetNameSafe(this),
-		*GetNameSafe(ASC),
-		ASC ? *GetNameSafe(ASC->GetAvatarActor()) : TEXT("None"));
-
-	if (ASC == nullptr)
-	{
-		UE_LOG(LogAura, Warning, TEXT("FullAbilities failed: missing ASC for controller %s"), *GetNameSafe(this));
-		ClientMessage(TEXT("FullAbilities failed: missing AbilitySystemComponent."));
-		return;
-	}
-
-	ASC->GrantAndEquipAllAbilities();
-	UE_LOG(LogAura, Log, TEXT("ExecuteFullAbilities finished grant/equip for controller %s. Requesting client UI refresh."), *GetNameSafe(this));
-	ClientRefreshAbilityUI();
-	ClientMessage(TEXT("FullAbilities applied."));
-}
-
-void AAuraPlayerController::ClientRefreshAbilityUI_Implementation()
-{
-	UE_LOG(LogAura, Log, TEXT("ClientRefreshAbilityUI on controller %s"), *GetNameSafe(this));
-
-	if (UOverlayWidgetController* OverlayWidgetController = UAuraAbilitySystemLibrary::GetOverlayWidgetController(this))
-	{
-		UE_LOG(LogAura, Log, TEXT("ClientRefreshAbilityUI: refreshing overlay widget controller %s"), *GetNameSafe(OverlayWidgetController));
-		OverlayWidgetController->BroadcastAbilityInfo();
-	}
-	else
-	{
-		UE_LOG(LogAura, Warning, TEXT("ClientRefreshAbilityUI: overlay widget controller not available for %s"), *GetNameSafe(this));
-	}
-
-	if (USpellMenuWidgetController* SpellMenuWidgetController = UAuraAbilitySystemLibrary::GetSpellMenuWidgetController(this))
-	{
-		UE_LOG(LogAura, Log, TEXT("ClientRefreshAbilityUI: refreshing spell menu widget controller %s"), *GetNameSafe(SpellMenuWidgetController));
-		SpellMenuWidgetController->BroadcastInitialValues();
-	}
-	else
-	{
-		UE_LOG(LogAura, Warning, TEXT("ClientRefreshAbilityUI: spell menu widget controller not available for %s"), *GetNameSafe(this));
-	}
-}
-
 void AAuraPlayerController::ClientRejectLogin_Implementation(const FString& Reason)
 {
 	UE_LOG(LogAura, Error, TEXT("[Role][Login] ClientRejectLogin: %s"), *Reason);
 
-	// Reuse the same server-lost path as KickOutSelf / mid-game server loss: stash the reason as
+	// Reuse the same server-lost path as a mid-game server loss: stash the reason as
 	// the Login-screen alert message and travel back to the Login level (dropping the connection).
 	if (ClientDisconnectHandler)
 	{
@@ -990,6 +833,15 @@ void AAuraPlayerController::ClientRejectLogin_Implementation(const FString& Reas
 void AAuraPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	if (HasAuthority() && InteractionComponent && GetWorld())
+	{
+		if (UAuraCommerceSubsystem* Commerce = GetWorld()->GetSubsystem<UAuraCommerceSubsystem>())
+		{
+			const FGuid SessionNonce = Commerce->RotateSession(this);
+			InteractionComponent->InitializeCommerceSessionNonce(SessionNonce);
+			UE_LOG(LogAura, Display, TEXT("[Commerce][Session] Rotated player=%s nonce=%s."), *GetNameSafe(this), *SessionNonce.ToString());
+		}
+	}
 	if (!TargetInteractionWidgetController)
 	{
 		TargetInteractionWidgetController = NewObject<UTargetInteractionWidgetController>(this);
@@ -1018,6 +870,26 @@ void AAuraPlayerController::BeginPlay()
 		UE_LOG(LogAura, Display, TEXT("[Day6NetworkProbe][%s] Scheduled Controller=%s"),
 			HasAuthority() ? TEXT("Server") : TEXT("Client"), *GetNameSafe(this));
 	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay17NetworkProbeClient")) && !HasAuthority())
+	{
+		GetWorldTimerManager().SetTimer(RoleBattleDay17ProbeTimerHandle, this,
+			&ThisClass::TickRoleBattleDay17NetworkProbeClient, 0.25f, true);
+		UE_LOG(LogAura, Display, TEXT("[Day17NetworkProbe][Client] Scheduled merchant purchase/replay probe."));
+	}
+	if ((FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay18PersistenceProbeClientA"))
+		|| FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay18PersistenceProbeClientB"))) && !HasAuthority())
+	{
+		GetWorldTimerManager().SetTimer(RoleBattleDay18ProbeTimerHandle, this,
+			&ThisClass::TickRoleBattleDay18PersistenceProbeClient, 0.25f, true);
+		UE_LOG(LogAura, Display, TEXT("[Day18PersistenceProbe][Client] Scheduled identity-isolated purchase probe."));
+	}
+	if ((FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19MultiplayerProbeClientA"))
+		|| FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19MultiplayerProbeClientB"))) && !HasAuthority())
+	{
+		GetWorldTimerManager().SetTimer(RoleBattleDay19ProbeTimerHandle, this,
+			&ThisClass::TickRoleBattleDay19NetworkProbeClient, 0.25f, true);
+		UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] Scheduled security/replay probe."));
+	}
 #endif
 	if (!AuraContext)
 	{
@@ -1027,16 +899,6 @@ void AAuraPlayerController::BeginPlay()
 	{
 		InteractAction = LoadObject<UInputAction>(nullptr, TEXT("/Game/Blueprints/Input/InputActions/IA_Interact.IA_Interact"));
 	}
-
-#if !UE_BUILD_SHIPPING
-	// Auto-enable cheats in non-shipping builds so the UAuraCheatManager console
-	// commands are available without typing `enablecheats` each session. Only the
-	// local controller drives console input, so we only need the cheat manager there.
-	if (IsLocalController())
-	{
-		EnableCheats();
-	}
-#endif
 
 	if (UCharacterMovementComponent* CharacterMovement = GetControlledCharacterMovement())
 	{
@@ -1076,6 +938,135 @@ void AAuraPlayerController::BeginPlay()
 		FSlateApplication::Get().SetAllUserFocusToGameViewport(EFocusCause::SetDirectly);
 	}
 }
+
+void AAuraPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (GetWorld())
+	{
+		GetWorldTimerManager().ClearTimer(RoleBattleDay17ProbeTimerHandle);
+		GetWorldTimerManager().ClearTimer(RoleBattleDay18ProbeTimerHandle);
+		GetWorldTimerManager().ClearTimer(RoleBattleDay19ProbeTimerHandle);
+	}
+	if (HasAuthority() && GetWorld())
+	{
+		if (UAuraCommerceSubsystem* Commerce = GetWorld()->GetSubsystem<UAuraCommerceSubsystem>()) Commerce->InvalidateSession(this);
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+#if !UE_BUILD_SHIPPING
+void AAuraPlayerController::TickRoleBattleDay17NetworkProbeClient()
+{
+	if (HasAuthority() || bRoleBattleDay17ProbeSubmitted || !InteractionComponent
+		|| !InteractionComponent->GetCommerceSessionNonce().IsValid()) return;
+	for (TActorIterator<AAuraCivilian> It(GetWorld()); It; ++It)
+	{
+		AAuraCivilian* Civilian = *It;
+		UAuraMerchantComponent* Merchant = Civilian ? Civilian->GetMerchantComponent() : nullptr;
+		if (!Merchant || !Merchant->IsMerchantActive()) continue;
+		const FAuraMerchantOfferPresentation* ProbeOffer = Merchant->GetPresentation().Offers.FindByPredicate(
+			[](const FAuraMerchantOfferPresentation& Offer) { return Offer.OfferId == FName(TEXT("market_health_potion")); });
+		// Both clients must enter the same contention window. If the other client
+		// wins before this replica receives the fixture update, CurrentStock is
+		// already zero; that client still needs to submit so the server returns a
+		// typed SoldOut result instead of leaving the probe one-sided.
+		if (!ProbeOffer || ProbeOffer->CurrentStock > 1 || Merchant->GetPresentation().StockRevision < 2) continue;
+		InteractionComponent->RequestPurchase(Civilian, FName(TEXT("market_health_potion")));
+		InteractionComponent->RequestPurchaseWithRequestIdForDevelopmentProbe(Civilian, FName(TEXT("market_health_potion")), 1);
+		bRoleBattleDay17ProbeSubmitted = true;
+		GetWorldTimerManager().ClearTimer(RoleBattleDay17ProbeTimerHandle);
+		UE_LOG(LogAura, Display, TEXT("[Day17NetworkProbe][Client] Submitted request=1 and exact replay merchant=%s."), *GetNameSafe(Civilian));
+		return;
+	}
+}
+
+void AAuraPlayerController::TickRoleBattleDay18PersistenceProbeClient()
+{
+	if (HasAuthority() || !InteractionComponent || !InteractionComponent->GetCommerceSessionNonce().IsValid()) return;
+	const bool bProfileA = FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay18PersistenceProbeClientA"));
+	const bool bStaleOnly = FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay18PersistenceStaleOnly"));
+	if (!bProfileA && !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay18PersistenceProbeClientB"))) return;
+	for (TActorIterator<AAuraCivilian> It(GetWorld()); It; ++It)
+	{
+		AAuraCivilian* Civilian = *It;
+		UAuraMerchantComponent* Merchant = Civilian ? Civilian->GetMerchantComponent() : nullptr;
+		if (!Merchant || !Merchant->IsMerchantActive() || !Merchant->GetOwner()) continue;
+		if (!GetPawn() || FVector::DistSquared(GetPawn()->GetActorLocation(), Merchant->GetOwner()->GetActorLocation()) > FMath::Square(240.f)) continue;
+		if (bStaleOnly)
+		{
+			if (bRoleBattleDay18StaleProbeSubmitted) return;
+			FString StaleNonceText;
+			if (!FParse::Value(FCommandLine::Get(), TEXT("AuraRoleBattleDay18StaleNonce="), StaleNonceText)) return;
+			FGuid StaleNonce;
+			if (!FGuid::Parse(StaleNonceText, StaleNonce) || !StaleNonce.IsValid()) return;
+			InteractionComponent->RequestPurchaseWithSessionNonceForDevelopmentProbe(
+				Civilian, FName(TEXT("market_health_potion")), StaleNonce, 999);
+			bRoleBattleDay18StaleProbeSubmitted = true;
+			GetWorldTimerManager().ClearTimer(RoleBattleDay18ProbeTimerHandle);
+			UE_LOG(LogAura, Display, TEXT("[Day18PersistenceProbe][Client] Submitted stale nonce request=999 merchant=%s."), *GetNameSafe(Civilian));
+			return;
+		}
+		if (bRoleBattleDay18ProbeSubmitted) return;
+		const FName OfferId = bProfileA ? FName(TEXT("market_health_potion")) : FName(TEXT("market_mana_potion"));
+		if (!Merchant->GetPresentation().Offers.ContainsByPredicate([OfferId](const FAuraMerchantOfferPresentation& Offer) { return Offer.OfferId == OfferId; })) continue;
+		InteractionComponent->RequestPurchase(Civilian, OfferId);
+		bRoleBattleDay18ProbeSubmitted = true;
+		GetWorldTimerManager().ClearTimer(RoleBattleDay18ProbeTimerHandle);
+		UE_LOG(LogAura, Display, TEXT("[Day18PersistenceProbe][Client] Submitted profile=%s offer=%s merchant=%s."),
+			bProfileA ? TEXT("A") : TEXT("B"), *OfferId.ToString(), *GetNameSafe(Civilian));
+		return;
+	}
+}
+
+void AAuraPlayerController::TickRoleBattleDay19NetworkProbeClient()
+{
+	if (HasAuthority() || !InteractionComponent || !InteractionComponent->GetCommerceSessionNonce().IsValid()) return;
+	if (!FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19MultiplayerProbeClientA"))
+		&& !FParse::Param(FCommandLine::Get(), TEXT("RoleBattleDay19MultiplayerProbeClientB"))) return;
+	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (Now < RoleBattleDay19NextProbeTime) return;
+	for (TActorIterator<AAuraCivilian> It(GetWorld()); It; ++It)
+	{
+		AAuraCivilian* Civilian = *It;
+		UAuraMerchantComponent* Merchant = Civilian ? Civilian->GetMerchantComponent() : nullptr;
+		if (!Merchant || !Merchant->IsMerchantActive() || !Merchant->GetOwner() || !GetPawn()
+			|| FVector::DistSquared(GetPawn()->GetActorLocation(), Merchant->GetOwner()->GetActorLocation()) > FMath::Square(320.f)) continue;
+		const FName OfferId = FName(TEXT("market_health_potion"));
+		switch (RoleBattleDay19ProbeStep)
+		{
+		case 0:
+			UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] LateJoinObserved=1 merchantAvailable=%d stockRevision=%u."),
+				Merchant->GetPresentation().bAvailable ? 1 : 0, Merchant->GetPresentation().StockRevision);
+			InteractionComponent->RequestPurchaseWithRequestIdForDevelopmentProbe(Civilian, OfferId, 1);
+			UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] SentValidRequest=1 offer=%s."), *OfferId.ToString());
+			break;
+		case 1:
+			InteractionComponent->RequestPurchaseWithRequestIdForDevelopmentProbe(Civilian, OfferId, 1);
+			UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] SentExactReplay=1."));
+			break;
+		case 2:
+			InteractionComponent->RequestPurchaseWithRequestIdForDevelopmentProbe(Civilian, OfferId, 3);
+			UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] SentRequestGap=3."));
+			break;
+		case 3:
+			InteractionComponent->RequestPurchaseWithRequestIdForDevelopmentProbe(Civilian, OfferId, 2);
+			UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] SentOrderedRequest=2."));
+			break;
+		case 4:
+			InteractionComponent->RequestPurchaseWithSessionNonceForDevelopmentProbe(Civilian, OfferId, FGuid::NewGuid(), 4);
+			UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] SentWrongNonce=4."));
+			break;
+		default:
+			GetWorldTimerManager().ClearTimer(RoleBattleDay19ProbeTimerHandle);
+			UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] ProbeSequenceComplete=1."));
+			return;
+		}
+		++RoleBattleDay19ProbeStep;
+		RoleBattleDay19NextProbeTime = Now + 1.0;
+		return;
+	}
+}
+#endif
 
 bool AAuraPlayerController::ValidateRoleBattleDay6Pawn(AAuraCharacter* PlayerCharacter, FString& OutFailure) const
 {
@@ -1341,9 +1332,19 @@ bool AAuraPlayerController::ValidateRoleBattleDay1Damage(AAuraCharacter* PlayerC
 		return false;
 	}
 
-	if (!UAuraAbilitySystemLibrary::IsNotFriend(PlayerCharacter, Enemy)
-		|| UAuraAbilitySystemLibrary::IsNotFriend(PlayerCharacter, PlayerCharacter)
-		|| UAuraAbilitySystemLibrary::IsNotFriend(Enemy, Enemy))
+	FAuraCombatRuleContext PlayerToEnemyContext;
+	PlayerToEnemyContext.QueryPurpose = EAuraCombatQueryPurpose::Damage;
+	PlayerToEnemyContext.TrustedWorldContext = PlayerCharacter;
+	PlayerToEnemyContext.SourceActor = PlayerCharacter;
+	PlayerToEnemyContext.TargetActor = Enemy;
+	FAuraCombatRuleContext PlayerSelfContext = PlayerToEnemyContext;
+	PlayerSelfContext.TargetActor = PlayerCharacter;
+	FAuraCombatRuleContext EnemySelfContext = PlayerToEnemyContext;
+	EnemySelfContext.SourceActor = Enemy;
+	EnemySelfContext.TargetActor = Enemy;
+	if (!FAuraCombatRules::CanDamage(PlayerCharacter, Enemy, PlayerToEnemyContext).bCanDamage
+		|| FAuraCombatRules::CanDamage(PlayerCharacter, PlayerCharacter, PlayerSelfContext).bCanDamage
+		|| FAuraCombatRules::CanDamage(Enemy, Enemy, EnemySelfContext).bCanDamage)
 	{
 		OutFailure = TEXT("Player/enemy relationship policy returned an unexpected result.");
 		return false;
@@ -1712,7 +1713,7 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 				*InputAxisVector.ToString());
 		}
 
-		if (MountedBroom)
+		if (IsBroomMountedByControlledCharacter(MountedBroom))
 		{
 			const bool bTagBlocked = GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed);
 			UE_LOG(LogAura, Verbose, TEXT("[BroomFlight] On broom. TagBlock=%s Input=%s HasAuthority=%s"),
@@ -1833,14 +1834,7 @@ void AAuraPlayerController::JumpPressed()
 	{
 		if (AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor()))
 		{
-			if (HasAuthority())
-			{
-				MountedBroom->RequestDismount();
-			}
-			else
-			{
-				ServerRequestBroomDismount(MountedBroom);
-			}
+			RequestBroomDismount(MountedBroom);
 			return;
 		}
 
@@ -1930,7 +1924,7 @@ void AAuraPlayerController::ApplyBroomVerticalFlight()
 	// path, which also bypasses the Player_Block_InputPressed gate for broom flight
 	// so mounting-time input blocks don't silence vertical steering.
 	AAuraBroomVehicle* MountedBroom = Cast<AAuraBroomVehicle>(ControlledCharacter->GetAttachParentActor());
-	if (!MountedBroom)
+	if (!IsBroomMountedByControlledCharacter(MountedBroom))
 	{
 		return;
 	}

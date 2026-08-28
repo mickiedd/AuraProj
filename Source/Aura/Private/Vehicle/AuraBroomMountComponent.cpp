@@ -76,7 +76,10 @@ void UAuraBroomMountComponent::RequestMount(ACharacter* CharacterToMount)
 		return;
 	}
 
-	ServerRequestMount(CharacterToMount);
+	if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(CharacterToMount->GetController()); AuraPC && AuraPC->IsLocalController())
+	{
+		AuraPC->RequestBroomMount(GetBroomOwner());
+	}
 }
 
 void UAuraBroomMountComponent::RequestDismount()
@@ -92,21 +95,10 @@ void UAuraBroomMountComponent::RequestDismount()
 		return;
 	}
 
-	ServerRequestDismount();
-}
-
-void UAuraBroomMountComponent::ServerRequestMount_Implementation(ACharacter* CharacterToMount)
-{
-	MountCharacterInternal(CharacterToMount);
-}
-
-void UAuraBroomMountComponent::ServerRequestDismount_Implementation()
-{
-	UE_LOG(LogAura, Log, TEXT("Broom[%s] ServerRequestDismount_Implementation. MountedCharacter=%s"),
-		*GetNameSafe(GetOwner()),
-		*GetNameSafe(MountedCharacter));
-
-	DismountCharacterInternal();
+	if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(MountedCharacter ? MountedCharacter->GetController() : nullptr); AuraPC && AuraPC->IsLocalController())
+	{
+		AuraPC->RequestBroomDismount(GetBroomOwner());
+	}
 }
 
 void UAuraBroomMountComponent::OnRep_MountedCharacter()
@@ -174,6 +166,12 @@ void UAuraBroomMountComponent::MountCharacterInternal(ACharacter* CharacterToMou
 {
 	if (!GetOwner()->HasAuthority() || !IsValid(CharacterToMount) || MountedCharacter == CharacterToMount)
 	{
+		return;
+	}
+	if (AActor* ExistingMount = CharacterToMount->GetAttachParentActor(); IsValid(ExistingMount) && ExistingMount != GetOwner())
+	{
+		UE_LOG(LogAura, Warning, TEXT("Broom[%s] MountCharacterInternal rejected character=%s already attached to %s."),
+			*GetNameSafe(GetOwner()), *GetNameSafe(CharacterToMount), *GetNameSafe(ExistingMount));
 		return;
 	}
 

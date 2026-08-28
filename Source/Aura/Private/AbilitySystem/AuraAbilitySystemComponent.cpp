@@ -398,12 +398,14 @@ bool UAuraAbilitySystemComponent::ApplyRoleGrantSet(FName RoleId, int32 RoleDefi
 				continue;
 			}
 
-			if (Data.ProvenanceVersion > 1 || Data.GrantSource > static_cast<uint8>(EAuraAbilityGrantSource::Progression))
+			if (Data.ProvenanceVersion < 1 || Data.ProvenanceVersion > 1
+				|| Data.GrantSource > static_cast<uint8>(EAuraAbilityGrantSource::Progression))
 			{
 				UE_LOG(LogAura, Error, TEXT("[RoleGrant] Quarantined ability '%s' with unsupported provenance version/source."),
 					*Data.AbilityTag.ToString());
 				continue;
 			}
+			const bool bLegacyUnknownProvenance = Data.GrantSource == static_cast<uint8>(EAuraAbilityGrantSource::Unknown);
 			EAuraAbilityGrantSource Provenance = static_cast<EAuraAbilityGrantSource>(Data.GrantSource);
 			if (Provenance == EAuraAbilityGrantSource::Unknown)
 			{
@@ -422,6 +424,19 @@ bool UAuraAbilitySystemComponent::ApplyRoleGrantSet(FName RoleId, int32 RoleDefi
 					continue;
 				}
 			}
+			if (Provenance == EAuraAbilityGrantSource::Progression && !IsKnownProgressionGrant(Role, Data.AbilityTag))
+			{
+				UE_LOG(LogAura, Error, TEXT("[RoleGrant] Quarantined saved progression ability '%s' because it is not an unlockable grant for role '%s'."),
+					*Data.AbilityTag.ToString(), *RoleId.ToString());
+				continue;
+			}
+			if ((!bLegacyUnknownProvenance && Provenance == EAuraAbilityGrantSource::Role && Data.GrantedRoleId != RoleId)
+				|| (!bLegacyUnknownProvenance && Provenance == EAuraAbilityGrantSource::Progression && !Data.GrantedRoleId.IsNone()))
+			{
+				UE_LOG(LogAura, Error, TEXT("[RoleGrant] Quarantined saved ability '%s' with mismatched provenance role metadata."),
+					*Data.AbilityTag.ToString());
+				continue;
+			}
 
 			const bool bAllowedRoleGrant = Candidates.ContainsByPredicate([&Data](const FRoleGrantCandidate& Candidate)
 			{
@@ -439,6 +454,21 @@ bool UAuraAbilitySystemComponent::ApplyRoleGrantSet(FName RoleId, int32 RoleDefi
 			if (!ResolveAbilitySource(GetAvatarActor(), Data.AbilityTag, nullptr, Source))
 			{
 				UE_LOG(LogAura, Error, TEXT("[RoleGrant] Save restore skipped unresolved ability '%s'."), *Data.AbilityTag.ToString());
+				continue;
+			}
+			const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+			const bool bValidStatus = !Data.AbilityStatus.IsValid()
+				|| Data.AbilityStatus == GameplayTags.Abilities_Status_Locked
+				|| Data.AbilityStatus == GameplayTags.Abilities_Status_Eligible
+				|| Data.AbilityStatus == GameplayTags.Abilities_Status_Unlocked
+				|| Data.AbilityStatus == GameplayTags.Abilities_Status_Equipped;
+			const bool bValidSlot = !Data.AbilitySlot.IsValid()
+				|| GetOrderedSlotsForAbilityType(Source.AbilityType).Contains(Data.AbilitySlot);
+			if (!bValidStatus || !bValidSlot
+				|| (Data.AbilityStatus == GameplayTags.Abilities_Status_Equipped && !Data.AbilitySlot.IsValid()))
+			{
+				UE_LOG(LogAura, Error, TEXT("[RoleGrant] Quarantined saved ability '%s' with invalid status/slot combination."),
+					*Data.AbilityTag.ToString());
 				continue;
 			}
 			FGameplayAbilitySpec Spec = MakeAbilitySpec(Source, FMath::Max(1, Data.AbilityLevel));
@@ -955,16 +985,28 @@ void UAuraAbilitySystemComponent::UpgradeAttribute(const FGameplayTag& Attribute
 
 void UAuraAbilitySystemComponent::ServerUpgradeAttribute_Implementation(const FGameplayTag& AttributeTag)
 {
+	AActor* Avatar = GetAvatarActor();
+	if (!IsOwnerActorAuthoritative() || !Avatar || !Avatar->Implements<UPlayerInterface>())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected attribute upgrade without an authoritative player avatar."));
+		return;
+	}
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	const bool bPrimaryAttribute = AttributeTag.MatchesTagExact(GameplayTags.Attributes_Primary_Strength)
+		|| AttributeTag.MatchesTagExact(GameplayTags.Attributes_Primary_Intelligence)
+		|| AttributeTag.MatchesTagExact(GameplayTags.Attributes_Primary_Resilience)
+		|| AttributeTag.MatchesTagExact(GameplayTags.Attributes_Primary_Vigor);
+	if (!bPrimaryAttribute || IPlayerInterface::Execute_GetAttributePoints(Avatar) <= 0)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected forged attribute upgrade tag=%s or exhausted points."), *AttributeTag.ToString());
+		return;
+	}
 	FGameplayEventData Payload;
 	Payload.EventTag = AttributeTag;
 	Payload.EventMagnitude = 1.f;
 
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetAvatarActor(), AttributeTag, Payload);
-
-	if (GetAvatarActor()->Implements<UPlayerInterface>())
-	{
-		IPlayerInterface::Execute_AddToAttributePoints(GetAvatarActor(), -1);
-	}
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Avatar, AttributeTag, Payload);
+	IPlayerInterface::Execute_AddToAttributePoints(Avatar, -1);
 }
 
 void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 Level)
@@ -995,175 +1037,34 @@ void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 Level)
 	}
 }
 
-void UAuraAbilitySystemComponent::GrantAndEquipAllAbilities()
-{
-	if (!GetAvatarActor() || !GetAvatarActor()->HasAuthority())
-	{
-		UE_LOG(LogAura, Warning, TEXT("GrantAndEquipAllAbilities aborted. ASC=%s Avatar=%s HasAuthority=%s"),
-			*GetNameSafe(this),
-			*GetNameSafe(GetAvatarActor()),
-			(GetAvatarActor() && GetAvatarActor()->HasAuthority()) ? TEXT("true") : TEXT("false"));
-		return;
-	}
-
-	const URuntimeAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(GetAvatarActor());
-	if (AbilityInfo == nullptr)
-	{
-		UE_LOG(LogAura, Error, TEXT("GrantAndEquipAllAbilities aborted. AbilityInfo.json is unavailable for avatar %s"), *GetNameSafe(GetAvatarActor()));
-		return;
-	}
-	const TArray<FAuraAbilityInfo> AllAbilityInfo = AbilityInfo->GetAllAbilityInfo();
-
-	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-	TSet<FGameplayTag> ReservedSlots;
-	int32 ExistingAbilityCount = 0;
-	int32 GrantedAbilityCount = 0;
-	int32 EquippedAbilityCount = 0;
-	int32 UnlockedOnlyCount = 0;
-	int32 PassiveActivationCount = 0;
-
-	UE_LOG(LogAura, Log, TEXT("GrantAndEquipAllAbilities starting for avatar %s with %d ability definitions"),
-		*GetNameSafe(GetAvatarActor()),
-		AllAbilityInfo.Num());
-
-	FForEachAbility CollectReservedSlotsDelegate;
-	CollectReservedSlotsDelegate.BindLambda([this, &ReservedSlots](const FGameplayAbilitySpec& AbilitySpec)
-	{
-		const FGameplayTag Slot = GetInputTagFromSpec(AbilitySpec);
-		if (Slot.IsValid())
-		{
-			ReservedSlots.Add(Slot);
-		}
-	});
-	ForEachAbility(CollectReservedSlotsDelegate);
-	ExistingAbilityCount = GetActivatableAbilities().Num();
-	UE_LOG(LogAura, Log, TEXT("GrantAndEquipAllAbilities initial state: existing abilities=%d reserved slots=%d"), ExistingAbilityCount, ReservedSlots.Num());
-
-	for (const FAuraAbilityInfo& Metadata : AllAbilityInfo)
-	{
-		if (!Metadata.AbilityTag.IsValid()) continue;
-
-		FResolvedAbilitySource Source;
-		if (!ResolveAbilitySource(GetAvatarActor(), Metadata.AbilityTag, nullptr, Source))
-		{
-			UE_LOG(LogAura, Warning, TEXT("FullAbilities has metadata but no runtime source for %s"), *Metadata.AbilityTag.ToString());
-			continue;
-		}
-		const FAuraAbilityInfo Info = GetRuntimeAbilityInfoForTag(Metadata.AbilityTag);
-		if (!Info.AbilityType.MatchesTagExact(GameplayTags.Abilities_Type_Offensive) &&
-			!Info.AbilityType.MatchesTagExact(GameplayTags.Abilities_Type_Passive))
-		{
-			continue;
-		}
-
-		FGameplayAbilitySpec* AbilitySpec = GetSpecFromAbilityTag(Info.AbilityTag);
-		const bool bHadAbilityAlready = AbilitySpec != nullptr;
-		if (AbilitySpec == nullptr)
-		{
-			FGameplayAbilitySpec NewAbilitySpec = MakeAbilitySpec(Source, 1);
-			SetAbilityStatus(NewAbilitySpec, GameplayTags.Abilities_Status_Unlocked);
-			GiveAbility(NewAbilitySpec);
-			AbilitySpec = GetSpecFromAbilityTag(Info.AbilityTag);
-			if (AbilitySpec)
-			{
-				GrantedAbilityCount++;
-				UE_LOG(LogAura, Log, TEXT("FullAbilities granted ability %s class=%s"),
-					*Info.AbilityTag.ToString(),
-					*GetNameSafe(Source.AbilityClass));
-			}
-		}
-
-		if (AbilitySpec == nullptr)
-		{
-			UE_LOG(LogAura, Warning, TEXT("FullAbilities failed to resolve spec for ability %s after grant attempt"), *Info.AbilityTag.ToString());
-			continue;
-		}
-
-		FGameplayTag PreviousSlot;
-		FGameplayTag Slot = GetInputTagFromSpec(*AbilitySpec);
-		if (Slot.IsValid())
-		{
-			if (IsPassiveAbility(*AbilitySpec) && !AbilitySpec->IsActive())
-			{
-				TryActivateAbility(AbilitySpec->Handle);
-				MulticastActivatePassiveEffect(Info.AbilityTag, true);
-				PassiveActivationCount++;
-				UE_LOG(LogAura, Log, TEXT("FullAbilities activated passive ability %s"), *Info.AbilityTag.ToString());
-			}
-
-			SetAbilityStatus(*AbilitySpec, GameplayTags.Abilities_Status_Equipped);
-			ReservedSlots.Add(Slot);
-		}
-		else
-		{
-			SetAbilityStatus(*AbilitySpec, GameplayTags.Abilities_Status_Unlocked);
-
-			const FGameplayTag DesiredSlot = FindSlotForAbility(Info, *AbilitySpec, ReservedSlots);
-			if (DesiredSlot.IsValid() && EquipAbilityToSlot(*AbilitySpec, DesiredSlot, PreviousSlot))
-			{
-				Slot = DesiredSlot;
-				ReservedSlots.Add(Slot);
-				if (IsPassiveAbility(*AbilitySpec) && AbilitySpec->IsActive())
-				{
-					PassiveActivationCount++;
-				}
-			}
-		}
-
-		const FGameplayTag Status = Slot.IsValid() ? GameplayTags.Abilities_Status_Equipped : GameplayTags.Abilities_Status_Unlocked;
-		SetAbilityStatus(*AbilitySpec, Status);
-		MarkAbilitySpecDirty(*AbilitySpec);
-		ClientUpdateAbilityStatus(Info.AbilityTag, Status, AbilitySpec->Level);
-
-		if (Status.MatchesTagExact(GameplayTags.Abilities_Status_Equipped))
-		{
-			EquippedAbilityCount++;
-		}
-		else
-		{
-			UnlockedOnlyCount++;
-		}
-
-		UE_LOG(LogAura, Log, TEXT("FullAbilities processed ability=%s existing=%s status=%s slot=%s level=%d prevSlot=%s"),
-			*Info.AbilityTag.ToString(),
-			bHadAbilityAlready ? TEXT("true") : TEXT("false"),
-			*Status.ToString(),
-			Slot.IsValid() ? *Slot.ToString() : TEXT("None"),
-			AbilitySpec->Level,
-			PreviousSlot.IsValid() ? *PreviousSlot.ToString() : TEXT("None"));
-
-		if (Slot.IsValid())
-		{
-			ClientEquipAbility(Info.AbilityTag, Status, Slot, PreviousSlot);
-		}
-	}
-
-	UE_LOG(LogAura, Log, TEXT("GrantAndEquipAllAbilities complete for avatar %s. ExistingBefore=%d Granted=%d Equipped=%d UnlockedOnly=%d PassiveActivations=%d FinalAbilities=%d"),
-		*GetNameSafe(GetAvatarActor()),
-		ExistingAbilityCount,
-		GrantedAbilityCount,
-		EquippedAbilityCount,
-		UnlockedOnlyCount,
-		PassiveActivationCount,
-		GetActivatableAbilities().Num());
-
-	bStartupAbilitiesGiven = true;
-	UE_LOG(LogAura, Log, TEXT("GrantAndEquipAllAbilities marked startup abilities as given for ASC=%s"), *GetNameSafe(this));
-
-	AbilitiesGivenDelegate.Broadcast();
-}
-
 void UAuraAbilitySystemComponent::ServerSpendSpellPoint_Implementation(const FGameplayTag& AbilityTag)
 {
+	AActor* Avatar = GetAvatarActor();
+	if (!IsOwnerActorAuthoritative() || !Avatar || !Avatar->Implements<UPlayerInterface>()
+		|| IPlayerInterface::Execute_GetSpellPoints(Avatar) <= 0)
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected spell-point spend without authority, avatar, or available points."));
+		return;
+	}
 	if (FGameplayAbilitySpec* AbilitySpec = GetSpecFromAbilityTag(AbilityTag))
 	{
-		if (GetAvatarActor()->Implements<UPlayerInterface>())
+		if (RoleGrantLedger.AbilitySpecHandles.Contains(AbilitySpec->Handle))
 		{
-			IPlayerInterface::Execute_AddToSpellPoints(GetAvatarActor(), -1);
+			UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected spell-point spend on role-owned ability=%s."), *AbilityTag.ToString());
+			return;
 		}
 		
 		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
 		FGameplayTag Status = GetStatusFromSpec(*AbilitySpec);
+		if (!Status.MatchesTagExact(GameplayTags.Abilities_Status_Eligible)
+			&& !Status.MatchesTagExact(GameplayTags.Abilities_Status_Unlocked)
+			&& !Status.MatchesTagExact(GameplayTags.Abilities_Status_Equipped))
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected spell-point spend on invalid ability status=%s ability=%s."),
+				*Status.ToString(), *AbilityTag.ToString());
+			return;
+		}
+		IPlayerInterface::Execute_AddToSpellPoints(Avatar, -1);
 		if (Status.MatchesTagExact(GameplayTags.Abilities_Status_Eligible))
 		{
 			AbilitySpec->GetDynamicSpecSourceTags().RemoveTag(GameplayTags.Abilities_Status_Eligible);
@@ -1268,15 +1169,45 @@ FGameplayTag UAuraAbilitySystemComponent::FindSlotForAbility(const FAuraAbilityI
 
 void UAuraAbilitySystemComponent::ServerRequestActivateAbility_Implementation(FGameplayAbilitySpecHandle AbilityHandle)
 {
+	if (!IsOwnerActorAuthoritative() || !GetAvatarActor() || !GetAvatarActor()->HasAuthority())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected ability activation without authoritative avatar."));
+		return;
+	}
+	FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromHandle(AbilityHandle);
+	const FGameplayTag Status = AbilitySpec ? GetStatusFromSpec(*AbilitySpec) : FGameplayTag();
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	if (!AbilitySpec || !AbilitySpec->Ability
+		|| !Status.MatchesTagExact(GameplayTags.Abilities_Status_Equipped)
+		|| !AbilityHasAnySlot(*AbilitySpec))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected forged or ineligible ability activation handle=%s."), *AbilityHandle.ToString());
+		return;
+	}
 	UE_LOG(LogAura, Log, TEXT("[ASC] ServerRequestActivateAbility: Handle=%s"), *AbilityHandle.ToString());
 	TryActivateAbility(AbilityHandle);
 }
 
 void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGameplayTag& AbilityTag, const FGameplayTag& Slot)
 {
+	if (!IsOwnerActorAuthoritative() || !GetAvatarActor() || !GetAvatarActor()->HasAuthority())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected ability equip without authoritative avatar."));
+		return;
+	}
 	if (FGameplayAbilitySpec* AbilitySpec = GetSpecFromAbilityTag(AbilityTag))
 	{
 		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		const bool bPassiveSlot = Slot == GameplayTags.InputTag_Passive_1 || Slot == GameplayTags.InputTag_Passive_2;
+		const bool bActiveSlot = Slot == GameplayTags.InputTag_LMB || Slot == GameplayTags.InputTag_RMB
+			|| Slot == GameplayTags.InputTag_1 || Slot == GameplayTags.InputTag_2
+			|| Slot == GameplayTags.InputTag_3 || Slot == GameplayTags.InputTag_4;
+		if ((!bPassiveSlot && !bActiveSlot) || bPassiveSlot != IsPassiveAbility(*AbilitySpec))
+		{
+			UE_LOG(LogAura, Warning, TEXT("[Security][Server] Rejected forged or incompatible ability slot ability=%s slot=%s."),
+				*AbilityTag.ToString(), *Slot.ToString());
+			return;
+		}
 		const FGameplayTag& PrevSlot = GetInputTagFromSpec(*AbilitySpec);
 		const FGameplayTag& Status = GetStatusFromSpec(*AbilitySpec);
 

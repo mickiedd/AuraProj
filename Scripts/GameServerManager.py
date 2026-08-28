@@ -14,6 +14,7 @@ Usage:
   python GameServerManager.py [--host 0.0.0.0] [--port 9000]
                                [--public-host 127.0.0.1]
                                [--server-exe /path/to/AuraServer]
+                               [--persistence-provider NULL]
                                [--startup-grace 12]
 """
 
@@ -49,6 +50,35 @@ GSM_LOG_DIR = PROJECT_DIR / "Saved" / "Logs" / "GameServerManager"
 
 # Maximum bytes accepted in a single client request line (prevents abuse).
 MAX_REQUEST_BYTES = 4096
+EDITOR_EXECUTABLE_NAMES = frozenset(
+    {
+        "unrealeditor.exe",
+        "unrealeditor-cmd.exe",
+        "unrealeditor-win64-debuggame.exe",
+        "unrealeditor-win64-development.exe",
+        "unrealeditor-win64-shipping.exe",
+        "unrealeditor-win64-test.exe",
+    }
+)
+
+
+def is_editor_executable(executable: Path) -> bool:
+    """Return whether *executable* is an Unreal Editor runtime variant."""
+    return executable.name.lower() in EDITOR_EXECUTABLE_NAMES
+
+
+def editor_executable_name(client_executable: str) -> str:
+    """Keep the client/editor target variant when resolving the server runtime.
+
+    Unreal reports different executable names for Development, DebugGame, and
+    command-line editor clients.  Falling back to the generic executable for a
+    known editor variant can select a different target receipt and module set.
+    """
+    raw_name = str(client_executable or "").strip().replace("\\", "/").rsplit("/", 1)[-1]
+    name = Path(raw_name).name
+    if name.lower() in EDITOR_EXECUTABLE_NAMES:
+        return name
+    return "UnrealEditor.exe"
 
 # ---------------------------------------------------------------------------
 # Level / server entry
@@ -57,7 +87,12 @@ MAX_REQUEST_BYTES = 4096
 class DedicatedServerEntry:
     """Tracks a single dedicated server process for one level."""
 
-    def __init__(self, level_cfg: dict, startup_grace: float):
+    def __init__(
+        self,
+        level_cfg: dict,
+        startup_grace: float,
+        persistence_provider: Optional[str] = None,
+    ):
         self.level_id: str = level_cfg["id"]
         self.display_name: str = level_cfg.get("displayName", self.level_id)
         self.map_path: str = level_cfg["mapPath"]
@@ -67,6 +102,7 @@ class DedicatedServerEntry:
             "launchArgs", ["-game", "-server", "-log", "-unattended", "-NoLiveCoding"]
         )
         self.startup_grace: float = startup_grace
+        self.persistence_provider: str = str(persistence_provider or "").strip()
 
         self._process: Optional[subprocess.Popen] = None
         self._server_exe: Optional[Path] = None
@@ -147,7 +183,7 @@ class DedicatedServerEntry:
         GSM_LOG_DIR.mkdir(parents=True, exist_ok=True)
         log_file = GSM_LOG_DIR / f"{self.level_id}.log"
 
-        if server_exe.name.lower() == "unrealeditor.exe":
+        if is_editor_executable(server_exe):
             args = [str(server_exe), str(PROJECT_FILE), map_arg] + list(self.launch_args)
             launch_mode = "editor"
         else:
@@ -158,6 +194,8 @@ class DedicatedServerEntry:
         if self.query_port > 0:
             args.append(f"-QueryPort={self.query_port}")
         args.append(f"-Abslog={log_file}")
+        if self.persistence_provider:
+            args.append(f"-AuraPersistenceProvider={self.persistence_provider}")
 
         logger.info("Starting DS '%s' via %s launcher: %s", self.level_id, launch_mode, " ".join(args))
         logger.info("DS '%s' log file: %s", self.level_id, log_file)
@@ -229,12 +267,14 @@ class GameServerManager:
         public_host: str,
         server_exe_override: Optional[str],
         startup_grace: float,
+        persistence_provider_override: Optional[str] = None,
     ):
         self.listen_host = listen_host
         self.listen_port = listen_port
         self.public_host = public_host
         self.server_exe_override = server_exe_override
         self.startup_grace = startup_grace
+        self.persistence_provider_override = str(persistence_provider_override or "").strip()
 
         self.levels: Dict[str, DedicatedServerEntry] = {}
         self.server_exe: Optional[Path] = None
@@ -297,7 +337,11 @@ class GameServerManager:
                 )
                 continue
 
-            entry = DedicatedServerEntry(entry_cfg, self.startup_grace)
+            entry = DedicatedServerEntry(
+                entry_cfg,
+                self.startup_grace,
+                self.persistence_provider_override,
+            )
             self.levels[entry.level_id] = entry
             logger.info(
                 "Registered level: id='%s'  name='%s'  port=%d",
@@ -490,15 +534,24 @@ class GameServerManager:
         if engine_root:
             try:
                 root = Path(engine_root).expanduser().resolve()
+                executable_name = editor_executable_name(request.get("clientExecutable", ""))
                 if root.name.lower() == "engine":
-                    candidate = root / "Binaries" / "Win64" / "UnrealEditor.exe"
+                    candidate = root / "Binaries" / "Win64" / executable_name
                 else:
-                    candidate = root / "Engine" / "Binaries" / "Win64" / "UnrealEditor.exe"
+                    candidate = root / "Engine" / "Binaries" / "Win64" / executable_name
                 build_version = root / "Build" / "Build.version" if root.name.lower() == "engine" else root / "Engine" / "Build" / "Build.version"
                 if candidate.is_file() and build_version.is_file():
-                    logger.info("Using UnrealEditor reported by client: %s", candidate)
+                    logger.info(
+                        "Using matching UnrealEditor runtime reported by client: %s",
+                        candidate,
+                    )
                     return candidate
-                logger.warning("Client reported an invalid Unreal Engine root: %s", engine_root)
+                logger.warning(
+                    "Client reported an invalid Unreal Engine root or missing runtime "
+                    "'%s': %s",
+                    executable_name,
+                    engine_root,
+                )
             except OSError as exc:
                 logger.warning("Could not resolve client Unreal Engine root '%s': %s", engine_root, exc)
 
@@ -827,7 +880,7 @@ class GameServerManager:
 
                 is_editor_mode = (
                     editor_client
-                    or (self.server_exe is not None and self.server_exe.name.lower() == "unrealeditor.exe")
+                    or (self.server_exe is not None and is_editor_executable(self.server_exe))
                 )
                 if requested_server_exe is None and not is_editor_mode:
                     logger.info(
@@ -889,8 +942,7 @@ class GameServerManager:
                 "port": int(ready_info.get("port", entry.port)),
                 "serverMode": (
                     "editor"
-                    if requested_server_exe is not None
-                    and requested_server_exe.name.lower() == "unrealeditor.exe"
+                    if requested_server_exe is not None and is_editor_executable(requested_server_exe)
                     else "packaged"
                 ),
             }
@@ -992,6 +1044,12 @@ def main() -> None:
              "Overrides AURA_SERVER_EXE environment variable."
     )
     parser.add_argument(
+        "--persistence-provider",
+        default=os.environ.get("AURA_PERSISTENCE_PROVIDER"),
+        help="Development provider expected by managed servers (for example NULL or Steam). "
+             "The launcher supplies NULL by default; direct manager runs keep the project setting."
+    )
+    parser.add_argument(
         "--startup-grace", type=float, default=12.0,
         help="Seconds to wait after launching a DS before declaring it ready (default: 12)"
     )
@@ -1003,6 +1061,7 @@ def main() -> None:
         public_host=args.public_host,
         server_exe_override=args.server_exe,
         startup_grace=args.startup_grace,
+        persistence_provider_override=args.persistence_provider,
     )
 
     try:

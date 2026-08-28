@@ -96,7 +96,7 @@ try {
     # Prove a never-good startup stays unavailable. This process is owned and bounded.
     [IO.File]::WriteAllText($RoleConfigPath, '{"roleDefinitionVersion":2,"defaultRole":"Missing","roles":[]}')
     $InvalidMap = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?listen' } else { '/Game/Maps/StartupMap' }
-    $InvalidServer = Start-OwnedProcess 'InvalidStartupServer' @($ProjectFile, $InvalidMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ListenPort", '-RoleBattleDay5ConfigProbe', "-abslog=$InvalidStartupLog")
+    $InvalidServer = Start-OwnedProcess 'InvalidStartupServer' @($ProjectFile, $InvalidMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ListenPort", '-WorldPersistenceId=RoleBattleDay5Invalid', '-AuraPersistenceProvider=NULL', '-RoleBattleDay5ConfigProbe', "-abslog=$InvalidStartupLog")
     if (-not (Wait-ForPattern $InvalidStartupLog '\[Day5ConfigProbe\]\[Server\] InvalidStartupRejected=1 RoleServiceUnavailable=1' $StartupTimeoutSeconds $InvalidServer)) {
         throw 'Invalid startup was not rejected before the startup timeout.'
     }
@@ -107,7 +107,7 @@ try {
     Start-Sleep -Milliseconds 1100
 
     $ServerMap = if ($Mode -eq 'Listen') { '/Game/Maps/StartupMap?listen' } else { '/Game/Maps/StartupMap' }
-    $Server = Start-OwnedProcess 'Server' @($ProjectFile, $ServerMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ListenPort", '-RoleBattleDay5ConfigProbe', "-abslog=$ServerLog")
+    $Server = Start-OwnedProcess 'Server' @($ProjectFile, $ServerMap, '-server', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ListenPort", '-WorldPersistenceId=RoleBattleDay5Valid', '-AuraPersistenceProvider=NULL', '-RoleBattleDay5ConfigProbe', "-abslog=$ServerLog")
     if (-not (Wait-ForPattern $ServerLog '\[Day5ConfigProbe\]\[Server\] ValidStartup=1.*SavedDefaultValidation=1' $StartupTimeoutSeconds $Server)) {
         throw 'Valid startup publication did not complete before timeout.'
     }
