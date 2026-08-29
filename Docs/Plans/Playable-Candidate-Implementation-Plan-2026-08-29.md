@@ -32,10 +32,16 @@ Day 21 is a decision gate, not a discovery day. The following values are fixed f
 
 - **World and roles:** `/Game/Maps/StartupMap` is the canonical map; its runtime Civilian/marker fixtures are intentional. Aura and BungeeMan are the only supported roles. Local listen and dedicated packaged topologies are both required.
 - **FireGun:** the active path remains `Content/AbilityDefinitions/FireGun.xml` through the existing server execution boundary. The candidate uses semi-auto semantics: one accepted shot per press, no held-input auto-repeat, server-defined cadence, and server-owned magazine/reserve/reload state. `UAuraFireGun` remains compatibility-only unless a later plan explicitly changes this decision.
+- **Role applicability:** FireGun magazine/reserve/reload applies to BungeeMan only because Aura's active LMB definition is `FireBolt.xml`. Aura's HUD shows an explicit `NotApplicable` firearm state; it must not invent ammo values. Both roles still complete the common combat, interaction, reward, persistence, death, and recovery journey.
+- **FireGun input recovery:** press/release are an edge-triggered owner input contract. The server clears a lost pressed state after a two-second input-lease timeout and emits a typed recovery result; a missing release cannot permanently disable firing.
 - **Ammo and tutorial persistence:** wallet, inventory, role/loadout, magazine/reserve ammo, and tutorial completion persist as player-owned state across pawn replacement, reconnect, and a graceful server restart. A forced kill restores the last committed snapshot; uncommitted actions roll back. There is no offline ammo refill or offline player progression.
-- **Reward:** one explicit server-owned reward definition is used for the fixture. The reward is emitted only from an authoritative accepted combat outcome and is applied with a transaction/correlation ID; client claims, actor tags, and client-supplied amounts are never inputs.
-- **Merchant restock:** server UTC is the authoritative clock, with an injectable deterministic clock for tests. `LastRestockAtUtc` is persisted; a backward clock is clamped to the last observed value, and offline catch-up is capped at one restock interval at startup. No offline earnings or unbounded catch-up is supported.
+- **Reload persistence:** an in-flight reload is never serialized or auto-completed. Death, pawn replacement, disconnect, forced kill, and graceful shutdown cancel it; a checkpoint contains only completed magazine/reserve values, and restart/reconnect restores the last committed completed state.
+- **Player recovery persistence:** a committed `Dead` or `Recovering` profile is normalized to one server-owned `Recovering → Alive` transition on the next valid join/restart; clients cannot turn a persisted life state directly into a respawn.
+- **Reward:** `RoleBattle.CivilianLethalReward` pays `25 gold` once for each eligible authoritative lethal Civilian outcome attributed to the attacking player. Each outcome receives a server-issued `OutcomeCorrelationId`, and one reward transaction may commit per ID. The canonical purchase is offer `market_health_potion` for `25 gold`, granting one `health_potion`, and applies to both supported player roles. Client claims, actor tags, and client-supplied amounts are never inputs.
+- **Merchant restock:** server UTC is the authoritative clock, with an injectable deterministic clock for tests. The finite `market_health_potion` stock refills to its configured `initialStock` of `20` after an elapsed interval of `600` seconds, using `EffectiveNow = max(observedUtc, LastObservedUtc)` and an inclusive interval boundary. `LastRestockAtUtc` and the last observed time are persisted; startup performs at most one refill. No offline earnings or unbounded catch-up is supported.
 - **Diagnostics privacy:** logs use a stable redacted/hash representation of player identity plus provider type; raw external identifiers, credentials, tokens, and personal data never enter the candidate artifact.
+
+The Day 21 scope manifest also separates `scopeRevision` (the frozen contract/hash) from `sourceRevisionAtFreeze`. Implementation commits may advance the source revision; final sign-off must match the packaged source revision and unchanged scope hash.
 
 No downstream plan may contain an unresolved `choose`, `normally`, or `if persistent` decision for these surfaces. A change requires a revised scope manifest and a new candidate revision.
 
@@ -45,8 +51,8 @@ Each daily plan must name a logical owner surface, a checked-in or explicitly pl
 
 - `Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json` — Day 21 source-of-truth scenario and decision manifest.
 - `Content/Config/PlayableCandidateManifest.json` — Day 34 canonical content manifest consumed by validators and runners.
-- `RunPlayableCandidate.ps1` — Day 38 single entry point with `-Stage Fast|Candidate|External`, explicit stage/result codes, and bounded child-process ownership.
-- `Saved/Reports/PlayableCandidate/<Revision>/<RunId>/candidate.json` — machine-authoritative candidate artifact; Markdown/SVG explain it but do not replace it.
+- `RunPlayableCandidate.ps1` — Day 38 single entry point with `-Stage Fast|Candidate|External`, diagnostic `-Soak` selection, Day 40-only `-Finalize`, explicit stage/result codes, and bounded child-process ownership.
+- `Saved/Reports/PlayableCandidate/<SourceRevision>/<RunId>/candidate-draft.json` — Day 38 provisional machine artifact; `candidate.json` is written once by Day 40 as the immutable final artifact. Markdown/SVG explain them but do not replace either machine record.
 - `Docs/Reference/Playable-Candidate-Server-Operations.md` — Day 37 second-developer runbook, alongside the existing `Scripts/GameServerManager.py` and dedicated-server batch entry points.
 
 Existing runners such as `RunReviewSmokeSuite2.ps1`, `RunRoleBattleDay18PersistenceSmoke.ps1`, and `RunRoleBattleDay19Multiplayer.ps1` are reused and wrapped; the plan does not create a parallel test framework.
@@ -116,8 +122,8 @@ Markdown and SVG records explain the result for humans; the machine-readable can
 
 Days 21–40 are complete only when:
 
-- A clean packaged local/LAN journey passes for Aura and BungeeMan on listen and dedicated topologies.
-- The mandatory matrix covers four lanes (Aura/listen, BungeeMan/listen, Aura/dedicated, BungeeMan/dedicated), with a fresh journey and the required late-join/reconnect/restart cases in each applicable lane.
+- A clean packaged local/LAN journey passes for Aura and BungeeMan on listen and dedicated topologies. A listen lane is one packaged host plus one packaged remote client; a dedicated lane is one packaged server plus two packaged remote clients.
+- The mandatory matrix covers four lanes (Aura/listen, BungeeMan/listen, Aura/dedicated, BungeeMan/dedicated), with a fresh journey and late-join, reconnect, graceful restart, and forced-kill recovery cases in every lane. Aura's firearm ammo/reload checkpoints are explicitly `NotApplicable` because its active weapon is FireBolt.
 - The player can understand the full loop without developer-only instructions.
 - FireGun ammo/reload/fire semantics are authoritative, replicated, persisted as designed, and visible in the HUD.
 - Player death/recovery, merchant reward/spend, persistence, late join, reconnect, and owner privacy are visually and functionally evidenced.

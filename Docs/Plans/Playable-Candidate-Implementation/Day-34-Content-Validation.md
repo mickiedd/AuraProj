@@ -20,20 +20,20 @@ Treat JSON, XML, HTML/WebUI, and map/config references as source code and fail b
 
 - **Validator:** planned `Scripts/ValidatePlayableCandidateContent.ps1` plus any small parser modules; it must be callable by fast and candidate stages.
 - **Manifest:** planned `Content/Config/PlayableCandidateManifest.json`, generated from the Day 21 scope and actual staged files.
-- **Content roots:** `Content/Config/RoleConfig.json`, `PopulationSpawnTable.json`, `BattleZones.json`, `CivilianWorkProfiles.json`, `ItemDefinitions.json`, `MerchantDefinitions.json`, `EconomyConfig.json`, `PickupDefinitions.json`, `ServerConnection.json`, all `Content/AbilityDefinitions/*.xml`, WebUI HTML/JS, and the canonical map/config references.
+- **Content roots:** `Content/Config/RoleConfig.json`, `PopulationSpawnTable.json`, `BattleZones.json`, `CivilianWorkProfiles.json`, `ItemDefinitions.json`, `MerchantDefinitions.json`, `EconomyConfig.json`, `RewardDefinitions.json`, `PlayableCandidateTutorial.json`, `PickupDefinitions.json`, `ServerConnection.json`, all `Content/AbilityDefinitions/*.xml`, WebUI HTML/JS, and the canonical map/config references. The Day 21 scope manifest and the generated candidate manifest are also validated as manifests, not silently treated as content.
 - **New output:** `Source/Aura/Private/Tests/AuraRoleBattleDay34Tests.cpp`, malformed fixture corpus, validator report, and `day-34-content.json`.
 
 ### Validation pipeline
 
-The validator runs `discover → parse → normalize → schema/version → duplicate IDs → cross-reference → bounds → staged-path/case → runtime/asset classification → canonical manifest`. It must enumerate files from the filesystem/package rather than a handwritten allow-list. A clean manifest is the input for tests and packaging; no later stage rebuilds its own divergent list.
+The validator runs `discover → parse → normalize → schema/version → duplicate IDs → cross-reference → bounds → staged-path/case → runtime/asset classification → canonical manifest`. It must enumerate files from the filesystem/package rather than a handwritten allow-list. File paths are case-sensitive for staging, while definition IDs use the documented normalized form (the existing `MarketMerchant` reference resolves to canonical `marketmerchant`). The malformed-fixture corpus is explicitly test-only and excluded from the production-content discovery set; each fixture is invoked separately. A clean manifest is the input for tests and packaging; no later stage rebuilds its own divergent list.
 
 ### Detailed steps
 
-1. Inventory every JSON/XML/HTML/map/config root used by the four lane manifest and classify runtime-generated versus asset-authored surfaces.
+1. Inventory every JSON/XML/HTML/map/config root used by the four lane manifest, including the Day 24 tutorial and Day 29 reward definitions, and classify runtime-generated versus asset-authored surfaces.
 2. Define schema/version and stable-ID rules for roles, abilities, population members, battle zones, items, merchants, offers, rewards, tutorial steps, ammo, and WebUI contracts.
 3. Resolve cross-file references, including RoleConfig → active FireGun XML, ability graph nodes, item/merchant/reward IDs, population merchant bindings, map aliases, and staged paths.
 4. Validate numeric bounds, required arrays, duplicate IDs, case-sensitive paths, unknown tags, unsupported versions, and mutually exclusive legacy/current shapes.
-5. Add malformed/missing fixtures for every domain; each error includes path, field, definition ID, expected value/type, actual value/type, and reason.
+5. Add malformed/missing fixtures for every domain under an explicit test-only fixture root; each error includes path, field, definition ID, expected value/type, actual value/type, and reason, and no fixture is included in the clean production manifest.
 6. Make the fast gate return nonzero before build/package publication; make the candidate stage audit the staged package against the same canonical manifest.
 7. Prove runtime-created Civilian/marker fixtures are intentional and that no duplicate map/assets are introduced to satisfy stale wording.
 8. Publish the manifest hash and validator result for Day 38; an invalid clean candidate cannot proceed.

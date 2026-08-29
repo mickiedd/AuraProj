@@ -25,17 +25,17 @@ Treat joining an active world and returning after disconnect as normal player jo
 
 ### Convergence contract
 
-A late join receives the authoritative world snapshot and current battle/population/merchant state, then its own profile, role, ammo, economy, tutorial, and HUD snapshot. A reconnect creates a new connection/session nonce and restores only the last committed profile state. Replay is idempotent and never invokes gameplay mutation. Private wallet, inventory, ammo, and tutorial fields are owner-only; public world/member fields are shared.
+A late join receives one atomically captured authoritative snapshot identified by a `WorldGeneration` plus player/merchant revisions, containing current battle/population/merchant state and then its own profile, role, ammo, economy, tutorial, and HUD snapshot. The client must reject or defer mixed-generation snapshots rather than displaying a combination of revisions. A reconnect creates a new connection/session nonce and restores only the last committed profile state. A committed `Dead` or `Recovering` profile follows the Day 21 one-time server recovery normalization. Replay is idempotent and never invokes gameplay mutation. Private wallet, inventory, ammo, and tutorial fields are owner-only; public world/member fields are shared.
 
 ### Detailed steps
 
 1. Capture an authoritative state digest for role, life, ammo, battle phase, population, merchant stock, wallet/inventory revisions, tutorial, and persistence generation.
-2. Join client 2 after combat/economy changes and before/after a world checkpoint; assert it reconstructs current state without triggering world load or reward/purchase.
+2. Join client 2 after combat/economy changes and before/after a world checkpoint; assert it reconstructs one consistent generation without triggering world load or reward/purchase.
 3. Disconnect a client during attack, reload, commerce, death, and save; invalidate old session/request IDs and clear transient focus/delegate/timer/browser state.
 4. Reconnect the same validated fixture identity with a new session and compare the restored profile to the last committed generation.
 5. Drive `hud_ready`, browser reconnect, pawn replacement, and late-join replay repeatedly; assert one snapshot per lifecycle event.
 6. Verify non-owner privacy on every state digest and that public provider identity code remains separate from local fixture identity.
-7. Exercise listen and dedicated packaged lanes with delayed/reordered state events and no client mutation.
+7. Exercise the Day 21 listen and dedicated packaged lanes with delayed/reordered state events and no client mutation; the host-plus-remote listen topology and two-remote-client dedicated topology are both mandatory.
 
 ### Named automation and commands
 

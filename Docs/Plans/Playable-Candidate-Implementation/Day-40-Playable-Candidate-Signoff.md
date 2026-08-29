@@ -18,29 +18,29 @@ Publish an honest, immutable decision for the local/LAN Playable Candidate and t
 
 ### Files to inspect or modify
 
-- **Inputs:** Day 21 scope manifest, Day 22 baseline, Day 34 content manifest, Day 35 diagnostics packet, Day 36 visual rows, Day 37 operations run, Day 38 `candidate.json`, and Day 39 soak result.
+- **Inputs:** Day 21 scope manifest, Day 22 baseline, Day 34 content manifest, Day 35 diagnostics packet, Day 36 visual rows, Day 37 operations run, Day 38 `candidate-draft.json`, and Day 39 soak result.
 - **Sign-off owners:** `Docs/Reports/Playable-Candidate-Deep-Review-2026-08-29.md`, the candidate report writer, `Docs/README.md`, the master plan, and the plan/reference indexes.
-- **New output:** immutable `Saved/Reports/PlayableCandidate/<Revision>/<RunId>/candidate.json`, `Docs/Reports/Playable-Candidate-<Revision>-<RunId>.md`, known-limitations list, and final gate table.
+- **New output:** immutable `Saved/Reports/PlayableCandidate/<SourceRevision>/<RunId>/candidate.json`, `Docs/Reports/Playable-Candidate-<SourceRevision>-<RunId>.md`, known-limitations list, and final gate table.
 
 ### Sign-off matrix
 
-The local matrix has four rows: Aura/listen, BungeeMan/listen, Aura/dedicated, and BungeeMan/dedicated. Each row must cover launch/login/loading, role/HUD, move/target/attack, ammo/reload/fire, Civilian/battle result, Interact/Trade, reward/spend, death/recovery, save, late join, reconnect, and restart where applicable. The report must link the exact logs, captures, package hash, content-manifest hash, and machine-readable result for every row.
+The local matrix has four rows: Aura/listen, BungeeMan/listen, Aura/dedicated, and BungeeMan/dedicated. A listen row uses one packaged host plus one packaged remote client; a dedicated row uses one packaged server plus two packaged remote clients. Each row must cover launch/login/loading, role/HUD, move/target/attack, fire semantics, Civilian/battle result, Interact/Trade, reward/spend, death/recovery, save, late join, reconnect, graceful restart, and forced-kill recovery. BungeeMan rows cover ammo/reload; Aura rows record firearm ammo/reload as `NotApplicable` because Aura's active LMB is FireBolt. The report must link the exact logs, captures, package hash, content-manifest hash, and machine-readable result for every row.
 
 ### Detailed steps
 
-1. Verify the candidate revision and scope manifest have not changed since Day 21; a change creates a new candidate run.
+1. Verify the Day 21 scope-manifest hash has not changed. The source revision is expected to advance during Days 22–39; record the exact final Git commit and require it to match the packaged binaries and all final evidence. A scope change creates a new candidate run.
 2. Check Day 22–39 prerequisites for complete artifacts, matching revision/package/manifest hashes, nonzero propagation, and no unresolved blocking warnings.
-3. Run the complete four-lane local matrix from a clean packaged candidate and compare observed state to the frozen player/world contract.
+3. Run the complete four-lane local matrix from a clean packaged candidate and compare observed state to the frozen player/world contract. A filtered run cannot satisfy sign-off.
 4. Verify privacy, authority, atomic economy, persistence/recovery, late join/reconnect, visual, server-operations, and bounded-soak results.
 5. Run the external provider/account matrix only when the preflight is `READY`; record authenticated identities as redacted stable references and keep its result on a separate row.
 6. Classify every known limitation as non-blocking only if it does not affect the supported journey, security, privacy, persistence, duplication, content, packaging, or support gates.
-7. Publish the immutable machine artifact and human report, update indexes, and record the exact local/external disposition.
-8. Do not start the next feature wave until the local PASS and external BLOCKED/PASS states are explicit.
+7. Invoke `RunPlayableCandidate.ps1 -Stage Candidate -Finalize` after all checks pass. It publishes `candidate.json` exactly once alongside the human report; update indexes and record the exact local/external disposition. The Day 38 draft is retained as an input and is never rewritten as the final artifact.
+8. Do not declare the milestone complete or start work that depends on public authenticated multiplayer until the local PASS and external BLOCKED/PASS states are explicit. An external `BLOCKED` state does not invalidate a local PASS or block local-only follow-on work.
 
 ### Completion thresholds
 
 - Local PASS requires all four lanes, all required journey checkpoints, Day 39 soak, Day 37 second-developer operations, zero P0/P1 defects, zero unexplained blocking warnings, zero data/duplication/privacy violations, and no timeout/cleanup failure.
-- External PASS requires production provider/App ID, two distinct stable identities, packaged Shipping listen and dedicated two-remote-client matrices, and the same authority/privacy/persistence gates. Missing provisioning is `BLOCKED`, not skipped.
+- External PASS requires production provider/App ID, two distinct stable identities, packaged Shipping listen and dedicated two-remote-client matrices, and the same authority/privacy/persistence gates. Missing provisioning is `BLOCKED`, not skipped; the external result is not a local-stage exit failure.
 
 ## Deep-review closure
 
@@ -60,4 +60,4 @@ A person who has not opened the source tree can launch the candidate, understand
 
 ## Defer after sign-off
 
-Only after the authenticated release gate passes should the next broad feature wave begin. Keep role hot-swapping, durability, full reputation/crime, rich schedules, broad crowd optimization, wholesale legacy cleanup, and cloud orchestration outside this milestone.
+Only work that depends on the authenticated release gate must wait for External PASS. Local-only follow-on work may begin after Local/LAN PASS with External `BLOCKED` and its provisioning reason preserved. Keep role hot-swapping, durability, full reputation/crime, rich schedules, broad crowd optimization, wholesale legacy cleanup, and cloud orchestration outside this milestone.

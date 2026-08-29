@@ -11,6 +11,9 @@ PUBLIC_HOST="${AURA_PUBLIC_HOST:-127.0.0.1}"
 # Determine listen port (defaults to 9000)
 GSM_PORT="${AURA_GSM_PORT:-9000}"
 
+# Bind the control plane to loopback by default; set AURA_GSM_HOST only with an explicit LAN/public allowlist and auth policy.
+GSM_HOST="${AURA_GSM_HOST:-127.0.0.1}"
+
 # Development identity provider (defaults to NULL for the local WebUI/client harness)
 PERSISTENCE_PROVIDER="${AURA_PERSISTENCE_PROVIDER:-NULL}"
 
@@ -18,7 +21,7 @@ PERSISTENCE_PROVIDER="${AURA_PERSISTENCE_PROVIDER:-NULL}"
 GSM_ARGS=(
     python3
     "$PYTHON_SCRIPT"
-    --host 0.0.0.0
+    --host "$GSM_HOST"
     --port "$GSM_PORT"
     --public-host "$PUBLIC_HOST"
     --persistence-provider "$PERSISTENCE_PROVIDER"
@@ -28,5 +31,5 @@ if [ -n "$AURA_SERVER_EXE" ]; then
 fi
 GSM_ARGS+=("$@")
 
-echo "[AuraGSM] Starting Game Server Manager on port $GSM_PORT (public-host=$PUBLIC_HOST, persistence-provider=$PERSISTENCE_PROVIDER)..."
+echo "[AuraGSM] Starting Game Server Manager on $GSM_HOST:$GSM_PORT (public-host=$PUBLIC_HOST, persistence-provider=$PERSISTENCE_PROVIDER)..."
 "${GSM_ARGS[@]}"

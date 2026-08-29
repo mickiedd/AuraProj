@@ -9,10 +9,10 @@ Close the gap between passing logic tests and a visibly usable packaged game.
 
 ## Work
 
-- Declare the mandatory profiles as 1280x720 at 100% DPI, 1920x1080 at 100% DPI, and 2560x1440 at 125% DPI; fullscreen/windowed behavior is recorded for each profile.
+- Declare the mandatory profiles as 1280x720 at 100% DPI, 1920x1080 at 100% DPI, and 2560x1440 at 125% DPI; fullscreen/windowed behavior is recorded for each profile. A profile in the manifest is a required candidate gate, not an optional sample.
 - Create a deterministic screenshot checklist for login, loading, role HUD, combat/ammo, targeting, tutorial, merchant, death/recovery, reconnect, and late join.
 - Verify the three bounded WebUI panels do not clip, overlap, block world input, or lose replayed state.
-- Record unsupported display configurations honestly instead of silently accepting them.
+- Record unsupported display configurations honestly instead of silently accepting them. A declared profile that cannot be exercised is `BLOCKED` and prevents visual PASS; only a profile excluded from the manifest before the run may be `NotApplicable`.
 
 ## Detailed execution contract
 
@@ -32,9 +32,9 @@ The mandatory profiles are 1280x720 at 100% DPI, 1920x1080 at 100% DPI, and 2560
 1. Build/package the Shipping client from the Day 35/38 artifact and record package hash before opening the first profile.
 2. Set each supported resolution/DPI/window mode and capture the declared deterministic checkpoints; do not accept editor/PIE captures as packaged proof.
 3. Check panel bounds, font/readability, clipping/overlap, alpha/background, scroll/overflow, focus/pointer capture, keyboard/mouse input, and native world input around every panel.
-4. Verify HUD state after initial ready, target change, accepted/rejected attack, ammo empty/reload, hit/kill, death/recovery, merchant, save, late join, and reconnect.
+4. Verify HUD state after initial ready, target change, accepted/rejected attack, BungeeMan ammo empty/reload, Aura firearm `NotApplicable`, hit/kill, death/recovery, merchant, save, late join, and reconnect.
 5. Run both Aura and BungeeMan and a second-client privacy check; confirm the second client cannot see private wallet/inventory/ammo fields.
-6. Record unsupported configurations explicitly and ensure they are excluded from PASS counts rather than silently treated as passing.
+6. Record unsupported configurations explicitly as `BLOCKED` when they are declared profiles; do not let an unexercised mandatory profile disappear from PASS counts. Profiles outside the candidate manifest are recorded as `NotApplicable` only.
 7. Re-run one failure case (invalid resolution or missing staged WebUI asset) and confirm it produces an actionable report without a false visual PASS.
 
 ### Named automation and evidence
@@ -52,7 +52,7 @@ The mandatory profiles are 1280x720 at 100% DPI, 1920x1080 at 100% DPI, and 2560
 
 - **Owner surfaces:** the packaged Shipping client, `Plugins/AuraWebUI/Content/WebUI/`, WebUI bridge/layout code, and the input/viewport boundary.
 - **Required artifacts:** `day-36-visual.json`, one capture/checklist row per declared profile and player state, DPI/resolution metadata, and a second-client privacy result.
-- **Gate:** every declared profile renders and accepts the required interaction with zero known clipping, overlap, input-blocking, or state-replay defects; unsupported profiles are listed as unsupported and are not silently counted as passing.
+- **Gate:** every declared profile renders and accepts the required interaction with zero known clipping, overlap, input-blocking, or state-replay defects; an unavailable declared profile is `BLOCKED`, while only an undeclared profile may be listed as unsupported without affecting PASS.
 
 ## Completion gate
 

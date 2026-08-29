@@ -21,7 +21,7 @@ Teach a new player the minimum movement, targeting, attack, Interact/Trade, and 
 - **New planned data:** `Content/Config/PlayableCandidateTutorial.json`, with schema version and stable step IDs.
 - **Native owners:** `AuraPlayerController`, `AuraPlayerState`, `AuraInteractionComponent`, targeting/attack validation, economy/merchant components, and the persistence checkpoint boundary.
 - **Presentation:** the existing WebUI callout/prompt contracts under `Plugins/AuraWebUI/Content/WebUI/` and `WebUIBridgeSubsystem`.
-- **New output:** `Saved/Reports/PlayableCandidate/<Revision>/<RunId>/day-24-tutorial.json` and packaged walkthrough captures.
+- **New output:** `Saved/Reports/PlayableCandidate/<SourceRevision>/<RunId>/day-24-tutorial.json` and packaged walkthrough captures.
 
 ### Tutorial data contract
 

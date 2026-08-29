@@ -24,22 +24,22 @@ Implement only the fire cadence required by current content and make it consiste
 
 ### Fire-mode contract
 
-The candidate definition is `SemiAuto`: one accepted shot per press, release required before another shot, no held-input auto-repeat. The server reads the configured minimum shot interval and never trusts a client timestamp or cadence value. Reload, dead state, invalid target, cooldown, and empty magazine are terminal rejection reasons for that request.
+The candidate definition is `SemiAuto`: one accepted shot per press, release required before another shot, no held-input auto-repeat. The server reads the configured minimum shot interval and never trusts a client timestamp or cadence value. Press/release ordering is tracked by the owner session; if a release is lost, the two-second Day 21 input lease expires and clears the pressed state with a typed `InputLeaseExpired` result. Reload, dead state, invalid target, cooldown, and empty magazine are terminal rejection reasons for that request.
 
 ### Detailed steps
 
 1. Add or validate explicit `fireMode=SemiAuto` and `minimumShotInterval` fields on the active FireGun definition; reject missing/invalid values.
 2. Ensure press/hold/release input has one request ID stream and that only the owning controller can submit it.
-3. Implement server cadence using one authoritative time source and a per-player/weapon last-accepted-shot record; avoid client-side rate decisions.
+3. Implement server cadence using one authoritative monotonic time source and a per-player/weapon last-accepted-shot record; avoid client-side rate decisions. Record the server acceptance time for every accepted request so the evidence can prove cadence without trusting client timestamps.
 4. Order checks as session/ownership, life/loadout, target/range/rule, reload/cooldown, ammo, then commit shot and cadence state.
 5. Return stable rejection codes to the Day 26 HUD; never treat an ignored held input as a successful shot.
-6. Exercise duplicate, reordered, delayed, burst, packet-loss, cooldown-boundary, reload-overlap, and reconnect requests in both topologies.
+6. Exercise duplicate, reordered, delayed, burst, packet-loss (including a lost release), cooldown-boundary, reload-overlap, and reconnect requests in both topologies; prove the input lease recovers without requiring a reconnect.
 7. Compare XML mode, server accepted-count, ammo revision, projectile/damage result, and HUD result to prove one definition is authoritative.
 
 ### Named automation and commands
 
 - Native tests: `Aura.RoleBattle.Day27.SemiAutoDefinition`, `OnePressOneShot`, `HeldInputNoRepeat`, `CadenceLimit`, `ReorderedRequests`, `ReloadOverlap`, `EmptyAmmo`, and `StableRejectionCode`.
-- Run `RunPlayableCandidateDay27FireMode.ps1 -Mode Listen` and `-Mode Dedicated` with 100 rapid/reordered requests per client; record accepted/rejected counts and the configured interval.
+- Run `RunPlayableCandidateDay27FireMode.ps1 -Mode Listen` and `-Mode Dedicated` with 100 rapid/reordered requests per client in a declared server-time window; record each server acceptance timestamp, accepted/rejected counts, release-loss recovery, and the configured interval. The cadence bound is `accepted ≤ 1 + floor(windowSeconds / minimumShotInterval)` for a single press stream, with duplicate/reordered requests not increasing the accepted count.
 - The JSON artifact must prove accepted shots never exceed the configured cadence and that each rejection leaves ammo, damage, and cooldown state unchanged.
 
 ## Validation and evidence

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">Playable Candidate Days 21 to 40 review fixes</title>
+  <desc id="desc">A before and after diagram showing frozen contracts, role applicability, evidence lifecycle, pipeline gates, and GSM loopback security fixes.</desc>
+  <rect width="1400" height="900" fill="#f5f7fb"/>
+  <rect x="0" y="0" width="1400" height="104" fill="#172554"/>
+  <text x="60" y="48" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">Playable Candidate Days 21–40</text>
+  <text x="60" y="82" fill="#c7d2fe" font-family="Arial, sans-serif" font-size="18">Review fixes applied · 2026-08-29</text>
+
+  <rect x="55" y="145" width="575" height="520" rx="18" fill="#fff7ed" stroke="#f59e0b" stroke-width="3"/>
+  <text x="85" y="190" fill="#9a3412" font-family="Arial, sans-serif" font-size="25" font-weight="700">Before: review risks</text>
+  <text x="85" y="230" fill="#431407" font-family="Arial, sans-serif" font-size="17">Decisions and gates were underspecified.</text>
+  <g font-family="Arial, sans-serif" font-size="16" fill="#431407">
+    <rect x="85" y="260" width="515" height="72" rx="10" fill="#ffedd5"/>
+    <text x="108" y="288" font-weight="700">Behavior ambiguity</text>
+    <text x="108" y="313">reload, reward, restock, recovery, and role scope</text>
+
+    <rect x="85" y="350" width="515" height="72" rx="10" fill="#ffedd5"/>
+    <text x="108" y="378" font-weight="700">Evidence ambiguity</text>
+    <text x="108" y="403">source revision, draft/final artifact lifecycle, filters</text>
+
+    <rect x="85" y="440" width="515" height="72" rx="10" fill="#ffedd5"/>
+    <text x="108" y="468" font-weight="700">Operational gaps</text>
+    <text x="108" y="493">process liveness used as readiness; GSM exposed by default</text>
+
+    <rect x="85" y="530" width="515" height="72" rx="10" fill="#ffedd5"/>
+    <text x="108" y="558" font-weight="700">Pipeline contradiction</text>
+    <text x="108" y="583">Day 38, Day 39, and Day 40 ownership overlapped</text>
+  </g>
+
+  <path d="M 650 400 C 690 400, 710 400, 750 400" fill="none" stroke="#2563eb" stroke-width="8"/>
+  <polygon points="750,400 720,382 720,418" fill="#2563eb"/>
+  <text x="665" y="370" fill="#1d4ed8" font-family="Arial, sans-serif" font-size="16" font-weight="700">freeze · constrain · gate</text>
+
+  <rect x="770" y="145" width="575" height="520" rx="18" fill="#eff6ff" stroke="#2563eb" stroke-width="3"/>
+  <text x="800" y="190" fill="#1e3a8a" font-family="Arial, sans-serif" font-size="25" font-weight="700">After: implementation contract</text>
+  <text x="800" y="230" fill="#172554" font-family="Arial, sans-serif" font-size="17">The plan set now has explicit ownership and proof.</text>
+  <g font-family="Arial, sans-serif" font-size="16" fill="#172554">
+    <rect x="800" y="260" width="515" height="72" rx="10" fill="#dbeafe"/>
+    <text x="823" y="288" font-weight="700">Day 21 freeze</text>
+    <text x="823" y="313">fixed values, four lanes, applicability, and scope hash</text>
+
+    <rect x="800" y="350" width="515" height="72" rx="10" fill="#dbeafe"/>
+    <text x="823" y="378" font-weight="700">Days 25–32 authority</text>
+    <text x="823" y="403">server-owned ammo/economy; Aura firearm is NotApplicable</text>
+
+    <rect x="800" y="440" width="515" height="72" rx="10" fill="#dbeafe"/>
+    <text x="823" y="468" font-weight="700">Days 33–37 support gates</text>
+    <text x="823" y="493">GSM control plane, content/privacy, readiness, Shipping packaging</text>
+
+    <rect x="800" y="530" width="515" height="72" rx="10" fill="#dbeafe"/>
+    <text x="823" y="558" font-weight="700">Days 38–40 publication</text>
+    <text x="823" y="583">single-cycle draft → explicit soak → one-time finalization</text>
+  </g>
+
+  <rect x="55" y="710" width="1290" height="125" rx="18" fill="#ecfdf5" stroke="#059669" stroke-width="3"/>
+  <text x="85" y="752" fill="#065f46" font-family="Arial, sans-serif" font-size="22" font-weight="700">Validation evidence</text>
+  <text x="85" y="785" fill="#064e3b" font-family="Arial, sans-serif" font-size="16">20 day plans scanned · downstream decision tokens clear · 16 Python contract scripts pass</text>
+  <text x="85" y="811" fill="#064e3b" font-family="Arial, sans-serif" font-size="16">GameServerManager compiles · GSM loopback-default assertions pass · diff and XML checks pass</text>
+  <text x="1050" y="785" fill="#065f46" font-family="Arial, sans-serif" font-size="16" font-weight="700">Outcome: ready to submit</text>
+  <text x="1050" y="811" fill="#064e3b" font-family="Arial, sans-serif" font-size="15">local plan + launcher fixes</text>
+</svg>

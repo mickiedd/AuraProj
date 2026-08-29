@@ -11,7 +11,7 @@ Protocol (newline-delimited JSON over TCP):
                or: {"status": "error", "message": "<reason>"}
 
 Usage:
-  python GameServerManager.py [--host 0.0.0.0] [--port 9000]
+  python GameServerManager.py [--host 127.0.0.1] [--port 9000]
                                [--public-host 127.0.0.1]
                                [--server-exe /path/to/AuraServer]
                                [--persistence-provider NULL]
@@ -1027,8 +1027,8 @@ def main() -> None:
                     "and routes clients to the correct instance via TCP."
     )
     parser.add_argument(
-        "--host", default="0.0.0.0",
-        help="Address to listen on (default: 0.0.0.0)"
+        "--host", default="127.0.0.1",
+        help="Address to listen on (default: 127.0.0.1; use an explicit address only with LAN/public access controls)"
     )
     parser.add_argument(
         "--port", type=int, default=9000,

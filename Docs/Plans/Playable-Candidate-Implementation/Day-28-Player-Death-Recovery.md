@@ -24,13 +24,13 @@ Make player death a supported game state with clear loss of control, recovery, a
 
 ### Life-state contract
 
-Player state transitions are `Alive → Dying → Dead → Recovering → Alive`; Civilian population death remains a separate `Death.PopulationRespawn` policy. Only the authoritative server changes life state, controller possession, role/grant ledger, ammo recovery, and persistence checkpoint. Clients receive a state snapshot and result reason; they cannot request a direct respawn or clear death.
+Player state transitions are `Alive → Dying → Dead → Recovering → Alive`; Civilian population death remains a separate `Death.PopulationRespawn` policy. Only the authoritative server changes life state, controller possession, role/grant ledger, ammo recovery, and persistence checkpoint. A committed `Dead` or `Recovering` player profile is normalized to one server-owned `Recovering → Alive` transition on the next valid join/restart. Clients receive a state snapshot and result reason; they cannot request a direct respawn or clear death.
 
 ### Detailed steps
 
 1. Trace the Day 11 exactly-once fatal-damage path and add a player-specific policy adapter without changing Civilian or enemy dispatch.
 2. Define the transition guards, replicated state, terminal result codes, and ownership of controller, pawn, ASC, target, merchant, browser, delegate, and timer cleanup.
-3. On lethal authoritative damage, stop input/attack/reload, close interaction/commerce, clear focus and transient delegates, publish one Dying/Dead sequence, and persist only the frozen committed player state.
+3. On lethal authoritative damage, stop input/attack/reload, close interaction/commerce, clear focus and transient delegates, publish one Dying/Dead sequence, cancel any in-flight reload, and persist only the frozen committed player state.
 4. Implement one server-controlled recovery path that creates/reuses the correct role shell, restores PlayerState/ASC ledger once, applies the frozen ammo/tutorial/wallet/inventory policy, and rebinds HUD/input once.
 5. Reject client respawn/recovery, duplicate death, stale pawn, old transaction, and post-death attack requests with typed results.
 6. Test remote observation, death during reload/commerce, simultaneous death and reward, pawn replacement twice, reconnect during Dead/Recovering, and owner/non-owner HUD visibility.

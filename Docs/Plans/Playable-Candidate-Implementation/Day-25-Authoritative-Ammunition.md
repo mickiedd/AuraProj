@@ -19,13 +19,13 @@ Turn BungeeMan's active `FireGun.xml` route into a complete minimum firearm loop
 ### Files to inspect or modify
 
 - **Active ability/config:** `Content/AbilityDefinitions/FireGun.xml`, `Content/Config/RoleConfig.json`, and the XML/config parser and validator.
-- **Runtime authority:** `Source/Aura/Public/AbilitySystem/Abilities/AuraFireGun.h/.cpp`, the active AuraAbilityGraph execution path, `AuraPlayerController`, `AuraPlayerState`, and the pawn replacement/role grant ledger.
+- **Runtime authority:** the active AuraAbilityGraph execution path, `AuraPlayerController`, `AuraPlayerState`, and the pawn replacement/role grant ledger. Inspect `AuraFireGun.h/.cpp` only to prove the compatibility class remains non-active; it is not an authority or grant path for this work.
 - **Persistence/replication:** `Source/Aura/Public/Game/AuraPlayerSaveGame.h`, `AuraPersistenceSubsystem.h`, `AuraPersistenceManifestSaveGame.h`, and their implementations.
 - **Planned tests/output:** `Source/Aura/Private/Tests/AuraRoleBattleDay25Tests.cpp`, `RunPlayableCandidateDay25Ammo.ps1`, `day-25-ammo.json`, and `Docs/Reference/Playable-Candidate-Ammo-Contract.md`.
 
 ### Ammo state contract
 
-Add one player-owned `FAuraFirearmState` (or the existing equivalent) with validated `MagazineCapacity`, `MagazineRounds`, `ReserveCapacity`, `ReserveRounds`, `ReloadDuration`, `bReloading`, `ReloadSerial`, and `AmmoRevision`. Capacity and duration come from the validated FireGun definition; rounds and reload state are mutable only on the authoritative server. Replicate the state owner-only and persist the rounds/reload completion policy fixed on Day 21. The active XML path remains the only grant path.
+Add one player-owned `FAuraFirearmState` (or the existing equivalent) with validated `MagazineCapacity`, `MagazineRounds`, `ReserveCapacity`, `ReserveRounds`, `ReloadDuration`, `bReloading`, `ReloadSerial`, and `AmmoRevision`. Capacity and duration come from the validated FireGun definition; rounds and reload state are mutable only on the authoritative server. This state applies only to BungeeMan; Aura's active `FireBolt.xml` path has no firearm state and reports `NotApplicable` to the HUD. Replicate the state owner-only. Persist only completed magazine/reserve values as fixed on Day 21; an in-flight reload is canceled on death, pawn replacement, disconnect, forced kill, and graceful shutdown and is never auto-completed after restore. The active XML path remains the only grant path.
 
 ### Detailed steps
 
@@ -34,7 +34,7 @@ Add one player-owned `FAuraFirearmState` (or the existing equivalent) with valid
 3. Create or attach the firearm state to the stable player-owned state, initialize it after role/loadout validation, and replicate it only to the owning connection.
 4. Implement server-side shot consumption: validate owner, Alive state, BungeeMan loadout, target request, cooldown, and `MagazineRounds > 0`; decrement once and publish a new revision only after the shot is accepted.
 5. Implement reload as an owned reliable request with a server timer/serial; reject duplicate, stale, dead, wrong-role, full-magazine, and insufficient-reserve requests with typed results.
-6. Define cancel/interrupt behavior for death, pawn replacement, disconnect, and a new shot; no client timer may complete a reload.
+6. Define cancel/interrupt behavior for death, pawn replacement, disconnect, forced kill, graceful shutdown, and a new shot; no client timer may complete a reload.
 7. Restore state when the same PlayerState/pawn is replaced and when Day 31 loads a profile; verify the reload serial cannot duplicate rounds.
 8. Add owner-only WebUI state events and rejection reasons for Day 26 without allowing WebUI to write the state.
 9. Run native, config, listen, dedicated, and packaged checks and publish the ammo contract before Day 26.
@@ -49,7 +49,7 @@ Add one player-owned `FAuraFirearmState` (or the existing equivalent) with valid
 
 - **Owner surfaces:** the active `Content/AbilityDefinitions/FireGun.xml` and `Content/Config/RoleConfig.json` path, `Source/Aura/Public/AbilitySystem/Abilities/AuraFireGun.h` and its implementation boundary, the authoritative role/pawn state, and the player persistence schema. The compatibility `UAuraFireGun` helper is not a second grant path.
 - **Required artifacts:** `Docs/Reference/Playable-Candidate-Ammo-Contract.md`, a server/client state trace, and `day-25-ammo.json` covering magazine, reserve, reload, pawn replacement, and owner-only replication.
-- **Gate:** under two-client listen and dedicated runs, only the server changes ammo; a valid press consumes exactly one round, ammo never becomes negative, reload cannot overlap an accepted shot, and pawn replacement/reconnect restores the frozen player-owned state without exposing it to the other client.
+- **Gate:** under the Day 21 listen/dedicated lane topologies, only the server changes BungeeMan ammo; a valid press consumes exactly one round, ammo never becomes negative, reload cannot overlap an accepted shot, and pawn replacement/reconnect restores the frozen completed player-owned state without exposing it to the other client. Aura explicitly reports firearm ammo/reload as `NotApplicable`.
 
 ## Validation and evidence
 

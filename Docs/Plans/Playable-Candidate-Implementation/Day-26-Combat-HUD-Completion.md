@@ -24,7 +24,7 @@ Make combat state readable: the player must know whether a shot can fire, what i
 
 ### HUD state contract
 
-The bridge exposes versioned presentation state with `RoleId`, `LifeState`, target descriptor/validity, attack availability/reason, `MagazineRounds`, `ReserveRounds`, reload status, last accepted attack result, merchant focus/availability, and owner-scoped wallet/inventory revisions. Events are replayable snapshots, not authority commands. A `hud_ready` request asks for a snapshot; it does not create gameplay state.
+The bridge exposes versioned presentation state with `RoleId`, `LifeState`, target descriptor/validity, attack availability/reason, a role-aware firearm state (`MagazineRounds`, `ReserveRounds`, reload status for BungeeMan, or explicit `NotApplicable` for Aura), last accepted attack result, merchant focus/availability, and owner-scoped wallet/inventory revisions. Events are replayable snapshots, not authority commands. A `hud_ready` request asks for a snapshot; it does not create gameplay state.
 
 ### Detailed steps
 
@@ -33,7 +33,7 @@ The bridge exposes versioned presentation state with `RoleId`, `LifeState`, targ
 3. Render ammo/reload, target/attack reason, hit/kill, life/death/recovery, merchant result, and save/reconnect feedback using the existing panels.
 4. Implement one idempotent snapshot replay on WebUI ready, browser reconnect, pawn replacement, late join, and recovery; clear state on disconnect before the next identity is bound.
 5. Preserve native input: verify transparent/uncovered regions, focus changes, pointer capture, and keyboard/mouse gameplay controls around every panel.
-6. Exercise Aura and BungeeMan, owner and non-owner clients, normal/empty/reloading/invalid-target/hit/death/reconnect states, and stale-event ordering.
+6. Exercise Aura and BungeeMan, owner and non-owner clients, normal/empty/reloading/invalid-target/hit/death/reconnect states, and stale-event ordering. Empty/reloading firearm states are exercised for BungeeMan; Aura must render the explicit firearm `NotApplicable` state and still exercise the common attack/result states.
 7. Capture packaged screenshots at the Day 36 profiles and record the panel/input checklist in the JSON artifact.
 
 ### Named automation and commands
@@ -52,7 +52,7 @@ The bridge exposes versioned presentation state with `RoleId`, `LifeState`, targ
 
 - **Owner surfaces:** `Plugins/AuraWebUI/Content/WebUI/hud-left-top.html`, `hud-right-top.html`, `hud-bottom.html`, `WebUIBridgeSubsystem`, and the native replicated state/event boundary. No HUD command may write authoritative combat or economy state.
 - **Required artifacts:** versioned HUD state contract, `day-26-hud.json`, packaged captures for both roles, and an input hit-test checklist for each supported visual profile.
-- **Gate:** normal, empty, reloading, invalid-target, hit, death, late-join, and reconnect states render for both roles; `hud_ready` and pawn replacement replay the current authoritative state once; no panel clips, blocks world input, or reveals another player's private ammo/economy state.
+- **Gate:** normal, invalid-target, hit, death, late-join, and reconnect states render for both roles; BungeeMan additionally renders normal, empty, and reloading firearm states while Aura renders firearm `NotApplicable`; `hud_ready` and pawn replacement replay the current authoritative state once; no panel clips, blocks world input, or reveals another player's private ammo/economy state.
 
 ## Completion gate
 

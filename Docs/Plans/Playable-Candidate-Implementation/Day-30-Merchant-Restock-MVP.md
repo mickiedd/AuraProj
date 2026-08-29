@@ -25,18 +25,18 @@ Make current merchant stock behavior deterministic across time, restart, and per
 
 ### Restock contract
 
-Use one fixed stock definition and one configured `RestockInterval`. Server UTC is the source of truth; tests inject a deterministic clock. Persist `LastRestockAtUtc`, `StockRevision`, and stock entries by canonical `PopulationMemberId`. If the clock moves backward, clamp to the last observed time. On startup, offline elapsed time may produce at most one restock interval; no offline currency, reward, or player progression is generated.
+Use the Day 21 fixed stock definition: the normalized `marketmerchant`'s finite `market_health_potion` offer has `initialStock=20` and a `600`-second `RestockInterval`; a restock refills current stock up to `initialStock` and never adds beyond that cap. Server UTC is the source of truth; tests inject a deterministic clock. Persist `LastRestockAtUtc`, `LastObservedAtUtc`, `StockRevision`, and stock entries by canonical `PopulationMemberId`. If the clock moves backward, `EffectiveNow` is clamped to `LastObservedAtUtc`. At `EffectiveNow - LastRestockAtUtc >= RestockInterval`, one refill may commit; startup offline elapsed time may cause at most one refill, with the timestamp advanced to the effective observation. No offline currency, reward, or player progression is generated.
 
 ### Detailed steps
 
 1. Read the existing Day 17 stock/transaction schema and identify the stable merchant member and offer revision fields; do not create a second merchant identity.
 2. Add fixed stock/restock fields and schema validation for positive interval, bounded quantities, stable offer IDs, and no duplicate stock entries.
-3. Inject a server/test clock and implement elapsed-time evaluation with backward-clock clamp and one-interval offline catch-up.
+3. Inject a server/test clock and implement the Day 21 elapsed-time evaluation with backward-clock clamp, inclusive boundary, refill-to-cap semantics, and one-interval offline catch-up.
 4. Run restock only on the authority, serialize it with purchase transactions, increment `StockRevision` only after commit, and make repeated evaluation idempotent.
 5. Persist/restore stock, last-restock timestamp, and revision under the existing world `WorldPersistenceId`; never derive stock from client time.
 6. Expose available/restocking/sold-out/unavailable states through replicated merchant presentation and WebUI without allowing client state writes.
 7. Test purchase at boundary, concurrent last-stock purchase, restart before/after interval, forced kill, backward clock, duplicate tick, wrong world ID, and late join.
-8. Publish the exact offline policy to Day 31 and block any broad business-simulation addition.
+8. Verify the exact Day 21 offline policy for Day 31 and block any broad business-simulation addition.
 
 ### Named automation and commands
 
@@ -48,7 +48,7 @@ Use one fixed stock definition and one configured `RestockInterval`. Server UTC 
 
 - Use a deterministic test clock or injected time source for purchase, restock, restart, and concurrent requests.
 - Verify stock never duplicates, rolls back incorrectly, or crosses `WorldPersistenceId` boundaries.
-- Record the chosen offline timer rule for Day 31 persistence.
+- Record the verified Day 21 offline timer rule for Day 31 persistence.
 
 ## Deep-review closure
 

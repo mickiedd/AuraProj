@@ -25,14 +25,14 @@ Define exactly what survives session restart, server restart, map reload, pawn r
 
 ### Ownership and lifetime table
 
-Player save owns stable validated profile identity, role/loadout, wallet, inventory, magazine/reserve ammo, tutorial completion, and player recovery state. World save owns `WorldPersistenceId`, generation, population/member lifecycle, battle phase/zone state, merchant stock, `LastRestockAtUtc`, and stock revision. Runtime pawn/UI/delegate/focus state is never serialized as authority state. A graceful checkpoint commits a complete snapshot; a forced kill restores the last valid manifest generation; uncommitted actions are rolled back.
+Player save owns stable validated profile identity, role/loadout, wallet, inventory, completed BungeeMan magazine/reserve ammo, tutorial completion, and player recovery state. Aura has no firearm state to save. World save owns `WorldPersistenceId`, generation, population/member lifecycle, battle phase/zone state, merchant stock, `LastRestockAtUtc`, `LastObservedAtUtc`, and stock revision. Runtime pawn/UI/delegate/focus state and in-flight reloads are never serialized as authority state. A graceful checkpoint commits a complete snapshot; a forced kill restores the last valid manifest generation; uncommitted actions are rolled back. A committed `Dead` or `Recovering` profile is normalized to one server-owned recovery transition at the next valid join/restart.
 
 ### Detailed steps
 
 1. Compare the Day 18 versioned player/world schemas and add only the frozen Day 25/29/30 fields with explicit schema versions.
 2. Define field owner, lifetime, default, migration rule, privacy, and commit trigger for every added field; reject a field with no owner.
 3. Preserve load order: provider/profile validation, role/config validation, world definitions/registry, world snapshot candidate, population/merchant reconciliation, PlayerState load, pawn/ASC grant.
-4. Ensure reward, purchase, ammo, reload, recovery, and restock snapshots capture either pre-transaction or fully committed state, never intermediate mutation.
+4. Ensure reward, purchase, completed ammo, reload cancellation, recovery, and restock snapshots capture either pre-transaction or fully committed state, never intermediate mutation; an in-flight reload is always canceled before checkpoint or shutdown.
 5. Implement legacy/version-zero, missing, corrupt, unknown-future, torn-manifest, failed-write, and stale-world cases with last-known-good fallback.
 6. Test graceful restart, forced kill, map reload, pawn replacement, reconnect, late join, two-player isolation, world ID isolation, and merchant/population reconciliation.
 7. Prove no pawn possession or client reconnect can trigger a second world restore, grant, starting balance, restock, or migration.

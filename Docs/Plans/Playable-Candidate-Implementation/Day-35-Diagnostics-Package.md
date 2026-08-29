@@ -9,10 +9,10 @@ Make a failure diagnosable from its artifacts without immediately reproducing it
 
 ## Work
 
-- Standardize `BuildRevision`, `SessionId`, `ServerInstanceId`, `WorldPersistenceId`, map, server mode, a stable redacted/hash player identity representation plus provider type, and `RoleId` in important logs and reports.
+- Standardize `BuildRevision`, `SessionId`, `ServerInstanceId`, `WorldPersistenceId`, map, server mode, a run-scoped HMAC player identity representation plus provider type, and `RoleId` in important logs and reports. The HMAC key is supplied to cooperating processes for the run and is never written to logs or the candidate artifact, so identities correlate within a run without being dictionary-hashable or linkable across runs.
 - Add action/transaction/combat correlation IDs where a request crosses process or subsystem boundaries.
 - Add concise startup, readiness, rejection, persistence, and shutdown summaries with stable result codes.
-- Keep credentials, raw secrets, and unnecessary personal data out of logs.
+- Keep credentials, raw secrets, and unnecessary personal data out of logs. Artifact and log paths are emitted relative to the run root; absolute paths and user names are not diagnostic fields.
 
 ## Detailed execution contract
 
@@ -25,14 +25,14 @@ Make a failure diagnosable from its artifacts without immediately reproducing it
 
 ### Diagnostic record contract
 
-Every important event has `SchemaVersion`, `TimestampUtc`, `BuildRevision`, `SessionId`, `ServerInstanceId`, `WorldPersistenceId`, `Map`, `ServerMode`, `ProviderType`, `PlayerIdentityHash` (not raw identity), `RoleId`, `ActionCorrelationId` where applicable, `RequestId` where applicable, `ResultCode`, and a concise safe message. IDs are stable within a run and join client/server/process artifacts without exposing credentials or personal data.
+Every important event has `SchemaVersion`, `TimestampUtc`, `BuildRevision`, `SessionId`, `ServerInstanceId`, `WorldPersistenceId`, `Map`, `ServerMode`, `ProviderType`, `PlayerIdentityHmac` (not raw identity), `RoleId`, `ActionCorrelationId` where applicable, `RequestId` where applicable, `ResultCode`, and a concise safe message. Player identity HMACs and correlation IDs are stable within a run and join client/server/process artifacts without exposing credentials, personal data, or absolute user paths. Non-player events explicitly use `PlayerIdentityHmac=null` rather than inventing an identity.
 
 ### Detailed steps
 
 1. Inventory current log/report writers and normalize field names, timestamp format, severity, result-code format, and JSON encoding.
 2. Add correlation propagation from login/readiness through role, combat/ammo, interaction/commerce, persistence, reconnect, and process lifecycle boundaries.
 3. Define result codes for success, rejected input, invalid content, timeout, process failure, persistence rollback, readiness failure, and packaging failure; avoid using free-form text as the gate.
-4. Redact/hash external identity at the writer boundary; add tests for provider IDs, credentials, tokens, URLs, local paths containing user names, and arbitrary payloads.
+4. HMAC external identity at the writer boundary; add tests for provider IDs, credentials, tokens, URLs, local paths containing user names, cross-run unlinkability, and arbitrary payloads.
 5. Add startup/readiness/rejection/commit/rollback/shutdown summaries that identify the relevant process and artifact paths.
 6. Inject one synthetic failure into each required class: boot, role/config, combat, ammo, interaction, commerce, persistence, reconnect, and packaging.
 7. Reconstruct each failure from the artifact packet alone and verify process isolation preserves correlation across server/client logs.

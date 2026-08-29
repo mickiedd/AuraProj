@@ -21,16 +21,16 @@ Make launch, login, loading, server readiness, travel, and player initialization
 - **Session/readiness:** `Scripts/GameServerManager.py`, `Source/Aura/Public/Game/GameServerClient.h`, `ServerTravelComponent.h`, `AuraGameInstance.h`, and matching `.cpp` files.
 - **Login/loading:** `LoginPlayerController.h/.cpp`, `LoadingPlayerController.h/.cpp`, `AuraPlayerController.h/.cpp`, and the role-application handoff.
 - **Presentation:** `Plugins/AuraWebUI/Content/WebUI/login.html`, `loading.html`, `index.html`, `hud-left-top.html`, `hud-right-top.html`, `hud-bottom.html`, and `WebUIBridgeSubsystem`.
-- **New output:** `Saved/Reports/PlayableCandidate/<Revision>/<RunId>/day-23-boot-matrix.json` and packaged screenshots.
+- **New output:** `Saved/Reports/PlayableCandidate/<SourceRevision>/<RunId>/day-23-boot-matrix.json` and packaged screenshots.
 
 ### State and error contract
 
-Use one sequence: `LoginPending → ServerReady → Loading → WorldReady → RoleValidated → HUDReady → Controllable`. Each transition has a single success event, a stable failure code, the owning process, and an elapsed-time field. `HUDReady` requires initial role, identity, pawn, and presentation state; an open WebSocket alone is not success.
+Use one sequence: `LoginPending → ServerReady → Loading → WorldReady → RoleValidated → HUDReady → Controllable`. Each transition has a single success event, a stable failure code, the owning process, and an elapsed-time field. `ServerReady` means the selected game server has emitted the authoritative world-readiness result for the requested map/world ID, not merely that a process or TCP port exists. `HUDReady` requires initial role, identity, pawn, and presentation state; an open WebSocket alone is not success.
 
 ### Detailed steps
 
 1. Trace current callbacks and log every transition with `SessionId` and `ServerInstanceId`; identify duplicate callbacks and missing failure exits.
-2. Make map/config, server unavailable, connection rejection, invalid role, readiness delay, and pawn initialization failures terminate in stage-specific WebUI and log results.
+2. Make map/config, server unavailable, connection rejection, invalid role, readiness delay, and pawn initialization failures terminate in stage-specific WebUI and log results. A timeout or process-alive-without-world-readiness is a failure, never an implicit success.
 3. Gate native input on the single role/HUD-ready event; clear browser delegates, timers, and stale state before a second launch.
 4. Run both roles in packaged listen and packaged dedicated paths using the canonical StartupMap and Day 21 lane manifest.
 5. Capture loading, role-ready, HUD-ready, and controllable states; retain client/server logs joined by the same session IDs.
