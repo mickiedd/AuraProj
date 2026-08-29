@@ -101,13 +101,16 @@ namespace ModularBeamPrivate
         }
     }
 
-    static void DestroyBeam(FAuraBeamTargetState& Entry)
+    static void DeactivateBeam(FAuraBeamTargetState& Entry)
     {
         if (UNiagaraComponent* Beam = Entry.Beam.Get())
         {
             if (UWorld* World = Beam->GetWorld(); World && !World->bIsTearingDown)
             {
-                Beam->DestroyInstance();
+                // Let Niagara run the asset-authored completion/fade tail. DestroyInstance()
+                // deactivates immediately and releases the system, which cuts the beam off
+                // at the TimedLoop boundary instead of when the ray has fully disappeared.
+                Beam->Deactivate();
             }
         }
         Entry.Beam = nullptr;
@@ -117,7 +120,7 @@ namespace ModularBeamPrivate
     {
         for (FAuraBeamTargetState& Entry : State.Targets)
         {
-            DestroyBeam(Entry);
+            DeactivateBeam(Entry);
         }
         State.Targets.Empty();
     }
@@ -196,7 +199,8 @@ namespace ModularBeamPrivate
     static void SpawnBeamVisual(
         UWorld* World,
         FAuraBeamExecutionState& State,
-        FAuraBeamTargetState& Entry)
+        FAuraBeamTargetState& Entry,
+        UAuraDataAbility* OwnerAbility)
     {
         if (!World || State.BeamEffect.IsEmpty())
         {
@@ -226,6 +230,10 @@ namespace ModularBeamPrivate
 
         SetBeamPosition(Beam, State.BeamStartParameter, State.Origin);
         SetBeamPosition(Beam, State.BeamEndParameter, Entry.BeamEndLocation);
+        if (OwnerAbility)
+        {
+            OwnerAbility->TrackBeamVisual(Beam, State.SourceActor.Get());
+        }
         Beam->Activate(true);
         Entry.Beam = Beam;
     }
@@ -666,6 +674,11 @@ EAuraAbilityActionStatus USpawnBeamVisualsTask::OnStart(FAuraAbilityExecutionCon
 
         ModularBeamPrivate::SetBeamPosition(Beam, Node->BeamStartParameter, Ctx.BeamState->Origin);
         ModularBeamPrivate::SetBeamPosition(Beam, Node->BeamEndParameter, Entry.BeamEndLocation);
+        Ctx.BeamState->SourceActor = Ctx.AvatarActor;
+        if (OwnerAbility)
+        {
+            OwnerAbility->TrackBeamVisual(Beam, Ctx.AvatarActor);
+        }
         Beam->Activate(true);
         Entry.Beam = Beam;
     }
@@ -947,7 +960,7 @@ EAuraAbilityActionStatus UPruneBeamTargetsTask::OnStart(FAuraAbilityExecutionCon
             ModularBeamPrivate::IsActorDead(TargetActor);
         if ((!Entry.Actor.IsValid() || bDeadDamageTarget) && !Entry.bVisualOnly)
         {
-            ModularBeamPrivate::DestroyBeam(Entry);
+            ModularBeamPrivate::DeactivateBeam(Entry);
             Ctx.BeamState->Targets.RemoveAt(Index, EAllowShrinking::No);
         }
     }
@@ -1012,7 +1025,8 @@ EAuraAbilityActionStatus UPruneBeamTargetsTask::OnStart(FAuraAbilityExecutionCon
                     ModularBeamPrivate::SpawnBeamVisual(
                         Ctx.AvatarActor->GetWorld(),
                         *Ctx.BeamState,
-                        Entry);
+                        Entry,
+                        OwnerAbility);
                 }
             }
         }

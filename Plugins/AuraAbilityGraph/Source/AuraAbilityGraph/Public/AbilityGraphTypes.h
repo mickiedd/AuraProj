@@ -36,6 +36,7 @@ struct FAuraBeamExecutionState
     float MaxRange = 3000.f;
     FVector Origin = FVector::ZeroVector;
     TArray<FAuraBeamTargetState> Targets;
+    TWeakObjectPtr<AActor> SourceActor;
 
     // Selection settings retained so the channel can optionally replace a
     // target that dies after the initial chain is built.

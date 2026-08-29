@@ -16,6 +16,7 @@
 #include "AuraCooldownGameplayEffect.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "NiagaraComponent.h"
 
 UAuraDataAbility::UAuraDataAbility()
 {
@@ -206,6 +207,7 @@ const FGameplayTagContainer* UAuraDataAbility::GetCooldownTags() const
 void UAuraDataAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     UE_LOG(LogAuraAbilityGraph, Log, TEXT("[DataAbility] ActivateAbility START handle=%s"), *Handle.ToString());
+    ResetBeamVisualTracking();
     if (!ActorInfo || !ActorInfo->AbilitySystemComponent.IsValid())
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[DataAbility] ActivateAbility ABORT: invalid ActorInfo/ASC"));
@@ -288,6 +290,101 @@ void UAuraDataAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
         EndAbility(Handle, ActorInfo, ActivationInfo, true, Status == EAuraAbilityActionStatus::Failure);
         return;
     }
+}
+
+void UAuraDataAbility::TrackBeamVisual(UNiagaraComponent* Beam, AActor* SourceActor)
+{
+    if (!Beam)
+    {
+        return;
+    }
+
+    const bool bAlreadyTracked = TrackedBeamVisuals.ContainsByPredicate(
+        [Beam](const TWeakObjectPtr<UNiagaraComponent>& TrackedBeam)
+        {
+            return TrackedBeam.Get() == Beam;
+        });
+    if (!bAlreadyTracked)
+    {
+        Beam->OnSystemFinished.AddUniqueDynamic(this, &UAuraDataAbility::OnBeamSystemFinished);
+        TrackedBeamVisuals.Add(Beam);
+        UE_LOG(LogAuraAbilityGraph, Log,
+            TEXT("[DataAbility] BeamVisual registered component=%s tracked=%d"),
+            *GetNameSafe(Beam),
+            TrackedBeamVisuals.Num());
+    }
+
+    if (SourceActor)
+    {
+        BeamSourceActor = SourceActor;
+        if (!bBeamSourceShockLoopActive && SourceActor->Implements<UCombatInterface>())
+        {
+            ICombatInterface::Execute_SetInShockLoop(SourceActor, true);
+            bBeamSourceShockLoopActive = true;
+            UE_LOG(LogAuraAbilityGraph, Log,
+                TEXT("[DataAbility] Beam source entered shock-loop animation source=%s"),
+                *GetNameSafe(SourceActor));
+        }
+    }
+}
+
+void UAuraDataAbility::ResetBeamVisualTracking()
+{
+    for (const TWeakObjectPtr<UNiagaraComponent>& TrackedBeam : TrackedBeamVisuals)
+    {
+        if (UNiagaraComponent* Beam = TrackedBeam.Get())
+        {
+            Beam->OnSystemFinished.RemoveDynamic(this, &UAuraDataAbility::OnBeamSystemFinished);
+        }
+    }
+    TrackedBeamVisuals.Reset();
+
+    if (bBeamSourceShockLoopActive)
+    {
+        if (AActor* SourceActor = BeamSourceActor.Get())
+        {
+            if (SourceActor->Implements<UCombatInterface>())
+            {
+                ICombatInterface::Execute_SetInShockLoop(SourceActor, false);
+            }
+        }
+    }
+    BeamSourceActor.Reset();
+    bBeamSourceShockLoopActive = false;
+}
+
+void UAuraDataAbility::OnBeamSystemFinished(UNiagaraComponent* FinishedComponent)
+{
+    const int32 RemovedCount = TrackedBeamVisuals.RemoveAll(
+        [FinishedComponent](const TWeakObjectPtr<UNiagaraComponent>& TrackedBeam)
+        {
+            return !TrackedBeam.IsValid() || TrackedBeam.Get() == FinishedComponent;
+        });
+    UE_LOG(LogAuraAbilityGraph, Log,
+        TEXT("[DataAbility] BeamVisual finished component=%s removed=%d remaining=%d"),
+        *GetNameSafe(FinishedComponent),
+        RemovedCount,
+        TrackedBeamVisuals.Num());
+    if (RemovedCount == 0 || TrackedBeamVisuals.Num() > 0)
+    {
+        return;
+    }
+
+    if (bBeamSourceShockLoopActive)
+    {
+        if (AActor* SourceActor = BeamSourceActor.Get())
+        {
+            if (SourceActor->Implements<UCombatInterface>())
+            {
+                ICombatInterface::Execute_SetInShockLoop(SourceActor, false);
+                UE_LOG(LogAuraAbilityGraph, Log,
+                    TEXT("[DataAbility] Beam source left shock-loop animation after Niagara completion source=%s"),
+                    *GetNameSafe(SourceActor));
+            }
+        }
+    }
+    BeamSourceActor.Reset();
+    bBeamSourceShockLoopActive = false;
 }
 
 void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)

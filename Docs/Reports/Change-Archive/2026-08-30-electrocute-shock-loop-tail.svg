@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="820" viewBox="0 0 1240 820" role="img" aria-labelledby="title desc">
+  <title id="title">Num3 Electrocute animation follows the Niagara beam tail</title>
+  <desc id="desc">Before and after lifecycle diagram showing the short cast montage ending before the beam, and the fixed lifecycle keeping the shock-loop animation active until all Niagara beam components finish.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 28px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #475569; }
+      .section { font: 700 18px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 14px Arial, sans-serif; fill: #0f172a; }
+      .body { font: 400 13px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 12px Arial, sans-serif; fill: #475569; }
+      .box { stroke: #cbd5e1; stroke-width: 1.5; rx: 12; }
+      .before { fill: #fff1f2; stroke: #fda4af; }
+      .after { fill: #ecfdf5; stroke: #86efac; }
+      .evidence { fill: #eff6ff; stroke: #93c5fd; }
+      .check { fill: #fefce8; stroke: #fde68a; }
+      .flow { fill: none; stroke: #475569; stroke-width: 2; marker-end: url(#arrow); }
+      .bad { fill: #be123c; }
+      .good { fill: #047857; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1240" height="820"/>
+  <text class="title" x="48" y="48">Num3 Electrocute: animation follows the ray tail</text>
+  <text class="subtitle" x="48" y="76">Active route: InputTag.3 → Electrocute.xml → UAuraDataAbility → NS_ElectricBeam</text>
+
+  <rect class="box before" x="48" y="112" width="1144" height="205"/>
+  <text class="section bad" x="72" y="145">Before — two independent release lifetimes</text>
+  <rect class="box" x="72" y="174" width="200" height="70" fill="#ffffff"/>
+  <text class="label" x="92" y="202">AM_Cast_Electrocute</text>
+  <text class="body" x="92" y="224">0.1667 s montage</text>
+  <path class="flow" d="M272 209 H350"/>
+  <rect class="box" x="350" y="174" width="200" height="70" fill="#ffffff"/>
+  <text class="label" x="370" y="202">Animation state</text>
+  <text class="body" x="370" y="224">returns to locomotion</text>
+  <path class="flow" d="M550 209 H628"/>
+  <rect class="box" x="628" y="174" width="240" height="70" fill="#ffffff"/>
+  <text class="label" x="648" y="202">TimedLoop + beam</text>
+  <text class="body" x="648" y="224">continues for about 2 s</text>
+  <path class="flow" d="M868 209 H946"/>
+  <rect class="box" x="946" y="174" width="222" height="70" fill="#ffffff"/>
+  <text class="label" x="966" y="202">Release mismatch</text>
+  <text class="body" x="966" y="224">pose ends before ray</text>
+  <text class="body" x="72" y="280">The active XML/DataAbility route never called SetInShockLoop, although the legacy Blueprint route did.</text>
+  <text class="small" x="72" y="301">The prior Deactivate fix preserved the Niagara tail but did not synchronize the caster animation state with it.</text>
+
+  <rect class="box evidence" x="48" y="345" width="1144" height="132"/>
+  <text class="section" x="72" y="378">Asset and log evidence</text>
+  <text class="body" x="72" y="408">AM_Cast_Electrocute length = 0.1667 s; Cast_Shock_Loop length = 2.4583 s; NS_ElectricBeam is one-shot and completes on inactive.</text>
+  <text class="body" x="72" y="432">Aura.log shows InputTag.3 release before graph completion, and the active Niagara light renderer also produced a forward-light-grid overflow warning.</text>
+  <text class="small" x="72" y="456">The light-grid warning is an independent renderer/performance issue; this fix preserves the authored light and ray while correcting release timing.</text>
+
+  <rect class="box after" x="48" y="505" width="1144" height="205"/>
+  <text class="section good" x="72" y="538">After — one completion authority</text>
+  <rect class="box" x="72" y="567" width="190" height="70" fill="#ffffff"/>
+  <text class="label" x="92" y="595">SpawnBeamVisuals</text>
+  <text class="body" x="92" y="617">register component(s)</text>
+  <path class="flow" d="M262 602 H326"/>
+  <rect class="box" x="326" y="567" width="190" height="70" fill="#ffffff"/>
+  <text class="label" x="346" y="595">SetInShockLoop(true)</text>
+  <text class="body" x="346" y="617">hold loop pose</text>
+  <path class="flow" d="M516 602 H580"/>
+  <rect class="box" x="580" y="567" width="190" height="70" fill="#ffffff"/>
+  <text class="label" x="600" y="595">Deactivate()</text>
+  <text class="body" x="600" y="617">start authored tail</text>
+  <path class="flow" d="M770 602 H834"/>
+  <rect class="box" x="834" y="567" width="190" height="70" fill="#ffffff"/>
+  <text class="label" x="854" y="595">OnSystemFinished</text>
+  <text class="body" x="854" y="617">wait for all beams</text>
+  <path class="flow" d="M1024 602 H1088"/>
+  <rect class="box" x="1088" y="567" width="80" height="70" fill="#ffffff"/>
+  <text class="label" x="1104" y="595">false</text>
+  <text class="body" x="1099" y="617">exit</text>
+  <text class="body" x="72" y="674">Beam components remain tracked after graph cleanup; the caster exits Cast_Shock_Loop only after Niagara reports the ray fully complete.</text>
+  <text class="small" x="72" y="696">Repeated/replaced beam components are included, and a new activation clears stale delegates before registering its own visuals.</text>
+
+  <rect class="box check" x="48" y="742" width="1144" height="50"/>
+  <text class="label" x="72" y="773">Validation</text>
+  <text class="body" x="165" y="773">AuraEditor Development build passed · supervised AuraAbilityGraph smoke: 26 passed, 0 failed · git diff --check passed</text>
+</svg>

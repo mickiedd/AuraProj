@@ -10,6 +10,8 @@
 
 class UAuraAbilityDefinition;
 class UAuraAbilityActionTask;
+class AActor;
+class UNiagaraComponent;
 class UAbilityTask;
 class UAbilityTask_PlayMontageAndWait;
 class UAbilityTask_WaitGameplayEvent;
@@ -57,6 +59,16 @@ public:
 
     void AdvanceGraph(EAuraAbilityActionStatus ChildStatus);
 
+    /**
+     * Keeps the caster in the shock-loop animation until every beam component
+     * reports that Niagara has finished its authored release tail.
+     */
+    void TrackBeamVisual(UNiagaraComponent* Beam, AActor* SourceActor);
+    void ResetBeamVisualTracking();
+
+    UFUNCTION()
+    void OnBeamSystemFinished(UNiagaraComponent* FinishedComponent);
+
     UFUNCTION(BlueprintCallable, Category = "Ability|TargetData")
     void OnTargetDataReady(const FGameplayAbilityTargetDataHandle& DataHandle);
 
@@ -85,6 +97,10 @@ protected:
     mutable FGameplayTagContainer CachedCooldownTags;
 
     FAuraAbilityExecutionContext PersistentCtx;
+
+    TArray<TWeakObjectPtr<UNiagaraComponent>> TrackedBeamVisuals;
+    TWeakObjectPtr<AActor> BeamSourceActor;
+    bool bBeamSourceShockLoopActive = false;
 
 public:
     TWeakObjectPtr<UTargetDataUnderMouse> PendingTargetDataTask;

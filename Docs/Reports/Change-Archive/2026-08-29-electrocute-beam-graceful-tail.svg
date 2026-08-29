@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Num3 Electrocute beam graceful release</title>
+  <desc id="desc">Before and after flow showing the active Electrocute graph changing from immediate Niagara destruction to graceful deactivation that preserves the authored beam tail.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 28px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #475569; }
+      .section { font: 700 18px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 14px Arial, sans-serif; fill: #0f172a; }
+      .body { font: 400 13px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 12px Arial, sans-serif; fill: #475569; }
+      .box { stroke: #cbd5e1; stroke-width: 1.5; rx: 12; }
+      .before { fill: #fff1f2; stroke: #fda4af; }
+      .after { fill: #ecfdf5; stroke: #86efac; }
+      .evidence { fill: #eff6ff; stroke: #93c5fd; }
+      .check { fill: #fefce8; stroke: #fde68a; }
+      .flow { fill: none; stroke: #475569; stroke-width: 2; marker-end: url(#arrow); }
+      .bad { fill: #be123c; }
+      .good { fill: #047857; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="760"/>
+  <text class="title" x="48" y="48">Num3 Electrocute: release follows the ray tail</text>
+  <text class="subtitle" x="48" y="76">Active route: InputTag.3 → Electrocute.xml → modular beam visuals</text>
+
+  <rect class="box before" x="48" y="112" width="520" height="240"/>
+  <text class="section bad" x="72" y="145">Before — hard cut at channel end</text>
+  <rect class="box" x="72" y="174" width="150" height="70" fill="#ffffff"/>
+  <text class="label" x="91" y="202">TimedLoop</text>
+  <text class="body" x="91" y="224">Duration = 2.0 s</text>
+  <path class="flow" d="M222 209 H278"/>
+  <rect class="box" x="278" y="174" width="185" height="70" fill="#ffffff"/>
+  <text class="label" x="297" y="202">DestroyBeamVisuals</text>
+  <text class="body" x="297" y="224">DestroyInstance()</text>
+  <path class="flow" d="M463 209 H520"/>
+  <text class="label bad" x="72" y="280">Immediate system release</text>
+  <text class="body" x="72" y="302">The Niagara component is released before its authored</text>
+  <text class="body" x="72" y="320">completion/fade tail can make the ray fully disappear.</text>
+
+  <rect class="box evidence" x="632" y="112" width="520" height="240"/>
+  <text class="section" x="656" y="145">Asset evidence</text>
+  <text class="label" x="656" y="180">NS_ElectricBeam</text>
+  <text class="body" x="656" y="202">System.bCompleteOnInactive</text>
+  <text class="body" x="656" y="224">bCanDieWhenEmitterDeactivates</text>
+  <text class="body" x="656" y="246">Emitter loop/lifetime settings</text>
+  <path class="flow" d="M900 180 V266"/>
+  <text class="label" x="930" y="198">Conclusion</text>
+  <text class="body" x="930" y="220">The asset provides a</text>
+  <text class="body" x="930" y="238">graceful inactive path.</text>
+  <text class="small" x="656" y="300">AM_Cast_Electrocute is 0.1667 s by design; it is the</text>
+  <text class="small" x="656" y="318">short cast clip, not the beam’s release lifetime.</text>
+
+  <rect class="box after" x="48" y="390" width="704" height="220"/>
+  <text class="section good" x="72" y="423">After — let Niagara finish its authored tail</text>
+  <rect class="box" x="72" y="455" width="150" height="70" fill="#ffffff"/>
+  <text class="label" x="91" y="483">TimedLoop</text>
+  <text class="body" x="91" y="505">Duration = 2.0 s</text>
+  <path class="flow" d="M222 490 H278"/>
+  <rect class="box" x="278" y="455" width="150" height="70" fill="#ffffff"/>
+  <text class="label" x="297" y="483">Deactivate()</text>
+  <text class="body" x="297" y="505">non-immediate</text>
+  <path class="flow" d="M428 490 H484"/>
+  <rect class="box" x="484" y="455" width="238" height="70" fill="#ffffff"/>
+  <text class="label" x="503" y="483">Niagara completion/fade</text>
+  <text class="body" x="503" y="505">ray disappears fully → auto-destroy</text>
+  <text class="body" x="72" y="565">Beam endpoint refresh still follows the mouse during the channel;</text>
+  <text class="body" x="72" y="585">only the release boundary now honors the VFX asset’s tail.</text>
+
+  <rect class="box check" x="792" y="390" width="360" height="220"/>
+  <text class="section" x="816" y="423">Validation</text>
+  <text class="body" x="816" y="458">✓ AuraEditor Development build</text>
+  <text class="body" x="816" y="484">✓ AuraAbilityGraph smoke: 26 / 26</text>
+  <text class="body" x="816" y="510">✓ Electrocute graph and endpoint checks</text>
+  <text class="body" x="816" y="536">✓ Asset/source contract checks</text>
+  <text class="body" x="816" y="562">✓ git diff --check</text>
+
+  <text class="small" x="48" y="690">Scope: active modular Electrocute path. Legacy GA_Electrocute compatibility assets were not changed.</text>
+  <text class="small" x="48" y="714">Changed surface: ModularBeamNodes cleanup now deactivates Niagara instead of calling DestroyInstance.</text>
+</svg>

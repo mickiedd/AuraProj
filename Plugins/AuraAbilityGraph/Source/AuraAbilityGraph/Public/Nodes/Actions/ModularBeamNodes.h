@@ -256,7 +256,7 @@ public:
     virtual EAuraAbilityActionStatus OnStart(FAuraAbilityExecutionContext& Ctx) override;
 };
 
-/** Destroys beam components and clears the shared beam state. */
+/** Deactivates beam components so Niagara can finish its authored tail, then clears shared beam state. */
 UCLASS(DisplayName = "DestroyBeamVisuals")
 class AURAABILITYGRAPH_API UDestroyBeamVisualsNode : public UAuraAbilityActionNode
 {
