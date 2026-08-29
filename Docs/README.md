@@ -20,6 +20,7 @@
 
 | [Role-Creation-and-Battle-System-Plan.md](Plans/Role-Creation-and-Battle-System-Plan.md) | Architecture plan for Aura Girl, BungeeMan, Civilian, combat, AI, and economy. |
 | [Role-Battle-Implementation-Index.md](Plans/Role-Battle-Implementation-Index.md) | Twenty-day implementation sequence with one executable plan per day. |
+| [Playable-Candidate-Implementation-Plan-2026-08-29.md](Plans/Playable-Candidate-Implementation-Plan-2026-08-29.md) | Next twenty logical days: turn the integrated slice into a player-ready local/LAN candidate with embedded support gates. |
 
 ## Tracking
 
@@ -36,6 +37,8 @@
 | [GAS-Migration-Audit-2026-08-03.md](Reports/GAS-Migration-Audit-2026-08-03.md) | Corrected audit of the TODO/pending-plan against the source tree. |
 | [Gameplay-Blueprint-Decoupling-Migration-Report.md](Reports/Gameplay-Blueprint-Decoupling-Migration-Report.md) | Implementation report for the decoupling phases. |
 | [Role-Battle-Vertical-Slice-2026-08-28.md](Reports/Role-Battle-Vertical-Slice-2026-08-28.md) | Day 20 local verification report and explicit production-release blocker. |
+| [Playable-Candidate-Readiness-Review-2026-08-29.md](Reports/Playable-Candidate-Readiness-Review-2026-08-29.md) | Local analysis of the finished arc plus the independent in-app ChatGPT roadmap review. |
+| [Playable-Candidate-Deep-Review-2026-08-29.md](Reports/Playable-Candidate-Deep-Review-2026-08-29.md) | Deep local review and correction of the Days 21–40 contracts, with the bounded handoff limitation recorded. |
 | [DayPlan-Archive](Reports/DayPlan-Archive/README.md) | Detailed, manually authored mind maps for every finished Role/Battle day plan. |
 | [Change-Archive](Reports/Change-Archive/README.md) | Calendar-day and job-level visual change records. |
 

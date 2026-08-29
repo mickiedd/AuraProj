@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">AuraProj Playable Candidate roadmap</title>
+  <desc id="desc">Before-and-after roadmap showing the transition from an architecture-complete Role/Battle prototype to a playable local/LAN candidate, with a separate authenticated public release gate.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.title{font:700 30px 'Segoe UI',Arial,sans-serif;fill:#0f172a}.subtitle{font:400 16px 'Segoe UI',Arial,sans-serif;fill:#475569}.section{font:700 19px 'Segoe UI',Arial,sans-serif;fill:#0f172a}.label{font:700 16px 'Segoe UI',Arial,sans-serif;fill:#0f172a}.body{font:400 14px 'Segoe UI',Arial,sans-serif;fill:#334155}.small{font:400 12px 'Segoe UI',Arial,sans-serif;fill:#475569}.before{fill:#fff1f2;stroke:#fb7185;stroke-width:2}.wave1{fill:#eff6ff;stroke:#60a5fa;stroke-width:2}.wave2{fill:#ecfdf5;stroke:#34d399;stroke-width:2}.wave3{fill:#fffbeb;stroke:#fbbf24;stroke-width:2}.wave4{fill:#f5f3ff;stroke:#a78bfa;stroke-width:2}.wave5{fill:#ecfeff;stroke:#22d3ee;stroke-width:2}.gate{fill:#0f172a;stroke:#334155;stroke-width:2}.gateText{font:700 15px 'Segoe UI',Arial,sans-serif;fill:#f8fafc}.good{font:700 14px 'Segoe UI',Arial,sans-serif;fill:#166534}.warn{font:700 14px 'Segoe UI',Arial,sans-serif;fill:#92400e}.arrow{stroke:#475569;stroke-width:3;fill:none;marker-end:url(#arrow)}.dash{stroke:#64748b;stroke-width:2;stroke-dasharray:8 7;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1400" height="900"/>
+  <text x="55" y="52" class="title">AuraProj → Playable Candidate (Days 21–40)</text>
+  <text x="55" y="82" class="subtitle">The next milestone completes the player loop and makes the build supportable without widening the architecture.</text>
+
+  <text x="55" y="132" class="section">Starting point after Role/Battle Day 20</text>
+  <rect x="55" y="155" width="330" height="260" rx="16" class="before"/>
+  <text x="80" y="190" class="label">Architecture-complete slice</text>
+  <text x="80" y="222" class="body">✓ Authority, roles, rules, AI, economy</text>
+  <text x="80" y="248" class="body">✓ Persistence and local multiplayer</text>
+  <text x="80" y="274" class="body">✓ WebUI HUD and automation harness</text>
+  <text x="80" y="312" class="body">△ Onboarding and player feedback</text>
+  <text x="80" y="338" class="body">△ Ammo/reload and full recovery loop</text>
+  <text x="80" y="364" class="body">△ Post-tooling packaged sweep</text>
+  <text x="80" y="390" class="warn">BLOCKED: provider + two real accounts</text>
+
+  <path d="M400 285H445" class="arrow"/>
+  <text x="393" y="264" class="small">focused candidate pass</text>
+
+  <text x="465" y="132" class="section">Five dependency waves</text>
+  <rect x="465" y="155" width="165" height="260" rx="16" class="wave1"/>
+  <text x="488" y="190" class="label">21–24</text>
+  <text x="488" y="220" class="label">Freeze + boot</text>
+  <text x="488" y="258" class="body">Playable contract</text>
+  <text x="488" y="282" class="body">Fresh baseline</text>
+  <text x="488" y="306" class="body">Boot error states</text>
+  <text x="488" y="330" class="body">First-use guidance</text>
+
+  <rect x="650" y="155" width="165" height="260" rx="16" class="wave2"/>
+  <text x="673" y="190" class="label">25–31</text>
+  <text x="673" y="220" class="label">Player loop</text>
+  <text x="673" y="258" class="body">Ammo + reload</text>
+  <text x="673" y="282" class="body">Combat HUD</text>
+  <text x="673" y="306" class="body">Death/recovery</text>
+  <text x="673" y="330" class="body">Reward + merchant</text>
+  <text x="673" y="354" class="body">Restock + saves</text>
+
+  <rect x="835" y="155" width="165" height="260" rx="16" class="wave3"/>
+  <text x="858" y="190" class="label">32–33</text>
+  <text x="858" y="220" class="label">Survivable net</text>
+  <text x="858" y="258" class="body">Late join</text>
+  <text x="858" y="282" class="body">Reconnect</text>
+  <text x="858" y="306" class="body">RPC ownership</text>
+  <text x="858" y="330" class="body">Replay/rate limits</text>
+
+  <rect x="1020" y="155" width="165" height="260" rx="16" class="wave4"/>
+  <text x="1043" y="190" class="label">34–38</text>
+  <text x="1043" y="220" class="label">Support gates</text>
+  <text x="1043" y="258" class="body">Content validator</text>
+  <text x="1043" y="282" class="body">Correlation logs</text>
+  <text x="1043" y="306" class="body">Packaged visual QA</text>
+  <text x="1043" y="330" class="body">Server runbook</text>
+  <text x="1043" y="354" class="body">Candidate artifact</text>
+
+  <rect x="1205" y="155" width="150" height="260" rx="16" class="wave5"/>
+  <text x="1228" y="190" class="label">39–40</text>
+  <text x="1228" y="220" class="label">Sign-off</text>
+  <text x="1228" y="258" class="body">Long soak</text>
+  <text x="1228" y="282" class="body">Local/LAN matrix</text>
+  <text x="1228" y="306" class="body">Freeze limits</text>
+  <text x="1228" y="330" class="body">Candidate report</text>
+
+  <path d="M635 285H645" class="arrow"/><path d="M820 285H830" class="arrow"/><path d="M1005 285H1015" class="arrow"/><path d="M1190 285H1200" class="arrow"/>
+
+  <text x="55" y="470" class="section">Player journey that must be proven</text>
+  <rect x="55" y="495" width="1300" height="82" rx="14" class="gate"/>
+  <text x="82" y="528" class="gateText">launch → login → loading → move/focus → attack → ammo/reload → Civilian/battle result → Interact/Trade</text>
+  <text x="82" y="554" class="gateText">→ earn/spend → die/recover → save → late join or reconnect → restore a usable HUD and authoritative state</text>
+
+  <text x="55" y="630" class="section">Release classification guard</text>
+  <rect x="55" y="655" width="385" height="135" rx="14" class="wave2"/>
+  <text x="80" y="690" class="label">Local/LAN Playable Candidate</text>
+  <text x="80" y="720" class="body">PASS after the full packaged journey,</text>
+  <text x="80" y="744" class="body">visual QA, operations, and soak gates pass.</text>
+  <text x="80" y="772" class="good">Can be shared as a candidate build.</text>
+
+  <path d="M440 722H510" class="dash"/>
+  <text x="452" y="700" class="small">separate external gate</text>
+
+  <rect x="530" y="655" width="410" height="135" rx="14" class="wave3"/>
+  <text x="555" y="690" class="label">Public authenticated multiplayer</text>
+  <text x="555" y="720" class="body">Requires provider/App ID, Shipping config,</text>
+  <text x="555" y="744" class="body">two real stable identities, and packaged</text>
+  <text x="555" y="768" class="body">listen/dedicated remote-client matrices.</text>
+
+  <rect x="970" y="655" width="385" height="135" rx="14" class="before"/>
+  <text x="995" y="690" class="label">Explicit anti-goals</text>
+  <text x="995" y="720" class="body">No hot-swap, durability, full crime system,</text>
+  <text x="995" y="744" class="body">rich schedules, unmeasured crowd rewrite,</text>
+  <text x="995" y="768" class="body">cloud orchestration, or duplicate fixtures.</text>
+
+  <text x="55" y="850" class="subtitle">Evidence chain: revision → build → content manifest → tests → package hash → logs → screenshots → gate decision</text>
+</svg>

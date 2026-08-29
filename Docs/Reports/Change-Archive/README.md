@@ -81,3 +81,5 @@ The date-only `daily-change-reference.svg` files are source maps for the grouped
 - [2026-08-20 – Civilian AI and ground placement](2026-08-20-civilian-ai-grounding.md)
 - [2026-08-21 – Archive completeness audit](2026-08-21-archive-completeness-audit.md)
 - [2026-08-21 – Role/Battle issue dispositions](2026-08-21-role-battle-issue-dispositions.md)
+- [2026-08-29 – Playable Candidate roadmap](2026-08-29-playable-candidate-roadmap.md)
+- [2026-08-29 – Playable Candidate deep review](2026-08-29-playable-candidate-deep-review.md)
