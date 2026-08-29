@@ -5,6 +5,7 @@
 #include "Async/Async.h"
 #include "Async/TaskGraphInterfaces.h"
 #include "Dom/JsonObject.h"
+#include "HAL/PlatformMisc.h"
 #include "HAL/PlatformTime.h"
 #include "HAL/PlatformProcess.h"
 #include "IPAddress.h"
@@ -25,6 +26,24 @@ DEFINE_LOG_CATEGORY_STATIC(LogGameServerClient, Log, All);
 
 namespace GameServerClientInternal
 {
+	static FString JsonEscape(const FString& Value)
+	{
+		FString Escaped = Value;
+		Escaped.ReplaceInline(TEXT("\\"), TEXT("\\\\"));
+		Escaped.ReplaceInline(TEXT("\""), TEXT("\\\""));
+		Escaped.ReplaceInline(TEXT("\r"), TEXT("\\r"));
+		Escaped.ReplaceInline(TEXT("\n"), TEXT("\\n"));
+		Escaped.ReplaceInline(TEXT("\t"), TEXT("\\t"));
+		return Escaped;
+	}
+
+	static FString GetGsmAuthToken()
+	{
+		FString Token = FPlatformMisc::GetEnvironmentVariable(TEXT("AURA_GSM_AUTH_TOKEN"));
+		Token.TrimStartAndEndInline();
+		return Token;
+	}
+
 	static FString SocketErrorToString(ISocketSubsystem* SS)
 	{
 		if (!SS)
@@ -267,14 +286,16 @@ void UGameServerClient::RequestServer(
 		ClientEngineRoot.ReplaceInline(TEXT("\\"), TEXT("/"));
 		const uint32 ClientNetworkChangelist = FNetworkVersion::GetNetworkCompatibleChangelist();
 		const uint32 ClientNetworkVersion = FNetworkVersion::GetLocalNetworkVersion();
+		const FString GsmAuthToken = JsonEscape(GetGsmAuthToken());
 
 		const FString RequestJson = FString::Printf(
-			TEXT("{\"action\":\"request_server\",\"levelId\":\"%s\",\"clientExecutable\":\"%s\",\"clientEngineRoot\":\"%s\",\"clientNetworkChangelist\":%u,\"clientNetworkVersion\":%u}\n"),
+			TEXT("{\"action\":\"request_server\",\"levelId\":\"%s\",\"clientExecutable\":\"%s\",\"clientEngineRoot\":\"%s\",\"clientNetworkChangelist\":%u,\"clientNetworkVersion\":%u,\"authToken\":\"%s\"}\n"),
 			*SafeLevelId,
 			*ClientExecutable,
 			*ClientEngineRoot,
 			ClientNetworkChangelist,
-			ClientNetworkVersion);
+			ClientNetworkVersion,
+			*GsmAuthToken);
 
 		const TArray<uint8> RequestBytes = StringToUtf8(RequestJson);
 

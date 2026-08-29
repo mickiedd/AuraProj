@@ -50,6 +50,7 @@
 #include "AI/BTService_FindNearestHostile.h"
 #include "Battle/AuraBattleZoneConfig.h"
 #include "Dom/JsonObject.h"
+#include "HAL/PlatformMisc.h"
 #include "IPAddress.h"
 #include "Misc/FileHelper.h"
 #include "Misc/CommandLine.h"
@@ -60,6 +61,38 @@
 #include "Serialization/JsonSerializer.h"
 #include "SocketSubsystem.h"
 #include "Sockets.h"
+
+namespace AuraGameModeBaseInternal
+{
+	static FString JsonEscape(const FString& Value)
+	{
+		FString Escaped = Value;
+		Escaped.ReplaceInline(TEXT("\\"), TEXT("\\\\"));
+		Escaped.ReplaceInline(TEXT("\""), TEXT("\\\""));
+		Escaped.ReplaceInline(TEXT("\r"), TEXT("\\r"));
+		Escaped.ReplaceInline(TEXT("\n"), TEXT("\\n"));
+		Escaped.ReplaceInline(TEXT("\t"), TEXT("\\t"));
+		return Escaped;
+	}
+
+	static FString GetGsmServerAuthToken()
+	{
+		FString Token = FPlatformMisc::GetEnvironmentVariable(TEXT("AURA_GSM_SERVER_AUTH_TOKEN"));
+		if (Token.IsEmpty())
+		{
+			Token = FPlatformMisc::GetEnvironmentVariable(TEXT("AURA_GSM_AUTH_TOKEN"));
+		}
+		Token.TrimStartAndEndInline();
+		return Token;
+	}
+
+	static FString GetGsmReadyNonce()
+	{
+		FString Nonce = FPlatformMisc::GetEnvironmentVariable(TEXT("AURA_GSM_SERVER_READY_NONCE"));
+		Nonce.TrimStartAndEndInline();
+		return Nonce;
+	}
+}
 
 void AAuraGameModeBase::SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex)
 {
@@ -1904,6 +1937,15 @@ bool AAuraGameModeBase::TryBuildDedicatedServerReadyContext(FString& OutLevelId,
 		}
 	}
 
+	FString EnvironmentGSAddress = FPlatformMisc::GetEnvironmentVariable(TEXT("AURA_GSM_ADDRESS"));
+	EnvironmentGSAddress.TrimStartAndEndInline();
+	if (!EnvironmentGSAddress.IsEmpty() &&
+		!EnvironmentGSAddress.Equals(TEXT("0.0.0.0"), ESearchCase::IgnoreCase) &&
+		!EnvironmentGSAddress.Equals(TEXT("::"), ESearchCase::IgnoreCase))
+	{
+		OutGameServerAddress = EnvironmentGSAddress;
+	}
+
 	UE_LOG(LogAura, Display,
 		TEXT("[GSM-Ready] Built context levelId=%s map=%s serverPort=%d gsm=%s:%d"),
 		*OutLevelId,
@@ -1964,9 +2006,11 @@ bool AAuraGameModeBase::SendDedicatedServerReadyToGameServer(const FString& Game
 	}
 
 	const FString Payload = FString::Printf(
-		TEXT("{\"action\":\"server_ready\",\"levelId\":\"%s\",\"port\":%d}\n"),
-		*LevelId,
-		ServerPort);
+		TEXT("{\"action\":\"server_ready\",\"levelId\":\"%s\",\"port\":%d,\"serverAuthToken\":\"%s\",\"readyNonce\":\"%s\"}\n"),
+		*AuraGameModeBaseInternal::JsonEscape(LevelId),
+		ServerPort,
+		*AuraGameModeBaseInternal::JsonEscape(AuraGameModeBaseInternal::GetGsmServerAuthToken()),
+		*AuraGameModeBaseInternal::JsonEscape(AuraGameModeBaseInternal::GetGsmReadyNonce()));
 
 	FTCHARToUTF8 PayloadUtf8(*Payload);
 	int32 BytesSent = 0;

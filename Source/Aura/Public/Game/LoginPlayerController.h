@@ -68,7 +68,8 @@ protected:
 	/**
 	 * Hostname or IP of the Game Server Manager.
 	 * Defaults to the same address as ServerAddress; can be overridden in
-	 * ServerConnection.json via "gameServerAddress".
+	 * ServerConnection.json via "gameServerAddress" or at runtime with
+	 * AURA_GSM_ADDRESS for a LAN/public manager endpoint.
 	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Login|Game Server Manager")
 	FString GameServerAddress = TEXT("127.0.0.1");

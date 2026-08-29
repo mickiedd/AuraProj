@@ -6,28 +6,42 @@ Manages dedicated Unreal Engine server processes and routes clients
 to the correct instance via TCP.
 
 Protocol (newline-delimited JSON over TCP):
-  Client -> Server: {"action": "request_server", "levelId": "<id>"}
+  Client -> Server: {"action": "request_server", "levelId": "<id>", "authToken": "<token>"}
+  Dedicated server -> Server: {"action": "server_ready", "levelId": "<id>", "port": <port>, "serverAuthToken": "<token>", "readyNonce": "<nonce>"}
   Server -> Client: {"status": "ready", "host": "<host>", "port": <port>}
                or: {"status": "error", "message": "<reason>"}
 
 Usage:
   python GameServerManager.py [--host 127.0.0.1] [--port 9000]
                                [--public-host 127.0.0.1]
+                               [--auth-token <token>] [--server-auth-token <token>]
+                               [--allowed-client <ip-or-cidr>]
                                [--server-exe /path/to/AuraServer]
                                [--persistence-provider NULL]
                                [--startup-grace 12]
+
+Managed server processes also receive a per-launch readiness nonce through
+AURA_GSM_SERVER_READY_NONCE; it is never logged and must be echoed only by that
+process. Non-loopback binds require AURA_GSM_AUTH_TOKEN, AURA_GSM_SERVER_AUTH_TOKEN (or
+the request token as a shared token), and at least one AURA_GSM_ALLOWED_CLIENTS
+entry. AURA_GSM_ADDRESS is the client/server connect endpoint when it differs
+from the bind address. Tokens are read from the environment, inherited by
+managed servers, and never logged.
 """
 
 import argparse
 import asyncio
+import hmac
+import ipaddress
 import json
 import logging
 import os
+import secrets
 import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence, Union
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -50,6 +64,10 @@ GSM_LOG_DIR = PROJECT_DIR / "Saved" / "Logs" / "GameServerManager"
 
 # Maximum bytes accepted in a single client request line (prevents abuse).
 MAX_REQUEST_BYTES = 4096
+AUTH_TOKEN_ENV = "AURA_GSM_AUTH_TOKEN"
+SERVER_AUTH_TOKEN_ENV = "AURA_GSM_SERVER_AUTH_TOKEN"
+ALLOWED_CLIENTS_ENV = "AURA_GSM_ALLOWED_CLIENTS"
+READY_NONCE_ENV = "AURA_GSM_SERVER_READY_NONCE"
 EDITOR_EXECUTABLE_NAMES = frozenset(
     {
         "unrealeditor.exe",
@@ -80,6 +98,38 @@ def editor_executable_name(client_executable: str) -> str:
         return name
     return "UnrealEditor.exe"
 
+
+def is_loopback_host(host: str) -> bool:
+    """Return whether a bind address is explicitly loopback-only."""
+    normalized = str(host or "").strip().lower()
+    if normalized == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(normalized).is_loopback
+    except ValueError:
+        # Hostnames are not treated as loopback unless they are the explicit
+        # localhost name; an unresolved/ambiguous name must opt into policy.
+        return False
+
+
+def parse_allowed_clients(values: Optional[Sequence[str]]) -> List[Union[ipaddress.IPv4Network, ipaddress.IPv6Network]]:
+    """Parse individual IPs or CIDR networks used by the control plane."""
+    networks: List[Union[ipaddress.IPv4Network, ipaddress.IPv6Network]] = []
+    for raw_value in values or []:
+        for raw_item in str(raw_value).split(","):
+            item = raw_item.strip()
+            if not item:
+                continue
+            try:
+                if "/" in item:
+                    networks.append(ipaddress.ip_network(item, strict=False))
+                else:
+                    address = ipaddress.ip_address(item)
+                    networks.append(ipaddress.ip_network(f"{address}/{address.max_prefixlen}"))
+            except ValueError as exc:
+                raise ValueError(f"Invalid allowed client address '{item}'") from exc
+    return networks
+
 # ---------------------------------------------------------------------------
 # Level / server entry
 # ---------------------------------------------------------------------------
@@ -106,6 +156,7 @@ class DedicatedServerEntry:
 
         self._process: Optional[subprocess.Popen] = None
         self._server_exe: Optional[Path] = None
+        self.ready_nonce: Optional[str] = None
         # asyncio.Lock serialises start requests for this level.
         self._start_lock: Optional[asyncio.Lock] = None
 
@@ -201,16 +252,22 @@ class DedicatedServerEntry:
         logger.info("DS '%s' log file: %s", self.level_id, log_file)
         try:
             popen_kwargs = {}
+            ready_nonce = secrets.token_urlsafe(32)
+            child_environment = os.environ.copy()
+            child_environment[READY_NONCE_ENV] = ready_nonce
+            popen_kwargs["env"] = child_environment
             if os.name == "nt":
                 # Ensure Unreal's -log output is visible in its own console window.
                 popen_kwargs["creationflags"] = subprocess.CREATE_NEW_CONSOLE
 
             self._process = subprocess.Popen(args, **popen_kwargs)
             self._server_exe = server_exe.resolve()
+            self.ready_nonce = ready_nonce
         except Exception as exc:
             logger.error("Failed to launch DS '%s': %s", self.level_id, exc)
             self._process = None
             self._server_exe = None
+            self.ready_nonce = None
             return False
 
         logger.info(
@@ -253,6 +310,7 @@ class DedicatedServerEntry:
                 logger.info("DS '%s' killed (PID=%d)", self.level_id, self._process.pid)
         self._process = None
         self._server_exe = None
+        self.ready_nonce = None
 
 
 # ---------------------------------------------------------------------------
@@ -268,6 +326,9 @@ class GameServerManager:
         server_exe_override: Optional[str],
         startup_grace: float,
         persistence_provider_override: Optional[str] = None,
+        auth_token: Optional[str] = None,
+        server_auth_token: Optional[str] = None,
+        allowed_clients: Optional[Sequence[str]] = None,
     ):
         self.listen_host = listen_host
         self.listen_port = listen_port
@@ -275,12 +336,85 @@ class GameServerManager:
         self.server_exe_override = server_exe_override
         self.startup_grace = startup_grace
         self.persistence_provider_override = str(persistence_provider_override or "").strip()
+        self.auth_token = str(
+            auth_token if auth_token is not None else os.environ.get(AUTH_TOKEN_ENV, "")
+        ).strip()
+        self.server_auth_token = str(
+            server_auth_token
+            if server_auth_token is not None
+            else os.environ.get(SERVER_AUTH_TOKEN_ENV, "")
+        ).strip() or self.auth_token
+        configured_clients = (
+            allowed_clients
+            if allowed_clients is not None
+            else [os.environ.get(ALLOWED_CLIENTS_ENV, "")]
+        )
+        self.allowed_clients = parse_allowed_clients(configured_clients)
 
         self.levels: Dict[str, DedicatedServerEntry] = {}
         self.server_exe: Optional[Path] = None
         self.request_counter = 0
         self.ready_servers: Dict[str, dict] = {}
         self.ready_events: Dict[str, asyncio.Event] = {}
+
+    def control_plane_policy_error(self) -> Optional[str]:
+        """Return the startup policy violation, if this bind is unsafe."""
+        if is_loopback_host(self.listen_host):
+            return None
+        if not self.auth_token:
+            return (
+                f"non-loopback GSM bind '{self.listen_host}' requires "
+                f"{AUTH_TOKEN_ENV}"
+            )
+        if not self.server_auth_token:
+            return (
+                f"non-loopback GSM bind '{self.listen_host}' requires "
+                f"{SERVER_AUTH_TOKEN_ENV} (or {AUTH_TOKEN_ENV})"
+            )
+        if not self.allowed_clients:
+            return (
+                f"non-loopback GSM bind '{self.listen_host}' requires a non-empty "
+                f"{ALLOWED_CLIENTS_ENV} allowlist or --allowed-client"
+            )
+        return None
+
+    @staticmethod
+    def _peer_ip(peer_host: object) -> Optional[Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]:
+        try:
+            address = ipaddress.ip_address(str(peer_host))
+        except ValueError:
+            return None
+        return getattr(address, "ipv4_mapped", None) or address
+
+    def _peer_is_allowed(self, peer_host: object) -> bool:
+        address = self._peer_ip(peer_host)
+        if address is None:
+            return False
+        # A managed server may connect through loopback even when the manager
+        # itself is also bound to a LAN address. Authentication is still
+        # required for non-loopback binds, so this does not create an open path.
+        if address.is_loopback:
+            return True
+        if self.allowed_clients:
+            return any(address in network for network in self.allowed_clients)
+        return False
+
+    def _expected_token(self, action: str) -> str:
+        return self.server_auth_token if action == "server_ready" else self.auth_token
+
+    def is_authorized_request(self, request: object, peer_host: object) -> bool:
+        """Authenticate a control-plane message before any state mutation."""
+        if not isinstance(request, dict) or not self._peer_is_allowed(peer_host):
+            return False
+
+        action = str(request.get("action", "")).strip()
+        expected = self._expected_token(action)
+        if not expected:
+            return is_loopback_host(self.listen_host)
+
+        supplied_field = "serverAuthToken" if action == "server_ready" else "authToken"
+        supplied = request.get(supplied_field)
+        return isinstance(supplied, str) and hmac.compare_digest(supplied, expected)
 
     def _next_request_id(self) -> str:
         self.request_counter += 1
@@ -764,7 +898,22 @@ class GameServerManager:
                 await self._send_error(writer, request_id, "Request must be UTF-8 JSON")
                 return
 
+            if not isinstance(request, dict):
+                await self._send_error(writer, request_id, "Request must be a JSON object")
+                return
+
             action = request.get("action", "")
+            if action in {"server_ready", "request_server"} and not self.is_authorized_request(request, peer[0]):
+                logger.warning(
+                    "[%s] Unauthorized GSM action=%s from %s:%s",
+                    request_id,
+                    action,
+                    peer[0],
+                    peer[1],
+                )
+                await self._send_error(writer, request_id, "Unauthorized control-plane request")
+                return
+
             if action == "server_ready":
                 level_id = str(request.get("levelId", "")).strip()
                 if not level_id:
@@ -782,10 +931,50 @@ class GameServerManager:
                     await self._send_error(writer, request_id, "Invalid port")
                     return
 
-                announced_host = str(request.get("host", "")).strip() or str(peer[0])
+                entry = self.levels.get(level_id)
+                if entry is None:
+                    logger.warning(
+                        "[%s] server_ready unknown levelId=%s from %s:%s",
+                        request_id,
+                        level_id,
+                        peer[0],
+                        peer[1],
+                    )
+                    await self._send_error(writer, request_id, f"Unknown levelId: {level_id!r}")
+                    return
+                if ready_port != entry.port:
+                    logger.warning(
+                        "[%s] server_ready port mismatch levelId=%s announced=%d configured=%d",
+                        request_id,
+                        level_id,
+                        ready_port,
+                        entry.port,
+                    )
+                    await self._send_error(writer, request_id, "Port does not match configured level")
+                    return
+
+                expected_nonce = entry.ready_nonce
+                supplied_nonce = request.get("readyNonce")
+                if (
+                    not expected_nonce
+                    or not isinstance(supplied_nonce, str)
+                    or not hmac.compare_digest(supplied_nonce, expected_nonce)
+                ):
+                    logger.warning(
+                        "[%s] server_ready readiness nonce mismatch levelId=%s",
+                        request_id,
+                        level_id,
+                    )
+                    await self._send_error(writer, request_id, "Invalid readiness nonce")
+                    return
+
+                # The endpoint returned to clients is manager configuration, not
+                # caller-controlled input. This prevents a malformed readiness
+                # message from redirecting clients.
+                announced_host = self.public_host
                 self.ready_servers[level_id] = {
                     "host": announced_host,
-                    "port": ready_port,
+                    "port": entry.port,
                     "timestamp": time.time(),
                 }
                 self._get_ready_event(level_id).set()
@@ -986,6 +1175,11 @@ class GameServerManager:
 
     # ------------------------------------------------------------------
     async def run(self) -> None:
+        policy_error = self.control_plane_policy_error()
+        if policy_error:
+            logger.error("Game Server Manager refusing unsafe control-plane configuration: %s", policy_error)
+            return
+
         self.load_levels()
         # Always prefer packaged dedicated server binaries (e.g. AuraServer.exe)
         # rather than launching via UnrealEditor + .uproject.
@@ -1053,16 +1247,43 @@ def main() -> None:
         "--startup-grace", type=float, default=12.0,
         help="Seconds to wait after launching a DS before declaring it ready (default: 12)"
     )
+    parser.add_argument(
+        "--auth-token",
+        default=os.environ.get(AUTH_TOKEN_ENV, ""),
+        help=f"Control-plane request token (default: {AUTH_TOKEN_ENV}; never logged)",
+    )
+    parser.add_argument(
+        "--server-auth-token",
+        default=os.environ.get(SERVER_AUTH_TOKEN_ENV, ""),
+        help=f"Dedicated-server readiness token (default: {SERVER_AUTH_TOKEN_ENV} or {AUTH_TOKEN_ENV}; never logged)",
+    )
+    parser.add_argument(
+        "--allowed-client",
+        action="append",
+        default=None,
+        help=f"Allowed client IP/CIDR; repeatable (default: {ALLOWED_CLIENTS_ENV})",
+    )
     args = parser.parse_args()
 
-    manager = GameServerManager(
-        listen_host=args.host,
-        listen_port=args.port,
-        public_host=args.public_host,
-        server_exe_override=args.server_exe,
-        startup_grace=args.startup_grace,
-        persistence_provider_override=args.persistence_provider,
-    )
+    try:
+        manager = GameServerManager(
+            listen_host=args.host,
+            listen_port=args.port,
+            public_host=args.public_host,
+            server_exe_override=args.server_exe,
+            startup_grace=args.startup_grace,
+            persistence_provider_override=args.persistence_provider,
+            auth_token=args.auth_token,
+            server_auth_token=args.server_auth_token,
+            allowed_clients=args.allowed_client,
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
+
+    policy_error = manager.control_plane_policy_error()
+    if policy_error:
+        logger.error("Game Server Manager refusing unsafe control-plane configuration: %s", policy_error)
+        raise SystemExit(2)
 
     try:
         asyncio.run(manager.run())

@@ -10,7 +10,7 @@ Close the security/error surface introduced by ammo, tutorial, reward, restock, 
 ## Work
 
 - Review every new and existing player-owned RPC, console path, Blueprint callable, and subsystem entry point.
-- Include the Game Server Manager control plane: it is loopback-only by default, and any LAN/public binding requires an explicit allowlist plus a configured authentication token. An unauthenticated `request_server` must never start or expose a server.
+- Include the Game Server Manager control plane: it is loopback-only by default. Any LAN/public binding is refused at startup unless request authentication, dedicated-server readiness authentication, and an explicit IP/CIDR allowlist are configured. `request_server` carries `authToken`; `server_ready` carries `serverAuthToken` plus the per-launch `readyNonce` inherited by the managed server; all are authenticated before any launch, endpoint publication, or readiness mutation. `AURA_GSM_ADDRESS` is the explicit client/server connect endpoint when it differs from the bind host; a bind wildcard is never used as a connect target. An unauthenticated request must never start or expose a server, and stale/foreign readiness must not satisfy a new launch.
 - Enforce ownership, server-side target/range/state checks, rate limits, stale-reference handling, replay protection, and bounded rejection results.
 - Ensure failed mutations emit no partial wallet, inventory, ammo, stock, save, or UI commit.
 - Keep development fixtures and test hooks compile-gated and absent from Shipping.
@@ -37,7 +37,7 @@ Every client-originated action is documented as `endpoint → owner check → se
 5. Return stable rejection codes for forged target/member IDs, ammo/reload, rapid-fire, invalid role, merchant replay, stale nonce, non-owner, disconnect, and stale-save cases.
 6. Add compile/runtime guards so development probes, fixture identities, grants, cheats, and test commands are absent from Shipping.
 7. Run negative cases under both topologies, with delayed/reordered input and one valid request after each rejection to prove recovery.
-8. Scan packaged Shipping outputs and archive the ownership table before Day 34. Verify that the Shipping/server-operations configuration cannot expose an unauthenticated GSM control socket.
+8. Scan packaged Shipping outputs and archive the ownership table before Day 34. Verify that the Shipping/server-operations configuration cannot expose an unauthenticated GSM control socket, that non-loopback startup fails closed without the token/allowlist policy, and that readiness cannot publish a caller-supplied endpoint, mismatched level port, or stale readiness nonce.
 
 ### Named automation and commands
 

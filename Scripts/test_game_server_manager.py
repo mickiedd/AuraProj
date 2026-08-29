@@ -24,6 +24,9 @@ def main() -> int:
     source = MANAGER.read_text(encoding="utf-8")
     tree = ast.parse(source)
     level_config = json.loads((ROOT / "Content/Config/LevelConfig.json").read_text(encoding="utf-8"))
+    connection_config = json.loads((ROOT / "Content/Config/ServerConnection.json").read_text(encoding="utf-8"))
+    client_source = (ROOT / "Source/Aura/Private/Game/GameServerClient.cpp").read_text(encoding="utf-8")
+    game_mode_source = (ROOT / "Source/Aura/Private/Game/AuraGameModeBase.cpp").read_text(encoding="utf-8")
     startup_map = ROOT / "Content/Maps/StartupMap.umap"
     staged_server = ROOT / "Saved/StagedBuilds/WindowsServer/AuraServer.exe"
 
@@ -42,6 +45,22 @@ def main() -> int:
     assert "--persistence-provider" in source
     assert "AURA_PERSISTENCE_PROVIDER" in source
     assert '"serverMode"' in source
+    assert "AURA_GSM_AUTH_TOKEN" in source
+    assert "AURA_GSM_SERVER_AUTH_TOKEN" in source
+    assert "AURA_GSM_ALLOWED_CLIENTS" in source
+    assert "AURA_GSM_SERVER_READY_NONCE" in source
+    assert "is_authorized_request" in source
+    assert "Port does not match configured level" in source
+    assert "announced_host = self.public_host" in source
+    assert connection_config["gameServerAddress"] == "127.0.0.1"
+    assert r'\"authToken\"' in client_source
+    assert "AURA_GSM_AUTH_TOKEN" in client_source
+    assert r'\"serverAuthToken\"' in game_mode_source
+    assert r'\"readyNonce\"' in game_mode_source
+    assert "AURA_GSM_SERVER_READY_NONCE" in game_mode_source
+    login_source = (ROOT / "Source/Aura/Private/Game/LoginPlayerController.cpp").read_text(encoding="utf-8")
+    assert "AURA_GSM_ADDRESS" in login_source
+    assert "AURA_GSM_ADDRESS" in game_mode_source
 
     manager = load_manager_module()
     assert manager.editor_executable_name("UnrealEditor-Win64-DebugGame.exe") == (
@@ -51,6 +70,120 @@ def main() -> int:
     assert manager.is_editor_executable(Path("UnrealEditor-Win64-DebugGame.exe"))
     assert manager.is_editor_executable(Path("UnrealEditor-Cmd.exe"))
     assert not manager.is_editor_executable(Path("AuraServer.exe"))
+
+    loopback = manager.GameServerManager(
+        "127.0.0.1", 0, "127.0.0.1", None, 0,
+        auth_token="client-secret",
+        server_auth_token="server-secret",
+    )
+    assert loopback.control_plane_policy_error() is None
+    assert loopback.is_authorized_request(
+        {"action": "request_server", "authToken": "client-secret"}, "127.0.0.1"
+    )
+    assert not loopback.is_authorized_request(
+        {"action": "request_server", "authToken": "wrong"}, "127.0.0.1"
+    )
+    assert loopback.is_authorized_request(
+        {"action": "server_ready", "serverAuthToken": "server-secret"}, "127.0.0.1"
+    )
+    assert not loopback.is_authorized_request(
+        {"action": "server_ready", "authToken": "client-secret"}, "127.0.0.1"
+    )
+
+    unsafe_lan = manager.GameServerManager("0.0.0.0", 0, "192.168.1.6", None, 0)
+    assert unsafe_lan.control_plane_policy_error() is not None
+    safe_lan = manager.GameServerManager(
+        "0.0.0.0", 0, "192.168.1.6", None, 0,
+        auth_token="client-secret",
+        allowed_clients=["192.168.1.0/24"],
+    )
+    assert safe_lan.control_plane_policy_error() is None
+    assert safe_lan.is_authorized_request(
+        {"action": "request_server", "authToken": "client-secret"}, "192.168.1.42"
+    )
+    assert safe_lan.is_authorized_request(
+        {"action": "request_server", "authToken": "client-secret"}, "127.0.0.1"
+    )
+    assert not safe_lan.is_authorized_request(
+        {"action": "request_server", "authToken": "client-secret"}, "10.0.0.42"
+    )
+    assert manager.parse_allowed_clients(["127.0.0.1", "192.168.1.0/24"])
+
+    # Readiness must be authenticated and must match the configured level port;
+    # an accepted message can only publish the manager-owned public endpoint.
+    level_cfg = level_config["levels"][0]
+    ready_manager = manager.GameServerManager(
+        "127.0.0.1", 0, "127.0.0.1", None, 0,
+        auth_token="client-secret",
+        server_auth_token="server-secret",
+    )
+    ready_entry = manager.DedicatedServerEntry(level_cfg, 0)
+    ready_entry.ready_nonce = "launch-nonce"
+    ready_manager.levels[ready_entry.level_id] = ready_entry
+
+    class FakeReader:
+        def __init__(self, payload):
+            self.payload = payload
+
+        async def readline(self):
+            return self.payload
+
+    class FakeWriter:
+        def __init__(self):
+            self.responses = []
+            self.closed = False
+
+        def get_extra_info(self, name, default=None):
+            return ("127.0.0.1", 42000) if name == "peername" else ("127.0.0.1", 0)
+
+        def write(self, payload):
+            self.responses.append(payload)
+
+        async def drain(self):
+            return None
+
+        def close(self):
+            self.closed = True
+
+        async def wait_closed(self):
+            return None
+
+    valid_writer = FakeWriter()
+    asyncio.run(
+        ready_manager.handle_client(
+            FakeReader(
+                (json.dumps({
+                    "action": "server_ready",
+                    "levelId": ready_entry.level_id,
+                    "port": ready_entry.port,
+                    "serverAuthToken": "server-secret",
+                    "readyNonce": "launch-nonce",
+                    "host": "203.0.113.9",
+                }) + "\n").encode("utf-8")
+            ),
+            valid_writer,
+        )
+    )
+    assert ready_manager.ready_servers[ready_entry.level_id]["host"] == "127.0.0.1"
+    assert ready_manager.ready_servers[ready_entry.level_id]["port"] == ready_entry.port
+
+    invalid_writer = FakeWriter()
+    asyncio.run(
+        ready_manager.handle_client(
+            FakeReader(
+                (json.dumps({
+                    "action": "server_ready",
+                    "levelId": ready_entry.level_id,
+                    "port": ready_entry.port + 1,
+                    "serverAuthToken": "server-secret",
+                    "readyNonce": "launch-nonce",
+                }) + "\n").encode("utf-8")
+            ),
+            invalid_writer,
+        )
+    )
+    assert ready_manager.ready_servers[ready_entry.level_id]["port"] == ready_entry.port
+    assert any(b"Port does not match configured level" in response for response in invalid_writer.responses)
 
     captured = {}
 

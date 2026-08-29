@@ -5,6 +5,7 @@
 #include "Game/ServerTravelComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
+#include "HAL/PlatformMisc.h"
 #include "HAL/PlatformProcess.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -774,6 +775,18 @@ bool ALoginPlayerController::LoadServerConnectionFromJson()
 			UE_LOG(LogTemp, Warning, TEXT("[LoginConn] gameServerPort %d out of range in %s; using default %d"),
 				ParsedGSPort, *LoadedFromPath, GameServerPort);
 		}
+	}
+
+	// The launcher may target a LAN/public manager without rewriting the
+	// checked-in local-development config. Never use a bind wildcard as a
+	// connect address; AURA_GSM_ADDRESS is a client/server endpoint override.
+	FString EnvironmentGSAddress = FPlatformMisc::GetEnvironmentVariable(TEXT("AURA_GSM_ADDRESS"));
+	EnvironmentGSAddress.TrimStartAndEndInline();
+	if (!EnvironmentGSAddress.IsEmpty() &&
+		!EnvironmentGSAddress.Equals(TEXT("0.0.0.0"), ESearchCase::IgnoreCase) &&
+		!EnvironmentGSAddress.Equals(TEXT("::"), ESearchCase::IgnoreCase))
+	{
+		GameServerAddress = EnvironmentGSAddress;
 	}
 
 	UE_LOG(LogTemp, Display,

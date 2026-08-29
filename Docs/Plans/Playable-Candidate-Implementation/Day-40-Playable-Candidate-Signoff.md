@@ -18,7 +18,7 @@ Publish an honest, immutable decision for the local/LAN Playable Candidate and t
 
 ### Files to inspect or modify
 
-- **Inputs:** Day 21 scope manifest, Day 22 baseline, Day 34 content manifest, Day 35 diagnostics packet, Day 36 visual rows, Day 37 operations run, Day 38 `candidate-draft.json`, and Day 39 soak result.
+- **Inputs:** Day 21 scope manifest, Day 22 baseline, Day 34 content manifest, Day 35 diagnostics packet, Day 36 visual rows, Day 37 operations run, and the exact Day 38/39 files supplied as `-DraftPath` and `-SoakPath`. Finalization must bind both records to the same `RunId`, scope hash, final source revision, and content/package hashes.
 - **Sign-off owners:** `Docs/Reports/Playable-Candidate-Deep-Review-2026-08-29.md`, the candidate report writer, `Docs/README.md`, the master plan, and the plan/reference indexes.
 - **New output:** immutable `Saved/Reports/PlayableCandidate/<SourceRevision>/<RunId>/candidate.json`, `Docs/Reports/Playable-Candidate-<SourceRevision>-<RunId>.md`, known-limitations list, and final gate table.
 
@@ -28,13 +28,13 @@ The local matrix has four rows: Aura/listen, BungeeMan/listen, Aura/dedicated, a
 
 ### Detailed steps
 
-1. Verify the Day 21 scope-manifest hash has not changed. The source revision is expected to advance during Days 22–39; record the exact final Git commit and require it to match the packaged binaries and all final evidence. A scope change creates a new candidate run.
+1. Verify the Day 21 scope-manifest hash has not changed. The source revision may advance during Days 22–39, but the exact final Git commit must match the packaged binaries, Day 38 draft, Day 39 soak result, and all final evidence. If source or package state changed after either input was produced, rerun the affected stage; never combine records by selecting a latest artifact. A scope change creates a new candidate run.
 2. Check Day 22–39 prerequisites for complete artifacts, matching revision/package/manifest hashes, nonzero propagation, and no unresolved blocking warnings.
 3. Run the complete four-lane local matrix from a clean packaged candidate and compare observed state to the frozen player/world contract. A filtered run cannot satisfy sign-off.
 4. Verify privacy, authority, atomic economy, persistence/recovery, late join/reconnect, visual, server-operations, and bounded-soak results.
 5. Run the external provider/account matrix only when the preflight is `READY`; record authenticated identities as redacted stable references and keep its result on a separate row.
 6. Classify every known limitation as non-blocking only if it does not affect the supported journey, security, privacy, persistence, duplication, content, packaging, or support gates.
-7. Invoke `RunPlayableCandidate.ps1 -Stage Candidate -Finalize` after all checks pass. It publishes `candidate.json` exactly once alongside the human report; update indexes and record the exact local/external disposition. The Day 38 draft is retained as an input and is never rewritten as the final artifact.
+7. Invoke `RunPlayableCandidate.ps1 -Stage Candidate -Finalize -Revision <final-source-revision> -RunId <run-id> -DraftPath <exact-draft-path> -SoakPath <exact-soak-path>` after all checks pass. It verifies the explicit input bindings, publishes `candidate.json` exactly once alongside the human report, updates indexes, and records the exact local/external disposition. The Day 38 draft and Day 39 result are retained as inputs and are never rewritten as the final artifact.
 8. Do not declare the milestone complete or start work that depends on public authenticated multiplayer until the local PASS and external BLOCKED/PASS states are explicit. An external `BLOCKED` state does not invalidate a local PASS or block local-only follow-on work.
 
 ### Completion thresholds

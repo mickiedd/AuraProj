@@ -3,6 +3,10 @@ setlocal
 
 REM Aura Game Server Manager - Windows launcher
 REM Usage: StartGameServer.bat [--public-host <ip>] [--port <port>] [--server-exe <path>] [--persistence-provider <name>]
+REM Local default: GSM loopback at 127.0.0.1; ServerConnection.json keeps the advertised serverAddress separate.
+REM LAN/public: set AURA_GSM_HOST, AURA_GSM_ADDRESS (client/server manager endpoint), AURA_PUBLIC_HOST,
+REM             AURA_GSM_AUTH_TOKEN, AURA_GSM_SERVER_AUTH_TOKEN (optional shared value),
+REM             and AURA_GSM_ALLOWED_CLIENTS to one or more client IPs/CIDRs before starting.
 
 set SCRIPT_DIR=%~dp0
 set PYTHON_SCRIPT=%SCRIPT_DIR%Scripts\GameServerManager.py

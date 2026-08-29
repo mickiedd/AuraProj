@@ -1,5 +1,6 @@
 {
   "serverAddress": "192.168.1.6",
+  "gameServerAddress": "127.0.0.1",
   "gameServerPort": 9000,
   "worldPersistenceId": "AuraCampaignMain"
 }

@@ -27,9 +27,11 @@ The public authenticated release remains a separate external gate. Missing produ
 
 1. Every day now names an owner surface, a required artifact, and a machine-readable gate. Planned paths are labeled as planned outputs rather than being presented as existing files.
 2. Day 22, 34, 35, 36, and 37 now have failure thresholds and propagation rules. A warning, partial aggregate, stale log, or missing artifact cannot become a PASS.
-3. Diagnostics now use a stable redacted/hash identity representation and provider type; raw external identifiers and secrets are prohibited.
+3. Diagnostics now use a run-scoped HMAC identity representation and provider type. The key is supplied only to cooperating processes and is never logged or written to the candidate artifact, preventing cross-run linkage; raw external identifiers and secrets are prohibited.
 4. Day 39 is narrowed from an ambiguous “multi-hour” requirement to four bounded lanes, ten complete cycles per lane, a 45-minute lane cap, 120-second stage timeout, and 30-second cleanup timeout. An overnight soak is optional evidence rather than a hidden blocker.
 5. Historical map/runtime-fixture drift is handled as a manifest decision. The plan continues to use `/Game/Maps/StartupMap` and runtime-created AI/markers instead of creating duplicate assets.
+6. The GSM plan is now executable: loopback remains the default; non-loopback startup fails closed without request/readiness tokens and an IP/CIDR allowlist; readiness cannot spoof a level port or client endpoint.
+7. Candidate finalization now consumes explicit draft/soak paths and verifies `RunId`, scope hash, source revision, and package/content hashes. It never selects a “latest” artifact, and changed evidence must be regenerated.
 
 ### P2 — deliberately kept small
 
@@ -106,7 +108,7 @@ The day files retain their original dependency declarations where the dependency
 
 The authoritative chain is:
 
-`revision → build configuration → canonical content manifest → test result → package hash → logs → visual evidence → candidate disposition`
+`revision → build configuration → canonical content manifest → test result → package hash → explicit draft/soak inputs → logs → visual evidence → candidate disposition`
 
 The following are candidate-blocking failures: a missing or mismatched manifest, any nonzero required stage, an owned child that survives teardown, a timeout without an actionable stage result, false-success aggregation, shared persistence namespace, cross-owner private-state exposure, duplicate/partial economy or grant mutation, malformed staged content, or an unexplained P0/P1 warning. An external provisioning failure is classified only on the external row.
 
@@ -119,4 +121,3 @@ Do not add role hot-swapping, automatic fire, weapon durability/attachments, a g
 - [Master implementation plan](../Plans/Playable-Candidate-Implementation-Plan-2026-08-29.md)
 - [Day 21–40 implementation contracts](../Plans/Playable-Candidate-Implementation/)
 - [Readiness review](Playable-Candidate-Readiness-Review-2026-08-29.md)
-
