@@ -71,6 +71,8 @@ private:
 	void SendRoleStateToWebUI();
 	void SendBattleStateToWebUI();
 	void SendEconomyStateToWebUI();
+	void SendFirearmStateToWebUI();
+	void SendTutorialStateToWebUI();
 	void SendMerchantToWebUI(UAuraMerchantComponent* MerchantComponent, bool bVisible);
 	void SendMerchantClearedToWebUI();
 	bool ParseWebPayload(const FString& PayloadJson, TSharedPtr<FJsonObject>& OutPayload) const;
@@ -137,6 +139,8 @@ private:
 	void HandlePurchaseResultForWebUI(const FGuid& SessionNonce, uint64 RequestId, EAuraCommerceResultCode ResultCode,
 		uint32 WalletRevision, uint32 InventoryRevision, uint32 StockRevision);
 	void HandleRoleChangedForWebUI(FName NewRole);
+	void HandleFirearmStateForWebUI(const struct FAuraFirearmState& State);
+	void HandleTutorialProgressForWebUI(uint32 CompletionMask);
 
 	FString BuildAbilityIconDataUri(const UTexture2D* Icon);
 	FString BuildManualSkillIconDataUri(const FGameplayTag& AbilityTag);

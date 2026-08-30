@@ -22,6 +22,7 @@
 #include "Misc/Paths.h"
 #include "Player/AuraPlayerState.h"
 #include "OnlineSubsystemTypes.h"
+#include "UObject/UObjectGlobals.h"
 
 namespace AuraPersistenceSubsystemPrivate
 {
@@ -48,6 +49,9 @@ namespace AuraPersistenceSubsystemPrivate
 			*Save.Role.ToString(), Save.PlayerLevel, Save.XP, Save.SpellPoints, Save.AttributePoints,
 			Save.bFirstTimeLoadIn ? 1 : 0, Save.Strength, Save.Intelligence, Save.Resilience, Save.Vigor,
 			Save.SavedAbilities.Num());
+		Text += FString::Printf(TEXT("%d|%d|%d|%d|%d|%.3f|%u|%u|%s|"), Save.bFirearmApplicable ? 1 : 0,
+			Save.FirearmMagazineCapacity, Save.FirearmMagazineRounds, Save.FirearmReserveCapacity, Save.FirearmReserveRounds,
+			Save.FirearmReloadDuration, Save.FirearmAmmoRevision, Save.TutorialCompletionMask, *Save.RecoveryState.ToString());
 		for (const FAuraInventorySlot& Slot : Save.InventorySlots)
 		{
 			Text += FString::Printf(TEXT("%s:%lld;"), *Slot.ItemId.ToString(), Slot.Quantity);
@@ -73,8 +77,9 @@ namespace AuraPersistenceSubsystemPrivate
 		}
 		for (const FAuraPersistedMerchantStock& Merchant : Save.Merchants)
 		{
-			Text += FString::Printf(TEXT("%s:%s:%u:%d;"), *Merchant.PopulationMemberId.ToString(),
-				*Merchant.MerchantDefinitionId.ToString(), Merchant.StockRevision, Merchant.bAvailable ? 1 : 0);
+			Text += FString::Printf(TEXT("%s:%s:%u:%d:%s:%s;"), *Merchant.PopulationMemberId.ToString(),
+				*Merchant.MerchantDefinitionId.ToString(), Merchant.StockRevision, Merchant.bAvailable ? 1 : 0,
+				*Merchant.LastRestockAtUtc.ToIso8601(), *Merchant.LastObservedAtUtc.ToIso8601());
 			for (const FAuraPersistedOfferStock& Offer : Merchant.Offers)
 			{
 				Text += FString::Printf(TEXT("%s:%lld;"), *Offer.OfferId.ToString(), Offer.CurrentStock);
@@ -374,10 +379,18 @@ bool UAuraPersistenceSubsystem::SavePlayerProfile(AAuraPlayerState* PlayerState,
 	const bool bHadManifestRecord = !ProfileKey.IsEmpty() && PlayerManifestRecords.Contains(ProfileKey);
 	const FAuraPersistenceManifestRecord PreviousManifestRecord = bHadManifestRecord
 		? PlayerManifestRecords.FindRef(ProfileKey) : FAuraPersistenceManifestRecord();
+	const TObjectPtr<UAuraPlayerSaveGame> PreviousPreparedProfile = !ProfileKey.IsEmpty()
+		? PreparedProfiles.FindRef(ProfileKey) : nullptr;
 	if (!SavePlayerProfileRecord(PlayerState, AbilitySystemComponent, AttributeSet, Error)) return false;
 	if (WriteManifest(PlayerGenerations.FindRef(ProfileKey), Error)) return true;
+	const FString UncommittedSlot = PlayerManifestRecords.FindRef(ProfileKey).RecordSlot;
+	if (!UncommittedSlot.IsEmpty() && (!bHadManifestRecord || UncommittedSlot != PreviousManifestRecord.RecordSlot))
+	{
+		UGameplayStatics::DeleteGameInSlot(UncommittedSlot, 0);
+	}
 	if (bHadGeneration) PlayerGenerations.Add(ProfileKey, PreviousGeneration); else PlayerGenerations.Remove(ProfileKey);
 	if (bHadManifestRecord) PlayerManifestRecords.Add(ProfileKey, PreviousManifestRecord); else PlayerManifestRecords.Remove(ProfileKey);
+	if (PreviousPreparedProfile) PreparedProfiles.Add(ProfileKey, PreviousPreparedProfile); else PreparedProfiles.Remove(ProfileKey);
 	return false;
 }
 
@@ -389,7 +402,8 @@ bool UAuraPersistenceSubsystem::SavePlayerProfileRecord(AAuraPlayerState* Player
 	const FString* Key = ActiveProfileKeys.Find(PlayerState);
 	const TObjectPtr<UAuraPlayerSaveGame>* Existing = Key ? PreparedProfiles.Find(*Key) : nullptr;
 	if (!Key || !Existing || !Existing->Get()) { Error = TEXT("No prepared authenticated profile is bound to PlayerState."); return false; }
-	UAuraPlayerSaveGame* Save = Existing->Get();
+	UAuraPlayerSaveGame* Save = DuplicateObject<UAuraPlayerSaveGame>(Existing->Get(), this);
+	if (!Save) { Error = TEXT("Could not create an isolated player save record."); return false; }
 	Save->SaveSchemaVersion = UAuraPlayerSaveGame::CurrentSchemaVersion;
 	Save->RecordGeneration = FMath::Max(PlayerGenerations.FindRef(*Key), Save->RecordGeneration) + 1;
 	Save->IdentityProvider = PlayerState->GetProfileIdentity().ProviderName;
@@ -401,6 +415,16 @@ bool UAuraPersistenceSubsystem::SavePlayerProfileRecord(AAuraPlayerState* Player
 	Save->AttributePoints = PlayerState->GetAttributePoints();
 	Save->bFirstTimeLoadIn = false;
 	Save->bMigrationCompleted = true;
+	const FAuraFirearmState& Firearm = PlayerState->GetFirearmState();
+	Save->bFirearmApplicable = Firearm.bApplicable;
+	Save->FirearmMagazineCapacity = Firearm.MagazineCapacity;
+	Save->FirearmMagazineRounds = Firearm.MagazineRounds;
+	Save->FirearmReserveCapacity = Firearm.ReserveCapacity;
+	Save->FirearmReserveRounds = Firearm.ReserveRounds;
+	Save->FirearmReloadDuration = Firearm.ReloadDuration;
+	Save->FirearmAmmoRevision = Firearm.AmmoRevision;
+	Save->TutorialCompletionMask = PlayerState->GetTutorialCompletionMask();
+	Save->RecoveryState = PlayerState->GetRecoveryState();
 	if (AttributeSet)
 	{
 		Save->Strength = UAuraAttributeSet::GetStrengthAttribute().GetNumericValue(AttributeSet);
@@ -419,7 +443,11 @@ bool UAuraPersistenceSubsystem::SavePlayerProfileRecord(AAuraPlayerState* Player
 	const FString Slot = FString::Printf(TEXT("%s_G%d"), *PlayerState->GetProfileIdentity().BuildSlotName(WorldPersistenceId), Save->RecordGeneration);
 	if (!UGameplayStatics::SaveGameToSlot(Save, Slot, 0)) { Error = TEXT("Player record write failed."); return false; }
 	UAuraPlayerSaveGame* Verify = Cast<UAuraPlayerSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
-	if (!Verify || !ValidatePlayerSaveRecord(*Verify, PlayerState->GetProfileIdentity(), ExpectedProviderName, Error)) return false;
+	if (!Verify || !ValidatePlayerSaveRecord(*Verify, PlayerState->GetProfileIdentity(), ExpectedProviderName, Error))
+	{
+		UGameplayStatics::DeleteGameInSlot(Slot, 0);
+		return false;
+	}
 	PlayerGenerations.Add(*Key, Save->RecordGeneration);
 	FAuraPersistenceManifestRecord ManifestRecord;
 	ManifestRecord.RecordSlot = Slot;
@@ -427,6 +455,7 @@ bool UAuraPersistenceSubsystem::SavePlayerProfileRecord(AAuraPlayerState* Player
 	ManifestRecord.Checksum = ComputePlayerSaveChecksum(*Save);
 	ManifestRecord.IdentityKey = *Key;
 	PlayerManifestRecords.Add(*Key, ManifestRecord);
+	PreparedProfiles.Add(*Key, Verify);
 	return true;
 }
 
@@ -438,17 +467,24 @@ bool UAuraPersistenceSubsystem::SavePlayerAndWorldCheckpoint(AAuraPlayerState* P
 	OutError.Reset();
 	const TMap<FString, int32> PreviousPlayerGenerations = PlayerGenerations;
 	const TMap<FString, FAuraPersistenceManifestRecord> PreviousPlayerManifestRecords = PlayerManifestRecords;
+	const TMap<FString, TObjectPtr<UAuraPlayerSaveGame>> PreviousPreparedProfiles = PreparedProfiles;
 	const FAuraPersistenceManifestRecord PreviousWorldManifestRecord = WorldManifestRecord;
 	const int32 PreviousWorldGeneration = WorldGeneration;
 	const TObjectPtr<UAuraWorldSaveGame> PreviousLoadedWorldSave = LoadedWorldSave;
 	const TArray<FAuraPopulationSlotSnapshot> PreviousLoadedPopulationSnapshot = LoadedPopulationSnapshot;
 	const TArray<FAuraPersistedMerchantStock> PreviousLoadedMerchantStocks = LoadedMerchantStocks;
+	FString UncommittedPlayerSlot;
+	FString UncommittedWorldSlot;
 	const auto RestoreCheckpointState = [this, &PreviousPlayerGenerations, &PreviousPlayerManifestRecords,
+		&PreviousPreparedProfiles, &UncommittedPlayerSlot, &UncommittedWorldSlot,
 		&PreviousWorldManifestRecord, PreviousWorldGeneration, PreviousLoadedWorldSave,
 		&PreviousLoadedPopulationSnapshot, &PreviousLoadedMerchantStocks]()
 	{
+		if (!UncommittedPlayerSlot.IsEmpty()) UGameplayStatics::DeleteGameInSlot(UncommittedPlayerSlot, 0);
+		if (!UncommittedWorldSlot.IsEmpty()) UGameplayStatics::DeleteGameInSlot(UncommittedWorldSlot, 0);
 		PlayerGenerations = PreviousPlayerGenerations;
 		PlayerManifestRecords = PreviousPlayerManifestRecords;
+		PreparedProfiles = PreviousPreparedProfiles;
 		WorldManifestRecord = PreviousWorldManifestRecord;
 		WorldGeneration = PreviousWorldGeneration;
 		LoadedWorldSave = PreviousLoadedWorldSave;
@@ -457,10 +493,20 @@ bool UAuraPersistenceSubsystem::SavePlayerAndWorldCheckpoint(AAuraPlayerState* P
 	};
 
 	if (!SavePlayerProfileRecord(PlayerState, AbilitySystemComponent, AttributeSet, OutError)) return false;
+	if (const FString* ProfileKey = PlayerState ? ActiveProfileKeys.Find(PlayerState) : nullptr)
+	{
+		const FAuraPersistenceManifestRecord& NewRecord = PlayerManifestRecords.FindRef(*ProfileKey);
+		const FAuraPersistenceManifestRecord* PreviousRecord = PreviousPlayerManifestRecords.Find(*ProfileKey);
+		if (!PreviousRecord || NewRecord.RecordSlot != PreviousRecord->RecordSlot) UncommittedPlayerSlot = NewRecord.RecordSlot;
+	}
 	if (!SaveWorldStateRecord(PopulationSnapshot, MerchantStocks, OutError))
 	{
 		RestoreCheckpointState();
 		return false;
+	}
+	if (WorldManifestRecord.RecordSlot != PreviousWorldManifestRecord.RecordSlot)
+	{
+		UncommittedWorldSlot = WorldManifestRecord.RecordSlot;
 	}
 	if (!WriteManifest(WorldGeneration, OutError))
 	{
@@ -637,6 +683,10 @@ bool UAuraPersistenceSubsystem::SaveWorldState(const FAuraPopulationDebugSnapsho
 	const TArray<FAuraPersistedMerchantStock> PreviousLoadedMerchantStocks = LoadedMerchantStocks;
 	if (!SaveWorldStateRecord(PopulationSnapshot, MerchantStocks, OutError)) return false;
 	if (WriteManifest(WorldGeneration, OutError)) return true;
+	if (!WorldManifestRecord.RecordSlot.IsEmpty() && WorldManifestRecord.RecordSlot != PreviousWorldManifestRecord.RecordSlot)
+	{
+		UGameplayStatics::DeleteGameInSlot(WorldManifestRecord.RecordSlot, 0);
+	}
 	WorldManifestRecord = PreviousWorldManifestRecord;
 	WorldGeneration = PreviousWorldGeneration;
 	LoadedWorldSave = PreviousLoadedWorldSave;
@@ -755,6 +805,19 @@ bool UAuraPersistenceSubsystem::ValidatePlayerSaveRecord(const UAuraPlayerSaveGa
 		|| Actual.ToCanonicalString() != ExpectedIdentity.ToCanonicalString()) return false;
 	if (Save.Role.IsNone()) { OutError = TEXT("Player save has no committed role."); return false; }
 	if (Save.CurrencyBalance < 0 || Save.CurrencyId.IsNone()) { OutError = TEXT("Player save has invalid currency state."); return false; }
+	if (Save.FirearmMagazineCapacity < 0 || Save.FirearmReserveCapacity < 0 || Save.FirearmMagazineRounds < 0
+		|| Save.FirearmReserveRounds < 0 || Save.FirearmMagazineRounds > Save.FirearmMagazineCapacity
+		|| Save.FirearmReserveRounds > Save.FirearmReserveCapacity || Save.FirearmReloadDuration < 0.f)
+	{
+		OutError = TEXT("Player save contains invalid completed firearm state.");
+		return false;
+	}
+	if (!Save.RecoveryState.IsNone() && Save.RecoveryState != TEXT("Alive") && Save.RecoveryState != TEXT("Dying")
+		&& Save.RecoveryState != TEXT("Dead") && Save.RecoveryState != TEXT("Recovering"))
+	{
+		OutError = TEXT("Player save contains an invalid recovery state.");
+		return false;
+	}
 	for (const FAuraInventorySlot& Slot : Save.InventorySlots)
 	{
 		if (Slot.ItemId.IsNone() || Slot.Quantity <= 0) { OutError = TEXT("Player save contains an invalid inventory slot."); return false; }
@@ -816,6 +879,12 @@ bool UAuraPersistenceSubsystem::ValidateWorldSaveRecord(const UAuraWorldSaveGame
 	}
 	for (const FAuraPersistedMerchantStock& Merchant : Save.Merchants)
 	{
+		if (Merchant.LastRestockAtUtc.GetTicks() > 0 && Merchant.LastObservedAtUtc.GetTicks() > 0
+			&& Merchant.LastObservedAtUtc < Merchant.LastRestockAtUtc)
+		{
+			OutError = TEXT("World save contains a merchant clock that moved backward.");
+			return false;
+		}
 		for (const FAuraPersistedOfferStock& Offer : Merchant.Offers)
 		{
 			if (Offer.OfferId.IsNone() || Offer.CurrentStock < -1) { OutError = TEXT("World save contains invalid merchant stock."); return false; }

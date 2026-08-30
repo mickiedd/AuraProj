@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "scopeRevision": "playable-candidate-v1",
+  "generatedFrom": "Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json",
+  "canonicalMap": "/Game/Maps/StartupMap",
+  "mapAlias": "RoleBattleCivilianTest",
+  "requiredRoles": ["Aura", "BungeeMan"],
+  "requiredTopologies": ["listen", "dedicated"],
+  "requiredFiles": [
+    "Content/Config/RoleConfig.json",
+    "Content/Config/LevelConfig.json",
+    "Content/Config/ServerConnection.json",
+    "Content/Config/PopulationSpawnTable.json",
+    "Content/Config/BattleZones.json",
+    "Content/Config/CivilianWorkProfiles.json",
+    "Content/Config/ItemDefinitions.json",
+    "Content/Config/MerchantDefinitions.json",
+    "Content/Config/EconomyConfig.json",
+    "Content/Config/RewardDefinitions.json",
+    "Content/Config/PlayableCandidateTutorial.json",
+    "Content/AbilityDefinitions/FireGun.xml",
+    "Plugins/AuraWebUI/Content/WebUI/hud-left-top.html",
+    "Plugins/AuraWebUI/Content/WebUI/hud-right-top.html",
+    "Plugins/AuraWebUI/Content/WebUI/hud-bottom.html"
+  ],
+  "discovery": {
+    "configGlob": "Content/Config/*.json",
+    "abilityDefinitionGlob": "Content/AbilityDefinitions/*.xml",
+    "webUiGlob": "Plugins/AuraWebUI/Content/WebUI/*.html",
+    "runtimeGenerated": ["Civilian actors", "population markers", "merchant actor bindings"]
+  },
+  "firearm": {
+    "abilityDefinition": "Content/AbilityDefinitions/FireGun.xml",
+    "role": "BungeeMan",
+    "fireMode": "SemiAuto",
+    "oneAcceptedShotPerPress": true,
+    "heldInputRepeats": false,
+    "minimumShotInterval": 0.2,
+    "magazineCapacity": 12,
+    "reserveCapacity": 48,
+    "shotConsumption": 1,
+    "reloadDuration": 1.25,
+    "auraState": "NotApplicable"
+  },
+  "reward": {
+    "rewardId": "RoleBattle.CivilianLethalReward",
+    "outcome": "CivilianLethal",
+    "currencyId": "gold",
+    "amount": 25,
+    "offerId": "market_health_potion",
+    "itemId": "health_potion",
+    "merchantId": "marketmerchant"
+  },
+  "restock": {
+    "merchantId": "marketmerchant",
+    "offerId": "market_health_potion",
+    "initialStock": 20,
+    "intervalSeconds": 600,
+    "clock": "server-utc-max-observed",
+    "startupCatchUpIntervals": 1,
+    "offlineProgression": false
+  },
+  "diagnostics": {
+    "identity": "run-scoped-HMAC",
+    "providerType": "logged",
+    "rawIdentity": "never-logged",
+    "secrets": "never-logged"
+  }
+}

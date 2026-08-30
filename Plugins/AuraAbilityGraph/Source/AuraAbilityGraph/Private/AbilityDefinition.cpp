@@ -196,6 +196,43 @@ bool UAuraAbilityDefinition::LoadFromXML(const FString& XMLContent)
         return false;
     }
 
+    // The firearm contract is optional for non-firearm abilities, but once a
+    // definition declares it all values must be present and bounded. Keeping
+    // this in the XML loader makes malformed FireGun data fail before a role
+    // registry can publish it.
+    FireMode = Root->GetAttribute(TEXT("fireMode"));
+    bHasFirearmContract = !FireMode.IsEmpty()
+        || !Root->GetAttribute(TEXT("minimumShotInterval")).IsEmpty()
+        || !Root->GetAttribute(TEXT("magazineCapacity")).IsEmpty()
+        || !Root->GetAttribute(TEXT("reserveCapacity")).IsEmpty()
+        || !Root->GetAttribute(TEXT("shotConsumption")).IsEmpty()
+        || !Root->GetAttribute(TEXT("reloadDuration")).IsEmpty();
+    if (bHasFirearmContract)
+    {
+        auto ParseInt = [Root](const TCHAR* Name, int32& Out) -> bool
+        {
+            const FString Value = Root->GetAttribute(Name);
+            return !Value.IsEmpty() && LexTryParseString(Out, *Value);
+        };
+        auto ParseFloat = [Root](const TCHAR* Name, float& Out) -> bool
+        {
+            const FString Value = Root->GetAttribute(Name);
+            return !Value.IsEmpty() && LexTryParseString(Out, *Value) && FMath::IsFinite(Out);
+        };
+        if (FireMode != TEXT("SemiAuto")
+            || !ParseFloat(TEXT("minimumShotInterval"), MinimumShotInterval)
+            || !ParseInt(TEXT("magazineCapacity"), MagazineCapacity)
+            || !ParseInt(TEXT("reserveCapacity"), ReserveCapacity)
+            || !ParseInt(TEXT("shotConsumption"), ShotConsumption)
+            || !ParseFloat(TEXT("reloadDuration"), ReloadDuration)
+            || MinimumShotInterval <= 0.f || MagazineCapacity <= 0 || ReserveCapacity <= 0
+            || ShotConsumption != 1 || ReloadDuration < 0.f)
+        {
+            UE_LOG(LogAuraAbilityGraph, Error, TEXT("[AuraAbilityGraph] Ability '%s' has an invalid firearm contract"), *AbilityName.ToString());
+            return false;
+        }
+    }
+
     CooldownTag = FGameplayTag();
     CooldownDuration.Value = 0.f;
     ManaCost = 0.f;

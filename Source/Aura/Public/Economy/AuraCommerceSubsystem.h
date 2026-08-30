@@ -51,10 +51,13 @@ public:
 	bool GetOfferStock(FName PopulationMemberId, FName OfferId, int64& OutStock, uint32& OutRevision) const;
 	void CapturePersistenceState(TArray<FAuraPersistedMerchantStock>& OutStocks) const;
 	bool RestorePersistenceState(const TArray<FAuraPersistedMerchantStock>& Stocks, FString& OutError);
+	/** Applies one server-UTC restock evaluation using a monotonic observed clock. */
+	bool EvaluateRestock(FName PopulationMemberId, const FDateTime& ObservedUtc, bool bStartup, FName& OutResultCode);
 #if !UE_BUILD_SHIPPING
 	/** Development-only fixture control; never compiled into Shipping. */
 	bool SetOfferStockForDevelopmentProbe(FName PopulationMemberId, FName OfferId, int64 NewStock);
 	bool SetMerchantAvailabilityForDevelopmentProbe(FName PopulationMemberId, bool bInAvailable);
+	bool EvaluateRestockForDevelopmentProbe(FName PopulationMemberId, const FDateTime& ObservedUtc, bool bStartup);
 #endif
 
 private:
@@ -72,6 +75,9 @@ private:
 		TMap<FName, FRuntimeOffer> Offers;
 		uint32 StockRevision = 1;
 		bool bAvailable = false;
+		FDateTime LastRestockAtUtc;
+		FDateTime LastObservedAtUtc;
+		FTimerHandle RestockTimerHandle;
 	};
 
 	struct FSession

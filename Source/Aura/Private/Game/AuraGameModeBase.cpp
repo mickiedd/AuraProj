@@ -357,6 +357,7 @@ void AAuraGameModeBase::HandleAuthoritativeDeath(const FAuraDeathEvent& Event)
 {
 	if (!HasAuthority()) return;
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	GrantCivilianLethalReward(Event);
 	if (Event.DeathPolicyTag.MatchesTagExact(GameplayTags.Death_PlayerRespawn))
 	{
 		if (AAuraCharacter* Player = Cast<AAuraCharacter>(Event.VictimActor))
@@ -378,6 +379,30 @@ void AAuraGameModeBase::HandleAuthoritativeDeath(const FAuraDeathEvent& Event)
 			PopulationManager->HandlePopulationDeath(Event);
 		}
 	}
+}
+
+void AAuraGameModeBase::GrantCivilianLethalReward(const FAuraDeathEvent& Event)
+{
+	if (!Event.IsValid() || !Cast<AAuraCivilian>(Event.VictimActor)) return;
+	AAuraCharacter* Player = Cast<AAuraCharacter>(Event.SourceActor);
+	if (!Player && Event.SourceActor)
+	{
+		if (APawn* SourcePawn = Cast<APawn>(Event.SourceActor)) Player = Cast<AAuraCharacter>(SourcePawn);
+	}
+	AAuraPlayerState* PlayerState = Player ? Player->GetPlayerState<AAuraPlayerState>() : nullptr;
+	UAuraCurrencyComponent* Currency = PlayerState ? PlayerState->GetCurrencyComponent() : nullptr;
+	if (!PlayerState || PlayerState->GetRole() != TEXT("Aura") && PlayerState->GetRole() != TEXT("BungeeMan")) return;
+	const FString OutcomeCorrelationId = FString::Printf(TEXT("%d:%d"), Event.VictimActor->GetUniqueID(), Event.DeathSequence);
+	if (GrantedCivilianOutcomeIds.Contains(OutcomeCorrelationId)) return;
+	if (!Currency || !Currency->CanCreditCurrency(TEXT("gold"), 25))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Reward][Server] Civilian lethal reward rejected for invalid wallet state."));
+		return;
+	}
+	if (Currency->CommitCreditCurrency(TEXT("gold"), 25, false) != EAuraEconomyMutationResult::Success) return;
+	GrantedCivilianOutcomeIds.Add(OutcomeCorrelationId);
+	Currency->PublishChanged();
+	UE_LOG(LogAura, Display, TEXT("[Reward][Server] CivilianLethal granted amount=25 outcome=server-issued-at-most-once."));
 }
 
 void AAuraGameModeBase::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
@@ -791,6 +816,11 @@ void AAuraGameModeBase::PlayerDied(ACharacter* DeadCharacter, float RespawnDelay
 	}
 
 	const float Delay = FMath::Max(0.f, RespawnDelay);
+	if (AAuraPlayerState* PlayerState = DeadCharacter->GetPlayerState<AAuraPlayerState>())
+	{
+		PlayerState->CancelFirearmReload(TEXT("PlayerDeath"));
+		PlayerState->SetRecoveryState(TEXT("Dead"));
+	}
 	FTimerHandle RespawnTimerHandle;
 	UE_LOG(LogAura, Log, TEXT("[Respawn][Server] PlayerDied received: Character=%s Controller=%s Delay=%.2fs RespawnEnabled=%s"),
 		*GetNameSafe(DeadCharacter), *GetNameSafe(DeadCharacter->GetController()), Delay, bEnablePlayerRespawn ? TEXT("true") : TEXT("false"));
@@ -846,6 +876,7 @@ void AAuraGameModeBase::RespawnPlayer(AController* DeadController)
 	}
 
 	RestartPlayer(DeadController);
+	if (AAuraPlayerState* PlayerState = DeadController->GetPlayerState<AAuraPlayerState>()) PlayerState->SetRecoveryState(TEXT("Alive"));
 }
 
 void AAuraGameModeBase::ReloadMapAfterPlayerDeath()

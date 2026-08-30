@@ -64,6 +64,8 @@ public:
 	void WebAbilityInputTagPressed(const FGameplayTag& InputTag);
 	void WebAbilityInputTagHeld(const FGameplayTag& InputTag);
 	void WebAbilityInputTagReleased(const FGameplayTag& InputTag);
+	/** Requests a server-owned firearm reload; the owning client receives the result code. */
+	void RequestFirearmReload();
 	/** Input entry point used by the in-game Web UI interaction prompt. */
 	void WebInteractPressed();
 
@@ -140,6 +142,12 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetSprinting(bool bShouldSprint);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRequestFirearmReload();
+
+	UFUNCTION(Client, Reliable)
+	void ClientFirearmCommandResult(FName ResultCode);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRequestBroomDismount(AAuraBroomVehicle* BroomToDismount);
@@ -262,6 +270,11 @@ private:
 	const UAuraAttributeSet* GetAuraAS() const;
 	bool IsAbilityInputReady() const;
 	bool HasEquippedAbilityForInputTag(const FGameplayTag& InputTag);
+	void ExpireFirearmInputLeaseIfNeeded();
+
+	bool bFirearmInputLeaseActive = false;
+	double FirearmInputLeaseExpiresAt = 0.0;
+	static constexpr double FirearmInputLeaseSeconds = 2.0;
 
 	
 	FVector CachedDestination = FVector::ZeroVector;

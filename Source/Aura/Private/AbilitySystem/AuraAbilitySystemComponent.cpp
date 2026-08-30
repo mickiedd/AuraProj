@@ -656,6 +656,16 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 			UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagPressed: Found ability Ability=%s Status=%s IsActive=%s"),
 				*AbilityTag.ToString(), *StatusTag.ToString(), AbilitySpec.IsActive() ? TEXT("true") : TEXT("false"));
 			AbilitySpecInputPressed(AbilitySpec);
+			// FireGun is explicitly semi-auto: one activation is issued on the
+			// press edge and held callbacks never retry it. Ammo and cadence remain
+			// server-owned at the projectile boundary.
+			if (AbilityTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"), false))
+				&& !AbilitySpec.IsActive())
+			{
+				const bool bActivated = TryActivateAbility(AbilitySpec.Handle);
+				UE_LOG(LogAura, Log, TEXT("[ASC][Firearm] Press-edge activation ability=%s accepted=%d."),
+					*AbilityTag.ToString(), bActivated ? 1 : 0);
+			}
 			if (AbilitySpec.IsActive())
 			{
 				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
@@ -680,6 +690,11 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 		{
 			const FGameplayTag AbilityTag = GetAbilityTagFromSpec(AbilitySpec);
 			AbilitySpecInputPressed(AbilitySpec);
+			if (AbilityTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"), false)))
+			{
+				// Do not turn browser/native held notifications into automatic fire.
+				continue;
+			}
 			if (!AbilitySpec.IsActive())
 			{
 				const float NextAllowed = NextAllowedInputTagTryTime.FindRef(InputTag);

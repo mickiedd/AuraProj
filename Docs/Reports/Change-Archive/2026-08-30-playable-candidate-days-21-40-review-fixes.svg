@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">Playable Candidate Days 21–40 review fixes</title>
+  <desc id="desc">Before and after diagram showing corrected persistence, projectile, reload, tutorial, diagnostics, soak, and finalization behavior with validation evidence.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101827"/><stop offset="1" stop-color="#17233a"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#8fb8ff"/></marker>
+    <style>
+      .title{font:700 34px 'Segoe UI',sans-serif;fill:#f5f8ff}.sub{font:500 17px 'Segoe UI',sans-serif;fill:#b9c8e6}
+      .head{font:700 22px 'Segoe UI',sans-serif;fill:#f5f8ff}.body{font:15px 'Segoe UI',sans-serif;fill:#dbe6fb}
+      .small{font:13px 'Segoe UI',sans-serif;fill:#bccbe8}.bad{fill:#3b1f29;stroke:#e2768b;stroke-width:2}.good{fill:#17352f;stroke:#69d5ad;stroke-width:2}
+      .gate{fill:#172c4d;stroke:#78aef7;stroke-width:2}.evidence{fill:#202c43;stroke:#94a8cb;stroke-width:2}.arrow{stroke:#8fb8ff;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bg)"/>
+  <text x="60" y="62" class="title">Days 21–40: review fixes and honest completion gates</text>
+  <text x="60" y="92" class="sub">Confirmed defects were repaired; local contracts no longer impersonate packaged multiplayer evidence.</text>
+
+  <text x="60" y="142" class="head">Before: state could be lost or evidence overstated</text>
+  <rect x="60" y="165" rx="14" ry="14" width="295" height="165" class="bad"/>
+  <text x="82" y="198" class="body"><tspan font-weight="700">Persistent spawn</tspan><tspan x="82" dy="28">restore ammo → assign role</tspan><tspan x="82" dy="24">role initialization resets ammo</tspan><tspan x="82" dy="24">manifest failure mutates live save</tspan></text>
+  <rect x="385" y="165" rx="14" ry="14" width="295" height="165" class="bad"/>
+  <text x="407" y="198" class="body"><tspan font-weight="700">Combat commit</tspan><tspan x="407" dy="28">consume ammo → resolve/spawn</tspan><tspan x="407" dy="24">failed spawn can cost a round</tspan><tspan x="407" dy="24">death leaves reload timer active</tspan></text>
+  <rect x="710" y="165" rx="14" ry="14" width="295" height="165" class="bad"/>
+  <text x="732" y="198" class="body"><tspan font-weight="700">Tutorial + diagnostics</tspan><tspan x="732" dy="28">mask exists without event wiring</tspan><tspan x="732" dy="24">HUD misses replicated progress</tspan><tspan x="732" dy="24">per-call random HMAC key</tspan></text>
+  <rect x="1035" y="165" rx="14" ry="14" width="305" height="165" class="bad"/>
+  <text x="1057" y="198" class="body"><tspan font-weight="700">Candidate pipeline</tspan><tspan x="1057" dy="28">filtered/local checks can PASS</tspan><tspan x="1057" dy="24">synthetic 3-cycle “soak”</tspan><tspan x="1057" dy="24">weak cross-artifact binding</tspan></text>
+
+  <path d="M700 355 L700 405" class="arrow"/>
+  <text x="728" y="387" class="sub">reviewed against runtime authority and evidence contracts</text>
+
+  <text x="60" y="445" class="head">After: authoritative ordering and fail-closed publication</text>
+  <rect x="60" y="468" rx="14" ry="14" width="295" height="190" class="good"/>
+  <text x="82" y="501" class="body"><tspan font-weight="700">Restore transaction</tspan><tspan x="82" dy="29">role defaults → persisted profile</tspan><tspan x="82" dy="24">Dead/Recovering → server recovery</tspan><tspan x="82" dy="24">copy-on-commit save record</tspan><tspan x="82" dy="24">rollback deletes orphan slots</tspan></text>
+  <rect x="385" y="468" rx="14" ry="14" width="295" height="190" class="good"/>
+  <text x="407" y="501" class="body"><tspan font-weight="700">Combat transaction</tspan><tspan x="407" dy="29">class + deferred setup + damage</tspan><tspan x="407" dy="24">authority check → consume round</tspan><tspan x="407" dy="24">finish spawn + commit event</tspan><tspan x="407" dy="24">death cancels reload first</tspan></text>
+  <rect x="710" y="468" rx="14" ry="14" width="295" height="190" class="good"/>
+  <text x="732" y="501" class="body"><tspan font-weight="700">Observable progress</tspan><tspan x="732" dy="29">server events mark six steps</tspan><tspan x="732" dy="24">owner OnRep broadcasts to HUD</tspan><tspan x="732" dy="24">run-scoped ≥32-byte HMAC key</tspan><tspan x="732" dy="24">required correlation fields</tspan></text>
+  <rect x="1035" y="468" rx="14" ry="14" width="305" height="190" class="good"/>
+  <text x="1057" y="501" class="body"><tspan font-weight="700">Evidence gates</tspan><tspan x="1057" dy="29">filtered Fast → DIAGNOSTIC</tspan><tspan x="1057" dy="24">missing package/soak → BLOCKED</tspan><tspan x="1057" dy="24">four lanes × ≥10 cycles required</tspan><tspan x="1057" dy="24">revision + hashes + clean tree bind</tspan></text>
+
+  <path d="M207 682 L207 732" class="arrow"/><path d="M532 682 L532 732" class="arrow"/><path d="M857 682 L857 732" class="arrow"/><path d="M1187 682 L1187 732" class="arrow"/>
+  <rect x="60" y="735" rx="14" ry="14" width="1280" height="112" class="evidence"/>
+  <text x="82" y="770" class="head">Validation evidence</text>
+  <text x="82" y="801" class="body">AuraEditor Win64 Development: succeeded • Python Day 21–40: 20/20 • Native Day 21–40: 20/20</text>
+  <text x="82" y="827" class="body">PowerShell parse: 6/6 • Fast Both/Both: PASS • filtered Fast: DIAGNOSTIC/exit 2 • Day 39 without package: BLOCKED/exit 2</text>
+  <text x="1000" y="770" class="small">Independent handoff: unavailable</text>
+  <text x="1000" y="794" class="small">No existing ChatGPT browser tab;</text>
+  <text x="1000" y="816" class="small">local fallback used, no data sent.</text>
+</svg>

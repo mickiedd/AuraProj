@@ -13,6 +13,45 @@ class AActor;
 class UNiagaraComponent;
 
 /**
+ * Narrow dependency-free hook from the graph runtime to a player-owned
+ * firearm ledger.  Aura implements this interface on PlayerState; the graph
+ * only asks the authority to consume one round and never owns ammo values.
+ */
+UINTERFACE(MinimalAPI, BlueprintType)
+class UAuraFirearmAuthority : public UInterface
+{
+    GENERATED_BODY()
+};
+
+class IAuraFirearmAuthority
+{
+    GENERATED_BODY()
+
+public:
+    virtual bool TryConsumeFirearmRound(FName AbilityId, AActor* AvatarActor, FName& OutResultCode) = 0;
+    virtual void NotifyFirearmShotAccepted(FName AbilityId) = 0;
+};
+
+/**
+ * Dependency-free notification that an authoritative ability action reached
+ * its commit boundary. The game can use this for server-owned progression
+ * without making the graph runtime depend on project gameplay classes.
+ */
+UINTERFACE(MinimalAPI, BlueprintType)
+class UAuraAbilityCommitAuthority : public UInterface
+{
+    GENERATED_BODY()
+};
+
+class IAuraAbilityCommitAuthority
+{
+    GENERATED_BODY()
+
+public:
+    virtual void NotifyAuthoritativeAbilityCommitted(FName AbilityId) = 0;
+};
+
+/**
  * Runtime state shared by the modular Electrocute beam nodes.
  *
  * The ability graph passes FAuraAbilityExecutionContext by value between

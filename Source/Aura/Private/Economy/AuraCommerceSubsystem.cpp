@@ -24,6 +24,7 @@
 #include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
 #include "World/AuraPopulationManager.h"
+#include "TimerManager.h"
 
 namespace AuraCommerceSubsystemPrivate
 {
@@ -56,6 +57,7 @@ void UAuraCommerceSubsystem::Deinitialize()
 {
 	for (TPair<FName, FRuntimeMerchant>& Pair : Merchants)
 	{
+		if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(Pair.Value.RestockTimerHandle);
 		if (UAuraMerchantComponent* Component = Pair.Value.Component.Get()) Component->SetAuthorityUnavailable();
 	}
 	Merchants.Reset();
@@ -75,6 +77,8 @@ void UAuraCommerceSubsystem::CapturePersistenceState(TArray<FAuraPersistedMercha
 		Saved.MerchantDefinitionId = Runtime.MerchantDefinitionId;
 		Saved.StockRevision = Runtime.StockRevision;
 		Saved.bAvailable = Runtime.bAvailable;
+		Saved.LastRestockAtUtc = Runtime.LastRestockAtUtc;
+		Saved.LastObservedAtUtc = Runtime.LastObservedAtUtc;
 		for (const TPair<FName, FRuntimeOffer>& OfferPair : Runtime.Offers)
 		{
 			FAuraPersistedOfferStock& Offer = Saved.Offers.AddDefaulted_GetRef();
@@ -104,6 +108,8 @@ bool UAuraCommerceSubsystem::RestorePersistenceState(const TArray<FAuraPersisted
 		FName PopulationMemberId = NAME_None;
 		uint32 StockRevision = 0;
 		bool bAvailable = false;
+		FDateTime LastRestockAtUtc;
+		FDateTime LastObservedAtUtc;
 		TMap<FName, int64> OfferStocks;
 	};
 	TArray<FValidatedMerchantRestore> Validated;
@@ -136,6 +142,8 @@ bool UAuraCommerceSubsystem::RestorePersistenceState(const TArray<FAuraPersisted
 		Candidate.PopulationMemberId = Saved.PopulationMemberId;
 		Candidate.StockRevision = Saved.StockRevision;
 		Candidate.bAvailable = Saved.bAvailable;
+		Candidate.LastRestockAtUtc = Saved.LastRestockAtUtc;
+		Candidate.LastObservedAtUtc = Saved.LastObservedAtUtc;
 		TSet<FName> SeenOffers;
 		FName PreviousOffer = NAME_None;
 		for (const FAuraPersistedOfferStock& SavedOffer : Saved.Offers)
@@ -179,6 +187,8 @@ bool UAuraCommerceSubsystem::RestorePersistenceState(const TArray<FAuraPersisted
 		}
 		Runtime->StockRevision = FMath::Max<uint32>(1, Candidate.StockRevision);
 		Runtime->bAvailable = Candidate.bAvailable;
+		Runtime->LastRestockAtUtc = Candidate.LastRestockAtUtc;
+		Runtime->LastObservedAtUtc = Candidate.LastObservedAtUtc;
 	}
 	for (const FValidatedMerchantRestore& Candidate : Validated)
 	{
@@ -226,6 +236,11 @@ bool UAuraCommerceSubsystem::RegisterMerchant(UAuraMerchantComponent* MerchantCo
 	Runtime.MerchantDefinitionId = MerchantDefinitionId;
 	Runtime.Component = MerchantComponent;
 	Runtime.bAvailable = true;
+	if (Runtime.LastRestockAtUtc.GetTicks() <= 0)
+	{
+		Runtime.LastRestockAtUtc = FDateTime::UtcNow();
+		Runtime.LastObservedAtUtc = Runtime.LastRestockAtUtc;
+	}
 	if (Runtime.Offers.IsEmpty())
 	{
 		for (const FName OfferId : Definition->OfferIds)
@@ -250,15 +265,78 @@ bool UAuraCommerceSubsystem::RegisterMerchant(UAuraMerchantComponent* MerchantCo
 			if (FRuntimeOffer* RuntimeOffer = Runtime.Offers.Find(SavedOffer.OfferId)) RuntimeOffer->CurrentStock = SavedOffer.CurrentStock;
 		}
 		Runtime.StockRevision = FMath::Max<uint32>(1, Pending->StockRevision);
+		Runtime.LastRestockAtUtc = Pending->LastRestockAtUtc;
+		Runtime.LastObservedAtUtc = Pending->LastObservedAtUtc;
 		// A new actor means the dormant population slot has respawned; its
 		// merchant becomes available again while retaining persisted stock.
 		Runtime.bAvailable = true;
 		PendingMerchantRestores.Remove(MemberId);
 	}
 	PublishMerchantPresentation(Runtime);
+	if (GetWorld() && !Runtime.RestockTimerHandle.IsValid())
+	{
+		FTimerDelegate RestockDelegate = FTimerDelegate::CreateWeakLambda(this, [this, MemberId]()
+		{
+			if (!Merchants.Contains(MemberId) || !GetWorld()) return;
+			FName RestockResult;
+			EvaluateRestock(MemberId, FDateTime::UtcNow(), false, RestockResult);
+		});
+		GetWorld()->GetTimerManager().SetTimer(Runtime.RestockTimerHandle, RestockDelegate, 1.0f, true);
+	}
+	FName RestockResult;
+	EvaluateRestock(MemberId, FDateTime::UtcNow(), true, RestockResult);
 	UE_LOG(LogAura, Display, TEXT("[Commerce][Merchant] Registered member=%s definition=%s offers=%d stockRevision=%u."),
 		*MemberId.ToString(), *MerchantDefinitionId.ToString(), Runtime.Offers.Num(), Runtime.StockRevision);
 	return Runtime.bAvailable;
+}
+
+bool UAuraCommerceSubsystem::EvaluateRestock(FName PopulationMemberId, const FDateTime& ObservedUtc, bool bStartup, FName& OutResultCode)
+{
+	OutResultCode = NAME_None;
+	if (!GetWorld() || GetWorld()->GetNetMode() == NM_Client) { OutResultCode = TEXT("NotAuthority"); return false; }
+	FRuntimeMerchant* Merchant = Merchants.Find(PopulationMemberId);
+	if (!Merchant) { OutResultCode = TEXT("UnknownMerchant"); return false; }
+	const FDateTime Requested = ObservedUtc.GetTicks() > 0 ? ObservedUtc : FDateTime::UtcNow();
+	const FDateTime Effective = Merchant->LastObservedAtUtc.GetTicks() > 0
+		? (Merchant->LastObservedAtUtc > Requested ? Merchant->LastObservedAtUtc : Requested) : Requested;
+	Merchant->LastObservedAtUtc = Effective;
+	if (Merchant->LastRestockAtUtc.GetTicks() <= 0)
+	{
+		Merchant->LastRestockAtUtc = Effective;
+		OutResultCode = TEXT("Initialized");
+		return true;
+	}
+	const FTimespan Interval = FTimespan::FromSeconds(600.0);
+	if (Effective - Merchant->LastRestockAtUtc < Interval)
+	{
+		OutResultCode = TEXT("NotDue");
+		return true;
+	}
+	bool bChanged = false;
+	for (TPair<FName, FRuntimeOffer>& OfferPair : Merchant->Offers)
+	{
+		FRuntimeOffer& Offer = OfferPair.Value;
+		if (Offer.Definition.StockPolicy == EAuraStockPolicy::Finite && Offer.CurrentStock < Offer.Definition.InitialStock)
+		{
+			Offer.CurrentStock = Offer.Definition.InitialStock;
+			bChanged = true;
+		}
+	}
+	// A startup evaluation is deliberately one catch-up decision; it never
+	// loops through missed wall-clock intervals and therefore cannot duplicate
+	// stock after downtime or a backward clock jump.
+	Merchant->LastRestockAtUtc = Effective;
+	if (bChanged)
+	{
+		++Merchant->StockRevision;
+		PublishMerchantPresentation(*Merchant);
+		OutResultCode = bStartup ? TEXT("StartupRestocked") : TEXT("Restocked");
+	}
+	else
+	{
+		OutResultCode = TEXT("AlreadyFull");
+	}
+	return true;
 }
 
 void UAuraCommerceSubsystem::MarkMerchantUnavailable(UAuraMerchantComponent* MerchantComponent)
@@ -518,6 +596,14 @@ bool UAuraCommerceSubsystem::ProcessPurchase(AAuraPlayerController* PlayerContro
 		return false;
 	}
 	Session->LastAcceptedRequestId = RequestId;
+	if (MerchantActor)
+	{
+		if (UAuraMerchantComponent* Component = MerchantActor->FindComponentByClass<UAuraMerchantComponent>())
+		{
+			FName RestockResult;
+			EvaluateRestock(Component->GetPopulationMemberId(), FDateTime::UtcNow(), false, RestockResult);
+		}
+	}
 	AAuraPlayerState* PlayerState = PlayerController->GetPlayerState<AAuraPlayerState>();
 	FRuntimeMerchant* Merchant = nullptr;
 	if (UAuraMerchantComponent* Component = MerchantActor ? MerchantActor->FindComponentByClass<UAuraMerchantComponent>() : nullptr)
@@ -549,6 +635,7 @@ bool UAuraCommerceSubsystem::ProcessPurchase(AAuraPlayerController* PlayerContro
 			: (GetWorld() && GetWorld()->GetNetMode() != NM_Standalone);
 		if (!bPersistenceRequired)
 		{
+			PlayerState->SetTutorialStepCompleted(4, true);
 			CacheResult(*Session, OutResult);
 			return true;
 		}
@@ -565,6 +652,7 @@ bool UAuraCommerceSubsystem::ProcessPurchase(AAuraPlayerController* PlayerContro
 				bCheckpoint ? 1 : 0, bCheckpoint ? 1 : 0, bCheckpoint ? 1 : 0, RequestId, *PersistenceError);
 			if (bCheckpoint)
 			{
+				PlayerState->SetTutorialStepCompleted(4, true);
 				CacheResult(*Session, OutResult);
 				return true;
 			}
@@ -627,5 +715,11 @@ bool UAuraCommerceSubsystem::SetMerchantAvailabilityForDevelopmentProbe(FName Po
 	++Merchant->StockRevision;
 	PublishMerchantPresentation(*Merchant);
 	return true;
+}
+
+bool UAuraCommerceSubsystem::EvaluateRestockForDevelopmentProbe(FName PopulationMemberId, const FDateTime& ObservedUtc, bool bStartup)
+{
+	FName ResultCode;
+	return EvaluateRestock(PopulationMemberId, ObservedUtc, bStartup, ResultCode);
 }
 #endif

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "scopeRevision": "playable-candidate-v1",
+  "rewards": [
+    {
+      "rewardId": "RoleBattle.CivilianLethalReward",
+      "outcome": "CivilianLethal",
+      "currencyId": "gold",
+      "amount": 25,
+      "grantPolicy": "server-authoritative-at-most-once-per-outcome-correlation-id",
+      "outcomeCorrelationId": "server-issued",
+      "purchaseOfferId": "market_health_potion",
+      "purchaseItemId": "health_potion",
+      "purchasePrice": 25,
+      "merchantId": "marketmerchant"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ability name="FireGun" abilityTag="Abilities.Gun.Fire" inputTag="InputTag.LMB" type="Abilities.Type.Offensive">
+<ability name="FireGun" abilityTag="Abilities.Gun.Fire" inputTag="InputTag.LMB" type="Abilities.Type.Offensive" fireMode="SemiAuto" minimumShotInterval="0.2" magazineCapacity="12" reserveCapacity="48" shotConsumption="1" reloadDuration="1.25">
   <cost mana="0"/>
   <cooldown tag="Cooldown.Gun.Fire" duration="0.2"/>
   <damage effectClass="" type="Damage.Physical" base="5" debuffChance="0" debuffDamage="0" debuffDuration="0" debuffFrequency="0" deathImpulseMagnitude="1000" knockbackForceMagnitude="0" knockbackChance="0"/>

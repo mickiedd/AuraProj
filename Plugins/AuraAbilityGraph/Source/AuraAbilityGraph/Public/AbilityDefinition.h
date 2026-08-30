@@ -31,6 +31,15 @@ public:
     FGameplayTag InputTag;
     FGameplayTag AbilityType;
 
+    // Firearm contract — present only on the active FireGun definition.
+    FString FireMode = TEXT("Unspecified");
+    float MinimumShotInterval = 0.f;
+    int32 MagazineCapacity = 0;
+    int32 ReserveCapacity = 0;
+    int32 ShotConsumption = 0;
+    float ReloadDuration = 0.f;
+    bool bHasFirearmContract = false;
+
     // Cost / cooldown — set from <cost> / <cooldown>
     float ManaCost = 0.f;
     FGameplayTag CooldownTag;
@@ -62,6 +71,8 @@ public:
 
     /** Parse XML content and populate all fields. Called by LoadAbilityDefinitionFromXMLFile. */
     bool LoadFromXML(const FString& XMLContent);
+
+    bool IsFirearmDefinition() const { return bHasFirearmContract; }
 
     /**
      * Builds a fully-populated FDamageEffectParams from this definition's damage

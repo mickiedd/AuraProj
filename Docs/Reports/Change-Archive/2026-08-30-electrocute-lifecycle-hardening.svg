@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860" role="img" aria-labelledby="title desc">
+  <title id="title">Num3 Electrocute beam lifecycle hardening</title>
+  <desc id="desc">Before and after diagram showing how live Niagara release tails, source animation state, and abnormal teardown are handled.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .bg { fill:#f8fafc; }
+      .title { font:700 28px Arial,sans-serif; fill:#0f172a; }
+      .subtitle { font:400 15px Arial,sans-serif; fill:#475569; }
+      .section { font:700 19px Arial,sans-serif; fill:#0f172a; }
+      .label { font:700 14px Arial,sans-serif; fill:#0f172a; }
+      .body { font:400 13px Arial,sans-serif; fill:#334155; }
+      .small { font:400 12px Arial,sans-serif; fill:#475569; }
+      .box { stroke-width:1.5; rx:12; }
+      .bad { fill:#fff1f2; stroke:#fda4af; }
+      .good { fill:#ecfdf5; stroke:#86efac; }
+      .blue { fill:#eff6ff; stroke:#93c5fd; }
+      .amber { fill:#fffbeb; stroke:#fbbf24; }
+      .line { stroke:#475569; stroke-width:2; fill:none; marker-end:url(#arrow); }
+      .dashed { stroke:#64748b; stroke-width:1.5; stroke-dasharray:7 6; fill:none; marker-end:url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="860"/>
+  <text class="title" x="48" y="52">Num3 Electrocute: preserve the release tail through every lifecycle path</text>
+  <text class="subtitle" x="48" y="80">The first fix corrected Niagara deactivation timing. This follow-up prevents activation and teardown races from cutting the tail or leaving the caster stuck.</text>
+
+  <rect class="box bad" x="48" y="116" width="560" height="382"/>
+  <text class="section" x="76" y="151">Before: live tail could be orphaned</text>
+  <text class="body" x="76" y="177">A new activation reset shared tracking while the old ray was still fading.</text>
+  <rect class="box blue" x="76" y="204" width="214" height="70"/>
+  <text class="label" x="94" y="230">Activation A ends graph</text>
+  <text class="small" x="94" y="251">Deactivate() starts authored tail</text>
+  <rect class="box amber" x="332" y="204" width="214" height="70"/>
+  <text class="label" x="350" y="230">Niagara ray still visible</text>
+  <text class="small" x="350" y="251">OnSystemFinished not yet fired</text>
+  <path class="line" d="M290 239 H332"/>
+  <rect class="box bad" x="76" y="309" width="470" height="82"/>
+  <text class="label" x="94" y="336">Activation B calls ResetBeamVisualTracking()</text>
+  <text class="body" x="94" y="359">Old component delegate and source-loop state are cleared immediately.</text>
+  <text class="body" x="94" y="378">The old tail can finish without restoring the intended animation timing.</text>
+  <path class="line" d="M439 274 V309"/>
+  <rect class="box bad" x="76" y="423" width="470" height="48"/>
+  <text class="label" x="94" y="453">Abnormal teardown: no callback → possible stuck shock loop</text>
+  <path class="dashed" d="M311 391 V423"/>
+
+  <rect class="box good" x="640" y="116" width="592" height="382"/>
+  <text class="section" x="668" y="151">After: persistent, bounded cleanup</text>
+  <text class="body" x="668" y="177">Per-actor ability state survives graph completion until every beam is actually done.</text>
+  <rect class="box blue" x="668" y="204" width="250" height="70"/>
+  <text class="label" x="686" y="230">TrackBeamVisual()</text>
+  <text class="small" x="686" y="251">weak component + source delegate</text>
+  <rect class="box good" x="954" y="204" width="250" height="70"/>
+  <text class="label" x="972" y="230">Deactivate()</text>
+  <text class="small" x="972" y="251">Niagara owns the fade/completion tail</text>
+  <path class="line" d="M918 239 H954"/>
+  <rect class="box good" x="668" y="309" width="536" height="82"/>
+  <text class="label" x="686" y="336">Activation B prunes only finished entries</text>
+  <text class="body" x="686" y="359">Live old tails and their completion delegates remain tracked across rapid reactivation.</text>
+  <text class="body" x="686" y="378">Each finished component is removed; the loop ends only when the set is empty.</text>
+  <path class="line" d="M1080 274 V309"/>
+  <rect class="box amber" x="668" y="423" width="536" height="48"/>
+  <text class="label" x="686" y="453">Fallback poll + source EndPlay + BeginDestroy clear orphaned state</text>
+  <path class="dashed" d="M936 391 V423"/>
+
+  <rect class="box blue" x="48" y="540" width="1184" height="250"/>
+  <text class="section" x="76" y="576">Authoritative completion rule</text>
+  <text class="body" x="76" y="601">Graph timing and visual timing are intentionally separate:</text>
+  <rect class="box blue" x="76" y="626" width="214" height="72"/>
+  <text class="label" x="94" y="652">TimedLoop completes</text>
+  <text class="small" x="94" y="673">EndAbility may run</text>
+  <rect class="box amber" x="350" y="626" width="246" height="72"/>
+  <text class="label" x="368" y="652">Beam Deactivate()</text>
+  <text class="small" x="368" y="673">authored release tail runs</text>
+  <rect class="box good" x="656" y="626" width="246" height="72"/>
+  <text class="label" x="674" y="652">OnSystemFinished</text>
+  <text class="small" x="674" y="673">or 0.1 s completion poll</text>
+  <rect class="box good" x="962" y="626" width="242" height="72"/>
+  <text class="label" x="980" y="652">SetInShockLoop(false)</text>
+  <text class="small" x="980" y="673">only after all beams finish</text>
+  <path class="line" d="M290 662 H350"/>
+  <path class="line" d="M596 662 H656"/>
+  <path class="line" d="M902 662 H962"/>
+  <text class="small" x="76" y="742">Validation: AuraEditor Development build ✓   supervised graph smoke 26/26 ✓   lifecycle/static checks ✓   rendered multiplayer PIE still pending.</text>
+  <text class="small" x="76" y="764">Separate warning retained: Niagara dynamic-light grid overflow is an asset/renderer capacity issue, not part of this lifecycle fix.</text>
+</svg>

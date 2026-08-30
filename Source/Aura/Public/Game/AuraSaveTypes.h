@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Economy/AuraEconomyTypes.h"
+#include "Misc/DateTime.h"
 #include "World/AuraPopulationTypes.h"
 #include "AuraSaveTypes.generated.h"
 
@@ -35,6 +36,12 @@ struct AURA_API FAuraPersistedMerchantStock
 
 	UPROPERTY(BlueprintReadOnly, Category = "Persistence|Merchant")
 	bool bAvailable = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Persistence|Merchant")
+	FDateTime LastRestockAtUtc;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Persistence|Merchant")
+	FDateTime LastObservedAtUtc;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Persistence|Merchant")
 	TArray<FAuraPersistedOfferStock> Offers;

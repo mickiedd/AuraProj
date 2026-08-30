@@ -149,6 +149,8 @@ void AAuraHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			if (PlayerState->GetCurrencyComponent()) PlayerState->GetCurrencyComponent()->OnCurrencyChanged.RemoveAll(this);
 			if (PlayerState->GetInventoryComponent()) PlayerState->GetInventoryComponent()->OnInventoryChanged.RemoveAll(this);
 			PlayerState->OnRoleChangedDelegate.RemoveAll(this);
+			PlayerState->OnFirearmStateChanged.RemoveAll(this);
+			PlayerState->OnTutorialProgressChanged.RemoveAll(this);
 		}
 	}
 
@@ -331,6 +333,10 @@ void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 			}
 			PlayerState->OnRoleChangedDelegate.RemoveAll(this);
 			PlayerState->OnRoleChangedDelegate.AddUObject(this, &AAuraHUD::HandleRoleChangedForWebUI);
+			PlayerState->OnFirearmStateChanged.RemoveAll(this);
+			PlayerState->OnFirearmStateChanged.AddUObject(this, &AAuraHUD::HandleFirearmStateForWebUI);
+			PlayerState->OnTutorialProgressChanged.RemoveAll(this);
+			PlayerState->OnTutorialProgressChanged.AddUObject(this, &AAuraHUD::HandleTutorialProgressForWebUI);
 		}
 	}
 
@@ -404,6 +410,8 @@ void AAuraHUD::SendInitialWebHUDState()
 	SendRoleStateToWebUI();
 	SendBattleStateToWebUI();
 	SendEconomyStateToWebUI();
+	SendFirearmStateToWebUI();
+	SendTutorialStateToWebUI();
 	if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController()))
 	{
 		const FAuraTargetDescriptor& Descriptor = AuraPC->GetFocusedTargetDescriptor();
@@ -451,6 +459,11 @@ void AAuraHUD::HandleWebUICommand(const FString& Command, const FString& Payload
 	}
 	if (Command == TEXT("hud_quit_confirm")) { UGameplayStatics::OpenLevel(this, FName(TEXT("LoadMenu"))); return; }
 	if (Command == TEXT("hud_location_toggle")) { ToggleLocationDisplay(); return; }
+	if (Command == TEXT("hud_reload"))
+	{
+		if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController())) AuraPC->RequestFirearmReload();
+		return;
+	}
 	if (Command == TEXT("hud_inventory_clicked")) { SetWebHUDMenuLayout(true); SendEconomyStateToWebUI(); return; }
 	if (Command == TEXT("hud_merchant_close"))
 	{
@@ -648,6 +661,52 @@ void AAuraHUD::SendPlayerProgressToWebUI()
 	WebUIBridge->SendEvent(TEXT("hud_progress"), AuraHUDPrivate::SerializeObject(Payload));
 }
 
+void AAuraHUD::HandleFirearmStateForWebUI(const FAuraFirearmState& State)
+{
+	SendFirearmStateToWebUI();
+}
+
+void AAuraHUD::HandleTutorialProgressForWebUI(uint32 CompletionMask)
+{
+	SendTutorialStateToWebUI();
+}
+
+void AAuraHUD::SendFirearmStateToWebUI()
+{
+	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+	const AAuraPlayerController* PC = Cast<AAuraPlayerController>(GetOwningPlayerController());
+	const AAuraPlayerState* PS = PC ? PC->GetPlayerState<AAuraPlayerState>() : nullptr;
+	if (!PS) return;
+	const FAuraFirearmState& State = PS->GetFirearmState();
+	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	Payload->SetBoolField(TEXT("applicable"), State.bApplicable);
+	Payload->SetStringField(TEXT("state"), !State.bApplicable ? TEXT("NotApplicable") : State.bReloading ? TEXT("Reloading") : State.MagazineRounds > 0 ? TEXT("Ready") : TEXT("EmptyMagazine"));
+	Payload->SetNumberField(TEXT("magazineRounds"), State.MagazineRounds);
+	Payload->SetNumberField(TEXT("magazineCapacity"), State.MagazineCapacity);
+	Payload->SetNumberField(TEXT("reserveRounds"), State.ReserveRounds);
+	Payload->SetNumberField(TEXT("reserveCapacity"), State.ReserveCapacity);
+	Payload->SetNumberField(TEXT("ammoRevision"), State.AmmoRevision);
+	Payload->SetNumberField(TEXT("reloadSerial"), State.ReloadSerial);
+	Payload->SetNumberField(TEXT("reloadDuration"), State.ReloadDuration);
+	Payload->SetStringField(TEXT("fireMode"), State.FireMode.ToString());
+	Payload->SetBoolField(TEXT("canFire"), State.bApplicable && !State.bReloading && State.MagazineRounds > 0);
+	Payload->SetStringField(TEXT("unavailableReason"), !State.bApplicable ? TEXT("Not applicable to Aura") : State.bReloading ? TEXT("Reloading") : State.MagazineRounds <= 0 ? TEXT("Magazine empty") : TEXT(""));
+	WebUIBridge->SendEvent(TEXT("hud_firearm"), AuraHUDPrivate::SerializeObject(Payload));
+}
+
+void AAuraHUD::SendTutorialStateToWebUI()
+{
+	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+	const AAuraPlayerController* PC = Cast<AAuraPlayerController>(GetOwningPlayerController());
+	const AAuraPlayerState* PS = PC ? PC->GetPlayerState<AAuraPlayerState>() : nullptr;
+	if (!PS) return;
+	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	Payload->SetNumberField(TEXT("completionMask"), PS->GetTutorialCompletionMask());
+	Payload->SetStringField(TEXT("recoveryState"), PS->GetRecoveryState().ToString());
+	Payload->SetStringField(TEXT("authority"), TEXT("server"));
+	WebUIBridge->SendEvent(TEXT("hud_tutorial"), AuraHUDPrivate::SerializeObject(Payload));
+}
+
 void AAuraHUD::SendRoleStateToWebUI()
 {
 	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
@@ -697,6 +756,8 @@ void AAuraHUD::SendRoleStateToWebUI()
 		Payload->SetNumberField(TEXT("economyState"), static_cast<int32>(PS->GetEconomyInitializationState()));
 		Payload->SetStringField(TEXT("economyStateName"), AuraHUDPrivate::EnumName(PS->GetEconomyInitializationState()));
 		Payload->SetBoolField(TEXT("persistentProfile"), PS->GetEconomyInitializationState() == EAuraEconomyInitializationState::LoadedPersistent);
+		Payload->SetNumberField(TEXT("tutorialCompletionMask"), PS->GetTutorialCompletionMask());
+		Payload->SetStringField(TEXT("recoveryState"), PS->GetRecoveryState().ToString());
 	}
 
 	const FString PayloadJson = AuraHUDPrivate::SerializeObject(Payload);

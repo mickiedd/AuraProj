@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "scopeRevision": "playable-candidate-v1",
+  "completionAuthority": "server-owned-event-or-observed-authoritative-state",
+  "resetPolicy": "server-only-on-new-candidate-run",
+  "steps": [
+    {
+      "stepId": "movement",
+      "order": 1,
+      "title": "Move",
+      "instruction": "Use WASD to move and confirm the movement indicator changes.",
+      "completionPredicate": "authoritative movement delta observed",
+      "unavailableReason": "Movement input is not available until the role is ready.",
+      "roles": ["Aura", "BungeeMan"]
+    },
+    {
+      "stepId": "target",
+      "order": 2,
+      "title": "Target",
+      "instruction": "Place the cursor over the Civilian to show the target and interaction preview.",
+      "completionPredicate": "server-valid target descriptor observed",
+      "unavailableReason": "No valid target is currently focused.",
+      "roles": ["Aura", "BungeeMan"]
+    },
+    {
+      "stepId": "attack",
+      "order": 3,
+      "title": "Attack",
+      "instruction": "Press the primary attack once and wait for the authoritative result.",
+      "completionPredicate": "server attack result received",
+      "unavailableReason": "Attack is unavailable while the player is dead, reloading, or not role-ready.",
+      "roles": ["Aura", "BungeeMan"]
+    },
+    {
+      "stepId": "interact",
+      "order": 4,
+      "title": "Interact",
+      "instruction": "Select the visible interaction option and activate it.",
+      "completionPredicate": "server interaction result received",
+      "unavailableReason": "The focused target has no enabled interaction option.",
+      "roles": ["Aura", "BungeeMan"]
+    },
+    {
+      "stepId": "trade",
+      "order": 5,
+      "title": "Trade",
+      "instruction": "Open the merchant and buy one health potion when the wallet and stock allow it.",
+      "completionPredicate": "atomic purchase success with wallet and inventory revisions",
+      "unavailableReason": "Trade requires an active merchant, range, line of sight, funds, inventory space, and stock.",
+      "roles": ["Aura", "BungeeMan"]
+    },
+    {
+      "stepId": "save-reconnect",
+      "order": 6,
+      "title": "Save and reconnect",
+      "instruction": "Complete a save, reconnect, and verify the restored authoritative state.",
+      "completionPredicate": "committed generation restored after reconnect",
+      "unavailableReason": "Reconnect validation is unavailable until the server has committed a checkpoint.",
+      "roles": ["Aura", "BungeeMan"]
+    }
+  ]
+}

@@ -16,7 +16,9 @@
 #include "AuraCooldownGameplayEffect.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Engine/World.h"
 #include "NiagaraComponent.h"
+#include "TimerManager.h"
 
 UAuraDataAbility::UAuraDataAbility()
 {
@@ -207,7 +209,11 @@ const FGameplayTagContainer* UAuraDataAbility::GetCooldownTags() const
 void UAuraDataAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     UE_LOG(LogAuraAbilityGraph, Log, TEXT("[DataAbility] ActivateAbility START handle=%s"), *Handle.ToString());
-    ResetBeamVisualTracking();
+    // A previous activation may already have ended its graph while Niagara is
+    // still rendering the inactive tail. Keep those components tracked so a
+    // rapid reactivation cannot clear the old animation state or orphan its
+    // completion delegates.
+    PruneBeamVisualTracking();
     if (!ActorInfo || !ActorInfo->AbilitySystemComponent.IsValid())
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[DataAbility] ActivateAbility ABORT: invalid ActorInfo/ASC"));
@@ -292,6 +298,15 @@ void UAuraDataAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
     }
 }
 
+void UAuraDataAbility::BeginDestroy()
+{
+    // Ability instances normally live per actor, but teardown can destroy the
+    // UObject before a Niagara completion callback arrives. Clear the cosmetic
+    // state while the source actor is still reachable, if possible.
+    ClearBeamVisualTracking(true);
+    Super::BeginDestroy();
+}
+
 void UAuraDataAbility::TrackBeamVisual(UNiagaraComponent* Beam, AActor* SourceActor)
 {
     if (!Beam)
@@ -316,7 +331,22 @@ void UAuraDataAbility::TrackBeamVisual(UNiagaraComponent* Beam, AActor* SourceAc
 
     if (SourceActor)
     {
+        if (AActor* PreviousSourceActor = BeamSourceActor.Get(); PreviousSourceActor && PreviousSourceActor != SourceActor)
+        {
+            PreviousSourceActor->OnEndPlay.RemoveDynamic(this, &UAuraDataAbility::OnBeamSourceEndPlay);
+            if (bBeamSourceShockLoopActive && !PreviousSourceActor->IsActorBeingDestroyed() &&
+                PreviousSourceActor->Implements<UCombatInterface>())
+            {
+                ICombatInterface::Execute_SetInShockLoop(PreviousSourceActor, false);
+            }
+            bBeamSourceShockLoopActive = false;
+            UE_LOG(LogAuraAbilityGraph, Warning,
+                TEXT("[DataAbility] Beam source changed while prior visuals were tracked: previous=%s current=%s"),
+                *GetNameSafe(PreviousSourceActor),
+                *GetNameSafe(SourceActor));
+        }
         BeamSourceActor = SourceActor;
+        SourceActor->OnEndPlay.AddUniqueDynamic(this, &UAuraDataAbility::OnBeamSourceEndPlay);
         if (!bBeamSourceShockLoopActive && SourceActor->Implements<UCombatInterface>())
         {
             ICombatInterface::Execute_SetInShockLoop(SourceActor, true);
@@ -326,10 +356,57 @@ void UAuraDataAbility::TrackBeamVisual(UNiagaraComponent* Beam, AActor* SourceAc
                 *GetNameSafe(SourceActor));
         }
     }
+
+    EnsureBeamVisualTrackingPoll();
 }
 
 void UAuraDataAbility::ResetBeamVisualTracking()
 {
+    ClearBeamVisualTracking(true);
+}
+
+void UAuraDataAbility::PruneBeamVisualTracking()
+{
+    const int32 RemovedCount = TrackedBeamVisuals.RemoveAll(
+        [this](const TWeakObjectPtr<UNiagaraComponent>& TrackedBeam)
+        {
+            UNiagaraComponent* Beam = TrackedBeam.Get();
+            if (!Beam || Beam->IsComplete())
+            {
+                if (Beam)
+                {
+                    Beam->OnSystemFinished.RemoveDynamic(this, &UAuraDataAbility::OnBeamSystemFinished);
+                }
+                return true;
+            }
+            return false;
+        });
+
+    if (RemovedCount > 0)
+    {
+        UE_LOG(LogAuraAbilityGraph, Verbose,
+            TEXT("[DataAbility] BeamVisual pruned removed=%d remaining=%d"),
+            RemovedCount,
+            TrackedBeamVisuals.Num());
+    }
+
+    if (TrackedBeamVisuals.Num() == 0)
+    {
+        ClearBeamVisualTracking(true);
+    }
+    else
+    {
+        EnsureBeamVisualTrackingPoll();
+    }
+}
+
+void UAuraDataAbility::ClearBeamVisualTracking(bool bClearShockLoop)
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(BeamVisualTrackingTimerHandle);
+    }
+
     for (const TWeakObjectPtr<UNiagaraComponent>& TrackedBeam : TrackedBeamVisuals)
     {
         if (UNiagaraComponent* Beam = TrackedBeam.Get())
@@ -339,9 +416,10 @@ void UAuraDataAbility::ResetBeamVisualTracking()
     }
     TrackedBeamVisuals.Reset();
 
-    if (bBeamSourceShockLoopActive)
+    if (AActor* SourceActor = BeamSourceActor.Get())
     {
-        if (AActor* SourceActor = BeamSourceActor.Get())
+        SourceActor->OnEndPlay.RemoveDynamic(this, &UAuraDataAbility::OnBeamSourceEndPlay);
+        if (bClearShockLoop && bBeamSourceShockLoopActive && !SourceActor->IsActorBeingDestroyed())
         {
             if (SourceActor->Implements<UCombatInterface>())
             {
@@ -353,8 +431,51 @@ void UAuraDataAbility::ResetBeamVisualTracking()
     bBeamSourceShockLoopActive = false;
 }
 
+void UAuraDataAbility::EnsureBeamVisualTrackingPoll()
+{
+    if (TrackedBeamVisuals.Num() == 0 || BeamVisualTrackingTimerHandle.IsValid())
+    {
+        return;
+    }
+
+    if (UWorld* World = GetWorld())
+    {
+        FTimerDelegate PollDelegate;
+        PollDelegate.BindWeakLambda(this, [ThisObj = TWeakObjectPtr<UAuraDataAbility>(this)]()
+        {
+            if (UAuraDataAbility* Ability = ThisObj.Get())
+            {
+                Ability->PollBeamVisualTracking();
+            }
+        });
+        World->GetTimerManager().SetTimer(BeamVisualTrackingTimerHandle, PollDelegate, 0.1f, true);
+    }
+}
+
+void UAuraDataAbility::PollBeamVisualTracking()
+{
+    PruneBeamVisualTracking();
+}
+
+void UAuraDataAbility::OnBeamSourceEndPlay(AActor* EndedActor, EEndPlayReason::Type EndPlayReason)
+{
+    if (EndedActor && EndedActor == BeamSourceActor.Get())
+    {
+        UE_LOG(LogAuraAbilityGraph, Verbose,
+            TEXT("[DataAbility] Beam source ended play; clearing visual tracking source=%s reason=%d"),
+            *GetNameSafe(EndedActor),
+            static_cast<int32>(EndPlayReason));
+        ClearBeamVisualTracking(false);
+    }
+}
+
 void UAuraDataAbility::OnBeamSystemFinished(UNiagaraComponent* FinishedComponent)
 {
+    if (FinishedComponent)
+    {
+        FinishedComponent->OnSystemFinished.RemoveDynamic(this, &UAuraDataAbility::OnBeamSystemFinished);
+    }
+
     const int32 RemovedCount = TrackedBeamVisuals.RemoveAll(
         [FinishedComponent](const TWeakObjectPtr<UNiagaraComponent>& TrackedBeam)
         {
@@ -370,21 +491,9 @@ void UAuraDataAbility::OnBeamSystemFinished(UNiagaraComponent* FinishedComponent
         return;
     }
 
-    if (bBeamSourceShockLoopActive)
-    {
-        if (AActor* SourceActor = BeamSourceActor.Get())
-        {
-            if (SourceActor->Implements<UCombatInterface>())
-            {
-                ICombatInterface::Execute_SetInShockLoop(SourceActor, false);
-                UE_LOG(LogAuraAbilityGraph, Log,
-                    TEXT("[DataAbility] Beam source left shock-loop animation after Niagara completion source=%s"),
-                    *GetNameSafe(SourceActor));
-            }
-        }
-    }
-    BeamSourceActor.Reset();
-    bBeamSourceShockLoopActive = false;
+    UE_LOG(LogAuraAbilityGraph, Log,
+        TEXT("[DataAbility] Beam visuals completed; ending source shock-loop animation"));
+    ClearBeamVisualTracking(true);
 }
 
 void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -412,6 +521,7 @@ void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const
     if (!ActorInfo || !ActorInfo->AbilitySystemComponent.IsValid())
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[DataAbility] EndAbility: stale ActorInfo, skipping graph cleanup"));
+        ClearBeamVisualTracking(true);
         bIsEndingAbility = false;
         Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
         return;

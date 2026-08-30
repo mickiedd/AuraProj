@@ -9,6 +9,7 @@
 #include "Aura/AuraLogChannels.h"
 #include "GameFramework/PlayerController.h"
 #include "Player/AuraPlayerController.h"
+#include "Player/AuraPlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/World.h"
 
@@ -110,6 +111,11 @@ void UAuraInteractionComponent::ServerRequestInteraction_Implementation(AActor* 
 	}
 	UE_LOG(LogAura, Display, TEXT("[Interaction][Server] Handler=%s requester=%s target=%s."),
 		*Policy.HandlerId.ToString(), *GetNameSafe(Requester), *GetNameSafe(TargetActor));
+	if (AAuraPlayerState* PlayerState = Controller->GetPlayerState<AAuraPlayerState>())
+	{
+		PlayerState->SetTutorialStepCompleted(1, true);
+		PlayerState->SetTutorialStepCompleted(3, true);
+	}
 	ReturnResult(ClientRequestId, EAuraInteractionResultCode::Success);
 }
 

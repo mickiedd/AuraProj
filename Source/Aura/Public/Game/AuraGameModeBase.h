@@ -310,6 +310,7 @@ private:
 	UFUNCTION()
 	void OnSpawnedItemDestroyed(AActor* DestroyedActor);
 	void HandleAuthoritativeDeath(const FAuraDeathEvent& Event);
+	void GrantCivilianLethalReward(const FAuraDeathEvent& Event);
 	void FinalizeRoleBattleStartup();
 	void SetWorldReadiness(EAuraWorldReadiness NewReadiness, const FString& Reason);
 	void ScheduleDedicatedServerReadyNotification();
@@ -361,6 +362,8 @@ private:
 	bool bDay17ProbeFixtureReady = false;
 	bool bDay18ProbeFixtureReady = false;
 	bool bDay19ProbeFixtureReady = false;
+	/** Server-issued outcome IDs prevent a duplicate death notification from paying twice. */
+	TSet<FString> GrantedCivilianOutcomeIds;
 
 	FTimerHandle RoleConfigPollTimerHandle;
 

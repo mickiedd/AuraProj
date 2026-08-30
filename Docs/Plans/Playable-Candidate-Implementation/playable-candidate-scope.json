@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "scopeRevision": "playable-candidate-v1",
+  "sourceRevisionAtFreeze": "c98f2c0",
+  "canonicalMap": "/Game/Maps/StartupMap",
+  "mapAlias": "RoleBattleCivilianTest",
+  "runtimeFixturePolicy": {
+    "civilianActors": "runtime-created",
+    "civilianMarkers": "runtime-created",
+    "duplicateAuthoredFixtureMap": false
+  },
+  "roles": ["Aura", "BungeeMan"],
+  "topologies": {
+    "listen": { "host": 1, "remoteClients": 1, "packaged": true },
+    "dedicated": { "server": 1, "remoteClients": 2, "packaged": true }
+  },
+  "lanes": [
+    { "id": "Aura-listen", "role": "Aura", "topology": "listen", "firearmState": "NotApplicable" },
+    { "id": "BungeeMan-listen", "role": "BungeeMan", "topology": "listen", "firearmState": "Required" },
+    { "id": "Aura-dedicated", "role": "Aura", "topology": "dedicated", "firearmState": "NotApplicable" },
+    { "id": "BungeeMan-dedicated", "role": "BungeeMan", "topology": "dedicated", "firearmState": "Required" }
+  ],
+  "journeySteps": [
+    { "id": "launch", "order": 1, "owner": "boot", "expected": "LoginPending" },
+    { "id": "login", "order": 2, "owner": "server", "expected": "ServerReady" },
+    { "id": "loading", "order": 3, "owner": "travel", "expected": "Loading" },
+    { "id": "role-ready", "order": 4, "owner": "role", "expected": "RoleValidated" },
+    { "id": "hud-ready", "order": 5, "owner": "presentation", "expected": "HUDReady" },
+    { "id": "controllable", "order": 6, "owner": "input", "expected": "Controllable" },
+    { "id": "move", "order": 7, "owner": "player", "expected": "movement observed" },
+    { "id": "target", "order": 8, "owner": "targeting", "expected": "target descriptor observed" },
+    { "id": "attack", "order": 9, "owner": "combat", "expected": "authoritative attack result" },
+    { "id": "interact", "order": 10, "owner": "interaction", "expected": "server interaction result" },
+    { "id": "trade", "order": 11, "owner": "commerce", "expected": "atomic purchase result" },
+    { "id": "reward", "order": 12, "owner": "economy", "expected": "wallet and inventory revision" },
+    { "id": "death", "order": 13, "owner": "recovery", "expected": "Dead then Recovering" },
+    { "id": "save", "order": 14, "owner": "persistence", "expected": "committed player and world snapshot" },
+    { "id": "restart", "order": 15, "owner": "operations", "expected": "graceful restore" },
+    { "id": "reconnect", "order": 16, "owner": "network", "expected": "new session and replayed state" }
+  ],
+  "playerPersistencePolicy": {
+    "fields": ["identity", "role", "loadout", "wallet", "inventory", "completedAmmo", "tutorialCompletion", "lifeState"],
+    "inFlightReload": "never serialized; cancel on death, pawn replacement, disconnect, forced kill, shutdown",
+    "committedDeadRecovery": "one server-owned Recovering to Alive transition"
+  },
+  "worldPersistencePolicy": {
+    "fields": ["worldPersistenceId", "generation", "population", "battlePhase", "merchantStock", "lastRestockAtUtc", "lastObservedAtUtc", "stockRevision"],
+    "forcedKill": "restore last valid manifest generation",
+    "offlineProgression": "none"
+  },
+  "fireGunPolicy": {
+    "definition": "Content/AbilityDefinitions/FireGun.xml",
+    "activeGrantPath": "xml-data-ability",
+    "compatibilityClass": "UAuraFireGun",
+    "fireMode": "SemiAuto",
+    "oneAcceptedShotPerPress": true,
+    "heldInputRepeats": false,
+    "minimumShotInterval": 0.2,
+    "magazineCapacity": 12,
+    "reserveCapacity": 48,
+    "shotConsumption": 1,
+    "reloadDuration": 1.25,
+    "role": "BungeeMan",
+    "auraHudState": "NotApplicable",
+    "inputLeaseSeconds": 2
+  },
+  "rewardPolicy": {
+    "rewardId": "RoleBattle.CivilianLethalReward",
+    "currencyId": "gold",
+    "amount": 25,
+    "outcomeCorrelationId": "server-issued-at-most-once",
+    "purchaseOfferId": "market_health_potion",
+    "purchaseItemId": "health_potion",
+    "purchasePrice": 25,
+    "merchantId": "marketmerchant"
+  },
+  "merchantRestockPolicy": {
+    "merchantId": "marketmerchant",
+    "offerId": "market_health_potion",
+    "initialStock": 20,
+    "restockIntervalSeconds": 600,
+    "clock": "server-utc-with-injected-test-clock",
+    "backwardClock": "clamp-to-last-observed",
+    "startupCatchUp": "at-most-one-interval",
+    "boundary": "inclusive"
+  },
+  "identityPolicy": {
+    "diagnosticRepresentation": "run-scoped-HMAC",
+    "providerTypeLogged": true,
+    "rawExternalIdentityLogged": false,
+    "secretLogged": false,
+    "crossRunLinkability": false
+  },
+  "contentRoots": [
+    "Content/Config/RoleConfig.json",
+    "Content/Config/LevelConfig.json",
+    "Content/Config/ServerConnection.json",
+    "Content/Config/PopulationSpawnTable.json",
+    "Content/Config/BattleZones.json",
+    "Content/Config/CivilianWorkProfiles.json",
+    "Content/Config/ItemDefinitions.json",
+    "Content/Config/MerchantDefinitions.json",
+    "Content/Config/EconomyConfig.json",
+    "Content/Config/RewardDefinitions.json",
+    "Content/Config/PlayableCandidateTutorial.json",
+    "Content/AbilityDefinitions/*.xml",
+    "Plugins/AuraWebUI/Content/WebUI/*.html"
+  ],
+  "runnerEntryPoints": [
+    "RunPlayableCandidate.ps1",
+    "Scripts/ValidatePlayableCandidateScope.ps1",
+    "Scripts/ValidatePlayableCandidateContent.ps1"
+  ],
+  "dayContracts": [
+    { "day": 22, "owner": "baseline-harness", "artifact": "day-22-baseline.json", "testFamily": "post-tooling-baseline", "blockingCondition": "timeout-or-orphan" },
+    { "day": 23, "owner": "boot-flow", "artifact": "day-23-boot-matrix.json", "testFamily": "boot-state-machine", "blockingCondition": "unbounded-launch" },
+    { "day": 24, "owner": "tutorial", "artifact": "day-24-tutorial.json", "testFamily": "tutorial-contract", "blockingCondition": "client-marks-complete" },
+    { "day": 25, "owner": "firearm-state", "artifact": "day-25-ammo.json", "testFamily": "ammo-authority", "blockingCondition": "client-mutates-ammo" },
+    { "day": 26, "owner": "hud-presentation", "artifact": "day-26-hud.json", "testFamily": "hud-replay", "blockingCondition": "private-state-leak" },
+    { "day": 27, "owner": "fire-mode", "artifact": "day-27-fire-mode.json", "testFamily": "semi-auto-input", "blockingCondition": "held-input-repeat" },
+    { "day": 28, "owner": "player-recovery", "artifact": "day-28-death-recovery.json", "testFamily": "death-recovery", "blockingCondition": "duplicate-recovery" },
+    { "day": 29, "owner": "reward-commerce", "artifact": "day-29-reward-merchant.json", "testFamily": "atomic-economy", "blockingCondition": "partial-mutation" },
+    { "day": 30, "owner": "merchant-restock", "artifact": "day-30-restock.json", "testFamily": "deterministic-restock", "blockingCondition": "clock-duplication" },
+    { "day": 31, "owner": "persistence", "artifact": "day-31-persistence.json", "testFamily": "schema-rollback", "blockingCondition": "partial-authority-state" },
+    { "day": 32, "owner": "join-reconnect", "artifact": "day-32-join-reconnect.json", "testFamily": "generation-convergence", "blockingCondition": "mixed-generation" },
+    { "day": 33, "owner": "network-security", "artifact": "day-33-negative-matrix.json", "testFamily": "negative-request-matrix", "blockingCondition": "silent-rejection" },
+    { "day": 34, "owner": "content-validation", "artifact": "day-34-content.json", "testFamily": "canonical-manifest", "blockingCondition": "malformed-content-published" },
+    { "day": 35, "owner": "diagnostics", "artifact": "day-35-diagnostics.json", "testFamily": "redacted-correlation", "blockingCondition": "raw-secret-artifact" },
+    { "day": 36, "owner": "visual-qa", "artifact": "day-36-visual.json", "testFamily": "packaged-profile-check", "blockingCondition": "unexercised-declared-profile" },
+    { "day": 37, "owner": "server-operations", "artifact": "day-37-server-operations.json", "testFamily": "second-developer-runbook", "blockingCondition": "hidden-editor-dependency" },
+    { "day": 38, "owner": "candidate-pipeline", "artifact": "candidate-draft.json", "testFamily": "stage-propagation", "blockingCondition": "false-success" },
+    { "day": 39, "owner": "soak-matrix", "artifact": "day-39-soak.json", "testFamily": "bounded-four-lane-soak", "blockingCondition": "cycle-or-cleanup-loss" },
+    { "day": 40, "owner": "signoff", "artifact": "candidate.json", "testFamily": "immutable-signoff", "blockingCondition": "hash-or-matrix-mismatch" }
+  ],
+  "externalPreflight": {
+    "status": "BLOCKED",
+    "reason": "Production provider/App ID and two authorized stable identities are not provisioned in this local checkout.",
+    "affectsLocalCandidate": false,
+    "requiredForExternalPass": ["production provider", "App ID", "two distinct authorized accounts", "packaged Shipping listen and dedicated matrix"]
+  }
+}

@@ -112,6 +112,14 @@ void AAuraCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	UpdateFatalFallState(DeltaSeconds);
 	UpdateOverheadNameFacingCamera();
+	if (HasAuthority() && GetVelocity().SizeSquared2D() > 1.f)
+	{
+		if (AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>(); AuraPlayerState
+			&& (AuraPlayerState->GetTutorialCompletionMask() & 1u) == 0)
+		{
+			AuraPlayerState->SetTutorialStepCompleted(0, true);
+		}
+	}
 }
 
 void AAuraCharacter::Landed(const FHitResult& Hit)
@@ -172,16 +180,7 @@ bool AAuraCharacter::LoadProgress()
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
 	UAuraPlayerSaveGame* PersistentProfile = AuraPlayerState->GetPendingPersistentProfile();
 	const ULoadScreenSaveGame* SaveData = PersistentProfile && !PersistentProfile->bFirstTimeLoadIn ? PersistentProfile : nullptr;
-	if (SaveData)
-	{
-		FString PersistenceError;
-		if (!AuraPlayerState->ApplyPersistentProfile(*PersistentProfile, PersistenceError))
-		{
-			RejectLogin(PersistenceError.IsEmpty() ? TEXT("The persistent profile could not be applied before pawn initialization.") : PersistenceError);
-			return false;
-		}
-	}
-	else if (!AuraPlayerState->InitializeEconomyForNewProfileOnce())
+	if (!SaveData && !AuraPlayerState->InitializeEconomyForNewProfileOnce())
 	{
 		RejectLogin(TEXT("The authority economy registry is unavailable; player economy initialization was refused."));
 		return false;
@@ -233,6 +232,23 @@ bool AAuraCharacter::LoadProgress()
 			? FString::Printf(TEXT("Role '%s' could not be applied."), *AuthorizedRole.ToString())
 			: Result.Message);
 		return false;
+	}
+	if (PersistentProfile && !PersistentProfile->bFirstTimeLoadIn)
+	{
+		FString PersistenceError;
+		const bool bResumeRecovery = PersistentProfile->RecoveryState == TEXT("Dead")
+			|| PersistentProfile->RecoveryState == TEXT("Recovering");
+		if (!AuraPlayerState->ApplyPersistentProfile(*PersistentProfile, PersistenceError))
+		{
+			RejectLogin(PersistenceError.IsEmpty() ? TEXT("The persistent profile could not be applied after role initialization.") : PersistenceError);
+			return false;
+		}
+		if (bResumeRecovery && !AuraPlayerState->SetRecoveryState(TEXT("Alive")))
+		{
+			RejectLogin(TEXT("The persisted recovery state could not complete its server-owned transition."));
+			return false;
+		}
+		AuraPlayerState->SetTutorialStepCompleted(5, true);
 	}
 	if (AuraGameMode && AuraGameMode->GetPersistenceSubsystemMutable()
 		&& AuraGameMode->GetPersistenceSubsystem()->IsPersistentLoginRequired())

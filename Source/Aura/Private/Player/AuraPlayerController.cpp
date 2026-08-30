@@ -56,6 +56,7 @@
 #include "Economy/AuraMerchantComponent.h"
 #include "AbilitySystem/Data/RoleInfo.h"
 #include "Game/LoadScreenSaveGame.h"
+#include "Player/AuraPlayerState.h"
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 
 AAuraPlayerController::AAuraPlayerController()
@@ -320,6 +321,28 @@ void AAuraPlayerController::WebAbilityInputTagReleased(const FGameplayTag& Input
 	AbilityInputTagReleased(InputTag);
 }
 
+void AAuraPlayerController::RequestFirearmReload()
+{
+	if (HasAuthority()) ServerRequestFirearmReload_Implementation();
+	else ServerRequestFirearmReload();
+}
+
+void AAuraPlayerController::ServerRequestFirearmReload_Implementation()
+{
+	FName ResultCode = TEXT("InvalidState");
+	AAuraPlayerState* AuraState = GetPlayerState<AAuraPlayerState>();
+	const bool bStarted = AuraState && AuraState->BeginFirearmReload(ResultCode);
+	if (bStarted) ResultCode = TEXT("ReloadStarted");
+	UE_LOG(LogAura, Display, TEXT("[Firearm][Server] Reload request controller=%s accepted=%d result=%s."),
+		*GetNameSafe(this), bStarted ? 1 : 0, *ResultCode.ToString());
+	ClientFirearmCommandResult(ResultCode);
+}
+
+void AAuraPlayerController::ClientFirearmCommandResult_Implementation(FName ResultCode)
+{
+	UE_LOG(LogAura, Display, TEXT("[Firearm][Client] CommandResult=%s."), *ResultCode.ToString());
+}
+
 void AAuraPlayerController::WebInteractPressed()
 {
 	InteractPressed();
@@ -396,12 +419,21 @@ void AAuraPlayerController::RotatePlacement(float DeltaYaw)
 void AAuraPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
+	ExpireFirearmInputLeaseIfNeeded();
 	CursorTrace();
 	RotateCameraFromMouseDelta();
 	RotateCameraFromScreenEdge(DeltaTime);
 	AutoRun();
 	UpdateMagicCircleLocation();
 	ApplyBroomVerticalFlight();
+}
+
+void AAuraPlayerController::ExpireFirearmInputLeaseIfNeeded()
+{
+	if (!bFirearmInputLeaseActive || !GetWorld() || GetWorld()->GetTimeSeconds() < FirearmInputLeaseExpiresAt) return;
+	bFirearmInputLeaseActive = false;
+	UE_LOG(LogAura, Warning, TEXT("[Firearm][Input] LMB input lease expired; releasing held input controller=%s."), *GetNameSafe(this));
+	AbilityInputTagReleased(FAuraGameplayTags::Get().InputTag_LMB);
 }
 
 void AAuraPlayerController::ShowMagicCircle(UMaterialInterface* DecalMaterial)
@@ -597,6 +629,8 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 	}
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
+		bFirearmInputLeaseActive = true;
+		FirearmInputLeaseExpiresAt = (GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0) + FirearmInputLeaseSeconds;
 		FollowTime = 0.f;
 		if (IsValid(ThisActor))
 		{
@@ -643,6 +677,8 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
 		return;
 	}
+	bFirearmInputLeaseActive = false;
+	FirearmInputLeaseExpiresAt = 0.0;
 
 	const bool bHasLMBAbility = HasEquippedAbilityForInputTag(InputTag);
 	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
@@ -949,6 +985,7 @@ void AAuraPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 	if (HasAuthority() && GetWorld())
 	{
+		if (AAuraPlayerState* AuraState = GetPlayerState<AAuraPlayerState>()) AuraState->CancelFirearmReload(TEXT("ControllerEndPlay"));
 		if (UAuraCommerceSubsystem* Commerce = GetWorld()->GetSubsystem<UAuraCommerceSubsystem>()) Commerce->InvalidateSession(this);
 	}
 	Super::EndPlay(EndPlayReason);
@@ -1544,6 +1581,7 @@ void AAuraPlayerController::SetupInputComponent()
 	InputComponent->BindKey(EKeys::Q, EInputEvent::IE_Released, this, &AAuraPlayerController::BroomAscendReleased);
 	InputComponent->BindKey(EKeys::E, EInputEvent::IE_Pressed, this, &AAuraPlayerController::BroomDescendPressed);
 	InputComponent->BindKey(EKeys::E, EInputEvent::IE_Released, this, &AAuraPlayerController::BroomDescendReleased);
+	InputComponent->BindKey(EKeys::R, EInputEvent::IE_Pressed, this, &AAuraPlayerController::RequestFirearmReload);
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 

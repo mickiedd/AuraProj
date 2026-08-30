@@ -6,6 +6,8 @@
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "AbilityGraphTypes.h"
 #include "AuraManaCostGameplayEffect.h"
+#include "GameFramework/Actor.h"
+#include "TimerManager.h"
 #include "DataAbility.generated.h"
 
 class UAuraAbilityDefinition;
@@ -44,6 +46,7 @@ public:
     virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
     virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
     virtual const FGameplayTagContainer* GetCooldownTags() const override;
+    virtual void BeginDestroy() override;
 
     const UAuraAbilityDefinition* GetDefinition() const;
 
@@ -69,6 +72,9 @@ public:
     UFUNCTION()
     void OnBeamSystemFinished(UNiagaraComponent* FinishedComponent);
 
+    UFUNCTION()
+    void OnBeamSourceEndPlay(AActor* EndedActor, EEndPlayReason::Type EndPlayReason);
+
     UFUNCTION(BlueprintCallable, Category = "Ability|TargetData")
     void OnTargetDataReady(const FGameplayAbilityTargetDataHandle& DataHandle);
 
@@ -82,6 +88,13 @@ public:
     void OnMontageInterrupted();
 
 protected:
+    void PruneBeamVisualTracking();
+    void ClearBeamVisualTracking(bool bClearShockLoop);
+    void EnsureBeamVisualTrackingPoll();
+
+    UFUNCTION()
+    void PollBeamVisualTracking();
+
     // UPROPERTY: keeps the per-activation task tree rooted on the (instanced) ability
     // so it can't be GC'd mid-channel, and is released cleanly when EndAbility nulls it.
     UPROPERTY()
@@ -101,6 +114,7 @@ protected:
     TArray<TWeakObjectPtr<UNiagaraComponent>> TrackedBeamVisuals;
     TWeakObjectPtr<AActor> BeamSourceActor;
     bool bBeamSourceShockLoopActive = false;
+    FTimerHandle BeamVisualTrackingTimerHandle;
 
 public:
     TWeakObjectPtr<UTargetDataUnderMouse> PendingTargetDataTask;

@@ -45,4 +45,32 @@ public:
 
 	UPROPERTY()
 	bool bMigrationCompleted = false;
+
+	/** Completed BungeeMan firearm state only; a reload is never persisted. */
+	UPROPERTY()
+	bool bFirearmApplicable = false;
+
+	UPROPERTY()
+	int32 FirearmMagazineCapacity = 0;
+
+	UPROPERTY()
+	int32 FirearmMagazineRounds = 0;
+
+	UPROPERTY()
+	int32 FirearmReserveCapacity = 0;
+
+	UPROPERTY()
+	int32 FirearmReserveRounds = 0;
+
+	UPROPERTY()
+	float FirearmReloadDuration = 0.f;
+
+	UPROPERTY()
+	uint32 FirearmAmmoRevision = 0;
+
+	UPROPERTY()
+	uint32 TutorialCompletionMask = 0;
+
+	UPROPERTY()
+	FName RecoveryState = TEXT("Alive");
 };

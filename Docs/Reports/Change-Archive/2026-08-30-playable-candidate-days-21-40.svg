@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="920" viewBox="0 0 1440 920" role="img" aria-labelledby="title desc">
+  <title id="title">Playable Candidate Days 21 through 40 implementation</title>
+  <desc id="desc">Before and after flow showing the frozen Playable Candidate contract, authoritative gameplay implementation, WebUI and diagnostics, pipeline evidence, and validation results.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .bg { fill:#f8fafc; }
+      .title { font:700 30px Arial,sans-serif; fill:#0f172a; }
+      .subtitle { font:400 15px Arial,sans-serif; fill:#475569; }
+      .section { font:700 19px Arial,sans-serif; fill:#0f172a; }
+      .label { font:700 14px Arial,sans-serif; fill:#0f172a; }
+      .body { font:400 13px Arial,sans-serif; fill:#334155; }
+      .small { font:400 12px Arial,sans-serif; fill:#475569; }
+      .box { stroke-width:1.5; rx:14; }
+      .before { fill:#fff1f2; stroke:#fda4af; }
+      .contract { fill:#eff6ff; stroke:#93c5fd; }
+      .runtime { fill:#ecfdf5; stroke:#86efac; }
+      .ops { fill:#fffbeb; stroke:#fbbf24; }
+      .validation { fill:#f5f3ff; stroke:#c4b5fd; }
+      .blocked { fill:#f1f5f9; stroke:#94a3b8; stroke-dasharray:7 5; }
+      .arrow { stroke:#475569; stroke-width:2; fill:none; marker-end:url(#arrow); }
+      .dash { stroke:#64748b; stroke-width:1.5; stroke-dasharray:6 5; fill:none; }
+    </style>
+  </defs>
+  <rect class="bg" width="1440" height="920"/>
+  <text class="title" x="60" y="58">Playable Candidate — Days 21–40 implementation</text>
+  <text class="subtitle" x="60" y="86">The next twenty plans are now represented by a frozen scope, authoritative runtime contracts, evidence-producing runners, and explicit release dispositions.</text>
+
+  <text class="section" x="60" y="132">Before: plan intent without one executable completion chain</text>
+  <rect class="box before" x="60" y="150" width="1320" height="118"/>
+  <text class="label" x="84" y="178">Unclosed integration gaps</text>
+  <text class="body" x="84" y="202">FireGun had no single server ammo boundary; tutorial, recovery, and firearm state were not replayed as one HUD contract.</text>
+  <text class="body" x="84" y="224">Civilian rewards, merchant restock time, persistence fields, diagnostics redaction, and final candidate evidence lacked one shared run binding.</text>
+  <text class="body" x="84" y="246">The four local lanes and the external provider gate were defined in prose but had no per-day executable validation artifact.</text>
+
+  <path class="arrow" d="M720 268 L720 302"/>
+  <text class="section" x="60" y="336">After: implementation and validation flow</text>
+
+  <rect class="box contract" x="60" y="362" width="292" height="230"/>
+  <text class="label" x="82" y="390">Day 21 — frozen contract</text>
+  <text class="body" x="82" y="416">• canonical StartupMap + alias</text>
+  <text class="body" x="82" y="438">• Aura / BungeeMan role matrix</text>
+  <text class="body" x="82" y="460">• listen + dedicated four-lane matrix</text>
+  <text class="body" x="82" y="482">• 16 ordered journey steps</text>
+  <text class="body" x="82" y="504">• semi-auto FireGun and 2 s lease</text>
+  <text class="body" x="82" y="526">• reward, restock, identity policies</text>
+  <text class="small" x="82" y="560">playable-candidate-scope.json</text>
+
+  <rect class="box runtime" x="382" y="362" width="330" height="230"/>
+  <text class="label" x="404" y="390">Days 24–33 — server authority</text>
+  <text class="body" x="404" y="416">• PlayerState owns ammo/reload/revision</text>
+  <text class="body" x="404" y="438">• graph consumes one round on server</text>
+  <text class="body" x="404" y="460">• press-edge activation; no held repeat</text>
+  <text class="body" x="404" y="482">• death cancels reload; recovery restores</text>
+  <text class="body" x="404" y="504">• lethal Civilian reward is idempotent</text>
+  <text class="body" x="404" y="526">• UTC max-observed restock + persistence</text>
+  <text class="small" x="404" y="560">RPC and save contracts reject stale/invalid input</text>
+
+  <rect class="box ops" x="742" y="362" width="292" height="230"/>
+  <text class="label" x="764" y="390">Days 34–37 — support surface</text>
+  <text class="body" x="764" y="416">• manifest discovers configs/XML/WebUI</text>
+  <text class="body" x="764" y="438">• HUD replays firearm/tutorial state</text>
+  <text class="body" x="764" y="460">• Aura shows firearm NotApplicable</text>
+  <text class="body" x="764" y="482">• reload input uses bounded lease</text>
+  <text class="body" x="764" y="504">• diagnostics use run-scoped HMAC</text>
+  <text class="body" x="764" y="526">• operations runbook records BLOCKED</text>
+  <text class="small" x="764" y="560">malformed JSON/XML fixtures fail closed</text>
+
+  <rect class="box validation" x="1064" y="362" width="316" height="230"/>
+  <text class="label" x="1086" y="390">Days 38–40 — evidence gate</text>
+  <text class="body" x="1086" y="416">• Fast / Candidate / External stages</text>
+  <text class="body" x="1086" y="438">• source + manifest SHA-256 binding</text>
+  <text class="body" x="1086" y="460">• candidate-draft.json + Day 39 soak</text>
+  <text class="body" x="1086" y="482">• explicit four-lane finalization inputs</text>
+  <text class="body" x="1086" y="504">• immutable candidate.json only once</text>
+  <text class="body" x="1086" y="526">• local PASS separate from external block</text>
+  <text class="small" x="1086" y="560">RunPlayableCandidate.ps1</text>
+
+  <path class="arrow" d="M352 477 L382 477"/>
+  <path class="arrow" d="M712 477 L742 477"/>
+  <path class="arrow" d="M1034 477 L1064 477"/>
+
+  <path class="dash" d="M60 626 L1380 626"/>
+  <text class="section" x="60" y="662">Validation evidence produced for this implementation</text>
+  <rect class="box validation" x="60" y="684" width="416" height="142"/>
+  <text class="label" x="82" y="712">Contract and content checks</text>
+  <text class="body" x="82" y="736">20/20 Python day contracts PASS</text>
+  <text class="body" x="82" y="758">Scope, content, malformed fixtures, visual QA PASS</text>
+  <text class="body" x="82" y="780">Redacted diagnostics probe PASS</text>
+  <text class="small" x="82" y="804">Scripts/test_playable_candidate.py and validators</text>
+
+  <rect class="box validation" x="512" y="684" width="416" height="142"/>
+  <text class="label" x="534" y="712">Engine and day runners</text>
+  <text class="body" x="534" y="736">AuraEditor Win64 Development build PASS</text>
+  <text class="body" x="534" y="758">20/20 native Day 21–40 automation checks PASS</text>
+  <text class="body" x="534" y="780">20/20 post-build local runners PASS</text>
+  <text class="small" x="534" y="804">one log and one artifact root per day</text>
+
+  <rect class="box blocked" x="964" y="684" width="416" height="142"/>
+  <text class="label" x="986" y="712">Release disposition</text>
+  <text class="body" x="986" y="736">Local contract stage: PASS</text>
+  <text class="body" x="986" y="758">Candidate packaged evidence: BLOCKED</text>
+  <text class="body" x="986" y="780">External provider/accounts: BLOCKED</text>
+  <text class="small" x="986" y="804">no packaged/public signoff claimed</text>
+
+  <text class="subtitle" x="60" y="874">Source revision bound: c98f2c0afe3371636d827f80f8a9808dfbaa5ab9 • generated 2026-08-30 • user Electrocute edits preserved</text>
+</svg>

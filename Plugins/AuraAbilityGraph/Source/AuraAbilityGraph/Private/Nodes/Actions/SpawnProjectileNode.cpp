@@ -12,6 +12,7 @@
 #include "Engine/EngineTypes.h"
 #include "AuraAbilityGraphLogChannels.h"
 #include "Data/AuraGameplayConfig.h"
+#include "AbilityGraphTypes.h"
 
 UAuraAbilityActionTask* USpawnProjectileNode::CreateTask(UObject* Outer) const
 {
@@ -118,7 +119,38 @@ EAuraAbilityActionStatus USpawnProjectileTask::OnStart(FAuraAbilityExecutionCont
         }
     }
 
+    IAuraFirearmAuthority* FirearmAuthority = nullptr;
+    if (Ctx.Definition && Ctx.Definition->IsFirearmDefinition())
+    {
+        UObject* AbilityOwner = Ctx.ASC ? Ctx.ASC->GetOwner() : nullptr;
+        if (!AbilityOwner || !AbilityOwner->GetClass()->ImplementsInterface(UAuraFirearmAuthority::StaticClass()))
+        {
+            Projectile->Destroy();
+            UE_LOG(LogAuraAbilityGraph, Error, TEXT("[Firearm][Server] Shot rejected ability=%s result=AuthorityUnavailable"),
+                *Ctx.Definition->AbilityName.ToString());
+            return EAuraAbilityActionStatus::Failure;
+        }
+        FirearmAuthority = Cast<IAuraFirearmAuthority>(AbilityOwner);
+        FName ResultCode = NAME_None;
+        if (!FirearmAuthority || !FirearmAuthority->TryConsumeFirearmRound(Ctx.Definition->AbilityName, Ctx.AvatarActor, ResultCode))
+        {
+            Projectile->Destroy();
+            UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[Firearm][Server] Shot rejected ability=%s result=%s"),
+                *Ctx.Definition->AbilityName.ToString(), *ResultCode.ToString());
+            return EAuraAbilityActionStatus::Failure;
+        }
+    }
+
     Projectile->FinishSpawning(SpawnTransform);
+    if (FirearmAuthority) FirearmAuthority->NotifyFirearmShotAccepted(Ctx.Definition->AbilityName);
+    if (UObject* AbilityOwner = Ctx.ASC ? Ctx.ASC->GetOwner() : nullptr;
+        AbilityOwner && AbilityOwner->GetClass()->ImplementsInterface(UAuraAbilityCommitAuthority::StaticClass()))
+    {
+        if (IAuraAbilityCommitAuthority* CommitAuthority = Cast<IAuraAbilityCommitAuthority>(AbilityOwner))
+        {
+            CommitAuthority->NotifyAuthoritativeAbilityCommitted(Ctx.Definition ? Ctx.Definition->AbilityName : NAME_None);
+        }
+    }
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[SpawnProjectile] OnStart projectile spawned class=%s"), *ProjectileClass->GetName());
     return EAuraAbilityActionStatus::Success;
 }
