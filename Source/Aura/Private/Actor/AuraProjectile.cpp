@@ -178,7 +178,7 @@ void AAuraProjectile::OnHit()
 
 	if (HasAuthority())
 	{
-		MulticastPlayImpactEffects(GetActorLocation());
+		MulticastPlayImpactEffects(GetActorLocation(), (-GetActorForwardVector()).GetSafeNormal(), false);
 		return;
 	}
 
@@ -186,14 +186,41 @@ void AAuraProjectile::OnHit()
 	bHit = true;
 }
 
-void AAuraProjectile::MulticastPlayImpactEffects_Implementation(const FVector_NetQuantize& ImpactLocation)
+void AAuraProjectile::OnHitAtSurface(const FVector& ImpactLocation, const FVector& ImpactNormal)
+{
+	UE_LOG(LogAura, Log, TEXT("[Projectile] OnHitAtSurface: Actor=%s bHit=%d HasAuth=%d Loc=%s Normal=%s"),
+		*GetNameSafe(this), (int32)bHit, (int32)HasAuthority(), *ImpactLocation.ToCompactString(), *ImpactNormal.ToCompactString());
+	if (bHit)
+	{
+		return;
+	}
+
+	const FVector SafeNormal = ImpactNormal.GetSafeNormal(SMALL_NUMBER, -GetActorForwardVector());
+	if (HasAuthority())
+	{
+		MulticastPlayImpactEffects(ImpactLocation, SafeNormal, true);
+		return;
+	}
+
+	PlayImpactEffectsAtSurface(ImpactLocation, SafeNormal);
+	bHit = true;
+}
+
+void AAuraProjectile::MulticastPlayImpactEffects_Implementation(const FVector_NetQuantize& ImpactLocation, const FVector_NetQuantizeNormal& ImpactNormal, bool bSurfaceImpact)
 {
 	if (bHit)
 	{
 		return;
 	}
 
-	PlayImpactEffects(ImpactLocation);
+	if (bSurfaceImpact)
+	{
+		PlayImpactEffectsAtSurface(ImpactLocation, ImpactNormal);
+	}
+	else
+	{
+		PlayImpactEffects(ImpactLocation);
+	}
 	bHit = true;
 }
 
@@ -202,6 +229,11 @@ void AAuraProjectile::PlayImpactEffects(const FVector& ImpactLocation)
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, ImpactLocation, FRotator::ZeroRotator);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, ImpactLocation);
 	StopLoopingSound();
+}
+
+void AAuraProjectile::PlayImpactEffectsAtSurface(const FVector& ImpactLocation, const FVector& ImpactNormal)
+{
+	PlayImpactEffects(ImpactLocation);
 }
 
 void AAuraProjectile::StopLoopingSound()
@@ -255,13 +287,26 @@ void AAuraProjectile::OnSphereHit(UPrimitiveComponent* HitComponent, AActor* Oth
 		*GetNameSafe(this), *GetNameSafe(OtherActor), *GetActorLocation().ToCompactString(),
 		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor) ? TEXT("true") : TEXT("false"));
 
-	ApplyImpactAndDestroy(OtherActor);
+	// World origin is a valid impact point, not a missing-hit sentinel.
+	const FVector ImpactLocation = Hit.bBlockingHit ? FVector(Hit.ImpactPoint) : GetActorLocation();
+	const FVector ImpactNormal = Hit.ImpactNormal.GetSafeNormal(SMALL_NUMBER, -GetActorForwardVector());
+	ApplySurfaceImpactAndDestroy(OtherActor, ImpactLocation, ImpactNormal);
 }
 
 void AAuraProjectile::ApplyImpactAndDestroy(AActor* OtherActor)
 {
 	OnHit();
+	ApplyDamageAndDestroy(OtherActor);
+}
 
+void AAuraProjectile::ApplySurfaceImpactAndDestroy(AActor* OtherActor, const FVector& ImpactLocation, const FVector& ImpactNormal)
+{
+	OnHitAtSurface(ImpactLocation, ImpactNormal);
+	ApplyDamageAndDestroy(OtherActor);
+}
+
+void AAuraProjectile::ApplyDamageAndDestroy(AActor* OtherActor)
+{
 	if (HasAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))

@@ -12,6 +12,7 @@
 #include "AuraAttributeGameplayEffect.h"
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "Actor/AuraProjectile.h"
+#include "Actor/AuraBullet.h"
 #include "Character/AuraCharacter.h"
 #include "Character/AuraEnemy.h"
 #include "Combat/AuraCombatIdentityComponent.h"
@@ -153,9 +154,14 @@ bool FAuraRoleBattleCatalogTest::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
-	TestEqual(TEXT("FireGun bullet uses native projectile"), Bullet->NativeClass.Get(), AAuraProjectile::StaticClass());
+	TestEqual(TEXT("FireGun bullet uses native bullet projectile"), Bullet->NativeClass.Get(), AAuraBullet::StaticClass());
 	TestEqual(TEXT("FireGun bullet speed"), Bullet->InitialSpeed, 550.f);
 	TestEqual(TEXT("FireGun bullet collision radius"), Bullet->CollisionRadius, 15.f);
+	TestFalse(TEXT("FireGun tracer mesh is configured"), Bullet->TracerMesh.IsNull());
+	TestFalse(TEXT("FireGun flight particle is configured"), Bullet->FlightParticle.IsNull());
+	TestFalse(TEXT("FireGun impact particle is configured"), Bullet->ImpactParticle.IsNull());
+	TestFalse(TEXT("FireGun impact sound is configured"), Bullet->ImpactSound.IsNull());
+	TestFalse(TEXT("FireGun surface mark material is configured"), Bullet->SurfaceMarkMaterial.IsNull());
 	return true;
 }
 

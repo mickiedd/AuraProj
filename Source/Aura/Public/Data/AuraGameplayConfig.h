@@ -27,10 +27,16 @@ struct AURA_API FAuraProjectileDefinition
 	ECollisionResponse WorldStaticResponse = ECR_Block;
 	FSoftObjectPath Mesh;
 	FVector MeshScale = FVector(0.3f);
+	FSoftObjectPath TracerMesh;
 	FSoftObjectPath FlightTrail;
+	FSoftObjectPath FlightParticle;
 	FSoftObjectPath ImpactEffect;
+	FSoftObjectPath ImpactParticle;
 	FSoftObjectPath ImpactSound;
 	FSoftObjectPath LoopingSound;
+	FSoftObjectPath SurfaceMarkMaterial;
+	float SurfaceMarkSize = 8.f;
+	float SurfaceMarkLifeSpan = 30.f;
 	float OutboundDistance = 0.f;
 	float OutboundDuration = 0.f;
 	float ReturnSpeed = 0.f;

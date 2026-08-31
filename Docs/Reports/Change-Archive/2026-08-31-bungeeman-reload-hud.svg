@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="880" viewBox="0 0 1280 880" role="img" aria-labelledby="title desc">
+  <title id="title">BungeeMan FireGun: explicit manual-reload HUD</title>
+  <desc id="desc">Before, firing stopped at an empty 12-round magazine without useful reload guidance. After, only BungeeMan FireGun shows ammunition, manual R reload, server-controlled reload status, and a separate out-of-ammo state. Aura skills are unchanged. Build, native tests, and browser fixture checks pass; the running DebugGame still needs rebuild and restart.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#8aa8c9" stroke-width="1.5"/></marker></defs>
+  <style>text{font-family:Segoe UI,Arial,sans-serif;fill:#eaf2ff}.title{font-size:30px;font-weight:700}.h{font-size:20px;font-weight:700}.body{font-size:17px}.small{font-size:15px;fill:#adc1d9}.gold{fill:#ffdc86}.cyan{fill:#78dfff}.orange{fill:#ffb397}.box{fill:#172b44;stroke:#3a536f;stroke-width:1.5}.arrow{stroke:#8aa8c9;stroke-width:2;fill:none;marker-end:url(#arrow)}.pill{fill:#253e5c;stroke:#84b0d6}</style>
+  <rect width="1280" height="880" fill="#0b1728"/>
+  <text x="40" y="52" class="title">BungeeMan · FireGun reload feedback</text>
+  <text x="40" y="82" class="small">2026-08-31 · Manual reload retained · 12-round magazine / 48 reserve / 1.25 s reload</text>
+  <rect x="40" y="108" width="1200" height="114" rx="12" class="box"/>
+  <text x="60" y="137" class="h orange">BEFORE · “It worked, then stopped”</text>
+  <text x="60" y="166" class="body">12 accepted shots → magazine empty → 18 later shots rejected as EmptyMagazine.</text>
+  <text x="60" y="195" class="small">Runtime logs still show 48 reserve rounds and no reload. Generic ammo labels did not explain the required action.</text>
+  <rect x="40" y="244" width="1200" height="72" rx="12" class="box"/>
+  <text x="60" y="273" class="h cyan">SCOPE GUARD</text>
+  <text x="242" y="273" class="body">BungeeMan + Abilities.Gun.Fire + InputTag.LMB + applicable</text>
+  <text x="60" y="300" class="small">Only the owner's gun card and matching LMB tile get ammo UI. Aura / FireBolt / other slots stay unchanged.</text>
+  <rect x="40" y="344" width="360" height="180" rx="12" class="box"/>
+  <text x="60" y="374" class="h gold">READY</text><text x="60" y="414" class="title">12 / 12</text><text x="236" y="414" class="body">Reserve 48</text>
+  <text x="60" y="450" class="body">LMB fires one shot per press.</text><text x="60" y="477" class="small">Partial magazine: Reload [R] enabled.</text><text x="60" y="504" class="small">Full magazine: reload disabled.</text>
+  <path d="M405 430 H455" class="arrow"/>
+  <rect x="460" y="344" width="360" height="180" rx="12" class="box"/>
+  <text x="480" y="374" class="h orange">MAGAZINE EMPTY</text><text x="480" y="414" class="title">0 / 12</text><text x="656" y="414" class="body">Reserve 48</text>
+  <text x="480" y="450" class="body">Press R or click Reload.</text><rect x="480" y="465" width="118" height="34" rx="6" class="pill"/><text x="491" y="488" class="body">Reload [R]</text><text x="617" y="488" class="small">LMB badge: R</text>
+  <path d="M825 430 H875" class="arrow"/>
+  <rect x="880" y="344" width="360" height="180" rx="12" class="box"/>
+  <text x="900" y="374" class="h cyan">RELOADING…</text><text x="900" y="414" class="title">0 / 12</text><text x="1076" y="414" class="body">Reserve 48</text>
+  <text x="900" y="450" class="body">1.25 s reload · requests disabled</text><text x="900" y="477" class="small">Wait for server confirmation.</text><text x="900" y="504" class="small">No client timer invents completion.</text>
+  <path d="M1060 530 V558 H220 V530" class="arrow"/>
+  <text x="384" y="552" class="small">Server completes → 12 / 12, reserve 36 → ready again</text>
+  <rect x="40" y="584" width="574" height="96" rx="12" class="box"/><text x="60" y="615" class="h orange">OUT OF AMMO ≠ EMPTY WITH RESERVE</text><text x="60" y="644" class="body">0 magazine + 0 reserve → no reload available.</text><text x="60" y="667" class="small">Dead/recovering → unavailable. Disconnect → clear stale state.</text>
+  <rect x="638" y="584" width="602" height="96" rx="12" class="box"/><text x="658" y="615" class="h cyan">INPUT AND LAYOUT PRESERVED</text><text x="658" y="644" class="body">Native R / WebUI → existing owned server RPC</text><text x="658" y="667" class="small">366 × 210 card host; ammo updates retain skill pointer handlers.</text>
+  <rect x="40" y="706" width="1200" height="136" rx="12" class="box"/><text x="60" y="737" class="h gold">VALIDATION</text><text x="60" y="766" class="body">Development build · native UI 5/5 · RoleBattle 233/233 · browser fixture 30/30</text><text x="60" y="794" class="small">Browser tests use shipped HTML with mock transport, including 12-shot exhaustion, R/button, scope and reconnect.</text><text x="60" y="822" class="small">Live DebugGame not replaced; rebuild/restart required. External review awaits transmission approval.</text>
+</svg>

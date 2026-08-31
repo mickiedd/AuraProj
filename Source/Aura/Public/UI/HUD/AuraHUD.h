@@ -24,6 +24,8 @@ class UWebUIWidget;
 class UTexture2D;
 class UAuraMerchantComponent;
 struct FAuraInventorySlot;
+struct FAuraFirearmState;
+class FJsonObject;
 /**
  * 
  */
@@ -51,6 +53,8 @@ public:
 	int32 GetWebHudForwardedActionCount() const { return WebHudForwardedActionCount; }
 
 	void ToggleLocationDisplay();
+	/** Pure owner-HUD projection; does not mutate ammunition or complete a reload. */
+	static TSharedRef<FJsonObject> BuildFirearmStatePayload(const FAuraFirearmState& State, FName RoleId, bool bAlive);
 
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

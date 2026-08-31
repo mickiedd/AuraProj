@@ -677,10 +677,25 @@ void AAuraHUD::SendFirearmStateToWebUI()
 	const AAuraPlayerController* PC = Cast<AAuraPlayerController>(GetOwningPlayerController());
 	const AAuraPlayerState* PS = PC ? PC->GetPlayerState<AAuraPlayerState>() : nullptr;
 	if (!PS) return;
-	const FAuraFirearmState& State = PS->GetFirearmState();
+	const UAuraCombatStateComponent* Life = UAuraCombatStateComponent::FindForActor(PC->GetPawn());
+	WebUIBridge->SendEvent(TEXT("hud_firearm"), AuraHUDPrivate::SerializeObject(
+		BuildFirearmStatePayload(PS->GetFirearmState(), PS->GetRole(), Life && Life->IsAlive())));
+}
+
+TSharedRef<FJsonObject> AAuraHUD::BuildFirearmStatePayload(const FAuraFirearmState& State, FName RoleId, bool bAlive)
+{
+	const bool bApplicable = State.bApplicable && RoleId == TEXT("BungeeMan");
+	const bool bCanReload = bApplicable && bAlive && !State.bReloading
+		&& State.MagazineRounds < State.MagazineCapacity && State.ReserveRounds > 0;
+	const TCHAR* DisplayState = !bApplicable ? TEXT("NotApplicable") : !bAlive ? TEXT("Unavailable")
+		: State.bReloading ? TEXT("Reloading") : State.MagazineRounds > 0 ? TEXT("Ready")
+		: State.ReserveRounds > 0 ? TEXT("EmptyMagazine") : TEXT("OutOfAmmo");
 	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
-	Payload->SetBoolField(TEXT("applicable"), State.bApplicable);
-	Payload->SetStringField(TEXT("state"), !State.bApplicable ? TEXT("NotApplicable") : State.bReloading ? TEXT("Reloading") : State.MagazineRounds > 0 ? TEXT("Ready") : TEXT("EmptyMagazine"));
+	Payload->SetBoolField(TEXT("applicable"), bApplicable);
+	Payload->SetStringField(TEXT("roleId"), RoleId.ToString());
+	Payload->SetStringField(TEXT("abilityTag"), bApplicable ? TEXT("Abilities.Gun.Fire") : TEXT(""));
+	Payload->SetStringField(TEXT("inputTag"), bApplicable ? TEXT("InputTag.LMB") : TEXT(""));
+	Payload->SetStringField(TEXT("state"), DisplayState);
 	Payload->SetNumberField(TEXT("magazineRounds"), State.MagazineRounds);
 	Payload->SetNumberField(TEXT("magazineCapacity"), State.MagazineCapacity);
 	Payload->SetNumberField(TEXT("reserveRounds"), State.ReserveRounds);
@@ -689,9 +704,12 @@ void AAuraHUD::SendFirearmStateToWebUI()
 	Payload->SetNumberField(TEXT("reloadSerial"), State.ReloadSerial);
 	Payload->SetNumberField(TEXT("reloadDuration"), State.ReloadDuration);
 	Payload->SetStringField(TEXT("fireMode"), State.FireMode.ToString());
-	Payload->SetBoolField(TEXT("canFire"), State.bApplicable && !State.bReloading && State.MagazineRounds > 0);
-	Payload->SetStringField(TEXT("unavailableReason"), !State.bApplicable ? TEXT("Not applicable to Aura") : State.bReloading ? TEXT("Reloading") : State.MagazineRounds <= 0 ? TEXT("Magazine empty") : TEXT(""));
-	WebUIBridge->SendEvent(TEXT("hud_firearm"), AuraHUDPrivate::SerializeObject(Payload));
+	Payload->SetBoolField(TEXT("canFire"), bApplicable && bAlive && !State.bReloading && State.MagazineRounds > 0);
+	Payload->SetBoolField(TEXT("canReload"), bCanReload);
+	Payload->SetStringField(TEXT("unavailableReason"), !bApplicable ? TEXT("Not applicable to Aura") : !bAlive ? TEXT("Cannot fire or reload while recovering")
+		: State.bReloading ? TEXT("Reloading - wait for completion") : State.MagazineRounds <= 0
+		? (State.ReserveRounds > 0 ? TEXT("Magazine empty - press R to reload") : TEXT("Out of ammo - no reserve rounds")) : TEXT(""));
+	return Payload;
 }
 
 void AAuraHUD::SendTutorialStateToWebUI()
@@ -764,6 +782,8 @@ void AAuraHUD::SendRoleStateToWebUI()
 	if (PayloadJson == LastRoleStatePayloadJson) return;
 	LastRoleStatePayloadJson = PayloadJson;
 	WebUIBridge->SendEvent(TEXT("hud_role_state"), PayloadJson);
+	// Life/role transitions must also refresh firearm availability, even without an ammo change.
+	SendFirearmStateToWebUI();
 }
 
 void AAuraHUD::SendBattleStateToWebUI()

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="770" viewBox="0 0 1200 770" role="img" aria-labelledby="title desc">
+  <title id="title">FireGun reload HUD: verified in rebuilt DebugGame</title>
+  <desc id="desc">The live check found Unreal LoadString removes line breaks, causing line comments to disable HUD scripts, and small DPI-scaled panels clipped reload controls. Block comments and a compact gun card fix those issues. Actual firing, R reload, button reload and authoritative ammunition updates were verified.</desc>
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#86c7e8" stroke-width="1.5"/></marker></defs>
+  <style>text{font-family:Segoe UI,Arial,sans-serif;fill:#eaf2fc}.title{font-size:29px;font-weight:700}.head{font-size:20px;font-weight:700}.body{font-size:17px}.small{font-size:15px;fill:#b0c4dd}.gold{fill:#ffda86}.cyan{fill:#86e0fa}.orange{fill:#ffae97}.box{fill:#192c43;stroke:#3b5674;stroke-width:1.5}.arrow{fill:none;stroke:#86c7e8;stroke-width:2;marker-end:url(#a)}</style>
+  <rect width="1200" height="770" fill="#0b1828"/>
+  <text x="36" y="48" class="title">FireGun reload HUD · now verified in DebugGame</text>
+  <text x="36" y="78" class="small">2026-08-31 · BungeeMan LMB only · editor and manager-owned dedicated server relaunched</text>
+  <rect x="36" y="105" width="550" height="174" rx="12" class="box"/>
+  <text x="56" y="136" class="head orange">BEFORE · live-only failures</text>
+  <text x="56" y="167" class="body">Source updated; running DebugGame binary was old.</text>
+  <text x="56" y="197" class="body">LoadString removes CR/LF → // swallows later script.</text>
+  <text x="56" y="227" class="body">Small DPI-scaled panel → ammo / Reload clipped.</text>
+  <text x="56" y="256" class="small">A normal browser fixture did not model these conditions.</text>
+  <rect x="614" y="105" width="550" height="174" rx="12" class="box"/>
+  <text x="634" y="136" class="head cyan">AFTER · engine-compatible presentation</text>
+  <text x="634" y="167" class="body">Build DebugGame → restart → reload current HTML.</text>
+  <text x="634" y="197" class="body">Use /* block comments */ → scripts survive loading.</text>
+  <text x="634" y="227" class="body">Compact gun card sits above the existing menu row.</text>
+  <text x="634" y="256" class="small">No larger input surface, auto-reload, or ammo-rule change.</text>
+  <text x="36" y="319" class="head gold">ACTUAL CLIENT + SERVER SEQUENCE</text>
+  <rect x="36" y="340" width="254" height="134" rx="10" class="box"/><text x="54" y="370" class="head">FIRE</text><text x="54" y="402" class="body">12 / 12 → 11 / 12</text><text x="54" y="430" class="small">Reserve 48 · R enabled</text><text x="54" y="453" class="small">Server accepted shot.</text>
+  <path d="M297 408H323" class="arrow"/>
+  <rect x="330" y="340" width="254" height="134" rx="10" class="box"/><text x="348" y="370" class="head cyan">PRESS R</text><text x="348" y="402" class="body">Reloading…</text><text x="348" y="430" class="small">11 / 12 stays unchanged.</text><text x="348" y="453" class="small">Reload button disabled.</text>
+  <path d="M591 408H617" class="arrow"/>
+  <rect x="624" y="340" width="254" height="134" rx="10" class="box"/><text x="642" y="370" class="head cyan">SERVER COMPLETES</text><text x="642" y="402" class="body">12 / 12 · reserve 47</text><text x="642" y="430" class="small">Ready · firing works again.</text><text x="642" y="453" class="small">No optimistic client refill.</text>
+  <path d="M885 408H911" class="arrow"/>
+  <rect x="918" y="340" width="246" height="134" rx="10" class="box"/><text x="936" y="370" class="head">BUTTON CHECK</text><text x="936" y="402" class="body">Fire → click Reload</text><text x="936" y="430" class="small">Reloading → 12 / 12</text><text x="936" y="453" class="small">Reserve 46 · server verified</text>
+  <rect x="36" y="500" width="1128" height="110" rx="12" class="box"/>
+  <text x="56" y="532" class="head gold">REGRESSION COVERAGE</text>
+  <text x="56" y="561" class="body">DebugGame build PASS · native HUD 5/5 · RoleBattle 233/233 · browser fixture 38/38</text>
+  <text x="56" y="588" class="small">Fixture now strips CR/LF like UE; tests both 366 × 210 and 196 × 112 gun-panel layouts.</text>
+  <rect x="36" y="633" width="1128" height="101" rx="12" class="box"/>
+  <text x="56" y="662" class="head cyan">SCOPE AND EVIDENCE</text>
+  <text x="56" y="690" class="small">Live checks: partial-magazine reload via R and button, post-reload firing. Empty/no-reserve: fixture + native tests.</text>
+  <text x="56" y="715" class="small">External review pending transmission approval; local fallback documented. Earlier change archives remain unchanged.</text>
+</svg>

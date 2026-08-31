@@ -4,9 +4,12 @@
 
 #include "Actor/AuraEffectActor.h"
 #include "Actor/AuraFireBall.h"
+#include "Actor/AuraBullet.h"
 #include "Actor/AuraProjectile.h"
 #include "Components/BoxComponent.h"
+#include "Components/DecalComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Data/AuraGameplayConfig.h"
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "AuraAbilityGraph/Public/Nodes/Actions/PlayMontageNode.h"
@@ -22,6 +25,120 @@
 #include "NiagaraSystem.h"
 #include "Sound/SoundBase.h"
 #include "UObject/UnrealType.h"
+#include "UObject/UObjectIterator.h"
+#include "Tests/Fixtures/AuraBulletPresentationTestActor.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraBulletPresentationTest,
+	"Aura.Projectiles.FireGunPresentation",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraBulletPresentationTest::RunTest(const FString& Parameters)
+{
+	UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+	if (!TestNotNull(TEXT("Isolated projectile world"), World)) return false;
+	GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+	// Native RPC dispatch uses ProcessEvent, which requires initialized actors.
+	World->InitializeActorsForPlay(FURL());
+	const auto Cleanup = [&]()
+	{
+		World->DestroyWorld(false);
+		GEngine->DestroyWorldContext(World);
+	};
+	const FAuraProjectileDefinition* Definition = FAuraGameplayConfig::FindProjectile(TEXT("fireGunBullet"));
+	if (!TestNotNull(TEXT("Bullet definition"), Definition))
+	{
+		Cleanup();
+		return false;
+	}
+	FActorSpawnParameters Params;
+	Params.ObjectFlags |= RF_Transient;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	const auto SpawnBullet = [&]()
+	{
+		const FTransform SpawnTransform(FVector(500.f, 0.f, 0.f));
+		AAuraBulletPresentationTestActor* Bullet = World->SpawnActorDeferred<AAuraBulletPresentationTestActor>(
+			AAuraBulletPresentationTestActor::StaticClass(), SpawnTransform, nullptr, nullptr,
+			ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		if (Bullet)
+		{
+			Bullet->ConfigureFromDefinition(TEXT("fireGunBullet"));
+			Bullet->FinishSpawning(SpawnTransform);
+			Bullet->DispatchBeginPlay();
+		}
+		return Bullet;
+	};
+	const auto GetMarks = [&]()
+	{
+		TArray<UDecalComponent*> Marks;
+		for (TObjectIterator<UDecalComponent> It; It; ++It)
+		{
+			if (IsValid(*It) && It->GetWorld() == World) Marks.Add(*It);
+		}
+		return Marks;
+	};
+
+	AAuraBulletPresentationTestActor* Bullet = SpawnBullet();
+	if (!TestNotNull(TEXT("Configured bullet spawns"), Bullet))
+	{
+		Cleanup();
+		return false;
+	}
+	TestEqual(TEXT("Definition lifetime survives BeginPlay"), Bullet->GetLifeSpan(), Definition->LifeSpan);
+	TestEqual(TEXT("Definition speed retained"), Bullet->ProjectileMovement->InitialSpeed, Definition->InitialSpeed);
+	TestTrue(TEXT("Deferred-spawn velocity initializes at the configured speed"),
+		FMath::IsNearlyEqual(Bullet->ProjectileMovement->Velocity.Size(), static_cast<double>(Definition->InitialSpeed)));
+	TArray<UStaticMeshComponent*> Meshes;
+	Bullet->GetComponents(Meshes);
+	bool bHasTracer = false;
+	for (const UStaticMeshComponent* Mesh : Meshes)
+	{
+		if (Mesh->GetStaticMesh() == Definition->TracerMesh.ResolveObject())
+		{
+			bHasTracer = true;
+			TestTrue(TEXT("Tracer scale comes from definition"), Mesh->GetRelativeScale3D().Equals(Definition->MeshScale));
+		}
+	}
+	TestTrue(TEXT("Configured tracer mesh is attached"), bHasTracer);
+
+	AActor* Wall = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform::Identity, Params);
+	FHitResult Hit;
+	Hit.bBlockingHit = true;
+	Hit.ImpactPoint = FVector::ZeroVector;
+	Hit.ImpactNormal = FVector::ForwardVector;
+	Bullet->OnSphereHit(Bullet->GetSphereComponent(), Wall, nullptr, FVector::ZeroVector, Hit);
+	TArray<UDecalComponent*> Marks = GetMarks();
+	TestEqual(TEXT("Blocking hit creates exactly one mark"), Marks.Num(), 1);
+	if (Marks.Num() == 1)
+	{
+		TestTrue(TEXT("World-origin hit is not replaced with projectile center"), Marks[0]->GetComponentLocation().Equals(FVector(0.5f, 0.f, 0.f)));
+		TestTrue(TEXT("Projection axis points into wall"), Marks[0]->GetForwardVector().Equals(-FVector::ForwardVector));
+		TestTrue(TEXT("Mark remains registered after bullet destruction"), Marks[0]->IsRegistered());
+		TestTrue(TEXT("Mark ownership is independent of bullet"), Marks[0]->GetOwner() != Bullet);
+	}
+	TestTrue(TEXT("Authority destroys the impacted bullet"), Bullet->IsActorBeingDestroyed());
+
+	AAuraBulletPresentationTestActor* OverlapBullet = SpawnBullet();
+	if (TestNotNull(TEXT("Overlap bullet spawns"), OverlapBullet))
+	{
+		OverlapBullet->DeliverOverlap();
+		TestEqual(TEXT("Authority overlap does not create a wall mark"), GetMarks().Num(), 1);
+	}
+	AAuraBulletPresentationTestActor* ClientBullet = SpawnBullet();
+	if (TestNotNull(TEXT("Client bullet spawns"), ClientBullet))
+	{
+		ClientBullet->UseClientRole();
+		ClientBullet->DeliverOverlap();
+		ClientBullet->OnSphereHit(ClientBullet->GetSphereComponent(), Wall, nullptr, FVector::ZeroVector, Hit);
+		TestEqual(TEXT("Predicted client hits create no persistent marks"), GetMarks().Num(), 1);
+		ClientBullet->DeliverServerImpact(FVector(0.f, 100.f, 0.f), FVector::UpVector, true);
+		TestEqual(TEXT("Server surface impact still creates a mark after predicted hits"), GetMarks().Num(), 2);
+		ClientBullet->DeliverServerImpact(FVector(0.f, 100.f, 0.f), FVector::UpVector, true);
+		TestEqual(TEXT("Repeated delivery is deduplicated"), GetMarks().Num(), 2);
+	}
+	Cleanup();
+	return true;
+}
 
 static void CollectAbilityGraphNodes(const UAuraAbilityActionNode* Node, TArray<const UAuraAbilityActionNode*>& OutNodes)
 {
@@ -116,7 +233,7 @@ bool FAuraProjectileDefinitionsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("FireBall uses native fireball class"), FireBall->NativeClass.Get(), AAuraFireBall::StaticClass());
 	TestEqual(TEXT("FireBall outbound distance retained"), FireBall->OutboundDistance, 800.f);
 	TestEqual(TEXT("FireBall return threshold retained"), FireBall->ReturnDistance, 150.f);
-	TestEqual(TEXT("FireGunBullet uses native projectile class"), FireGunBullet->NativeClass.Get(), AAuraProjectile::StaticClass());
+	TestEqual(TEXT("FireGunBullet uses native bullet class"), FireGunBullet->NativeClass.Get(), AAuraBullet::StaticClass());
 	TestEqual(TEXT("FireGunBullet measured speed retained"), FireGunBullet->InitialSpeed, 550.f);
 	TestEqual(TEXT("FireGunBullet measured radius retained"), FireGunBullet->CollisionRadius, 15.f);
 	TestNull(TEXT("FireBall no longer exposes Blueprint timeline event"), AAuraFireBall::StaticClass()->FindFunctionByName(TEXT("StartOutgoingTimeline")));

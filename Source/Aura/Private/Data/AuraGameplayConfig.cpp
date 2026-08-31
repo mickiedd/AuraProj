@@ -315,14 +315,27 @@ namespace AuraGameplayConfigPrivate
 			FString Path;
 			if (Object->TryGetStringField(TEXT("mesh"), Path)) Definition.Mesh = FSoftObjectPath(Path);
 			ReadVector(Object, TEXT("meshScale"), Definition.MeshScale);
+			if (Object->TryGetStringField(TEXT("tracerMesh"), Path)) Definition.TracerMesh = FSoftObjectPath(Path);
 			if (Object->TryGetStringField(TEXT("flightTrail"), Path)) Definition.FlightTrail = FSoftObjectPath(Path);
+			if (Object->TryGetStringField(TEXT("flightParticle"), Path)) Definition.FlightParticle = FSoftObjectPath(Path);
 			if (Object->TryGetStringField(TEXT("impactEffect"), Path)) Definition.ImpactEffect = FSoftObjectPath(Path);
+			if (Object->TryGetStringField(TEXT("impactParticle"), Path)) Definition.ImpactParticle = FSoftObjectPath(Path);
 			if (Object->TryGetStringField(TEXT("impactSound"), Path)) Definition.ImpactSound = FSoftObjectPath(Path);
 			if (Object->TryGetStringField(TEXT("loopingSound"), Path)) Definition.LoopingSound = FSoftObjectPath(Path);
+			if (Object->TryGetStringField(TEXT("surfaceMarkMaterial"), Path)) Definition.SurfaceMarkMaterial = FSoftObjectPath(Path);
+			if (Object->TryGetNumberField(TEXT("surfaceMarkSize"), Number)) Definition.SurfaceMarkSize = Number;
+			if (Object->TryGetNumberField(TEXT("surfaceMarkLifeSpan"), Number)) Definition.SurfaceMarkLifeSpan = Number;
+			if (Definition.SurfaceMarkSize <= 0.f || Definition.SurfaceMarkLifeSpan < 0.f)
+			{
+				OutError = FString::Printf(TEXT("Projectile '%s' has an invalid surface mark range"), *Pair.Key);
+				return false;
+			}
 			const FString Context = FString::Printf(TEXT("Projectile '%s'"), *Pair.Key);
-			if (!ValidateAssetPath(Definition.Mesh, Context, OutError) || !ValidateAssetPath(Definition.FlightTrail, Context, OutError) ||
-				!ValidateAssetPath(Definition.ImpactEffect, Context, OutError) || !ValidateAssetPath(Definition.ImpactSound, Context, OutError) ||
-				!ValidateAssetPath(Definition.LoopingSound, Context, OutError)) return false;
+			if (!ValidateAssetPath(Definition.Mesh, Context, OutError) || !ValidateAssetPath(Definition.TracerMesh, Context, OutError) ||
+				!ValidateAssetPath(Definition.FlightTrail, Context, OutError) ||
+				!ValidateAssetPath(Definition.FlightParticle, Context, OutError) || !ValidateAssetPath(Definition.ImpactEffect, Context, OutError) ||
+				!ValidateAssetPath(Definition.ImpactParticle, Context, OutError) || !ValidateAssetPath(Definition.ImpactSound, Context, OutError) ||
+				!ValidateAssetPath(Definition.LoopingSound, Context, OutError) || !ValidateAssetPath(Definition.SurfaceMarkMaterial, Context, OutError)) return false;
 			Target.Projectiles.Add(Definition.Name, MoveTemp(Definition));
 		}
 		return true;

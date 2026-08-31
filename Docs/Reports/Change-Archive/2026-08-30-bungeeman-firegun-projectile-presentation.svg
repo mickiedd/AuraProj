@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">Bungeeman FireGun projectile presentation fix</title>
+  <desc id="desc">Before and after flow showing the generic projectile being replaced by a configured bullet with flight and surface impact presentation.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#8ea7c7"/></marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity="0.22"/></filter>
+    <style>
+      .bg{fill:#0b1220}.panel{fill:#121d30;stroke:#2a4160;stroke-width:2}.before{fill:#241b27;stroke:#a66379;stroke-width:2}.after{fill:#142a2b;stroke:#4eaf9b;stroke-width:2}.test{fill:#18233a;stroke:#6686b6;stroke-width:2}.text{font-family:Arial,sans-serif;fill:#e8f0fa}.muted{font-family:Arial,sans-serif;fill:#a9bad0}.small{font-size:19px}.body{font-size:22px}.head{font-size:28px;font-weight:700}.title{font-size:38px;font-weight:700}.chip{font-family:Arial,sans-serif;font-size:18px;font-weight:700;fill:#071018}.line{stroke:#8ea7c7;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1400" height="900"/>
+  <text class="text title" x="60" y="70">Bungeeman LMB FireGun — projectile presentation repair</text>
+  <text class="muted body" x="60" y="108">The existing hit/damage path was working; the spawned class and surface-impact data were not.</text>
+
+  <rect class="panel" x="50" y="145" width="410" height="555" rx="18" filter="url(#shadow)"/>
+  <text class="text head" x="80" y="195">Before: runtime evidence</text>
+  <rect class="before" x="80" y="235" width="350" height="82" rx="12"/>
+  <text class="text body" x="105" y="268">FireGun.xml</text>
+  <text class="muted small" x="105" y="296">LMB → SpawnProjectile</text>
+  <path class="line" d="M255 317 L255 350"/>
+  <rect class="before" x="80" y="360" width="350" height="115" rx="12"/>
+  <text class="text body" x="105" y="398">fireGunBullet</text>
+  <text class="muted small" x="105" y="428">nativeClass = AAuraProjectile</text>
+  <text class="muted small" x="105" y="454">no tracer / impact / mark assets</text>
+  <path class="line" d="M255 475 L255 508"/>
+  <rect class="before" x="80" y="518" width="350" height="130" rx="12"/>
+  <text class="text body" x="105" y="556">Wall block + destroy</text>
+  <text class="muted small" x="105" y="587">logs showed Hit(block), OnHit,</text>
+  <text class="muted small" x="105" y="614">Destroyed — but no visible bullet</text>
+  <text class="muted small" x="105" y="638">flight or wall mark.</text>
+
+  <path class="line" d="M460 420 L484 420 M582 420 L607 420"/>
+  <rect class="test" x="487" y="350" width="95" height="140" rx="12"/>
+  <text class="text body" x="505" y="389">Fix</text>
+  <text class="muted small" x="500" y="424">data +</text>
+  <text class="muted small" x="500" y="452">surface</text>
+  <text class="muted small" x="500" y="480">normal</text>
+
+  <rect class="panel" x="610" y="145" width="410" height="555" rx="18" filter="url(#shadow)"/>
+  <text class="text head" x="640" y="195">After: configured bullet</text>
+  <rect class="after" x="640" y="235" width="350" height="82" rx="12"/>
+  <text class="text body" x="665" y="268">fireGunBullet</text>
+  <text class="muted small" x="665" y="296">nativeClass = AAuraBullet</text>
+  <path class="line" d="M815 317 L815 350"/>
+  <rect class="after" x="640" y="360" width="350" height="115" rx="12"/>
+  <text class="text body" x="665" y="398">Flight presentation</text>
+  <text class="muted small" x="665" y="428">St_Tracer_A mesh</text>
+  <text class="muted" font-size="17" x="665" y="454">P_AssaultRifle_Tracer_01 attached</text>
+  <path class="line" d="M815 475 L815 508"/>
+  <rect class="after" x="640" y="518" width="350" height="130" rx="12"/>
+  <text class="text body" x="665" y="556">Surface impact</text>
+  <text class="muted small" x="665" y="587">ImpactPoint + ImpactNormal</text>
+  <text class="muted small" x="665" y="614">replicated; particle + rifle cue</text>
+  <text class="muted small" x="665" y="638">M_BulletHoleClean deferred decal</text>
+
+  <path class="line" d="M1020 420 L1044 420 M1142 420 L1167 420"/>
+  <rect class="test" x="1047" y="350" width="95" height="140" rx="12"/>
+  <text class="text body" x="1062" y="389">Gate</text>
+  <text class="muted small" x="1058" y="424">build</text>
+  <text class="muted small" x="1058" y="452">assets</text>
+  <text class="muted small" x="1058" y="480">tests</text>
+
+  <rect class="panel" x="1170" y="145" width="180" height="555" rx="18" filter="url(#shadow)"/>
+  <text class="text head" x="1195" y="195">Validated</text>
+  <rect x="1195" y="240" width="130" height="42" rx="21" fill="#67d6ac"/><text class="chip" x="1224" y="268">BUILD</text>
+  <text class="muted small" x="1195" y="320">AuraEditor</text>
+  <text class="muted small" x="1195" y="347">Dev + Debug</text>
+  <rect x="1195" y="380" width="130" height="42" rx="21" fill="#67d6ac"/><text class="chip" x="1230" y="408">TESTS</text>
+  <text class="muted small" x="1195" y="460">Day1Catalog</text>
+  <text class="muted small" x="1195" y="487">Impact fixture</text>
+  <rect x="1195" y="520" width="130" height="42" rx="21" fill="#67d6ac"/><text class="chip" x="1231" y="548">STATIC</text>
+  <text class="muted small" x="1195" y="600">JSON + source</text>
+  <text class="muted small" x="1195" y="627">contract checks</text>
+
+  <rect class="after" x="50" y="720" width="1300" height="110" rx="14"/>
+  <text class="text body" x="75" y="753">Guards: server-confirmed terminal impact; predicted collisions cannot suppress the wall mark.</text>
+  <text class="muted small" x="75" y="783">Wall block → oriented decal     |     Pawn overlap → impact FX only     |     Definition lifetime stays 15 seconds</text>
+  <text class="muted small" x="75" y="812">Runtime fixture checks creation, persistence, world-origin hits and deduplication; damage remains authority-owned.</text>
+  <text class="muted small" x="60" y="872">Verification boundary: headless component behavior is covered; live multiplayer rendering and packaged play remain unverified.</text>
+</svg>

@@ -54,11 +54,13 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnHit();
+	virtual void OnHitAtSurface(const FVector& ImpactLocation, const FVector& ImpactNormal);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastPlayImpactEffects(const FVector_NetQuantize& ImpactLocation);
+	void MulticastPlayImpactEffects(const FVector_NetQuantize& ImpactLocation, const FVector_NetQuantizeNormal& ImpactNormal, bool bSurfaceImpact);
 
 	virtual void PlayImpactEffects(const FVector& ImpactLocation);
+	virtual void PlayImpactEffectsAtSurface(const FVector& ImpactLocation, const FVector& ImpactNormal);
 	virtual void Destroyed() override;
 
 	UFUNCTION()
@@ -67,6 +69,8 @@ protected:
 	// Shared impact resolution: plays the impact effect and, on authority, applies damage to the
 	// hit actor (if it has an ASC and is hostile) and destroys the projectile.
 	void ApplyImpactAndDestroy(AActor* OtherActor);
+	void ApplySurfaceImpactAndDestroy(AActor* OtherActor, const FVector& ImpactLocation, const FVector& ImpactNormal);
+	void ApplyDamageAndDestroy(AActor* OtherActor);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USphereComponent> Sphere;

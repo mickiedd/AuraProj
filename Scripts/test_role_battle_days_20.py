@@ -54,6 +54,30 @@ def test_firegun_active_path_and_compatibility_are_explicit() -> None:
     assert contains("Content/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/GA_FireGun.snapshot.json", "/Script/Aura.AuraFireGun")
 
 
+def test_firegun_projectile_presentation_contract_is_complete() -> None:
+    projectile_config = json.loads(read("Content/Config/ProjectileDefinitions.json"))["projectiles"]["fireGunBullet"]
+    assert projectile_config["nativeClass"] == "/Script/Aura.AuraBullet"
+    assert projectile_config["tracerMesh"] == "/Game/MilitaryWeapDark/FX/Meshes/St_Tracer_A.St_Tracer_A"
+    assert projectile_config["flightParticle"] == "/Game/MilitaryWeapDark/FX/P_AssaultRifle_Tracer_01.P_AssaultRifle_Tracer_01"
+    assert projectile_config["impactParticle"] == "/Game/MilitaryWeapDark/FX/P_Impact_Stone_Medium_01.P_Impact_Stone_Medium_01"
+    assert projectile_config["impactSound"] == "/Game/MilitaryWeapDark/Sound/Rifle/Rifle_ImpactSurface_Cue.Rifle_ImpactSurface_Cue"
+    assert projectile_config["surfaceMarkMaterial"] == "/Game/Assets/Effects/Combat/M_BulletHoleClean.M_BulletHoleClean"
+    assert projectile_config["surfaceMarkSize"] > 0 and projectile_config["surfaceMarkLifeSpan"] > 0
+    require("Content/Assets/Effects/Combat/M_BulletHoleClean.uasset")
+
+    bullet_source = read("Source/Aura/Private/Actor/AuraBullet.cpp")
+    projectile_source = read("Source/Aura/Private/Actor/AuraProjectile.cpp")
+    assert all(token in bullet_source for token in [
+        "Definition.TracerMesh.TryLoad()", "Definition.FlightParticle.TryLoad()",
+        "Definition.ImpactParticle.TryLoad()", "SpawnEmitterAttached",
+        "SpawnDecalAtLocation", "ImpactNormal",
+    ])
+    assert all(token in projectile_source for token in [
+        "FVector_NetQuantizeNormal", "Hit.ImpactPoint", "Hit.ImpactNormal",
+        "ApplySurfaceImpactAndDestroy",
+    ])
+
+
 def test_shipping_mutation_surface_is_removed_or_guarded() -> None:
     controller = read("Source/Aura/Private/Player/AuraPlayerController.cpp")
     header = read("Source/Aura/Public/Player/AuraPlayerController.h")
