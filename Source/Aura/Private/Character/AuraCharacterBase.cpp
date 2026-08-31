@@ -307,6 +307,9 @@ FAuraRoleApplicationResult AAuraCharacterBase::ApplyRolePresentationFromDefiniti
 
 void AAuraCharacterBase::ClearRoleRuntimeState()
 {
+	// Detach while the old body/socket is still valid. Clearing the parent mesh
+	// first makes child transform updates query a socket on an empty mesh.
+	Weapon->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 	GetMesh()->SetAnimInstanceClass(nullptr);
 	GetMesh()->SetSkeletalMeshAsset(nullptr);
 	Weapon->SetSkeletalMeshAsset(nullptr);

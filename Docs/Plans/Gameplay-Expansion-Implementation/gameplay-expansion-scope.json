@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "kind": "GameplayExpansionScope",
+  "scopeRevision": "gameplay-expansion-v1-draft",
+  "phase": "Draft",
+  "gameplayProfile": "GameplayExpansionV1",
+  "canonicalMap": "/Game/Maps/StartupMap",
+  "mapAlias": "RoleBattleCivilianTest",
+  "sourceRevisionAtFreeze": null,
+  "legacyScope": {
+    "path": "Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json",
+    "sha256": "ace22525b11b7e1ab3f681c9676da4609dae94f57c777bc4d456846035365b5a"
+  },
+  "legacyContentManifest": {
+    "path": "Content/Config/PlayableCandidateManifest.json",
+    "sha256": "01760b1d8a543d1dfb78cdd15fb62b0ad037dea6e77f29fc63c9dd41ca1a5ff5"
+  },
+  "features": {
+    "roles": ["Aura", "BungeeMan"],
+    "missionTemplates": ["Assault", "RescueRelay", "Sabotage"],
+    "enemyArchetypes": ["Raider", "Lancer", "Bulwark", "Disruptor"],
+    "augments": ["quick_step", "guarded_step", "steady_hands", "field_medic", "forked_spark", "ember_ring", "fast_cycle", "wide_trap"],
+    "mutators": ["RestlessPatrols", "VolatileVents"],
+    "arenaArrangements": 2,
+    "combatCellsPerRun": 2,
+    "augmentChoicesPerRun": 2,
+    "offersPerChoice": 3,
+    "captainBosses": 1,
+    "masteryBadges": 3
+  },
+  "lanes": [
+    {"id": "S-A", "topology": "Standalone", "roles": ["Aura"]},
+    {"id": "S-B", "topology": "Standalone", "roles": ["BungeeMan"]},
+    {"id": "L-AA", "topology": "Listen", "roles": ["Aura", "Aura"]},
+    {"id": "L-BB", "topology": "Listen", "roles": ["BungeeMan", "BungeeMan"]},
+    {"id": "L-AB", "topology": "Listen", "roles": ["Aura", "BungeeMan"]},
+    {"id": "L-BA", "topology": "Listen", "roles": ["BungeeMan", "Aura"]},
+    {"id": "D-AA", "topology": "Dedicated", "roles": ["Aura", "Aura"]},
+    {"id": "D-BB", "topology": "Dedicated", "roles": ["BungeeMan", "BungeeMan"]},
+    {"id": "D-AB", "topology": "Dedicated", "roles": ["Aura", "BungeeMan"]}
+  ],
+  "seeds": {"Core": [41001, 41002, 41003], "Fault": 41999},
+  "authority": {
+    "profileSelection": "server-only",
+    "rewardSettlement": "server-exactly-once",
+    "runState": "transient-authority",
+    "persistentProfile": "hub-snapshot-isolated",
+    "missionAi": "single-UE-behavior-tree-owner"
+  },
+  "budgets": {
+    "classification": "acceptance-targets-not-measurements",
+    "resolution": [1920, 1080],
+    "quality": "Medium",
+    "serverHz": 30,
+    "serverGameThreadP95Ms": 25,
+    "serverGameThreadP99Ms": 33.3,
+    "clientFrameP95Ms": 22,
+    "clientFrameP99Ms": 33.3,
+    "schedulingP95Ms": 2,
+    "outboundP95KiBps": 100,
+    "outboundGrowthLimitPercent": 25,
+    "memoryGrowthLimitPercent": 5,
+    "warmupSeconds": 300,
+    "sampleSeconds": 600,
+    "sampleRepeats": 3,
+    "maxHostilesSolo": 10,
+    "maxHostilesCoop": 16,
+    "runCapSeconds": 1200
+  },
+  "baselineEvidence": null,
+  "hardware": null,
+  "baselineObservations": null,
+  "baselineTrace": null,
+  "anchorSurvey": null,
+  "blockers": [
+    {"reasonCode": "DAY40_PACKAGED_EVIDENCE_MISSING", "description": "No qualifying immutable Day 40 four-lane package and ten-cycle soak bundle has been supplied."},
+    {"reasonCode": "SHIPPING_OPERATIONS_MISSING", "description": "Inherited Shipping identity and second-developer operational evidence remain unverified."},
+    {"reasonCode": "BASELINE_OBSERVATIONS_MISSING", "description": "Both-role measured baseline observations and a bound trace have not been collected."},
+    {"reasonCode": "HARDWARE_MEASUREMENT_MISSING", "description": "Reference hardware and rendered settings have not been measured for this baseline."},
+    {"reasonCode": "ANCHOR_SURVEY_UNVERIFIED", "description": "StartupMap navigation, collision, safe-zone and usable-anchor survey evidence is absent."},
+    {"reasonCode": "VALIDATOR_CAPABILITY_MISSING", "description": "Build provenance, cooked-container contents, public-input checkpoint semantics, soak isolation/metrics, Shipping operations/identity and engine-survey readers remain unsupported. ZIP inventory, rendered-capture integrity and attributed human-review readers are implemented; their real inputs remain missing."}
+  ]
+}

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1250" viewBox="0 0 1440 1250" role="img" aria-labelledby="title desc">
+<title id="title">AuraProj Days 41–60: from a working loop to replayable gameplay</title>
+<desc id="desc">Planning-only change. Before: combat, economy and recovery exist but replay choices and packaged proof are limited. Planned: missions, enemy counterplay, role builds, rescue, supplies, boss and durable rewards. Separate run, encounter, combat and persistence owners, with technical, human and performance gates.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#0f766e"/></marker></defs>
+<rect width="1440" height="1250" fill="#f3f6f7"/>
+<g font-family="Segoe UI, Arial, sans-serif">
+<text x="40" y="56" font-size="34" fill="#132b3b" font-weight="700">AuraProj  /  Days 41–60</text>
+<text x="40" y="92" font-size="21" fill="#334155" font-weight="400">Make the next run worth playing: counterplay, shared objectives, build choices and a fair result.</text>
+<rect x="40" y="118" width="1360" height="48" rx="12" fill="#fff0cf" stroke="#d9ad53"/>
+<text x="60" y="149" font-size="19" fill="#785418" font-weight="600">ENTRY GUARD   Day 40 local packaged PASS is required. Current reports still contain blocked evidence.</text>
+<text x="40" y="205" font-size="21" fill="#475569" font-weight="700">BEFORE  /  inspected code and reports</text>
+<g><rect x="40" y="226" width="390" height="360" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/><text x="60" y="258" font-size="21" fill="#132b3b" font-weight="700">A usable foundation</text><text x="60" y="291" font-size="17" fill="#334155" font-weight="400">Attack → result → trade → recover</text>
+<text x="60" y="317" font-size="17" fill="#334155" font-weight="400">Aura spells; BungeeMan FireGun</text>
+<text x="60" y="343" font-size="17" fill="#334155" font-weight="400">Civilian population and zone rules</text>
+<text x="60" y="369" font-size="17" fill="#334155" font-weight="400">Persistent player state and WebUI</text>
+<text x="60" y="395" font-size="17" fill="#334155" font-weight="400"></text>
+<text x="60" y="421" font-size="17" fill="#334155" font-weight="400">Gaps to address</text>
+<text x="60" y="447" font-size="17" fill="#334155" font-weight="400">• Few mission / replay decisions</text>
+<text x="60" y="473" font-size="17" fill="#334155" font-weight="400">• Enemy AI ownership ambiguity</text>
+<text x="60" y="499" font-size="17" fill="#334155" font-weight="400">• Fixture reward is civilian-kill gold</text>
+<text x="60" y="525" font-size="17" fill="#334155" font-weight="400">• Packaged gates not fully proven</text></g>
+<text x="470" y="205" font-size="21" fill="#0f766e" font-weight="700">AFTER  /  proposed 12–18 minute expedition</text>
+<g><rect x="470" y="226" width="285" height="132" rx="16" fill="#e3f4ef" stroke="#81b8a8" stroke-width="1.5"/><text x="490" y="258" font-size="21" fill="#132b3b" font-weight="700">1  Choose</text><text x="490" y="291" font-size="17" fill="#334155" font-weight="400">3 mission templates</text>
+<text x="490" y="317" font-size="17" fill="#334155" font-weight="400">2 layouts; optional mutator</text></g>
+<g><rect x="790" y="226" width="285" height="132" rx="16" fill="#e3f4ef" stroke="#81b8a8" stroke-width="1.5"/><text x="810" y="258" font-size="21" fill="#132b3b" font-weight="700">2  Read and fight</text><text x="810" y="291" font-size="17" fill="#334155" font-weight="400">4 enemy counters + evade</text>
+<text x="810" y="317" font-size="17" fill="#334155" font-weight="400">Aura / BungeeMan combos</text></g>
+<g><rect x="1110" y="226" width="290" height="132" rx="16" fill="#e3f4ef" stroke="#81b8a8" stroke-width="1.5"/><text x="1130" y="258" font-size="21" fill="#132b3b" font-weight="700">3  Complete a job</text><text x="1130" y="291" font-size="17" fill="#334155" font-weight="400">Clear / escort / sabotage</text>
+<text x="1130" y="317" font-size="17" fill="#334155" font-weight="400">2 build choices; 8 augments</text></g>
+<path d="M 757 292 L 783 292" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/><path d="M 1077 292 L 1103 292" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/><path d="M 1250 362 L 1250 412" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<g><rect x="1110" y="421" width="290" height="140" rx="16" fill="#e3f4ef" stroke="#81b8a8" stroke-width="1.5"/><text x="1130" y="453" font-size="21" fill="#132b3b" font-weight="700">4  Prepare or risk</text><text x="1130" y="486" font-size="17" fill="#334155" font-weight="400">Supplies and optional cache</text>
+<text x="1130" y="512" font-size="17" fill="#334155" font-weight="400">Rescue; pressure / relief</text></g>
+<g><rect x="790" y="421" width="285" height="140" rx="16" fill="#e3f4ef" stroke="#81b8a8" stroke-width="1.5"/><text x="810" y="453" font-size="21" fill="#132b3b" font-weight="700">5  Prove mastery</text><text x="810" y="486" font-size="17" fill="#334155" font-weight="400">One captain; three patterns</text>
+<text x="810" y="512" font-size="17" fill="#334155" font-weight="400">Survive and extract</text></g>
+<g><rect x="470" y="421" width="285" height="140" rx="16" fill="#e3f4ef" stroke="#81b8a8" stroke-width="1.5"/><text x="490" y="453" font-size="21" fill="#132b3b" font-weight="700">6  Earn and replay</text><text x="490" y="486" font-size="17" fill="#334155" font-weight="400">One durable team settlement</text>
+<text x="490" y="512" font-size="17" fill="#334155" font-weight="400">Cosmetic mastery; debrief</text></g>
+<path d="M 1105 490 L 1083 490" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/><path d="M 786 490 L 763 490" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<text x="40" y="633" font-size="23" fill="#132b3b" font-weight="700">ARCHITECTURE  /  optimize ownership before increasing content</text>
+<g><rect x="40" y="658" width="435" height="172" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/><text x="60" y="690" font-size="21" fill="#132b3b" font-weight="700">Mission owns progress</text><text x="60" y="723" font-size="17" fill="#334155" font-weight="400">One run ID / epoch / revision</text>
+<text x="60" y="749" font-size="17" fill="#334155" font-weight="400">Objective reducers, entry and settlement</text>
+<text x="60" y="775" font-size="17" fill="#334155" font-weight="400">Public snapshot; private owner choices</text>
+<text x="60" y="801" font-size="17" fill="#334155" font-weight="400">GameMode stays a bootstrap / router</text></g>
+<g><rect x="500" y="658" width="440" height="172" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/><text x="520" y="690" font-size="21" fill="#132b3b" font-weight="700">Encounter owns threats</text><text x="520" y="723" font-size="17" fill="#334155" font-weight="400">Spawn leases and hard enemy budgets</text>
+<text x="520" y="749" font-size="17" fill="#334155" font-weight="400">One active AI driver per enemy</text>
+<text x="520" y="775" font-size="17" fill="#334155" font-weight="400">Battle rules still authorize all damage</text>
+<text x="520" y="801" font-size="17" fill="#334155" font-weight="400">Civilian manager retains civilian lifetime</text></g>
+<g><rect x="965" y="658" width="435" height="172" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/><text x="985" y="690" font-size="21" fill="#132b3b" font-weight="700">Profile owns durable value</text><text x="985" y="723" font-size="17" fill="#334155" font-weight="400">Run ammo / effects never leak into saves</text>
+<text x="985" y="749" font-size="17" fill="#334155" font-weight="400">Reconnect retains spent resources</text>
+<text x="985" y="775" font-size="17" fill="#334155" font-weight="400">Batch manifest commits payouts once</text>
+<text x="985" y="801" font-size="17" fill="#334155" font-weight="400">Legacy profile and evidence stay intact</text></g>
+<text x="40" y="878" font-size="23" fill="#132b3b" font-weight="700">20 LOGICAL GATES  /  three early playable checkpoints</text>
+<g><rect x="40" y="902" width="325" height="105" rx="16" fill="#dfeaf7" stroke="#9db9d5" stroke-width="1.5"/><text x="60" y="934" font-size="21" fill="#132b3b" font-weight="700">41–45  Foundation + feel</text><text x="60" y="967" font-size="17" fill="#334155" font-weight="400">Day 42: playable mission slice</text></g>
+<g><rect x="385" y="902" width="325" height="105" rx="16" fill="#dfeaf7" stroke="#9db9d5" stroke-width="1.5"/><text x="405" y="934" font-size="21" fill="#132b3b" font-weight="700">46–50  Roles + objectives</text><text x="405" y="967" font-size="17" fill="#334155" font-weight="400">Day 49: three mission verbs</text></g>
+<g><rect x="730" y="902" width="325" height="105" rx="16" fill="#dfeaf7" stroke="#9db9d5" stroke-width="1.5"/><text x="750" y="934" font-size="21" fill="#132b3b" font-weight="700">51–55  Complete the loop</text><text x="750" y="967" font-size="17" fill="#334155" font-weight="400">Day 55: replayable boss slice</text></g>
+<g><rect x="1075" y="902" width="325" height="105" rx="16" fill="#dfeaf7" stroke="#9db9d5" stroke-width="1.5"/><text x="1095" y="934" font-size="21" fill="#132b3b" font-weight="700">56–60  Prove the game</text><text x="1095" y="967" font-size="17" fill="#334155" font-weight="400">Usability, tuning and sign-off</text></g>
+<text x="40" y="1054" font-size="23" fill="#132b3b" font-weight="700">COMPLETION  /  automation cannot establish enjoyment</text>
+<g><rect x="40" y="1076" width="435" height="99" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/><text x="60" y="1108" font-size="21" fill="#132b3b" font-weight="700">Technical</text><text x="60" y="1141" font-size="17" fill="#334155" font-weight="400">9 gameplay lanes; 66 content rows</text></g>
+<g><rect x="500" y="1076" width="440" height="99" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/><text x="520" y="1108" font-size="21" fill="#132b3b" font-weight="700">Human</text><text x="520" y="1141" font-size="17" fill="#334155" font-weight="400">6 new players; observed choice / replay</text></g>
+<g><rect x="965" y="1076" width="435" height="99" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="1.5"/><text x="985" y="1108" font-size="21" fill="#132b3b" font-weight="700">Performance</text><text x="985" y="1141" font-size="17" fill="#334155" font-weight="400">Measured frame, network and cleanup</text></g>
+<text x="40" y="1211" font-size="17" fill="#64748b" font-weight="400">2026-08-31  •  Documentation plan only; gameplay tests are future work. External-provider proof remains separate.</text>
+</g></svg>

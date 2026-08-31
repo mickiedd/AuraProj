@@ -138,3 +138,7 @@ For this milestone, a local candidate is **PASS** only when all four mandatory l
 ## Anti-goals and deferrals
 
 Do not expand this milestone with role hot-swapping, weapon durability, full reputation/crime, rich civilian schedules, broad business simulation, large-crowd optimization without a measured violation, wholesale legacy GAS/Blueprint/passive/projectile cleanup, duplicate authored fixture maps/assets, cloud orchestration, or a new test framework. Fix a deferred area only when it blocks the supported contract or produces a confirmed defect.
+
+## Follow-on gameplay planning
+
+[Days 41–60 gameplay expansion](Gameplay-Expansion-Implementation-Plan-2026-08-31.md) proposes missions, counterplay, role builds and replay after this milestone's local/LAN entry gate. This link does not change the Days 21–40 scope or claim that outstanding packaged/provider evidence has passed.

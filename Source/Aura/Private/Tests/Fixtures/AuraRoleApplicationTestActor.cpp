@@ -9,6 +9,9 @@
 
 AAuraRoleApplicationTestActor::AAuraRoleApplicationTestActor()
 {
+	// This shell intentionally has no body before ApplyRoleAtSpawn. Start with
+	// component attachment; the transaction must assign the actual role socket.
+	Weapon->SetupAttachment(GetMesh());
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>(TEXT("TestAbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>(TEXT("TestAttributeSet"));
@@ -45,6 +48,16 @@ UAuraAbilitySystemComponent* AAuraRoleApplicationTestActor::GetTestASC() const
 USkeletalMesh* AAuraRoleApplicationTestActor::GetEquippedWeaponMesh() const
 {
 	return Weapon ? Weapon->GetSkeletalMeshAsset() : nullptr;
+}
+
+FName AAuraRoleApplicationTestActor::GetWeaponAttachSocketForTest() const
+{
+	return Weapon->GetAttachSocketName();
+}
+
+bool AAuraRoleApplicationTestActor::IsWeaponAttachedToBodyForTest() const
+{
+	return Weapon->GetAttachParent() == GetMesh();
 }
 
 FGameplayTag AAuraRoleApplicationTestActor::GetRequiredRoleEntityType() const

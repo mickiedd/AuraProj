@@ -31,6 +31,7 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Json.h"
 #include "LevelEditor.h"
+#include "Misc/App.h"
 #include "Misc/Base64.h"
 #include "Misc/DateTime.h"
 #include "Misc/FileHelper.h"
@@ -2118,6 +2119,14 @@ private:
 
 	void RegisterMenus()
 	{
+		// NullRHI automation can initialize Slate without constructing editor toolbars.
+		// Keep module startup and EndPIE cleanup active, but never probe menus without UI.
+		if (IsRunningCommandlet() || !FApp::CanEverRender() || !UToolMenus::IsToolMenuUIEnabled())
+		{
+			UE_LOG(LogAuraEditor, Display, TEXT("Toolbar menu registration skipped for headless, commandlet, or UI-disabled execution"));
+			return;
+		}
+
 		FToolMenuOwnerScoped OwnerScoped(this);
 		UE_LOG(LogAuraEditor, Display, TEXT("RegisterMenus invoked | ToolMenuUIEnabled=%s"), UToolMenus::IsToolMenuUIEnabled() ? TEXT("true") : TEXT("false"));
 

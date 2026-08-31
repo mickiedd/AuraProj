@@ -580,7 +580,10 @@ URoleInfo* UAuraAbilitySystemLibrary::GetRoleInfo(const UObject* WorldContextObj
 	// see the new defaultRole/assets on the next call after the button is clicked. Throttled.
 	PollRoleConfigReload(WorldContextObject);
 
-	if (const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+	// A null context explicitly selects the process-local role catalog. Do not
+	// send that supported lookup through the world-required gameplay API.
+	if (const AAuraGameModeBase* AuraGameMode = WorldContextObject
+		? Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)) : nullptr)
 	{
 		if (AuraGameMode->RoleInfo)
 		{
@@ -615,7 +618,8 @@ void UAuraAbilitySystemLibrary::ReloadRoleConfig(const UObject* WorldContextObje
 	// On the server (GameMode present), refresh the authoritative AAuraGameModeBase::RoleInfo
 	// that every server-side spawn/login reads. The GameMode keeps its own poll timer, but this
 	// path also covers a direct console-command invocation on a listen/PIE server.
-	if (AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+	if (AAuraGameModeBase* AuraGameMode = WorldContextObject
+		? Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)) : nullptr)
 	{
 		URoleInfo* Current = AuraGameMode->RoleInfo;
 		if (TryPublishRoleInfo(Current, Candidate))

@@ -23,6 +23,8 @@ public:
 
 	UAuraAbilitySystemComponent* GetTestASC() const;
 	USkeletalMesh* GetEquippedWeaponMesh() const;
+	FName GetWeaponAttachSocketForTest() const;
+	bool IsWeaponAttachedToBodyForTest() const;
 	FName GetWeaponTipSocketForTest() const { return WeaponTipSocketName; }
 
 protected:

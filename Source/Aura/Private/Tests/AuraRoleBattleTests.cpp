@@ -1690,7 +1690,13 @@ bool FAuraDay6ExplicitEquipmentOnlyTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Armed role applies"), Armed->ApplyRoleAtSpawn(TEXT("BungeeMan")).bSuccess);
 	TestTrue(TEXT("Unarmed role applies"), Unarmed->ApplyRoleAtSpawn(TEXT("Civilian")).bSuccess);
 	TestTrue(TEXT("Only explicit Bungee equipment is used"), Armed->GetEquippedWeaponMesh() == Bungee->WeaponMesh.Get());
+	TestTrue(TEXT("Equipped weapon attaches to the role body"), Armed->IsWeaponAttachedToBodyForTest());
+	TestEqual(TEXT("Role socket replaces the empty-shell attachment"), Armed->GetWeaponAttachSocketForTest(), Bungee->WeaponSocketName);
+	TestTrue(TEXT("Same-role presentation reapplies"), Armed->ApplyRolePresentation(TEXT("BungeeMan")).bSuccess);
+	TestTrue(TEXT("Weapon reattaches after body replacement"), Armed->IsWeaponAttachedToBodyForTest());
+	TestEqual(TEXT("Body replacement retains the declared socket"), Armed->GetWeaponAttachSocketForTest(), Bungee->WeaponSocketName);
 	TestNull(TEXT("Missing equipment structure clears inherited weapon"), Unarmed->GetEquippedWeaponMesh());
+	TestFalse(TEXT("Unarmed role retains no stale socket attachment"), Unarmed->IsWeaponAttachedToBodyForTest());
 	Armed->Destroy();
 	Unarmed->Destroy();
 	return true;

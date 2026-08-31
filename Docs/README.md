@@ -21,6 +21,9 @@
 | [Role-Creation-and-Battle-System-Plan.md](Plans/Role-Creation-and-Battle-System-Plan.md) | Architecture plan for Aura Girl, BungeeMan, Civilian, combat, AI, and economy. |
 | [Role-Battle-Implementation-Index.md](Plans/Role-Battle-Implementation-Index.md) | Twenty-day implementation sequence with one executable plan per day. |
 | [Playable-Candidate-Implementation-Plan-2026-08-29.md](Plans/Playable-Candidate-Implementation-Plan-2026-08-29.md) | Next twenty logical days: turn the integrated slice into a player-ready local/LAN candidate with embedded support gates. |
+| [Gameplay-Expansion-Implementation-Plan-2026-08-31.md](Plans/Gameplay-Expansion-Implementation-Plan-2026-08-31.md) | Days 41–60: twenty implementation contracts for missions, enemy counterplay, role builds, cooperation, replay and measured playability. |
+| [Gameplay-Expansion-Game-Analysis-2026-08-31.md](Plans/Gameplay-Expansion-Game-Analysis-2026-08-31.md) | Source-grounded gameplay gaps and primary-source lessons from Hades, Deep Rock Galactic and Left 4 Dead. |
+| [Gameplay-Expansion-Architecture-2026-08-31.md](Plans/Gameplay-Expansion-Architecture-2026-08-31.md) | Mission/encounter/combat ownership, transient run state, durable settlement, content contracts and optimization budgets. |
 
 ## Tracking
 
@@ -50,3 +53,6 @@
 | [Remote-Python-Editor-Automation.md](Reference/Remote-Python-Editor-Automation.md) | Runbook: drive the editor via UE Remote Execution (`Scripts/remote_run.py`) — add navmesh, spawn actors, recook for the server. |
 | [Role-Battle-Economy-Schema.md](Reference/Role-Battle-Economy-Schema.md) | Version 1 identity, persistence, commerce, and staged-data schema contract. |
 | [Role-Battle-Vertical-Slice-Test-Procedure.md](Reference/Role-Battle-Vertical-Slice-Test-Procedure.md) | Reproducible Listen/Dedicated, persistence, network, and release verification procedure. |
+
+- [Gameplay Days 41–60 deep review and implementation entry](Reports/Gameplay-Expansion-Deep-Review-2026-08-31.md).
+- [Gameplay baseline blocker remediation and remaining gates](Reports/Gameplay-Baseline-Blocker-Remediation-2026-08-31.md).

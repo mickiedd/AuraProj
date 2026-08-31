@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1110" viewBox="0 0 1440 1110" role="img" aria-labelledby="title desc">
+  <title id="title">Gameplay baseline blockers: repaired defects and remaining gates</title>
+  <desc id="desc">Before: 100 native warnings and nine missing readers. After: 16 expected negative-case warnings, native evidence passes, and three readers implemented. Six readers and real packaged and human evidence remain blocked.</desc>
+  <defs>
+    <style>
+      text { font-family: 'Segoe UI', Arial, sans-serif; fill: #172b42; }
+      .title { font-size: 34px; font-weight: 700; }
+      .subtitle { font-size: 19px; fill: #456078; }
+      .heading { font-size: 23px; font-weight: 700; }
+      .body { font-size: 19px; }
+      .small { font-size: 17px; fill: #456078; }
+      .label { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+      .pass { fill: #176447; }
+      .blocked { fill: #8b5010; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#7591aa"/></marker>
+  </defs>
+  <rect width="1440" height="1110" fill="#f3f6fa"/>
+  <text x="52" y="59" class="label" fill="#386794">AURAPROJ · 31 AUG 2026 · DAY 41 REMEDIATION</text>
+  <text x="52" y="106" class="title">Native baseline repaired; gameplay entry still blocked</text>
+  <text x="52" y="143" class="subtitle">Real fixes and verified evidence checks. No packaged or human proof invented.</text>
+
+  <rect x="52" y="180" width="615" height="393" rx="18" fill="#fff" stroke="#d5dfe9"/>
+  <rect x="773" y="180" width="615" height="393" rx="18" fill="#fff" stroke="#a8cfc0"/>
+  <text x="78" y="219" class="label" fill="#8b5010">BEFORE</text>
+  <text x="799" y="219" class="label" fill="#176447">AFTER · ACTUAL FRESH RUN</text>
+  <text x="78" y="264" class="heading">100 native warning lines</text>
+  <text x="78" y="304" class="body">28 old SoundCue graph-node warnings</text>
+  <text x="78" y="336" class="body">42 empty-mesh socket warnings</text>
+  <text x="78" y="368" class="body">14 null-context catalog warnings</text>
+  <text x="78" y="400" class="body">16 deliberate negative-case warnings</text>
+  <text x="78" y="453" class="heading blocked">Native evidence: BLOCKED</text>
+  <text x="78" y="492" class="body">Every warning blocked acceptance.</text>
+  <text x="78" y="530" class="small">Passing test totals did not explain warning causes.</text>
+
+  <path d="M683 365 H754" stroke="#7591aa" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="799" y="264" class="heading">16 expected warnings retained</text>
+  <text x="799" y="304" class="body">Two SoundCues resaved; node GUID test passes</text>
+  <text x="799" y="336" class="body">Detach weapon before clearing its body mesh</text>
+  <text x="799" y="368" class="body">Null context follows the role catalog fallback</text>
+  <text x="799" y="400" class="body">Exact message + count + test-context checks</text>
+  <text x="799" y="453" class="heading pass">Native evidence: PASS</text>
+  <text x="799" y="492" class="body">Zero errors or unclassified warnings.</text>
+  <text x="799" y="530" class="small">New, misattributed or changed warnings still block.</text>
+
+  <rect x="52" y="595" width="1336" height="196" rx="18" fill="#e9f1fb" stroke="#bbd0e7"/>
+  <text x="78" y="634" class="heading">Three evidence readers now implemented</text>
+  <text x="78" y="677" class="body">ZIP inventory</text>
+  <text x="78" y="708" class="small">Compare actual member bytes.</text>
+  <text x="78" y="735" class="small">Reject traversal, aliases and corruption.</text>
+  <text x="501" y="677" class="body">Rendered captures</text>
+  <text x="501" y="708" class="small">Decode PNG/JPEG; bind lane and process.</text>
+  <text x="501" y="735" class="small">Reject NullRHI and invalid frame evidence.</text>
+  <text x="939" y="677" class="body">Attributed human review</text>
+  <text x="939" y="708" class="small">Check record hashes and findings.</text>
+  <text x="939" y="735" class="small">Never create a person's attestation.</text>
+  <text x="78" y="770" class="small">All verified nested evidence and package files are rehashed at audit completion; any mutation fails.</text>
+
+  <rect x="52" y="812" width="1336" height="94" rx="16" fill="#e9f5ef" stroke="#b5d9c6"/>
+  <text x="78" y="847" class="heading pass">89 tooling · 234 native · 20 legacy · 20 runner checks passed</text>
+  <text x="78" y="880" class="body">Editor build passed. Captured inputs unchanged. Zero remaining owned processes.</text>
+
+  <rect x="52" y="928" width="1336" height="143" rx="16" fill="#fff3df" stroke="#e0bd81"/>
+  <text x="78" y="966" class="heading blocked">Runtime entry: BLOCKED / DRAFT_SCOPE</text>
+  <text x="78" y="1001" class="body">Six readers and actual build, public-input, soak, Shipping and engine-survey producers remain unfinished.</text>
+  <text x="78" y="1032" class="body">Required human/identity/baseline evidence is missing. Days 42–60 remain unimplemented. No shutdown.</text>
+  <text x="78" y="1057" class="small">Local review/tests used after in-app review was unavailable. No deterministic-cook or independent external review claim.</text>
+</svg>

@@ -84,3 +84,8 @@ The date-only `daily-change-reference.svg` files are source maps for the grouped
 - [2026-08-29 – Playable Candidate roadmap](2026-08-29-playable-candidate-roadmap.md)
 - [2026-08-29 – Playable Candidate deep review](2026-08-29-playable-candidate-deep-review.md)
 - [2026-08-29 – Playable Candidate plan consistency fixes](2026-08-29-playable-candidate-plan-fixes.md)
+
+- [2026-08-31 - Gameplay expansion Days 41-60 plans](2026-08-31-gameplay-expansion-days-41-60.md)
+
+- [2026-08-31 — Gameplay deep review and Day 41 entry](2026-08-31-gameplay-deep-review-and-day41-entry.md) · [diagram](2026-08-31-gameplay-deep-review-and-day41-entry.svg).
+- [2026-08-31 — Gameplay baseline blocker remediation](2026-08-31-gameplay-baseline-blocker-remediation.md) · [diagram](2026-08-31-gameplay-baseline-blocker-remediation.svg).

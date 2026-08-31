@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1130" viewBox="0 0 1440 1130" role="img" aria-labelledby="title desc">
+<title id="title">Gameplay Days 41–60: reviewed contracts and Day 41 implementation entry</title>
+<desc id="desc">The review corrected gameplay dependencies and authority rules. Day 41 tooling validates evidence and runs a fresh native baseline. Missing genuine Day 40 and measured baseline evidence blocks later gameplay implementation.</desc>
+<defs><style>text{font-family:Segoe UI,Arial,sans-serif;fill:#e7edf6}.title{font-size:34px;font-weight:700}.h{font-size:24px;font-weight:650}.body{font-size:20px}.small{font-size:17px}.label{font-size:16px;font-weight:700;letter-spacing:1px}.muted{fill:#a7b8cc}.green{fill:#80e1bc}.amber{fill:#ffd38a}.line{stroke:#8196b2;stroke-width:3;fill:none}</style><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9" fill="#8196b2"/></marker></defs>
+<rect width="1440" height="1130" fill="#0b1423"/>
+<text x="56" y="66" class="title">Gameplay expansion: review, repair, then implement</text>
+<text x="56" y="104" class="body muted">AuraProj · Days 41–60 · 2026-08-31 · implementation status, not a gameplay release claim</text>
+<rect x="56" y="146" width="635" height="272" rx="18" fill="#22263a" stroke="#66516a"/>
+<text x="82" y="182" class="label amber">BEFORE THE DEEP REVIEW</text>
+<text x="82" y="224" class="body">Augments needed supplies and boundaries built later.</text>
+<text x="82" y="264" class="body">Reconnect and settlement had lifecycle gaps.</text>
+<text x="82" y="304" class="body">Cue timing and escort waiting had conflicting rules.</text>
+<text x="82" y="344" class="body">Local PASS stubs could be mistaken for game proof.</text>
+<text x="82" y="385" class="body">Headless automation tried to register UI menus.</text>
+<rect x="749" y="146" width="635" height="272" rx="18" fill="#152d2d" stroke="#3c897d"/>
+<text x="775" y="182" class="label green">AFTER CORRECTION AND CROSS-REVIEW</text>
+<text x="775" y="224" class="body">Two cells → supplies and roles → eight augments.</text>
+<text x="775" y="264" class="body">Targetable reconnect proxy; atomic member cleanup.</text>
+<text x="775" y="304" class="body">Rendered cue budget; intentional escort waits pause.</text>
+<text x="775" y="344" class="body">Real hashes, explicit evidence and unsupported gates.</text>
+<text x="775" y="385" class="body">Headless runs skip editor-only menu registration.</text>
+<text x="56" y="480" class="h">What is being implemented now</text>
+<rect x="56" y="514" width="392" height="185" rx="16" fill="#17283f" stroke="#3f6087"/>
+<text x="80" y="553" class="h">Draft scope + strict audit</text>
+<text x="80" y="596" class="body">Types, paths, bytes and ancestry</text>
+<text x="80" y="632" class="body">Missing facts stay null / BLOCKED</text>
+<text x="80" y="672" class="small muted">No author-edited READY flag</text>
+<path d="M449 605 H491" class="line" marker-end="url(#arrow)"/>
+<rect x="509" y="514" width="418" height="185" rx="16" fill="#17283f" stroke="#3f6087"/>
+<text x="533" y="553" class="h">Bounded baseline runner</text>
+<text x="533" y="596" class="body">Fresh exports; real test discovery</text>
+<text x="533" y="632" class="body">Windows job ownership; no reuse</text>
+<text x="533" y="672" class="small muted">Preflight ≠ packaged gameplay validation</text>
+<path d="M928 605 H970" class="line" marker-end="url(#arrow)"/>
+<rect x="988" y="514" width="396" height="185" rx="16" fill="#372a1c" stroke="#bb8944"/>
+<text x="1012" y="553" class="h amber">Runtime entry BLOCKED</text>
+<text x="1012" y="596" class="body">Day 40 journeys + soak + ops</text>
+<text x="1012" y="632" class="body">Measured Day 41 space/baseline</text>
+<text x="1012" y="672" class="small muted">Days 42–60 gameplay not yet implemented</text>
+<rect x="56" y="748" width="1328" height="161" rx="16" fill="#172236" stroke="#3f5271"/>
+<text x="80" y="788" class="h">Verification and limits</text>
+<text x="80" y="831" class="body">Independent contract reviews + cross-review · Python behavioral tests · PowerShell smoke checks</text>
+<text x="80" y="869" class="body">Unreal Editor build + actual RoleBattle baseline · warnings retained separately · no human playtest claim</text>
+<rect x="56" y="944" width="1328" height="124" rx="16" fill="#162c31" stroke="#3d717b"/>
+<text x="80" y="984" class="h">Next allowed transition</text>
+<text x="80" y="1025" class="body">Verify the missing producers and baseline → Frozen / READY → begin the mission vertical slice on Day 42.</text>
+<text x="56" y="1103" class="small muted">In-app ChatGPT review unavailable after two tab checks; independent local review used. Older evidence remains unchanged.</text>
+</svg>
