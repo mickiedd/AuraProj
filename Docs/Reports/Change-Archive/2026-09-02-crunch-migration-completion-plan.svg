@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch character migration completion plan</title>
+  <desc id="desc">A ten-day flow from an Aura-shaped combo prototype through review repair, final Crunch assets, five authoritative skills, matching package validation, and honest sign-off.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1325"/><stop offset="1" stop-color="#132b3f"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#70d6ff"/></marker>
+    <style>
+      .title{font:700 34px Arial,sans-serif;fill:#f8fafc}.sub{font:18px Arial,sans-serif;fill:#b9d9eb}.h{font:700 20px Arial,sans-serif;fill:#ffffff}.t{font:16px Arial,sans-serif;fill:#d9e8f1}.small{font:14px Arial,sans-serif;fill:#b8cad6}.warn{font:700 16px Arial,sans-serif;fill:#ffd166}.ok{font:700 16px Arial,sans-serif;fill:#80ed99}.box{fill:#17364d;stroke:#438db4;stroke-width:2}.gate{fill:#273b2c;stroke:#67c587;stroke-width:2}.risk{fill:#49351e;stroke:#d99b43;stroke-width:2}.line{stroke:#70d6ff;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <text x="60" y="62" class="title">Crunch migration · implementation path to honest completion</text>
+  <text x="60" y="94" class="sub">Current prototype → trustworthy authority → final avatar + five skills → matching packaged proof</text>
+
+  <rect x="55" y="135" width="330" height="205" rx="18" class="risk"/>
+  <text x="82" y="173" class="h">Before · current workspace</text>
+  <text x="82" y="210" class="t">• Selectable Crunch role</text>
+  <text x="82" y="239" class="t">• LMB four-hit combo only</text>
+  <text x="82" y="268" class="t">• Aura mesh / ABP adapter</text>
+  <text x="82" y="297" class="t">• Review findings still present</text>
+  <text x="82" y="326" class="warn">No matching in-world package proof</text>
+
+  <rect x="455" y="135" width="300" height="205" rx="18" class="box"/>
+  <text x="482" y="173" class="h">Days 01–03 · trust</text>
+  <text x="482" y="210" class="t">Freeze hashed source truth</text>
+  <text x="482" y="239" class="t">Repair cue/test/counter debt</text>
+  <text x="482" y="268" class="t">Listen uses authored events</text>
+  <text x="482" y="297" class="t">Deterministic close boundary</text>
+  <text x="482" y="326" class="small">Review each day before advancing</text>
+
+  <rect x="825" y="135" width="330" height="205" rx="18" class="box"/>
+  <text x="852" y="173" class="h">Days 04–07 · character</text>
+  <text x="852" y="210" class="t">Crunch mesh, ABP, locomotion</text>
+  <text x="852" y="239" class="t">Authored Combo + UpperCut</text>
+  <text x="852" y="268" class="t">Dash + GroundBlast</text>
+  <text x="852" y="297" class="t">Tornado + cleanup contracts</text>
+  <text x="852" y="326" class="small">Server revalidates every effect</text>
+
+  <rect x="1225" y="135" width="320" height="205" rx="18" class="gate"/>
+  <text x="1252" y="173" class="h">Days 08–10 · proof</text>
+  <text x="1252" y="210" class="t">Five role-owned input specs</text>
+  <text x="1252" y="239" class="t">HUD + lifecycle persistence</text>
+  <text x="1252" y="268" class="t">Matching packaged host/client</text>
+  <text x="1252" y="297" class="t">Final review + immutable result</text>
+  <text x="1252" y="326" class="ok">PASS only with in-world evidence</text>
+
+  <path d="M385 238 H445" class="line"/><path d="M755 238 H815" class="line"/><path d="M1155 238 H1215" class="line"/>
+
+  <text x="60" y="410" class="h">Frozen authority flow for every migrated skill</text>
+  <rect x="60" y="445" width="260" height="105" rx="14" class="box"/><text x="85" y="482" class="h">Client request</text><text x="85" y="515" class="small">Input / preview / prediction</text>
+  <rect x="380" y="445" width="300" height="105" rx="14" class="box"/><text x="405" y="482" class="h">Server revalidation</text><text x="405" y="515" class="small">Role · life · range · LOS · target</text>
+  <rect x="740" y="445" width="300" height="105" rx="14" class="box"/><text x="765" y="482" class="h">Atomic commit</text><text x="765" y="515" class="small">Cost · cooldown · hit identity</text>
+  <rect x="1100" y="445" width="430" height="105" rx="14" class="gate"/><text x="1125" y="482" class="h">Replicated result + presentation</text><text x="1125" y="515" class="small">Damage / motion / cue / HUD / teardown</text>
+  <path d="M320 498 H370" class="line"/><path d="M680 498 H730" class="line"/><path d="M1040 498 H1090" class="line"/>
+
+  <rect x="60" y="610" width="1470" height="260" rx="20" fill="#101f30" stroke="#365c76" stroke-width="2"/>
+  <text x="88" y="650" class="h">Completion gate</text>
+  <text x="88" y="690" class="t">1. Final Crunch mesh / ABP / collision / locomotion / authored montages; no temporary Aura adapter.</text>
+  <text x="88" y="728" class="t">2. LMB Combo + Num1 UpperCut + Num2 Dash + Num3 GroundBlast + Num4 Tornado, exactly once per role lifecycle.</text>
+  <text x="88" y="766" class="t">3. Focused/full automation, deterministic network scenarios, package hashes, soak, cleanup, and daily review findings all green.</text>
+  <text x="88" y="804" class="t">4. Normal Login → Loading → in-world Crunch on a matching packaged listen host and remote client, with visible evidence for every skill.</text>
+  <text x="88" y="842" class="warn">Dedicated/release is reported separately as PASS or exact BLOCKED; Login-only, stale package, or timeout is NOT COMPLETE.</text>
+
+  <text x="60" y="930" class="small">Validation chain: source manifest hash → target revision → build/config/package hashes → tests/logs → host/client visuals → independent review → final.json</text>
+</svg>
