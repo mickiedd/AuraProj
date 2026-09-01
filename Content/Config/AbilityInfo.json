@@ -47,6 +47,12 @@
       "icon": "/Game/Assets/UI/Spells/BallLightning.BallLightning",
       "backgroundMaterial": "/Game/Assets/UI/Globes/MI_ManaSiphonSkillBG.MI_ManaSiphonSkillBG",
       "levelRequirement": 20
+    },
+    {
+      "abilityTag": "Abilities.Melee.CrunchCombo",
+      "icon": "/Game/Assets/UI/Spells/FireBolt.FireBolt",
+      "backgroundMaterial": "/Game/Assets/UI/Globes/MI_FireSkillBG.MI_FireSkillBG",
+      "levelRequirement": 1
     }
   ]
 }

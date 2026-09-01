@@ -5,6 +5,8 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AuraGameplayTags.h"
+#include "Combat/AuraCombatIdentityComponent.h"
+#include "Combat/AuraCombatStateComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 
 AAuraRoleApplicationTestActor::AAuraRoleApplicationTestActor()
@@ -22,6 +24,18 @@ void AAuraRoleApplicationTestActor::ConfigureRoleShell(
 {
 	RequiredEntityType = EntityType;
 	RequiredControlType = ControlType;
+}
+
+void AAuraRoleApplicationTestActor::InitializeCombatIdentityForTest(const FAuraCombatIdentity& Identity)
+{
+	if (UAuraCombatIdentityComponent* IdentityComponent = const_cast<UAuraCombatIdentityComponent*>(GetCombatIdentityComponent()))
+	{
+		IdentityComponent->InitializeIdentity(Identity);
+	}
+	if (UAuraCombatStateComponent* StateComponent = GetCombatStateComponentMutable())
+	{
+		StateComponent->TryEnterAlive();
+	}
 }
 
 void AAuraRoleApplicationTestActor::UseExternalAbilitySystem(

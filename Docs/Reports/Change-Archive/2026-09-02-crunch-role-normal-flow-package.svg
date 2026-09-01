@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch role normal flow package validation</title>
+  <desc id="desc">The packaged Aura flow includes Login, Loading, and StartupMap, exposes Crunch as a selectable role, and reaches the Loading screen before an older remote server rejects the client version.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#101a31"/><stop offset="1" stop-color="#1b2b4a"/></linearGradient>
+    <linearGradient id="good" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#173d48"/><stop offset="1" stop-color="#1d765e"/></linearGradient>
+    <linearGradient id="hold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#553b1c"/><stop offset="1" stop-color="#91652a"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".3"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#a8c7ff"/></marker>
+    <style>
+      .title { font: 700 30px Segoe UI, sans-serif; fill: #f3f7ff; }
+      .subtitle { font: 400 16px Segoe UI, sans-serif; fill: #bdcce6; }
+      .label { font: 700 18px Segoe UI, sans-serif; fill: #f3f7ff; }
+      .body { font: 400 16px Segoe UI, sans-serif; fill: #e5edff; }
+      .small { font: 400 14px Segoe UI, sans-serif; fill: #b9c9e4; }
+      .mono { font: 600 15px Consolas, monospace; fill: #fff3d6; }
+      .panel { stroke: #6f8fbe; stroke-width: 1.5; rx: 16; filter: url(#shadow); }
+      .line { stroke: #a8c7ff; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .check { fill: #42d6a4; }
+      .warn { fill: #f2b869; }
+    </style>
+  </defs>
+  <rect width="1600" height="920" fill="url(#bg)"/>
+  <text x="80" y="70" class="title">Crunch role normal-flow package validation</text>
+  <text x="80" y="102" class="subtitle">The packaged game can select Crunch and carry its role-owned LMB into the normal Login → Loading flow.</text>
+
+  <rect x="80" y="145" width="420" height="190" class="panel" fill="#182642"/>
+  <text x="110" y="185" class="label">1 · Packaged content inventory</text>
+  <text x="110" y="222" class="body">Win64 Development cook / stage / pak / archive</text>
+  <text x="110" y="255" class="mono">RoleConfig.json · AbilityInfo.json</text>
+  <text x="110" y="285" class="mono">Login.umap · Loading.umap · StartupMap.umap</text>
+  <circle cx="110" cy="315" r="9" class="check"/><text x="130" y="321" class="body">Manifest and RoleConfig version 2 present</text>
+
+  <path d="M500 240 H585" class="line"/>
+  <rect x="585" y="145" width="420" height="190" class="panel" fill="url(#good)"/>
+  <text x="615" y="185" class="label">2 · Login role selection</text>
+  <text x="615" y="222" class="body">Visible options: Aura, BungeeMan, Crunch</text>
+  <text x="615" y="255" class="body">Crunch selected in the native Web UI</text>
+  <text x="615" y="288" class="mono">Selected role: Crunch</text>
+  <circle cx="615" cy="315" r="9" class="check"/><text x="635" y="321" class="body">Role selector is no longer Aura-only</text>
+
+  <path d="M1005 240 H1090" class="line"/>
+  <rect x="1090" y="145" width="430" height="190" class="panel" fill="url(#good)"/>
+  <text x="1120" y="185" class="label">3 · Normal connection flow</text>
+  <text x="1120" y="222" class="body">Login → Loading map resolves from the package</text>
+  <text x="1120" y="255" class="mono">Connected · 30% · Resolving game server</text>
+  <circle cx="1120" cy="295" r="9" class="check"/><text x="1140" y="301" class="body">No missing /Game/Maps/Loading</text>
+  <circle cx="1120" cy="325" r="9" class="check"/><text x="1140" y="331" class="body">No role-config startup rejection</text>
+
+  <path d="M800 335 V405" class="line"/>
+  <rect x="260" y="425" width="1080" height="205" class="panel" fill="#182642"/>
+  <text x="300" y="468" class="label">4 · Runtime boundary observed</text>
+  <text x="300" y="505" class="body">The available server at 192.168.1.6:7790 is an older package.</text>
+  <text x="300" y="537" class="mono">RemoteNetworkVersion=1081833902 · LocalNetworkVersion=1419631917</text>
+  <text x="300" y="570" class="body">Handshake returns OutdatedClient and the client returns cleanly to Login.</text>
+  <circle cx="300" cy="607" r="9" class="warn"/><text x="320" y="613" class="body">Environment/package-version mismatch, not a Crunch binding failure</text>
+
+  <rect x="260" y="680" width="1080" height="145" class="panel" fill="#182642"/>
+  <text x="300" y="720" class="label">5 · Existing implementation evidence remains green</text>
+  <text x="300" y="755" class="body">Aura.RoleBattle 237/237 · CrunchPersistentASCLifecycle · ImpactCueContract</text>
+  <text x="300" y="787" class="body">Aura owns FireBolt; Crunch owns /Script/Aura.AuraMeleeAttack and CrunchCombo.</text>
+  <text x="300" y="812" class="small">A valid-target combat screenshot still requires a matching server build; no OS security prompt was automated.</text>
+</svg>

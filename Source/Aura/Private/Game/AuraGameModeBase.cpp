@@ -298,11 +298,12 @@ void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options,
 		{
 			FString Error;
 			const bool bAuraAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Aura"), Error);
+			const bool bCrunchAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Crunch"), Error);
 			const bool bBungeeAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("BungeeMan"), Error);
 			const bool bCivilianRejected = !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Civilian"), Error);
 			const bool bUnknownRejected = !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Unknown"), Error);
-			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] ValidStartup=1 AuraAccepted=%d BungeeAccepted=%d CivilianRejected=%d UnknownRejected=%d SavedDefaultValidation=%d"),
-				bAuraAccepted, bBungeeAccepted, bCivilianRejected, bUnknownRejected,
+			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] ValidStartup=1 AuraAccepted=%d CrunchAccepted=%d BungeeAccepted=%d CivilianRejected=%d UnknownRejected=%d SavedDefaultValidation=%d"),
+				bAuraAccepted, bCrunchAccepted, bBungeeAccepted, bCivilianRejected, bUnknownRejected,
 				RoleInfo->IsPlayerRoleSelectable(RoleInfo->DefaultRole));
 		}
 	}
@@ -391,7 +392,8 @@ void AAuraGameModeBase::GrantCivilianLethalReward(const FAuraDeathEvent& Event)
 	}
 	AAuraPlayerState* PlayerState = Player ? Player->GetPlayerState<AAuraPlayerState>() : nullptr;
 	UAuraCurrencyComponent* Currency = PlayerState ? PlayerState->GetCurrencyComponent() : nullptr;
-	if (!PlayerState || PlayerState->GetRole() != TEXT("Aura") && PlayerState->GetRole() != TEXT("BungeeMan")) return;
+	const URoleInfo* RoleRegistry = Player ? UAuraAbilitySystemLibrary::GetRoleInfo(Player) : nullptr;
+	if (!PlayerState || !RoleRegistry || !RoleRegistry->IsPlayerRoleSelectable(PlayerState->GetRole())) return;
 	const FString OutcomeCorrelationId = FString::Printf(TEXT("%d:%d"), Event.VictimActor->GetUniqueID(), Event.DeathSequence);
 	if (GrantedCivilianOutcomeIds.Contains(OutcomeCorrelationId)) return;
 	if (!Currency || !Currency->CanCreditCurrency(TEXT("gold"), 25))

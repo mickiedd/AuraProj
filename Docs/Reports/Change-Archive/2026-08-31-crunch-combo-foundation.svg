@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch combo foundation migrated into Aura</title>
+  <desc id="desc">Before and after flow for AuraMeleeAttack, showing montage notify tags driving combo windows and authoritative damage.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#17243a"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#8bd5ff"/>
+    </marker>
+    <style>
+      .h { font: 700 28px Arial, sans-serif; fill: #f4f8ff; }
+      .s { font: 16px Arial, sans-serif; fill: #b8c7dc; }
+      .k { font: 700 18px Arial, sans-serif; fill: #f4f8ff; }
+      .t { font: 15px Arial, sans-serif; fill: #d8e5f4; }
+      .small { font: 13px Arial, sans-serif; fill: #aec0d8; }
+      .panel { fill: #1e2d45; stroke: #486482; stroke-width: 2; rx: 16; }
+      .old { fill: #3b2b3c; stroke: #aa6f87; stroke-width: 2; rx: 12; }
+      .new { fill: #173d4b; stroke: #57c5d8; stroke-width: 2; rx: 12; }
+      .guard { fill: #4a3b1d; stroke: #e1b45f; stroke-width: 2; rx: 12; }
+      .line { stroke: #8bd5ff; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #869ab6; stroke-width: 2; stroke-dasharray: 7 7; fill: none; }
+    </style>
+  </defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <text x="52" y="55" class="h">Milestone 1 · Crunch combo foundation in Aura</text>
+  <text x="52" y="84" class="s">A native ability now owns montage timing, combo input, and the Aura damage boundary.</text>
+
+  <rect x="52" y="120" width="300" height="485" class="panel"/>
+  <text x="78" y="160" class="k">Before · Aura</text>
+  <rect x="78" y="195" width="248" height="105" class="old"/>
+  <text x="98" y="230" class="k">UAuraMeleeAttack</text>
+  <text x="98" y="257" class="t">empty native class</text>
+  <text x="98" y="280" class="t">no combo state or events</text>
+  <path d="M202 300 L202 350" class="dash"/>
+  <rect x="78" y="350" width="248" height="105" class="old"/>
+  <text x="98" y="385" class="k">RoleConfig / LMB</text>
+  <text x="98" y="412" class="t">no Crunch montage wiring</text>
+  <text x="98" y="435" class="t">no authored event contract</text>
+  <text x="78" y="510" class="small">The donor behavior existed only in</text>
+  <text x="78" y="531" class="small">Crunch’s montage-driven abilities.</text>
+
+  <rect x="400" y="120" width="748" height="485" class="panel"/>
+  <text x="428" y="160" class="k">After · Aura milestone slice</text>
+
+  <rect x="428" y="195" width="220" height="100" class="new"/>
+  <text x="448" y="230" class="k">Combo montage</text>
+  <text x="448" y="255" class="t">Combo01 → Combo04</text>
+  <text x="448" y="278" class="t">authored notify tags</text>
+
+  <rect x="710" y="180" width="205" height="130" class="new"/>
+  <text x="730" y="215" class="k">UAuraMeleeAttack</text>
+  <text x="730" y="241" class="t">damage event</text>
+  <text x="730" y="263" class="t">open / close window</text>
+  <text x="730" y="285" class="t">next-section input</text>
+
+  <rect x="973" y="195" width="145" height="100" class="guard"/>
+  <text x="990" y="230" class="k">Authority</text>
+  <text x="990" y="256" class="t">server applies</text>
+  <text x="990" y="278" class="t">damage once</text>
+
+  <path d="M648 245 L710 245" class="line"/>
+  <path d="M915 245 L973 245" class="line"/>
+
+  <rect x="520" y="375" width="260" height="115" class="new"/>
+  <text x="544" y="412" class="k">Combo input window</text>
+  <text x="544" y="438" class="t">WaitInputPress arms on</text>
+  <text x="544" y="461" class="t">Window.Open; closes on tag</text>
+  <path d="M812 310 C812 350 650 350 650 375" class="line"/>
+
+  <rect x="842" y="375" width="276" height="115" class="new"/>
+  <text x="866" y="412" class="k">Aura damage boundary</text>
+  <text x="866" y="438" class="t">live targets in radius</text>
+  <text x="866" y="461" class="t">ApplyDamageEffect + context</text>
+  <path d="M1045 295 L1000 375" class="line"/>
+
+  <rect x="428" y="535" width="690" height="45" class="guard"/>
+  <text x="450" y="563" class="t">Validation: AuraEditor Win64 Development build succeeded; runtime montage/role asset wiring is next milestone.</text>
+</svg>

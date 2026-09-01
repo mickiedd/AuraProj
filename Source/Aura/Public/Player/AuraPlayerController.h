@@ -27,6 +27,7 @@ class UAuraClientDisconnectHandler;
 class UAuraHeartbeatComponent;
 class UAuraBuildingComponent;
 class AAuraCharacter;
+class UAuraMeleeAttack;
 class UAuraInteractionComponent;
 class UTargetInteractionWidgetController;
 
@@ -311,6 +312,8 @@ private:
 	void TickRoleBattleDay17NetworkProbeClient();
 	void TickRoleBattleDay18PersistenceProbeClient();
 	void TickRoleBattleDay19NetworkProbeClient();
+	/** Cross-process Crunch combo probe; grants the test ability without changing RoleConfig. */
+	void TickCrunchComboNetworkProbe();
 #endif
 
 	UPROPERTY(EditDefaultsOnly)
@@ -361,6 +364,28 @@ private:
 	FTimerHandle RoleBattleDay19ProbeTimerHandle;
 	int32 RoleBattleDay19ProbeStep = 0;
 	double RoleBattleDay19NextProbeTime = 0.0;
+	FTimerHandle CrunchComboNetworkProbeTimerHandle;
+	int32 CrunchComboNetworkProbeLastOpenCount = 0;
+	int32 CrunchComboNetworkProbePresses = 0;
+	bool bCrunchComboNetworkProbeEnabled = false;
+	bool bCrunchComboNetworkProbeCancelScenario = false;
+	bool bCrunchComboNetworkProbeNearCloseScenario = false;
+	bool bCrunchComboNetworkProbeClientActivated = false;
+	bool bCrunchComboNetworkProbeClientCancelQueued = false;
+	bool bCrunchComboNetworkProbeClientCancelRequested = false;
+	bool bCrunchComboNetworkProbeClientCancelObserved = false;
+	bool bCrunchComboNetworkProbeClientReactivated = false;
+	bool bCrunchComboNetworkProbeClientNearClosePressed = false;
+	bool bCrunchComboNetworkProbeClientNearClosePrimed = false;
+	bool bCrunchComboNetworkProbeClientNearCloseOutcomeLogged = false;
+	bool bCrunchComboNetworkProbeServerObservedActivation = false;
+	bool bCrunchComboNetworkProbeServerWasActive = false;
+	bool bCrunchComboNetworkProbeServerCancelObserved = false;
+	bool bCrunchComboNetworkProbeServerNearCloseOutcomeLogged = false;
+	bool bCrunchComboNetworkProbeServerPassed = false;
+	int32 CrunchComboNetworkProbeServerActivationCount = 0;
+	double CrunchComboNetworkProbeClientNextActionTime = 0.0;
+	double CrunchComboNetworkProbeClientOpenTime = 0.0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAuraInteractionComponent> InteractionComponent;

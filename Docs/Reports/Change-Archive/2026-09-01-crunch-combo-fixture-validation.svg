@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch combo fixture validation</title>
+  <desc id="desc">A flow showing the generated Aura skeleton montage, strict validator, native contract test, and the deferred network runtime gate.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101827"/><stop offset="1" stop-color="#17243a"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#8bd5ff"/></marker>
+    <style>
+      .h { font: 700 28px Arial, sans-serif; fill: #f4f8ff; }
+      .s { font: 16px Arial, sans-serif; fill: #b8c7dc; }
+      .k { font: 700 18px Arial, sans-serif; fill: #f4f8ff; }
+      .t { font: 15px Arial, sans-serif; fill: #d8e5f4; }
+      .small { font: 13px Arial, sans-serif; fill: #aec0d8; }
+      .panel { fill: #1e2d45; stroke: #486482; stroke-width: 2; rx: 16; }
+      .new { fill: #173d4b; stroke: #57c5d8; stroke-width: 2; rx: 12; }
+      .guard { fill: #4a3b1d; stroke: #e1b45f; stroke-width: 2; rx: 12; }
+      .defer { fill: #3b2b3c; stroke: #aa6f87; stroke-width: 2; rx: 12; }
+      .line { stroke: #8bd5ff; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #869ab6; stroke-width: 2; stroke-dasharray: 7 7; fill: none; }
+    </style>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="52" y="55" class="h">Milestone 2 · Crunch combo fixture validation</text>
+  <text x="52" y="84" class="s">The migration now has a fresh-process asset protocol proof before role integration.</text>
+
+  <rect x="52" y="125" width="1096" height="485" class="panel"/>
+  <rect x="82" y="175" width="225" height="150" class="new"/>
+  <text x="104" y="213" class="k">Create commandlet</text>
+  <text x="104" y="241" class="t">Aura AM_FireGun source</text>
+  <text x="104" y="265" class="t">four sections + 12 events</text>
+  <text x="104" y="289" class="t">Aura skeleton preserved</text>
+
+  <rect x="363" y="175" width="240" height="150" class="new"/>
+  <text x="387" y="213" class="k">RuntimeV2 .uasset</text>
+  <text x="387" y="241" class="t">Combo01 … Combo04</text>
+  <text x="387" y="265" class="t">Open → Damage → Close</text>
+  <text x="387" y="289" class="t">server notify ticking on</text>
+
+  <rect x="659" y="175" width="220" height="150" class="guard"/>
+  <text x="682" y="213" class="k">Strict validator</text>
+  <text x="682" y="241" class="t">fresh disk load</text>
+  <text x="682" y="265" class="t">timing topology</text>
+  <text x="682" y="289" class="t">class + skeleton link</text>
+
+  <rect x="935" y="175" width="182" height="150" class="guard"/>
+  <text x="957" y="213" class="k">Automation</text>
+  <text x="957" y="241" class="t">native CDO link</text>
+  <text x="957" y="265" class="t">test passed</text>
+  <text x="957" y="289" class="t">build passed</text>
+
+  <path d="M307 250 L363 250" class="line"/><path d="M603 250 L659 250" class="line"/><path d="M879 250 L935 250" class="line"/>
+
+  <rect x="177" y="405" width="300" height="135" class="new"/>
+  <text x="202" y="443" class="k">Proven behavior contract</text>
+  <text x="202" y="471" class="t">sections do not auto-chain</text>
+  <text x="202" y="495" class="t">input queues next section</text>
+  <text x="202" y="519" class="t">damage remains authority-only</text>
+
+  <rect x="560" y="405" width="530" height="135" class="defer"/>
+  <text x="586" y="443" class="k">Deferred runtime gate</text>
+  <text x="586" y="471" class="t">listen + dedicated event counts, latency convergence,</text>
+  <text x="586" y="495" class="t">cancellation/reactivation reset, and target policy matrix</text>
+  <text x="586" y="519" class="t">must pass before RoleConfig Aura grant</text>
+
+  <path d="M777 325 C777 365 710 375 710 405" class="dash"/>
+  <text x="82" y="583" class="small">Evidence: build, creator, validator, and automation logs are reproducible from C:\Git\AuraProj.</text>
+</svg>

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Aura FireBolt LMB regression test</title>
+  <desc id="desc">A three-gate test validates the exact RoleConfig source, the loaded FireBolt definition, and the sole runtime LMB ability-system spec. The former Crunch override fails at every gate.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#91a7bd"/>
+    </marker>
+    <style>
+      .bg { fill:#091321; }
+      .panel { fill:#122238; stroke:#35506d; stroke-width:2; }
+      .gate { fill:#102c25; stroke:#4cc28d; stroke-width:2; }
+      .reject { fill:#371b25; stroke:#e56a80; stroke-width:2; }
+      .result { fill:#152c45; stroke:#60a9eb; stroke-width:2; }
+      .title { font:700 30px 'Segoe UI',sans-serif; fill:#f1f7ff; }
+      .head { font:700 20px 'Segoe UI',sans-serif; fill:#f1f7ff; }
+      .text { font:16px 'Segoe UI',sans-serif; fill:#c8d7e6; }
+      .small { font:14px 'Segoe UI',sans-serif; fill:#aebfd0; }
+      .mono { font:15px Consolas,monospace; fill:#eef5fc; }
+      .arrow { stroke:#91a7bd; stroke-width:3; fill:none; marker-end:url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="680"/>
+  <text class="title" x="55" y="58">Regression guard: Aura LMB must remain FireBolt end to end</text>
+  <text class="small" x="55" y="88">Focused automation test: Aura.Abilities.FireBolt.LMBRoleBindingRegression</text>
+
+  <rect class="panel" x="45" y="120" width="1110" height="340" rx="18"/>
+  <text class="head" x="75" y="160">Three independent gates exercise the shipped player path</text>
+
+  <rect class="gate" x="75" y="190" width="295" height="205" rx="14"/>
+  <text class="head" x="100" y="226">1. Source selection</text>
+  <text class="mono" x="100" y="264">lmbAbility = empty</text>
+  <text class="mono" x="100" y="294">definition = FireBolt.xml</text>
+  <text class="small" x="100" y="330">Prevents a native class from</text>
+  <text class="small" x="100" y="354">silently shadowing the XML.</text>
+
+  <path class="arrow" d="M380 292 L445 292"/>
+  <rect class="gate" x="455" y="190" width="295" height="205" rx="14"/>
+  <text class="head" x="480" y="226">2. Loaded definition</text>
+  <text class="mono" x="480" y="264">Abilities.Fire.FireBolt</text>
+  <text class="mono" x="480" y="294">InputTag.LMB</text>
+  <text class="small" x="480" y="330">Validates parsed identity and</text>
+  <text class="small" x="480" y="354">input metadata, not just a path.</text>
+
+  <path class="arrow" d="M760 292 L825 292"/>
+  <rect class="gate" x="835" y="190" width="290" height="205" rx="14"/>
+  <text class="head" x="860" y="226">3. Runtime ASC</text>
+  <text class="mono" x="860" y="264">FireBolt specs = 1</text>
+  <text class="mono" x="860" y="294">LMB owners = 1</text>
+  <text class="mono" x="860" y="324">status = Equipped</text>
+  <text class="small" x="860" y="358">LMB resolves exactly to FireBolt.</text>
+
+  <rect class="reject" x="75" y="490" width="500" height="125" rx="14"/>
+  <text class="head" x="100" y="528">Prior defect: Crunch native override</text>
+  <text class="small" x="100" y="562">Fails source selector, missing FireBolt spec,</text>
+  <text class="small" x="100" y="588">and wrong runtime LMB ability-tag assertions.</text>
+  <path class="arrow" d="M585 552 L670 552"/>
+  <rect class="result" x="680" y="490" width="445" height="125" rx="14"/>
+  <text class="head" x="705" y="528">Completion evidence</text>
+  <text class="small" x="705" y="562">AuraEditor build passed</text>
+  <text class="small" x="705" y="588">Focused automation: Result={Success}</text>
+</svg>

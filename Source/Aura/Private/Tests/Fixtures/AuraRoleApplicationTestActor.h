@@ -18,6 +18,7 @@ public:
 	AAuraRoleApplicationTestActor();
 
 	void ConfigureRoleShell(const FGameplayTag& EntityType, const FGameplayTag& ControlType);
+	void InitializeCombatIdentityForTest(const FAuraCombatIdentity& Identity);
 	void UseExternalAbilitySystem(UAuraAbilitySystemComponent* ExternalASC, UAttributeSet* ExternalAttributes);
 	bool InitializeTestAbilityActorInfo(AActor* OwnerActor = nullptr);
 

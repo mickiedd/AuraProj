@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Aura FireBolt LMB binding restoration</title>
+  <desc id="desc">Before, Aura LMB resolved to CrunchCombo and FireBolt never activated. After, RoleConfig grants FireBolt.xml on LMB, existing saves retain FireBolt, and projectile presentation remains validated.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#8da2b8"/>
+    </marker>
+    <style>
+      .bg { fill:#0b1220; }
+      .panel { fill:#131f31; stroke:#31465f; stroke-width:2; rx:18; }
+      .bad { fill:#321b25; stroke:#d35f7a; stroke-width:2; rx:14; }
+      .good { fill:#123126; stroke:#4fc08d; stroke-width:2; rx:14; }
+      .test { fill:#16263b; stroke:#5aa5e8; stroke-width:2; rx:14; }
+      .title { font:700 30px 'Segoe UI',sans-serif; fill:#eef6ff; }
+      .head { font:700 20px 'Segoe UI',sans-serif; fill:#eef6ff; }
+      .text { font:16px 'Segoe UI',sans-serif; fill:#cbd8e6; }
+      .mono { font:15px Consolas,monospace; fill:#e9f1fa; }
+      .small { font:14px 'Segoe UI',sans-serif; fill:#aebed0; }
+      .arrow { stroke:#8da2b8; stroke-width:3; fill:none; marker-end:url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="700"/>
+  <text class="title" x="60" y="62">Aura LMB: restore FireBolt activation and presentation path</text>
+  <text class="small" x="60" y="92">Root cause proven from the latest client log: the input slot was rebound, so FireBolt never ran.</text>
+
+  <rect class="panel" x="50" y="125" width="1100" height="220"/>
+  <text class="head" x="80" y="165">Before: wrong ability owns InputTag.LMB</text>
+  <rect class="bad" x="80" y="190" width="300" height="110"/>
+  <text class="mono" x="105" y="225">LMB press / hold</text>
+  <text class="small" x="105" y="254">Input reaches ASC correctly</text>
+  <text class="small" x="105" y="278">CanActivate = true</text>
+  <path class="arrow" d="M390 245 L480 245"/>
+  <rect class="bad" x="490" y="190" width="300" height="110"/>
+  <text class="mono" x="515" y="225">Abilities.Melee.CrunchCombo</text>
+  <text class="small" x="515" y="254">RoleConfig native LMB override</text>
+  <text class="small" x="515" y="278">FireBolt activation count = 0</text>
+  <path class="arrow" d="M800 245 L890 245"/>
+  <rect class="bad" x="900" y="190" width="210" height="110"/>
+  <text class="mono" x="925" y="225">No FireBolt FX</text>
+  <text class="small" x="925" y="254">Expected result cannot</text>
+  <text class="small" x="925" y="278">be displayed</text>
+
+  <rect class="panel" x="50" y="375" width="1100" height="250"/>
+  <text class="head" x="80" y="415">After: FireBolt definition owns Aura LMB again</text>
+  <rect class="good" x="80" y="445" width="290" height="120"/>
+  <text class="mono" x="105" y="480">RoleConfig.json</text>
+  <text class="small" x="105" y="510">lmbAbility = empty</text>
+  <text class="small" x="105" y="538">lmbAbilityDefinition = FireBolt.xml</text>
+  <path class="arrow" d="M380 505 L455 505"/>
+  <rect class="good" x="465" y="445" width="285" height="120"/>
+  <text class="mono" x="490" y="480">Abilities.Fire.FireBolt</text>
+  <text class="small" x="490" y="510">InputTag.LMB grant restored</text>
+  <text class="small" x="490" y="538">Saved level / slot / status retained</text>
+  <path class="arrow" d="M760 505 L835 505"/>
+  <rect class="good" x="845" y="445" width="265" height="120"/>
+  <text class="mono" x="870" y="480">FireBolt projectiles</text>
+  <text class="small" x="870" y="510">Native definition and Niagara</text>
+  <text class="small" x="870" y="538">presentation assets validated</text>
+
+  <rect class="test" x="235" y="590" width="730" height="72"/>
+  <text class="head" x="265" y="620">Validation</text>
+  <text class="small" x="265" y="646">AuraEditor build passed; 3/3 focused automation tests passed; diff whitespace check passed.</text>
+</svg>

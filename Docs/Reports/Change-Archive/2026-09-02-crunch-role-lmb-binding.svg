@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch role LMB binding and lifecycle validation</title>
+  <desc id="desc">A diagram showing trusted role selection flowing to role-owned ability grants, with Aura bound to FireBolt and Crunch bound to AuraMeleeAttack and CrunchCombo. A persistent ledger keeps one LMB spec across pawn replacement.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#101a31"/><stop offset="1" stop-color="#1b2b4a"/></linearGradient>
+    <linearGradient id="aura" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#243c72"/><stop offset="1" stop-color="#315eaa"/></linearGradient>
+    <linearGradient id="crunch" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b321e"/><stop offset="1" stop-color="#aa6333"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".3"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#a8c7ff"/></marker>
+    <style>
+      .title { font: 700 30px Segoe UI, sans-serif; fill: #f3f7ff; }
+      .subtitle { font: 400 16px Segoe UI, sans-serif; fill: #bdcce6; }
+      .label { font: 700 18px Segoe UI, sans-serif; fill: #f3f7ff; }
+      .body { font: 400 16px Segoe UI, sans-serif; fill: #e5edff; }
+      .small { font: 400 14px Segoe UI, sans-serif; fill: #b9c9e4; }
+      .mono { font: 600 15px Consolas, monospace; fill: #fff3d6; }
+      .panel { stroke: #6f8fbe; stroke-width: 1.5; rx: 16; filter: url(#shadow); }
+      .line { stroke: #a8c7ff; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .check { fill: #42d6a4; }
+      .warn { fill: #f2b869; }
+    </style>
+  </defs>
+  <rect width="1600" height="920" fill="url(#bg)"/>
+  <text x="80" y="70" class="title">AuraProj role-owned Crunch LMB binding</text>
+  <text x="80" y="102" class="subtitle">Role identity selects the skill. Aura remains FireBolt; Crunch owns the native melee combo.</text>
+
+  <rect x="80" y="145" width="360" height="170" class="panel" fill="#182642"/>
+  <text x="110" y="185" class="label">1 · Trusted server RoleId</text>
+  <text x="110" y="220" class="body">RoleConfig.json (version 2)</text>
+  <text x="110" y="251" class="mono">Aura | Crunch | BungeeMan | Civilian</text>
+  <text x="110" y="281" class="small">Selectable roles are validated server-side.</text>
+
+  <path d="M440 230 H535" class="line"/>
+  <rect x="535" y="145" width="410" height="170" class="panel" fill="#182642"/>
+  <text x="565" y="185" class="label">2 · Role-owned grant transaction</text>
+  <text x="565" y="220" class="body">Build and validate role candidates</text>
+  <text x="565" y="250" class="body">Apply to PlayerState-owned ASC</text>
+  <text x="565" y="280" class="small">No Aura-to-Crunch production grant.</text>
+
+  <path d="M945 230 H1040" class="line"/>
+  <rect x="1040" y="145" width="480" height="170" class="panel" fill="#182642"/>
+  <text x="1070" y="185" class="label">3 · Persistent RoleGrantLedger</text>
+  <text x="1070" y="220" class="body">Role application is idempotent.</text>
+  <text x="1070" y="250" class="body">Pawn replacement reuses role handles.</text>
+  <text x="1070" y="280" class="small">Invariant: exactly one role-owned InputTag.LMB spec.</text>
+
+  <path d="M740 315 V375" class="line"/>
+  <text x="758" y="352" class="small">explicit LMB source</text>
+
+  <rect x="100" y="395" width="640" height="265" class="panel" fill="url(#aura)"/>
+  <text x="135" y="440" class="label">Aura role</text>
+  <text x="135" y="475" class="mono">lmbAbilityDefinition = /Game/AbilityDefinitions/FireBolt.xml</text>
+  <text x="135" y="510" class="mono">lmbAbility = absent</text>
+  <text x="135" y="553" class="body">LMB → FireBolt</text>
+  <circle cx="135" cy="603" r="9" class="check"/><text x="155" y="609" class="body">Aura FireBolt regression passes</text>
+  <circle cx="135" cy="633" r="9" class="check"/><text x="155" y="639" class="body">No CrunchCombo spec granted</text>
+
+  <rect x="860" y="395" width="640" height="265" class="panel" fill="url(#crunch)"/>
+  <text x="895" y="440" class="label">Crunch role</text>
+  <text x="895" y="475" class="mono">lmbAbility = /Script/Aura.AuraMeleeAttack</text>
+  <text x="895" y="510" class="mono">lmbAbilityDefinition = absent</text>
+  <text x="895" y="553" class="body">LMB → Abilities.Melee.CrunchCombo</text>
+  <text x="895" y="580" class="body">Combat.Melee = descriptive taxonomy</text>
+  <circle cx="895" cy="618" r="9" class="check"/><text x="915" y="624" class="body">Native class and UI metadata resolve</text>
+  <circle cx="895" cy="648" r="9" class="check"/><text x="915" y="654" class="body">Temporary Aura mesh/ABP adapter is explicit</text>
+
+  <path d="M1180 660 V725" class="line"/>
+  <rect x="520" y="725" width="560" height="125" class="panel" fill="#182642"/>
+  <text x="550" y="762" class="label">4 · Runtime validation</text>
+  <text x="550" y="790" class="body">Build + cook/package + RoleBattle 237/237</text>
+  <text x="550" y="817" class="body">Crunch lifecycle: 3 pawn replacements, one LMB handle</text>
+  <text x="550" y="844" class="small">Packaged login reached; OS Firewall prompt remained untouched.</text>
+
+  <text x="80" y="890" class="small">Impact cue remains target/damage-gated: GameplayCue.MeleeImpact is not evidence in a no-target session.</text>
+</svg>

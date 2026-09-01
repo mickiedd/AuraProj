@@ -31,6 +31,7 @@ public:
 	FGameplayTag Combat_Unassigned;
 	FGameplayTag Combat_Magic;
 	FGameplayTag Combat_Gun;
+	FGameplayTag Combat_Melee;
 	FGameplayTag Combat_Civilian;
 
 	FGameplayTag Death_PlayerRespawn;
@@ -173,6 +174,7 @@ public:
 	FGameplayTag Player_Mounted_Broom;
 
 	FGameplayTag GameplayCue_FireBlast;
+	FGameplayTag GameplayCue_MeleeImpact;
 
 private:
     static AURA_API FAuraGameplayTags GameplayTags;

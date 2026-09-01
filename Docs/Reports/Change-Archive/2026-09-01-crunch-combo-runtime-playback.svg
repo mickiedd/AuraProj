@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch combo runtime playback</title>
+  <desc id="desc">A runtime smoke flow from Aura LMB input through the native combo ability and Aura animation instance, with network role integration deferred.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101827"/><stop offset="1" stop-color="#17243a"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#8bd5ff"/></marker>
+    <style>
+      .h { font: 700 28px Arial, sans-serif; fill: #f4f8ff; }
+      .s { font: 16px Arial, sans-serif; fill: #b8c7dc; }
+      .k { font: 700 18px Arial, sans-serif; fill: #f4f8ff; }
+      .t { font: 15px Arial, sans-serif; fill: #d8e5f4; }
+      .small { font: 13px Arial, sans-serif; fill: #aec0d8; }
+      .panel { fill: #1e2d45; stroke: #486482; stroke-width: 2; rx: 16; }
+      .new { fill: #173d4b; stroke: #57c5d8; stroke-width: 2; rx: 12; }
+      .guard { fill: #4a3b1d; stroke: #e1b45f; stroke-width: 2; rx: 12; }
+      .defer { fill: #3b2b3c; stroke: #aa6f87; stroke-width: 2; rx: 12; }
+      .line { stroke: #8bd5ff; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #869ab6; stroke-width: 2; stroke-dasharray: 7 7; fill: none; }
+    </style>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="52" y="55" class="h">Milestone 3 · Crunch combo runtime playback</text>
+  <text x="52" y="84" class="s">The native ability now runs against Aura's real mesh and animation blueprint in an isolated game world.</text>
+
+  <rect x="52" y="125" width="1096" height="485" class="panel"/>
+  <rect x="82" y="175" width="208" height="145" class="new"/>
+  <text x="104" y="213" class="k">LMB input path</text>
+  <text x="104" y="241" class="t">pressed + held</text>
+  <text x="104" y="265" class="t">equipped spec</text>
+  <text x="104" y="289" class="t">Aura ASC</text>
+
+  <rect x="343" y="175" width="230" height="145" class="new"/>
+  <text x="366" y="213" class="k">UAuraMeleeAttack</text>
+  <text x="366" y="241" class="t">LocalPredicted</text>
+  <text x="366" y="265" class="t">InstancedPerActor</text>
+  <text x="366" y="289" class="t">Combo01 selected</text>
+
+  <rect x="626" y="175" width="230" height="145" class="new"/>
+  <text x="650" y="213" class="k">Aura animation</text>
+  <text x="650" y="241" class="t">SKM_Aura + ABP_Aura</text>
+  <text x="650" y="265" class="t">RuntimeV2 montage</text>
+  <text x="650" y="289" class="t">0.1 s animation ticks</text>
+
+  <rect x="909" y="175" width="208" height="145" class="guard"/>
+  <text x="934" y="213" class="k">Smoke result</text>
+  <text x="934" y="241" class="t">montage stops</text>
+  <text x="934" y="265" class="t">cancel cleans spec</text>
+  <text x="934" y="289" class="t">test passed</text>
+
+  <path d="M290 247 L343 247" class="line"/><path d="M573 247 L626 247" class="line"/><path d="M856 247 L909 247" class="line"/>
+
+  <rect x="205" y="405" width="330" height="135" class="guard"/>
+  <text x="230" y="443" class="k">Verified locally</text>
+  <text x="230" y="471" class="t">real ability actor info</text>
+  <text x="230" y="495" class="t">real skeletal animation instance</text>
+  <text x="230" y="519" class="t">fresh automation process</text>
+
+  <rect x="620" y="405" width="395" height="135" class="defer"/>
+  <text x="646" y="443" class="k">Production gate remains</text>
+  <text x="646" y="471" class="t">listen/dedicated notifies, latency prediction,</text>
+  <text x="646" y="495" class="t">target policy matrix, and four-section input sequence</text>
+  <text x="646" y="519" class="t">before RoleConfig Aura wiring</text>
+
+  <path d="M804 320 C804 365 786 380 786 405" class="dash"/>
+  <text x="82" y="583" class="small">Evidence: Aura.Migration.CrunchCombo.RuntimePlayback passed; RoleConfig remains unchanged.</text>
+</svg>

@@ -575,7 +575,40 @@ void UAuraDataAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
 bool UAuraDataAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-    if (!GetDefinition() || GetDefinition()->ManaCost <= 0.f)
+    const UAuraAbilityDefinition* Definition = GetDefinition();
+    if (!Definition && ActorInfo && ActorInfo->AbilitySystemComponent.IsValid())
+    {
+        if (const FGameplayAbilitySpec* Spec = ActorInfo->AbilitySystemComponent->FindAbilitySpecFromHandle(Handle))
+        {
+            Definition = Cast<UAuraAbilityDefinition>(Spec->SourceObject.Get());
+        }
+    }
+
+    if (!Definition)
+    {
+        return true;
+    }
+
+    if (Definition->IsFirearmDefinition())
+    {
+        UObject* AbilityOwner = ActorInfo && ActorInfo->AbilitySystemComponent.IsValid()
+            ? ActorInfo->AbilitySystemComponent->GetOwner()
+            : nullptr;
+        const IAuraFirearmAuthority* FirearmAuthority = AbilityOwner
+            && AbilityOwner->GetClass()->ImplementsInterface(UAuraFirearmAuthority::StaticClass())
+            ? Cast<IAuraFirearmAuthority>(AbilityOwner)
+            : nullptr;
+        FName ResultCode = TEXT("AuthorityUnavailable");
+        if (!FirearmAuthority || !FirearmAuthority->CanActivateFirearmAbility(
+            Definition->AbilityName, ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr, ResultCode))
+        {
+            UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[Firearm][Activation] Blocked ability=%s result=%s"),
+                *Definition->AbilityName.ToString(), *ResultCode.ToString());
+            return false;
+        }
+    }
+
+    if (Definition->ManaCost <= 0.f)
     {
         return true;
     }
@@ -584,7 +617,7 @@ bool UAuraDataAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const 
     {
         bool bFound = false;
         const float CurrentMana = ActorInfo->AbilitySystemComponent->GetGameplayAttributeValue(UAuraAttributeSet::GetManaAttribute(), bFound);
-        if (bFound && CurrentMana < GetDefinition()->ManaCost)
+        if (bFound && CurrentMana < Definition->ManaCost)
         {
             return false;
         }

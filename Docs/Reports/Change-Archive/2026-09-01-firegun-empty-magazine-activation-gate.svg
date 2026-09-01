@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">FireGun empty-magazine activation gate</title>
+  <desc id="desc">Before, FireGun activated, applied cooldown, and played its graph before projectile commit rejected the shot. After, a non-mutating firearm eligibility check blocks GAS activation at zero rounds while the authoritative consume guard remains at projectile commit.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#91a6bb"/>
+    </marker>
+    <style>
+      .bg { fill:#0b1220; }
+      .panel { fill:#131f31; stroke:#31465f; stroke-width:2; rx:18; }
+      .bad { fill:#331b25; stroke:#db637f; stroke-width:2; rx:14; }
+      .good { fill:#123126; stroke:#50c18e; stroke-width:2; rx:14; }
+      .guard { fill:#172a40; stroke:#63a9e8; stroke-width:2; rx:14; }
+      .title { font:700 30px 'Segoe UI',sans-serif; fill:#eef6ff; }
+      .head { font:700 20px 'Segoe UI',sans-serif; fill:#eef6ff; }
+      .text { font:16px 'Segoe UI',sans-serif; fill:#cbd8e6; }
+      .small { font:14px 'Segoe UI',sans-serif; fill:#afbed0; }
+      .mono { font:15px Consolas,monospace; fill:#edf4fb; }
+      .arrow { stroke:#91a6bb; stroke-width:3; fill:none; marker-end:url(#arrow); }
+      .stop { stroke:#db637f; stroke-width:5; }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="55" y="58">FireGun: reject empty magazines before skill activation</text>
+  <text class="small" x="55" y="88">Runtime evidence: GAS accepted FireGun, then the projectile node reported Shot rejected result=EmptyMagazine.</text>
+
+  <rect class="panel" x="45" y="120" width="1110" height="220"/>
+  <text class="head" x="75" y="160">Before — rejection happened after visible ability work</text>
+  <rect class="bad" x="75" y="190" width="225" height="105"/>
+  <text class="mono" x="98" y="225">LMB / skill trigger</text>
+  <text class="small" x="98" y="254">MagazineRounds = 0</text>
+  <path class="arrow" d="M310 242 L380 242"/>
+  <rect class="bad" x="390" y="190" width="300" height="105"/>
+  <text class="mono" x="413" y="222">GAS activation accepted</text>
+  <text class="small" x="413" y="251">cooldown + target data + montage</text>
+  <text class="small" x="413" y="274">graph already started</text>
+  <path class="arrow" d="M700 242 L770 242"/>
+  <rect class="bad" x="780" y="190" width="330" height="105"/>
+  <text class="mono" x="803" y="222">Projectile commit</text>
+  <text class="small" x="803" y="251">TryConsumeFirearmRound → false</text>
+  <text class="small" x="803" y="274">EmptyMagazine; no bullet spawned</text>
+
+  <rect class="panel" x="45" y="370" width="1110" height="285"/>
+  <text class="head" x="75" y="410">After — two guards, one authoritative ammo ledger</text>
+  <rect class="good" x="75" y="445" width="245" height="125"/>
+  <text class="mono" x="98" y="478">LMB / skill trigger</text>
+  <text class="small" x="98" y="507">UAuraDataAbility::CheckCost</text>
+  <text class="small" x="98" y="534">asks without mutating ammo</text>
+  <path class="arrow" d="M330 507 L400 507"/>
+  <rect class="guard" x="410" y="445" width="330" height="125"/>
+  <text class="mono" x="433" y="478">CanActivateFirearmAbility</text>
+  <text class="small" x="433" y="507">empty / reload / life / cadence gate</text>
+  <text class="small" x="433" y="534">0 rounds → activation returns false</text>
+  <line class="stop" x1="755" y1="465" x2="800" y2="550"/>
+  <line class="stop" x1="800" y1="465" x2="755" y2="550"/>
+  <rect class="good" x="835" y="445" width="275" height="125"/>
+  <text class="mono" x="858" y="478">Loaded path only</text>
+  <text class="small" x="858" y="507">graph reaches projectile commit</text>
+  <text class="small" x="858" y="534">consume guard remains race-safe</text>
+
+  <rect class="guard" x="195" y="595" width="810" height="88"/>
+  <text class="head" x="225" y="628">Validation</text>
+  <text class="small" x="225" y="654">AuraEditor build passed; EmptyMagazineActivationGate passed; Day25.Ammo.Authority passed.</text>
+  <text class="small" x="225" y="676">Assertions: loaded gate true, empty gate false, spec inactive, magazine remains zero.</text>
+</svg>

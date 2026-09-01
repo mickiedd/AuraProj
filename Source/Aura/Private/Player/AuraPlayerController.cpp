@@ -16,6 +16,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/Abilities/AuraMeleeAttack.h"
 #include "Actor/MagicCircle.h"
 #include "AuraAbilityTypes.h"
 #include "Aura/Aura.h"
@@ -25,6 +26,7 @@
 #include "Character/AuraCharacter.h"
 #include "Components/DecalComponent.h"
 #include "Components/SplineComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
@@ -926,6 +928,22 @@ void AAuraPlayerController::BeginPlay()
 			&ThisClass::TickRoleBattleDay19NetworkProbeClient, 0.25f, true);
 		UE_LOG(LogAura, Display, TEXT("[Day19NetworkProbe][Client] Scheduled security/replay probe."));
 	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("CrunchComboNetworkProbe")))
+	{
+		bCrunchComboNetworkProbeEnabled = true;
+		FString ProbeScenario;
+		FParse::Value(FCommandLine::Get(), TEXT("CrunchComboNetworkProbeScenario="), ProbeScenario);
+		bCrunchComboNetworkProbeCancelScenario = ProbeScenario.Equals(TEXT("Cancel"), ESearchCase::IgnoreCase);
+		bCrunchComboNetworkProbeNearCloseScenario = ProbeScenario.Equals(TEXT("NearClose"), ESearchCase::IgnoreCase);
+		GetWorldTimerManager().SetTimer(
+			CrunchComboNetworkProbeTimerHandle,
+			this,
+			&ThisClass::TickCrunchComboNetworkProbe,
+			0.05f,
+			true);
+		UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][%s] Scheduled test-only combo probe."),
+			HasAuthority() ? TEXT("Server") : TEXT("Client"));
+	}
 #endif
 	if (!AuraContext)
 	{
@@ -982,6 +1000,7 @@ void AAuraPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		GetWorldTimerManager().ClearTimer(RoleBattleDay17ProbeTimerHandle);
 		GetWorldTimerManager().ClearTimer(RoleBattleDay18ProbeTimerHandle);
 		GetWorldTimerManager().ClearTimer(RoleBattleDay19ProbeTimerHandle);
+		GetWorldTimerManager().ClearTimer(CrunchComboNetworkProbeTimerHandle);
 	}
 	if (HasAuthority() && GetWorld())
 	{
@@ -1102,6 +1121,335 @@ void AAuraPlayerController::TickRoleBattleDay19NetworkProbeClient()
 		RoleBattleDay19NextProbeTime = Now + 1.0;
 		return;
 	}
+}
+
+void AAuraPlayerController::TickCrunchComboNetworkProbe()
+{
+#if !UE_BUILD_SHIPPING
+	if (!bCrunchComboNetworkProbeEnabled || !GetWorld()) return;
+	AAuraCharacter* PlayerCharacter = GetPawn<AAuraCharacter>();
+	UAuraAbilitySystemComponent* ASC = GetASC();
+	if (!PlayerCharacter || !ASC || !IsAbilityInputReady()) return;
+
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	const FGameplayTag ComboTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchCombo"), false);
+	FGameplayAbilitySpec* ComboSpec = ASC->GetSpecFromAbilityTag(ComboTag);
+
+	if (HasAuthority())
+	{
+		if (!ComboSpec)
+		{
+			// This is a process-local development probe. Remove the configured LMB
+			// slot only for this run, then grant the combo without touching RoleConfig.
+			ASC->ClearAbilitiesOfSlot(GameplayTags.InputTag_LMB);
+			FGameplayAbilitySpec ProbeSpec(UAuraMeleeAttack::StaticClass(), 1);
+			ProbeSpec.GetDynamicSpecSourceTags().AddTag(GameplayTags.InputTag_LMB);
+			ProbeSpec.GetDynamicSpecSourceTags().AddTag(GameplayTags.Abilities_Status_Equipped);
+			const FGameplayAbilitySpecHandle Handle = ASC->GiveAbility(ProbeSpec);
+			ComboSpec = Handle.IsValid() ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
+			UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Server] GrantedTestAbility=%d HandleValid=%d RoleConfigUnchanged=1"),
+				ComboSpec ? 1 : 0, Handle.IsValid() ? 1 : 0);
+		}
+		if (!ComboSpec) return;
+		UAuraMeleeAttack* AbilityInstance = Cast<UAuraMeleeAttack>(ComboSpec->GetPrimaryInstance());
+		if (!AbilityInstance) return;
+		if (ComboSpec->IsActive() && !bCrunchComboNetworkProbeServerWasActive)
+		{
+			bCrunchComboNetworkProbeServerWasActive = true;
+			++CrunchComboNetworkProbeServerActivationCount;
+			if (!bCrunchComboNetworkProbeServerObservedActivation)
+			{
+				bCrunchComboNetworkProbeServerObservedActivation = true;
+				UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Server] RemoteActivationObserved=1"));
+			}
+		}
+		else if (!ComboSpec->IsActive())
+		{
+			bCrunchComboNetworkProbeServerWasActive = false;
+		}
+		if (bCrunchComboNetworkProbeCancelScenario
+			&& bCrunchComboNetworkProbeServerObservedActivation
+			&& !ComboSpec->IsActive()
+			&& CrunchComboNetworkProbeServerActivationCount == 1
+			&& !bCrunchComboNetworkProbeServerCancelObserved)
+		{
+			bCrunchComboNetworkProbeServerCancelObserved = true;
+			const bool bCleanupComplete = !ComboSpec->IsActive()
+				&& !AbilityInstance->IsTestComboWindowOpen()
+				&& !AbilityInstance->IsTestAuthorityFallbackTimelineActive()
+				&& !AbilityInstance->HasTestAuthorityFallbackTimerPending()
+				&& !AbilityInstance->HasTestInputPressTask()
+				&& !AbilityInstance->HasTestQueuedSuccessor();
+			UE_LOG(LogAura, Display,
+				TEXT("[CrunchComboNetworkProbe][Server] CANCEL_OBSERVED Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X WindowOpen=%d FallbackActive=%d FallbackTimers=%d InputTask=%d Queued=%d Cleanup=%d"),
+				AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
+				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+				AbilityInstance->GetTestAcceptedDamageSectionMask(), AbilityInstance->IsTestComboWindowOpen() ? 1 : 0,
+				AbilityInstance->IsTestAuthorityFallbackTimelineActive() ? 1 : 0,
+				AbilityInstance->HasTestAuthorityFallbackTimerPending() ? 1 : 0,
+				AbilityInstance->HasTestInputPressTask() ? 1 : 0,
+				AbilityInstance->HasTestQueuedSuccessor() ? 1 : 0, bCleanupComplete ? 1 : 0);
+		}
+		if (bCrunchComboNetworkProbeNearCloseScenario
+			&& bCrunchComboNetworkProbeServerObservedActivation
+			&& !ComboSpec->IsActive()
+			&& !bCrunchComboNetworkProbeServerNearCloseOutcomeLogged)
+		{
+			bCrunchComboNetworkProbeServerNearCloseOutcomeLogged = true;
+			if (AbilityInstance->GetTestOpenEventCount() == 4
+				&& AbilityInstance->GetTestDamageEventCount() == 4
+				&& AbilityInstance->GetTestCloseEventCount() == 4
+				&& AbilityInstance->GetTestAcceptedDamageCount() == 4
+				&& AbilityInstance->GetTestAcceptedDamageSectionMask() == 0xF)
+			{
+				const bool bCleanupComplete = !AbilityInstance->IsTestComboWindowOpen()
+					&& !AbilityInstance->IsTestAuthorityFallbackTimelineActive()
+					&& !AbilityInstance->HasTestAuthorityFallbackTimerPending()
+					&& !AbilityInstance->HasTestInputPressTask()
+					&& !AbilityInstance->HasTestQueuedSuccessor();
+				UE_LOG(LogAura, Display,
+					TEXT("[CrunchComboNetworkProbe][Server] NEARCLOSE_ACCEPTED Open=4 Damage=4 Close=4 Accepted=4 Mask=0xF WindowOpen=%d FallbackActive=%d FallbackTimers=%d InputTask=%d Queued=%d Cleanup=%d"),
+					AbilityInstance->IsTestComboWindowOpen() ? 1 : 0,
+					AbilityInstance->IsTestAuthorityFallbackTimelineActive() ? 1 : 0,
+					AbilityInstance->HasTestAuthorityFallbackTimerPending() ? 1 : 0,
+					AbilityInstance->HasTestInputPressTask() ? 1 : 0,
+					AbilityInstance->HasTestQueuedSuccessor() ? 1 : 0, bCleanupComplete ? 1 : 0);
+			}
+			else
+			{
+				const bool bCleanupComplete = !AbilityInstance->IsTestComboWindowOpen()
+					&& !AbilityInstance->IsTestAuthorityFallbackTimelineActive()
+					&& !AbilityInstance->HasTestAuthorityFallbackTimerPending()
+					&& !AbilityInstance->HasTestInputPressTask()
+					&& !AbilityInstance->HasTestQueuedSuccessor();
+				UE_LOG(LogAura, Display,
+					TEXT("[CrunchComboNetworkProbe][Server] NEARCLOSE_REJECTED Inactive=1 Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X WindowOpen=%d FallbackActive=%d FallbackTimers=%d InputTask=%d Queued=%d Cleanup=%d"),
+					AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
+					AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+					AbilityInstance->GetTestAcceptedDamageSectionMask(), AbilityInstance->IsTestComboWindowOpen() ? 1 : 0,
+					AbilityInstance->IsTestAuthorityFallbackTimelineActive() ? 1 : 0,
+					AbilityInstance->HasTestAuthorityFallbackTimerPending() ? 1 : 0,
+					AbilityInstance->HasTestInputPressTask() ? 1 : 0,
+					AbilityInstance->HasTestQueuedSuccessor() ? 1 : 0, bCleanupComplete ? 1 : 0);
+			}
+		}
+		if (!bCrunchComboNetworkProbeServerPassed
+			&& !ComboSpec->IsActive()
+			&& AbilityInstance->GetTestOpenEventCount() == 4
+			&& AbilityInstance->GetTestDamageEventCount() == 4
+			&& AbilityInstance->GetTestCloseEventCount() == 4
+			&& AbilityInstance->GetTestAcceptedDamageCount() == 4
+			&& AbilityInstance->GetTestAcceptedDamageSectionMask() == 0xF
+			&& (!bCrunchComboNetworkProbeCancelScenario || bCrunchComboNetworkProbeServerCancelObserved))
+		{
+			const bool bCleanupComplete = !AbilityInstance->IsTestComboWindowOpen()
+				&& !AbilityInstance->IsTestAuthorityFallbackTimelineActive()
+				&& !AbilityInstance->HasTestAuthorityFallbackTimerPending()
+				&& !AbilityInstance->HasTestInputPressTask()
+				&& !AbilityInstance->HasTestQueuedSuccessor();
+			if (!bCleanupComplete)
+			{
+				return;
+			}
+			bCrunchComboNetworkProbeServerPassed = true;
+			if (bCrunchComboNetworkProbeCancelScenario)
+			{
+				UE_LOG(LogAura, Display,
+					TEXT("[CrunchComboNetworkProbe][Server] CANCEL_PASS Open=4 Damage=4 Close=4 Accepted=4 Mask=0xF AuthorityDamage=1 Cleanup=1"));
+			}
+			else
+			{
+				UE_LOG(LogAura, Display,
+					TEXT("[CrunchComboNetworkProbe][Server] PASS Open=4 Damage=4 Close=4 Accepted=4 Mask=0xF AuthorityDamage=1 Cleanup=1"));
+			}
+			if (!bCrunchComboNetworkProbeNearCloseScenario)
+			{
+				bCrunchComboNetworkProbeEnabled = false;
+				GetWorldTimerManager().ClearTimer(CrunchComboNetworkProbeTimerHandle);
+			}
+		}
+		return;
+	}
+
+	if (!ComboSpec) return;
+	UAuraMeleeAttack* AbilityInstance = Cast<UAuraMeleeAttack>(ComboSpec->GetPrimaryInstance());
+	const double Now = GetWorld()->GetTimeSeconds();
+	if (!bCrunchComboNetworkProbeClientActivated)
+	{
+		FGameplayAbilitySpec* EquippedLmbSpec = ASC->GetSpecWithSlot(GameplayTags.InputTag_LMB);
+		if (!EquippedLmbSpec || !EquippedLmbSpec->Ability
+			|| !EquippedLmbSpec->Ability->IsA(UAuraMeleeAttack::StaticClass()))
+		{
+			// Wait until the server's test-only slot replacement has replicated;
+			// pressing during this handoff would still activate FireBolt locally.
+			return;
+		}
+		if (ComboSpec->IsActive()) return;
+		ASC->AbilityInputTagPressed(GameplayTags.InputTag_LMB);
+		ASC->AbilityInputTagHeld(GameplayTags.InputTag_LMB);
+		bCrunchComboNetworkProbeClientActivated = true;
+		UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Client] InitialLMBPressed=1"));
+		return;
+	}
+	if (!AbilityInstance) return;
+	if (bCrunchComboNetworkProbeCancelScenario)
+	{
+		if (!bCrunchComboNetworkProbeClientCancelQueued
+			&& !bCrunchComboNetworkProbeClientCancelRequested
+			&& !bCrunchComboNetworkProbeClientCancelObserved
+			&& AbilityInstance->IsTestComboWindowOpen()
+			&& AbilityInstance->GetTestOpenEventCount() > CrunchComboNetworkProbeLastOpenCount)
+		{
+			CrunchComboNetworkProbeLastOpenCount = AbilityInstance->GetTestOpenEventCount();
+			ASC->AbilityInputTagPressed(GameplayTags.InputTag_LMB);
+			bCrunchComboNetworkProbeClientCancelQueued = true;
+			CrunchComboNetworkProbeClientNextActionTime = Now + 0.03;
+			UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Client] CancelQueued=1 Open=%d Section=%d"),
+				CrunchComboNetworkProbeLastOpenCount, AbilityInstance->GetTestComboIndex());
+			return;
+		}
+		if (bCrunchComboNetworkProbeClientCancelQueued
+			&& !bCrunchComboNetworkProbeClientCancelRequested
+			&& Now >= CrunchComboNetworkProbeClientNextActionTime)
+		{
+			ASC->CancelAbilityHandle(ComboSpec->Handle);
+			bCrunchComboNetworkProbeClientCancelRequested = true;
+			UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Client] CancelRequested=1"));
+			return;
+		}
+		if (bCrunchComboNetworkProbeClientCancelRequested
+			&& !bCrunchComboNetworkProbeClientCancelObserved
+			&& !ComboSpec->IsActive())
+		{
+			bCrunchComboNetworkProbeClientCancelObserved = true;
+			const bool bCleanupComplete = !ComboSpec->IsActive()
+				&& !AbilityInstance->IsTestComboWindowOpen()
+				&& !AbilityInstance->HasTestInputPressTask();
+			CrunchComboNetworkProbeClientNextActionTime = Now + 0.75;
+			UE_LOG(LogAura, Display,
+				TEXT("[CrunchComboNetworkProbe][Client] CANCEL_OBSERVED Inactive=1 Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X Cleanup=%d"),
+				AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
+				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+				AbilityInstance->GetTestAcceptedDamageSectionMask(), bCleanupComplete ? 1 : 0);
+			return;
+		}
+		if (bCrunchComboNetworkProbeClientCancelObserved
+			&& !bCrunchComboNetworkProbeClientReactivated
+			&& !ComboSpec->IsActive()
+			&& Now >= CrunchComboNetworkProbeClientNextActionTime)
+		{
+			CrunchComboNetworkProbeLastOpenCount = 0;
+			CrunchComboNetworkProbePresses = 0;
+			ASC->AbilityInputTagPressed(GameplayTags.InputTag_LMB);
+			ASC->AbilityInputTagHeld(GameplayTags.InputTag_LMB);
+			bCrunchComboNetworkProbeClientReactivated = true;
+			UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Client] ReactivationLMBPressed=1"));
+			return;
+		}
+		if (!bCrunchComboNetworkProbeClientReactivated)
+		{
+			return;
+		}
+	}
+	if (bCrunchComboNetworkProbeNearCloseScenario)
+	{
+		if (!bCrunchComboNetworkProbeClientNearClosePrimed
+			&& AbilityInstance->IsTestComboWindowOpen()
+			&& AbilityInstance->GetTestOpenEventCount() > CrunchComboNetworkProbeLastOpenCount)
+		{
+			CrunchComboNetworkProbeLastOpenCount = AbilityInstance->GetTestOpenEventCount();
+			ASC->AbilityInputTagPressed(GameplayTags.InputTag_LMB);
+			++CrunchComboNetworkProbePresses;
+			bCrunchComboNetworkProbeClientNearClosePrimed = true;
+			CrunchComboNetworkProbeClientNextActionTime = Now + 60.0;
+			UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Client] NearClosePrime=1 Open=%d Section=%d"),
+				CrunchComboNetworkProbeLastOpenCount, AbilityInstance->GetTestComboIndex());
+			return;
+		}
+		if (bCrunchComboNetworkProbeClientNearClosePrimed
+			&& !bCrunchComboNetworkProbeClientNearClosePressed
+			&& AbilityInstance->IsTestComboWindowOpen()
+			&& AbilityInstance->GetTestOpenEventCount() > CrunchComboNetworkProbeLastOpenCount)
+		{
+			CrunchComboNetworkProbeLastOpenCount = AbilityInstance->GetTestOpenEventCount();
+			CrunchComboNetworkProbeClientOpenTime = Now;
+			// The authored close follows Open by roughly 0.23 s. At the 50 ms
+			// probe tick, 0.10 s keeps this press inside the late part of the
+			// window while still giving the listen server time to receive it.
+			CrunchComboNetworkProbeClientNextActionTime = Now + 0.10;
+			return;
+		}
+		if (!bCrunchComboNetworkProbeClientNearClosePressed
+			&& AbilityInstance->IsTestComboWindowOpen()
+			&& CrunchComboNetworkProbeLastOpenCount > 1
+			&& Now >= CrunchComboNetworkProbeClientNextActionTime)
+		{
+			ASC->AbilityInputTagPressed(GameplayTags.InputTag_LMB);
+			++CrunchComboNetworkProbePresses;
+			bCrunchComboNetworkProbeClientNearClosePressed = true;
+			UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Client] NearClosePress=1 Open=%d Section=%d OffsetFromOpen=%.3f"),
+				CrunchComboNetworkProbeLastOpenCount, AbilityInstance->GetTestComboIndex(),
+				Now - CrunchComboNetworkProbeClientOpenTime);
+			return;
+		}
+		if (!ComboSpec->IsActive() && !bCrunchComboNetworkProbeClientNearCloseOutcomeLogged)
+		{
+			bCrunchComboNetworkProbeClientNearCloseOutcomeLogged = true;
+			const bool bCleanupComplete = !AbilityInstance->IsTestComboWindowOpen()
+				&& !AbilityInstance->HasTestInputPressTask();
+			if (AbilityInstance->GetTestOpenEventCount() == 4)
+			{
+				UE_LOG(LogAura, Display,
+					TEXT("[CrunchComboNetworkProbe][Client] NEARCLOSE_ACCEPTED Inactive=1 Open=4 Damage=0 Close=4 Accepted=0 Mask=0x0 Presses=%d Cleanup=%d"),
+					CrunchComboNetworkProbePresses, bCleanupComplete ? 1 : 0);
+			}
+			else
+			{
+				UE_LOG(LogAura, Display,
+					TEXT("[CrunchComboNetworkProbe][Client] NEARCLOSE_CONVERGED Inactive=1 Open=%d Damage=0 Close=%d Accepted=0 Mask=0x0 Presses=%d Cleanup=%d"),
+					AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestCloseEventCount(),
+					CrunchComboNetworkProbePresses, bCleanupComplete ? 1 : 0);
+			}
+			bCrunchComboNetworkProbeEnabled = false;
+			GetWorldTimerManager().ClearTimer(CrunchComboNetworkProbeTimerHandle);
+		}
+		return;
+	}
+	if (AbilityInstance->IsTestComboWindowOpen()
+		&& AbilityInstance->GetTestOpenEventCount() > CrunchComboNetworkProbeLastOpenCount
+		&& AbilityInstance->GetTestComboIndex() < 3)
+	{
+		CrunchComboNetworkProbeLastOpenCount = AbilityInstance->GetTestOpenEventCount();
+		ASC->AbilityInputTagPressed(GameplayTags.InputTag_LMB);
+		++CrunchComboNetworkProbePresses;
+		UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Client] ComboPress=%d Open=%d Section=%d"),
+			CrunchComboNetworkProbePresses, CrunchComboNetworkProbeLastOpenCount, AbilityInstance->GetTestComboIndex());
+		return;
+	}
+	if (!ComboSpec->IsActive() && AbilityInstance->GetTestOpenEventCount() == 4)
+	{
+		const bool bCleanupComplete = !AbilityInstance->IsTestComboWindowOpen()
+			&& !AbilityInstance->HasTestInputPressTask();
+		if (bCrunchComboNetworkProbeCancelScenario)
+		{
+			UE_LOG(LogAura, Display,
+				TEXT("[CrunchComboNetworkProbe][Client] CANCEL_COMPLETE Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X Presses=%d CancelObserved=1 Cleanup=%d"),
+				AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
+				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+				AbilityInstance->GetTestAcceptedDamageSectionMask(), CrunchComboNetworkProbePresses, bCleanupComplete ? 1 : 0);
+		}
+		else
+		{
+			UE_LOG(LogAura, Display,
+				TEXT("[CrunchComboNetworkProbe][Client] COMPLETE Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X Presses=%d Cleanup=%d"),
+			AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
+			AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+			AbilityInstance->GetTestAcceptedDamageSectionMask(), CrunchComboNetworkProbePresses, bCleanupComplete ? 1 : 0);
+		}
+		bCrunchComboNetworkProbeEnabled = false;
+		GetWorldTimerManager().ClearTimer(CrunchComboNetworkProbeTimerHandle);
+	}
+#endif
 }
 #endif
 

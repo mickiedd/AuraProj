@@ -975,7 +975,7 @@ FAuraRoleLoadResult UAuraAbilitySystemLibrary::ParseRoleInfoJson(const UObject* 
 
 	const TSet<FString> EntityTags = { TEXT("Entity.Player"), TEXT("Entity.AmbientNPC") };
 	const TSet<FString> ControlTags = { TEXT("Control.Player"), TEXT("Control.EnemyAI"), TEXT("Control.CivilianAI") };
-	const TSet<FString> CombatTags = { TEXT("Combat.Unassigned"), TEXT("Combat.Magic"), TEXT("Combat.Gun"), TEXT("Combat.Civilian") };
+	const TSet<FString> CombatTags = { TEXT("Combat.Unassigned"), TEXT("Combat.Magic"), TEXT("Combat.Gun"), TEXT("Combat.Melee"), TEXT("Combat.Civilian") };
 	const TSet<FString> FactionTags = { TEXT("Faction.Player"), TEXT("Faction.Enemy"), TEXT("Faction.Civilian") };
 	const TSet<FString> DeathTags = { TEXT("Death.PlayerRespawn"), TEXT("Death.EnemyLoot"), TEXT("Death.PopulationRespawn") };
 	const TSet<FString> EconomyTags = { TEXT("Economy.None"), TEXT("Economy.Ambient"), TEXT("Economy.CommerceCapable") };

@@ -6,6 +6,7 @@
 #include "AbilitySystemGlobals.h"
 #include "AuraGameplayTags.h"
 #include "AuraAttributeGameplayEffect.h"
+#include "AbilitySystem/Abilities/AuraMeleeAttack.h"
 
 UAuraAssetManager& UAuraAssetManager::Get()
 {
@@ -19,6 +20,13 @@ void UAuraAssetManager::StartInitialLoading()
 {
 	Super::StartInitialLoading();
 	FAuraGameplayTags::InitializeNativeGameplayTags();
+	// Native ability CDOs can be constructed before the tag singleton is populated.
+	// Rebind the combo's startup input after native tag initialization so role
+	// configuration and persistent grants see a valid LMB slot.
+	if (UAuraMeleeAttack* ComboCDO = UAuraMeleeAttack::StaticClass()->GetDefaultObject<UAuraMeleeAttack>())
+	{
+		ComboCDO->StartupInputTag = FAuraGameplayTags::Get().InputTag_LMB;
+	}
 
 	// This is required to use Target Data!
 	UAbilitySystemGlobals::Get().InitGlobalData();

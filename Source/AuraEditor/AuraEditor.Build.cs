@@ -16,6 +16,7 @@ public class AuraEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"AIModule",
+			"AnimationCore",
 			"AssetRegistry",
 			"Aura",
 			"ContentBrowser",
@@ -23,6 +24,8 @@ public class AuraEditor : ModuleRules
 			"DesktopPlatform",
 			"Engine",
 			"Json",
+			"GameplayAbilities",
+			"GameplayTags",
 			"Slate",
 			"SlateCore",
 			"ToolMenus",

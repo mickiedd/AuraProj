@@ -32,6 +32,8 @@
 #include "UObject/CoreNet.h"
 #include "Player/AuraPlayerState.h"
 #include "AbilitySystem/Abilities/AuraDamageGameplayAbility.h"
+#include "AbilitySystem/Abilities/AuraMeleeAttack.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
 #if WITH_EDITOR
 #include "Tests/Fixtures/AuraRoleApplicationTestActor.h"
 #endif
@@ -803,6 +805,7 @@ namespace AuraRoleBattleTestsPrivate
 		{ TEXT("Native.Projectile.AuraFireBolt"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraFireBolt.cpp"), TEXT("Projectile (param builder)"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority at spawn") },
 		{ TEXT("Native.Projectile.AuraFireBlast"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraFireBlast.cpp"), TEXT("Projectile (param builder)"), true, TEXT("ApplyDamageEffect via projectile impact"), TEXT("HasAuthority at spawn") },
 		{ TEXT("Native.Direct.CauseDamage"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraDamageGameplayAbility.cpp"), TEXT("Direct"), true, TEXT("ApplyDamageEffect"), TEXT("Server ability activation") },
+		{ TEXT("Native.Melee.AuraMeleeAttack"), TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraMeleeAttack.cpp"), TEXT("Melee"), true, TEXT("ApplyDamageEffect"), TEXT("HasAuthority at combo impact") },
 		{ TEXT("Native.Periodic.Debuff"), TEXT("Source/Aura/Private/AbilitySystem/AuraAttributeSet.cpp"), TEXT("Periodic"), true, TEXT("Final AttributeSet revalidation"), TEXT("Server attribute execution") },
 		{ TEXT("Smoke.Day1.AuraPlayerController"), TEXT("Source/Aura/Private/Player/AuraPlayerController.cpp"), TEXT("Smoke"), false, TEXT("ApplyDamageEffect"), TEXT("HasAuthority (test-only)") },
 		// AuraAbilityGraph producers (Plugins/AuraAbilityGraph)
@@ -1206,6 +1209,47 @@ bool FAuraDay4AuthorityRejectionTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraCrunchRoleCatalogAndMetadataTest,
+	"Aura.RoleBattle.Day1CrunchRoleCatalogAndMetadata",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraCrunchRoleCatalogAndMetadataTest::RunTest(const FString& Parameters)
+{
+	const URoleInfo* Roles = UAuraAbilitySystemLibrary::GetRoleInfo(nullptr);
+	if (!TestNotNull(TEXT("RoleConfig.json publishes the role registry"), Roles)) return false;
+
+	const FRoleDefaultInfo* Aura = Roles->RoleInformation.Find(TEXT("Aura"));
+	const FRoleDefaultInfo* Crunch = Roles->RoleInformation.Find(TEXT("Crunch"));
+	if (!TestNotNull(TEXT("Aura role remains published"), Aura)
+		|| !TestNotNull(TEXT("Crunch role is published"), Crunch)) return false;
+
+	FString RoleError;
+	TestTrue(TEXT("Crunch is selectable through the shared role validator"),
+		UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Roles, TEXT("Crunch"), RoleError));
+	TestTrue(TEXT("Crunch role presentation resolves"), Roles->IsRoleConfigured(TEXT("Crunch")));
+	TestEqual(TEXT("Crunch uses the dedicated melee combat profile"), Crunch->CombatProfile,
+		FAuraGameplayTags::Get().Combat_Melee);
+	TestEqual(TEXT("Crunch binds the native combo class as its LMB"), Crunch->DefaultLMBAbility.Get(),
+		UAuraMeleeAttack::StaticClass());
+	TestTrue(TEXT("Crunch has no XML LMB shadow source"), Crunch->DefaultLMBAbilityDefinitionPath.IsEmpty()
+		&& Crunch->DefaultLMBAbilityDefinition == nullptr);
+	TestFalse(TEXT("Aura does not inherit the Crunch native LMB"), Aura->DefaultLMBAbility.Get() == UAuraMeleeAttack::StaticClass());
+	TestEqual(TEXT("Aura remains bound to FireBolt.xml"), Aura->DefaultLMBAbilityDefinitionPath,
+		FString(TEXT("/Game/AbilityDefinitions/FireBolt.xml")));
+
+	const FGameplayTag CrunchTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchCombo"));
+	TestNotNull(TEXT("Crunch runtime metadata registry loads"), UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(nullptr));
+	if (URuntimeAbilityInfo* RuntimeInfo = UAuraAbilitySystemLibrary::GetRuntimeAbilityInfo(nullptr))
+	{
+		const FAuraAbilityInfo Metadata = RuntimeInfo->FindAbilityInfoForTag(CrunchTag, true);
+		TestEqual(TEXT("Crunch metadata preserves its stable tag"), Metadata.AbilityTag, CrunchTag);
+		TestNotNull(TEXT("Crunch metadata supplies a HUD icon"), Metadata.Icon.Get());
+		TestNotNull(TEXT("Crunch metadata supplies a HUD background"), Metadata.BackgroundMaterial.Get());
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraDay4NeutralDamageCoefficientsTest,
 	"Aura.RoleBattle.Day4.NeutralDamageCoefficients",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -1408,7 +1452,7 @@ bool FAuraDay5ValidVersion2SchemaTest::RunTest(const FString& Parameters)
 	AddInfo(Result.ToLogString());
 	TestTrue(TEXT("Version 2 registry publishes"), Result.bCanPublish);
 	TestEqual(TEXT("Authored version detected"), Result.DetectedVersion, 2);
-	TestEqual(TEXT("Three roles published"), Result.Candidate ? Result.Candidate->RoleInformation.Num() : 0, 3);
+	TestEqual(TEXT("Four roles published"), Result.Candidate ? Result.Candidate->RoleInformation.Num() : 0, 4);
 	return true;
 }
 
@@ -1564,6 +1608,7 @@ bool FAuraDay5LoadScreenRoleValidationTest::RunTest(const FString& Parameters)
 	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
 	FString Error;
 	TestTrue(TEXT("Aura accepted for load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Aura"), Error));
+	TestTrue(TEXT("Crunch accepted for load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Crunch"), Error));
 	TestFalse(TEXT("Civilian excluded from load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Civilian"), Error));
 	return true;
 }
@@ -1574,6 +1619,7 @@ bool FAuraDay5SavedRoleIdCompatibilityTest::RunTest(const FString& Parameters)
 	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
 	FString Error;
 	TestTrue(TEXT("Stable Aura save ID retained"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Aura"), Error));
+	TestTrue(TEXT("Stable Crunch save ID retained"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Crunch"), Error));
 	TestTrue(TEXT("Stable BungeeMan save ID retained"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("BungeeMan"), Error));
 	return true;
 }
@@ -1615,6 +1661,20 @@ namespace AuraRoleBattleDay6TestsPrivate
 	TArray<FGameplayTag> GetRequiredTags(const FRoleDefaultInfo& RoleDefinition)
 	{
 		TArray<FGameplayTag> Tags;
+		auto AddClassTags = [&Tags](const TSubclassOf<UGameplayAbility>& AbilityClass)
+		{
+			const UGameplayAbility* DefaultAbility = AbilityClass ? AbilityClass.GetDefaultObject() : nullptr;
+			if (!DefaultAbility) return;
+			for (const FGameplayTag& Tag : DefaultAbility->GetAssetTags())
+			{
+				if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(TEXT("Abilities"), false)))
+				{
+					Tags.Add(Tag);
+				}
+			}
+		};
+		for (const TSubclassOf<UGameplayAbility>& AbilityClass : RoleDefinition.StartupAbilities) AddClassTags(AbilityClass);
+		for (const TSubclassOf<UGameplayAbility>& AbilityClass : RoleDefinition.StartupPassiveAbilities) AddClassTags(AbilityClass);
 		for (const TObjectPtr<UObject>& Object : RoleDefinition.StartupAbilityDefinitions)
 		{
 			if (const UAuraAbilityDefinition* Definition = Cast<UAuraAbilityDefinition>(Object.Get())) Tags.Add(Definition->AbilityTag);
@@ -1627,12 +1687,77 @@ namespace AuraRoleBattleDay6TestsPrivate
 		{
 			Tags.Add(Definition->AbilityTag);
 		}
+		else
+		{
+			AddClassTags(RoleDefinition.DefaultLMBAbility);
+		}
 		return Tags;
 	}
 }
 
 #define AURA_DAY6_TEST(ClassName, TestName) \
 	IMPLEMENT_SIMPLE_AUTOMATION_TEST(ClassName, "Aura.RoleBattle.Day6." TestName, EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraFireBoltLMBRoleBindingRegressionTest,
+	"Aura.Abilities.FireBolt.LMBRoleBindingRegression",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraFireBoltLMBRoleBindingRegressionTest::RunTest(const FString& Parameters)
+{
+	const FGameplayTag FireBoltTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt"));
+	const FGameplayTag LMBTag = FAuraGameplayTags::Get().InputTag_LMB;
+	const FGameplayTag EquippedTag = FAuraGameplayTags::Get().Abilities_Status_Equipped;
+	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(nullptr);
+	const FRoleDefaultInfo* Aura = RoleInfo ? RoleInfo->RoleInformation.Find(TEXT("Aura")) : nullptr;
+	if (!TestNotNull(TEXT("Shipped Aura role is published"), Aura)) return false;
+
+	// The original regression replaced this definition path with a native melee class.
+	// Check both source selectors so a second LMB source cannot silently shadow FireBolt.
+	TestFalse(TEXT("Aura has no native LMB override"), static_cast<bool>(Aura->DefaultLMBAbility));
+	TestEqual(TEXT("Aura LMB source is exactly FireBolt.xml"), Aura->DefaultLMBAbilityDefinitionPath,
+		FString(TEXT("/Game/AbilityDefinitions/FireBolt.xml")));
+	const UAuraAbilityDefinition* FireBoltDefinition = Cast<UAuraAbilityDefinition>(Aura->DefaultLMBAbilityDefinition.Get());
+	if (TestNotNull(TEXT("FireBolt definition is loaded"), FireBoltDefinition))
+	{
+		TestEqual(TEXT("Loaded LMB definition identifies FireBolt"), FireBoltDefinition->AbilityTag, FireBoltTag);
+		TestEqual(TEXT("Loaded FireBolt definition declares LMB input"), FireBoltDefinition->InputTag, LMBTag);
+	}
+
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Aura"));
+	if (!TestNotNull(TEXT("Aura role fixture spawned"), Fixture)) return false;
+	const FAuraRoleApplicationResult Application = Fixture->ApplyRoleAtSpawn(TEXT("Aura"));
+	TestTrue(TEXT("Aura role applies transactionally"), Application.bSuccess);
+
+	UAuraAbilitySystemComponent* ASC = Fixture->GetTestASC();
+	if (TestNotNull(TEXT("Aura fixture owns an ASC"), ASC) && Application.bSuccess)
+	{
+		FGameplayAbilitySpec* FireBoltSpec = ASC->GetSpecFromAbilityTag(FireBoltTag);
+		TestNotNull(TEXT("Runtime grant contains FireBolt"), FireBoltSpec);
+		TestEqual(TEXT("Runtime grant contains exactly one FireBolt spec"), ASC->CountAbilitySpecsByTag(FireBoltTag), 1);
+		TestTrue(TEXT("Runtime FireBolt owns LMB"), FireBoltSpec && UAuraAbilitySystemComponent::AbilityHasSlot(*FireBoltSpec, LMBTag));
+		TestTrue(TEXT("Runtime FireBolt is equipped"), FireBoltSpec
+			&& UAuraAbilitySystemComponent::GetStatusFromSpec(*FireBoltSpec).MatchesTagExact(EquippedTag));
+
+		int32 LMBOwnerCount = 0;
+		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+		{
+			if (UAuraAbilitySystemComponent::AbilityHasSlot(Spec, LMBTag))
+			{
+				++LMBOwnerCount;
+			}
+		}
+		TestEqual(TEXT("Exactly one runtime ability owns LMB"), LMBOwnerCount, 1);
+
+		FGameplayAbilitySpec* LMBSpec = ASC->GetSpecWithSlot(LMBTag);
+		TestNotNull(TEXT("Runtime LMB slot resolves to a spec"), LMBSpec);
+		TestEqual(TEXT("Runtime LMB slot resolves specifically to FireBolt"),
+			LMBSpec ? UAuraAbilitySystemComponent::GetAbilityTagFromSpec(*LMBSpec) : FGameplayTag(), FireBoltTag);
+	}
+
+	Fixture->Destroy();
+	return true;
+}
 
 AURA_DAY6_TEST(FAuraDay6AuraAppliedIdentityAndProfilesTest, "AuraAppliedIdentityAndProfiles")
 bool FAuraDay6AuraAppliedIdentityAndProfilesTest::RunTest(const FString& Parameters)
@@ -1647,6 +1772,92 @@ bool FAuraDay6AuraAppliedIdentityAndProfilesTest::RunTest(const FString& Paramet
 	TestEqual(TEXT("Aura economy profile"), Fixture->GetAppliedRoleState().EconomyProfileTag, Tags.Economy_None);
 	TestEqual(TEXT("Aura interaction profile"), Fixture->GetAppliedRoleState().InteractionProfileTag, Tags.Interaction_Combatant);
 	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6CrunchRoleOwnsNativeLMBTest, "CrunchRoleOwnsNativeLMB")
+bool FAuraDay6CrunchRoleOwnsNativeLMBTest::RunTest(const FString& Parameters)
+{
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("Crunch"));
+	if (!TestNotNull(TEXT("Crunch role fixture spawned"), Fixture)) return false;
+
+	const FAuraRoleApplicationResult Result = Fixture->ApplyRoleAtSpawn(TEXT("Crunch"));
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	TestTrue(TEXT("Crunch role applies transactionally"), Result.bSuccess);
+	TestEqual(TEXT("Crunch role ID is authoritative"), Fixture->GetAppliedRoleState().RoleId, FName(TEXT("Crunch")));
+	TestEqual(TEXT("Crunch role publishes the melee combat profile"), Fixture->GetCombatIdentity().CombatProfileTag, Tags.Combat_Melee);
+
+	UAuraAbilitySystemComponent* ASC = Fixture->GetTestASC();
+	const FGameplayTag CrunchTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchCombo"));
+	const FGameplayTag FireBoltTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt"));
+	if (TestNotNull(TEXT("Crunch fixture owns an ASC"), ASC) && Result.bSuccess)
+	{
+		FGameplayAbilitySpec* CrunchSpec = ASC->GetSpecFromAbilityTag(CrunchTag);
+		TestNotNull(TEXT("Crunch native combo spec is granted"), CrunchSpec);
+		TestEqual(TEXT("Exactly one Crunch combo spec is granted"), ASC->CountAbilitySpecsByTag(CrunchTag), 1);
+		TestEqual(TEXT("Crunch combo is the only LMB owner"), ASC->GetSpecWithSlot(Tags.InputTag_LMB), CrunchSpec);
+		TestTrue(TEXT("Crunch combo spec owns the LMB slot"), CrunchSpec && UAuraAbilitySystemComponent::AbilityHasSlot(*CrunchSpec, Tags.InputTag_LMB));
+		TestEqual(TEXT("Crunch combo spec uses the native ability class"),
+			CrunchSpec && CrunchSpec->Ability ? CrunchSpec->Ability->GetClass() : nullptr, UAuraMeleeAttack::StaticClass());
+		TestEqual(TEXT("Crunch role does not receive Aura FireBolt"), ASC->CountAbilitySpecsByTag(FireBoltTag), 0);
+	}
+
+	Fixture->Destroy();
+	return true;
+}
+
+AURA_DAY6_TEST(FAuraDay6CrunchPersistentASCLifecycleTest, "CrunchPersistentASCLifecycle")
+bool FAuraDay6CrunchPersistentASCLifecycleTest::RunTest(const FString& Parameters)
+{
+	UWorld* World = AuraRoleBattleTestsPrivate::FindAutomationWorld();
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.ObjectFlags |= RF_Transient;
+	AAuraPlayerState* PlayerState = World ? World->SpawnActor<AAuraPlayerState>(SpawnParameters) : nullptr;
+	if (!TestNotNull(TEXT("Persistent Crunch PlayerState spawned"), PlayerState)) return false;
+
+	UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(PlayerState->GetAbilitySystemComponent());
+	UAttributeSet* Attributes = PlayerState->GetAttributeSet();
+	if (!TestNotNull(TEXT("Persistent Crunch ASC"), ASC))
+	{
+		PlayerState->Destroy();
+		return false;
+	}
+
+	int32 Notifications = 0;
+	ASC->AbilitiesGivenDelegate.AddLambda([&Notifications]() { ++Notifications; });
+	const FGameplayTag CrunchTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchCombo"));
+	const FGameplayTag FireBoltTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt"));
+	const FGameplayTag LMBTag = FAuraGameplayTags::Get().InputTag_LMB;
+
+	for (int32 SpawnIndex = 0; SpawnIndex < 3; ++SpawnIndex)
+	{
+		AAuraRoleApplicationTestActor* Pawn = AuraRoleBattleDay6TestsPrivate::SpawnFixture(
+			TEXT("Crunch"), ASC, Attributes, PlayerState);
+		if (!TestNotNull(FString::Printf(TEXT("Crunch pawn %d spawned"), SpawnIndex + 1), Pawn))
+		{
+			PlayerState->Destroy();
+			return false;
+		}
+
+		const FAuraRoleApplicationResult Result = Pawn->ApplyRoleAtSpawn(TEXT("Crunch"));
+		TestTrue(FString::Printf(TEXT("Crunch pawn %d applies role"), SpawnIndex + 1), Result.bSuccess);
+		TestEqual(FString::Printf(TEXT("Crunch pawn %d keeps authoritative role"), SpawnIndex + 1),
+			Pawn->GetAppliedRoleState().RoleId, FName(TEXT("Crunch")));
+		TestEqual(FString::Printf(TEXT("Crunch pawn %d has one combo spec"), SpawnIndex + 1),
+			ASC->CountAbilitySpecsByTag(CrunchTag), 1);
+		TestEqual(FString::Printf(TEXT("Crunch pawn %d has no FireBolt spec"), SpawnIndex + 1),
+			ASC->CountAbilitySpecsByTag(FireBoltTag), 0);
+		FGameplayAbilitySpec* LMBSpec = ASC->GetSpecWithSlot(LMBTag);
+		TestTrue(FString::Printf(TEXT("Crunch pawn %d resolves combo as LMB"), SpawnIndex + 1),
+			LMBSpec && UAuraAbilitySystemComponent::GetAbilityTagFromSpec(*LMBSpec).MatchesTagExact(CrunchTag));
+		TestEqual(FString::Printf(TEXT("Crunch pawn %d retains one role-owned ledger handle"), SpawnIndex + 1),
+			ASC->GetRoleGrantLedger().AbilitySpecHandles.Num(), 1);
+		Pawn->Destroy();
+	}
+
+	TestEqual(TEXT("Crunch grants notify once across pawn replacement"), Notifications, 1);
+	TestEqual(TEXT("Crunch ledger retains role ID"), ASC->GetRoleGrantLedger().GrantedRoleId, FName(TEXT("Crunch")));
+	PlayerState->Destroy();
 	return true;
 }
 
@@ -1761,6 +1972,62 @@ bool FAuraDay6PersistentASCRespawnLedgerTest::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("One grant notification across three pawns"), Notifications, 1);
 	TestEqual(TEXT("Ledger retains Aura"), ASC->GetRoleGrantLedger().GrantedRoleId, FName(TEXT("Aura")));
+	PlayerState->Destroy();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraFireGunEmptyMagazineActivationGateTest,
+	"Aura.Abilities.FireGun.EmptyMagazineActivationGate",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraFireGunEmptyMagazineActivationGateTest::RunTest(const FString& Parameters)
+{
+	UWorld* World = AuraRoleBattleTestsPrivate::FindAutomationWorld();
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.ObjectFlags |= RF_Transient;
+	AAuraPlayerState* PlayerState = World ? World->SpawnActor<AAuraPlayerState>(SpawnParameters) : nullptr;
+	if (!TestNotNull(TEXT("Firearm PlayerState spawned"), PlayerState)) return false;
+
+	UAuraAbilitySystemComponent* ASC = Cast<UAuraAbilitySystemComponent>(PlayerState->GetAbilitySystemComponent());
+	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(
+		TEXT("BungeeMan"), ASC, PlayerState->GetAttributeSet(), PlayerState);
+	if (!TestNotNull(TEXT("BungeeMan firearm fixture spawned"), Fixture))
+	{
+		PlayerState->Destroy();
+		return false;
+	}
+
+	const FAuraRoleApplicationResult Application = Fixture->ApplyRoleAtSpawn(TEXT("BungeeMan"));
+	TestTrue(TEXT("BungeeMan role applies"), Application.bSuccess);
+	Fixture->InitializeCombatIdentityForTest(Fixture->GetCombatIdentity());
+	TestTrue(TEXT("Firearm ledger initializes for BungeeMan"),
+		PlayerState->InitializeFirearmForRole(TEXT("BungeeMan")));
+
+	const FGameplayTag FireGunTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"));
+	FGameplayAbilitySpec* Spec = ASC ? ASC->GetSpecFromAbilityTag(FireGunTag) : nullptr;
+	if (TestNotNull(TEXT("FireGun spec exists"), Spec) && Spec && Spec->Ability)
+	{
+		FGameplayTagContainer FailureTags;
+		TestTrue(TEXT("Loaded magazine passes the FireGun cost gate"),
+			Spec->Ability->CheckCost(Spec->Handle, ASC->AbilityActorInfo.Get(), &FailureTags));
+
+		FString RestoreError;
+		TestTrue(TEXT("Empty firearm state restores"), PlayerState->RestoreCompletedFirearmState(
+			true, 12, 0, 48, 48, 1.25f, 2, RestoreError));
+		FName ResultCode;
+		TestFalse(TEXT("Empty magazine is not eligible for FireGun activation"),
+			PlayerState->CanActivateFirearmAbility(TEXT("FireGun"), Fixture, ResultCode));
+		TestEqual(TEXT("Activation gate reports EmptyMagazine"), ResultCode, FName(TEXT("EmptyMagazine")));
+		FailureTags.Reset();
+		TestFalse(TEXT("GAS cost gate rejects FireGun before activation starts"),
+			Spec->Ability->CheckCost(Spec->Handle, ASC->AbilityActorInfo.Get(), &FailureTags));
+		TestFalse(TEXT("Rejected FireGun spec never becomes active"), Spec->IsActive());
+		TestEqual(TEXT("Activation rejection does not consume or refill ammo"),
+			PlayerState->GetFirearmState().MagazineRounds, 0);
+	}
+
+	Fixture->Destroy();
 	PlayerState->Destroy();
 	return true;
 }

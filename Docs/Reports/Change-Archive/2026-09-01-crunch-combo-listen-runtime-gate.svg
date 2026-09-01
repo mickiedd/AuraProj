@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650">
+  <rect width="1200" height="650" fill="#0f172a"/>
+  <text x="52" y="54" fill="#f8fafc" font-family="Arial, sans-serif" font-size="28" font-weight="700">Crunch combo: production-shaped listen gate</text>
+  <text x="52" y="84" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="16">The probe now validates the real server lifecycle at 75 +/- 10 ms one-way packet lag.</text>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#94a3b8"/></marker>
+  </defs>
+  <rect x="55" y="125" width="300" height="178" rx="14" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+  <text x="78" y="158" fill="#7dd3fc" font-family="Arial, sans-serif" font-size="20" font-weight="700">Remote client</text>
+  <text x="78" y="190" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="16">LocalPredicted presentation</text>
+  <text x="78" y="216" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="16">LMB press in montage window</text>
+  <text x="78" y="242" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="16">Client damage = 0</text>
+  <text x="78" y="274" fill="#fbbf24" font-family="Arial, sans-serif" font-size="15">EndAbility closes a still-open predicted window</text>
+  <line x1="355" y1="214" x2="475" y2="214" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="374" y="196" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="14">replicated input</text>
+  <rect x="475" y="125" width="380" height="218" rx="14" fill="#1e293b" stroke="#4ade80" stroke-width="2"/>
+  <text x="500" y="158" fill="#86efac" font-family="Arial, sans-serif" font-size="20" font-weight="700">Network authority</text>
+  <text x="500" y="190" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="16">Logical section + accepted successor</text>
+  <text x="500" y="216" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="16">Fallback: duration x 0.35 / 0.55 / 0.75</text>
+  <text x="500" y="242" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="16">Authority-only target query + damage</text>
+  <text x="500" y="274" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="16">No successor at Close -&gt; EndAbility</text>
+  <text x="500" y="310" fill="#fbbf24" font-family="Arial, sans-serif" font-size="15">Timers, input task, queue all cleared</text>
+  <line x1="855" y1="214" x2="975" y2="214" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="877" y="196" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="14">server result</text>
+  <rect x="975" y="125" width="170" height="218" rx="14" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+  <text x="997" y="158" fill="#fcd34d" font-family="Arial, sans-serif" font-size="20" font-weight="700">Terminal guard</text>
+  <text x="997" y="194" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="15">Inactive=1</text>
+  <text x="997" y="220" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="15">Window=0</text>
+  <text x="997" y="246" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="15">Timers=0</text>
+  <text x="997" y="272" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="15">Task=0</text>
+  <text x="997" y="298" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="15">Queue=0</text>
+  <rect x="55" y="390" width="1090" height="190" rx="14" fill="#111827" stroke="#64748b" stroke-width="2"/>
+  <text x="80" y="425" fill="#f8fafc" font-family="Arial, sans-serif" font-size="20" font-weight="700">Observed gate results</text>
+  <text x="80" y="460" fill="#86efac" font-family="Arial, sans-serif" font-size="17">Full:    server Open=4 Damage=4 Close=4 Mask=0xF Cleanup=1 | client Open=4 Close=4 Damage=0 Cleanup=1</text>
+  <text x="80" y="492" fill="#86efac" font-family="Arial, sans-serif" font-size="17">Cancel: server zero damage before cancel, then full 0xF reactivation; cleanup=1 on both sides</text>
+  <text x="80" y="524" fill="#86efac" font-family="Arial, sans-serif" font-size="17">NearClose: server Open=2 Damage=2 Close=2; client converged Open=2 Close=2; cleanup=1</text>
+  <text x="80" y="556" fill="#fbbf24" font-family="Arial, sans-serif" font-size="15">Dedicated Server remains an environment-gated release proof, separate from this listen milestone.</text>
+</svg>

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680">
+  <defs>
+    <style>
+      .title{font:700 28px Arial;fill:#172033}.h{font:700 18px Arial;fill:#172033}.b{font:15px Arial;fill:#24324a}.small{font:13px Arial;fill:#41516b}.box{fill:#f6f8fc;stroke:#63708a;stroke-width:2}.good{fill:#e8f7ed;stroke:#2c8b57;stroke-width:2}.warn{fill:#fff4df;stroke:#c78a1b;stroke-width:2}.arrow{stroke:#40516f;stroke-width:3;fill:none;marker-end:url(#m)}.dash{stroke:#9a6b16;stroke-width:2;stroke-dasharray:8 6;fill:none;marker-end:url(#m2)}
+    </style>
+    <marker id="m" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#40516f"/></marker>
+    <marker id="m2" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9a6b16"/></marker>
+  </defs>
+  <rect width="1200" height="680" fill="#ffffff"/>
+  <text x="48" y="48" class="title">Crunch combo · local authority matrix</text>
+  <text x="48" y="76" class="small">Milestone proof before production RoleConfig wiring</text>
+
+  <rect x="48" y="112" width="220" height="82" rx="12" class="box"/>
+  <text x="70" y="142" class="h">Aura LMB input</text><text x="70" y="168" class="b">pressed / held</text>
+  <rect x="330" y="112" width="250" height="82" rx="12" class="box"/>
+  <text x="352" y="142" class="h">LocalPredicted ability</text><text x="352" y="168" class="b">UAuraMeleeAttack · instanced</text>
+  <rect x="642" y="112" width="252" height="82" rx="12" class="good"/>
+  <text x="664" y="142" class="h">Current montage section</text><text x="664" y="168" class="b">Combo01 → Combo04 · mask 0xF</text>
+  <path d="M268 153 H330" class="arrow"/><path d="M580 153 H642" class="arrow"/>
+
+  <rect x="48" y="236" width="846" height="164" rx="12" class="good"/>
+  <text x="72" y="270" class="h">Per-section event contract</text>
+  <text x="72" y="306" class="b">Window.Open → input press queues next section → MontageEvent.Damage → Window.Close</text>
+  <text x="72" y="338" class="b">Damage guard resets only when the montage actually enters the queued section.</text>
+  <text x="72" y="370" class="b">Expected: Open ×4 · Damage ×4 · Close ×4 · accepted presses ×3 · each section damaged once.</text>
+
+  <rect x="48" y="440" width="390" height="150" rx="12" class="good"/>
+  <text x="72" y="474" class="h">Authority target policy</text>
+  <text x="72" y="506" class="b">Hostile live AI Character/Pawn: damaged</text>
+  <text x="72" y="532" class="b">Friendly, dead, outside radius: unchanged</text>
+  <text x="72" y="558" class="b">ApplyDamageEffect runs on authority only</text>
+  <path d="M470 400 V470 H438" class="arrow"/>
+
+  <rect x="482" y="440" width="412" height="150" rx="12" class="box"/>
+  <text x="506" y="474" class="h">Evidence captured</text>
+  <text x="506" y="506" class="b">NativeContract · RuntimePlayback</text>
+  <text x="506" y="532" class="b">Fresh validator: 4 sections / 12 notifies</text>
+  <text x="506" y="558" class="b">AuraEditor build + Game cook/package: PASS</text>
+
+  <rect x="936" y="112" width="216" height="198" rx="12" class="warn"/>
+  <text x="958" y="146" class="h">Production gate</text>
+  <text x="958" y="178" class="b">RoleConfig unchanged</text>
+  <text x="958" y="204" class="small">Listen-server RTT proof</text>
+  <text x="958" y="226" class="small">Dedicated exact-event proof</text>
+  <text x="958" y="248" class="small">Packaged runtime proof</text>
+  <text x="958" y="282" class="small">Server cook blocked by</text>
+  <text x="958" y="300" class="small">engine distribution support</text>
+  <path d="M894 153 H936" class="dash"/>
+
+  <rect x="936" y="350" width="216" height="240" rx="12" class="box"/>
+  <text x="958" y="384" class="h">Scope boundary</text>
+  <text x="958" y="418" class="small">Fixture proves local ordering</text>
+  <text x="958" y="442" class="small">and authority filter policy.</text>
+  <text x="958" y="480" class="small">Network convergence and</text>
+  <text x="958" y="504" class="small">cook/package deployment</text>
+  <text x="958" y="528" class="small">remain the next gate.</text>
+</svg>

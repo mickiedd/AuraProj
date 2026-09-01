@@ -135,6 +135,7 @@ public:
 		float InReloadDuration = 1.25f, float InMinimumShotInterval = 0.2f);
 	bool BeginFirearmReload(FName& OutResultCode);
 	void CancelFirearmReload(const TCHAR* Reason);
+	bool CanActivateFirearmAbility(FName AbilityId, AActor* AvatarActor, FName& OutResultCode) const override;
 	bool TryConsumeFirearmRound(FName AbilityId, AActor* AvatarActor, FName& OutResultCode) override;
 	void NotifyFirearmShotAccepted(FName AbilityId) override;
 	void NotifyAuthoritativeAbilityCommitted(FName AbilityId) override;

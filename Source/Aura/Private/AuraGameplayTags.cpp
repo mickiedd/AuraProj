@@ -36,6 +36,8 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FName("Combat.Magic"), FString("Magic combat profile"));
 	GameplayTags.Combat_Gun = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Combat.Gun"), FString("Gun combat profile"));
+	GameplayTags.Combat_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Combat.Melee"), FString("Crunch-style melee combat profile"));
 	GameplayTags.Combat_Civilian = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Combat.Civilian"), FString("Non-attacking civilian combat profile"));
 
@@ -547,5 +549,10 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.GameplayCue_FireBlast = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("GameplayCue.FireBlast"),
 		FString("FireBlast GameplayCue Tag")
+		);
+
+	GameplayTags.GameplayCue_MeleeImpact = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("GameplayCue.MeleeImpact"),
+		FString("Melee impact GameplayCue Tag")
 		);
 }

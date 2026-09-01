@@ -34,6 +34,7 @@ production producer declares no shared boundary.
 | Native.Projectile.AuraFireBolt | Source/Aura/Private/AbilitySystem/Abilities/AuraFireBolt.cpp | Projectile (param builder) | Production | ApplyDamageEffect via projectile impact | HasAuthority at spawn |
 | Native.Projectile.AuraFireBlast | Source/Aura/Private/AbilitySystem/Abilities/AuraFireBlast.cpp | Projectile (param builder) | Production | ApplyDamageEffect via projectile impact | HasAuthority at spawn |
 | Native.Direct.CauseDamage | Source/Aura/Private/AbilitySystem/Abilities/AuraDamageGameplayAbility.cpp | Direct | Production | ApplyDamageEffect | Server ability activation |
+| Native.Melee.AuraMeleeAttack | Source/Aura/Private/AbilitySystem/Abilities/AuraMeleeAttack.cpp | Melee | Production | ApplyDamageEffect | HasAuthority at combo impact |
 | Native.Periodic.Debuff | Source/Aura/Private/AbilitySystem/AuraAttributeSet.cpp | Periodic | Production | Final AttributeSet revalidation | Server attribute execution |
 | Smoke.Day1.AuraPlayerController | Source/Aura/Private/Player/AuraPlayerController.cpp | Smoke | Test-only | ApplyDamageEffect | HasAuthority (test-only) |
 | Graph.ApplyDamage | Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/ApplyDamageNode.cpp | Direct | Production | ApplyDamageEffect | HasAuthority gate |

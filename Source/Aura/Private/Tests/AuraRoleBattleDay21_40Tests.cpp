@@ -48,7 +48,9 @@ AURA_CANDIDATE_TEST(FAuraDay24TutorialAuthorityTest, "Day24.Tutorial.Authority",
 	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Content/Config/PlayableCandidateTutorial.json"), { TEXT("completionAuthority"), TEXT("server-owned"), TEXT("unavailableReason") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/Player/AuraPlayerState.cpp"), { TEXT("OnRep_TutorialCompletionMask"), TEXT("OnTutorialProgressChanged.Broadcast") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/UI/HUD/AuraHUD.cpp"), { TEXT("OnTutorialProgressChanged.AddUObject") }));
 
 AURA_CANDIDATE_TEST(FAuraDay25AmmoAuthorityTest, "Day25.Ammo.Authority",
-	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/Player/AuraPlayerState.cpp"), { TEXT("TryConsumeFirearmRound"), TEXT("AmmoRevision"), TEXT("NotAuthority") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectileNode.cpp"), { TEXT("IAuraFirearmAuthority"), TEXT("TryConsumeFirearmRound"), TEXT("AuthorityUnavailable"), TEXT("FinishSpawning") }));
+	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/Player/AuraPlayerState.cpp"), { TEXT("CanActivateFirearmAbility"), TEXT("TryConsumeFirearmRound"), TEXT("EmptyMagazine"), TEXT("AmmoRevision"), TEXT("NotAuthority") })
+	&& AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/DataAbility.cpp"), { TEXT("IsFirearmDefinition"), TEXT("CanActivateFirearmAbility"), TEXT("[Firearm][Activation] Blocked") })
+	&& AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectileNode.cpp"), { TEXT("IAuraFirearmAuthority"), TEXT("TryConsumeFirearmRound"), TEXT("AuthorityUnavailable"), TEXT("FinishSpawning") }));
 
 AURA_CANDIDATE_TEST(FAuraDay26HudReplayTest, "Day26.HUD.Replay",
 	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/UI/HUD/AuraHUD.cpp"), { TEXT("SendFirearmStateToWebUI"), TEXT("hud_firearm"), TEXT("Not applicable to Aura") }));

@@ -155,6 +155,18 @@ bool AAuraPlayerState::TryConsumeFirearmRound(FName AbilityId, AActor* AvatarAct
 {
 	OutResultCode = NAME_None;
 	if (!HasAuthority()) { OutResultCode = TEXT("NotAuthority"); return false; }
+	if (!CanActivateFirearmAbility(AbilityId, AvatarActor, OutResultCode)) return false;
+	--FirearmState.MagazineRounds;
+	++FirearmState.AmmoRevision;
+	LastAcceptedFirearmShotTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	ForceNetUpdate();
+	OnFirearmStateChanged.Broadcast(FirearmState);
+	return true;
+}
+
+bool AAuraPlayerState::CanActivateFirearmAbility(FName AbilityId, AActor* AvatarActor, FName& OutResultCode) const
+{
+	OutResultCode = NAME_None;
 	if (AbilityId != TEXT("FireGun")) { OutResultCode = TEXT("InvalidAbility"); return false; }
 	if (!FirearmState.bApplicable) { OutResultCode = TEXT("NotApplicable"); return false; }
 	if (const UAuraCombatStateComponent* Life = UAuraCombatStateComponent::FindForActor(AvatarActor); !Life || !Life->IsAlive())
@@ -163,18 +175,13 @@ bool AAuraPlayerState::TryConsumeFirearmRound(FName AbilityId, AActor* AvatarAct
 		return false;
 	}
 	if (FirearmState.bReloading) { OutResultCode = TEXT("Reloading"); return false; }
+	if (FirearmState.MagazineRounds < 1) { OutResultCode = TEXT("EmptyMagazine"); return false; }
 	const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
 	if (LastAcceptedFirearmShotTime >= 0.0 && Now - LastAcceptedFirearmShotTime + KINDA_SMALL_NUMBER < FirearmState.MinimumShotInterval)
 	{
 		OutResultCode = TEXT("CadenceLimited");
 		return false;
 	}
-	if (FirearmState.MagazineRounds < 1) { OutResultCode = TEXT("EmptyMagazine"); return false; }
-	--FirearmState.MagazineRounds;
-	++FirearmState.AmmoRevision;
-	LastAcceptedFirearmShotTime = Now;
-	ForceNetUpdate();
-	OnFirearmStateChanged.Broadcast(FirearmState);
 	return true;
 }
 

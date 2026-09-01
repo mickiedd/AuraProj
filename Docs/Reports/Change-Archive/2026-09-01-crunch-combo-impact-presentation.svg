@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#0b1220"/>
+  <text x="60" y="62" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="30" font-weight="700">Crunch LMB impact presentation</text>
+  <text x="60" y="94" fill="#94a3b8" font-family="Segoe UI,Arial,sans-serif" font-size="17">Server-confirmed damage now triggers the authored victim impact cue</text>
+
+  <rect x="60" y="140" rx="16" width="320" height="150" fill="#3b1d2a" stroke="#fb7185" stroke-width="2"/>
+  <text x="84" y="178" fill="#fecdd3" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">Observed before</text>
+  <text x="84" y="214" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="16">LMB → CrunchCombo</text>
+  <text x="84" y="240" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="16">Damage applied on authority</text>
+  <text x="84" y="266" fill="#fecdd3" font-family="Segoe UI,Arial,sans-serif" font-size="16">No GameplayCue.MeleeImpact</text>
+
+  <path d="M380 215 H470" stroke="#64748b" stroke-width="3"/><path d="M460 207 L472 215 L460 223" fill="none" stroke="#64748b" stroke-width="3"/>
+
+  <rect x="470" y="140" rx="16" width="360" height="150" fill="#123047" stroke="#38bdf8" stroke-width="2"/>
+  <text x="494" y="178" fill="#bae6fd" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">Authoritative guard</text>
+  <text x="494" y="214" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="16">ApplyDamageEffect() returns context</text>
+  <text x="494" y="240" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="16">Invalid context → cue skipped</text>
+  <text x="494" y="266" fill="#bae6fd" font-family="Segoe UI,Arial,sans-serif" font-size="16">No false effects on rejected hits</text>
+
+  <path d="M830 215 H920" stroke="#64748b" stroke-width="3"/><path d="M910 207 L922 215 L910 223" fill="none" stroke="#64748b" stroke-width="3"/>
+
+  <rect x="920" y="140" rx="16" width="220" height="150" fill="#123524" stroke="#4ade80" stroke-width="2"/>
+  <text x="944" y="178" fill="#bbf7d0" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">Target ASC</text>
+  <text x="944" y="214" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="16">ExecuteGameplayCue</text>
+  <text x="944" y="240" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="16">Location = victim</text>
+  <text x="944" y="266" fill="#bbf7d0" font-family="Segoe UI,Arial,sans-serif" font-size="16">Replicated boundary</text>
+
+  <path d="M1030 290 V382" stroke="#64748b" stroke-width="3"/><path d="M1022 372 L1030 384 L1038 372" fill="none" stroke="#64748b" stroke-width="3"/>
+
+  <rect x="300" y="382" rx="16" width="600" height="132" fill="#172554" stroke="#818cf8" stroke-width="2"/>
+  <text x="330" y="421" fill="#c7d2fe" font-family="Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">GC_MeleeImpact Blueprint</text>
+  <text x="330" y="455" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="16">EffectCauser = target (authored contract)</text>
+  <text x="330" y="481" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="16">Hit sound + blood Niagara + tagged montage response</text>
+
+  <rect x="60" y="570" rx="14" width="1080" height="92" fill="#111827" stroke="#334155" stroke-width="2"/>
+  <text x="86" y="608" fill="#e2e8f0" font-family="Segoe UI,Arial,sans-serif" font-size="16">Validation: AuraEditor build • ImpactCueContract • RuntimePlayback cue log • RoleBattle 234/234</text>
+  <text x="86" y="636" fill="#fbbf24" font-family="Segoe UI,Arial,sans-serif" font-size="15">Evidence note: cue asset discovered on server/client; existing remote client probe still needs a final receipt assertion.</text>
+</svg>

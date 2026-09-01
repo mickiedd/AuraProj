@@ -14,8 +14,9 @@ class UNiagaraComponent;
 
 /**
  * Narrow dependency-free hook from the graph runtime to a player-owned
- * firearm ledger.  Aura implements this interface on PlayerState; the graph
- * only asks the authority to consume one round and never owns ammo values.
+ * firearm ledger. Aura implements this interface on PlayerState; the graph
+ * asks whether activation is eligible and later asks the authority to consume
+ * one round, but it never owns or mutates ammo values itself.
  */
 UINTERFACE(MinimalAPI, BlueprintType)
 class UAuraFirearmAuthority : public UInterface
@@ -28,6 +29,8 @@ class IAuraFirearmAuthority
     GENERATED_BODY()
 
 public:
+    /** Non-mutating eligibility check used by GAS before an activation starts. */
+    virtual bool CanActivateFirearmAbility(FName AbilityId, AActor* AvatarActor, FName& OutResultCode) const = 0;
     virtual bool TryConsumeFirearmRound(FName AbilityId, AActor* AvatarActor, FName& OutResultCode) = 0;
     virtual void NotifyFirearmShotAccepted(FName AbilityId) = 0;
 };

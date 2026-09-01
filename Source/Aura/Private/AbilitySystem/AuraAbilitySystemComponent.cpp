@@ -668,7 +668,12 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 			}
 			if (AbilitySpec.IsActive())
 			{
-				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+				FPredictionKey ActivationPredictionKey = AbilitySpec.ActivationInfo.GetActivationPredictionKey();
+				if (UGameplayAbility* ActiveInstance = AbilitySpec.GetPrimaryInstance())
+				{
+					ActivationPredictionKey = ActiveInstance->GetCurrentActivationInfo().GetActivationPredictionKey();
+				}
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, ActivationPredictionKey);
 			}
 		}
 	}
@@ -804,7 +809,12 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 			if (AbilitySpec.IsActive())
 			{
 				AbilitySpecInputReleased(AbilitySpec);
-				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+				FPredictionKey ActivationPredictionKey = AbilitySpec.ActivationInfo.GetActivationPredictionKey();
+				if (UGameplayAbility* ActiveInstance = AbilitySpec.GetPrimaryInstance())
+				{
+					ActivationPredictionKey = ActiveInstance->GetCurrentActivationInfo().GetActivationPredictionKey();
+				}
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, ActivationPredictionKey);
 			}
 		}
 	}
@@ -1313,6 +1323,9 @@ void UAuraAbilitySystemComponent::ClearAbilitiesOfSlot(const FGameplayTag& Slot)
 		if (AbilityHasSlot(&Spec, Slot))
 		{
 			ClearSlot(&Spec);
+			// Dynamic source tags are replicated through the fast-array spec
+			// container; mark the entry dirty so clients release the old slot.
+			MarkAbilitySpecDirty(Spec);
 		}
 	}
 }
