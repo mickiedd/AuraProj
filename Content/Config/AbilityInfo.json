@@ -53,6 +53,30 @@
       "icon": "/Game/Assets/UI/Spells/FireBolt.FireBolt",
       "backgroundMaterial": "/Game/Assets/UI/Globes/MI_FireSkillBG.MI_FireSkillBG",
       "levelRequirement": 1
+    },
+    {
+      "abilityTag": "Abilities.Melee.CrunchUppercut",
+      "icon": "/Game/Assets/UI/Spells/FireBolt.FireBolt",
+      "backgroundMaterial": "/Game/Assets/UI/Globes/MI_FireSkillBG.MI_FireSkillBG",
+      "levelRequirement": 1
+    },
+    {
+      "abilityTag": "Abilities.Melee.CrunchDash",
+      "icon": "/Game/Assets/UI/Spells/FireBolt.FireBolt",
+      "backgroundMaterial": "/Game/Assets/UI/Globes/MI_FireSkillBG.MI_FireSkillBG",
+      "levelRequirement": 1
+    },
+    {
+      "abilityTag": "Abilities.Melee.CrunchGroundBlast",
+      "icon": "/Game/Assets/UI/Spells/FireBolt.FireBolt",
+      "backgroundMaterial": "/Game/Assets/UI/Globes/MI_FireSkillBG.MI_FireSkillBG",
+      "levelRequirement": 1
+    },
+    {
+      "abilityTag": "Abilities.Melee.CrunchTornado",
+      "icon": "/Game/Assets/UI/Spells/FireBolt.FireBolt",
+      "backgroundMaterial": "/Game/Assets/UI/Globes/MI_FireSkillBG.MI_FireSkillBG",
+      "levelRequirement": 1
     }
   ]
 }

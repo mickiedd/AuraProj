@@ -15,42 +15,105 @@
 #include "Engine/World.h"
 #include "Components/CapsuleComponent.h"
 #include "Combat/AuraCombatStateComponent.h"
-#include "HAL/FileManager.h"
-#include "Misc/FileHelper.h"
-#include "Misc/Paths.h"
+#include "GameplayTagsManager.h"
 #include "Tests/Fixtures/AuraRoleApplicationTestActor.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FAuraCrunchComboImpactCueContractTest,
-	"Aura.Migration.CrunchCombo.ImpactCueContract",
+	FAuraCrunchComboTagRegistrationTest,
+	"Aura.Migration.Crunch.TagRegistration",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-bool FAuraCrunchComboImpactCueContractTest::RunTest(const FString& Parameters)
+bool FAuraCrunchComboTagRegistrationTest::RunTest(const FString& Parameters)
 {
 	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
-	TestTrue(TEXT("Melee impact gameplay cue tag is registered"), Tags.GameplayCue_MeleeImpact.IsValid());
+	const FGameplayTag ConfigCueTag = UGameplayTagsManager::Get().RequestGameplayTag(
+		FName(TEXT("GameplayCue.MeleeImpact")), false);
+	TestTrue(TEXT("Config-owned melee impact gameplay cue tag is registered"), ConfigCueTag.IsValid());
+	TestTrue(TEXT("Native accessor resolves the config-owned melee impact tag"), Tags.GameplayCue_MeleeImpact.IsValid());
+	TestEqual(TEXT("Native and config cue tags resolve to the same tag"), Tags.GameplayCue_MeleeImpact, ConfigCueTag);
+	return !HasAnyErrors();
+}
 
-	const FString CueAssetPath = FPaths::Combine(
-		FPaths::ProjectContentDir(),
-		TEXT("Blueprints/AbilitySystem/GameplayCueNotifies/GC_MeleeImpact.uasset"));
-	TestTrue(TEXT("Authored melee impact cue asset is present"), IFileManager::Get().FileExists(*CueAssetPath));
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraCrunchComboImpactCueDispatchBehaviorTest,
+	"Aura.Migration.Crunch.ImpactCueDispatchBehavior",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-	const FString ImplementationPath = FPaths::Combine(
-		FPaths::ProjectDir(),
-		TEXT("Source/Aura/Private/AbilitySystem/Abilities/AuraMeleeAttack.cpp"));
-	FString Implementation;
-	if (!TestTrue(TEXT("Crunch combo implementation is readable"), FFileHelper::LoadFileToString(Implementation, *ImplementationPath)))
+bool FAuraCrunchComboImpactCueDispatchBehaviorTest::RunTest(const FString& Parameters)
+{
+	UWorld* TestWorld = UWorld::CreateWorld(EWorldType::Game, false);
+	if (!TestNotNull(TEXT("Transient cue dispatch world created"), TestWorld))
 	{
 		return false;
 	}
-	TestTrue(TEXT("Impact cue is dispatched through the target ASC"),
-		Implementation.Contains(TEXT("TargetASC->ExecuteGameplayCue(FAuraGameplayTags::Get().GameplayCue_MeleeImpact")));
-	TestTrue(TEXT("Impact cue is gated on accepted authoritative damage"),
-		Implementation.Contains(TEXT("const FGameplayEffectContextHandle DamageContext"))
-		&& Implementation.Contains(TEXT("if (!DamageContext.IsValid())")));
-	TestTrue(TEXT("Impact cue supplies a target location"), Implementation.Contains(TEXT("CueParams.Location = Target->GetActorLocation()")));
-	TestTrue(TEXT("Impact cue preserves the authored target EffectCauser contract"),
-		Implementation.Contains(TEXT("CueParams.EffectCauser = Target")));
+	TestWorld->AddToRoot();
+	GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(TestWorld);
+	TestWorld->InitializeActorsForPlay(FURL());
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.ObjectFlags |= RF_Transient;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AAuraRoleApplicationTestActor* Target = TestWorld->SpawnActor<AAuraRoleApplicationTestActor>(
+		AAuraRoleApplicationTestActor::StaticClass(), FTransform::Identity, SpawnParameters);
+	const bool bSpawned = TestNotNull(TEXT("Cue target fixture spawned"), Target);
+	if (bSpawned)
+	{
+		TestTrue(TEXT("Cue target ASC initializes actor info"), Target->InitializeTestAbilityActorInfo());
+		Target->DispatchBeginPlay();
+		TestWorld->BeginPlay();
+		UAuraAbilitySystemComponent* TargetASC = Target->GetTestASC();
+		TestNotNull(TEXT("Cue target owns an Aura ASC"), TargetASC);
+		if (TargetASC)
+		{
+			const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+			const FVector ExpectedLocation(40.f, -20.f, 15.f);
+			FGameplayCueParameters CueParams;
+			CueParams.Location = ExpectedLocation;
+			CueParams.EffectCauser = Target;
+			CueParams.Instigator = Target;
+			CueParams.SourceObject = Target;
+			Target->ResetGameplayCueProbe();
+			TargetASC->ExecuteGameplayCue(Tags.GameplayCue_MeleeImpact, CueParams);
+			TestEqual(TEXT("One gameplay cue dispatch reaches the target listener"), Target->GetGameplayCueProbeCount(), 1);
+			TestEqual(TEXT("Cue listener receives the impact tag"), Target->GetLastGameplayCueTag(), Tags.GameplayCue_MeleeImpact);
+			TestTrue(TEXT("Cue listener receives the authored target location"),
+				Target->GetLastGameplayCueLocation().Equals(ExpectedLocation, 0.1f));
+			TestTrue(TEXT("Cue listener receives the target effect causer"), Target->GetLastGameplayCueEffectCauser() == Target);
+			TestTrue(TEXT("Cue listener receives the attacking instigator"), Target->GetLastGameplayCueInstigator() == Target);
+			TestTrue(TEXT("Cue listener receives the source object"), Target->GetLastGameplayCueSourceObject() == Target);
+		}
+	}
+
+	if (Target)
+	{
+		Target->Destroy();
+	}
+	GEngine->DestroyWorldContext(TestWorld);
+	TestWorld->RemoveFromRoot();
+	TestWorld->DestroyWorld(false);
+	return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraCrunchComboActivationPermissionFailureTest,
+	"Aura.Migration.Crunch.ActivationPermissionFailureCleansUp",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraCrunchComboActivationPermissionFailureTest::RunTest(const FString& Parameters)
+{
+	UAuraMeleeAttack* Ability = NewObject<UAuraMeleeAttack>();
+	if (!TestNotNull(TEXT("Transient combo ability created for permission failure"), Ability))
+	{
+		return false;
+	}
+
+	FGameplayAbilityActivationInfo ActivationInfo;
+	Ability->ActivateAbility(FGameplayAbilitySpecHandle(), nullptr, ActivationInfo, nullptr);
+	TestFalse(TEXT("Null actor info fails closed without activating the combo"), Ability->IsActive());
+
+	FGameplayAbilityActorInfo EmptyActorInfo;
+	Ability->ActivateAbility(FGameplayAbilitySpecHandle(), &EmptyActorInfo, ActivationInfo, nullptr);
+	TestFalse(TEXT("Actor info without an ASC fails closed without activating the combo"), Ability->IsActive());
 	return !HasAnyErrors();
 }
 
@@ -85,12 +148,12 @@ bool FAuraCrunchComboRuntimePlaybackTest::RunTest(const FString& Parameters)
 
 	UAnimMontage* ComboMontage = LoadObject<UAnimMontage>(
 		nullptr,
-		TEXT("/Game/Assets/Characters/Aura/Animations/Abilities/AM_CrunchCombo_Prototype_RuntimeV2.AM_CrunchCombo_Prototype_RuntimeV2"));
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_CrunchComboV4.AM_CrunchComboV4"));
 	UClass* AuraAnimClass = LoadClass<UAnimInstance>(
 		nullptr,
-		TEXT("/Game/Blueprints/Character/Aura/ABP_Aura.ABP_Aura_C"));
+		TEXT("/Game/Blueprints/Character/Crunch/ABP_Crunch_AuraV4.ABP_Crunch_AuraV4_C"));
 	USkeletalMesh* AuraMesh = LoadObject<USkeletalMesh>(
-		nullptr, TEXT("/Game/Assets/Characters/Aura/SKM_Aura.SKM_Aura"));
+		nullptr, TEXT("/Game/Assets/Characters/Crunch/Meshes/SM_CrunchV4.SM_CrunchV4"));
 	if (!TestNotNull(TEXT("Generated combo montage loads for playback"), ComboMontage)
 		|| !TestNotNull(TEXT("Aura animation blueprint loads for playback"), AuraAnimClass)
 		|| !TestNotNull(TEXT("Aura skeleton mesh loads for playback"), AuraMesh))
@@ -101,6 +164,11 @@ bool FAuraCrunchComboRuntimePlaybackTest::RunTest(const FString& Parameters)
 		TestWorld->DestroyWorld(false);
 		return false;
 	}
+	// GAS creates InstancedPerActor abilities with NewObject<Class>(), not as CDO
+	// clones, so keep the target montage explicit for this runtime fixture.
+	UAuraMeleeAttack::SetTestComboMontageOverride(ComboMontage);
+	UE_LOG(LogTemp, Display, TEXT("[CrunchComboRuntimeTest] Test montage=%s skeleton=%s"),
+		*GetNameSafe(ComboMontage), *GetNameSafe(ComboMontage->GetSkeleton()));
 
 	const FGameplayTag EntityPlayer = FGameplayTag::RequestGameplayTag(TEXT("Entity.Player"));
 	const FGameplayTag ControlPlayer = FGameplayTag::RequestGameplayTag(TEXT("Control.Player"));
@@ -247,9 +315,13 @@ bool FAuraCrunchComboRuntimePlaybackTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Combo spec remains addressable after montage playback"), LiveSpec != nullptr);
 	if (AbilityInstance)
 	{
+		UE_LOG(LogTemp, Display, TEXT("[CrunchComboRuntimeTest] Active montage=%s expected=%s"),
+			*GetNameSafe(AbilityInstance->GetCurrentMontage()), *GetNameSafe(ComboMontage));
+		TestEqual(TEXT("Standalone combo uses authored montage events"), FString(AbilityInstance->GetTestEventSourceName()), FString(TEXT("Authored")));
 		TestEqual(TEXT("Combo01 emits one Window.Open event"), AbilityInstance->GetTestOpenEventCount(), 1);
 		TestEqual(TEXT("Combo01 emits one Damage event"), AbilityInstance->GetTestDamageEventCount(), 1);
 		TestEqual(TEXT("Combo01 emits one Window.Close event"), AbilityInstance->GetTestCloseEventCount(), 1);
+		TestEqual(TEXT("Combo01 authored close accounting excludes teardown"), AbilityInstance->GetTestImplicitCloseEventCount(), 0);
 		TestEqual(TEXT("Combo01 accepts one authoritative damage callback"), AbilityInstance->GetTestAcceptedDamageCount(), 1);
 	}
 	const float HostileHealthAfterOneSection = HostileTarget && HostileTarget->GetTestASC()
@@ -261,6 +333,18 @@ bool FAuraCrunchComboRuntimePlaybackTest::RunTest(const FString& Parameters)
 	const float OutsideHealthAfterOneSection = OutsideTarget && OutsideTarget->GetTestASC()
 		? OutsideTarget->GetTestASC()->GetNumericAttribute(UAuraAttributeSet::GetHealthAttribute()) : -1.f;
 	TestTrue(TEXT("Authoritative combo damage reaches one live hostile target"), HostileHealthAfterOneSection < 100.f);
+	TestEqual(TEXT("Accepted hostile hit dispatches exactly one impact cue"),
+		HostileTarget ? HostileTarget->GetGameplayCueProbeCount() : -1, 1);
+	TestEqual(TEXT("Impact cue reaches the hostile target ASC listener"),
+		HostileTarget ? HostileTarget->GetLastGameplayCueTag() : FGameplayTag(), Tags.GameplayCue_MeleeImpact);
+	TestTrue(TEXT("Impact cue location matches the hostile target"), HostileTarget
+		&& HostileTarget->GetLastGameplayCueLocation().Equals(HostileTarget->GetActorLocation(), 0.1f));
+	TestTrue(TEXT("Impact cue effect causer is the hostile target"), HostileTarget
+		&& HostileTarget->GetLastGameplayCueEffectCauser() == HostileTarget);
+	TestTrue(TEXT("Impact cue instigator is the attacking avatar"), HostileTarget
+		&& HostileTarget->GetLastGameplayCueInstigator() == Avatar);
+	TestTrue(TEXT("Impact cue source object is the attacking avatar"), HostileTarget
+		&& HostileTarget->GetLastGameplayCueSourceObject() == Avatar);
 	TestEqual(TEXT("Friendly target is denied by the combat policy"), FriendlyHealthAfterOneSection, 100.f);
 	TestEqual(TEXT("Dead target is excluded before damage application"), DeadHealthAfterOneSection, 100.f);
 	TestEqual(TEXT("Outside-radius target is excluded before damage application"), OutsideHealthAfterOneSection, 100.f);
@@ -313,6 +397,8 @@ bool FAuraCrunchComboRuntimePlaybackTest::RunTest(const FString& Parameters)
 	{
 		TestEqual(TEXT("Queued cancellation produces no delayed damage event"), AbilityInstance->GetTestDamageEventCount(), 0);
 		TestEqual(TEXT("Queued cancellation accepts no damage"), AbilityInstance->GetTestAcceptedDamageCount(), 0);
+		TestEqual(TEXT("Queued cancellation keeps authored close count at zero"), AbilityInstance->GetTestCloseEventCount(), 0);
+		TestEqual(TEXT("Queued cancellation records one implicit teardown close"), AbilityInstance->GetTestImplicitCloseEventCount(), 1);
 	}
 
 	// Reactivate and press once per open window. This proves the callback-driven
@@ -352,6 +438,7 @@ bool FAuraCrunchComboRuntimePlaybackTest::RunTest(const FString& Parameters)
 		TestEqual(TEXT("Timed input reaches all four combo windows"), AbilityInstance->GetTestOpenEventCount(), 4);
 		TestEqual(TEXT("Timed input receives four damage events"), AbilityInstance->GetTestDamageEventCount(), 4);
 		TestEqual(TEXT("Timed input receives four close events"), AbilityInstance->GetTestCloseEventCount(), 4);
+		TestEqual(TEXT("Timed input has no implicit teardown close"), AbilityInstance->GetTestImplicitCloseEventCount(), 0);
 		TestEqual(TEXT("Timed input accepts three section transitions"), PressesAccepted, 3);
 		TestEqual(TEXT("Timed input reaches Combo04"), MaxObservedComboIndex, 3);
 		TestEqual(TEXT("Timed input applies damage once per section"), AbilityInstance->GetTestAcceptedDamageCount(), 4);
@@ -359,6 +446,7 @@ bool FAuraCrunchComboRuntimePlaybackTest::RunTest(const FString& Parameters)
 			AbilityInstance->GetTestAcceptedDamageSectionMask(), 0xF);
 	}
 	ASC->CancelAbilityHandle(Handle);
+	UAuraMeleeAttack::SetTestComboMontageOverride(nullptr);
 
 	Avatar->Destroy();
 	for (AAuraRoleApplicationTestActor* Target : TargetFixtures)

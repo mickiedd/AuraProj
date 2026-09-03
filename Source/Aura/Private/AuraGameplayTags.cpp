@@ -382,6 +382,23 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FName("Abilities.Gun.Fire"),
 		FString("Gun Fire Ability Tag (BungeeMan LMB hitscan)")
 		);
+	GameplayTags.Abilities_Melee_CrunchUppercut = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Melee.CrunchUppercut"), FString("Crunch UpperCut"));
+	GameplayTags.Abilities_Melee_CrunchDash = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Melee.CrunchDash"), FString("Crunch Dash"));
+	GameplayTags.Abilities_Melee_CrunchGroundBlast = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Melee.CrunchGroundBlast"), FString("Crunch GroundBlast"));
+	GameplayTags.Abilities_Melee_CrunchTornado = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Melee.CrunchTornado"), FString("Crunch Tornado"));
+
+	GameplayTags.Cooldown_Melee_CrunchUppercut = UGameplayTagsManager::Get().RequestGameplayTag(
+		FName("Cooldown.Melee.CrunchUppercut"), false);
+	GameplayTags.Cooldown_Melee_CrunchDash = UGameplayTagsManager::Get().RequestGameplayTag(
+		FName("Cooldown.Melee.CrunchDash"), false);
+	GameplayTags.Cooldown_Melee_CrunchGroundBlast = UGameplayTagsManager::Get().RequestGameplayTag(
+		FName("Cooldown.Melee.CrunchGroundBlast"), false);
+	GameplayTags.Cooldown_Melee_CrunchTornado = UGameplayTagsManager::Get().RequestGameplayTag(
+		FName("Cooldown.Melee.CrunchTornado"), false);
 
 	/*
 	 * Passive Spells
@@ -551,8 +568,11 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FString("FireBlast GameplayCue Tag")
 		);
 
-	GameplayTags.GameplayCue_MeleeImpact = UGameplayTagsManager::Get().AddNativeGameplayTag(
-		FName("GameplayCue.MeleeImpact"),
-		FString("Melee impact GameplayCue Tag")
-		);
+	// GameplayCue.MeleeImpact is authored in DefaultGameplayTags.ini. Keep the
+	// native accessor bound to that config-owned tag without registering a
+	// second native owner (which would produce duplicate-tag diagnostics).
+	GameplayTags.GameplayCue_MeleeImpact = UGameplayTagsManager::Get().RequestGameplayTag(
+		FName("GameplayCue.MeleeImpact"), false);
+	GameplayTags.GameplayCue_CrunchGroundBlast = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("GameplayCue.Crunch.GroundBlast"), FString("Crunch GroundBlast impact cue"));
 }

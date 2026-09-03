@@ -1,0 +1,228 @@
+{
+  "anchorRows": [
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0715C) {package_name: \"/Script/Engine\", asset_name: \"Blueprint\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "78FC68AF2B87C37B1EB03C26384B71D176D9FB77FC7D2BB3C5AB9F749C7D0E89",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/Crunch_BP.Crunch_BP",
+      "path": "Content/Characters/Crunch/Crunch_BP.uasset",
+      "purpose": "source character blueprint",
+      "registryFound": true,
+      "sha256": "78FC68AF2B87C37B1EB03C26384B71D176D9FB77FC7D2BB3C5AB9F749C7D0E89"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0D37C) {package_name: \"/Script/Engine\", asset_name: \"AnimBlueprint\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "B09F24AD8D86F8AA37169D80FFE9C1B37C60067AA3AED18D745E6247DDE719CD",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/Animation/AnimBP_Crunch.AnimBP_Crunch",
+      "path": "Content/Characters/Crunch/Animation/AnimBP_Crunch.uasset",
+      "purpose": "source animation blueprint",
+      "registryFound": true,
+      "sha256": "B09F24AD8D86F8AA37169D80FFE9C1B37C60067AA3AED18D745E6247DDE719CD"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA07DDC) {package_name: \"/Script/GameplayAbilities\", asset_name: \"GameplayAbilityBlueprint\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "90223B71AAA97C6E2A87A96D1D9ABFB2082CE0AF523CB5118C802FCC42EBD4F2",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/Combo/GA_Combo_Crunch_BP.GA_Combo_Crunch_BP",
+      "path": "Content/Characters/Crunch/GameplayAbility/Combo/GA_Combo_Crunch_BP.uasset",
+      "purpose": "source combo defaults",
+      "registryFound": true,
+      "sha256": "90223B71AAA97C6E2A87A96D1D9ABFB2082CE0AF523CB5118C802FCC42EBD4F2"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0D7DC) {package_name: \"/Script/Engine\", asset_name: \"AnimMontage\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "A6E9488874F92423D6BDD559C6319008B988349BB3E4A6A4D79EC527E6806E3E",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/Combo/Animations/AM_Combo_Crunch.AM_Combo_Crunch",
+      "path": "Content/Characters/Crunch/GameplayAbility/Combo/Animations/AM_Combo_Crunch.uasset",
+      "purpose": "source combo montage",
+      "registryFound": true,
+      "sha256": "A6E9488874F92423D6BDD559C6319008B988349BB3E4A6A4D79EC527E6806E3E"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0CBFC) {package_name: \"/Script/GameplayAbilities\", asset_name: \"GameplayAbilityBlueprint\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "EF9F7FDBE80D5B253E88DDBD5D1B413DA2FAA164C74E789DE242145BDEE915F8",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/UpperCut/GA_UpperCut_BP.GA_UpperCut_BP",
+      "path": "Content/Characters/Crunch/GameplayAbility/UpperCut/GA_UpperCut_BP.uasset",
+      "purpose": "source uppercut defaults",
+      "registryFound": true,
+      "sha256": "EF9F7FDBE80D5B253E88DDBD5D1B413DA2FAA164C74E789DE242145BDEE915F8"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA07D3C) {package_name: \"/Script/Engine\", asset_name: \"AnimMontage\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "3BDC57C413A60702EE19F0705165DF727935FF1299B2C221522185C01A85CA59",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/UpperCut/Animation/AM_UpperCut.AM_UpperCut",
+      "path": "Content/Characters/Crunch/GameplayAbility/UpperCut/Animation/AM_UpperCut.uasset",
+      "purpose": "source uppercut montage",
+      "registryFound": true,
+      "sha256": "3BDC57C413A60702EE19F0705165DF727935FF1299B2C221522185C01A85CA59"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0B9DC) {package_name: \"/Script/Engine\", asset_name: \"Blueprint\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "68819BAE848FEB45D4C93270EF3F8FDE5F4F6EB67A631FAFE8223898A161B79F",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/Dash/GA_Dash_BP.GA_Dash_BP",
+      "path": "Content/Characters/Crunch/GameplayAbility/Dash/GA_Dash_BP.uasset",
+      "purpose": "source dash defaults",
+      "registryFound": true,
+      "sha256": "68819BAE848FEB45D4C93270EF3F8FDE5F4F6EB67A631FAFE8223898A161B79F"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0A49C) {package_name: \"/Script/Engine\", asset_name: \"AnimMontage\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "1BD0C2B66B8689118D630A7E92812A154FB52E4451EAD86E855944EEAB6323EE",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/Dash/AM_Dash.AM_Dash",
+      "path": "Content/Characters/Crunch/GameplayAbility/Dash/AM_Dash.uasset",
+      "purpose": "source dash montage",
+      "registryFound": true,
+      "sha256": "1BD0C2B66B8689118D630A7E92812A154FB52E4451EAD86E855944EEAB6323EE"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0BEDC) {package_name: \"/Script/GameplayAbilities\", asset_name: \"GameplayAbilityBlueprint\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "53C4C676EFFAA7FD5715AE7647559370BAE27AB327304060E00CA4EC027546C5",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/GroundBlast/GA_GroundBlast_BP.GA_GroundBlast_BP",
+      "path": "Content/Characters/Crunch/GameplayAbility/GroundBlast/GA_GroundBlast_BP.uasset",
+      "purpose": "source ground blast defaults",
+      "registryFound": true,
+      "sha256": "53C4C676EFFAA7FD5715AE7647559370BAE27AB327304060E00CA4EC027546C5"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0A7BC) {package_name: \"/Script/Engine\", asset_name: \"AnimMontage\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "9E73BD183266355EF18D3ACF9E8CD5358D22DA8A25133DB0D96022AA29082E9F",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/GroundBlast/Animation/AM_GroundBlast_Casting.AM_GroundBlast_Casting",
+      "path": "Content/Characters/Crunch/GameplayAbility/GroundBlast/Animation/AM_GroundBlast_Casting.uasset",
+      "purpose": "source ground blast cast montage",
+      "registryFound": true,
+      "sha256": "9E73BD183266355EF18D3ACF9E8CD5358D22DA8A25133DB0D96022AA29082E9F"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0C3DC) {package_name: \"/Script/Engine\", asset_name: \"AnimMontage\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "1A025505B65AB8FACDAB904D972541A0038E8BF4963DB07D6B83F1993CAD7E91",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/GroundBlast/Animation/AM_GroundBlast_Targetting.AM_GroundBlast_Targetting",
+      "path": "Content/Characters/Crunch/GameplayAbility/GroundBlast/Animation/AM_GroundBlast_Targetting.uasset",
+      "purpose": "source ground blast targeting montage",
+      "registryFound": true,
+      "sha256": "1A025505B65AB8FACDAB904D972541A0038E8BF4963DB07D6B83F1993CAD7E91"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0C8DC) {package_name: \"/Script/Engine\", asset_name: \"Blueprint\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "A6B6372478D2CA11A8EB146D6DA7B1E5C1F85A94D3B9FFBC09260D2ACB3B4F71",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/Turnado/GA_Tornado_BP.GA_Tornado_BP",
+      "path": "Content/Characters/Crunch/GameplayAbility/Turnado/GA_Tornado_BP.uasset",
+      "purpose": "source tornado defaults",
+      "registryFound": true,
+      "sha256": "A6B6372478D2CA11A8EB146D6DA7B1E5C1F85A94D3B9FFBC09260D2ACB3B4F71"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0BC5C) {package_name: \"/Script/Engine\", asset_name: \"AnimMontage\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "3D7FDED43457AC88EA805BAC70999A8A369784960D6EF91971C2BBB43F962B66",
+      "hashMatches": true,
+      "objectPath": "/Game/Characters/Crunch/GameplayAbility/Turnado/Animation/AM_Tornado.AM_Tornado",
+      "path": "Content/Characters/Crunch/GameplayAbility/Turnado/Animation/AM_Tornado.uasset",
+      "purpose": "source tornado montage",
+      "registryFound": true,
+      "sha256": "3D7FDED43457AC88EA805BAC70999A8A369784960D6EF91971C2BBB43F962B66"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA082DC) {package_name: \"/Script/Engine\", asset_name: \"SkeletalMesh\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "205B49244804BF58014A7E48168171C683C9E586D75374E37F4336CB484CA4C1",
+      "hashMatches": true,
+      "objectPath": "/Game/ParagonCrunch/Characters/Heroes/Crunch/Meshes/Crunch.Crunch",
+      "path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Meshes/Crunch.uasset",
+      "purpose": "source skeletal mesh",
+      "registryFound": true,
+      "sha256": "205B49244804BF58014A7E48168171C683C9E586D75374E37F4336CB484CA4C1"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA09A9C) {package_name: \"/Script/Engine\", asset_name: \"Skeleton\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "810E682ED7A6694312B5FD6506A923F74B28DB3AFF49C78E51735AA729239760",
+      "hashMatches": true,
+      "objectPath": "/Game/ParagonCrunch/Characters/Heroes/Crunch/Meshes/Crunch_Skeleton.Crunch_Skeleton",
+      "path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Meshes/Crunch_Skeleton.uasset",
+      "purpose": "source skeleton",
+      "registryFound": true,
+      "sha256": "810E682ED7A6694312B5FD6506A923F74B28DB3AFF49C78E51735AA729239760"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA078DC) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "A7F9FDD242E8C9FE671B8A4116613D473080FBAC14582DB603F140995E2BA1A8",
+      "hashMatches": true,
+      "objectPath": "/Game/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_01.Ability_Combo_01",
+      "path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_01.uasset",
+      "purpose": "combo section 1 source sequence",
+      "registryFound": true,
+      "sha256": "A7F9FDD242E8C9FE671B8A4116613D473080FBAC14582DB603F140995E2BA1A8"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA07F1C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "127EE9B374A78C370B9BF38AF539D0E2DB814A75F5E0CC55EE1E3EA26FA0336E",
+      "hashMatches": true,
+      "objectPath": "/Game/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_02.Ability_Combo_02",
+      "path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_02.uasset",
+      "purpose": "combo section 2 source sequence",
+      "registryFound": true,
+      "sha256": "127EE9B374A78C370B9BF38AF539D0E2DB814A75F5E0CC55EE1E3EA26FA0336E"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0B43C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "712DDB458C4ABE985EF7B86320E5138F84D9C3BAFB820D4150A403D271C1EE0F",
+      "hashMatches": true,
+      "objectPath": "/Game/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_03.Ability_Combo_03",
+      "path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_03.uasset",
+      "purpose": "combo section 3 source sequence",
+      "registryFound": true,
+      "sha256": "712DDB458C4ABE985EF7B86320E5138F84D9C3BAFB820D4150A403D271C1EE0F"
+    },
+    {
+      "assetClass": "<Struct 'TopLevelAssetPath' (0x000006E67EA0855C) {package_name: \"/Script/Engine\", asset_name: \"AnimSequence\"}>",
+      "existsOnDisk": true,
+      "expectedSha256": "C8908D2C24A848C953C690B14C417B37B84AC52A34859E79F93104C1149EBC60",
+      "hashMatches": true,
+      "objectPath": "/Game/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_04.Ability_Combo_04",
+      "path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_04.uasset",
+      "purpose": "combo section 4 source sequence",
+      "registryFound": true,
+      "sha256": "C8908D2C24A848C953C690B14C417B37B84AC52A34859E79F93104C1149EBC60"
+    }
+  ],
+  "exports": {
+    "blueprintDefaults": "Saved/CrunchMigration/Exports/blueprintDefaults.json",
+    "dependencyClosure": "Saved/CrunchMigration/Exports/dependencyClosure.json",
+    "gameplayCueReferences": "Saved/CrunchMigration/Exports/gameplayCueReferences.json",
+    "montageNotifyTimes": "Saved/CrunchMigration/Exports/montageNotifyTimes.json",
+    "montageSectionTimes": "Saved/CrunchMigration/Exports/montageSectionTimes.json",
+    "sourceClassReferenceScan": "Saved/CrunchMigration/Exports/sourceClassReferenceScan.json"
+  },
+  "limitations": [
+    "Blueprint custom graph defaults are unavailable via public Python reflection and are recorded as explicit unavailable fields.",
+    "AnimMontage CompositeSections start/end times are protected; section names/count and play lengths are exported, with timing status explicit."
+  ],
+  "manifest": "Docs/Plans/Crunch-Migration/crunch-source-asset-manifest.json",
+  "schemaVersion": 1,
+  "sourceRoot": "C:/Works/Crunch-master"
+}

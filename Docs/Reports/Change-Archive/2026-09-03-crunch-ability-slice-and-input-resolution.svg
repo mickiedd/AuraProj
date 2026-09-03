@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch ability slice and lazy input-tag resolution</title>
+  <desc id="desc">Flow from role configuration through five Crunch abilities, shared validation and authority cleanup, with validation evidence.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#101b2d"/><stop offset="1" stop-color="#17263b"/></linearGradient>
+    <linearGradient id="blue" x1="0" x2="1"><stop offset="0" stop-color="#1e6aa8"/><stop offset="1" stop-color="#2389c7"/></linearGradient>
+    <linearGradient id="green" x1="0" x2="1"><stop offset="0" stop-color="#147d67"/><stop offset="1" stop-color="#20a37f"/></linearGradient>
+    <linearGradient id="orange" x1="0" x2="1"><stop offset="0" stop-color="#a85d22"/><stop offset="1" stop-color="#d5842e"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#000" flood-opacity=".35"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 z" fill="#87bde2"/></marker>
+    <style>
+      .label{font:600 16px 'Segoe UI',Arial,sans-serif;fill:#f4f8fb}.small{font:13px 'Segoe UI',Arial,sans-serif;fill:#c9d8e4}.tiny{font:12px 'Segoe UI',Arial,sans-serif;fill:#b8cad8}.title{font:700 28px 'Segoe UI',Arial,sans-serif;fill:#fff}.sub{font:14px 'Segoe UI',Arial,sans-serif;fill:#a9c7db}.box{stroke:#5e9cc3;stroke-width:1.5;rx:14}.pill{stroke:#6ba5c8;stroke-width:1;rx:9}.line{stroke:#87bde2;stroke-width:2;fill:none;marker-end:url(#arrow)}.guard{stroke:#62d0ad;stroke-width:2;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1280" height="760" fill="url(#bg)"/>
+  <text x="52" y="58" class="title">Crunch migration · native skill boundary</text>
+  <text x="52" y="84" class="sub">2026-09-03 implementation slice: five-skill role wiring, shared authority cleanup, and CDO-safe input resolution</text>
+
+  <rect x="52" y="124" width="246" height="164" fill="#182d46" class="box" filter="url(#shadow)"/>
+  <text x="74" y="155" class="label">Role-owned contract</text>
+  <text x="74" y="181" class="small">RoleConfig.json · Crunch</text>
+  <text x="74" y="205" class="tiny">LMB → AuraMeleeAttack</text>
+  <text x="74" y="225" class="tiny">1 → UpperCut · 2 → Dash</text>
+  <text x="74" y="245" class="tiny">3 → GroundBlast · 4 → Tornado</text>
+  <rect x="74" y="260" width="196" height="18" fill="#214d6d" class="pill"/>
+  <text x="84" y="273" class="tiny">exactly five role-owned specs</text>
+
+  <rect x="360" y="124" width="256" height="164" fill="url(#blue)" class="box" filter="url(#shadow)"/>
+  <text x="382" y="155" class="label">Grant/spec boundary</text>
+  <text x="382" y="182" class="small">GetStartupInputTag()</text>
+  <text x="382" y="205" class="tiny">valid property → use directly</text>
+  <text x="382" y="225" class="tiny">None CDO → RequestGameplayTag(FName)</text>
+  <text x="382" y="245" class="tiny">prevents startup-order “None” slots</text>
+  <rect x="382" y="260" width="204" height="18" fill="#2d7caf" class="pill"/>
+  <text x="392" y="273" class="tiny">role replacement remains idempotent</text>
+
+  <path d="M298 206 H360" class="line"/>
+
+  <rect x="676" y="112" width="548" height="190" fill="#183746" class="box" filter="url(#shadow)"/>
+  <text x="700" y="145" class="label">Native translated skills</text>
+  <rect x="700" y="164" width="238" height="48" fill="#1d5b73" class="pill"/><text x="716" y="194" class="small">UpperCut · InputTag.1</text>
+  <rect x="954" y="164" width="238" height="48" fill="#1d5b73" class="pill"/><text x="970" y="194" class="small">Dash · InputTag.2</text>
+  <rect x="700" y="226" width="238" height="48" fill="#1d5b73" class="pill"/><text x="716" y="256" class="small">GroundBlast · InputTag.3</text>
+  <rect x="954" y="226" width="238" height="48" fill="#1d5b73" class="pill"/><text x="970" y="256" class="small">Tornado · InputTag.4</text>
+  <path d="M616 206 H676" class="line"/>
+
+  <rect x="52" y="352" width="570" height="252" fill="url(#green)" class="box" filter="url(#shadow)"/>
+  <text x="76" y="387" class="label">Shared UAuraCrunchAbilityBase</text>
+  <text x="76" y="416" class="small">prepare → server revalidate → commit → cleanup</text>
+  <path d="M90 462 H548" class="guard"/>
+  <circle cx="112" cy="462" r="24" fill="#0f5b50" stroke="#86e7c7"/><text x="103" y="468" class="label">1</text>
+  <circle cx="258" cy="462" r="24" fill="#0f5b50" stroke="#86e7c7"/><text x="249" y="468" class="label">2</text>
+  <circle cx="404" cy="462" r="24" fill="#0f5b50" stroke="#86e7c7"/><text x="395" y="468" class="label">3</text>
+  <circle cx="550" cy="462" r="24" fill="#0f5b50" stroke="#86e7c7"/><text x="541" y="468" class="label">4</text>
+  <text x="77" y="508" class="tiny">target relationship/life/range checks</text>
+  <text x="77" y="530" class="tiny">per-event + per-target hit ledger</text>
+  <text x="77" y="552" class="tiny">authority-only damage, launch, push, cue</text>
+  <text x="77" y="574" class="tiny">owned timers/tasks cleared by EndAbility</text>
+
+  <rect x="676" y="352" width="548" height="252" fill="url(#orange)" class="box" filter="url(#shadow)"/>
+  <text x="700" y="387" class="label">Behavior-specific guards</text>
+  <text x="700" y="420" class="small">UpperCut</text><text x="820" y="420" class="tiny">launch + airborne follow-up window</text>
+  <text x="700" y="450" class="small">Dash</text><text x="820" y="450" class="tiny">bounded movement timer + one-hit contact</text>
+  <text x="700" y="480" class="small">GroundBlast</text><text x="820" y="480" class="tiny">server ground retrace before commit/cue</text>
+  <text x="700" y="510" class="small">Tornado</text><text x="820" y="510" class="tiny">4 s repeating cadence + timeout</text>
+  <text x="700" y="558" class="tiny">source montages are target-owned copies; UpperCut/Dash have</text>
+  <text x="700" y="578" class="tiny">bounded timeout termination; fallback never synthesizes listen combo events</text>
+
+  <path d="M804 302 V352" class="line"/>
+  <path d="M534 288 V352" class="line"/>
+
+  <rect x="52" y="650" width="1172" height="66" fill="#10253b" stroke="#4d7998" stroke-width="1.5" rx="12"/>
+  <text x="76" y="678" class="small">Validation evidence</text>
+  <text x="226" y="678" class="tiny">AuraEditor + AuraServer builds ✓  ·  Crunch migration automation 7/7 ✓  ·  Role lifecycle 5-spec replacement ✓</text>
+  <text x="226" y="699" class="tiny">Fast export gates (UpperCut/Dash/AreaSkills/GroundBlast/Tornado) ✓  ·  listen movement telemetry remains separately gated</text>
+</svg>

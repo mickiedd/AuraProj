@@ -613,6 +613,15 @@ void AAuraHUD::HandleWebUIConnectionChanged(bool bConnected)
 	}
 	bWebHUDReady = false;
 	UE_LOG(LogTemp, Display, TEXT("[AuraHUD] WebUI HUD %s; no native HUD fallback is enabled"), bConnected ? TEXT("connected") : TEXT("disconnected"));
+	// A map travel can finish before the browser handshake. Replay the complete
+	// authoritative snapshot when the first HUD page connects so its default
+	// placeholders cannot survive a late role/pawn replication.
+	if (bConnected)
+	{
+		LastRoleStatePayloadJson.Empty();
+		LastBattleStatePayloadJson.Empty();
+		SendInitialWebHUDState();
+	}
 }
 
 void AAuraHUD::HandleHealthChangedForWebUI(float NewValue) { WebHealth = NewValue; SendVitalsToWebUI(); }
@@ -733,11 +742,17 @@ void AAuraHUD::SendRoleStateToWebUI()
 	AAuraPlayerController* PC = Cast<AAuraPlayerController>(GetOwningPlayerController());
 	AAuraPlayerState* PS = PC ? PC->GetPlayerState<AAuraPlayerState>() : nullptr;
 	AAuraCharacterBase* Character = PC ? Cast<AAuraCharacterBase>(PC->GetPawn()) : nullptr;
+	// PlayerState role replication is authoritative and can arrive one frame
+	// before the pawn's AppliedRoleState. Prefer the applied pawn state when it
+	// is valid, but fall back to the replicated PlayerState role so the HUD does
+	// not remain on "Loading role" during that short travel/replication window.
+	const FName AppliedRoleId = Character ? Character->GetAppliedRoleState().RoleId : NAME_None;
+	const FName DisplayRoleId = !AppliedRoleId.IsNone() ? AppliedRoleId : (PS ? PS->GetRole() : NAME_None);
 	if (Character)
 	{
 		const FAuraAppliedRoleState& RoleState = Character->GetAppliedRoleState();
 		const FAuraCombatIdentity& Identity = Character->GetCombatIdentity();
-		Payload->SetStringField(TEXT("roleId"), RoleState.RoleId.ToString());
+		Payload->SetStringField(TEXT("roleId"), DisplayRoleId.ToString());
 		AuraHUDPrivate::SetTagField(Payload, TEXT("entityType"), RoleState.EntityTypeTag);
 		AuraHUDPrivate::SetTagField(Payload, TEXT("economyProfile"), RoleState.EconomyProfileTag);
 		AuraHUDPrivate::SetTagField(Payload, TEXT("interactionProfile"), RoleState.InteractionProfileTag);
@@ -770,7 +785,7 @@ void AAuraHUD::SendRoleStateToWebUI()
 
 	if (PS)
 	{
-		Payload->SetStringField(TEXT("roleId"), Character ? Character->GetAppliedRoleState().RoleId.ToString() : PS->GetRole().ToString());
+		Payload->SetStringField(TEXT("roleId"), DisplayRoleId.ToString());
 		Payload->SetNumberField(TEXT("economyState"), static_cast<int32>(PS->GetEconomyInitializationState()));
 		Payload->SetStringField(TEXT("economyStateName"), AuraHUDPrivate::EnumName(PS->GetEconomyInitializationState()));
 		Payload->SetBoolField(TEXT("persistentProfile"), PS->GetEconomyInitializationState() == EAuraEconomyInitializationState::LoadedPersistent);

@@ -18,6 +18,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	FGameplayTag StartupInputTag;
 
+	/** Returns the input slot used when granting this ability. Derived abilities may resolve it lazily. */
+	virtual FGameplayTag GetStartupInputTag() const { return StartupInputTag; }
+
 	virtual FString GetDescription(int32 Level);
 	virtual FString GetNextLevelDescription(int32 Level);
 	static FString GetLockedDescription(int32 Level);

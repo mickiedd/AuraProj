@@ -848,7 +848,7 @@ namespace RoleConfigPrivate
 		FGameplayTag InputTag;
 		if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(DefaultAbility))
 		{
-			InputTag = AuraAbility->StartupInputTag;
+			InputTag = AuraAbility->GetStartupInputTag();
 		}
 		if (InputTag.IsValid())
 		{

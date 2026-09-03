@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch migration Day 03 handoff remediation</title>
+  <desc id="desc">Behavioral review adds movement and dedicated-server gates while preserving the authored listen path.</desc>
+  <defs>
+    <style>
+      .title{font:700 28px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#47657e}
+      .head{font:700 17px Segoe UI,Arial;fill:#17324d}.body{font:400 15px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#47657e}.tag{font:700 12px Segoe UI,Arial;fill:#fff;letter-spacing:1px}
+    </style>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#eaf2f9"/></linearGradient>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="48" y="48" class="title">2026-09-02 — Crunch Day 03 handoff remediation</text>
+  <text x="48" y="76" class="sub">Independent review resolved the design direction and added explicit runtime closure gates.</text>
+
+  <rect x="48" y="112" width="340" height="226" rx="16" fill="#fff" stroke="#7aa5c2" stroke-width="2"/>
+  <rect x="48" y="112" width="340" height="38" rx="16" fill="#2d668f"/>
+  <text x="70" y="137" class="tag">BEFORE REVIEW</text>
+  <text x="70" y="183" class="head">Listen evidence was strong</text>
+  <text x="70" y="214" class="body">24/24 authored-event runs</text>
+  <text x="70" y="240" class="body">four deterministic scenarios</text>
+  <text x="70" y="266" class="body">timeline CSV + schema checks</text>
+  <text x="70" y="303" class="small">Gap: no fresh true-dedicated runtime proof</text>
+  <text x="70" y="323" class="small">and no normal-movement certification lane.</text>
+
+  <path d="M388 224 L432 224" stroke="#2d668f" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="432" y="112" width="720" height="226" rx="16" fill="#f5fbf7" stroke="#6ca887" stroke-width="2"/>
+  <rect x="432" y="112" width="720" height="38" rx="16" fill="#39845d"/>
+  <text x="454" y="137" class="tag">AFTER REMEDIATION</text>
+  <text x="454" y="183" class="head">Probe and evidence contracts are explicit</text>
+  <text x="454" y="214" class="body">PreserveMovementReplication and OffscreenAuthority flags are logged.</text>
+  <text x="454" y="240" class="body">Timeline validator checks section counts, ordering, terminal markers, and client damage.</text>
+  <text x="454" y="266" class="body">Dedicated preflight rejects stale AuraServer evidence instead of passing it.</text>
+  <text x="454" y="303" class="small">Production fallback remains NM_DedicatedServer-only; no synthetic listen events.</text>
+  <text x="454" y="323" class="small">Day 03 remains provisional until the blocked lanes have real evidence.</text>
+
+  <rect x="48" y="382" width="520" height="274" rx="16" fill="#fffdf7" stroke="#d3a44f" stroke-width="2"/>
+  <text x="72" y="422" class="head">Validation completed</text>
+  <text x="72" y="455" class="body">✓ AuraEditor Win64 Development build</text>
+  <text x="72" y="482" class="body">✓ Crunch automation 5/5</text>
+  <text x="72" y="509" class="body">✓ Aura.RoleBattle 237/237</text>
+  <text x="72" y="536" class="body">✓ 8 passing listen report semantics (zero + lag75)</text>
+  <text x="72" y="563" class="body">✓ PowerShell, Python, JSON schema, diff checks</text>
+  <text x="72" y="606" class="small">The movement-preserving full-combo probe is retained as a</text>
+  <text x="72" y="626" class="small">failing diagnostic (no four-section terminal matrix), not a false PASS.</text>
+
+  <rect x="604" y="382" width="548" height="274" rx="16" fill="#fff5f5" stroke="#c97878" stroke-width="2"/>
+  <text x="628" y="422" class="head">Open blockers</text>
+  <text x="628" y="455" class="body">Dedicated lane: BLOCKED</text>
+  <text x="628" y="482" class="small">Installed UE distribution rejects Server target builds;</text>
+  <text x="628" y="503" class="small">existing AuraServer.exe predates the current editor binary.</text>
+  <text x="628" y="542" class="body">Listen movement lane: needs investigation</text>
+  <text x="628" y="569" class="small">Normal movement replication is now exercised explicitly,</text>
+  <text x="628" y="590" class="small">but the full combo currently fails after the second section.</text>
+  <text x="628" y="629" class="small">Days 04–07 remain blocked on Crunch-master editor exports.</text>
+
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2d668f"/></marker></defs>
+</svg>

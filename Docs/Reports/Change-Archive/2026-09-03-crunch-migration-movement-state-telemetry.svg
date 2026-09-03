@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="600" viewBox="0 0 1220 600" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch movement-state telemetry hardening</title>
+  <desc id="desc">A timeline showing movement-state diagnostics at configuration, ability start, and each authored combo section boundary, ending in independent review approval and non-blocking follow-ups.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#355070"/></marker>
+    <style>
+      .bg{fill:#f7f9fc}.title{font:700 27px Arial;fill:#172b4d}.sub{font:15px Arial;fill:#425466}.box{stroke:#355070;stroke-width:2;rx:14}.state{fill:#edf4ff;stroke:#4778b8}.pass{fill:#eaf7ef;stroke:#3a8f5c}.note{fill:#fff7e8;stroke:#c77d2b}.txt{font:600 16px Arial;fill:#17324d}.small{font:14px Arial;fill:#30485f}.label{font:700 13px Arial;fill:#fff}.pill{rx:10;ry:10}.line{stroke:#355070;stroke-width:3;fill:none;marker-end:url(#arrow)}.ok{font:700 16px Arial;fill:#1d6b42}
+    </style>
+  </defs>
+  <rect class="bg" width="1220" height="600"/>
+  <text class="title" x="42" y="48">Crunch Day 03 — movement-state telemetry hardening</text>
+  <text class="sub" x="42" y="76">The engine-managed pose/network invariant is now observable throughout the authored combo, not only during setup.</text>
+
+  <rect class="box state" x="42" y="124" width="250" height="150"/>
+  <rect class="pill" fill="#4778b8" x="62" y="142" width="102" height="24"/>
+  <text class="label" x="75" y="159">CONFIG</text>
+  <text class="txt" x="62" y="197">Actual possessed pawn</text>
+  <text class="small" x="62" y="224">ReplicateMovement = 1</text>
+  <text class="small" x="62" y="247">MovementTick = 1</text>
+  <text class="small" x="62" y="270">AutonomousPose = 1</text>
+
+  <path class="line" d="M292 200 H340"/>
+  <rect class="box state" x="345" y="124" width="250" height="150"/>
+  <rect class="pill" fill="#4778b8" x="365" y="142" width="124" height="24"/>
+  <text class="label" x="378" y="159">ABILITY START</text>
+  <text class="txt" x="365" y="197">Remote activation</text>
+  <text class="small" x="365" y="224">Roles: Authority / AutonomousProxy</text>
+  <text class="small" x="365" y="247">Mesh tick remains enabled</text>
+  <text class="small" x="365" y="270">Native pose owner still active</text>
+
+  <path class="line" d="M595 200 H643"/>
+  <rect class="box state" x="648" y="124" width="250" height="150"/>
+  <rect class="pill" fill="#4778b8" x="668" y="142" width="148" height="24"/>
+  <text class="label" x="681" y="159">SECTION BOUNDARY</text>
+  <text class="txt" x="668" y="197">Sections 0 → 1 → 2 → 3</text>
+  <text class="small" x="668" y="224">State logged at every authored Open</text>
+  <text class="small" x="668" y="247">MovementTick = 1 throughout</text>
+  <text class="small" x="668" y="270">AutonomousPose = 1 throughout</text>
+
+  <path class="line" d="M898 200 H946"/>
+  <rect class="box pass" x="951" y="124" width="227" height="150"/>
+  <rect class="pill" fill="#3a8f5c" x="971" y="142" width="92" height="24"/>
+  <text class="label" x="984" y="159">RESULT</text>
+  <text class="txt" x="971" y="197">Authored Full</text>
+  <text class="small" x="971" y="224">Open/Damage/Close = 4</text>
+  <text class="small" x="971" y="247">Mask = 0xF · Cleanup = 1</text>
+  <text class="ok" x="971" y="270">Gate CLOSED</text>
+
+  <text class="txt" x="42" y="334">Independent review outcome</text>
+  <rect class="box pass" x="42" y="356" width="550" height="126"/>
+  <text class="txt" x="64" y="390">In-app ChatGPT review: GO</text>
+  <text class="small" x="64" y="417">Native movement/pose ownership is architecturally coherent.</text>
+  <text class="small" x="64" y="440">Visible, offscreen, repeated, latency, and fresh-binary evidence close the failure mode.</text>
+  <text class="ok" x="64" y="465">No blocker specific to this fix.</text>
+
+  <rect class="box note" x="622" y="356" width="556" height="126"/>
+  <text class="txt" x="644" y="390">Non-blocking follow-ups</text>
+  <text class="small" x="644" y="417">Keep a separate moving-attack regression and consider packet-loss stress.</text>
+  <text class="small" x="644" y="440">Profile AlwaysTickPoseAndRefreshBones only if made a broad production default.</text>
+  <text class="small" x="644" y="463">Telemetry remains scoped to the development probe.</text>
+
+  <rect class="box state" x="42" y="520" width="1136" height="48"/>
+  <text class="small" x="64" y="550">Builds PASS · semantic reports PASS · SVG/XML and diff checks PASS · crash signatures NONE · UnrealEditor-Cmd leftovers NONE</text>
+</svg>

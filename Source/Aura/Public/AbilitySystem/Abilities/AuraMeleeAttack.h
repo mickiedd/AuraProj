@@ -24,6 +24,11 @@ class AURA_API UAuraMeleeAttack : public UAuraDamageGameplayAbility
 public:
 	UAuraMeleeAttack();
 
+#if WITH_DEV_AUTOMATION_TESTS
+	/** Constructor-time override for instanced test abilities (instances are not CDO clones). */
+	static void SetTestComboMontageOverride(UAnimMontage* InMontage);
+#endif
+
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
@@ -34,13 +39,26 @@ public:
 		bool bReplicateEndAbility, bool bWasCancelled) override;
 
 #if !UE_BUILD_SHIPPING
+	enum class ECrunchComboEventSource : uint8
+	{
+		Unknown,
+		Authored,
+		DedicatedFallback
+	};
+
 	/** Development observability for local and cross-process migration probes. */
 	int32 GetTestOpenEventCount() const { return TestOpenEventCount; }
 	int32 GetTestDamageEventCount() const { return TestDamageEventCount; }
+	/** Authored montage close notifies only; teardown closure is tracked separately. */
 	int32 GetTestCloseEventCount() const { return TestCloseEventCount; }
+	int32 GetTestImplicitCloseEventCount() const { return TestImplicitCloseEventCount; }
+	ECrunchComboEventSource GetTestEventSource() const { return TestEventSource; }
+	const TCHAR* GetTestEventSourceName() const;
 	int32 GetTestAcceptedDamageCount() const { return TestAcceptedDamageCount; }
 	int32 GetTestAcceptedDamageSectionMask() const { return TestAcceptedDamageSectionMask; }
 	int32 GetTestComboIndex() const { return CurrentComboIndex; }
+	double GetTestLastWindowOpenTime() const { return TestLastWindowOpenTime; }
+	double GetTestLastWindowCloseTime() const { return TestLastWindowCloseTime; }
 	bool IsTestComboWindowOpen() const { return bComboWindowOpen; }
 	bool IsTestAuthorityFallbackTimelineActive() const { return bAuthorityFallbackTimelineActive; }
 	bool HasTestQueuedSuccessor() const { return bAuthorityAdvanceQueued; }
@@ -124,12 +142,17 @@ private:
 	FTimerHandle AuthorityFallbackOpenTimer;
 	FTimerHandle AuthorityFallbackDamageTimer;
 	FTimerHandle AuthorityFallbackCloseTimer;
+	FTimerHandle AuthorityFallbackFinishTimer;
 
 #if !UE_BUILD_SHIPPING
 	int32 TestOpenEventCount = 0;
 	int32 TestDamageEventCount = 0;
 	int32 TestCloseEventCount = 0;
+	int32 TestImplicitCloseEventCount = 0;
+	ECrunchComboEventSource TestEventSource = ECrunchComboEventSource::Unknown;
 	int32 TestAcceptedDamageCount = 0;
 	int32 TestAcceptedDamageSectionMask = 0;
+	double TestLastWindowOpenTime = -1.0;
+	double TestLastWindowCloseTime = -1.0;
 #endif
 };

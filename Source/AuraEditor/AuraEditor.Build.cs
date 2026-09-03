@@ -17,6 +17,7 @@ public class AuraEditor : ModuleRules
 		{
 			"AIModule",
 			"AnimationCore",
+			"AnimGraph",
 			"AssetRegistry",
 			"Aura",
 			"ContentBrowser",

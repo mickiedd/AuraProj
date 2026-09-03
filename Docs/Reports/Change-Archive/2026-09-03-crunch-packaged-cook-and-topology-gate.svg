@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch packaged cook and topology gate</title>
+  <desc id="desc">The Win64 Game package cooks and reaches StartupMap, while the missing packaged server keeps the multiplayer release gate open.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#64748b"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.card{fill:#fff;stroke:#cbd5e1;stroke-width:2}.pass{fill:#f0fdf4;stroke:#22c55e}.open{fill:#fff7ed;stroke:#f97316}.title{font:700 28px Arial;fill:#0f172a}.h{font:700 20px Arial;fill:#0f172a}.body{font:16px Arial;fill:#334155}.small{font:14px Arial;fill:#475569}.green{fill:#166534}.orange{fill:#9a3412}.line{stroke:#64748b;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="620"/>
+  <text class="title" x="48" y="52">Crunch packaged cook and topology gate</text>
+  <text class="small" x="48" y="80">2026-09-03 archived evidence</text>
+  <rect class="card pass" x="48" y="120" width="330" height="190" rx="14"/>
+  <text class="h" x="74" y="158">BuildCookRun</text>
+  <text class="body green" x="74" y="198">PASS — Win64 Game</text>
+  <text class="body" x="74" y="230">Aura target cooked and staged;</text>
+  <text class="body" x="74" y="256">five Crunch montage families</text>
+  <text class="body" x="74" y="282">and RuntimeV2 content present.</text>
+  <path class="line" d="M378 215 H438"/>
+  <rect class="card pass" x="438" y="120" width="330" height="190" rx="14"/>
+  <text class="h" x="464" y="158">Client smoke</text>
+  <text class="body green" x="464" y="198">PASS — reaches StartupMap</text>
+  <text class="body" x="464" y="230">No crash signatures in the</text>
+  <text class="body" x="464" y="256">packaged Game run.</text>
+  <text class="body" x="464" y="282">Client artifact is usable.</text>
+  <path class="line" d="M768 215 H828"/>
+  <rect class="card open" x="828" y="120" width="324" height="190" rx="14"/>
+  <text class="h" x="854" y="158">Server topology</text>
+  <text class="body orange" x="854" y="198">OPEN — fail closed</text>
+  <text class="body" x="854" y="230">AuraServer.exe absent from</text>
+  <text class="body" x="854" y="256">the archive, so GSM cannot</text>
+  <text class="body" x="854" y="282">claim a matching server.</text>
+  <rect class="card" x="48" y="368" width="1104" height="180" rx="14"/>
+  <text class="h" x="74" y="406">Release interpretation</text>
+  <text class="body" x="74" y="444">Client package gate: PASS. Multiplayer packaged-release gate: PENDING.</text>
+  <text class="body" x="74" y="476">Next proof required: dedicated-server package plus matching host/client traversal.</text>
+  <text class="small" x="74" y="516">The explicit boundary prevents a valid client-only cook from being mistaken for a complete network release.</text>
+</svg>

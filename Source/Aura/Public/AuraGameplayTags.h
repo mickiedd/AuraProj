@@ -143,6 +143,10 @@ public:
 	FGameplayTag Abilities_Lightning_Electrocute;
 	FGameplayTag Abilities_Arcane_ArcaneShards;
 	FGameplayTag Abilities_Gun_Fire;
+	FGameplayTag Abilities_Melee_CrunchUppercut;
+	FGameplayTag Abilities_Melee_CrunchDash;
+	FGameplayTag Abilities_Melee_CrunchGroundBlast;
+	FGameplayTag Abilities_Melee_CrunchTornado;
 
 
 	FGameplayTag Abilities_Passive_HaloOfProtection;
@@ -151,6 +155,10 @@ public:
 
 	FGameplayTag Cooldown_Fire_FireBolt;
 	FGameplayTag Cooldown_Gun_Fire;
+	FGameplayTag Cooldown_Melee_CrunchUppercut;
+	FGameplayTag Cooldown_Melee_CrunchDash;
+	FGameplayTag Cooldown_Melee_CrunchGroundBlast;
+	FGameplayTag Cooldown_Melee_CrunchTornado;
 
 	FGameplayTag CombatSocket_Weapon;
 	FGameplayTag CombatSocket_RightHand;
@@ -175,6 +183,7 @@ public:
 
 	FGameplayTag GameplayCue_FireBlast;
 	FGameplayTag GameplayCue_MeleeImpact;
+	FGameplayTag GameplayCue_CrunchGroundBlast;
 
 private:
     static AURA_API FAuraGameplayTags GameplayTags;

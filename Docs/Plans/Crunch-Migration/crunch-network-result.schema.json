@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Crunch migration network result",
+  "type": "object",
+  "required": ["schemaVersion", "scenario", "networkLagMs", "networkLagVarianceMs", "eventSource", "passed"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "scenario": {"enum": ["ComboFull", "ComboCancel", "ComboBeforeClose", "ComboAtOrAfterClose"]},
+    "networkLagMs": {"type": "integer", "minimum": 0, "maximum": 1000},
+    "networkLagVarianceMs": {"type": "integer", "minimum": 0, "maximum": 500},
+    "eventSource": {"enum": ["Authored", "DedicatedFallback"]},
+    "serverReceiveTime": {"type": "number"},
+    "clientSendTime": {"type": "number"},
+    "section": {"type": "integer", "minimum": 0, "maximum": 3},
+    "decision": {"enum": ["Accepted", "Rejected"]},
+    "passed": {"type": "boolean"},
+    "failure": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

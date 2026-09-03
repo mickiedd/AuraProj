@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch migration HUD replay and packaged Loading-map fix</title>
+  <desc id="desc">Before and after flow showing the packaged Loading map being cooked and the HUD replaying authoritative role state after a late Web UI connection.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#5b6472"/></marker>
+    <style>
+      .bg{fill:#f6f8fb}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:2}.before{fill:#fff7ed;stroke:#fb923c}.after{fill:#f0fdf4;stroke:#22c55e}.verify{fill:#eff6ff;stroke:#60a5fa}.title{font:700 28px Arial;fill:#111827}.h{font:700 20px Arial;fill:#111827}.body{font:16px Arial;fill:#374151}.small{font:14px Arial;fill:#4b5563}.bad{fill:#b91c1c}.good{fill:#166534}.line{stroke:#5b6472;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+  <text class="title" x="48" y="52">Crunch migration: close the package/HUD startup blockers</text>
+  <text class="small" x="48" y="80">2026-09-04 implementation and validation archive</text>
+
+  <rect class="panel before" x="48" y="118" width="500" height="230" rx="14"/>
+  <text class="h" x="74" y="154">Observed failure</text>
+  <text class="body" x="74" y="190">Cook/stage command omitted Loading.umap</text>
+  <text class="body" x="74" y="218">→ travel from Login could not resolve /Game/Maps/Loading</text>
+  <text class="body" x="74" y="258">Late CEF/Web UI handshake left the HUD on</text>
+  <text class="body bad" x="74" y="286">“Loading role” / “Profile session initializing…”</text>
+  <text class="small" x="74" y="322">RoleState could arrive on PlayerState before pawn application.</text>
+
+  <path class="line" d="M548 230 H650"/>
+
+  <rect class="panel after" x="650" y="118" width="500" height="230" rx="14"/>
+  <text class="h" x="676" y="154">Applied fix</text>
+  <text class="body" x="676" y="190">BuildCookRun explicitly cooks Login + Loading + StartupMap</text>
+  <text class="body" x="676" y="218">and archives both Loading.umap and Loading.uexp.</text>
+  <text class="body" x="676" y="258">On first Web UI connection, clear replay caches and</text>
+  <text class="body" x="676" y="286">send the complete authoritative HUD snapshot.</text>
+  <text class="body good" x="676" y="322">DisplayRoleId prefers applied pawn state, then PlayerState.</text>
+
+  <rect class="panel verify" x="48" y="402" width="1102" height="248" rx="14"/>
+  <text class="h" x="74" y="440">Validation evidence</text>
+  <text class="body" x="74" y="476">✓ Aura Win64 Development build: exit 0</text>
+  <text class="body" x="74" y="504">✓ Fresh Win64 Game BuildCookRun: BUILD SUCCESSFUL, exit 0</text>
+  <text class="body" x="74" y="532">✓ Manifest_UFSFiles_Win64.txt contains Loading.umap + Loading.uexp</text>
+  <text class="body" x="74" y="560">✓ HUDContract automation: Success; Crunch migration automation: 7/7 Success</text>
+  <text class="body" x="74" y="588">✓ Movement-preserving listen reports: semantic timeline validator PASS (2 latest reports)</text>
+  <text class="small" x="74" y="622">Visual caveat: rebuilt Aura.exe triggered Windows Firewall permission UI; no security setting was changed.</text>
+</svg>

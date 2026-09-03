@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="660" viewBox="0 0 1240 660" role="img" aria-labelledby="title desc">
+  <title id="title">Movement-preserving Crunch listen validation fix</title>
+  <desc id="desc">Before and after flow showing the listen probe moving from a competing pose clock and disabled movement tick to native movement-owned pose ticking, with visible and offscreen authored combo validation.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#355070"/></marker>
+    <style>
+      .bg{fill:#f7f9fc}.title{font:700 27px Arial;fill:#172b4d}.sub{font:15px Arial;fill:#425466}.box{stroke:#355070;stroke-width:2;rx:14}.before{fill:#fff4e5;stroke:#c77d2b}.after{fill:#eaf7ef;stroke:#3a8f5c}.evidence{fill:#edf4ff;stroke:#4778b8}.txt{font:600 16px Arial;fill:#17324d}.small{font:14px Arial;fill:#30485f}.label{font:700 13px Arial;fill:#fff}.pill{rx:10;ry:10}.line{stroke:#355070;stroke-width:3;fill:none;marker-end:url(#arrow)}.pass{font:700 16px Arial;fill:#1d6b42}.warn{font:700 16px Arial;fill:#a45713}
+    </style>
+  </defs>
+  <rect class="bg" width="1240" height="660"/>
+  <text class="title" x="42" y="48">Crunch Day 03 — movement-preserving listen validation fix</text>
+  <text class="sub" x="42" y="76">Separate timing isolation from the certification path so authored montage events run on the engine-owned movement pose clock.</text>
+
+  <rect class="box before" x="42" y="112" width="350" height="190"/>
+  <rect class="pill" fill="#c77d2b" x="62" y="130" width="92" height="24"/>
+  <text class="label" x="75" y="147">BEFORE</text>
+  <text class="txt" x="62" y="184">Movement-preserving probe</text>
+  <text class="small" x="62" y="211">CharacterMovement tick disabled</text>
+  <text class="small" x="62" y="234">mesh forced to regular pose clock</text>
+  <text class="small" x="62" y="257">native movement ownership bypassed</text>
+  <text class="warn" x="62" y="284">Server stopped after sections 0–1</text>
+
+  <path class="line" d="M392 208 H458"/>
+  <rect class="box after" x="463" y="112" width="380" height="190"/>
+  <rect class="pill" fill="#3a8f5c" x="483" y="130" width="92" height="24"/>
+  <text class="label" x="496" y="147">AFTER</text>
+  <text class="txt" x="483" y="184">Preserve mode uses native ownership</text>
+  <text class="small" x="483" y="211">CharacterMovement tick remains enabled</text>
+  <text class="small" x="483" y="234">bOnlyAllowAutonomousTickPose = true</text>
+  <text class="small" x="483" y="257">AlwaysTickPoseAndRefreshBones</text>
+  <text class="small" x="483" y="280">actual possessed pawn configured once</text>
+
+  <path class="line" d="M843 208 H909"/>
+  <rect class="box evidence" x="914" y="112" width="284" height="190"/>
+  <rect class="pill" fill="#4778b8" x="934" y="130" width="104" height="24"/>
+  <text class="label" x="947" y="147">EVIDENCE</text>
+  <text class="txt" x="934" y="184">Authored listen matrix</text>
+  <text class="small" x="934" y="211">Server Open/Damage/Close = 4</text>
+  <text class="small" x="934" y="234">Accepted mask = 0xF</text>
+  <text class="small" x="934" y="257">Client COMPLETE / Cleanup = 1</text>
+  <text class="pass" x="934" y="284">Visible + offscreen: PASS</text>
+
+  <text class="txt" x="42" y="355">Probe modes</text>
+  <rect class="box before" x="42" y="378" width="350" height="102"/>
+  <text class="txt" x="62" y="410">Timing isolation (unchanged)</text>
+  <text class="small" x="62" y="436">replication off · movement tick paused</text>
+  <text class="small" x="62" y="459">regular mesh clock for deterministic diagnosis</text>
+  <rect class="box after" x="424" y="378" width="350" height="102"/>
+  <text class="txt" x="444" y="410">Movement-preserving certification</text>
+  <text class="small" x="444" y="436">replication on · movement tick native</text>
+  <text class="small" x="444" y="459">velocity/forces cleared; no synthetic events</text>
+  <rect class="box evidence" x="806" y="378" width="392" height="102"/>
+  <text class="txt" x="826" y="410">Validation coverage</text>
+  <text class="small" x="826" y="436">5 semantic reports: visible, hidden ×3, lag 75±10 ms</text>
+  <text class="pass" x="826" y="459">All reports and latest-binary reruns PASS</text>
+
+  <path class="line" d="M219 480 V544 H1018 V480"/>
+  <rect class="box evidence" x="42" y="548" width="1156" height="72"/>
+  <text class="txt" x="62" y="578">Completion checks</text>
+  <text class="small" x="210" y="578">AuraEditor + AuraServer Development builds · semantic validator PASS (5 reports) · crash signatures NONE · probe processes NONE</text>
+  <text class="small" x="62" y="602">Fresh in-app review packet prepared; transmission remains behind the browser’s action-time confirmation boundary.</text>
+</svg>

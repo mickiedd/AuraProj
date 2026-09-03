@@ -10,20 +10,34 @@
 #include "AbilitySystemComponent.h"
 #include "AuraGameplayTags.h"
 #include "Aura/AuraLogChannels.h"
+#include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
+
+#if WITH_DEV_AUTOMATION_TESTS
+namespace
+{
+	UAnimMontage* GCrunchTestComboMontageOverride = nullptr;
+}
+#endif
 
 UAuraMeleeAttack::UAuraMeleeAttack()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> ComboMontageFinder(
-		TEXT("/Game/Assets/Characters/Aura/Animations/Abilities/AM_CrunchCombo_Prototype_RuntimeV2.AM_CrunchCombo_Prototype_RuntimeV2"));
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_CrunchComboV4.AM_CrunchComboV4"));
 	if (ComboMontageFinder.Succeeded())
 	{
 		ComboMontage = ComboMontageFinder.Object;
 	}
+#if WITH_DEV_AUTOMATION_TESTS
+	if (GCrunchTestComboMontageOverride)
+	{
+		ComboMontage = GCrunchTestComboMontageOverride;
+	}
+#endif
 	FGameplayTagContainer CrunchAbilityTags;
 	const FGameplayTag CrunchAbilityTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchCombo"), false);
 	if (CrunchAbilityTag.IsValid())
@@ -38,11 +52,31 @@ UAuraMeleeAttack::UAuraMeleeAttack()
 	ComboWindowCloseTag = FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.Crunch.Combo.Window.Close"), false);
 }
 
+#if WITH_DEV_AUTOMATION_TESTS
+void UAuraMeleeAttack::SetTestComboMontageOverride(UAnimMontage* InMontage)
+{
+	GCrunchTestComboMontageOverride = InMontage;
+}
+#endif
+
 void UAuraMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
+	if (!ActorInfo || !ActorInfo->AbilitySystemComponent.IsValid())
+	{
+		UE_LOG(LogAura, Warning, TEXT("[CrunchCombo] Activation rejected: actor info or ASC is unavailable."));
+		return;
+	}
+
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	if (!HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
+	{
+		UE_LOG(LogAura, Warning, TEXT("[CrunchCombo] Activation rejected: authority or prediction permission is unavailable."));
+		K2_EndAbility();
+		return;
+	}
 	bool bValidSections = ComboMontage != nullptr && ComboSections.Num() > 0;
 	if (bValidSections)
 	{
@@ -70,7 +104,10 @@ void UAuraMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	bDamageConsumedForCurrentComboSection = false;
 	bAuthorityAdvanceQueued = false;
 	bAuthorityFallbackTimelineActive = ActorInfo && ActorInfo->IsNetAuthority()
-		&& GetWorld() && GetWorld()->GetNetMode() != NM_Standalone;
+		&& GetWorld() && GetWorld()->GetNetMode() == NM_DedicatedServer;
+	TestEventSource = bAuthorityFallbackTimelineActive
+		? ECrunchComboEventSource::DedicatedFallback
+		: ECrunchComboEventSource::Authored;
 	bAuthorityFallbackEventContext = false;
 	AuthorityFallbackEventSection = INDEX_NONE;
 	OpenEventSectionMask = 0;
@@ -80,11 +117,13 @@ void UAuraMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	TestOpenEventCount = 0;
 	TestDamageEventCount = 0;
 	TestCloseEventCount = 0;
+	TestImplicitCloseEventCount = 0;
 	TestAcceptedDamageCount = 0;
 	TestAcceptedDamageSectionMask = 0;
+	TestLastWindowOpenTime = -1.0;
+	TestLastWindowCloseTime = -1.0;
 #endif
 
-	if (HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
 	{
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 			this, NAME_None, ComboMontage);
@@ -93,10 +132,16 @@ void UAuraMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 			K2_EndAbility();
 			return;
 		}
-		MontageTask->OnBlendOut.AddDynamic(this, &UAuraMeleeAttack::K2_EndAbility);
 		MontageTask->OnCancelled.AddDynamic(this, &UAuraMeleeAttack::K2_EndAbility);
 		MontageTask->OnInterrupted.AddDynamic(this, &UAuraMeleeAttack::K2_EndAbility);
-		MontageTask->OnCompleted.AddDynamic(this, &UAuraMeleeAttack::K2_EndAbility);
+		// Dedicated fallback owns its terminal close and finish-grace timer;
+		// binding normal montage completion here would end the replicated ability
+		// before the remote client receives the final authored section.
+		if (!bAuthorityFallbackTimelineActive)
+		{
+			MontageTask->OnBlendOut.AddDynamic(this, &UAuraMeleeAttack::K2_EndAbility);
+			MontageTask->OnCompleted.AddDynamic(this, &UAuraMeleeAttack::K2_EndAbility);
+		}
 		MontageTask->ReadyForActivation();
 
 		MontageJumpToSection(ComboSections[0]);
@@ -128,12 +173,12 @@ void UAuraMeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	// A replicated authority end can arrive before the predicted client's final
-	// montage close notify. Treat an open local window as implicitly closed so
-	// convergence diagnostics reflect the terminal state that gameplay observes.
+	// montage close notify. Treat an open local window as implicitly closed for
+	// cleanup, but keep it out of authored notify accounting.
 #if !UE_BUILD_SHIPPING
 	if (bComboWindowOpen)
 	{
-		++TestCloseEventCount;
+		++TestImplicitCloseEventCount;
 	}
 #endif
 	CleanupTasks();
@@ -160,7 +205,21 @@ bool UAuraMeleeAttack::HasTestAuthorityFallbackTimerPending() const
 	const FTimerManager& TimerManager = World->GetTimerManager();
 	return TimerManager.IsTimerActive(AuthorityFallbackOpenTimer)
 		|| TimerManager.IsTimerActive(AuthorityFallbackDamageTimer)
-		|| TimerManager.IsTimerActive(AuthorityFallbackCloseTimer);
+		|| TimerManager.IsTimerActive(AuthorityFallbackCloseTimer)
+		|| TimerManager.IsTimerActive(AuthorityFallbackFinishTimer);
+}
+
+const TCHAR* UAuraMeleeAttack::GetTestEventSourceName() const
+{
+	switch (TestEventSource)
+	{
+	case ECrunchComboEventSource::Authored:
+		return TEXT("Authored");
+	case ECrunchComboEventSource::DedicatedFallback:
+		return TEXT("DedicatedFallback");
+	default:
+		return TEXT("Unknown");
+	}
 }
 #endif
 
@@ -235,6 +294,12 @@ void UAuraMeleeAttack::OnInputWindowOpened(FGameplayEventData EventData)
 	bComboWindowOpen = true;
 #if !UE_BUILD_SHIPPING
 	++TestOpenEventCount;
+	TestLastWindowOpenTime = GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0;
+	TestLastWindowCloseTime = -1.0;
+	UE_LOG(LogAura, Display,
+		TEXT("[CrunchComboNetworkProbe][%s] AuthoredOpen Time=%.3f Section=%d PredictionKey=%d"),
+		CurrentActorInfo && CurrentActorInfo->IsNetAuthority() ? TEXT("Server") : TEXT("Client"),
+		TestLastWindowOpenTime, CurrentComboIndex, GetCurrentActivationInfo().GetActivationPredictionKey().Current);
 #endif
 	ArmInputPressTask();
 }
@@ -265,6 +330,12 @@ void UAuraMeleeAttack::OnInputWindowClosed(FGameplayEventData EventData)
 	bComboWindowOpen = false;
 #if !UE_BUILD_SHIPPING
 	++TestCloseEventCount;
+	TestLastWindowCloseTime = GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0;
+	UE_LOG(LogAura, Display,
+		TEXT("[CrunchComboNetworkProbe][%s] AuthoredClose Time=%.3f Section=%d OpenTime=%.3f PredictionKey=%d"),
+		CurrentActorInfo && CurrentActorInfo->IsNetAuthority() ? TEXT("Server") : TEXT("Client"),
+		TestLastWindowCloseTime, CurrentComboIndex, TestLastWindowOpenTime,
+		GetCurrentActivationInfo().GetActivationPredictionKey().Current);
 #endif
 	if (InputPressTask)
 	{
@@ -282,10 +353,34 @@ void UAuraMeleeAttack::OnInputWindowClosed(FGameplayEventData EventData)
 	}
 	else if (CurrentActorInfo && CurrentActorInfo->IsNetAuthority() && bAuthorityFallbackTimelineActive)
 	{
-		// A server with no queued successor must not depend on skeletal-mesh
-		// ticking to finish PlayMontageAndWait. The authoritative close is the
-		// terminal input boundary for this fallback section.
-		K2_EndAbility();
+		// A dedicated server with no queued successor must not depend on
+		// skeletal-mesh ticking to finish PlayMontageAndWait. Give the final
+		// authoritative close a short replication grace so a remote client can
+		// receive the last authored section/close before the server tears down
+		// the replicated ability.
+		if (CurrentComboIndex >= ComboSections.Num() - 1)
+		{
+			if (UWorld* World = GetWorld())
+			{
+				FTimerDelegate FinishDelegate;
+				FinishDelegate.BindWeakLambda(this, [ThisObj = TWeakObjectPtr<UAuraMeleeAttack>(this)]()
+				{
+					if (UAuraMeleeAttack* Ability = ThisObj.Get())
+					{
+						Ability->K2_EndAbility();
+					}
+				});
+				World->GetTimerManager().SetTimer(AuthorityFallbackFinishTimer, FinishDelegate, 0.75f, false);
+			}
+			else
+			{
+				K2_EndAbility();
+			}
+		}
+		else
+		{
+			K2_EndAbility();
+		}
 	}
 }
 
@@ -306,8 +401,20 @@ void UAuraMeleeAttack::ArmInputPressTask()
 void UAuraMeleeAttack::OnInputPressed(float TimeWaited)
 {
 	InputPressTask = nullptr;
+
+#if !UE_BUILD_SHIPPING
+	const bool bIsAuthority = CurrentActorInfo && CurrentActorInfo->IsNetAuthority();
+	const double DecisionTime = GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0;
+	const int32 PredictionKey = GetCurrentActivationInfo().GetActivationPredictionKey().Current;
+#endif
 	if (!bComboWindowOpen || !ComboMontage || CurrentComboIndex >= ComboSections.Num() - 1)
 	{
+#if !UE_BUILD_SHIPPING
+		UE_LOG(LogAura, Display,
+			TEXT("[CrunchComboNetworkProbe][%s] InputDecision Time=%.3f Section=%d OpenTime=%.3f CloseTime=%.3f PredictionKey=%d Decision=Rejected Reason=WindowClosed"),
+			bIsAuthority ? TEXT("Server") : TEXT("Client"), DecisionTime, CurrentComboIndex,
+			TestLastWindowOpenTime, TestLastWindowCloseTime, PredictionKey);
+#endif
 		return;
 	}
 
@@ -326,10 +433,22 @@ void UAuraMeleeAttack::OnInputPressed(float TimeWaited)
 	}
 	if (SectionIndex == INDEX_NONE || SectionIndex >= ComboSections.Num() - 1)
 	{
+#if !UE_BUILD_SHIPPING
+		UE_LOG(LogAura, Display,
+			TEXT("[CrunchComboNetworkProbe][%s] InputDecision Time=%.3f Section=%d OpenTime=%.3f CloseTime=%.3f PredictionKey=%d Decision=Rejected Reason=SectionUnavailable"),
+			bIsAuthority ? TEXT("Server") : TEXT("Client"), DecisionTime, SectionIndex,
+			TestLastWindowOpenTime, TestLastWindowCloseTime, PredictionKey);
+#endif
 		return;
 	}
 
 	MontageSetNextSectionName(CurrentSection, ComboSections[SectionIndex + 1]);
+#if !UE_BUILD_SHIPPING
+	UE_LOG(LogAura, Display,
+		TEXT("[CrunchComboNetworkProbe][%s] InputDecision Time=%.3f Section=%d OpenTime=%.3f CloseTime=%.3f PredictionKey=%d Decision=Accepted NextSection=%d"),
+		bIsAuthority ? TEXT("Server") : TEXT("Client"), DecisionTime, SectionIndex,
+		TestLastWindowOpenTime, TestLastWindowCloseTime, PredictionKey, SectionIndex + 1);
+#endif
 	if (CurrentActorInfo && CurrentActorInfo->IsNetAuthority())
 	{
 		bAuthorityAdvanceQueued = true;
@@ -359,6 +478,7 @@ void UAuraMeleeAttack::ArmAuthorityFallbackForSection(const int32 SectionIndex)
 	TimerManager.ClearTimer(AuthorityFallbackOpenTimer);
 	TimerManager.ClearTimer(AuthorityFallbackDamageTimer);
 	TimerManager.ClearTimer(AuthorityFallbackCloseTimer);
+	TimerManager.ClearTimer(AuthorityFallbackFinishTimer);
 
 	FTimerDelegate OpenDelegate;
 	OpenDelegate.BindWeakLambda(this, [ThisObj = TWeakObjectPtr<UAuraMeleeAttack>(this), SectionIndex]()
@@ -526,6 +646,7 @@ void UAuraMeleeAttack::CleanupTasks()
 		World->GetTimerManager().ClearTimer(AuthorityFallbackOpenTimer);
 		World->GetTimerManager().ClearTimer(AuthorityFallbackDamageTimer);
 		World->GetTimerManager().ClearTimer(AuthorityFallbackCloseTimer);
+		World->GetTimerManager().ClearTimer(AuthorityFallbackFinishTimer);
 	}
 	bComboWindowOpen = false;
 	if (InputPressTask) InputPressTask->EndTask();

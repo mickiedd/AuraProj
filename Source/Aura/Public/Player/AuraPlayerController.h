@@ -370,6 +370,8 @@ private:
 	bool bCrunchComboNetworkProbeEnabled = false;
 	bool bCrunchComboNetworkProbeCancelScenario = false;
 	bool bCrunchComboNetworkProbeNearCloseScenario = false;
+	bool bCrunchComboNetworkProbeBeforeCloseScenario = false;
+	bool bCrunchComboNetworkProbeAtOrAfterCloseScenario = false;
 	bool bCrunchComboNetworkProbeClientActivated = false;
 	bool bCrunchComboNetworkProbeClientCancelQueued = false;
 	bool bCrunchComboNetworkProbeClientCancelRequested = false;
@@ -383,6 +385,10 @@ private:
 	bool bCrunchComboNetworkProbeServerCancelObserved = false;
 	bool bCrunchComboNetworkProbeServerNearCloseOutcomeLogged = false;
 	bool bCrunchComboNetworkProbeServerPassed = false;
+	bool bCrunchComboNetworkProbePreserveMovement = false;
+	bool bCrunchComboNetworkProbeOffscreenAuthority = false;
+	TWeakObjectPtr<AAuraCharacter> CrunchComboNetworkProbeConfiguredPawn;
+	int32 CrunchComboNetworkProbeServerLastMovementStateSection = -1;
 	int32 CrunchComboNetworkProbeServerActivationCount = 0;
 	double CrunchComboNetworkProbeClientNextActionTime = 0.0;
 	double CrunchComboNetworkProbeClientOpenTime = 0.0;

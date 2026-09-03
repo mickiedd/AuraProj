@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch listen-host pose tick diagnostic</title>
+  <desc id="desc">A flow from remote possession through the non-shipping probe to a locally advancing authority montage, ending at an unresolved authored notify callback.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#355070"/></marker>
+    <style>
+      .bg{fill:#f7f9fc}.title{font:700 26px Arial;fill:#172b4d}.sub{font:15px Arial;fill:#425466}.box{stroke:#355070;stroke-width:2;rx:14}.before{fill:#fff4e5;stroke:#c77d2b}.after{fill:#eaf7ef;stroke:#3a8f5c}.block{fill:#fff0f0;stroke:#b94a48}.txt{font:600 16px Arial;fill:#17324d}.small{font:14px Arial;fill:#30485f}.label{font:700 13px Arial;fill:#fff}.pill{rx:10;ry:10}.line{stroke:#355070;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1180" height="520"/>
+  <text class="title" x="44" y="48">Day 03 — listen-host authority pose-tick diagnostic</text>
+  <text class="sub" x="44" y="76">The probe removes confirmed autonomous-pose suppression without creating gameplay events.</text>
+
+  <rect class="box before" x="55" y="130" width="250" height="150"/>
+  <rect class="pill" fill="#c77d2b" x="75" y="148" width="92" height="24"/>
+  <text class="label" x="88" y="165">BEFORE</text>
+  <text class="txt" x="75" y="205">Remote listen possession</text>
+  <text class="small" x="75" y="232">bOnlyAllowAutonomousTickPose</text>
+  <text class="small" x="75" y="254">suppressed authority pose ticks</text>
+
+  <path class="line" d="M305 205 H385"/>
+  <rect class="box after" x="390" y="130" width="300" height="150"/>
+  <rect class="pill" fill="#3a8f5c" x="410" y="148" width="92" height="24"/>
+  <text class="label" x="423" y="165">PROBE</text>
+  <text class="txt" x="410" y="205">Listen-only tick override</text>
+  <text class="small" x="410" y="232">component tick + visibility</text>
+  <text class="small" x="410" y="254">bOnlyAllowAutonomousTickPose = false</text>
+
+  <path class="line" d="M690 205 H770"/>
+  <rect class="box after" x="775" y="130" width="300" height="150"/>
+  <rect class="pill" fill="#3a8f5c" x="795" y="148" width="112" height="24"/>
+  <text class="label" x="808" y="165">OBSERVED</text>
+  <text class="txt" x="795" y="205">Authority montage advances</text>
+  <text class="small" x="795" y="232">EventSource=Authored</text>
+  <text class="small" x="795" y="254">FallbackActive=0</text>
+
+  <path class="line" d="M925 280 V350 H655"/>
+  <rect class="box block" x="390" y="350" width="530" height="112"/>
+  <rect class="pill" fill="#b94a48" x="410" y="368" width="112" height="24"/>
+  <text class="label" x="423" y="385">BLOCKER</text>
+  <text class="txt" x="410" y="423">Server authored Open/Damage/Close callbacks still absent</text>
+  <text class="small" x="410" y="446">Client completes; smoke remains FAIL; no synthetic dispatch added.</text>
+
+  <text class="sub" x="55" y="495">Validation: Win64 Development build passed • bounded BeforeClose smoke failed at authoritative matrix gate</text>
+</svg>

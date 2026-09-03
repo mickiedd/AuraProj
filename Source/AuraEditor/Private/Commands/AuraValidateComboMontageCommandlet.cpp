@@ -16,6 +16,8 @@ namespace AuraValidateComboMontagePrivate
 	constexpr TCHAR OpenTagName[] = TEXT("Event.Montage.Crunch.Combo.Window.Open");
 	constexpr TCHAR DamageTagName[] = TEXT("Event.Montage.Crunch.Combo.Damage");
 	constexpr TCHAR CloseTagName[] = TEXT("Event.Montage.Crunch.Combo.Window.Close");
+	constexpr TCHAR CrunchPresentationMontagePath[] = TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_CrunchComboV4.AM_CrunchComboV4");
+	constexpr TCHAR CrunchPresentationSkeletonPath[] = TEXT("/Game/Assets/Characters/Crunch/Meshes/Crunch_SkeletonV4");
 
 	bool ReadEventTag(const FAnimNotifyEvent& Event, FGameplayTag& OutTag)
 	{
@@ -36,17 +38,28 @@ namespace AuraValidateComboMontagePrivate
 
 int32 UAuraValidateComboMontageCommandlet::Main(const FString& Params)
 {
-	UAnimMontage* Montage = LoadObject<UAnimMontage>(nullptr, AuraValidateComboMontagePrivate::MontagePath);
+	const bool bValidateCrunchPresentation = Params.Contains(TEXT("CrunchPresentation"), ESearchCase::IgnoreCase);
+	const TCHAR* MontagePath = bValidateCrunchPresentation
+		? AuraValidateComboMontagePrivate::CrunchPresentationMontagePath
+		: AuraValidateComboMontagePrivate::MontagePath;
+	const TCHAR* SkeletonPath = bValidateCrunchPresentation
+		? AuraValidateComboMontagePrivate::CrunchPresentationSkeletonPath
+		: AuraValidateComboMontagePrivate::SkeletonPath;
+	UAnimMontage* Montage = LoadObject<UAnimMontage>(nullptr, MontagePath);
 	if (!Montage)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AuraComboFixture] Missing montage: %s"), AuraValidateComboMontagePrivate::MontagePath);
+		UE_LOG(LogTemp, Error, TEXT("[AuraComboFixture] Missing montage: %s"), MontagePath);
 		return 1;
 	}
 	UClass* AbilityClass = LoadClass<UGameplayAbility>(nullptr, AuraValidateComboMontagePrivate::AbilityClassPath);
 	const bool bAbilityClassValid = AbilityClass && AbilityClass->IsChildOf(UAuraMeleeAttack::StaticClass());
 
-	bool bValid = bAbilityClassValid && Montage->GetSkeleton() && Montage->GetSkeleton()->GetPathName().StartsWith(AuraValidateComboMontagePrivate::SkeletonPath);
+	bool bValid = bAbilityClassValid && Montage->GetSkeleton() && Montage->GetSkeleton()->GetPathName().StartsWith(SkeletonPath);
 	bValid = bValid && Montage->GetPlayLength() > 2.f;
+	if (bValidateCrunchPresentation)
+	{
+		bValid = bValid && Montage->BlendOutTriggerTime >= 0.f;
+	}
 	const TArray<FName> ExpectedSections = { FName("Combo01"), FName("Combo02"), FName("Combo03"), FName("Combo04") };
 	if (Montage->CompositeSections.Num() != ExpectedSections.Num())
 	{

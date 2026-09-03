@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch migration source-editor blocker</title>
+  <desc id="desc">The read-only source editor probe finds the project and anchors but exits before exports because the PlasticSourceControl module and source target receipt are unavailable.</desc>
+  <defs>
+    <style>
+      .title{font:700 28px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#47657e}
+      .head{font:700 17px Segoe UI,Arial;fill:#17324d}.body{font:400 15px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#47657e}.tag{font:700 12px Segoe UI,Arial;fill:#fff;letter-spacing:1px}
+    </style>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#eaf2f9"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#47657e"/></marker>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="48" y="48" class="title">2026-09-02 — Crunch source-editor preflight</text>
+  <text x="48" y="76" class="sub">The legacy path preserves the blocker instead of leaving the remaining migration days silently paused.</text>
+
+  <rect x="48" y="126" width="300" height="208" rx="16" fill="#fff" stroke="#6b9bb8" stroke-width="2"/>
+  <rect x="48" y="126" width="300" height="38" rx="16" fill="#2d668f"/>
+  <text x="70" y="151" class="tag">READ-ONLY SOURCE</text>
+  <text x="70" y="196" class="head">Crunch project found</text>
+  <text x="70" y="226" class="body">20 anchors hash-match</text>
+  <text x="70" y="253" class="body">Target descriptors present</text>
+  <text x="70" y="294" class="small">C:\Works\Crunch-master</text>
+  <text x="70" y="318" class="small">no source files edited</text>
+
+  <line x1="348" y1="230" x2="424" y2="230" stroke="#47657e" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="424" y="126" width="352" height="208" rx="16" fill="#fff8f0" stroke="#c58a43" stroke-width="2"/>
+  <rect x="424" y="126" width="352" height="38" rx="16" fill="#a76522"/>
+  <text x="446" y="151" class="tag">EDITOR PROBE</text>
+  <text x="446" y="196" class="head">Stops before commandlet</text>
+  <text x="446" y="226" class="body">PlasticSourceControl module missing</text>
+  <text x="446" y="253" class="body">Source target receipt missing</text>
+  <text x="446" y="294" class="small">Crunch.log evidence retained</text>
+  <text x="446" y="318" class="small">status=BLOCKED</text>
+
+  <line x1="776" y1="230" x2="852" y2="230" stroke="#47657e" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="852" y="126" width="300" height="208" rx="16" fill="#fff" stroke="#6b9bb8" stroke-width="2"/>
+  <rect x="852" y="126" width="300" height="38" rx="16" fill="#3c7f68"/>
+  <text x="874" y="151" class="tag">SAFE CONTINUATION</text>
+  <text x="874" y="196" class="head">Export gate remains honest</text>
+  <text x="874" y="226" class="body">Six lanes still missing</text>
+  <text x="874" y="253" class="body">Days 04–07 stay pending</text>
+  <text x="874" y="294" class="small">No guessed CDO/timing values</text>
+  <text x="874" y="318" class="small">No shutdown while work remains</text>
+
+  <rect x="48" y="398" width="1104" height="190" rx="16" fill="#fff" stroke="#6b9bb8" stroke-width="2"/>
+  <text x="72" y="438" class="head">Reopen condition</text>
+  <text x="72" y="472" class="body">Provide a source-built editor target or compatible engine module set, then rerun the read-only export commandlet.</text>
+  <text x="72" y="505" class="small">RunCrunchSourceEditorPreflight.ps1 → READY</text>
+  <text x="72" y="532" class="small">RunCrunchMigrationExportPreflight.ps1 → six canonical JSON lanes present + hash evidence</text>
+  <text x="72" y="559" class="small">Only then may Days 04–07 implement imported assets and authored ability semantics.</text>
+</svg>

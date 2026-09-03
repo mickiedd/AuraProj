@@ -934,7 +934,14 @@ void AAuraPlayerController::BeginPlay()
 		FString ProbeScenario;
 		FParse::Value(FCommandLine::Get(), TEXT("CrunchComboNetworkProbeScenario="), ProbeScenario);
 		bCrunchComboNetworkProbeCancelScenario = ProbeScenario.Equals(TEXT("Cancel"), ESearchCase::IgnoreCase);
-		bCrunchComboNetworkProbeNearCloseScenario = ProbeScenario.Equals(TEXT("NearClose"), ESearchCase::IgnoreCase);
+		bCrunchComboNetworkProbeBeforeCloseScenario = ProbeScenario.Equals(TEXT("BeforeClose"), ESearchCase::IgnoreCase);
+		bCrunchComboNetworkProbeAtOrAfterCloseScenario = ProbeScenario.Equals(TEXT("AtOrAfterClose"), ESearchCase::IgnoreCase);
+		bCrunchComboNetworkProbePreserveMovement = FParse::Param(FCommandLine::Get(), TEXT("CrunchComboNetworkProbePreserveMovement"));
+		bCrunchComboNetworkProbeOffscreenAuthority = FParse::Param(FCommandLine::Get(), TEXT("CrunchComboNetworkProbeOffscreenAuthority"));
+		// BeforeClose follows the normal authored-window press path (each press
+		// is sent while open). AtOrAfterClose uses the late-boundary branch below.
+		bCrunchComboNetworkProbeNearCloseScenario = bCrunchComboNetworkProbeAtOrAfterCloseScenario;
+		CrunchComboNetworkProbeClientNextActionTime = 0.0;
 		GetWorldTimerManager().SetTimer(
 			CrunchComboNetworkProbeTimerHandle,
 			this,
@@ -943,6 +950,10 @@ void AAuraPlayerController::BeginPlay()
 			true);
 		UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][%s] Scheduled test-only combo probe."),
 			HasAuthority() ? TEXT("Server") : TEXT("Client"));
+		UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][%s] ProbeConfig MovementReplication=%d OffscreenAuthority=%d"),
+			HasAuthority() ? TEXT("Server") : TEXT("Client"),
+			bCrunchComboNetworkProbePreserveMovement ? 1 : 0,
+			bCrunchComboNetworkProbeOffscreenAuthority ? 1 : 0);
 	}
 #endif
 	if (!AuraContext)
@@ -1002,6 +1013,8 @@ void AAuraPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		GetWorldTimerManager().ClearTimer(RoleBattleDay19ProbeTimerHandle);
 		GetWorldTimerManager().ClearTimer(CrunchComboNetworkProbeTimerHandle);
 	}
+	CrunchComboNetworkProbeConfiguredPawn.Reset();
+	CrunchComboNetworkProbeServerLastMovementStateSection = -1;
 	if (HasAuthority() && GetWorld())
 	{
 		if (AAuraPlayerState* AuraState = GetPlayerState<AAuraPlayerState>()) AuraState->CancelFirearmReload(TEXT("ControllerEndPlay"));
@@ -1130,6 +1143,72 @@ void AAuraPlayerController::TickCrunchComboNetworkProbe()
 	AAuraCharacter* PlayerCharacter = GetPawn<AAuraCharacter>();
 	UAuraAbilitySystemComponent* ASC = GetASC();
 	if (!PlayerCharacter || !ASC || !IsAbilityInputReady()) return;
+	auto LogListenMovementState = [&](const TCHAR* Phase, int32 Section)
+	{
+		if (!HasAuthority() || !GetWorld() || GetWorld()->GetNetMode() != NM_ListenServer) return;
+		UCharacterMovementComponent* Movement = PlayerCharacter->GetCharacterMovement();
+		USkeletalMeshComponent* Mesh = PlayerCharacter->GetMesh();
+		UE_LOG(LogAura, Display,
+			TEXT("[CrunchComboNetworkProbe][Server] MovementState Phase=%s Section=%d Replicate=%d MovementTick=%d MeshTick=%d AutonomousPose=%d VisibilityTick=%d LocalRole=%d RemoteRole=%d"),
+			Phase, Section,
+			PlayerCharacter->IsReplicatingMovement() ? 1 : 0,
+			Movement && Movement->IsComponentTickEnabled() ? 1 : 0,
+			Mesh && Mesh->IsComponentTickEnabled() ? 1 : 0,
+			Mesh && Mesh->bOnlyAllowAutonomousTickPose ? 1 : 0,
+			Mesh ? static_cast<int32>(Mesh->VisibilityBasedAnimTickOption) : -1,
+			static_cast<int32>(PlayerCharacter->GetLocalRole()), static_cast<int32>(PlayerCharacter->GetRemoteRole()));
+	};
+	// A headless listen host can leave the skeletal mesh dormant even though the
+	// owning client is connected. Preserve mode stays on the engine's
+	// CharacterMovement-owned authority pose path; timing isolation uses an
+	// explicit regular mesh clock. Neither mode synthesizes gameplay events.
+	if (HasAuthority() && GetWorld()->GetNetMode() == NM_ListenServer)
+	{
+		const bool bPreserveMovement = bCrunchComboNetworkProbePreserveMovement;
+		if (USkeletalMeshComponent* ProbeMesh = PlayerCharacter->GetMesh())
+		{
+			// Both probe modes keep the mesh available to the animation system and
+			// use the not-rendered-safe tick policy. Timing isolation owns a regular
+			// mesh pose clock; preserve mode leaves pose ownership with the native
+			// CharacterMovement/autonomous path so movement replication is exercised
+			// without a second competing montage clock.
+			ProbeMesh->SetComponentTickEnabled(true);
+			ProbeMesh->SetVisibility(true, true);
+			ProbeMesh->SetRenderInMainPass(!bCrunchComboNetworkProbeOffscreenAuthority);
+			ProbeMesh->bOnlyAllowAutonomousTickPose = bPreserveMovement;
+			ProbeMesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+			// The listen host can receive the replicated ability before the remote
+			// pawn has initialized its animation blueprint. Request one explicit
+			// initialization attempt so PlayMontageAndWait can bind to the same
+			// authored montage instance that the client is already driving.
+			if (ProbeMesh->GetSkeletalMeshAsset() && !ProbeMesh->GetAnimInstance())
+			{
+				ProbeMesh->InitAnim(true);
+			}
+		}
+		if (UCharacterMovementComponent* ProbeMovement = PlayerCharacter->GetCharacterMovement())
+		{
+			// Timing isolation pauses movement simulation. Preserve mode keeps the
+			// native movement/network tick enabled and only clears any incidental
+			// velocity/forces; the harness supplies no movement input.
+			ProbeMovement->SetComponentTickEnabled(bPreserveMovement);
+			if (bPreserveMovement)
+			{
+				ProbeMovement->StopMovementImmediately();
+				ProbeMovement->ClearAccumulatedForces();
+			}
+		}
+		// Configure the actual possessed pawn once. BeginPlay can schedule this
+		// controller before possession swaps the transient pawn, so a controller-
+		// wide bool would leave the real probe pawn unconfigured.
+		if (CrunchComboNetworkProbeConfiguredPawn.Get() != PlayerCharacter)
+		{
+			PlayerCharacter->SetReplicateMovement(bPreserveMovement);
+			CrunchComboNetworkProbeConfiguredPawn = PlayerCharacter;
+			CrunchComboNetworkProbeServerLastMovementStateSection = -1;
+			LogListenMovementState(TEXT("Config"), -1);
+		}
+	}
 
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 	const FGameplayTag ComboTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchCombo"), false);
@@ -1156,14 +1235,24 @@ void AAuraPlayerController::TickCrunchComboNetworkProbe()
 		if (ComboSpec->IsActive() && !bCrunchComboNetworkProbeServerWasActive)
 		{
 			bCrunchComboNetworkProbeServerWasActive = true;
+			CrunchComboNetworkProbeServerLastMovementStateSection = -1;
 			++CrunchComboNetworkProbeServerActivationCount;
+			LogListenMovementState(TEXT("AbilityStart"), -1);
 			if (!bCrunchComboNetworkProbeServerObservedActivation)
 			{
 				bCrunchComboNetworkProbeServerObservedActivation = true;
-				UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Server] RemoteActivationObserved=1"));
+				UE_LOG(LogAura, Display, TEXT("[CrunchComboNetworkProbe][Server] RemoteActivationObserved=1 EventSource=%s FallbackActive=%d"),
+					AbilityInstance->GetTestEventSourceName(), AbilityInstance->IsTestAuthorityFallbackTimelineActive() ? 1 : 0);
 			}
 		}
-		else if (!ComboSpec->IsActive())
+		const int32 OpenSectionCount = AbilityInstance->GetTestOpenEventCount();
+		if (ComboSpec->IsActive() && OpenSectionCount > 0
+			&& OpenSectionCount > CrunchComboNetworkProbeServerLastMovementStateSection)
+		{
+			LogListenMovementState(TEXT("SectionBoundary"), OpenSectionCount - 1);
+			CrunchComboNetworkProbeServerLastMovementStateSection = OpenSectionCount;
+		}
+		if (!ComboSpec->IsActive())
 		{
 			bCrunchComboNetworkProbeServerWasActive = false;
 		}
@@ -1181,9 +1270,9 @@ void AAuraPlayerController::TickCrunchComboNetworkProbe()
 				&& !AbilityInstance->HasTestInputPressTask()
 				&& !AbilityInstance->HasTestQueuedSuccessor();
 			UE_LOG(LogAura, Display,
-				TEXT("[CrunchComboNetworkProbe][Server] CANCEL_OBSERVED Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X WindowOpen=%d FallbackActive=%d FallbackTimers=%d InputTask=%d Queued=%d Cleanup=%d"),
+				TEXT("[CrunchComboNetworkProbe][Server] CANCEL_OBSERVED Open=%d Damage=%d Close=%d ImplicitClose=%d Accepted=%d Mask=0x%X WindowOpen=%d FallbackActive=%d FallbackTimers=%d InputTask=%d Queued=%d Cleanup=%d"),
 				AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
-				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestImplicitCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
 				AbilityInstance->GetTestAcceptedDamageSectionMask(), AbilityInstance->IsTestComboWindowOpen() ? 1 : 0,
 				AbilityInstance->IsTestAuthorityFallbackTimelineActive() ? 1 : 0,
 				AbilityInstance->HasTestAuthorityFallbackTimerPending() ? 1 : 0,
@@ -1223,9 +1312,9 @@ void AAuraPlayerController::TickCrunchComboNetworkProbe()
 					&& !AbilityInstance->HasTestInputPressTask()
 					&& !AbilityInstance->HasTestQueuedSuccessor();
 				UE_LOG(LogAura, Display,
-					TEXT("[CrunchComboNetworkProbe][Server] NEARCLOSE_REJECTED Inactive=1 Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X WindowOpen=%d FallbackActive=%d FallbackTimers=%d InputTask=%d Queued=%d Cleanup=%d"),
+					TEXT("[CrunchComboNetworkProbe][Server] NEARCLOSE_REJECTED Inactive=1 Open=%d Damage=%d Close=%d ImplicitClose=%d Accepted=%d Mask=0x%X WindowOpen=%d FallbackActive=%d FallbackTimers=%d InputTask=%d Queued=%d Cleanup=%d"),
 					AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
-					AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+					AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestImplicitCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
 					AbilityInstance->GetTestAcceptedDamageSectionMask(), AbilityInstance->IsTestComboWindowOpen() ? 1 : 0,
 					AbilityInstance->IsTestAuthorityFallbackTimelineActive() ? 1 : 0,
 					AbilityInstance->HasTestAuthorityFallbackTimerPending() ? 1 : 0,
@@ -1327,9 +1416,9 @@ void AAuraPlayerController::TickCrunchComboNetworkProbe()
 				&& !AbilityInstance->HasTestInputPressTask();
 			CrunchComboNetworkProbeClientNextActionTime = Now + 0.75;
 			UE_LOG(LogAura, Display,
-				TEXT("[CrunchComboNetworkProbe][Client] CANCEL_OBSERVED Inactive=1 Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X Cleanup=%d"),
+				TEXT("[CrunchComboNetworkProbe][Client] CANCEL_OBSERVED Inactive=1 Open=%d Damage=%d Close=%d ImplicitClose=%d Accepted=%d Mask=0x%X Cleanup=%d"),
 				AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
-				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestImplicitCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
 				AbilityInstance->GetTestAcceptedDamageSectionMask(), bCleanupComplete ? 1 : 0);
 			return;
 		}
@@ -1373,17 +1462,20 @@ void AAuraPlayerController::TickCrunchComboNetworkProbe()
 		{
 			CrunchComboNetworkProbeLastOpenCount = AbilityInstance->GetTestOpenEventCount();
 			CrunchComboNetworkProbeClientOpenTime = Now;
-			// The authored close follows Open by roughly 0.23 s. At the 50 ms
-			// probe tick, 0.10 s keeps this press inside the late part of the
-			// window while still giving the listen server time to receive it.
-			CrunchComboNetworkProbeClientNextActionTime = Now + 0.10;
+			// BeforeClose sends shortly after Open; AtOrAfterClose waits beyond the
+			// authored close boundary so the server must reject the late press.
+			CrunchComboNetworkProbeClientNextActionTime = Now
+				+ (bCrunchComboNetworkProbeAtOrAfterCloseScenario ? 0.25 : 0.05);
 			return;
 		}
 		if (!bCrunchComboNetworkProbeClientNearClosePressed
-			&& AbilityInstance->IsTestComboWindowOpen()
 			&& CrunchComboNetworkProbeLastOpenCount > 1
 			&& Now >= CrunchComboNetworkProbeClientNextActionTime)
 		{
+			if (bCrunchComboNetworkProbeBeforeCloseScenario && !AbilityInstance->IsTestComboWindowOpen())
+			{
+				return;
+			}
 			ASC->AbilityInputTagPressed(GameplayTags.InputTag_LMB);
 			++CrunchComboNetworkProbePresses;
 			bCrunchComboNetworkProbeClientNearClosePressed = true;
@@ -1400,14 +1492,14 @@ void AAuraPlayerController::TickCrunchComboNetworkProbe()
 			if (AbilityInstance->GetTestOpenEventCount() == 4)
 			{
 				UE_LOG(LogAura, Display,
-					TEXT("[CrunchComboNetworkProbe][Client] NEARCLOSE_ACCEPTED Inactive=1 Open=4 Damage=0 Close=4 Accepted=0 Mask=0x0 Presses=%d Cleanup=%d"),
+					TEXT("[CrunchComboNetworkProbe][Client] NEARCLOSE_ACCEPTED Inactive=1 Open=4 Damage=0 Close=4 ImplicitClose=0 Accepted=0 Mask=0x0 Presses=%d Cleanup=%d"),
 					CrunchComboNetworkProbePresses, bCleanupComplete ? 1 : 0);
 			}
 			else
 			{
 				UE_LOG(LogAura, Display,
-					TEXT("[CrunchComboNetworkProbe][Client] NEARCLOSE_CONVERGED Inactive=1 Open=%d Damage=0 Close=%d Accepted=0 Mask=0x0 Presses=%d Cleanup=%d"),
-					AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestCloseEventCount(),
+					TEXT("[CrunchComboNetworkProbe][Client] NEARCLOSE_CONVERGED Inactive=1 Open=%d Damage=0 Close=%d ImplicitClose=%d Accepted=0 Mask=0x0 Presses=%d Cleanup=%d"),
+					AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestImplicitCloseEventCount(),
 					CrunchComboNetworkProbePresses, bCleanupComplete ? 1 : 0);
 			}
 			bCrunchComboNetworkProbeEnabled = false;
@@ -1433,17 +1525,17 @@ void AAuraPlayerController::TickCrunchComboNetworkProbe()
 		if (bCrunchComboNetworkProbeCancelScenario)
 		{
 			UE_LOG(LogAura, Display,
-				TEXT("[CrunchComboNetworkProbe][Client] CANCEL_COMPLETE Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X Presses=%d CancelObserved=1 Cleanup=%d"),
+				TEXT("[CrunchComboNetworkProbe][Client] CANCEL_COMPLETE Open=%d Damage=%d Close=%d ImplicitClose=%d Accepted=%d Mask=0x%X Presses=%d CancelObserved=1 Cleanup=%d"),
 				AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
-				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+				AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestImplicitCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
 				AbilityInstance->GetTestAcceptedDamageSectionMask(), CrunchComboNetworkProbePresses, bCleanupComplete ? 1 : 0);
 		}
 		else
 		{
 			UE_LOG(LogAura, Display,
-				TEXT("[CrunchComboNetworkProbe][Client] COMPLETE Open=%d Damage=%d Close=%d Accepted=%d Mask=0x%X Presses=%d Cleanup=%d"),
+				TEXT("[CrunchComboNetworkProbe][Client] COMPLETE Open=%d Damage=%d Close=%d ImplicitClose=%d Accepted=%d Mask=0x%X Presses=%d Cleanup=%d"),
 			AbilityInstance->GetTestOpenEventCount(), AbilityInstance->GetTestDamageEventCount(),
-			AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
+			AbilityInstance->GetTestCloseEventCount(), AbilityInstance->GetTestImplicitCloseEventCount(), AbilityInstance->GetTestAcceptedDamageCount(),
 			AbilityInstance->GetTestAcceptedDamageSectionMask(), CrunchComboNetworkProbePresses, bCleanupComplete ? 1 : 0);
 		}
 		bCrunchComboNetworkProbeEnabled = false;

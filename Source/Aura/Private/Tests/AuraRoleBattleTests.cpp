@@ -830,6 +830,7 @@ namespace AuraRoleBattleTestsPrivate
 	const TCHAR* DamageSymbolNonProducerFiles[] = {
 		// Shared damage machinery (defines the symbols)
 		TEXT("Source/Aura/Private/AbilitySystem/AuraAbilitySystemLibrary.cpp"),
+		TEXT("Source/Aura/Private/AbilitySystem/Abilities/Crunch/AuraCrunchAbilityBase.cpp"),
 		TEXT("Source/Aura/Public/AbilitySystem/AuraAbilitySystemLibrary.h"),
 		TEXT("Source/Aura/Public/AuraAbilityTypes.h"),
 		TEXT("Source/Aura/Private/AuraAbilityTypes.cpp"),
@@ -1789,6 +1790,10 @@ bool FAuraDay6CrunchRoleOwnsNativeLMBTest::RunTest(const FString& Parameters)
 
 	UAuraAbilitySystemComponent* ASC = Fixture->GetTestASC();
 	const FGameplayTag CrunchTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchCombo"));
+	const FGameplayTag UppercutTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchUppercut"));
+	const FGameplayTag DashTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchDash"));
+	const FGameplayTag GroundBlastTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchGroundBlast"));
+	const FGameplayTag TornadoTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchTornado"));
 	const FGameplayTag FireBoltTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt"));
 	if (TestNotNull(TEXT("Crunch fixture owns an ASC"), ASC) && Result.bSuccess)
 	{
@@ -1826,6 +1831,10 @@ bool FAuraDay6CrunchPersistentASCLifecycleTest::RunTest(const FString& Parameter
 	int32 Notifications = 0;
 	ASC->AbilitiesGivenDelegate.AddLambda([&Notifications]() { ++Notifications; });
 	const FGameplayTag CrunchTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchCombo"));
+	const FGameplayTag UppercutTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchUppercut"));
+	const FGameplayTag DashTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchDash"));
+	const FGameplayTag GroundBlastTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchGroundBlast"));
+	const FGameplayTag TornadoTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Melee.CrunchTornado"));
 	const FGameplayTag FireBoltTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Fire.FireBolt"));
 	const FGameplayTag LMBTag = FAuraGameplayTags::Get().InputTag_LMB;
 
@@ -1850,8 +1859,33 @@ bool FAuraDay6CrunchPersistentASCLifecycleTest::RunTest(const FString& Parameter
 		FGameplayAbilitySpec* LMBSpec = ASC->GetSpecWithSlot(LMBTag);
 		TestTrue(FString::Printf(TEXT("Crunch pawn %d resolves combo as LMB"), SpawnIndex + 1),
 			LMBSpec && UAuraAbilitySystemComponent::GetAbilityTagFromSpec(*LMBSpec).MatchesTagExact(CrunchTag));
-		TestEqual(FString::Printf(TEXT("Crunch pawn %d retains one role-owned ledger handle"), SpawnIndex + 1),
-			ASC->GetRoleGrantLedger().AbilitySpecHandles.Num(), 1);
+		const FGameplayTag RequiredSlots[] = { FAuraGameplayTags::Get().InputTag_1, FAuraGameplayTags::Get().InputTag_2,
+			FAuraGameplayTags::Get().InputTag_3, FAuraGameplayTags::Get().InputTag_4 };
+		const FGameplayTag RequiredTags[] = { UppercutTag, DashTag, GroundBlastTag, TornadoTag };
+		for (int32 SkillIndex = 0; SkillIndex < UE_ARRAY_COUNT(RequiredSlots); ++SkillIndex)
+		{
+			FGameplayAbilitySpec* SkillSpec = ASC->GetSpecWithSlot(RequiredSlots[SkillIndex]);
+			TestTrue(FString::Printf(TEXT("Crunch pawn %d resolves skill %d to its input slot"), SpawnIndex + 1, SkillIndex + 1),
+				SkillSpec && UAuraAbilitySystemComponent::GetAbilityTagFromSpec(*SkillSpec).MatchesTagExact(RequiredTags[SkillIndex]));
+		}
+		TestEqual(FString::Printf(TEXT("Crunch pawn %d retains five role-owned ledger handles"), SpawnIndex + 1),
+			ASC->GetRoleGrantLedger().AbilitySpecHandles.Num(), 5);
+		struct FRequiredCrunchSkill
+		{
+			FGameplayTag Tag;
+			const TCHAR* Name;
+		};
+		const FRequiredCrunchSkill RequiredSkills[] = {
+			{UppercutTag, TEXT("UpperCut")},
+			{DashTag, TEXT("Dash")},
+			{GroundBlastTag, TEXT("GroundBlast")},
+			{TornadoTag, TEXT("Tornado")}
+		};
+		for (const FRequiredCrunchSkill& RequiredSkill : RequiredSkills)
+		{
+			TestEqual(FString::Printf(TEXT("Crunch pawn %d grants one %s spec"), SpawnIndex + 1, RequiredSkill.Name),
+				ASC->CountAbilitySpecsByTag(RequiredSkill.Tag), 1);
+		}
 		Pawn->Destroy();
 	}
 

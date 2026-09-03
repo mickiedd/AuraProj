@@ -68,8 +68,8 @@
       "canAttack": true,
       "canBeDamaged": true,
       "allowFriendlyFire": false,
-      "mesh": "/Game/Assets/Characters/Aura/SKM_Aura",
-      "animBlueprint": "/Game/Blueprints/Character/Aura/ABP_Aura.ABP_Aura_C",
+      "mesh": "/Game/Assets/Characters/Crunch/Meshes/SM_CrunchV4",
+      "animBlueprint": "/Game/Blueprints/Character/Crunch/ABP_Crunch_AuraV4.ABP_Crunch_AuraV4_C",
       "leftHandSocket": "",
       "rightHandSocket": "",
       "tailSocket": "",
@@ -83,7 +83,12 @@
         "resilience": 12,
         "vigor": 12
       },
-      "startupAbilities": [],
+      "startupAbilities": [
+        "/Script/Aura.AuraCrunchUppercut",
+        "/Script/Aura.AuraCrunchDash",
+        "/Script/Aura.AuraCrunchGroundBlast",
+        "/Script/Aura.AuraCrunchTornado"
+      ],
       "startupPassiveAbilities": [],
       "unlockableAbilities": [],
       "startupAbilityDefinitions": [],

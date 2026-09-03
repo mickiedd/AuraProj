@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "scopeId": "CrunchCharacterBehaviorMigration",
+  "status": "implementation-in-progress",
+  "sourceProject": "C:/Works/Crunch-master",
+  "targetProject": "C:/Git/AuraProj",
+  "targetEngine": "5.5",
+  "supportedTopologies": ["Standalone", "ListenPackaged"],
+  "dedicatedTopology": {
+    "status": "blocked-until-server-capable-engine",
+    "reason": "The installed UE 5.5 distribution reports that Server targets are not currently supported."
+  },
+  "role": "Crunch",
+  "inputMap": {
+    "InputTag.LMB": "Abilities.Melee.CrunchCombo",
+    "InputTag.1": "Abilities.Melee.CrunchUppercut",
+    "InputTag.2": "Abilities.Melee.CrunchDash",
+    "InputTag.3": "Abilities.Melee.CrunchGroundBlast",
+    "InputTag.4": "Abilities.Melee.CrunchTornado"
+  },
+  "authority": {
+    "activation": "server-validated",
+    "targeting": "server-revalidated",
+    "damageAndCues": "server-owned",
+    "hitIdentity": "activation-and-event-sequence",
+    "fallbackTimeline": "dedicated-server-only"
+  },
+  "requiredJourney": ["Login", "select-Crunch", "Loading", "StartupMap", "controllable-Crunch", "five-skill-proof", "death-respawn", "reconnect"],
+  "completionRequiresMatchingPackage": true,
+  "completionRequiresInWorldVisualEvidence": true,
+  "antiGoals": ["copy-Crunch-C++", "source-project-runtime-references", "prototype-montage-in-production", "Login-only-proof", "stale-server-proof", "unrelated-role-changes"]
+}

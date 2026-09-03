@@ -60,8 +60,8 @@ bool FAuraCrunchComboNativeContractTest::RunTest(const FString& Parameters)
 	const UObject* MontageObject = MontageProperty->GetObjectPropertyValue_InContainer(DefaultAbility);
 	const UAnimMontage* Montage = Cast<UAnimMontage>(MontageObject);
 	if (!TestNotNull(TEXT("Native class CDO resolves the generated montage"), Montage)) return false;
-	TestEqual(TEXT("Native CDO points at the generated runtime fixture"), Montage->GetPathName(),
-		FString(TEXT("/Game/Assets/Characters/Aura/Animations/Abilities/AM_CrunchCombo_Prototype_RuntimeV2.AM_CrunchCombo_Prototype_RuntimeV2")));
+	TestEqual(TEXT("Native CDO points at the target-owned Crunch montage"), Montage->GetPathName(),
+		FString(TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_CrunchComboV4.AM_CrunchComboV4")));
 	return !HasAnyErrors();
 }
 

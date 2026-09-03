@@ -376,6 +376,11 @@ bool FAuraWebSkillPanelHUDContractTest::RunTest(const FString& Parameters)
 		&& HUDSource.Contains(TEXT("HandleHealthChangedForWebUI"))
 		&& HUDSource.Contains(TEXT("HandleManaChangedForWebUI")));
 	TestTrue(TEXT("HUD replays all controller state after the browser reports ready"), HUDSource.Contains(TEXT("hud_ready")) && HUDSource.Contains(TEXT("BroadcastAbilityInfo()")) && HUDSource.Contains(TEXT("BroadcastInitialValues()")));
+	TestTrue(TEXT("HUD replays the authoritative snapshot on a late browser connection and falls back to PlayerState role during pawn replication"),
+		HUDSource.Contains(TEXT("if (bConnected)"))
+		&& HUDSource.Contains(TEXT("SendInitialWebHUDState();"))
+		&& HUDSource.Contains(TEXT("const FName DisplayRoleId"))
+		&& HUDSource.Contains(TEXT("PS ? PS->GetRole() : NAME_None")));
 	TestTrue(TEXT("HUD reloads each bounded page after mounting at a top viewport layer"),
 		HUDSource.Contains(TEXT("Panel->AddToViewport(200)"))
 		&& HUDSource.Contains(TEXT("Panel->ReloadWebUI()"))

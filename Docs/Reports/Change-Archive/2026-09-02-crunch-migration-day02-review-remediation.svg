@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch migration Day 02 review remediation</title>
+  <desc id="desc">Day 02 removes duplicate cue ownership, adds behavioral cue evidence, separates authored and implicit close accounting, and fails closed on invalid activation context.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101827"/><stop offset="1" stop-color="#244b47"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8ee8d0"/></marker>
+    <style>.title{font:700 30px Arial;fill:#fff}.h{font:700 20px Arial;fill:#fff}.t{font:16px Arial;fill:#e0f3ee}.small{font:14px Arial;fill:#b8d6d0}.box{fill:#1d4250;stroke:#5dc2b0;stroke-width:2}.ok{fill:#24452f;stroke:#6fd092;stroke-width:2}.risk{fill:#493a24;stroke:#e2b054;stroke-width:2}.line{stroke:#8ee8d0;stroke-width:3;fill:none;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect width="1400" height="800" fill="url(#bg)"/>
+  <text x="52" y="58" class="title">Crunch migration · Day 02 review debt closed</text>
+  <text x="52" y="91" class="small">Evidence now observes runtime behavior at the same authority boundaries gameplay uses.</text>
+  <rect x="55" y="145" width="290" height="230" rx="16" class="risk"/>
+  <text x="80" y="185" class="h">Before</text>
+  <text x="80" y="224" class="t">Duplicate cue registration</text>
+  <text x="80" y="252" class="t">Source-file grep assertions</text>
+  <text x="80" y="280" class="t">Teardown counted as authored close</text>
+  <text x="80" y="308" class="t">Invalid activation could linger</text>
+  <text x="80" y="346" class="small">Review findings F1/F2/F5 + latent risk</text>
+  <rect x="420" y="145" width="560" height="230" rx="16" class="box"/>
+  <text x="445" y="185" class="h">Runtime contract</text>
+  <text x="445" y="224" class="t">Config tag → native RequestGameplayTag accessor</text>
+  <text x="445" y="252" class="t">Target ASC → IGameplayCueInterface probe</text>
+  <text x="445" y="280" class="t">Authored Close + separate ImplicitClose</text>
+  <text x="445" y="308" class="t">Base activation + permission fail-closed</text>
+  <text x="445" y="346" class="small">Probe records tag, location, causer, instigator, source</text>
+  <rect x="1055" y="145" width="290" height="230" rx="16" class="ok"/>
+  <text x="1080" y="185" class="h">After</text>
+  <text x="1080" y="224" class="t">5/5 Crunch migration tests</text>
+  <text x="1080" y="252" class="t">237/237 RoleBattle regressions</text>
+  <text x="1080" y="280" class="t">Cue dispatch exactly once</text>
+  <text x="1080" y="308" class="t">Cleanup counters are honest</text>
+  <text x="1080" y="346" class="small">Timing/export and dedicated gates remain explicit</text>
+  <path d="M345 258 H410" class="line"/><path d="M990 258 H1045" class="line"/>
+  <rect x="55" y="450" width="1290" height="235" rx="18" fill="#12252c" stroke="#46776d" stroke-width="2"/>
+  <text x="82" y="490" class="h">Validation chain</text>
+  <text x="82" y="532" class="t">Tag config → native accessor → target ASC cue → fixture listener → parameter assertions</text>
+  <text x="82" y="570" class="t">Montage notify close → authored counter; cancellation teardown → implicit counter</text>
+  <text x="82" y="608" class="t">Activation context/permission → no tasks or fail-closed end → cleanup invariant</text>
+  <text x="82" y="650" class="small">Evidence: Aura.Migration.Crunch (5/5) · Aura.RoleBattle (237/237) · Win64 Development build</text>
+</svg>

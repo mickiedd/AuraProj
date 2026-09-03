@@ -1,7 +1,7 @@
 # Crunch Character/Pawn Behavior Migration — Completion Plan
 
 Date: 2026-09-02  
-Status: Planned execution contract; no implementation is claimed by this document  
+Status: Implementation in progress; Days 01–02 complete, Day 03 movement-preserving listen evidence reviewed and provisional pending full terminal closure, Day 04 presentation materialized under validation, Days 05–08 native skill and role integration implemented with focused gates passing, Day 09 package cook and game startup passed but matching packaged host/client topology remains blocked by the missing staged AuraServer.exe, and Day 10 independent sign-off remains open
 Source project: `C:\Works\Crunch-master` (read-only reference)  
 Target project: `C:\Git\AuraProj` (Unreal Engine 5.5)
 
@@ -15,12 +15,12 @@ The work is complete only when a matching packaged listen host and remote client
 
 - `main` is still at `d4f80e6`; the migration is a large uncommitted working-tree stack and must be isolated from unrelated pending changes before edits continue.
 - `Content/Config/RoleConfig.json` exposes a selectable Crunch role. Crunch owns `/Script/Aura.AuraMeleeAttack` on `InputTag.LMB`; Aura keeps `FireBolt.xml`.
-- `UAuraMeleeAttack` implements the four-section combo and has local automation/listen-smoke evidence, but still uses `AM_CrunchCombo_Prototype_RuntimeV2` on Aura's skeleton.
-- Crunch currently uses Aura's mesh and `ABP_Aura` as a temporary adapter.
+- `UAuraMeleeAttack` implements the four-section combo and now targets the target-owned `AM_CrunchComboV4` montage on `Crunch_SkeletonV4`; the target-fixture runtime replay remains a final validation gate.
+- Crunch now has target-owned `SM_CrunchV4` geometry and `ABP_Crunch_AuraV4` with a `DefaultSlot` graph; visual calibration and packaged listen proof remain open.
 - The source Crunch hero also owns UpperCut, Dash, GroundBlast, and Tornado behavior. None is granted by AuraProj's Crunch role.
-- The latest local RoleBattle record is 237/237 and a Win64 Development package was produced, but the available server rejected it as `OutdatedClient`; no in-world matching-build Crunch proof exists.
+- The latest local RoleBattle record is 237/237 and a Win64 Development package was produced. A source-built matching `AuraServer` and cooked WindowsServer stage now provide a dedicated ComboFull proof; matching packaged normal-flow Crunch proof still does not exist.
 - Review findings F1, F2, F4, and F5 in `Docs/Reports/Crunch-Combo-Pending-Diff-Review-2026-09-01.md` remain visible in source. F3's old “phantom RoleConfig change” diagnosis is superseded by the genuine Crunch role entry and must not be applied mechanically.
-- The installed UE 5.5 distribution cannot build a Server target. Dedicated-server status is therefore a separately reported `BLOCKED` lane until a source-built/server-capable toolchain is provided; it must never be described as PASS.
+- The installed UE 5.5 distribution cannot build a Server target, but the source checkout now provides a matching `AuraServer` and cooked WindowsServer stage. Dedicated ComboFull is validated only on that source-built staged lane; launcher/distribution parity and movement-preserving listen evidence remain separate gates.
 
 ## Frozen product and input contract
 
@@ -49,7 +49,7 @@ The source assets are semantic references, not runtime dependencies. AuraProj wi
 
 ## Shared execution and evidence contract
 
-Day 01 adds one planned runner, `RunCrunchMigration.ps1`, with `-Stage Fast|Network|Package|Final`, `-Scenario`, `-RunId`, and explicit engine/package paths. It writes under:
+Day 01 adds one planned runner, `RunCrunchMigration.ps1`, with `-Stage Fast|Network|Package|Final`, `-Scenario`, `-RunId`, and explicit engine/package paths. `RunCrunchMigrationExportPreflight.ps1` and `RunCrunchSourceEditorPreflight.ps1` are its fail-closed source-evidence gates. They write under:
 
 `Saved/Reports/CrunchMigration/<SourceRevision>/<RunId>/`
 
@@ -86,7 +86,7 @@ No player-facing change. Establish one reproducible baseline so later work canno
 - New: `Docs/Plans/Crunch-Migration/crunch-source-ability-contract.json`.
 - New: `Docs/Plans/Crunch-Migration/crunch-source-asset-manifest.json`.
 - New: `Docs/Reports/Crunch-Migration-Change-Ownership-2026-09-02.md`.
-- New: `RunCrunchMigration.ps1` and `Scripts/Tests/test_crunch_migration_runner.py`.
+- New: `RunCrunchMigration.ps1`, `RunCrunchMigrationExportPreflight.ps1`, `RunCrunchSourceEditorPreflight.ps1`, and `Scripts/Tests/test_crunch_migration_runner.py`.
 - Read-only source roots: `C:/Works/Crunch-master/Source/Crunch/Private/GAS`, `Content/Characters/Crunch`, and `Content/ParagonCrunch/Characters/Heroes/Crunch`.
 
 ### Data and authority contract
@@ -108,6 +108,8 @@ The scope manifest fixes the five inputs above, supported Win64 standalone/liste
 - `CrunchMigrationRunner.TimeoutReturnsNonZero`
 - `CrunchMigrationRunner.KillsOnlyOwnedChildren`
 - `CrunchMigrationRunner.RejectsMismatchedRevisionOrManifest`
+- `CrunchMigration.SourceEditorPreflight`
+- `CrunchMigration.SourceExportPreflight`
 - `Aura.Migration.Crunch.ScopeManifest`
 - `Aura.Migration.Crunch.SourceAssetManifest`
 
@@ -222,9 +224,35 @@ Set fallback active only for `NM_DedicatedServer`. Listen authority consumes aut
 
 Use one Development Game listen host and one real remote client at zero lag and 75 ± 10 ms one-way emulation. A decision outside the logged interval, fallback use on listen, synthetic event, mismatched section, duplicate damage, crash signature, timeout, or orphan fails. Produce per-scenario JSON/logs and an event timeline CSV. Day 03 passes only when all scenarios are deterministic in three consecutive runs per latency profile and the external review finds no unresolved authority/timing defect.
 
+### Post-review closure contract (2026-09-02)
+
+The independent handoff review found no architectural rollback, but it correctly keeps Day 03 provisional until two runtime lanes are evidenced: (a) a matching real dedicated server plus external client proving `EventSource=DedicatedFallback`, authoritative exactly-once damage/cue, client convergence, and timer/task cleanup; and (b) one listen run with normal movement replication enabled and a remote attacker outside the host render path. Lane (a) is now evidenced by a source-built `AuraServer`, a cooked WindowsServer stage, and a real external client: `RemoteActivationObserved=1`, server `Open=4/Damage=4/Close=4/Accepted=4/Mask=0xF/Cleanup=1`, client `COMPLETE Open=4/Close=4/Presses=3/Cleanup=1`, and no crash signature. The dedicated fallback now suppresses normal montage completion callbacks until its final-close replication grace expires. The movement-preserving listen probe is wired, but its full-combo attempt still does not reach the four-section terminal matrix; that failure remains an explicit Day 03 blocker, not a pass. `Scripts/Tests/validate_crunch_network_timeline.py` now enforces cross-event ordering/count/terminal invariants on the passing listen artifacts.
+
 ### Defer / anti-goals
 
-Dedicated fallback is retained but cannot be called validated on the launcher engine. Do not import final assets or tune damage.
+Dedicated fallback is validated only on the source-built staged server; launcher/distribution parity is not claimed. Do not import final assets or tune damage.
+
+### Remaining-day execution status (2026-09-02)
+
+The source checkout contains all 20 hashed anchor assets, and the six required editor-owned exports are now present. A source-built `CrunchEditor` target with unavailable online/source-control plugins disabled produced `dependencyClosure`, `blueprintDefaults`, `montageSectionTimes`, `montageNotifyTimes`, `gameplayCueReferences`, and `sourceClassReferenceScan`; `RunCrunchMigrationExportPreflight.ps1` reports `READY` and `RunCrunchMigration.ps1 -Stage Fast` scenarios pass their contract gate. The 102-package hashed dependency closure is copied under target-owned `/Game/ParagonCrunch/...` paths, with no source project references.
+
+Day 04 presentation materialization is now under validation: target-owned Crunch mesh/skeleton, four source sequence copies, an authored four-section montage, and `ABP_Crunch_AuraV4` with a `DefaultSlot` graph have been created. The target montage validator reports four sections, twelve server-triggered Aura notifies, strict per-section timing, and zero embedded source notifies. The source-built staged dedicated ComboFull probe also passes, while full Day 04 closure still requires the dedicated geometry/remote-proxy/locomotion fixture and matching packaged in-world proof; those are not being inferred from the contract-only checks.
+
+The first source-editor probe exited before commandlet execution because `PlasticSourceControl` was unavailable and no source target receipt existed. That blocker was recovered without changing the read-only checkout: a source-built `CrunchEditor` receipt was produced with the unavailable plugins disabled, the commandlet completed, and the export preflight is now `READY`. The dedicated binary blocker was also recovered with a source-built `AuraServer` and cooked WindowsServer stage; the final ComboFull probe passes. The movement-preserving listen lane remains blocked by its incomplete four-section client/server matrix.
+
+### Execution update (2026-09-03)
+
+Days 05–08 have now been implemented locally as a bounded native slice. `UAuraCrunchAbilityBase` owns target revalidation, per-event/per-target dedupe, authority-only damage/launch/push, and timer/task cleanup. Native `AuraCrunchUppercut`, `AuraCrunchDash`, `AuraCrunchGroundBlast`, and `AuraCrunchTornado` classes are granted on InputTag.1–4; Crunch retains the native LMB combo, and `AbilityInfo.json` contains all five skill identities. A lazy FName-based input resolver is used by role-grant/spec paths because Unreal can construct ability CDOs before native tags register.
+
+The focused evidence now includes AuraEditor/AuraServer Development builds, `Aura.Migration.Crunch` automation with seven discovered tests and zero failures, `Aura.RoleBattle.Day6.CrunchPersistentASCLifecycle` with five role-owned handles across three pawn replacements, and Fast preflight passes for Uppercut, Dash, AreaSkills, GroundBlast, and Tornado. The stale native combo asset assertion was updated to the target-owned `AM_CrunchComboV4` montage.
+
+The migration is not yet complete. Day 09 still requires a freshly cooked matching package, normal Login → Loading → StartupMap host/client flow, and in-world valid/invalid-target evidence for all five skills. The current listen runner and controller probe cover the combo only; no per-skill remote network matrix or reconnect/death/respawn skill evidence exists yet. Existing package artifacts predate the four new native skills, so they cannot be used as matching completion evidence. Day 10 remains gated on those artifacts and the independent handoff review.
+
+### Package execution update (2026-09-03)
+
+The first package retry exposed an AutomationTool target-selection quirk: `-client` with this Game-only project leaves `GameTarget` empty, while an explicit `-target=Aura` package invocation succeeds. The explicit Win64 Development `BuildCookRun` cooked 2,371 packages for Windows and WindowsServer, staged and IoStore-packed both lanes, archived under `Saved/StagedBuilds/CrunchMigration-20260903-game`, and included `AM_UpperCut`, `AM_Dash`, `AM_GroundBlast_Targetting`, `AM_GroundBlast_Casting`, and `AM_Tornado` in both UFS manifests. The packaged Game executable mounted its IoStore content and reached `/Game/Maps/StartupMap` without fatal/assert/ensure signatures.
+
+The packaged topology runner remains blocked because the archive contains no `AuraServer.exe`; the installed engine distribution cannot emit the matching staged server binary. This is an explicit environment/topology blocker, not a pass inferred from the successful cook. No per-skill packaged network, reconnect, death/respawn, or normal Login→Loading host/client evidence is claimed. Day 09 and the independent Day 10 handoff gate remain open.
 
 ## Day 04 — Migrate Crunch avatar, geometry, locomotion, and authored montage
 
@@ -243,13 +271,13 @@ Selecting Crunch visibly spawns Crunch—not Aura—with correct scale, ground c
 
 ### Data and authority contract
 
-Extend role schema version only if required fields cannot be expressed safely today: capsule radius/half-height, mesh relative transform, and base walk speed are finite bounded trusted config values. Authority applies collision/movement; each client applies the same authorized presentation values on role replication. Role application snapshots and restores mesh, ABP, capsule, movement, sockets, and weapon attachment atomically on failure. The final montage uses Crunch skeleton and source-authored section/event timestamps; prototype fallback fractions are removed from content authority.
+Extend role schema version only if required fields cannot be expressed safely today: capsule radius/half-height, mesh relative transform, and base walk speed are finite bounded trusted config values. Authority applies collision/movement; each client applies the same authorized presentation values on role replication. Role application snapshots and restores mesh, ABP, capsule, movement, sockets, and weapon attachment atomically on failure. The target montage uses the Crunch skeleton and a deterministic Aura-authored section/event timing contract while the source editor's protected composite-section offsets remain unavailable; those timings are explicitly provisional and cannot close the migration until source-authored offsets are exported or independently validated.
 
 ### Numbered implementation steps
 
 1. Migrate only the hashed dependency closure into target-owned paths; resave in UE 5.5 and reject redirectors, source-project class references, or out-of-scope skin/audio bulk.
 2. Build `ABP_Crunch_Aura` on Aura's animation-instance contract using Crunch locomotion assets; retain role/debuff/death signals used by AuraProj.
-3. Author `AM_CrunchCombo` from the four source sequences and frozen Open/Damage/Close timings; validate section order and no embedded duplicate notifies.
+3. Author `AM_CrunchComboV4` from the four source sequences and frozen Open/Damage/Close timing contract; keep the current deterministic fractions marked provisional until protected source section offsets can be exported, then validate section order and no embedded duplicate notifies.
 4. Calibrate capsule, mesh transform, walk speed, camera obstruction, foot contact, combat sockets, and impact/death presentation in a dedicated fixture.
 5. Update Crunch RoleConfig presentation paths and native ability montage; remove prototype RuntimeV2 from production references but keep it only if a test explicitly needs a legacy fixture.
 6. Test transactional rollback and client role replication; archive visual before/after evidence and complete review.
@@ -582,4 +610,3 @@ The Crunch Character/Pawn behavior migration is complete only when all of the fo
 7. Dedicated and production release status is independently `PASS` or exact `BLOCKED`; it is never inferred from listen/local proof.
 
 If any row is absent, stale, hash-mismatched, timed out, or replaced by Login/Loading-only evidence, the migration remains **NOT COMPLETE**.
-

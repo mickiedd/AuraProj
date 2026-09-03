@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Independent handoff verdict for Crunch HUD and package fixes</title>
+  <desc id="desc">Independent review accepts the HUD replay and Loading-map fixes while leaving one fresh packaged traversal evidence gate pending because Windows Firewall blocked the rebuilt executable.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#64748b"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.card{fill:#fff;stroke:#cbd5e1;stroke-width:2}.pass{fill:#f0fdf4;stroke:#22c55e}.pending{fill:#fffbeb;stroke:#f59e0b}.title{font:700 28px Arial;fill:#0f172a}.h{font:700 20px Arial;fill:#0f172a}.body{font:16px Arial;fill:#334155}.small{font:14px Arial;fill:#475569}.green{fill:#166534}.amber{fill:#92400e}.line{stroke:#64748b;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="640"/>
+  <text class="title" x="48" y="52">Crunch fixes — independent handoff verdict</text>
+  <text class="small" x="48" y="80">Review completed in the existing Codex in-app ChatGPT session</text>
+
+  <rect class="card pass" x="48" y="118" width="330" height="190" rx="14"/>
+  <text class="h" x="74" y="156">HUD ordering</text>
+  <text class="body green" x="74" y="194">PASS — implementation accepted</text>
+  <text class="body" x="74" y="226">Replay after handshake; clear</text>
+  <text class="body" x="74" y="250">dedupe caches; pawn role first,</text>
+  <text class="body" x="74" y="274">PlayerState fallback during lag.</text>
+
+  <path class="line" d="M378 212 H438"/>
+
+  <rect class="card pass" x="438" y="118" width="330" height="190" rx="14"/>
+  <text class="h" x="464" y="156">Package coverage</text>
+  <text class="body green" x="464" y="194">PASS — blocker closed</text>
+  <text class="body" x="464" y="226">Fresh manifest contains</text>
+  <text class="body" x="464" y="250">Loading.umap and Loading.uexp;</text>
+  <text class="body" x="464" y="274">Login and StartupMap retained.</text>
+
+  <path class="line" d="M768 212 H828"/>
+
+  <rect class="card pending" x="828" y="118" width="324" height="190" rx="14"/>
+  <text class="h" x="854" y="156">Fresh runtime gate</text>
+  <text class="body amber" x="854" y="194">PASS pending evidence</text>
+  <text class="body" x="854" y="226">Rebuilt client rendered Login,</text>
+  <text class="body" x="854" y="250">then met untouched Firewall UI.</text>
+  <text class="body" x="854" y="274">No security setting changed.</text>
+
+  <rect class="card" x="48" y="364" width="1104" height="208" rx="14"/>
+  <text class="h" x="74" y="402">Review conclusion</text>
+  <text class="body" x="74" y="438">No concrete source-level blocker remains for either fix.</text>
+  <text class="body" x="74" y="470">The only open gate is demonstrating Login → Loading → Role Battle → Crunch HUD</text>
+  <text class="body" x="74" y="496">with the newly rebuilt package. This is an evidence limitation, not a diagnosed code defect.</text>
+  <text class="small" x="74" y="540">Durability note: Config/DefaultGame.ini already lists Loading in MapsToCook; retain the manifest assertion.</text>
+</svg>

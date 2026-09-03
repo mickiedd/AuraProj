@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch Day 03 listen authored clock</title>
+  <desc id="desc">A development-only listen host routes authored montage events through one skeletal animation clock, records timing evidence, and verifies four network scenarios without enabling dedicated fallback.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#355070"/></marker>
+    <style>
+      .bg{fill:#f7f9fc}.title{font:700 28px Arial;fill:#172b4d}.sub{font:15px Arial;fill:#425466}.box{stroke:#355070;stroke-width:2;rx:14}.before{fill:#fff4e5;stroke:#c77d2b}.after{fill:#eaf7ef;stroke:#3a8f5c}.guard{fill:#edf3ff;stroke:#4f6fae}.evidence{fill:#f2edff;stroke:#7657a8}.txt{font:600 16px Arial;fill:#17324d}.small{font:14px Arial;fill:#30485f}.label{font:700 13px Arial;fill:#fff}.pill{rx:10;ry:10}.line{stroke:#355070;stroke-width:3;fill:none;marker-end:url(#arrow)}.dash{stroke:#7a8da6;stroke-width:2;stroke-dasharray:7 6;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="620"/>
+  <text class="title" x="42" y="48">Day 03 — listen-host authored clock</text>
+  <text class="sub" x="42" y="76">One regular skeletal tick consumes authored notifies; the dedicated fallback never runs on listen.</text>
+
+  <rect class="box before" x="45" y="120" width="245" height="155"/>
+  <rect class="pill" fill="#c77d2b" x="65" y="138" width="86" height="24"/>
+  <text class="label" x="78" y="155">INPUT</text>
+  <text class="txt" x="65" y="192">Remote client</text>
+  <text class="small" x="65" y="218">LMB press + packet lag</text>
+  <text class="small" x="65" y="242">BeforeClose / AtOrAfterClose</text>
+
+  <rect class="box guard" x="345" y="120" width="270" height="155"/>
+  <rect class="pill" fill="#4f6fae" x="365" y="138" width="92" height="24"/>
+  <text class="label" x="378" y="155">LISTEN FIXTURE</text>
+  <text class="txt" x="365" y="192">Authority pose setup</text>
+  <text class="small" x="365" y="218">component tick on</text>
+  <text class="small" x="365" y="242">movement pose tick + replication off</text>
+  <text class="small" x="365" y="263">development process only</text>
+
+  <rect class="box after" x="670" y="120" width="265" height="155"/>
+  <rect class="pill" fill="#3a8f5c" x="690" y="138" width="88" height="24"/>
+  <text class="label" x="705" y="155">AUTHORED</text>
+  <text class="txt" x="690" y="192">Crunch montage</text>
+  <text class="small" x="690" y="218">Open → Damage → Close</text>
+  <text class="small" x="690" y="242">four sections, mask 0xF</text>
+  <text class="small" x="690" y="263">EventSource=Authored</text>
+
+  <rect class="box evidence" x="990" y="120" width="245" height="155"/>
+  <rect class="pill" fill="#7657a8" x="1010" y="138" width="98" height="24"/>
+  <text class="label" x="1024" y="155">EVIDENCE</text>
+  <text class="txt" x="1010" y="192">JSON + timeline CSV</text>
+  <text class="small" x="1010" y="218">peer clock / section</text>
+  <text class="small" x="1010" y="242">prediction key / decision</text>
+  <text class="small" x="1010" y="263">cleanup + crash guard</text>
+
+  <path class="line" d="M290 198 L345 198"/>
+  <path class="line" d="M615 198 L670 198"/>
+  <path class="line" d="M935 198 L990 198"/>
+
+  <rect class="box before" x="90" y="365" width="300" height="150"/>
+  <text class="txt" x="112" y="402">Zero lag profile</text>
+  <text class="small" x="112" y="430">Full · Cancel · BeforeClose</text>
+  <text class="small" x="112" y="454">AtOrAfterClose</text>
+  <text class="small" x="112" y="486">all pass, Authored source</text>
+
+  <rect class="box after" x="490" y="365" width="300" height="150"/>
+  <text class="txt" x="512" y="402">75 +/- 10 ms profile</text>
+  <text class="small" x="512" y="430">Full · Cancel · BeforeClose</text>
+  <text class="small" x="512" y="454">AtOrAfterClose</text>
+  <text class="small" x="512" y="486">all pass, Authored source</text>
+
+  <rect class="box guard" x="890" y="365" width="300" height="150"/>
+  <text class="txt" x="912" y="402">Remaining gate</text>
+  <text class="small" x="912" y="430">3 consecutive runs/profile</text>
+  <text class="small" x="912" y="454">external handoff review</text>
+  <text class="small" x="912" y="486">assets/skills still deferred</text>
+
+  <path class="dash" d="M512 275 C500 320 360 340 240 365"/>
+  <path class="dash" d="M780 275 C790 320 650 340 640 365"/>
+  <path class="dash" d="M1100 275 L1040 365"/>
+</svg>

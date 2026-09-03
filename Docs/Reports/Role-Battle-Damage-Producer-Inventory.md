@@ -55,6 +55,7 @@ sync with the compile-time allowlist in `AuraRoleBattleTests.cpp`.
 | File | Reason |
 |---|---|
 | Source/Aura/Private/AbilitySystem/AuraAbilitySystemLibrary.cpp | defines ApplyDamageEffect + IsNotFriend |
+| Source/Aura/Private/AbilitySystem/Abilities/Crunch/AuraCrunchAbilityBase.cpp | shared Crunch target validation, hit ledger, and damage boundary |
 | Source/Aura/Public/AbilitySystem/AuraAbilitySystemLibrary.h | declares the shared boundary |
 | Source/Aura/Public/AuraAbilityTypes.h | defines FDamageEffectParams + FAuraGameplayEffectContext |
 | Source/Aura/Private/AuraAbilityTypes.cpp | NetSerialize |

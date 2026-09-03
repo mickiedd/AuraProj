@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch migration Day 04 presentation recovery</title>
+  <desc id="desc">Read-only source exports flow into target-owned Crunch presentation assets, then into the Aura role and authored combo validator. The source-built staged dedicated lane passes; movement-preserving listen and later abilities remain blocked.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#2b5876"/></marker>
+    <style>
+      .box{fill:#f6fbff;stroke:#2b5876;stroke-width:2;rx:14} .good{fill:#e9f8ef;stroke:#237a48;stroke-width:2;rx:14} .block{fill:#fff2e8;stroke:#ad551f;stroke-width:2;rx:14} .title{font:700 22px Arial;fill:#19324d} .label{font:600 16px Arial;fill:#19324d} .body{font:14px Arial;fill:#29485f} .small{font:13px Arial;fill:#29485f} .arrow{stroke:#2b5876;stroke-width:2.5;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1200" height="620" fill="#ffffff"/>
+  <text x="48" y="46" class="title">Crunch migration — Day 04 presentation recovery</text>
+  <text x="48" y="72" class="body">Source truth is exported read-only; target assets own the runtime presentation and Aura owns authority.</text>
+
+  <rect x="48" y="112" width="230" height="150" class="box"/>
+  <text x="68" y="143" class="label">Crunch-master (read-only)</text>
+  <text x="68" y="170" class="body">Source-built CrunchEditor</text>
+  <text x="68" y="193" class="body">6 canonical editor exports</text>
+  <text x="68" y="216" class="body">20/20 anchors hash-match</text>
+  <text x="68" y="241" class="small">No source C++ or source runtime refs</text>
+
+  <path d="M278 187 H348" class="arrow"/>
+  <rect x="348" y="112" width="238" height="150" class="good"/>
+  <text x="368" y="143" class="label">Export gate: READY</text>
+  <text x="368" y="170" class="body">dependency closure = 102</text>
+  <text x="368" y="193" class="body">preflight blocks guesses</text>
+  <text x="368" y="216" class="body">source editor receipt present</text>
+  <text x="368" y="241" class="small">RunCrunchMigration Fast contracts pass</text>
+
+  <path d="M586 187 H656" class="arrow"/>
+  <rect x="656" y="94" width="290" height="186" class="good"/>
+  <text x="676" y="125" class="label">Target-owned presentation</text>
+  <text x="676" y="151" class="body">Crunch V4 mesh + skeleton</text>
+  <text x="676" y="174" class="body">4 copied combo sequences</text>
+  <text x="676" y="197" class="body">ABP_Crunch_AuraV4 / DefaultSlot</text>
+  <text x="676" y="220" class="body">AM_CrunchComboV4</text>
+  <text x="676" y="248" class="small">102 packages copied under /Game/ParagonCrunch</text>
+
+  <path d="M946 187 H1016" class="arrow"/>
+  <rect x="1016" y="112" width="136" height="150" class="good"/>
+  <text x="1036" y="143" class="label">Aura role</text>
+  <text x="1036" y="170" class="body">Crunch</text>
+  <text x="1036" y="193" class="body">LMB native</text>
+  <text x="1036" y="216" class="body">V4 paths</text>
+  <text x="1036" y="241" class="small">Day 1 role test</text>
+
+  <rect x="348" y="350" width="300" height="152" class="good"/>
+  <text x="368" y="381" class="label">Authored montage validator</text>
+  <text x="368" y="408" class="body">4 sections / 12 server notifies</text>
+  <text x="368" y="431" class="body">Open &lt; Damage &lt; Close per section</text>
+  <text x="368" y="454" class="body">0 embedded duplicate notifies</text>
+  <text x="368" y="480" class="small">AuraComboFixture: PASS, length 3.733s</text>
+
+  <path d="M801 280 V325 H648 V350" class="arrow"/>
+  <rect x="688" y="350" width="256" height="152" class="good"/>
+  <text x="708" y="381" class="label">Per-day validation</text>
+  <text x="708" y="408" class="body">Day 01–02 contracts pass</text>
+  <text x="708" y="431" class="body">Day 03 dedicated pass; listen provisional</text>
+  <text x="708" y="454" class="body">Day 04 role + graph checks pass</text>
+  <text x="708" y="480" class="small">Target runtime + staged client evidence</text>
+
+  <rect x="48" y="350" width="260" height="152" class="block"/>
+  <text x="68" y="381" class="label">Open blockers (honest)</text>
+  <text x="68" y="408" class="body">Listen movement matrix incomplete</text>
+  <text x="68" y="431" class="body">source composite offsets protected</text>
+  <text x="68" y="454" class="body">custom Blueprint defaults unavailable</text>
+  <text x="68" y="480" class="small">Days 05–07 cannot tune or author guesses</text>
+
+  <path d="M308 426 H348" class="arrow"/>
+  <text x="48" y="566" class="small">Guard fixed: link sections/notifies only after the montage slot track exists; GAS test override is development-only and constructor-time.</text>
+</svg>

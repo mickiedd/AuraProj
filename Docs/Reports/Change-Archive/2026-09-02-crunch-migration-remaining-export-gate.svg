@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch migration remaining-day export gate</title>
+  <desc id="desc">Twenty hashed source anchors pass, six required editor exports are missing, and the remaining migration days stay blocked until a read-only editor export produces them.</desc>
+  <defs>
+    <style>
+      .title{font:700 28px Segoe UI,Arial;fill:#17324d}.sub{font:400 15px Segoe UI,Arial;fill:#47657e}
+      .head{font:700 17px Segoe UI,Arial;fill:#17324d}.body{font:400 15px Segoe UI,Arial;fill:#25475f}
+      .small{font:400 13px Segoe UI,Arial;fill:#47657e}.tag{font:700 12px Segoe UI,Arial;fill:#fff;letter-spacing:1px}
+    </style>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fbfdff"/><stop offset="1" stop-color="#eaf2f9"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#47657e"/></marker>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="48" y="48" class="title">2026-09-02 — Crunch remaining-day export gate</text>
+  <text x="48" y="76" class="sub">The plan advances only from frozen editor evidence; missing exports are a reproducible BLOCKED result.</text>
+
+  <rect x="48" y="124" width="300" height="220" rx="16" fill="#fff" stroke="#6b9bb8" stroke-width="2"/>
+  <rect x="48" y="124" width="300" height="38" rx="16" fill="#2d668f"/>
+  <text x="70" y="149" class="tag">SOURCE CHECKOUT</text>
+  <text x="70" y="194" class="head">Frozen anchors</text>
+  <text x="70" y="224" class="body">20/20 files present</text>
+  <text x="70" y="251" class="body">SHA-256 matches manifest</text>
+  <text x="70" y="294" class="small">C:\Works\Crunch-master</text>
+  <text x="70" y="319" class="small">read-only reference</text>
+
+  <line x1="348" y1="234" x2="424" y2="234" stroke="#47657e" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="424" y="124" width="352" height="220" rx="16" fill="#fff" stroke="#6b9bb8" stroke-width="2"/>
+  <rect x="424" y="124" width="352" height="38" rx="16" fill="#3c7f68"/>
+  <text x="446" y="149" class="tag">READ-ONLY PREFLIGHT</text>
+  <text x="446" y="194" class="head">RunCrunchMigrationExportPreflight</text>
+  <text x="446" y="224" class="body">Checks exact lane filenames + hashes</text>
+  <text x="446" y="251" class="body">Writes a RunId-local JSON report</text>
+  <text x="446" y="294" class="small">No guessed defaults</text>
+  <text x="446" y="319" class="small">No prototype asset promotion</text>
+
+  <line x1="776" y1="234" x2="852" y2="234" stroke="#47657e" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="852" y="124" width="300" height="220" rx="16" fill="#fff8f0" stroke="#c58a43" stroke-width="2"/>
+  <rect x="852" y="124" width="300" height="38" rx="16" fill="#a76522"/>
+  <text x="874" y="149" class="tag">CURRENT RESULT</text>
+  <text x="874" y="194" class="head">BLOCKED</text>
+  <text x="874" y="224" class="body">6 export lanes missing</text>
+  <text x="874" y="251" class="body">Days 04–07 stay pending</text>
+  <text x="874" y="294" class="small">passed=false</text>
+  <text x="874" y="319" class="small">failure is explicit and repeatable</text>
+
+  <rect x="48" y="404" width="1104" height="190" rx="16" fill="#fff" stroke="#6b9bb8" stroke-width="2"/>
+  <text x="72" y="443" class="head">Next authorized input</text>
+  <text x="72" y="476" class="body">Run the UE editor export commandlet in the source checkout and write:</text>
+  <text x="72" y="507" class="small">dependencyClosure · blueprintDefaults · montageSectionTimes · montageNotifyTimes · gameplayCueReferences · sourceClassReferenceScan</text>
+  <text x="72" y="548" class="small">under C:\Works\Crunch-master\Saved\CrunchMigration\Exports, then rerun the preflight before asset/ability implementation.</text>
+  <text x="72" y="575" class="small">Validation: source anchors 20/20; runner contract PASS; blocked scenario returns nonzero with attached JSON.</text>
+</svg>

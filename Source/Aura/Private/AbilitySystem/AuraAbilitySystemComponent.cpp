@@ -93,7 +93,7 @@ namespace
 					OutSource.AbilityType = InferAbilityType(Candidate.GetDefaultObject());
 					if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(Candidate.GetDefaultObject()))
 					{
-						OutSource.InputTag = AuraAbility->StartupInputTag;
+						OutSource.InputTag = AuraAbility->GetStartupInputTag();
 					}
 					return true;
 				}
@@ -150,7 +150,7 @@ namespace
 				Candidate.AbilityTag = GetAbilityTagFromClass(AbilityClass);
 				if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilityClass ? AbilityClass.GetDefaultObject() : nullptr))
 				{
-					Candidate.InputTag = AuraAbility->StartupInputTag;
+					Candidate.InputTag = AuraAbility->GetStartupInputTag();
 				}
 			}
 
@@ -562,7 +562,7 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
 		if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilitySpec.Ability))
 		{
-			AbilitySpec.GetDynamicSpecSourceTags().AddTag(AuraAbility->StartupInputTag);
+			AbilitySpec.GetDynamicSpecSourceTags().AddTag(AuraAbility->GetStartupInputTag());
 			AbilitySpec.GetDynamicSpecSourceTags().AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
 			GiveAbility(AbilitySpec);
 		}
@@ -1175,9 +1175,10 @@ FGameplayTag UAuraAbilitySystemComponent::FindSlotForAbility(const FAuraAbilityI
 
 	if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilitySpec.Ability))
 	{
-		if (AuraAbility->StartupInputTag.IsValid() && OrderedSlots.Contains(AuraAbility->StartupInputTag) && !ReservedSlots.Contains(AuraAbility->StartupInputTag))
+		const FGameplayTag StartupInputTag = AuraAbility->GetStartupInputTag();
+		if (StartupInputTag.IsValid() && OrderedSlots.Contains(StartupInputTag) && !ReservedSlots.Contains(StartupInputTag))
 		{
-			return AuraAbility->StartupInputTag;
+			return StartupInputTag;
 		}
 	}
 

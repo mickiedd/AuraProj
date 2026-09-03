@@ -74,6 +74,33 @@ bool AAuraRoleApplicationTestActor::IsWeaponAttachedToBodyForTest() const
 	return Weapon->GetAttachParent() == GetMesh();
 }
 
+void AAuraRoleApplicationTestActor::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag,
+	EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
+{
+	if (EventType != EGameplayCueEvent::Executed
+		|| GameplayCueTag != FAuraGameplayTags::Get().GameplayCue_MeleeImpact)
+	{
+		return;
+	}
+
+	++GameplayCueProbeCount;
+	LastGameplayCueTag = GameplayCueTag;
+	LastGameplayCueLocation = Parameters.Location;
+	LastGameplayCueEffectCauser = Parameters.EffectCauser;
+	LastGameplayCueInstigator = Parameters.Instigator;
+	LastGameplayCueSourceObject = Parameters.SourceObject;
+}
+
+void AAuraRoleApplicationTestActor::ResetGameplayCueProbe()
+{
+	GameplayCueProbeCount = 0;
+	LastGameplayCueTag = FGameplayTag();
+	LastGameplayCueLocation = FVector::ZeroVector;
+	LastGameplayCueEffectCauser.Reset();
+	LastGameplayCueInstigator.Reset();
+	LastGameplayCueSourceObject.Reset();
+}
+
 FGameplayTag AAuraRoleApplicationTestActor::GetRequiredRoleEntityType() const
 {
 	return RequiredEntityType;

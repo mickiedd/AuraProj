@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch migration Day 03 network boundary scaffolding</title>
+  <desc id="desc">Listen and standalone use authored events, dedicated uses fallback, and the current headless listen probe still lacks server authored events.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111a2d"/><stop offset="1" stop-color="#3d3020"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#9bd9ff"/></marker>
+    <style>.title{font:700 30px Arial;fill:#fff}.h{font:700 20px Arial;fill:#fff}.t{font:16px Arial;fill:#e5eef5}.small{font:14px Arial;fill:#bdd0dc}.box{fill:#1f4053;stroke:#63b8e6;stroke-width:2}.ok{fill:#24462f;stroke:#70d391;stroke-width:2}.warn{fill:#4b3820;stroke:#e4b15a;stroke-width:2}.line{stroke:#9bd9ff;stroke-width:3;fill:none;marker-end:url(#arrow)}</style>
+  </defs>
+  <rect width="1400" height="800" fill="url(#bg)"/>
+  <text x="52" y="58" class="title">Crunch migration · Day 03 authored/network boundary</text>
+  <text x="52" y="91" class="small">The fallback boundary is explicit; the listen-host authored-notify gate is still open.</text>
+  <rect x="55" y="145" width="300" height="220" rx="16" class="ok"/>
+  <text x="80" y="185" class="h">Standalone / listen</text>
+  <text x="80" y="224" class="t">EventSource=Authored</text>
+  <text x="80" y="252" class="t">FallbackActive=0</text>
+  <text x="80" y="280" class="t">Client completes 4 sections</text>
+  <text x="80" y="320" class="small">Real montage path required</text>
+  <rect x="425" y="145" width="300" height="220" rx="16" class="box"/>
+  <text x="450" y="185" class="h">Dedicated server</text>
+  <text x="450" y="224" class="t">EventSource=DedicatedFallback</text>
+  <text x="450" y="252" class="t">Fallback remains bounded</text>
+  <text x="450" y="280" class="t">Launcher capability still unproven</text>
+  <text x="450" y="320" class="small">Not a listen-server pass</text>
+  <path d="M355 255 H415" class="line"/>
+  <rect x="795" y="145" width="550" height="220" rx="16" class="warn"/>
+  <text x="820" y="185" class="h">Current bounded smoke result</text>
+  <text x="820" y="224" class="t">Client: COMPLETE Open=4 Presses=3</text>
+  <text x="820" y="252" class="t">Server: Authored, but no Open/Damage/Close matrix</text>
+  <text x="820" y="280" class="t">Result: BLOCKED before BeforeClose gate</text>
+  <text x="820" y="320" class="small">Fix host authored-notify ticking, then rerun 3× per latency profile</text>
+  <path d="M735 255 H785" class="line"/>
+  <rect x="55" y="445" width="1290" height="240" rx="18" fill="#14252f" stroke="#527587" stroke-width="2"/>
+  <text x="82" y="485" class="h">Frozen network contract</text>
+  <text x="82" y="527" class="t">Scenarios: ComboFull · ComboCancel · ComboBeforeClose · ComboAtOrAfterClose</text>
+  <text x="82" y="565" class="t">Result fields: scenario · clientSendTime · serverReceiveTime · section · decision · eventSource · latency</text>
+  <text x="82" y="603" class="t">Acceptance: before close must accept; at/after close must reject; duplicates, late packets, and cancellation must leave no residue</text>
+  <text x="82" y="651" class="small">Evidence: crunch-network-result.schema.json · CrunchCombo-Listen server/client logs · RunId report</text>
+</svg>
