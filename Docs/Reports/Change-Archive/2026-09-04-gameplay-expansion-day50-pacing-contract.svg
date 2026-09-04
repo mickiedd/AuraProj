@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+  <title id="title">Gameplay Expansion Day 50 encounter pacing contract foundation</title>
+  <desc id="desc">Before and after diagram showing a previously planned pacing milestone becoming an inert, tested authority contract while production runtime gates remain closed.</desc>
+  <defs>
+    <style>
+      .bg{fill:#09111f}.panel{fill:#111d30;stroke:#344a66;stroke-width:2}.contract{fill:#102c2a;stroke:#38bda6;stroke-width:2}.closed{fill:#321d27;stroke:#d16d83;stroke-width:2}.test{fill:#172844;stroke:#62a8ff;stroke-width:2}.title{fill:#f4f7fb;font:700 30px system-ui,sans-serif}.head{fill:#dcecff;font:700 19px system-ui,sans-serif}.body{fill:#b8c7d9;font:15px system-ui,sans-serif}.good{fill:#75e0c1;font:700 16px system-ui,sans-serif}.warn{fill:#f1a3b3;font:700 16px system-ui,sans-serif}.arrow{stroke:#72a2d5;stroke-width:3;fill:none;marker-end:url(#tip)}
+    </style>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#72a2d5"/></marker>
+  </defs>
+  <rect class="bg" width="1280" height="760"/>
+  <text class="title" x="54" y="58">Day 50 · Encounter pacing contract foundation</text>
+  <text class="body" x="54" y="86">Dependency-safe milestone: deterministic authority rules are executable; production gameplay remains fail-closed.</text>
+
+  <rect class="panel" x="54" y="125" rx="14" width="290" height="225"/>
+  <text class="head" x="78" y="162">Before</text>
+  <text class="body" x="78" y="198">• Pacing existed only as a plan</text>
+  <text class="body" x="78" y="228">• No executable phase reducer</text>
+  <text class="body" x="78" y="258">• No budget/recovery tests</text>
+  <text class="body" x="78" y="288">• Runtime dependencies unfinished</text>
+  <text class="warn" x="78" y="326">No production authority added</text>
+
+  <path class="arrow" d="M360 238H425"/>
+
+  <rect class="contract" x="442" y="114" rx="14" width="400" height="260"/>
+  <text class="head" x="468" y="151">After · inert authority contract</text>
+  <text class="body" x="468" y="186">2 Hz samples → 2 s smoothing</text>
+  <text class="body" x="468" y="216">Build ≥10 s → Pressure ≤30 s → Recovery</text>
+  <text class="body" x="468" y="246">Enter ≥0.75 · exit ≤0.45 · Recovery ≥8 s</text>
+  <text class="body" x="468" y="276">Costs 1/2/3/3 · budgets 6/10 · live caps 10/16</text>
+  <text class="body" x="468" y="306">Fixed roster + seeded order + typed deadline abort</text>
+  <text class="good" x="468" y="342">Recovery pauses admission, not existing combat</text>
+
+  <path class="arrow" d="M859 238H924"/>
+
+  <rect class="closed" x="942" y="125" rx="14" width="284" height="225"/>
+  <text class="head" x="966" y="162">Still closed</text>
+  <text class="body" x="966" y="198">• Production spawn / AI wiring</text>
+  <text class="body" x="966" y="228">• Mission snapshot and HUD</text>
+  <text class="body" x="966" y="258">• Supply interaction runtime</text>
+  <text class="body" x="966" y="288">• Anchor and packaged evidence</text>
+  <text class="warn" x="966" y="326">CONTRACT_ONLY · UNWIRED</text>
+
+  <rect class="test" x="54" y="414" rx="14" width="1172" height="278"/>
+  <text class="head" x="80" y="454">Validation and ownership guards</text>
+  <text class="good" x="80" y="493">AuraEditor build PASS</text>
+  <text class="good" x="80" y="523">Aura.Gameplay 57/57 · Day 50 7/7 · offline Days 42–50 32/32</text>
+  <text class="body" x="80" y="561">✓ Hysteresis and bounded phases</text>
+  <text class="body" x="390" y="561">✓ Mixed costs, solo/pair budgets, live cap</text>
+  <text class="body" x="790" y="561">✓ Required roster completes</text>
+  <text class="body" x="80" y="596">✓ Disconnect pauses future admission only</text>
+  <text class="body" x="390" y="596">✓ Health and damage are never rewritten</text>
+  <text class="body" x="790" y="596">✓ Seeded decisions replay identically</text>
+  <text class="body" x="80" y="631">✓ Existing EncounterCoordinator remains sole heavy-token owner across pacing transitions</text>
+  <text class="body" x="80" y="666">Known unrelated constraint: Crunch Git-LFS pointer assets still emit startup load errors; no asset payload was changed.</text>
+</svg>

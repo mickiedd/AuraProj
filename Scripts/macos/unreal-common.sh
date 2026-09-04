@@ -108,6 +108,43 @@ function unreal_build_script() {
   printf '%s' "${build_script}"
 }
 
+function ensure_engine_stub_link() {
+  local stub_path="$1"
+  local source_path="$2"
+
+  if [[ -e "${stub_path}" ]]; then
+    return 0
+  fi
+
+  [[ -f "${source_path}" ]] || die "Could not find engine binary required for stub ${source_path}"
+
+  # A stale symlink can survive an engine move. Remove only that exact broken
+  # link, while refusing to overwrite any real file at the expected path.
+  if [[ -L "${stub_path}" ]]; then
+    rm "${stub_path}"
+  fi
+
+  ln -s "${source_path}" "${stub_path}"
+  echo "Restored engine stub: ${stub_path}"
+}
+
+function ensure_editor_engine_stubs() {
+  local engine_root="$1"
+  local stub_dir="${engine_root}/Engine/Intermediate/Mac/Stubs/arm64/Development"
+  local engine_bin_dir="${engine_root}/Engine/Binaries/Mac"
+  local online_bin_dir="${engine_root}/Engine/Plugins/Online/OnlineSubsystem/Binaries/Mac"
+
+  mkdir -p "${stub_dir}"
+
+  # Installed UE builds provide the real dylibs, while UBT links project
+  # modules through these architecture/configuration-specific stub paths.
+  # Keep the links local to the engine's generated Intermediate directory.
+  ensure_engine_stub_link "${stub_dir}/UnrealEditor-Projects.dylib" "${engine_bin_dir}/UnrealEditor-Projects.dylib"
+  ensure_engine_stub_link "${stub_dir}/UnrealEditor-CoreOnline.dylib" "${engine_bin_dir}/UnrealEditor-CoreOnline.dylib"
+  ensure_engine_stub_link "${stub_dir}/UnrealEditor-NetCore.dylib" "${engine_bin_dir}/UnrealEditor-NetCore.dylib"
+  ensure_engine_stub_link "${stub_dir}/UnrealEditor-OnlineSubsystem.dylib" "${online_bin_dir}/UnrealEditor-OnlineSubsystem.dylib"
+}
+
 function unreal_uat_script() {
   local engine_root="$1"
   local uat_script="${engine_root}/Engine/Build/BatchFiles/RunUAT.sh"

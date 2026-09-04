@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-foundation-v1",
+  "missions": [
+    {
+      "id": "Assault",
+      "objectiveType": "Clear",
+      "cellEncounterIds": ["assault_cell_1", "assault_cell_2"],
+      "runCapSeconds": 1200,
+      "extractionSeconds": 30,
+      "requiresSurveyedAnchors": true
+    },
+    {
+      "id": "RescueRelay",
+      "objectiveType": "Escort",
+      "cellEncounterIds": ["rescue_cell_1", "rescue_cell_2"],
+      "runCapSeconds": 1200,
+      "extractionSeconds": 30,
+      "requiresSurveyedAnchors": true
+    },
+    {
+      "id": "Sabotage",
+      "objectiveType": "InteractHold",
+      "cellEncounterIds": ["sabotage_cell_1", "sabotage_cell_2"],
+      "runCapSeconds": 1200,
+      "extractionSeconds": 30,
+      "requiresSurveyedAnchors": true
+    }
+  ]
+}

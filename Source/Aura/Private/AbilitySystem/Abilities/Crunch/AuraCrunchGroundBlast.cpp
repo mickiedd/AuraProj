@@ -14,7 +14,7 @@
 
 namespace
 {
-	FGameplayTag CrunchTag(const TCHAR* Name)
+	FGameplayTag CrunchGroundBlastTag(const TCHAR* Name)
 	{
 		return FGameplayTag::RequestGameplayTag(FName(Name), false);
 	}
@@ -23,11 +23,11 @@ namespace
 UAuraCrunchGroundBlast::UAuraCrunchGroundBlast()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(CrunchTag(TEXT("Abilities.Melee.CrunchGroundBlast")));
+	AssetTags.AddTag(CrunchGroundBlastTag(TEXT("Abilities.Melee.CrunchGroundBlast")));
 	SetAssetTags(AssetTags);
 	StartupInputTag = FGameplayTag::RequestGameplayTag(FName(TEXT("InputTag.3")), false);
 	CrunchStartupInputTagName = FName(TEXT("InputTag.3"));
-	CrunchCooldownTag = CrunchTag(TEXT("Cooldown.Melee.CrunchGroundBlast"));
+	CrunchCooldownTag = CrunchGroundBlastTag(TEXT("Cooldown.Melee.CrunchGroundBlast"));
 	CrunchManaCost = 0.f;
 	CrunchCooldown = 0.f;
 	DefaultCrunchDamage = 45.f;
@@ -165,7 +165,7 @@ void UAuraCrunchGroundBlast::CommitGroundBlast(const FVector& Point)
 		FGameplayCueParameters Cue;
 		Cue.Location = Point;
 		Cue.RawMagnitude = TargetAreaRadius;
-		ASC->ExecuteGameplayCue(CrunchTag(TEXT("GameplayCue.Crunch.GroundBlast")), Cue);
+		ASC->ExecuteGameplayCue(CrunchGroundBlastTag(TEXT("GameplayCue.Crunch.GroundBlast")), Cue);
 	}
 	if (CastMontage)
 	{

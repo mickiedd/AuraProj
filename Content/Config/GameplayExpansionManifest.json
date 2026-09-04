@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "profile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-content-contract-v1",
+  "status": "CONTRACT_ONLY",
+  "inventory": {"enemyArchetypes": 4, "augments": 8, "missionTemplates": 3, "arenaLayouts": 2, "mutators": 2, "bosses": 1},
+  "budget": {"maximumAuthoredCost": 100},
+  "files": [
+    {"path":"Content/Config/GameplayArenaLayouts.json","sha256":"5b1543b9b9c68b4ae40629985069dda152b6d3ca84faf059af4bfa79c1cb4913"},
+    {"path":"Content/Config/GameplayAssemblyRules.json","sha256":"28132a3d6968cf975c10a5a107a002a8d627e5579c2fa0a0125256d62a9ce6c0"},
+    {"path":"Content/Config/GameplayBossDefinitions.json","sha256":"6775c4720498a42b0210ee6665c26af9d078ffd8dbbace04e2926edfef9dac1e"},
+    {"path":"Content/Config/GameplayCombatTuning.json","sha256":"a5e468c62eecd567907eb54a119128b9eeadecce942267a1dfc9b3bd6217d352"},
+    {"path":"Content/Config/GameplayEffects.json","sha256":"ff422ea294b53ce9f6ede0d32d057a094f75fde1647831e84eca6b806eb89752"},
+    {"path":"Content/Config/GameplayEncounterDefinitions.json","sha256":"913fcbec931332cd910a3bbf65abbb8211e720b5d37f6c94669f3ea2ab885d3c"},
+    {"path":"Content/Config/GameplayEnemyArchetypes.json","sha256":"095e8be7d497cd3b659dbe0f3a6e062eca51aaccc57ad7b719432e883175232e"},
+    {"path":"Content/Config/GameplayEscortDefinitions.json","sha256":"9959d8ff0bfe1bade86b261942d8605e5ec440135400148fbb91eca2d055704d"},
+    {"path":"Content/Config/GameplayGuidanceDefinitions.json","sha256":"4d49e4e82e9529cb60507dd8751d71e38ca074cb8b1eb9ad147ad06d1501b7aa"},
+    {"path":"Content/Config/GameplayHazardDefinitions.json","sha256":"6767a43e2982c4e2ceaaa6c1423b701173b45bfe3aa1adfc6733a40e8852153d"},
+    {"path":"Content/Config/GameplayMasteryDefinitions.json","sha256":"9fd9c8e743cdeb251bcd3d0f7ac6fc3adeb9606312f961c8bbe4ea71fbb9001e"},
+    {"path":"Content/Config/GameplayMissionDefinitions.json","sha256":"c0cd413c9f1f09f071460109cddefd896734203a6ea1f499b8369694f3300591"},
+    {"path":"Content/Config/GameplayMutatorDefinitions.json","sha256":"98cb272f762026d4beb09a378eabef0644cce1ec6ba83dd119c58db4fa9199ec"},
+    {"path":"Content/Config/GameplayObjectiveDefinitions.json","sha256":"9a95857fe929323fc30c77f643a516faf776709aa3dbb213f5864bab88c6bec3"},
+    {"path":"Content/Config/GameplayPacingDefinitions.json","sha256":"38f8983ecafb004cbfdaef72c7d115f1e2df3f40da7a10ddf155bbf97d70bd83"},
+    {"path":"Content/Config/GameplayPerformanceBudgets.json","sha256":"6f6039d6beae3c60df7f2ae79b45ffeb226917bf5ce71e55bd7bc74203f556c1"},
+    {"path":"Content/Config/GameplayRewardDefinitions.json","sha256":"00797455c1ca463e08e69b14f3d71ae2a65fa8955dbb42d293cfd039fc603b9e"},
+    {"path":"Content/Config/GameplayRoleLoadouts.json","sha256":"4dcd3b27243143ed6cf03c045ee42b956acf5685b91502f2fc7c51624f1c7e31"},
+    {"path":"Content/Config/GameplaySupplyDefinitions.json","sha256":"ae021949f2733a96b9d13a99fb6a9f2aa910844c50f65ab80d588bacc7783dee"},
+    {"path":"Content/AbilityDefinitions/CaptainLineCharge.xml","sha256":"701d7f643c0475482304769ba704b0c69513d70e52850d415f8c151e5a9d287b"},
+    {"path":"Content/AbilityDefinitions/CaptainReinforce.xml","sha256":"0305710d65f5da03823079702dbe8982fad4c681c2faf087a5ddc1cfbc4ae1ba"},
+    {"path":"Content/AbilityDefinitions/CaptainSweep.xml","sha256":"46753092e997b12ea566ec9663b7a26c3fd769489006db2377788fd518efb524"}
+  ],
+  "legacyManifest": {"path":"Content/Config/PlayableCandidateManifest.json","sha256":"01760b1d8a543d1dfb78cdd15fb62b0ad037dea6e77f29fc63c9dd41ca1a5ff5"}
+}

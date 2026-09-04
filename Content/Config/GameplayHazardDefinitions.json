@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-hazard-contract-v1",
+  "status": "CONTRACT_ONLY",
+  "runtimeWiring": "UNWIRED",
+  "hazards": [{
+    "id": "vent_standard",
+    "cueSeconds": 1,
+    "activeSeconds": 2,
+    "cooldownSeconds": 5,
+    "faction": "Enemy",
+    "requiresNonPlayerIdentity": true,
+    "requiresSourceAscAvatar": true,
+    "perActivationHitLimit": 1,
+    "playerRewardCredit": false
+  }],
+  "optionalCache": {
+    "decisionTimeoutSeconds": 10,
+    "challengeTimeoutSeconds": 30,
+    "maximumExtraHostiles": 4,
+    "defaultDecision": "Decline",
+    "blocksPrimaryPath": false,
+    "rewardMultiplier": 1
+  }
+}

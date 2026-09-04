@@ -684,25 +684,34 @@ def native_completion(log_text: str, test_count: int) -> tuple[str, int]:
     completed = list(re.finditer(r"\*\*\*\* TEST COMPLETE\. EXIT CODE: (-?\d+) \*\*\*\*", log_text))
     queue = list(re.finditer(r"LogAutomationCommandLine: Display: \.\.\.Automation Test Queue Empty (\d+) tests performed\.", log_text))
     test_exit = list(re.finditer(r"LogExit: Display: \*\*\*\* TestExit: Automation Test Queue Empty \*\*\*\*", log_text))
-    exits = list(re.finditer(r"LogWindows: FPlatformMisc::RequestExitWithStatus\(([01]), (-?\d+), ([^)\r\n]+)\)", log_text))
+    windows_exits = list(re.finditer(r"LogWindows: FPlatformMisc::RequestExitWithStatus\(([01]), (-?\d+), ([^)\r\n]+)\)", log_text))
+    mac_exits = list(re.finditer(r"LogMac: FPlatformMisc::RequestExit\(([01]), ([^)\r\n]+)\)", log_text))
+    exits = sorted([("windows", match) for match in windows_exits] +
+                   [("mac", match) for match in mac_exits], key=lambda item: item[1].start())
     require(log_text.count("TEST COMPLETE. EXIT CODE:") == len(completed) and
-            log_text.count("LogWindows: FPlatformMisc::RequestExitWithStatus(") == len(exits) and
-            all(match.group(2) == "0" for match in exits),
+            log_text.count("LogWindows: FPlatformMisc::RequestExitWithStatus(") == len(windows_exits) and
+            log_text.count("LogMac: FPlatformMisc::RequestExit(") == len(mac_exits) and
+            all((platform == "windows" and match.group(2) == "0") or
+                (platform == "mac" and match.group(1) == "1")
+                for platform, match in exits),
             "NATIVE_COMPLETION_CONFLICT", "malformed or nonzero native exit marker")
     queue_markers = log_text.count("LogAutomationCommandLine: Display: ...Automation Test Queue Empty")
     test_exit_markers = log_text.count("LogExit: Display: **** TestExit:")
     if completed:
         require(len(completed) == 1 and completed[0].group(1) == "0" and
                 queue_markers == test_exit_markers == 0 and len(exits) <= 1 and
-                (not exits or completed[0].end() < exits[0].start()),
+                (not exits or completed[0].end() < exits[0][1].start()),
                 "NATIVE_COMPLETION_CONFLICT", "duplicate, conflicting or reordered explicit completion markers")
         return "ExplicitTestComplete", completed[0].start()
     require(queue_markers == len(queue) == test_exit_markers == len(test_exit) == len(exits) == 1,
             "NATIVE_COMPLETION_MISSING", "no-Quit completion needs one queue count, TestExit marker and exit request")
     require(int(queue[0].group(1)) == test_count,
             "NATIVE_COMPLETION_COUNT_MISMATCH", "queue performed-test count differs from report/discovery")
-    require(exits[0].groups() == ("1", "0", "FEngineLoop::Tick.GScopedTestExit") and
-            queue[0].end() < test_exit[0].start() and test_exit[0].end() < exits[0].start(),
+    platform, exit_match = exits[0]
+    valid_exit = ((platform == "windows" and exit_match.groups() == ("1", "0", "FEngineLoop::Tick.GScopedTestExit")) or
+                  (platform == "mac" and exit_match.groups() == ("1", "FEngineLoop::Tick.GScopedTestExit")))
+    require(valid_exit and
+            queue[0].end() < test_exit[0].start() and test_exit[0].end() < exits[0][1].start(),
             "NATIVE_COMPLETION_CONFLICT", "no-Quit completion has a conflicting call site or reordered handshake")
     return "QueueEmptyTestExit", queue[0].start()
 
@@ -790,8 +799,150 @@ def native(index: Path, log: Path, exit_code: int, started_at: str, namespace: s
     return report.finish()
 
 
+def validate_playtest(record: dict, expected_binding: dict) -> dict:
+    """Validate real Day 59 observations; fixtures exercise handling, not player outcomes."""
+    required = set(BINDING) | {"schemaVersion", "producer", "evidenceClass", "createdAtUtc", "participants", "sessions", "offers", "privacy"}
+    obj(record, "playtest", required, required)
+    require(record["schemaVersion"] == 1, "PLAYTEST_SCHEMA_INVALID", "playtest schemaVersion must be 1")
+    require(record["producer"] == "AuraConsentedPlaytestImporter" and record["evidenceClass"] == "HUMAN_OBSERVATION",
+            "PLAYTEST_PROVENANCE_INVALID", "typed human observation provenance required")
+    utc(record["createdAtUtc"], "createdAtUtc")
+    for key in BINDING:
+        require(record[key] == expected_binding[key], "BINDING_MISMATCH", f"playtest {key} mismatch")
+    privacy = obj(record["privacy"], "privacy", {"containsRawIdentity", "containsVoice", "containsVideo", "videoConsent"},
+                  {"containsRawIdentity", "containsVoice", "containsVideo", "videoConsent"})
+    require(not privacy["containsRawIdentity"] and not privacy["containsVoice"] and
+            (not privacy["containsVideo"] or privacy["videoConsent"] is True),
+            "PLAYTEST_PRIVACY_INVALID", "raw identity/voice or unconsented video is forbidden")
+    participants = record["participants"]
+    require(type(participants) is list and len(participants) == 6, "PLAYTEST_COHORT_INCOMPLETE", "exactly six initial participants required",)
+    ids, initial_sessions, consent_receipts, clarity, enjoyment, replay = set(), set(), set(), 0, [], 0
+    participant_fields = {"participantId", "consent", "priorExposure", "initialSessionId", "objectiveSeconds",
+                          "augmentUnaided", "resupplyUnaided", "enjoyment", "voluntaryReplay",
+                          "decisionAtUtc", "scheduledAtUtc", "decisionSequence", "taskSequence", "consentRecordSha256"}
+    for index, participant in enumerate(participants):
+        obj(participant, f"participants[{index}]", participant_fields, participant_fields)
+        pid = string(participant["participantId"], "participantId")
+        require(pid not in ids, "PLAYTEST_DUPLICATE_PARTICIPANT", "duplicate participant")
+        ids.add(pid); initial_sessions.add(string(participant["initialSessionId"], "initialSessionId"))
+        require(participant["consent"] is True and participant["priorExposure"] is False,
+                "PLAYTEST_COHORT_NOT_FRESH", "consent and no prior gameplay exposure required")
+        receipt=sha(participant["consentRecordSha256"], "consentRecordSha256")
+        require(receipt not in consent_receipts,"PLAYTEST_DUPLICATE_CONSENT","each participant needs a distinct consent record");consent_receipts.add(receipt)
+        seconds = number(participant["objectiveSeconds"], "objectiveSeconds")
+        score = integer(participant["enjoyment"], "enjoyment", 1)
+        require(score <= 5, "PLAYTEST_SCORE_INVALID", "enjoyment must be 1..5")
+        decision, scheduled = utc(participant["decisionAtUtc"], "decisionAtUtc"), utc(participant["scheduledAtUtc"], "scheduledAtUtc")
+        require(decision < scheduled, "PLAYTEST_REPLAY_COERCED", "voluntary decision must precede scheduled tasks")
+        require(integer(participant["decisionSequence"], "decisionSequence", 1) < integer(participant["taskSequence"], "taskSequence", 1),
+                "PLAYTEST_REPLAY_COERCED", "server ingestion sequence must place decision before scheduled task")
+        clarity += int(seconds <= 60 and participant["augmentUnaided"] is True and participant["resupplyUnaided"] is True)
+        enjoyment.append(score); replay += int(participant["voluntaryReplay"] is True)
+    sessions = record["sessions"]
+    require(type(sessions) is list and len(sessions) == 24, "PLAYTEST_SESSIONS_INCOMPLETE", "exactly 24 player-sessions required")
+    session_ids, counts = set(), {pid: 0 for pid in ids}
+    session_fields = {"sessionId", "participantId", "role", "kind", "contentManifestSha256"}
+    for index, session in enumerate(sessions):
+        obj(session, f"sessions[{index}]", session_fields, session_fields)
+        sid, pid = string(session["sessionId"], "sessionId"), session["participantId"]
+        require(sid not in session_ids and pid in counts, "PLAYTEST_SESSION_INVALID", "duplicate session or unknown participant")
+        require(session["role"] in ("Aura", "BungeeMan") and session["kind"] in ("Initial", "SecondRole", "ComparisonA", "ComparisonB"),
+                "PLAYTEST_SESSION_INVALID", "invalid role/session kind")
+        require(session["contentManifestSha256"] == expected_binding["contentManifestSha256"], "BINDING_MISMATCH", "session content mismatch")
+        session_ids.add(sid); counts[pid] += 1
+    require(all(count == 4 for count in counts.values()) and initial_sessions <= session_ids,
+            "PLAYTEST_SESSIONS_INCOMPLETE", "each participant needs four distinct sessions")
+    offers = record["offers"]
+    require(type(offers) is list, "PLAYTEST_OFFERS_INVALID", "offers must be array")
+    eligible = [row for row in offers if type(row) is dict and row.get("eligible") is True]
+    require(len(eligible) >= 10 and all(type(row.get("offerId")) is str and row["offerId"] for row in eligible),
+            "PLAYTEST_OFFER_DENOMINATOR", "at least ten comparable eligible offers with IDs required")
+    enjoyment.sort(); median = (enjoyment[2] + enjoyment[3]) / 2
+    status = "PASS" if clarity >= 5 and median >= 4 and replay >= 4 else "NEEDS_ITERATION"
+    return {"status": status, "participants": 6, "playerSessions": 24, "clarityPasses": clarity,
+            "enjoymentMedian": median, "voluntaryReplayCount": replay, "eligibleOfferCount": len(eligible)}
+
+
+def validate_performance_record(record: dict, expected_binding: dict) -> None:
+    fields = set(BINDING) | {"schemaVersion", "status", "candidateIdentity", "baselineIdentity", "rendered",
+                            "traceSha256", "hardwareFingerprint", "settingsFingerprint", "cycles", "memoryGrowthPercent",
+                            "actorCountBefore", "actorCountAfter", "timerCountBefore", "timerCountAfter",
+                            "producer", "evidenceClass", "createdAtUtc", "samples"}
+    obj(record, "performance", fields, fields)
+    for key in BINDING: require(record[key] == expected_binding[key], "BINDING_MISMATCH", f"performance {key} mismatch")
+    require(record["schemaVersion"] == 1 and record["status"] == "PASS", "PERFORMANCE_NOT_PASS", "performance status must pass")
+    require(record["producer"] == "AuraPerformanceRunner" and record["evidenceClass"] == "RUNTIME_RENDERED",
+            "PERFORMANCE_PROVENANCE_INVALID", "typed runtime performance provenance required")
+    utc(record["createdAtUtc"], "createdAtUtc")
+    require(record["candidateIdentity"] == expected_binding["packageSha256"] and record["baselineIdentity"] != record["candidateIdentity"],
+            "PERFORMANCE_IDENTITY_INVALID", "candidate/baseline identities must be exact and distinct")
+    require(record["rendered"] is True and SHA.fullmatch(record["traceSha256"] or "") and
+            string(record["hardwareFingerprint"], "hardwareFingerprint") and string(record["settingsFingerprint"], "settingsFingerprint"),
+            "PERFORMANCE_EVIDENCE_MISSING", "rendered trace/hardware/settings required")
+    require(integer(record["cycles"], "cycles") >= 10 and number(record["memoryGrowthPercent"], "memoryGrowthPercent") <= 5 and
+            record["actorCountBefore"] == record["actorCountAfter"] and record["timerCountBefore"] == record["timerCountAfter"],
+            "PERFORMANCE_CLEANUP_INVALID", "performance cleanup/cycles invalid")
+    samples = record["samples"]
+    required_sample = {"runId","executableSha256","packageSha256","map","scenario","rhi","resolution","quality","rendered","warmupSeconds","sampleSeconds","traceSha256"}
+    require(type(samples) is list and len(samples) == 3, "PERFORMANCE_SAMPLES_INCOMPLETE", "exactly three measured repeats required")
+    run_ids=set()
+    for index,sample in enumerate(samples):
+        obj(sample,f"samples[{index}]",required_sample,required_sample)
+        rid=validate_run_id(sample["runId"]);require(rid not in run_ids,"PERFORMANCE_SAMPLES_INCOMPLETE","repeat run IDs must be unique");run_ids.add(rid)
+        require(SHA.fullmatch(sample["executableSha256"] or "") and sample["packageSha256"]==expected_binding["packageSha256"] and
+                sample["map"]=="GameplayExpansion" and sample["scenario"]=="BusyCombat" and sample["rhi"]!="NullRHI" and
+                sample["resolution"]==[1920,1080] and sample["quality"]=="Medium" and sample["rendered"] is True and
+                integer(sample["warmupSeconds"],"warmupSeconds")>=300 and integer(sample["sampleSeconds"],"sampleSeconds")>=600 and
+                SHA.fullmatch(sample["traceSha256"] or ""), "PERFORMANCE_SAMPLE_INVALID", f"samples[{index}] is not comparable rendered evidence")
+
+
+def finalize_gameplay_candidate(bundle: dict, output: Path) -> dict:
+    fields = set(BINDING) | {"schemaVersion", "cleanSource", "technicalStatus", "playtest", "performance",
+                            "secondAuthorStatus", "nativeGroups", "standardRows", "mutatorRows", "lifecycleLanes",
+                            "legacyLanes", "soakCycles", "openP0P1", "externalProviderStatus", "inputManifestSha256", "validatorVersion"}
+    obj(bundle, "final bundle", fields, fields)
+    expected = {key: bundle[key] for key in BINDING}
+    canonical = {key:value for key,value in bundle.items() if key != "inputManifestSha256"}
+    canonical_sha = digest(json.dumps(canonical,sort_keys=True,separators=(",",":"),ensure_ascii=True,allow_nan=False).encode())
+    for key in BINDING: string(bundle[key], key)
+    require(bundle["schemaVersion"] == 1 and bundle["cleanSource"] is True and bundle["technicalStatus"] == "PASS",
+            "TECHNICAL_GATE_FAILED", "clean passing technical evidence required")
+    require(bundle["openP0P1"] == 0 and bundle["secondAuthorStatus"] == "PASS", "LOCAL_GATE_FAILED", "P0/P1 and second-author gates must pass")
+    groups = bundle["nativeGroups"]
+    require(type(groups) is dict and set(groups) == {f"Day{day}" for day in range(42,60)} and
+            all(type(v) is list and bool(v) and len(v)==len(set(v)) and all(name.startswith(f"Aura.Gameplay.{day}.") for name in v) for day,v in groups.items()),
+            "NATIVE_GROUPS_INCOMPLETE", "every Day42..Day59 native group must be nonempty")
+    def exact_rows(value, count, code):
+        require(type(value) is list and len(value) == count and len(set(value)) == count, code, f"expected {count} unique rows")
+    expected_standard={f"{template}|{layout}|{lane}" for template in ("Assault","RescueRelay","Sabotage") for layout in ("arrangement_a","arrangement_b") for lane in LANES}
+    expected_mutators={f"{template}|{layout}|{mutator}" for template in ("Assault","RescueRelay","Sabotage") for layout in ("arrangement_a","arrangement_b") for mutator in ("RestlessPatrols","VolatileVents")}
+    exact_rows(bundle["standardRows"], 54, "STANDARD_MATRIX_INCOMPLETE");require(set(bundle["standardRows"])==expected_standard,"STANDARD_MATRIX_INCOMPLETE","standard Cartesian matrix mismatch")
+    exact_rows(bundle["mutatorRows"], 12, "MUTATOR_MATRIX_INCOMPLETE");require(set(bundle["mutatorRows"])==expected_mutators,"MUTATOR_MATRIX_INCOMPLETE","mutator Cartesian matrix mismatch")
+    exact_rows(bundle["lifecycleLanes"], 9, "LIFECYCLE_LANES_INCOMPLETE");require(set(bundle["lifecycleLanes"])==set(LANES),"LIFECYCLE_LANES_INCOMPLETE","lifecycle identities mismatch")
+    exact_rows(bundle["legacyLanes"], 4, "LEGACY_LANES_INCOMPLETE");require(set(bundle["legacyLanes"])==set(OLD_LANES),"LEGACY_LANES_INCOMPLETE","legacy identities mismatch")
+    cycles = bundle["soakCycles"]
+    require(type(cycles) is list and len(cycles) == 30 and len({row["cycleId"] for row in cycles if type(row) is dict and "cycleId" in row}) == 30,
+            "SOAK_CYCLES_INCOMPLETE", "thirty unique soak cycles required")
+    require({family: sum(1 for row in cycles if row.get("family") == family) for family in ("Solo","Listen","Dedicated")} == {"Solo":10,"Listen":10,"Dedicated":10}
+            and all(row.get("orphanGrowth") == 0 and row.get("rewardDuplicates") == 0 and row.get("packageSha256")==expected["packageSha256"] for row in cycles),
+            "SOAK_CLEANUP_INVALID", "each topology needs ten clean cycles")
+    playtest = validate_playtest(bundle["playtest"], expected)
+    if playtest["status"] != "PASS":
+        raise EvidenceError("USABILITY_GATE_FAILED", "playtest thresholds not met", "NEEDS_ITERATION")
+    validate_performance_record(bundle["performance"], expected)
+    require(bundle["externalProviderStatus"] in ("PASS", "BLOCKED"), "EXTERNAL_GATE_INVALID", "external status must be independent")
+    require(bundle["inputManifestSha256"] == canonical_sha and bundle["validatorVersion"] == "gameplay-finalizer-v1",
+            "INPUT_MANIFEST_MISMATCH", "canonical finalizer input manifest mismatch")
+    result = {**expected, "schemaVersion": 1, "status": "PASS", "localGameplay": "PASS",
+              "technical": "PASS", "usability": "PASS", "performance": "PASS",
+              "externalProvider": bundle["externalProviderStatus"], "inputManifestSha256":canonical_sha,
+              "writeMode":"EXCLUSIVE_CREATE", "immutabilityScope":"PATH_CREATION_ONLY"}
+    write_result(output, result, [])
+    return result
+
+
 def result_exit(result: dict) -> int:
-    return {"PASS": 0, "FAIL": 1, "BLOCKED": 2, "DIAGNOSTIC": 2, "TIMEOUT": 3, "CLEANUP_FAILURE": 3}[result["status"]]
+    return {"PASS": 0, "FAIL": 1, "BLOCKED": 2, "NEEDS_ITERATION": 2, "DIAGNOSTIC": 2, "TIMEOUT": 3, "CLEANUP_FAILURE": 3}[result["status"]]
 
 
 def write_result(path: Path, result: dict, protected: list[Path]) -> None:
@@ -821,6 +972,13 @@ def main(argv: list[str] | None = None) -> int:
     native_parser.add_argument("--namespace", default="Aura.RoleBattle.")
     native_parser.add_argument("--report-root", type=Path)
     native_parser.add_argument("--output", type=Path, required=True)
+    playtest_parser = commands.add_parser("playtest")
+    playtest_parser.add_argument("--record", type=Path, required=True)
+    playtest_parser.add_argument("--binding", type=Path, required=True)
+    playtest_parser.add_argument("--output", type=Path, required=True)
+    finalize_parser = commands.add_parser("finalize")
+    finalize_parser.add_argument("--bundle", type=Path, required=True)
+    finalize_parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     protected = []
     try:
@@ -829,14 +987,28 @@ def main(argv: list[str] | None = None) -> int:
             if args.baseline_evidence:
                 protected.append(args.baseline_evidence)
             result = audit(args.repo_root, args.scope, args.baseline_evidence, args.evidence_root, args.package_root)
-        else:
+        elif args.command == "native":
             protected = [args.index, args.log]
             result = native(args.index, args.log, args.exit_code, args.started_at, args.namespace, args.report_root)
+        elif args.command == "playtest":
+            protected = [args.record, args.binding]
+            record = strict_json(file_bytes(args.record), "playtest record")
+            binding = strict_json(file_bytes(args.binding), "expected binding")
+            result = {"schemaVersion": 1, "command": "playtest", **validate_playtest(record, binding),
+                      "reasonCode": "PLAYTEST_VALIDATED", "runtimeEntry": "BLOCKED_RUNTIME_ENTRY"}
+        else:
+            bundle = strict_json(file_bytes(args.bundle), "final bundle")
+            result = finalize_gameplay_candidate(bundle, args.output)
+            print(json.dumps({"status": result["status"], "localGameplay": result["localGameplay"], "output": str(args.output)}))
+            return 0
     except (EvidenceError, OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
         failure_status = getattr(exc, "status", "FAIL")
         result = {"schemaVersion": 1, "command": args.command, "status": failure_status, "evidenceStatus": failure_status,
                   "toolingStatus": "NOT_RUN", "runtimeEntry": "BLOCKED_RUNTIME_ENTRY", "checks": [],
                   "capabilities": dict(CAPABILITIES), "reasonCode": getattr(exc, "code", "AUDIT_ERROR"), "message": str(exc)}
+    if args.command == "finalize":
+        print(json.dumps(result, indent=2, ensure_ascii=True, allow_nan=False), file=sys.stderr)
+        return result_exit(result)
     if args.output is None:
         print(json.dumps(result, indent=2, ensure_ascii=True, allow_nan=False))
         return result_exit(result)

@@ -9,6 +9,8 @@ readonly ENGINE_ASSOC="$(get_engine_association)"
 readonly ENGINE_ROOT="$(resolve_engine_root "${ENGINE_ASSOC}")"
 readonly BUILD_SCRIPT="$(unreal_build_script "${ENGINE_ROOT}")"
 
+ensure_editor_engine_stubs "${ENGINE_ROOT}"
+
 echo "Project: ${UPROJECT_PATH}"
 echo "Engine:  ${ENGINE_ROOT}"
 echo "Target:  AuraEditor (Mac Development)"

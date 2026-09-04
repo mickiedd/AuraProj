@@ -1,8 +1,10 @@
 # Day 55 — Replay Assembly and Mutators
 
-Status: Planned; not implemented by this planning job.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
 Depends on: Day 54 complete loop; Days 47/49/50 builds, layouts and pacing.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds deterministic isolated RNG streams, assembly compatibility/consent/matrix rules, closed mutator definitions and all six named native contract cases. Production preparation UI, registries, packaged 66-row execution and participant comparison remain open.
 
 ## Player outcome
 

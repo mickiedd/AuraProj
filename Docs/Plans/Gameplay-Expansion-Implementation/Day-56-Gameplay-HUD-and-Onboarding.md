@@ -1,8 +1,10 @@
 # Day 56 — Gameplay HUD and Onboarding
 
-Status: Planned; not implemented by this planning job.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
 Depends on: Day 55 full gameplay loop; per-feature HUD already exists from earlier days.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds revision, owner-privacy, guidance, ping, focus and layout contract reducers, closed guidance definitions and all seven named native cases. Production widget/WebUI wiring, save merge, rendered captures and first-use observation remain open.
 
 ## Player outcome
 

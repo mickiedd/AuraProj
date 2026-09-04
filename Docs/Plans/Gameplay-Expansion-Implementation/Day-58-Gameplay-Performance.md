@@ -1,6 +1,6 @@
 # Day 58 — Gameplay Performance
 
-Status: Planned; not implemented by this planning job.  
+Status: Evidence schema, budgets, fail-closed validator, and native contract tests implemented. Full sign-off remains BLOCKED until real rendered baseline/candidate traces meet the frozen budgets.
 Depends on: Day 57 passing staged technical inventory; Day 41 recorded reference hardware/settings; Day 55 full gameplay matrix. Day 57's unavailable second-author row remains an open final usability gate, not a substitute for or blocker to technical profiling.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
 

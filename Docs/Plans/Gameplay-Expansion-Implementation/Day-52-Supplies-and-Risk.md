@@ -1,8 +1,10 @@
 # Day 52 — Supplies and Optional Risk
 
-Status: Planned; not implemented by this planning job.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
 Depends on: Day 51 recovery, Day 48 interactions, Day 47 augments and Day 42 run inventory isolation.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds run-only supply/cache/hazard reducers, closed definitions and all nine named native contract cases. Production actors, ASC damage application, mission snapshots, HUD and packaged play remain unwired behind inherited gates.
 
 ## Player outcome
 

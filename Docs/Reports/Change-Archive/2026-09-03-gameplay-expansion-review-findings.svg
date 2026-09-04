@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="980" viewBox="0 0 1500 980" role="img" aria-labelledby="title desc">
+  <title id="title">Gameplay Expansion Days 42–47A all-changes review</title>
+  <desc id="desc">A review flow showing the reviewed scope, confirmed contract findings, validation evidence, handoff result, and durable documentation.</desc>
+  <defs>
+    <style>
+      .bg{fill:#0b1220}.panel{fill:#111c2e;stroke:#4b6485;stroke-width:2}.panel2{fill:#15243a;stroke:#6e8db5;stroke-width:2}.p1{fill:#3a1d2a;stroke:#e47d9e;stroke-width:2}.p2{fill:#342b1b;stroke:#e6b85c;stroke-width:2}.ok{fill:#123328;stroke:#55c99a;stroke-width:2}.blocked{fill:#2a2636;stroke:#b9a7e8;stroke-width:2}.text{fill:#ecf3ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.muted{fill:#aabbd2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.head{font-size:25px;font-weight:700}.sub{font-size:16px}.body{font-size:15px}.small{font-size:13px}.arrow{stroke:#8fb7e8;stroke-width:3;fill:none;marker-end:url(#arrowhead)}.rule{stroke:#425c80;stroke-width:1}
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#8fb7e8"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1500" height="980"/>
+  <text class="text head" x="56" y="58">All-changes review · Gameplay Expansion Days 42–47A</text>
+  <text class="muted sub" x="56" y="88">2026-09-03 · source unchanged · contract review recorded for follow-up</text>
+
+  <rect class="panel" x="45" y="125" width="330" height="645" rx="16"/>
+  <text class="text head" x="70" y="168">Reviewed scope</text>
+  <text class="muted sub" x="70" y="196">Current worktree, tracked + untracked</text>
+  <line class="rule" x1="70" y1="214" x2="350" y2="214"/>
+  <text class="text body" x="70" y="250">Mission + encounter ownership</text>
+  <text class="muted small" x="70" y="274">cell deaths, leases, generations, replay</text>
+  <text class="text body" x="70" y="318">Counterplay contracts</text>
+  <text class="muted small" x="70" y="342">attack timeline, evasion, deadlines</text>
+  <text class="text body" x="70" y="386">Day 46 / 47A harnesses</text>
+  <text class="muted small" x="70" y="410">status, offer boundary, owner snapshot</text>
+  <text class="text body" x="70" y="454">Definitions + launcher</text>
+  <text class="muted small" x="70" y="478">JSON registry, macOS stubs, queue parser</text>
+  <text class="text body" x="70" y="522">Unreal assets + archive</text>
+  <text class="muted small" x="70" y="546">Login/material/cue packages, dated records</text>
+  <rect class="blocked" x="70" y="594" width="280" height="132" rx="12"/>
+  <text class="text body" x="90" y="628">Runtime posture</text>
+  <text class="muted small" x="90" y="654">Inert and fail-closed by design.</text>
+  <text class="muted small" x="90" y="678">Findings are future-wiring blockers,</text>
+  <text class="muted small" x="90" y="700">not observed live-player regressions.</text>
+
+  <path class="arrow" d="M375 445 C420 445 420 300 465 300"/>
+  <path class="arrow" d="M375 520 C420 520 420 650 465 650"/>
+
+  <rect class="p1" x="465" y="125" width="505" height="420" rx="16"/>
+  <text class="text head" x="490" y="168">Confirmed P1 contract blockers</text>
+  <text class="text body" x="490" y="214">1 · Mission death generation is not authority-bound</text>
+  <text class="muted small" x="510" y="238">stale receipts can advance the current cell</text>
+  <text class="text body" x="490" y="282">2 · Encounter death is not source-life terminal</text>
+  <text class="muted small" x="510" y="306">new death sequences can count the same slot again</text>
+  <text class="text body" x="490" y="350">3 · Heavy replay key lacks attack instance sequence</text>
+  <text class="muted small" x="510" y="374">repeated definition IDs can collide after release</text>
+  <text class="text body" x="490" y="418">4 · Mission snapshot ordering ignores new RunId</text>
+  <text class="muted small" x="510" y="442">reused state actor can reject a fresh run baseline</text>
+  <line class="rule" x1="490" y1="470" x2="945" y2="470"/>
+  <text class="muted small" x="490" y="500">Required next step: add identity, terminal-state, and retry regressions.</text>
+
+  <rect class="p2" x="465" y="580" width="505" height="350" rx="16"/>
+  <text class="text head" x="490" y="623">Confirmed P2 gaps</text>
+  <text class="text body" x="490" y="665">Attack timeout · evade window · open offer overwrite</text>
+  <text class="muted small" x="510" y="689">late callbacks and out-of-window movement are not bounded</text>
+  <text class="text body" x="490" y="733">Definition provenance</text>
+  <text class="muted small" x="510" y="757">shared revision is not checked; hash remains empty</text>
+  <text class="text body" x="490" y="801">Archive index drift</text>
+  <text class="muted small" x="510" y="825">README omits the newer same-day job records</text>
+  <line class="rule" x1="490" y1="850" x2="945" y2="850"/>
+  <text class="muted small" x="490" y="880">Required next step: enforce time/provenance guards and update index.</text>
+
+  <path class="arrow" d="M970 335 C1018 335 1018 260 1060 260"/>
+  <path class="arrow" d="M970 748 C1018 748 1018 610 1060 610"/>
+
+  <rect class="ok" x="1060" y="125" width="390" height="315" rx="16"/>
+  <text class="text head" x="1085" y="168">Validation passed</text>
+  <text class="text body" x="1085" y="214">Native UE null-RHI</text>
+  <text class="muted small" x="1105" y="238">33/33 success · 0 warnings · 0 failures</text>
+  <text class="text body" x="1085" y="282">Offline contracts</text>
+  <text class="muted small" x="1105" y="306">4/4 · 11/11 · 4/4 · 4/4</text>
+  <text class="text body" x="1085" y="350">Tooling and archive checks</text>
+  <text class="muted small" x="1105" y="374">parser, syntax, JSON, SVG/XML, links, diff</text>
+  <text class="muted small" x="1085" y="414">Green tests do not cover the findings above.</text>
+
+  <rect class="blocked" x="1060" y="485" width="390" height="180" rx="16"/>
+  <text class="text head" x="1085" y="528">Handoff status</text>
+  <text class="text body" x="1085" y="574">Retry attempted through ChatGPT handoff skill.</text>
+  <text class="muted small" x="1105" y="600">Consultation depends on Mac unlock state.</text>
+  <text class="muted small" x="1105" y="624">Local fallback remains the checked evidence.</text>
+
+  <rect class="panel2" x="1060" y="710" width="390" height="220" rx="16"/>
+  <text class="text head" x="1085" y="753">Durable record</text>
+  <text class="text body" x="1085" y="797">Review findings Markdown</text>
+  <text class="muted small" x="1105" y="821">line-linked findings and validation evidence</text>
+  <text class="text body" x="1085" y="861">Matching SVG + memory index</text>
+  <text class="muted small" x="1105" y="885">archive is searchable and linked from README</text>
+  <text class="muted small" x="1085" y="913">Decision: conditional approval; fix P1s first.</text>
+</svg>

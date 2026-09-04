@@ -15,7 +15,7 @@
 
 namespace
 {
-	FGameplayTag CrunchTag(const TCHAR* Name)
+	FGameplayTag CrunchUppercutTag(const TCHAR* Name)
 	{
 		return FGameplayTag::RequestGameplayTag(FName(Name), false);
 	}
@@ -24,12 +24,12 @@ namespace
 UAuraCrunchUppercut::UAuraCrunchUppercut()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(CrunchTag(TEXT("Abilities.Melee.CrunchUppercut")));
+	AssetTags.AddTag(CrunchUppercutTag(TEXT("Abilities.Melee.CrunchUppercut")));
 	SetAssetTags(AssetTags);
-	BlockAbilitiesWithTag.AddTag(CrunchTag(TEXT("Abilities.Melee.CrunchCombo")));
+	BlockAbilitiesWithTag.AddTag(CrunchUppercutTag(TEXT("Abilities.Melee.CrunchCombo")));
 	StartupInputTag = FGameplayTag::RequestGameplayTag(FName(TEXT("InputTag.1")), false);
 	CrunchStartupInputTagName = FName(TEXT("InputTag.1"));
-	CrunchCooldownTag = CrunchTag(TEXT("Cooldown.Melee.CrunchUppercut"));
+	CrunchCooldownTag = CrunchUppercutTag(TEXT("Cooldown.Melee.CrunchUppercut"));
 	CrunchManaCost = 0.f; // Source GE custom magnitudes are not exposed by public reflection.
 	CrunchCooldown = 0.f;
 	DefaultCrunchDamage = 35.f;
@@ -73,9 +73,9 @@ void UAuraCrunchUppercut::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
 	{
 		LaunchEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-			this, CrunchTag(TEXT("Ability.Uppercut.Launch")), nullptr, false, false);
+			this, CrunchUppercutTag(TEXT("Ability.Uppercut.Launch")), nullptr, false, false);
 		DamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-			this, CrunchTag(TEXT("Ability.Generic.Damage")), nullptr, false, false);
+			this, CrunchUppercutTag(TEXT("Ability.Generic.Damage")), nullptr, false, false);
 		if (LaunchEventTask)
 		{
 			LaunchEventTask->EventReceived.AddDynamic(this, &UAuraCrunchUppercut::HandleLaunchEvent);

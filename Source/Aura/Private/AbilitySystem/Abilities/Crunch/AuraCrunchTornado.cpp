@@ -11,7 +11,7 @@
 
 namespace
 {
-	FGameplayTag CrunchTag(const TCHAR* Name)
+	FGameplayTag CrunchTornadoTag(const TCHAR* Name)
 	{
 		return FGameplayTag::RequestGameplayTag(FName(Name), false);
 	}
@@ -20,11 +20,11 @@ namespace
 UAuraCrunchTornado::UAuraCrunchTornado()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(CrunchTag(TEXT("Abilities.Melee.CrunchTornado")));
+	AssetTags.AddTag(CrunchTornadoTag(TEXT("Abilities.Melee.CrunchTornado")));
 	SetAssetTags(AssetTags);
 	StartupInputTag = FGameplayTag::RequestGameplayTag(FName(TEXT("InputTag.4")), false);
 	CrunchStartupInputTagName = FName(TEXT("InputTag.4"));
-	CrunchCooldownTag = CrunchTag(TEXT("Cooldown.Melee.CrunchTornado"));
+	CrunchCooldownTag = CrunchTornadoTag(TEXT("Cooldown.Melee.CrunchTornado"));
 	CrunchManaCost = 0.f;
 	CrunchCooldown = 0.f;
 	DefaultCrunchDamage = 20.f;
@@ -55,7 +55,7 @@ void UAuraCrunchTornado::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		}
 	}
 	DamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, CrunchTag(TEXT("Ability.Generic.Damage")), nullptr, false, false);
+		this, CrunchTornadoTag(TEXT("Ability.Generic.Damage")), nullptr, false, false);
 	if (DamageEventTask)
 	{
 		DamageEventTask->EventReceived.AddDynamic(this, &UAuraCrunchTornado::HandleAuthoredDamageEvent);

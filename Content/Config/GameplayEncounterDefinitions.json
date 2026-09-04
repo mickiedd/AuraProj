@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-foundation-v1",
+  "policy": {
+    "maxConcurrentHeavyAttacks": 2,
+    "maxHeavyTokensPerParticipant": 2,
+    "heavyCoverageRangeUnits": 600.0,
+    "maxDisruptors": 2,
+    "supportFieldOwnershipPolicy": "LowestLiveSourceLease"
+  },
+  "encounters": [
+    {"id": "assault_cell_1", "archetypeId": "Raider", "spawnCount": 3, "layoutAnchorId": "survey_required_cell_a_1"},
+    {"id": "assault_cell_2", "archetypeId": "Lancer", "spawnCount": 3, "layoutAnchorId": "survey_required_cell_a_2"},
+    {"id": "rescue_cell_1", "archetypeId": "Raider", "spawnCount": 3, "layoutAnchorId": "survey_required_cell_a_1"},
+    {"id": "rescue_cell_2", "archetypeId": "Disruptor", "spawnCount": 3, "layoutAnchorId": "survey_required_cell_a_2"},
+    {"id": "sabotage_cell_1", "archetypeId": "Bulwark", "spawnCount": 3, "layoutAnchorId": "survey_required_cell_a_1"},
+    {"id": "sabotage_cell_2", "archetypeId": "Disruptor", "spawnCount": 3, "layoutAnchorId": "survey_required_cell_a_2"}
+  ]
+}

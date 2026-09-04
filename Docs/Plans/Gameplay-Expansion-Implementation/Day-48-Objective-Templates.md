@@ -1,8 +1,10 @@
 # Day 48 — Objective Templates
 
-Status: Planned; not implemented by this planning job.  
-Depends on: Day 43 encounter membership/two-cell sequence, Day 47 boundary choices, and Day 44/46 ordered interaction cancellation.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
+Depends on: Day 43 encounter membership/two-cell sequence, Day 47 boundary choices, and Day 44/46 ordered interaction cancellation.
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds the authority-only `FAuraObjectiveRunState` reducer, the closed objective-definition fixture, and all seven named native Day 48 contract cases. It deliberately does not wire production mission/runtime components, HUD, AI, or packaged play; the live Clear/Sabotage/Rescue completion gate below remains open.
 
 ## Player outcome
 

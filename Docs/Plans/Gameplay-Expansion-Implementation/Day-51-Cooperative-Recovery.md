@@ -1,8 +1,10 @@
 # Day 51 — Cooperative Recovery
 
-Status: Planned; not implemented by this planning job.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
 Depends on: Day 50 pacing/member state; existing Day 28 player recovery and Day 42 run isolation.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds an authority-only recovery transaction reducer, closed tuning values, and all nine named native contract cases. It does not wire the production death/respawn, possession, ASC, mission snapshot, beacon actor, HUD, save, or packaged-play paths; inherited runtime and evidence gates remain open.
 
 ## Player outcome
 

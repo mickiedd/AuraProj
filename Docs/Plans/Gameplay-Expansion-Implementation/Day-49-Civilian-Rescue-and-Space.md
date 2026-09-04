@@ -1,8 +1,10 @@
 # Day 49 — Civilian Rescue and Mission Space
 
-Status: Planned; not implemented by this planning job.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
 Depends on: Day 48 Escort reducer, Day 43 arrangement A, existing Civilian reservations/lifecycle.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds the authority-only escort reservation/run-state reducer, the closed escort definition fixture, and seven native contract tests. It deliberately does not add the production objective component, HUD/AI/RPC wiring, live route survey, or packaged gameplay evidence; those gates remain open until the required world and runtime seams are verified.
 
 ## Player outcome
 

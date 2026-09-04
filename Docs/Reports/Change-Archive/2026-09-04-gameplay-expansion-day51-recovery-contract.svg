@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="780" viewBox="0 0 1280 780" role="img" aria-labelledby="title desc">
+  <title id="title">Gameplay Expansion Day 51 cooperative recovery contract foundation</title>
+  <desc id="desc">Diagram showing the new inert recovery transaction, retained-state and wipe guards, tests, and production gates that remain closed.</desc>
+  <defs>
+    <style>
+      .bg{fill:#09111f}.panel{fill:#111d30;stroke:#344a66;stroke-width:2}.flow{fill:#102c2a;stroke:#38bda6;stroke-width:2}.closed{fill:#321d27;stroke:#d16d83;stroke-width:2}.test{fill:#172844;stroke:#62a8ff;stroke-width:2}.title{fill:#f4f7fb;font:700 30px system-ui,sans-serif}.head{fill:#dcecff;font:700 19px system-ui,sans-serif}.body{fill:#b8c7d9;font:15px system-ui,sans-serif}.good{fill:#75e0c1;font:700 16px system-ui,sans-serif}.warn{fill:#f1a3b3;font:700 16px system-ui,sans-serif}.arrow{stroke:#72a2d5;stroke-width:3;fill:none;marker-end:url(#tip)}
+    </style>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#72a2d5"/></marker>
+  </defs>
+  <rect class="bg" width="1280" height="780"/>
+  <text class="title" x="54" y="58">Day 51 · Cooperative recovery contract foundation</text>
+  <text class="body" x="54" y="87">Executable transaction rules, with production death/respawn and possession paths intentionally unchanged.</text>
+
+  <rect class="panel" x="54" y="125" rx="14" width="240" height="235"/>
+  <text class="head" x="78" y="162">Accepted death</text>
+  <text class="body" x="78" y="199">Death sequence deduped</text>
+  <text class="body" x="78" y="229">AwaitingRescue is run-local</text>
+  <text class="body" x="78" y="259">One deterministic beacon</text>
+  <text class="body" x="78" y="289">Legacy life enum unchanged</text>
+  <text class="good" x="78" y="329">No automatic team revive</text>
+  <path class="arrow" d="M309 242H361"/>
+
+  <rect class="flow" x="378" y="114" rx="14" width="470" height="258"/>
+  <text class="head" x="404" y="151">Atomic recovery transaction</text>
+  <text class="body" x="404" y="188">3 s channel → reserve one shared charge → receipt</text>
+  <text class="body" x="404" y="218">verify pawn + ASC + loadout attachment</text>
+  <text class="body" x="404" y="248">success → spend once → Alive at 35% HP / 50% mana</text>
+  <text class="body" x="404" y="278">failure → one retry after 1 s → release without spend</text>
+  <text class="body" x="404" y="308">retain ammo · augments · supplies · absolute cooldowns</text>
+  <text class="good" x="404" y="342">Concurrent completion reuses the same receipt</text>
+  <path class="arrow" d="M864 242H916"/>
+
+  <rect class="closed" x="934" y="125" rx="14" width="292" height="235"/>
+  <text class="head" x="958" y="162">Runtime stays closed</text>
+  <text class="body" x="958" y="199">• GameMode death adapter</text>
+  <text class="body" x="958" y="229">• Possession / ASC attachment</text>
+  <text class="body" x="958" y="259">• Beacon actor / HUD / RPC</text>
+  <text class="body" x="958" y="289">• Surveyed anchor / package</text>
+  <text class="warn" x="958" y="329">CONTRACT_ONLY · UNWIRED</text>
+
+  <rect class="test" x="54" y="414" rx="14" width="1172" height="300"/>
+  <text class="head" x="80" y="454">Disconnect, wipe, and validation guards</text>
+  <text class="body" x="80" y="493">Reconnect never heals or resurrects · repeated disconnect never extends the 60 s proxy lease</text>
+  <text class="body" x="80" y="523">Proxy death/expiry recomputes wipe · team wipe releases reservations and orphan beacons exactly once</text>
+  <text class="body" x="80" y="553">Solo: first death uses one checkpoint charge after 3 s · second death fails with zero charges</text>
+  <text class="good" x="80" y="596">AuraEditor build PASS · Aura.Gameplay 66/66 · Day 51 9/9 · offline Days 42–51 35/35</text>
+  <text class="body" x="80" y="636">Static guards: no production include · no global Downed enum · legacy RestartPlayer path retained</text>
+  <text class="body" x="80" y="676">Known unrelated constraint: Crunch Git-LFS pointer assets still emit startup load errors; payloads unchanged.</text>
+</svg>

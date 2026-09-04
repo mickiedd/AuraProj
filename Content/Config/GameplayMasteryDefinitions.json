@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-mastery-contract-v1",
+  "status": "CONTRACT_ONLY",
+  "runtimeWiring": "UNWIRED",
+  "guidanceSchemaVersion": 1,
+  "badges": ["first_assault_success", "first_rescuerelay_success", "first_sabotage_success"],
+  "durableAllowlist": ["Gold", "MasteryBadges", "GameplayGuidanceMask"],
+  "transientDenylist": ["RunSupplies", "RunAugments", "NormalizedAmmo"],
+  "legacyTutorialBitsUnchanged": true
+}

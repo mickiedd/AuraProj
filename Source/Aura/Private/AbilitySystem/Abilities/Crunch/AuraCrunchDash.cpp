@@ -12,7 +12,7 @@
 
 namespace
 {
-	FGameplayTag CrunchTag(const TCHAR* Name)
+	FGameplayTag CrunchDashTag(const TCHAR* Name)
 	{
 		return FGameplayTag::RequestGameplayTag(FName(Name), false);
 	}
@@ -21,11 +21,11 @@ namespace
 UAuraCrunchDash::UAuraCrunchDash()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(CrunchTag(TEXT("Abilities.Melee.CrunchDash")));
+	AssetTags.AddTag(CrunchDashTag(TEXT("Abilities.Melee.CrunchDash")));
 	SetAssetTags(AssetTags);
 	StartupInputTag = FGameplayTag::RequestGameplayTag(FName(TEXT("InputTag.2")), false);
 	CrunchStartupInputTagName = FName(TEXT("InputTag.2"));
-	CrunchCooldownTag = CrunchTag(TEXT("Cooldown.Melee.CrunchDash"));
+	CrunchCooldownTag = CrunchDashTag(TEXT("Cooldown.Melee.CrunchDash"));
 	CrunchManaCost = 0.f;
 	CrunchCooldown = 0.f;
 	DefaultCrunchDamage = 30.f;
@@ -58,7 +58,7 @@ void UAuraCrunchDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
 	DashStartEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, CrunchTag(TEXT("Ability.Dash.Start")), nullptr, false, false);
+		this, CrunchDashTag(TEXT("Ability.Dash.Start")), nullptr, false, false);
 	if (DashStartEventTask)
 	{
 		DashStartEventTask->EventReceived.AddDynamic(this, &UAuraCrunchDash::HandleDashStartEvent);

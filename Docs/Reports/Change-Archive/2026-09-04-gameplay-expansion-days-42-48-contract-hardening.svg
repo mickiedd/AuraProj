@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="980" viewBox="0 0 1500 980" role="img" aria-labelledby="title desc">
+  <title id="title">Gameplay Expansion Days 42–48 contract hardening</title>
+  <desc id="desc">Before and after diagram showing authority guards added to Days 42 through 47A and the inert Day 48 objective reducer foundation, with validation results and remaining runtime gates.</desc>
+  <style>
+    .bg { fill: #0b1220; }
+    .panel { fill: #111c2f; stroke: #263957; stroke-width: 2; }
+    .before { fill: #241a22; stroke: #925568; stroke-width: 2; }
+    .after { fill: #102a2b; stroke: #3f9b8e; stroke-width: 2; }
+    .gate { fill: #2a2415; stroke: #b18a45; stroke-width: 2; }
+    .title { fill: #f3f7ff; font: 700 30px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .subtitle { fill: #9fb2cc; font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .heading { fill: #f3f7ff; font: 700 21px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .body { fill: #d7e2f2; font: 400 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .small { fill: #b8c7da; font: 400 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .accent { fill: #78e0c4; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .warn { fill: #f0ca75; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .bad { fill: #f0a0b5; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .line { stroke: #78e0c4; stroke-width: 3; fill: none; }
+    .mutedline { stroke: #8fa4bf; stroke-width: 2; fill: none; stroke-dasharray: 7 7; }
+  </style>
+  <rect class="bg" x="0" y="0" width="1500" height="980" rx="24"/>
+  <text class="title" x="60" y="62">Gameplay Expansion Days 42–48 · contract hardening</text>
+  <text class="subtitle" x="60" y="94">Dependency-safe source increment · 2026-09-04 · production/runtime wiring intentionally remains gated</text>
+
+  <rect class="before" x="60" y="135" width="560" height="390" rx="18"/>
+  <text class="heading" x="90" y="178">Before · review debt and planned Day 48</text>
+  <text class="bad" x="90" y="220">✕ Stale cell generation could reach death receipts</text>
+  <text class="body" x="110" y="247">Encounter death lacked source-life/terminal identity.</text>
+  <text class="bad" x="90" y="285">✕ Heavy replay identity omitted AttackSequence</text>
+  <text class="body" x="110" y="312">Late callbacks and late evade movement lacked hard windows.</text>
+  <text class="bad" x="90" y="350">✕ Snapshot/definition versions were under-specified</text>
+  <text class="body" x="110" y="377">Run revision and definition provenance could drift.</text>
+  <text class="bad" x="90" y="415">✕ Day 47A open-choice guard was order-sensitive</text>
+  <text class="body" x="110" y="442">Duplicate/stale boundary identity was not checked first.</text>
+  <text class="warn" x="90" y="486">Day 48: Planned only</text>
+  <text class="small" x="110" y="510">No objective reducer or native contract cases existed.</text>
+
+  <path class="line" d="M 660 325 L 840 325"/>
+  <path class="line" d="M 815 305 L 840 325 L 815 345"/>
+  <text class="accent" x="683" y="292">authority contracts</text>
+  <text class="small" x="692" y="368">review → fix → prove</text>
+
+  <rect class="after" x="880" y="135" width="560" height="390" rx="18"/>
+  <text class="heading" x="910" y="178">After · fail-closed contracts</text>
+  <text class="accent" x="910" y="220">✓ Mission / encounter identity</text>
+  <text class="body" x="930" y="247">ActiveGeneration, SourceLifeGeneration, terminal death receipts.</text>
+  <text class="accent" x="910" y="285">✓ Attack / evade timing</text>
+  <text class="body" x="930" y="312">AttackSequence, callback deadline, accepted movement window.</text>
+  <text class="accent" x="910" y="350">✓ Snapshot / definition provenance</text>
+  <text class="body" x="930" y="377">RunId + Epoch ordering; exact DefinitionRevision + SHA-1.</text>
+  <text class="accent" x="910" y="415">✓ Day 47A boundary ordering</text>
+  <text class="body" x="930" y="442">Duplicate/stale identity is resolved before open-choice rejection.</text>
+  <text class="accent" x="910" y="480">✓ Day 48 inert objective reducer</text>
+  <text class="small" x="930" y="507">DAG + Clear/Escort/InteractHold + extraction guards; test-only.</text>
+
+  <rect class="panel" x="60" y="570" width="880" height="300" rx="18"/>
+  <text class="heading" x="90" y="613">Validation · executable evidence</text>
+  <text class="accent" x="90" y="655">✓ AuraEditor Mac Development build</text>
+  <text class="body" x="380" y="655">UHT · compile · link · deploy PASS</text>
+  <text class="accent" x="90" y="695">✓ Native Aura.Gameplay</text>
+  <text class="body" x="380" y="695">42/42 passed · 0 failed test entries</text>
+  <text class="accent" x="90" y="735">✓ Offline contract suites</text>
+  <text class="body" x="380" y="735">26/26 Python tests · syntax + JSON parse PASS</text>
+  <text class="accent" x="90" y="775">✓ Regression discovery</text>
+  <text class="body" x="380" y="775">6 Day 48 native cases registered and executed</text>
+  <text class="small" x="90" y="825">The native log also reports existing Git-LFS placeholder assets as unloadable; those payloads were not rewritten.</text>
+  <text class="small" x="90" y="847">That environment issue does not change the 42 passing automation test results.</text>
+
+  <rect class="gate" x="980" y="570" width="460" height="300" rx="18"/>
+  <text class="heading" x="1010" y="613">Still gated · honest boundary</text>
+  <text class="warn" x="1010" y="655">Days 49–60 full runtime plan</text>
+  <text class="body" x="1030" y="681">AI, HUD, RPC, production components and</text>
+  <text class="body" x="1030" y="705">packaged gameplay remain unimplemented.</text>
+  <text class="warn" x="1010" y="747">Runtime entry remains fail-closed</text>
+  <text class="body" x="1030" y="773">DAY40_PACKAGED_EVIDENCE_MISSING</text>
+  <text class="body" x="1030" y="797">ANCHOR_SURVEY_UNVERIFIED</text>
+  <text class="small" x="1010" y="838">Requested in-app ChatGPT handoff was blocked by the Codex safety boundary.</text>
+
+  <path class="mutedline" d="M 500 870 C 620 930, 880 930, 1000 870"/>
+  <text class="subtitle" x="60" y="930">Outcome: review findings closed at the source-contract layer; the next dependency-safe boundary is ready for future runtime work.</text>
+</svg>

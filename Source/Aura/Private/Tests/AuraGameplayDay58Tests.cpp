@@ -1,0 +1,15 @@
+// Copyright Druid Mechanics
+#if WITH_DEV_AUTOMATION_TESTS
+#include "Misc/AutomationTest.h"
+#include "Gameplay/AuraPerformanceEvidenceTypes.h"
+#define D58T(C,N) IMPLEMENT_SIMPLE_AUTOMATION_TEST(C,"Aura.Gameplay.Day58." N,EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+namespace { FAuraPerformanceEvidence Valid(){FAuraPerformanceEvidence E;E.CandidateIdentity=TEXT("candidate-a");E.BaselineIdentity=TEXT("baseline-b");E.HardwareFingerprint=TEXT("hw");E.SettingsFingerprint=TEXT("1080p-medium");E.TraceSha256=FString::ChrN(64,TEXT('a'));E.ServerHz=30;E.WarmupSeconds=300;E.SampleSeconds=600;E.Repeats=3;E.ServerGameP95Ms=24;E.ServerGameP99Ms=32;E.SchedulingP95Ms=1.9;E.ClientFrameP95Ms=21;E.ClientFrameP99Ms=32;E.OutboundKiBPerSecond=90;E.OutboundGrowthPercent=20;E.MemoryGrowthPercent=4;E.CompletedCycles=10;E.ActorCountBefore=8;E.ActorCountAfter=8;E.TimerCountBefore=3;E.TimerCountAfter=3;E.bRendered=true;E.bReplicationParity=true;E.bGameplaySemanticParity=true;return E;} }
+D58T(D58Schedule,"SchedulingBudgetMeasured") bool D58Schedule::RunTest(const FString&){auto E=Valid();FString X;TestTrue(TEXT("Measured candidate passes"),FAuraPerformanceEvidenceValidator::Validate(E,X));E.SchedulingP95Ms=2.1;TestFalse(TEXT("Scheduling budget enforced"),FAuraPerformanceEvidenceValidator::Validate(E,X));return !HasAnyErrors();}
+D58T(D58Replication,"ReplicationParityAfterOptimization") bool D58Replication::RunTest(const FString&){auto E=Valid();E.bReplicationParity=false;FString X;TestFalse(TEXT("Replication drift rejected"),FAuraPerformanceEvidenceValidator::Validate(E,X));return !HasAnyErrors();}
+D58T(D58Semantic,"NoGameplaySemanticDrift") bool D58Semantic::RunTest(const FString&){auto E=Valid();E.bGameplaySemanticParity=false;FString X;TestFalse(TEXT("Semantic drift rejected"),FAuraPerformanceEvidenceValidator::Validate(E,X));return !HasAnyErrors();}
+D58T(D58Counts,"BoundedActorAndTimerCounts") bool D58Counts::RunTest(const FString&){auto E=Valid();E.TimerCountAfter++;FString X;TestFalse(TEXT("Timer growth rejected"),FAuraPerformanceEvidenceValidator::Validate(E,X));return !HasAnyErrors();}
+D58T(D58Memory,"NoProgressiveMemoryGrowth") bool D58Memory::RunTest(const FString&){auto E=Valid();E.MemoryGrowthPercent=5.1;FString X;TestFalse(TEXT("Memory growth rejected"),FAuraPerformanceEvidenceValidator::Validate(E,X));return !HasAnyErrors();}
+D58T(D58Evidence,"MetricEvidenceRequired") bool D58Evidence::RunTest(const FString&){auto E=Valid();E.bRendered=false;FString X;TestFalse(TEXT("Unrendered fixture rejected"),FAuraPerformanceEvidenceValidator::Validate(E,X));E=Valid();E.TraceSha256.Reset();TestFalse(TEXT("Missing trace rejected"),FAuraPerformanceEvidenceValidator::Validate(E,X));return !HasAnyErrors();}
+D58T(D58Identity,"BaselineAndCandidateIdentityDistinct") bool D58Identity::RunTest(const FString&){auto E=Valid();E.BaselineIdentity=E.CandidateIdentity;FString X;TestFalse(TEXT("Identity alias rejected"),FAuraPerformanceEvidenceValidator::Validate(E,X));return !HasAnyErrors();}
+#undef D58T
+#endif

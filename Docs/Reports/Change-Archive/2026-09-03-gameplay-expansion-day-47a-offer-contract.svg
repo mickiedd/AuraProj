@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1100" viewBox="0 0 1500 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Day 47A deterministic offer contract</title>
+  <desc id="desc">A before-and-after diagram for a test-only Day 47 augment offer boundary. Real mission cell completions feed two deterministic owner-scoped offers with replay, deadline, privacy, and stale-event guards. Full production runtime remains blocked by Day 46 and evidence prerequisites.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 29px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 14px Arial, sans-serif; fill: #64748b; }
+      .section { font: 700 20px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 16px Arial, sans-serif; fill: #0f172a; }
+      .body { font: 15px Arial, sans-serif; fill: #334155; }
+      .small { font: 13px Arial, sans-serif; fill: #475569; }
+      .box { stroke-width: 2; rx: 12; }
+      .risk { fill: #fff1f2; stroke: #e11d48; }
+      .guard { fill: #ecfdf5; stroke: #059669; }
+      .neutral { fill: #f8fafc; stroke: #64748b; }
+      .gate { fill: #fffbeb; stroke: #d97706; }
+      .line { stroke: #334155; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 7; }
+    </style>
+  </defs>
+
+  <rect width="1500" height="1100" fill="#ffffff"/>
+  <text x="60" y="52" class="title">Day 47A · Deterministic Offer Contract</text>
+  <text x="60" y="80" class="subtitle">Dependency-safe test milestone · real mission reducer, inert value-only offer projection</text>
+
+  <text x="60" y="125" class="section">1. Advance the next boundary without claiming the missing runtime</text>
+  <rect x="60" y="150" width="410" height="150" class="box risk"/>
+  <text x="85" y="184" class="label">Before: full Day 47 is not ready</text>
+  <text x="85" y="213" class="body">Offer effects depend on Day 46 role,</text>
+  <text x="85" y="237" class="body">status, supply, and input consumers.</text>
+  <text x="85" y="273" class="small">Activating them now would invent a dependency.</text>
+
+  <path d="M470 225 H560" class="line"/>
+  <rect x="560" y="150" width="880" height="150" class="box guard"/>
+  <text x="590" y="184" class="label">After: Day 47A freezes the contract in private tests</text>
+  <text x="590" y="213" class="body">Exact eight-entry catalog · real Day 42/43 cell completion · deterministic offers</text>
+  <text x="590" y="237" class="body">Owner-only snapshot · revision/deadline · replay, timeout, reconnect, and stale guards</text>
+  <text x="590" y="273" class="small">No production config, component, UI, RPC, GAS, medkit, Exposed, or packaged evidence is added.</text>
+
+  <text x="60" y="355" class="section">2. Real completion events produce two bounded offers</text>
+  <rect x="60" y="380" width="230" height="155" class="box neutral"/>
+  <text x="80" y="413" class="label">Cell 1 completes</text>
+  <text x="80" y="442" class="body">3 RegisterCellDeath calls</text>
+  <text x="80" y="466" class="body">terminal sequence = 3</text>
+  <text x="80" y="500" class="small">run · epoch · cell · gen · seq</text>
+
+  <path d="M290 458 H330" class="line"/>
+  <rect x="330" y="380" width="250" height="155" class="box guard"/>
+  <text x="350" y="413" class="label">Offer boundary 1</text>
+  <text x="350" y="442" class="body">6 eligible entries</text>
+  <text x="350" y="466" class="body">3 distinct IDs sampled</text>
+  <text x="350" y="500" class="small">revision 1 · deadline +20s</text>
+
+  <path d="M580 458 H620" class="line"/>
+  <rect x="620" y="380" width="250" height="155" class="box guard"/>
+  <text x="640" y="413" class="label">Owner choice window</text>
+  <text x="640" y="442" class="body">one listed choice accepted</text>
+  <text x="640" y="466" class="body">exact replay is idempotent</text>
+  <text x="640" y="500" class="small">foreign owner sees no IDs</text>
+
+  <path d="M870 458 H910" class="line"/>
+  <rect x="910" y="380" width="230" height="155" class="box neutral"/>
+  <text x="930" y="413" class="label">Cell 2 completes</text>
+  <text x="930" y="442" class="body">same generation</text>
+  <text x="930" y="466" class="body">new boundary key</text>
+  <text x="930" y="500" class="small">third event cannot mint again</text>
+
+  <path d="M1140 458 H1180" class="line"/>
+  <rect x="1180" y="380" width="260" height="155" class="box guard"/>
+  <text x="1200" y="413" class="label">Offer boundary 2</text>
+  <text x="1200" y="442" class="body">new 3-entry projection</text>
+  <text x="1200" y="466" class="body">revision 2 exactly once</text>
+  <text x="1200" y="500" class="small">no third boundary allowed</text>
+
+  <text x="60" y="595" class="section">3. Important guards are explicit and testable</text>
+  <rect x="60" y="620" width="410" height="175" class="box neutral"/>
+  <text x="85" y="654" class="label">Boundary identity</text>
+  <text x="85" y="684" class="body">Duplicate key → DuplicateBoundary</text>
+  <text x="85" y="710" class="body">Wrong generation/sequence → Rejected</text>
+  <text x="85" y="736" class="body">Only two completed cells can grant</text>
+  <text x="85" y="768" class="small">Mission state remains the source of truth.</text>
+
+  <rect x="545" y="620" width="410" height="175" class="box neutral"/>
+  <text x="570" y="654" class="label">Choice authority</text>
+  <text x="570" y="684" class="body">Revision mismatch → StaleRevision</text>
+  <text x="570" y="710" class="body">Unlisted ID → Rejected</text>
+  <text x="570" y="736" class="body">After selection → ChoiceClosed</text>
+  <text x="570" y="768" class="small">Same request and payload → DuplicateAccepted.</text>
+
+  <rect x="1030" y="620" width="410" height="175" class="box neutral"/>
+  <text x="1055" y="654" class="label">Time, reconnect, privacy</text>
+  <text x="1055" y="684" class="body">Deadline is server now + 20 seconds</text>
+  <text x="1055" y="710" class="body">First visible entry auto-selects</text>
+  <text x="1055" y="736" class="body">Reconnect preserves offer and deadline</text>
+  <text x="1055" y="768" class="small">Foreign owner gets an empty projection.</text>
+
+  <text x="60" y="855" class="section">4. Evidence and honest scope boundary</text>
+  <rect x="60" y="880" width="650" height="165" class="box guard"/>
+  <text x="85" y="914" class="label">Validation</text>
+  <text x="85" y="944" class="body">✓ Offline Day 47A contract: 4/4</text>
+  <text x="85" y="970" class="body">✓ Native Aura.Gameplay.Day47A: 8/8 · 0 warnings/errors</text>
+  <text x="85" y="996" class="body">✓ UE5.5 UHT / compile / link / deploy: PASS</text>
+  <text x="85" y="1022" class="small">Parser, warning policy, syntax, XML, links, and focused diff checks passed.</text>
+
+  <rect x="750" y="880" width="690" height="165" class="box gate"/>
+  <text x="775" y="914" class="label">Still fail-closed</text>
+  <text x="775" y="944" class="body">BLOCKED_RUNTIME_ENTRY · DAY40_PACKAGED_EVIDENCE_MISSING</text>
+  <text x="775" y="970" class="body">ANCHOR_SURVEY_UNVERIFIED · full Day 46/47 remains Planned</text>
+  <text x="775" y="996" class="body">No production augment effects, live input, or packaged-play proof</text>
+  <text x="775" y="1022" class="small">Next dependency: implement and validate Day 46 role/status/supply consumers.</text>
+</svg>

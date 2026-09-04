@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-objective-contract-v1",
+  "status": "CONTRACT_ONLY",
+  "objectives": [
+    {
+      "id": "assault_clear",
+      "type": "Clear",
+      "targetId": "assault_cell_1",
+      "targetCount": 3,
+      "prerequisiteIds": [],
+      "required": true,
+      "deadlineSeconds": 180
+    },
+    {
+      "id": "rescue_escort",
+      "type": "Escort",
+      "targetId": "shelter_a",
+      "targetCount": 2,
+      "requiredMemberIds": ["civilian_a", "civilian_b"],
+      "prerequisiteIds": ["assault_clear"],
+      "required": true,
+      "deadlineSeconds": 240
+    },
+    {
+      "id": "sabotage_relay",
+      "type": "InteractHold",
+      "targetId": "relay_a",
+      "targetCount": 1,
+      "prerequisiteIds": ["rescue_escort"],
+      "required": true,
+      "deadlineSeconds": 180
+    }
+  ]
+}

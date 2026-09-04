@@ -35,9 +35,12 @@ $implementationPaths = @(
     'Scripts/ValidateGameplayExpansionScope.ps1',
     'Scripts/GameplayExpansionProcess.cs',
     'Scripts/gameplay_expansion.py',
+    'Scripts/validate_gameplay_expansion_content.py',
     'Scripts/gameplay_baseline_readers.py',
     'Scripts/gameplay_native_warnings.py',
     'Scripts/test_gameplay_expansion.py',
+    'Scripts/test_gameplay_day57_contracts.py',
+    'Scripts/test_gameplay_day58_contracts.py',
     'Scripts/test_gameplay_baseline_readers.py',
     'Scripts/test_gameplay_native_warnings.py',
     'Docs/Plans/Gameplay-Expansion-Implementation/gameplay-expansion-scope.json',
@@ -52,6 +55,7 @@ $implementationPaths = @(
     'Scripts/test_playable_candidate.py'
 )
 $contentPaths = @('Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json', 'Content/Config/PlayableCandidateManifest.json',
+    'Content/Config/GameplayExpansionManifest.json', 'Content/Config/GameplayPerformanceBudgets.json',
     'Content/MilitaryWeapDark/Sound/Rifle/Rifle_ImpactSurface_Cue.uasset', 'Content/MilitaryWeapDark/Sound/Rifle/RifleB_Fire_Cue.uasset')
 
 function Write-JsonFile([string]$Path, $Value) {
@@ -181,7 +185,20 @@ try {
     $result.scopeHash = $scopeHashAtStart
     $python = @(Get-Command python -CommandType Application -ErrorAction Stop)[0].Source
     $pwsh = @(Get-Command pwsh -CommandType Application -ErrorAction Stop)[0].Source
-    if ($Day -ne 41 -or $Stage -notin @('Preflight','Fast')) {
+    if ($Day -in @(59,60) -and $Stage -eq 'Fast') {
+        $testPath = Join-Path $runDir 'tooling-tests.json'
+        $tests = Invoke-Owned 'tooling-tests' $python @((Join-Path $repoRoot 'Scripts/test_gameplay_expansion.py'), '--day', [string]$Day, '--output', $testPath) 600
+        if ($tests.exitCode -ne 0 -or -not (Test-Path -LiteralPath $testPath)) { throw "Day $Day tooling tests failed or exported no report" }
+        $toolingEvidence = Get-Content -LiteralPath $testPath -Raw | ConvertFrom-Json
+        if ($toolingEvidence.schemaVersion -ne 1 -or $toolingEvidence.day -ne $Day -or $toolingEvidence.status -ne 'PASS' -or -not $toolingEvidence.passed -or $toolingEvidence.testsRun -le 0 -or @($toolingEvidence.failures).Count -ne 0) { throw "Day $Day tooling report is malformed or failed" }
+        $result.toolingStatus = 'PASS'
+        $result.toolingResultPath = $testPath
+        $result.toolingResultSha256 = (Get-FileHash -LiteralPath $testPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        $result.toolingTestCount = $toolingEvidence.testsRun
+        $result.reasonCode = $(if ($Day -eq 59) { 'FRESH_HUMAN_COHORT_REQUIRED' } else { 'FINAL_RUNTIME_EVIDENCE_REQUIRED' })
+        $result.assertions = @('Synthetic tooling fixtures validate evidence handling only and cannot satisfy runtime, performance, author, or human gates.')
+        $result.status = 'BLOCKED'; $result.runtimeEntry = 'BLOCKED_RUNTIME_ENTRY'; $result.evidenceStatus = 'BLOCKED'; $exitCode = 2
+    } elseif ($Day -ne 41 -or $Stage -notin @('Preflight','Fast')) {
         $result.reasonCode = 'STAGE_IMPLEMENTATION_MISSING'
         $result.assertions = @('No gameplay/package/playtest/soak/finalizer execution is implemented by the Day41 adapter.')
     } else {

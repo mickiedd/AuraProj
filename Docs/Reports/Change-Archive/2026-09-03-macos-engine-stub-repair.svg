@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">macOS AuraEditor engine stub repair</title>
+  <desc id="desc">Before and after flow for restoring missing Unreal Engine macOS stub symlinks before building AuraEditor.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#e9f2f8"/>
+    </linearGradient>
+    <style>
+      .title { font: 700 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #17324d; }
+      .subtitle { font: 400 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #536f84; }
+      .heading { font: 700 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #17324d; }
+      .body { font: 400 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #294b62; }
+      .small { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #536f84; }
+      .label { font: 700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: white; letter-spacing: 1.2px; }
+      .mono { font: 400 13px Menlo, Monaco, Consolas, monospace; fill: #294b62; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4c7592"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#39845d"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="50" y="52" class="title">2026-09-03 — macOS Unreal Engine stub repair</text>
+  <text x="50" y="80" class="subtitle">AuraEditor Mac Development build • missing engine binaries were present; only generated stub links were absent</text>
+
+  <rect x="50" y="112" width="530" height="270" rx="16" fill="#fff7f5" stroke="#d58b7c" stroke-width="2"/>
+  <rect x="50" y="112" width="530" height="40" rx="16" fill="#a94a3c"/>
+  <text x="74" y="138" class="label">BEFORE — LINK FAILURE</text>
+  <text x="76" y="187" class="heading">BuildEditor.command</text>
+  <path d="M200 181 L260 181" stroke="#4c7592" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="278" y="187" class="heading">UnrealBuildTool</text>
+  <path d="M402 181 L462 181" stroke="#4c7592" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="76" y="225" class="body">Aura module link requests engine stubs:</text>
+  <text x="76" y="252" class="mono">Intermediate/Mac/Stubs/arm64/Development/</text>
+  <text x="76" y="276" class="mono">UnrealEditor-Projects.dylib</text>
+  <text x="76" y="298" class="mono">UnrealEditor-CoreOnline.dylib</text>
+  <text x="76" y="320" class="mono">UnrealEditor-NetCore.dylib</text>
+  <text x="76" y="342" class="mono">UnrealEditor-OnlineSubsystem.dylib</text>
+  <text x="76" y="366" class="body" fill="#a94a3c">✕ clang++: no such file or directory → build fails</text>
+
+  <rect x="620" y="112" width="530" height="270" rx="16" fill="#f2fbf5" stroke="#6ca887" stroke-width="2"/>
+  <rect x="620" y="112" width="530" height="40" rx="16" fill="#39845d"/>
+  <text x="644" y="138" class="label">AFTER — GUARDED PREFLIGHT</text>
+  <text x="646" y="187" class="heading">BuildEditor.command</text>
+  <path d="M770 181 L824 181" stroke="#39845d" stroke-width="2.5" marker-end="url(#arrow-green)"/>
+  <text x="842" y="187" class="heading">ensure_editor_engine_stubs</text>
+  <text x="646" y="225" class="body">For each required link:</text>
+  <text x="646" y="251" class="body">• verify the real engine dylib exists</text>
+  <text x="646" y="276" class="body">• repair only missing or dangling symlinks</text>
+  <text x="646" y="301" class="body">• refuse to overwrite a real file</text>
+  <text x="646" y="326" class="body">• fail fast if the engine binary is absent</text>
+  <path d="M646 344 L1100 344" stroke="#6ca887" stroke-width="1.5"/>
+  <text x="646" y="368" class="body" fill="#39845d">✓ UBT links AuraEditor successfully</text>
+
+  <rect x="50" y="420" width="1100" height="132" rx="16" fill="#fffdf7" stroke="#d3a44f" stroke-width="2"/>
+  <text x="76" y="456" class="heading">Important guard</text>
+  <text x="76" y="485" class="body">The repair is scoped to the engine-generated arm64/Development stub directory and the four paths proven missing.</text>
+  <text x="76" y="511" class="body">It uses the installed UE 5.5 binaries as link targets; it does not fabricate libraries or alter project module dependencies.</text>
+  <text x="76" y="537" class="small">A moved engine leaves a broken symlink recoverable; an occupied regular file remains untouched.</text>
+
+  <rect x="50" y="586" width="1100" height="124" rx="16" fill="#f2f8ff" stroke="#7aa5c2" stroke-width="2"/>
+  <text x="76" y="622" class="heading">Validation</text>
+  <text x="76" y="650" class="body">zsh -n passed • normal AuraEditor build passed • four links removed and automatically restored • repeat build passed</text>
+  <text x="76" y="678" class="body">Final result: 0 missing stubs, successful link/deploy, non-blocking Unreal deprecation warnings remain for later cleanup.</text>
+</svg>

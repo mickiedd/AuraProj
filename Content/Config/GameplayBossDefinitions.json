@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1, "gameplayProfile": "GameplayExpansionV1", "definitionRevision": "days-42-60-boss-contract-v1",
+  "status": "CONTRACT_ONLY", "runtimeWiring": "UNWIRED",
+  "captain": {"phase2HealthFraction": 0.50, "maximumAdds": 4, "reinforcementChannelSeconds": 2, "actionFailureAbortCount": 3},
+  "extraction": {"durationSeconds": 30, "channelSeconds": 3, "requiresAliveConnectedParticipant": true, "terminalOrder": ["AcceptedDeaths", "Wipe", "Deadline", "Extraction"]},
+  "patterns": [
+    {"id":"captain_sweep","windupSeconds":0.85,"cueLeadSeconds":0.65,"recoverySeconds":1.2,"roomWide":false},
+    {"id":"captain_line_charge","windupSeconds":0.85,"cueLeadSeconds":0.65,"recoverySeconds":1.2,"roomWide":false},
+    {"id":"captain_reinforce","windupSeconds":0.85,"cueLeadSeconds":0.65,"recoverySeconds":1.2,"roomWide":false}
+  ]
+}

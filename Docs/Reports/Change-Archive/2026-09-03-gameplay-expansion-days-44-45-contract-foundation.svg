@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="980" viewBox="0 0 1400 980" role="img" aria-labelledby="title desc">
+<title id="title">Days 44–45 inert attack, evasion, and enemy-archetype contract foundation</title>
+<desc id="desc">Before: Days 44–45 were planned after the mission and encounter foundation. After: strict authority-owned attack timelines, evade admission, archetype definitions, atomic encounter leases, and generic status interruption seams exist, while runtime wiring remains blocked and fail-closed.</desc>
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#0f766e"/></marker>
+  <style>
+    .title{font:700 31px 'Segoe UI',Arial,sans-serif;fill:#132b3b}.sub{font:400 18px 'Segoe UI',Arial,sans-serif;fill:#475569}.head{font:700 20px 'Segoe UI',Arial,sans-serif;fill:#132b3b}.body{font:400 15px 'Segoe UI',Arial,sans-serif;fill:#334155}.small{font:400 13px 'Segoe UI',Arial,sans-serif;fill:#64748b}.gate{font:700 16px 'Segoe UI',Arial,sans-serif;fill:#785418}.good{fill:#e3f4ef;stroke:#81b8a8}.neutral{fill:#fff;stroke:#cbd5e1}.warn{fill:#fff0cf;stroke:#d9ad53}.blocked{fill:#f8e4e4;stroke:#d08a8a}.blue{fill:#e8f0fa;stroke:#94afd0}
+  </style>
+</defs>
+<rect width="1400" height="980" fill="#f3f6f7"/>
+<text x="40" y="48" class="title">AuraProj  /  Days 44–45 Contract Foundation</text>
+<text x="40" y="79" class="sub">Handoff-approved authority seams are now explicit and locally testable; the new gameplay profile stays inert.</text>
+<rect x="40" y="102" width="1320" height="52" rx="12" class="warn" stroke-width="1.5"/>
+<text x="62" y="135" class="gate">FAIL-CLOSED  •  Packaged Day 40/41 evidence, baseline/operations evidence, surveyed anchors, and UE runtime gates still precede activation.</text>
+
+<text x="40" y="198" class="head">BEFORE  /  planned Day 44–45 behavior</text>
+<rect x="40" y="218" width="360" height="330" rx="16" class="neutral" stroke-width="1.5"/>
+<text x="64" y="252" class="head">Days 42–43 foundation only</text>
+<text x="64" y="289" class="body">Mission and slot ownership existed</text>
+<text x="64" y="316" class="body">Day 44 telegraphs/evasion were planned</text>
+<text x="64" y="343" class="body">Day 45 archetypes were planned</text>
+<text x="64" y="370" class="body">No typed attack or evade admission</text>
+<text x="64" y="397" class="body">No atomic heavy/support leases</text>
+<text x="64" y="424" class="body">No status/interrupt cleanup seam</text>
+<text x="64" y="470" class="small">Safe next step required strict identity,</text>
+<text x="64" y="491" class="small">server timing, idempotence, and explicit</text>
+<text x="64" y="512" class="small">non-wiring boundaries.</text>
+
+<path d="M420 380 L470 380" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<text x="433" y="360" class="small">handoff</text>
+
+<text x="500" y="198" class="head">AFTER  /  strict contracts, still inert</text>
+<rect x="500" y="218" width="410" height="150" rx="16" class="good" stroke-width="1.5"/>
+<text x="524" y="251" class="head">1  Day 44 attack timeline</text>
+<text x="524" y="280" class="body">Run/epoch/generation/driver/source-life/sequence key</text>
+<text x="524" y="305" class="body">Server-derived ≥0.85s windup and impact window</text>
+<text x="524" y="330" class="body">Stale/dead callbacks cancel before impact</text>
+<text x="524" y="355" class="body">Replicated state only; cues stay presentation-owned</text>
+<rect x="950" y="218" width="410" height="150" rx="16" class="good" stroke-width="1.5"/>
+<text x="974" y="251" class="head">2  Day 44 evade admission</text>
+<text x="974" y="280" class="body">350 units / 0.25s / 2.5s cooldown / one charge</text>
+<text x="974" y="305" class="body">Normalized horizontal direction only</text>
+<text x="974" y="330" class="body">Swept result: full or collision-shortened accepted</text>
+<text x="974" y="355" class="body">Cancellation plan; no invulnerability or movement call</text>
+<path d="M922 293 L938 293" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+<rect x="500" y="395" width="410" height="165" rx="16" class="good" stroke-width="1.5"/>
+<text x="524" y="428" class="head">3  Day 45 archetype registry</text>
+<text x="524" y="457" class="body">Five explicit JSON sources remain owned</text>
+<text x="524" y="482" class="body">Raider / Lancer / Bulwark / Disruptor attacks</text>
+<text x="524" y="507" class="body">Opaque shape + telegraph references are closed</text>
+<text x="524" y="532" class="body">2 heavy attacks / participant; Bulwark + Disruptor rules</text>
+<rect x="950" y="395" width="410" height="165" rx="16" class="good" stroke-width="1.5"/>
+<text x="974" y="428" class="head">4  Leases and status seam</text>
+<text x="974" y="457" class="body">Atomic heavy participant tokens with expiry</text>
+<text x="974" y="482" class="body">Generation-safe source ownership and invalidation</text>
+<text x="974" y="507" class="body">Lowest live support lease owns overlap</text>
+<text x="974" y="532" class="body">Generic status cleanup + two-second interrupt immunity</text>
+<path d="M922 477 L938 477" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+<rect x="500" y="588" width="860" height="92" rx="16" class="blue" stroke-width="1.5"/>
+<text x="524" y="621" class="head">Authority flow</text>
+<text x="524" y="650" class="body">Definition JSON → registry validation → typed authority policy → bounded lease/status result → future adapter</text>
+<text x="524" y="671" class="small">The current increment ends at the result seam; it does not cross into input, movement, damage, GAS, AI spawn, or presentation runtime.</text>
+<path d="M705 562 L705 580" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+<text x="40" y="726" class="head">VALIDATION  /  evidence for this increment</text>
+<rect x="40" y="746" width="410" height="170" rx="16" class="neutral" stroke-width="1.5"/>
+<text x="64" y="779" class="head">Local checks</text>
+<text x="64" y="808" class="body">Day 44–45 definitions: 10/10</text>
+<text x="64" y="833" class="body">Day 42–43 regression: 4/4</text>
+<text x="64" y="858" class="body">Python compilation: pass</text>
+<text x="64" y="883" class="body">JSON and cross-reference checks: pass</text>
+<rect x="480" y="746" width="410" height="170" rx="16" class="neutral" stroke-width="1.5"/>
+<text x="504" y="779" class="head">Native coverage prepared</text>
+<text x="504" y="808" class="body">Cue-before-impact and dead-attacker cancel</text>
+<text x="504" y="833" class="body">Evade abuse and cancellation plan</text>
+<text x="504" y="858" class="body">Heavy cap, stale generation, support owner</text>
+<text x="504" y="883" class="body">Interrupt cleanup and immunity</text>
+<text x="504" y="904" class="small">UE 5.5 unavailable, so native execution is pending.</text>
+<rect x="920" y="746" width="440" height="170" rx="16" class="blocked" stroke-width="1.5"/>
+<text x="944" y="779" class="head">Still blocked / deferred</text>
+<text x="944" y="808" class="body">DAY40_PACKAGED_EVIDENCE_MISSING</text>
+<text x="944" y="833" class="body">ANCHOR_SURVEY_UNVERIFIED</text>
+<text x="944" y="858" class="body">No live input/movement/damage/GameMode wiring</text>
+<text x="944" y="883" class="body">Days 46–60 remain planned or evidence-gated</text>
+<text x="40" y="955" class="small">2026-09-03  •  Handoff-guided safe foundation increment; no claim that the full Days 41–60 runtime is complete.</text>
+</svg>
