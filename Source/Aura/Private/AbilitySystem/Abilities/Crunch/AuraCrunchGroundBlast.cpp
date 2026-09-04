@@ -2,6 +2,8 @@
 
 #include "AbilitySystem/Abilities/Crunch/AuraCrunchGroundBlast.h"
 
+#include "AbilitySystem/Abilities/Crunch/AuraCrunchTagUtils.h"
+
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystem/AbilityTasks/TargetDataUnderMouse.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -12,22 +14,14 @@
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
 
-namespace
-{
-	FGameplayTag CrunchTag(const TCHAR* Name)
-	{
-		return FGameplayTag::RequestGameplayTag(FName(Name), false);
-	}
-}
-
 UAuraCrunchGroundBlast::UAuraCrunchGroundBlast()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(CrunchTag(TEXT("Abilities.Melee.CrunchGroundBlast")));
+	AssetTags.AddTag(AuraCrunchTags::Request(TEXT("Abilities.Melee.CrunchGroundBlast")));
 	SetAssetTags(AssetTags);
 	StartupInputTag = FGameplayTag::RequestGameplayTag(FName(TEXT("InputTag.3")), false);
 	CrunchStartupInputTagName = FName(TEXT("InputTag.3"));
-	CrunchCooldownTag = CrunchTag(TEXT("Cooldown.Melee.CrunchGroundBlast"));
+	CrunchCooldownTag = AuraCrunchTags::Request(TEXT("Cooldown.Melee.CrunchGroundBlast"));
 	CrunchManaCost = 0.f;
 	CrunchCooldown = 0.f;
 	DefaultCrunchDamage = 45.f;
@@ -165,7 +159,7 @@ void UAuraCrunchGroundBlast::CommitGroundBlast(const FVector& Point)
 		FGameplayCueParameters Cue;
 		Cue.Location = Point;
 		Cue.RawMagnitude = TargetAreaRadius;
-		ASC->ExecuteGameplayCue(CrunchTag(TEXT("GameplayCue.Crunch.GroundBlast")), Cue);
+		ASC->ExecuteGameplayCue(AuraCrunchTags::Request(TEXT("GameplayCue.Crunch.GroundBlast")), Cue);
 	}
 	if (CastMontage)
 	{
