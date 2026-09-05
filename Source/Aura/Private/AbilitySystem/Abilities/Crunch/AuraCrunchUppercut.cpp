@@ -2,6 +2,8 @@
 
 #include "AbilitySystem/Abilities/Crunch/AuraCrunchUppercut.h"
 
+#include "AbilitySystem/Abilities/Crunch/AuraCrunchTagUtils.h"
+
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
@@ -13,23 +15,15 @@
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
 
-namespace
-{
-	FGameplayTag CrunchUppercutTag(const TCHAR* Name)
-	{
-		return FGameplayTag::RequestGameplayTag(FName(Name), false);
-	}
-}
-
 UAuraCrunchUppercut::UAuraCrunchUppercut()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(CrunchUppercutTag(TEXT("Abilities.Melee.CrunchUppercut")));
+	AssetTags.AddTag(AuraCrunchTags::Request(TEXT("Abilities.Melee.CrunchUppercut")));
 	SetAssetTags(AssetTags);
-	BlockAbilitiesWithTag.AddTag(CrunchUppercutTag(TEXT("Abilities.Melee.CrunchCombo")));
+	BlockAbilitiesWithTag.AddTag(AuraCrunchTags::Request(TEXT("Abilities.Melee.CrunchCombo")));
 	StartupInputTag = FGameplayTag::RequestGameplayTag(FName(TEXT("InputTag.1")), false);
 	CrunchStartupInputTagName = FName(TEXT("InputTag.1"));
-	CrunchCooldownTag = CrunchUppercutTag(TEXT("Cooldown.Melee.CrunchUppercut"));
+	CrunchCooldownTag = AuraCrunchTags::Request(TEXT("Cooldown.Melee.CrunchUppercut"));
 	CrunchManaCost = 0.f; // Source GE custom magnitudes are not exposed by public reflection.
 	CrunchCooldown = 0.f;
 	DefaultCrunchDamage = 35.f;
@@ -73,9 +67,9 @@ void UAuraCrunchUppercut::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
 	{
 		LaunchEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-			this, CrunchUppercutTag(TEXT("Ability.Uppercut.Launch")), nullptr, false, false);
+			this, AuraCrunchTags::Request(TEXT("Ability.Uppercut.Launch")), nullptr, false, false);
 		DamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-			this, CrunchUppercutTag(TEXT("Ability.Generic.Damage")), nullptr, false, false);
+			this, AuraCrunchTags::Request(TEXT("Ability.Generic.Damage")), nullptr, false, false);
 		if (LaunchEventTask)
 		{
 			LaunchEventTask->EventReceived.AddDynamic(this, &UAuraCrunchUppercut::HandleLaunchEvent);
