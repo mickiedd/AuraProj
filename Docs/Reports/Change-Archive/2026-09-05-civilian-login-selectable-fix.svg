@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">Civilian appears as the fourth Login role</title>
+  <desc id="desc">Before and after flow showing the Login role filter accepting the bounded non-attacking Civilian role, while preserving ambient population spawning and actor-specific death routing.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/>
+    </marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#15803d"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 30px Segoe UI, Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px Segoe UI, Arial, sans-serif; fill: #475569; }
+      .section { font: 700 20px Segoe UI, Arial, sans-serif; fill: #0f172a; }
+      .label { font: 600 15px Segoe UI, Arial, sans-serif; fill: #1e293b; }
+      .body { font: 400 14px Segoe UI, Arial, sans-serif; fill: #334155; }
+      .small { font: 400 12px Segoe UI, Arial, sans-serif; fill: #475569; }
+      .mono { font: 400 12px Consolas, monospace; fill: #334155; }
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 12; }
+      .old { fill: #fff7ed; stroke: #f59e0b; stroke-width: 2; rx: 12; }
+      .new { fill: #f0fdf4; stroke: #22c55e; stroke-width: 2; rx: 12; }
+      .guard { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2; rx: 12; }
+      .line { stroke: #4b5563; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .greenLine { stroke: #15803d; stroke-width: 2.5; fill: none; marker-end: url(#greenArrow); }
+      .pillOld { fill: #fed7aa; rx: 8; }
+      .pillNew { fill: #bbf7d0; rx: 8; }
+      .pillBlue { fill: #bfdbfe; rx: 8; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="920"/>
+  <text class="title" x="60" y="58">Civilian Login-role fix</text>
+  <text class="subtitle" x="60" y="88">The fourth role is now selectable in Login without weakening the ambient/non-combat contract.</text>
+
+  <text class="section" x="60" y="140">Before: config had four roles, but Login filtered Civilian out</text>
+  <rect class="box" x="60" y="165" width="245" height="105"/>
+  <text class="label" x="82" y="195">RoleConfig.json</text>
+  <text class="mono" x="82" y="220">roles = Aura, Crunch,</text>
+  <text class="mono" x="82" y="240">BungeeMan, Civilian</text>
+  <text class="mono" x="82" y="260">Civilian.playerSelectable=false</text>
+  <path class="line" d="M305 217 L375 217"/>
+
+  <rect class="old" x="375" y="165" width="300" height="105"/>
+  <text class="label" x="397" y="195">ValidatePlayerRoleSelection</text>
+  <text class="body" x="397" y="220">required playerSelectable=true</text>
+  <text class="body" x="397" y="242">and Entity.Player + Control.Player</text>
+  <text class="body" x="397" y="264">Civilian rejected</text>
+  <path class="line" d="M675 217 L745 217"/>
+
+  <rect class="old" x="745" y="165" width="255" height="105"/>
+  <text class="label" x="767" y="195">Login payload</text>
+  <text class="body" x="767" y="222">roles = 3</text>
+  <text class="body" x="767" y="244">Aura, BungeeMan, Crunch</text>
+  <text class="body" x="767" y="266">Civilian absent from dropdown</text>
+  <path class="line" d="M1000 217 L1070 217"/>
+
+  <rect class="old" x="1070" y="165" width="300" height="105"/>
+  <text class="label" x="1092" y="195">Observed issue</text>
+  <text class="body" x="1092" y="222">A user cannot select the</text>
+  <text class="body" x="1092" y="244">intended fourth role at Login.</text>
+  <text class="small" x="1092" y="265">No WebUI rendering bug: payload was missing it.</text>
+
+  <line x1="60" y1="318" x2="1540" y2="318" stroke="#cbd5e1" stroke-width="2"/>
+  <text class="section" x="60" y="360">After: bounded Civilian acceptance and dual runtime context</text>
+
+  <rect class="box" x="60" y="390" width="260" height="155"/>
+  <text class="label" x="82" y="420">RoleConfig.json</text>
+  <text class="mono" x="82" y="447">Civilian.playerSelectable=true</text>
+  <text class="mono" x="82" y="472">AmbientNPC / CivilianAI</text>
+  <text class="mono" x="82" y="497">Faction.Civilian</text>
+  <text class="mono" x="82" y="522">canAttack=false, empty loadout</text>
+  <path class="greenLine" d="M320 468 L385 468"/>
+
+  <rect class="guard" x="385" y="390" width="390" height="155"/>
+  <text class="label" x="407" y="420">Shared parser + selection guard</text>
+  <text class="body" x="407" y="447">Accept Civilian only when all bounded fields match:</text>
+  <text class="body" x="407" y="470">ambient identity, Civilian faction, Combat.Civilian,</text>
+  <text class="body" x="407" y="493">non-attacking, and no offensive grants.</text>
+  <text class="small" x="407" y="522">Player identity remains unchanged for Aura/Crunch/BungeeMan.</text>
+  <path class="greenLine" d="M775 468 L840 468"/>
+
+  <rect class="new" x="840" y="390" width="270" height="155"/>
+  <text class="label" x="862" y="420">Login payload</text>
+  <text class="body" x="862" y="449">roles = 4</text>
+  <text class="body" x="862" y="472">Aura, BungeeMan, Crunch,</text>
+  <text class="body" x="862" y="495">Civilian</text>
+  <text class="body" x="862" y="522">WebUI renders all payload roles.</text>
+  <path class="greenLine" d="M1110 468 L1175 468"/>
+
+  <rect class="new" x="1175" y="390" width="365" height="155"/>
+  <text class="label" x="1197" y="420">Connected Civilian</text>
+  <text class="body" x="1197" y="447">AAuraCharacter shell accepts only</text>
+  <text class="body" x="1197" y="470">the exact bounded Civilian identity.</text>
+  <text class="body" x="1197" y="495">It remains non-combat and has no abilities.</text>
+  <text class="small" x="1197" y="522">Same role identity; player-owned shell.</text>
+
+  <rect class="box" x="60" y="610" width="700" height="190"/>
+  <text class="label" x="84" y="642">Ambient population path preserved</text>
+  <path class="greenLine" d="M150 680 L300 680"/>
+  <rect class="pillBlue" x="84" y="658" width="120" height="44"/>
+  <text class="body" x="99" y="685">AAuraCivilian</text>
+  <rect class="pillBlue" x="330" y="658" width="170" height="44"/>
+  <text class="body" x="348" y="685">PopulationManager</text>
+  <path class="greenLine" d="M500 680 L650 680"/>
+  <text class="body" x="84" y="735">Population-spawned Civilian still uses</text>
+  <text class="body" x="84" y="758">Death.PopulationRespawn and population refill.</text>
+  <text class="small" x="84" y="785">Death routing now branches by actor shell, so ambient and connected contexts do not collide.</text>
+
+  <rect class="box" x="800" y="610" width="740" height="190"/>
+  <text class="label" x="824" y="642">Validation evidence</text>
+  <text class="body" x="824" y="674">PASS  Python role/population contracts: 26 named tests and 5 topology runners</text>
+  <text class="body" x="824" y="702">PASS  AuraEditor build; native Day 5 and Day 8 automation; exit code 0</text>
+  <text class="body" x="824" y="730">PASS  Win64 BuildCookRun archive; cook 0 errors; Login/Loading/StartupMap staged</text>
+  <text class="body" x="824" y="758">PASS  Archived client log: roles=4 and WebUI/login.html loaded</text>
+  <text class="small" x="824" y="785">The in-app handoff was unavailable after bounded browser timeouts; local validation is recorded.</text>
+
+  <text class="small" x="60" y="870">Guardrail: Civilian is selectable, but it cannot attack, receive offensive grants, or become a generic Player role.</text>
+</svg>

@@ -227,7 +227,7 @@ bool FAuraDay8CivilianRoleIdentityTest::RunTest(const FString& Parameters)
 {
 	const FRoleDefaultInfo* Civilian = AuraRoleBattleDays789TestsPrivate::FindRole(TEXT("Civilian"));
 	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
-	TestTrue(TEXT("Civilian identity comes from ambient role"), Civilian && Civilian->EntityType == Tags.Entity_AmbientNPC && Civilian->ControlType == Tags.Control_CivilianAI && Civilian->Faction == Tags.Faction_Civilian && Civilian->CombatProfile == Tags.Combat_Civilian && Civilian->DeathPolicy == Tags.Death_PopulationRespawn);
+	TestTrue(TEXT("Civilian identity remains ambient and selectable"), Civilian && Civilian->EntityType == Tags.Entity_AmbientNPC && Civilian->ControlType == Tags.Control_CivilianAI && Civilian->Faction == Tags.Faction_Civilian && Civilian->CombatProfile == Tags.Combat_Civilian && Civilian->DeathPolicy == Tags.Death_PopulationRespawn && Civilian->bPlayerSelectable);
 	TestTrue(TEXT("Civilian default policy is protected but targetable"), Civilian && Civilian->bTargetable && !Civilian->bCanAttack && Civilian->bCanBeDamaged && !Civilian->bAllowFriendlyFire);
 	return true;
 }

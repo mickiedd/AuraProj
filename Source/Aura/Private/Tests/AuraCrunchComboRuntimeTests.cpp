@@ -151,7 +151,7 @@ bool FAuraCrunchComboRuntimePlaybackTest::RunTest(const FString& Parameters)
 		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_CrunchComboV4.AM_CrunchComboV4"));
 	UClass* AuraAnimClass = LoadClass<UAnimInstance>(
 		nullptr,
-		TEXT("/Game/Blueprints/Character/Crunch/ABP_Crunch_AuraV4.ABP_Crunch_AuraV4_C"));
+		TEXT("/Game/Blueprints/Character/Crunch/ABP_Crunch_AuraV5.ABP_Crunch_AuraV5_C"));
 	USkeletalMesh* AuraMesh = LoadObject<USkeletalMesh>(
 		nullptr, TEXT("/Game/Assets/Characters/Crunch/Meshes/SM_CrunchV4.SM_CrunchV4"));
 	if (!TestNotNull(TEXT("Generated combo montage loads for playback"), ComboMontage)

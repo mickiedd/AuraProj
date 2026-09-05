@@ -20,6 +20,7 @@ public class AuraEditor : ModuleRules
 			"AnimGraph",
 			"AssetRegistry",
 			"Aura",
+			"BlueprintGraph",
 			"ContentBrowser",
 			"CoreUObject",
 			"DesktopPlatform",

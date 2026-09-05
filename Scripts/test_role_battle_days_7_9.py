@@ -21,12 +21,14 @@ def main() -> int:
     manager_cpp = read("Source/Aura/Private/World/AuraPopulationManager.cpp")
     types_h = read("Source/Aura/Public/World/AuraPopulationTypes.h")
     automation_cpp = read("Source/Aura/Private/Tests/AuraRoleBattleDays789Tests.cpp")
+    role_automation_cpp = read("Source/Aura/Private/Tests/AuraRoleBattleTests.cpp")
 
     roles = {entry["role"]: entry for entry in role["roles"]}
     assert roles["Aura"]["lmbAbilityDefinition"].endswith("FireBolt.xml")
     assert roles["BungeeMan"]["lmbAbilityDefinition"].endswith("FireGun.xml")
     assert roles["Civilian"]["entityType"] == "Entity.AmbientNPC"
     assert roles["Civilian"]["controlType"] == "Control.CivilianAI"
+    assert roles["Civilian"]["playerSelectable"] is True
     assert roles["Civilian"]["canAttack"] is False
     assert "+DirectoriesToAlwaysStageAsUFS=(Path=\"AbilityDefinitions\")" in ini
 
@@ -103,6 +105,7 @@ def main() -> int:
     for day, test_names in expected_tests.items():
         for test_name in test_names:
             assert f'"Day{day}.{test_name}"' in automation_cpp
+    assert "FAuraDay5ExplicitFourRoleCatalogTest" in role_automation_cpp
 
     for runner in (
         "RunRoleBattleDay7ListenSmoke.ps1",
@@ -113,7 +116,7 @@ def main() -> int:
     ):
         assert (ROOT / runner).is_file(), runner
 
-    print("Day 7-9 role, Civilian, population, and packaging contracts: PASS (25 named tests and 5 topology runners present)")
+    print("Day 7-9 role, Civilian, population, and packaging contracts: PASS (26 named tests and 5 topology runners present)")
     return 0
 
 

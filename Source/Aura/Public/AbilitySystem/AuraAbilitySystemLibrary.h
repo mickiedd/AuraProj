@@ -106,7 +106,7 @@ public:
 	/** Replaces Current only for a fully valid candidate, preserving object identity on failure. */
 	static bool TryPublishRoleInfo(URoleInfo*& Current, const FAuraRoleLoadResult& Result);
 
-	/** Shared UI/server validation for a stable, player-selectable role ID. */
+	/** Shared UI/server validation for a stable, player-selectable role ID, including bounded Civilian. */
 	static bool ValidatePlayerRoleSelection(const URoleInfo* RoleInfo, FName RoleId, FString& OutError);
 
 	/**

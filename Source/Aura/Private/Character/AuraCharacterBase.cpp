@@ -137,9 +137,7 @@ FAuraRoleApplicationResult AAuraCharacterBase::ApplyRoleAtSpawn(FName InRole, co
 
 	const FGameplayTag RequiredEntity = GetRequiredRoleEntityType();
 	const FGameplayTag RequiredControl = GetRequiredRoleControlType();
-	if (!RequiredEntity.IsValid() || !RequiredControl.IsValid()
-		|| !Candidate->EntityType.MatchesTagExact(RequiredEntity)
-		|| !Candidate->ControlType.MatchesTagExact(RequiredControl))
+	if (!IsRoleCompatibleWithActorShell(InRole, *Candidate))
 	{
 		return FAuraRoleApplicationResult::Failure(InRole, EAuraRoleApplicationError::IncompatibleActorShell,
 			FString::Printf(TEXT("Role '%s' (%s/%s) is incompatible with actor shell %s (%s/%s)."),
@@ -752,6 +750,15 @@ FGameplayTag AAuraCharacterBase::GetRequiredRoleEntityType() const
 FGameplayTag AAuraCharacterBase::GetRequiredRoleControlType() const
 {
 	return FGameplayTag();
+}
+
+bool AAuraCharacterBase::IsRoleCompatibleWithActorShell(FName InRole, const FRoleDefaultInfo& RoleDefinition) const
+{
+	const FGameplayTag RequiredEntity = GetRequiredRoleEntityType();
+	const FGameplayTag RequiredControl = GetRequiredRoleControlType();
+	return RequiredEntity.IsValid() && RequiredControl.IsValid()
+		&& RoleDefinition.EntityType.MatchesTagExact(RequiredEntity)
+		&& RoleDefinition.ControlType.MatchesTagExact(RequiredControl);
 }
 
 FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag)

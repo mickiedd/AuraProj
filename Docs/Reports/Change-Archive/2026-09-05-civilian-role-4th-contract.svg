@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980">
+  <title>Civilian fourth role contract</title>
+  <desc>Before and after diagram for the explicit four-role catalog regression and the ambient Civilian runtime boundary.</desc>
+  <style>
+    .bg{fill:#f7f4ee}.panel{fill:#fff;stroke:#d7cfc2;stroke-width:2}.before{fill:#fff7e8;stroke:#d7a84c;stroke-width:2}.after{fill:#eef8f1;stroke:#5a9b72;stroke-width:2}.runtime{fill:#eef4fb;stroke:#6d91b8;stroke-width:2}.guard{fill:#e7f5ec;stroke:#3f8f5d;stroke-width:2}.warn{fill:#fff0ef;stroke:#c96b62;stroke-width:2}.title{font:700 32px Arial,sans-serif;fill:#24313b}.subtitle{font:400 18px Arial,sans-serif;fill:#59636a}.section{font:700 22px Arial,sans-serif;fill:#24313b}.cardtitle{font:700 19px Arial,sans-serif;fill:#24313b}.body{font:400 17px Arial,sans-serif;fill:#40505b}.small{font:400 15px Arial,sans-serif;fill:#59636a}.mono{font:400 16px Consolas,monospace;fill:#31424e}.pass{font:700 16px Arial,sans-serif;fill:#23613b}.arrow{stroke:#66808e;stroke-width:3;fill:none;marker-end:url(#arrow)}.divider{stroke:#d7cfc2;stroke-width:2}
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#66808e"/></marker>
+  </defs>
+  <rect class="bg" width="1600" height="980"/>
+  <text x="70" y="70" class="title">Civilian becomes an explicit fourth role</text>
+  <text x="70" y="104" class="subtitle">Role registry contract hardening while preserving Civilian as an ambient, server-owned AI population.</text>
+
+  <rect x="70" y="145" width="700" height="285" rx="18" class="before"/>
+  <text x="105" y="190" class="section">Before this change</text>
+  <text x="105" y="230" class="body">Runtime already contained the Civilian slice, but the</text>
+  <text x="105" y="257" class="body">regression only asserted a numeric role count.</text>
+  <line x1="105" y1="285" x2="735" y2="285" class="divider"/>
+  <text x="105" y="325" class="mono">RoleConfig → parser → RoleInformation.Num() == 4</text>
+  <text x="105" y="362" class="body">• Civilian actor, population manager, AI, and lifecycle existed</text>
+  <text x="105" y="390" class="body">• exact stable IDs were not asserted together in one guard</text>
+
+  <path d="M 800 285 L 880 285" class="arrow"/>
+
+  <rect x="830" y="145" width="700" height="285" rx="18" class="after"/>
+  <text x="865" y="190" class="section">After this change</text>
+  <text x="865" y="230" class="body">A native automation guard requires the exact stable catalog:</text>
+  <text x="865" y="270" class="mono">Aura · Crunch · BungeeMan · Civilian</text>
+  <line x1="865" y1="295" x2="1495" y2="295" class="divider"/>
+  <text x="865" y="335" class="body">Civilian identity is also checked as:</text>
+  <text x="865" y="366" class="mono">AmbientNPC / CivilianAI / Civilian / !playerSelectable / !canAttack</text>
+  <text x="865" y="402" class="pass">PASS: missing, extra, or misclassified role fails publication coverage</text>
+
+  <text x="70" y="500" class="section">Runtime boundary preserved</text>
+  <rect x="70" y="535" width="330" height="245" rx="16" class="runtime"/>
+  <text x="100" y="580" class="cardtitle">RoleConfig.json</text>
+  <text x="100" y="620" class="body">Version 2 registry</text>
+  <text x="100" y="655" class="body">Four stable role IDs</text>
+  <text x="100" y="690" class="body">Civilian has empty loadout</text>
+  <text x="100" y="725" class="body">Ambient, not login-selectable</text>
+
+  <rect x="475" y="535" width="330" height="245" rx="16" class="runtime"/>
+  <text x="505" y="580" class="cardtitle">AAuraCivilian</text>
+  <text x="505" y="620" class="body">Validated role application</text>
+  <text x="505" y="655" class="body">Replicated ASC + AttributeSet</text>
+  <text x="505" y="690" class="body">No LMB/offensive grant</text>
+  <text x="505" y="725" class="body">Server-owned AI controller</text>
+
+  <rect x="880" y="535" width="330" height="245" rx="16" class="runtime"/>
+  <text x="910" y="580" class="cardtitle">Population manager</text>
+  <text x="910" y="620" class="body">Stable member slots</text>
+  <text x="910" y="655" class="body">Deferred authoritative spawn</text>
+  <text x="910" y="690" class="body">Work / flee / death lifecycle</text>
+  <text x="910" y="725" class="body">No player persistence path</text>
+
+  <rect x="1285" y="535" width="245" height="245" rx="16" class="guard"/>
+  <text x="1315" y="580" class="cardtitle">Executable guard</text>
+  <text x="1315" y="620" class="mono">Day5.</text>
+  <text x="1315" y="646" class="mono">ExplicitFourRole</text>
+  <text x="1315" y="672" class="mono">Catalog</text>
+  <text x="1315" y="715" class="pass">26 named</text>
+  <text x="1315" y="741" class="pass">fast-contract</text>
+  <text x="1315" y="767" class="pass">checks</text>
+
+  <path d="M 400 657 L 475 657" class="arrow"/><path d="M 805 657 L 880 657" class="arrow"/><path d="M 1210 657 L 1285 657" class="arrow"/>
+
+  <rect x="70" y="840" width="1460" height="85" rx="16" class="panel"/>
+  <text x="100" y="878" class="small">Validation: AuraEditor Win64 Development build; Day 8 Dedicated automation PASS; focused Civilian AI/ground and population contracts PASS;</text>
+  <text x="100" y="902" class="small">git diff --check PASS. In-app Claude handoff was attempted but browser state timed out before a composer was available; no packet was transmitted.</text>
+</svg>

@@ -107,6 +107,25 @@ FGameplayTag AAuraCharacter::GetRequiredRoleControlType() const
 	return FAuraGameplayTags::Get().Control_Player;
 }
 
+bool AAuraCharacter::IsRoleCompatibleWithActorShell(FName InRole, const FRoleDefaultInfo& RoleDefinition) const
+{
+	if (Super::IsRoleCompatibleWithActorShell(InRole, RoleDefinition))
+	{
+		return true;
+	}
+
+	// Civilian is intentionally dual-context: the population manager hosts the
+	// ambient AAuraCivilian shell, while a connected player may use the normal
+	// AAuraCharacter shell with the same server-owned, non-combat role contract.
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	return InRole == TEXT("Civilian")
+		&& RoleDefinition.EntityType.MatchesTagExact(GameplayTags.Entity_AmbientNPC)
+		&& RoleDefinition.ControlType.MatchesTagExact(GameplayTags.Control_CivilianAI)
+		&& RoleDefinition.Faction.MatchesTagExact(GameplayTags.Faction_Civilian)
+		&& RoleDefinition.CombatProfile.MatchesTagExact(GameplayTags.Combat_Civilian)
+		&& !RoleDefinition.bCanAttack;
+}
+
 void AAuraCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);

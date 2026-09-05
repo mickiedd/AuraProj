@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch locomotion animation fix</title>
+  <desc id="desc">Before, an empty montage slot fed the output and walking remained idle. After, Aura movement state selects combat idle or forward jog before the montage slot.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#172554"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#93c5fd"/>
+    </marker>
+    <style>
+      .title { font: 700 34px 'Segoe UI', sans-serif; fill: #f8fafc; }
+      .subtitle { font: 400 17px 'Segoe UI', sans-serif; fill: #bfdbfe; }
+      .section { font: 700 22px 'Segoe UI', sans-serif; fill: #f8fafc; }
+      .box-title { font: 700 17px 'Segoe UI', sans-serif; fill: #f8fafc; }
+      .body { font: 400 15px 'Segoe UI', sans-serif; fill: #dbeafe; }
+      .small { font: 600 13px 'Segoe UI', sans-serif; fill: #bfdbfe; }
+      .arrow { stroke: #93c5fd; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="720" rx="24" fill="url(#bg)"/>
+  <text x="60" y="62" class="title">Crunch locomotion now follows movement</text>
+  <text x="60" y="92" class="subtitle">Idle and jog form the montage base pose, so ability animations still override cleanly.</text>
+
+  <rect x="55" y="130" width="1090" height="190" rx="18" fill="#3f1d2e" stroke="#fb7185" stroke-width="2"/>
+  <text x="85" y="169" class="section">Before — ABP_Crunch_AuraV4</text>
+  <rect x="105" y="205" width="240" height="70" rx="12" fill="#581c36" stroke="#fb7185"/>
+  <text x="225" y="234" text-anchor="middle" class="box-title">No locomotion source</text>
+  <text x="225" y="258" text-anchor="middle" class="body">plain UAnimInstance</text>
+  <path d="M345 240 H470" class="arrow"/>
+  <rect x="475" y="205" width="230" height="70" rx="12" fill="#581c36" stroke="#fb7185"/>
+  <text x="590" y="234" text-anchor="middle" class="box-title">DefaultSlot</text>
+  <text x="590" y="258" text-anchor="middle" class="body">Source pin empty</text>
+  <path d="M705 240 H830" class="arrow"/>
+  <rect x="835" y="205" width="230" height="70" rx="12" fill="#581c36" stroke="#fb7185"/>
+  <text x="950" y="234" text-anchor="middle" class="box-title">Output Pose</text>
+  <text x="950" y="258" text-anchor="middle" class="body">walking appears idle</text>
+
+  <rect x="55" y="350" width="1090" height="285" rx="18" fill="#12372a" stroke="#34d399" stroke-width="2"/>
+  <text x="85" y="389" class="section">After — ABP_Crunch_AuraV5</text>
+  <rect x="85" y="430" width="235" height="105" rx="12" fill="#064e3b" stroke="#34d399"/>
+  <text x="202" y="460" text-anchor="middle" class="box-title">Aura movement state</text>
+  <text x="202" y="486" text-anchor="middle" class="body">GroundSpeed updates</text>
+  <text x="202" y="510" text-anchor="middle" class="body">bShouldMove = speed &gt; 3</text>
+  <path d="M320 482 H395" class="arrow"/>
+  <rect x="400" y="415" width="255" height="135" rx="12" fill="#064e3b" stroke="#34d399"/>
+  <text x="527" y="447" text-anchor="middle" class="box-title">Blend Poses by Bool</text>
+  <text x="527" y="478" text-anchor="middle" class="body">true → Jog_FwdV4</text>
+  <text x="527" y="505" text-anchor="middle" class="body">false → Idle_CombatV4</text>
+  <text x="527" y="532" text-anchor="middle" class="small">target-owned sequences</text>
+  <path d="M655 482 H730" class="arrow"/>
+  <rect x="735" y="430" width="170" height="105" rx="12" fill="#064e3b" stroke="#34d399"/>
+  <text x="820" y="462" text-anchor="middle" class="box-title">DefaultSlot</text>
+  <text x="820" y="488" text-anchor="middle" class="body">locomotion base</text>
+  <text x="820" y="513" text-anchor="middle" class="body">montage override</text>
+  <path d="M905 482 H980" class="arrow"/>
+  <rect x="985" y="430" width="125" height="105" rx="12" fill="#064e3b" stroke="#34d399"/>
+  <text x="1047" y="472" text-anchor="middle" class="box-title">Output</text>
+  <text x="1047" y="499" text-anchor="middle" class="body">idle / jog</text>
+  <text x="1047" y="523" text-anchor="middle" class="body">/ ability</text>
+
+  <rect x="85" y="575" width="1025" height="34" rx="8" fill="#0f2f26"/>
+  <text x="597" y="598" text-anchor="middle" class="small">Verified: editor build • exact true/false graph pins • combo montage regression • role config • 21 source anchors</text>
+  <text x="60" y="682" class="subtitle">AuraProj change archive • 2026-09-05</text>
+</svg>
+

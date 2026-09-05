@@ -9,6 +9,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "GameplayTagContainer.h"
 #include "Misc/PackageName.h"
+#include "Misc/Parse.h"
 #include "UObject/Package.h"
 #include "UObject/SavePackage.h"
 
@@ -22,6 +23,10 @@ namespace AuraCreateCrunchPresentationPrivate
 		TEXT("/Game/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_03.Ability_Combo_03"),
 		TEXT("/Game/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_04.Ability_Combo_04")
 	};
+	constexpr TCHAR SourceLocomotionSequencePaths[2][256] = {
+		TEXT("/Game/ParagonCrunch/Characters/Heroes/Crunch/Animations/Idle_Combat.Idle_Combat"),
+		TEXT("/Game/ParagonCrunch/Characters/Heroes/Crunch/Animations/Jog_Fwd.Jog_Fwd")
+	};
 	constexpr TCHAR TargetMeshPackage[] = TEXT("/Game/Assets/Characters/Crunch/Meshes/SM_CrunchV4");
 	constexpr TCHAR TargetSkeletonPackage[] = TEXT("/Game/Assets/Characters/Crunch/Meshes/Crunch_SkeletonV4");
 	constexpr TCHAR TargetSequencePackages[4][256] = {
@@ -29,6 +34,10 @@ namespace AuraCreateCrunchPresentationPrivate
 		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/Ability_Combo_02V4"),
 		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/Ability_Combo_03V4"),
 		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/Ability_Combo_04V4")
+	};
+	constexpr TCHAR TargetLocomotionSequencePackages[2][256] = {
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Locomotion/Idle_CombatV4"),
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Locomotion/Jog_FwdV4")
 	};
 	constexpr TCHAR TargetMontagePackage[] = TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_CrunchComboV4");
 	constexpr TCHAR NotifyClassPath[] = TEXT("/Game/Blueprints/AnimNotifies/AN_MontageEvent.AN_MontageEvent_C");
@@ -77,34 +86,82 @@ namespace AuraCreateCrunchPresentationPrivate
 int32 UAuraCreateCrunchPresentationCommandlet::Main(const FString& Params)
 {
 	using namespace AuraCreateCrunchPresentationPrivate;
-	USkeletalMesh* SourceMesh = LoadObject<USkeletalMesh>(nullptr, SourceMeshPath);
+	const bool bLocomotionOnly = FParse::Param(*Params, TEXT("LocomotionOnly"));
 	USkeleton* SourceSkeleton = LoadObject<USkeleton>(nullptr, SourceSkeletonPath);
-	if (!SourceMesh || !SourceSkeleton)
+	USkeletalMesh* SourceMesh = bLocomotionOnly ? nullptr : LoadObject<USkeletalMesh>(nullptr, SourceMeshPath);
+	if (!SourceSkeleton || (!bLocomotionOnly && !SourceMesh))
 	{
 		UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Source mesh or skeleton unavailable."));
 		return 1;
 	}
 
-	UPackage* SkeletonPackage = CreatePackage(TargetSkeletonPackage);
-	USkeleton* TargetSkeleton = DuplicateObject<USkeleton>(SourceSkeleton, SkeletonPackage, TEXT("Crunch_SkeletonV4"));
-	if (!SavePackageAsset(SkeletonPackage, TargetSkeleton, TargetSkeletonPackage))
+	USkeleton* TargetSkeleton = nullptr;
+	USkeletalMesh* TargetMesh = nullptr;
+	if (bLocomotionOnly)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to save target skeleton."));
-		return 1;
+		TargetSkeleton = LoadObject<USkeleton>(nullptr, TEXT("/Game/Assets/Characters/Crunch/Meshes/Crunch_SkeletonV4.Crunch_SkeletonV4"));
+		if (!TargetSkeleton)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Existing target skeleton is required for LocomotionOnly."));
+			return 1;
+		}
+	}
+	else
+	{
+		UPackage* SkeletonPackage = CreatePackage(TargetSkeletonPackage);
+		TargetSkeleton = DuplicateObject<USkeleton>(SourceSkeleton, SkeletonPackage, TEXT("Crunch_SkeletonV4"));
+		if (!SavePackageAsset(SkeletonPackage, TargetSkeleton, TargetSkeletonPackage))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to save target skeleton."));
+			return 1;
+		}
+
+		UPackage* MeshPackage = CreatePackage(TargetMeshPackage);
+		TargetMesh = DuplicateObject<USkeletalMesh>(SourceMesh, MeshPackage, TEXT("SM_CrunchV4"));
+		if (!TargetMesh)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to duplicate target mesh."));
+			return 1;
+		}
+		TargetMesh->SetSkeleton(TargetSkeleton);
+		if (!SavePackageAsset(MeshPackage, TargetMesh, TargetMeshPackage))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to save target mesh."));
+			return 1;
+		}
 	}
 
-	UPackage* MeshPackage = CreatePackage(TargetMeshPackage);
-	USkeletalMesh* TargetMesh = DuplicateObject<USkeletalMesh>(SourceMesh, MeshPackage, TEXT("SM_CrunchV4"));
-	if (!TargetMesh)
+	for (int32 Index = 0; Index < 2; ++Index)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to duplicate target mesh."));
-		return 1;
+		UAnimSequence* SourceSequence = LoadObject<UAnimSequence>(nullptr, SourceLocomotionSequencePaths[Index]);
+		if (!SourceSequence)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Missing source locomotion sequence %d."), Index + 1);
+			return 1;
+		}
+		UPackage* SequencePackage = CreatePackage(TargetLocomotionSequencePackages[Index]);
+		const FName TargetName = Index == 0 ? FName(TEXT("Idle_CombatV4")) : FName(TEXT("Jog_FwdV4"));
+		UAnimSequence* TargetSequence = DuplicateObject<UAnimSequence>(SourceSequence, SequencePackage, TargetName);
+		if (!TargetSequence)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to duplicate source locomotion sequence %d."), Index + 1);
+			return 1;
+		}
+		TargetSequence->SetSkeleton(TargetSkeleton);
+		// Locomotion pose selection is owned by the Aura AnimBP. Source gameplay
+		// notifies are not part of that presentation-only contract.
+		TargetSequence->Notifies.Empty();
+		if (!SavePackageAsset(SequencePackage, TargetSequence, TargetLocomotionSequencePackages[Index]))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to save target locomotion sequence %d."), Index + 1);
+			return 1;
+		}
 	}
-	TargetMesh->SetSkeleton(TargetSkeleton);
-	if (!SavePackageAsset(MeshPackage, TargetMesh, TargetMeshPackage))
+	if (bLocomotionOnly)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to save target mesh."));
-		return 1;
+		UE_LOG(LogTemp, Display, TEXT("[CrunchPresentation] PASS LocomotionOnly=1 Skeleton=%s Locomotion=2"),
+			*TargetSkeleton->GetPathName());
+		return 0;
 	}
 
 	TArray<UAnimSequence*> TargetSequences;
@@ -213,7 +270,7 @@ int32 UAuraCreateCrunchPresentationCommandlet::Main(const FString& Params)
 		UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to save target montage."));
 		return 1;
 	}
-	UE_LOG(LogTemp, Display, TEXT("[CrunchPresentation] PASS Mesh=%s Skeleton=%s Montage=%s Sections=%d Notifies=%d Length=%.3f"),
+	UE_LOG(LogTemp, Display, TEXT("[CrunchPresentation] PASS Mesh=%s Skeleton=%s Locomotion=2 Montage=%s Sections=%d Notifies=%d Length=%.3f"),
 		*TargetMesh->GetPathName(), *TargetSkeleton->GetPathName(), *Montage->GetPathName(), Montage->CompositeSections.Num(), Montage->Notifies.Num(), Montage->GetPlayLength());
 	return 0;
 }

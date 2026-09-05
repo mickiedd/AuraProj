@@ -83,6 +83,7 @@ protected:
 	virtual FAuraCombatIdentity BuildDefaultCombatIdentity() const override;
 	virtual FGameplayTag GetRequiredRoleEntityType() const override;
 	virtual FGameplayTag GetRequiredRoleControlType() const override;
+	virtual bool IsRoleCompatibleWithActorShell(FName InRole, const FRoleDefaultInfo& RoleDefinition) const override;
 
 private:
 	void UpdateFatalFallState(float DeltaSeconds);

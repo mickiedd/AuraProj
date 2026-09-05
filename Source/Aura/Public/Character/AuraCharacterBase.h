@@ -140,6 +140,8 @@ protected:
 	virtual FAuraCombatIdentity BuildDefaultCombatIdentity() const;
 	virtual FGameplayTag GetRequiredRoleEntityType() const;
 	virtual FGameplayTag GetRequiredRoleControlType() const;
+	/** Returns whether this actor shell can authoritatively host the role definition. */
+	virtual bool IsRoleCompatibleWithActorShell(FName InRole, const FRoleDefaultInfo& RoleDefinition) const;
 
 	/** Returns true only to the caller that won Alive -> Dying. */
 	bool TryBeginCombatDeath();

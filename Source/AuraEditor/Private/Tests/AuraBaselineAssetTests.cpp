@@ -2,9 +2,19 @@
 
 #include "Misc/AutomationTest.h"
 #include "AbilitySystem/Abilities/AuraMeleeAttack.h"
+#include "Animation/AuraCharacterAnimInstance.h"
+#include "Animation/AnimBlueprint.h"
 #include "EdGraph/EdGraph.h"
 #include "EdGraph/EdGraphNode.h"
 #include "Animation/AnimMontage.h"
+#include "AnimationGraph.h"
+#include "AnimGraphNode_BlendListByBool.h"
+#include "AnimGraphNode_Root.h"
+#include "AnimGraphNode_SequencePlayer.h"
+#include "AnimGraphNode_Slot.h"
+#include "K2Node_CallParentFunction.h"
+#include "K2Node_Event.h"
+#include "K2Node_VariableGet.h"
 #include "Sound/SoundCue.h"
 #include "UObject/UnrealType.h"
 
@@ -62,6 +72,141 @@ bool FAuraCrunchComboNativeContractTest::RunTest(const FString& Parameters)
 	if (!TestNotNull(TEXT("Native class CDO resolves the generated montage"), Montage)) return false;
 	TestEqual(TEXT("Native CDO points at the target-owned Crunch montage"), Montage->GetPathName(),
 		FString(TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_CrunchComboV4.AM_CrunchComboV4")));
+	return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraCrunchLocomotionAnimBlueprintTest,
+	"Aura.Migration.Crunch.Presentation.LocomotionGraph",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraCrunchLocomotionAnimBlueprintTest::RunTest(const FString& Parameters)
+{
+	UAnimBlueprint* Blueprint = LoadObject<UAnimBlueprint>(nullptr,
+		TEXT("/Game/Blueprints/Character/Crunch/ABP_Crunch_AuraV5.ABP_Crunch_AuraV5"));
+	if (!TestNotNull(TEXT("Crunch locomotion AnimBlueprint loads"), Blueprint)) return false;
+	TestTrue(TEXT("Crunch AnimBlueprint uses Aura's movement-state AnimInstance"),
+		Blueprint->ParentClass.Get() == UAuraCharacterAnimInstance::StaticClass());
+
+	TArray<UEdGraph*> Graphs;
+	Blueprint->GetAllGraphs(Graphs);
+	UAnimationGraph* AnimGraph = nullptr;
+	for (UEdGraph* Graph : Graphs)
+	{
+		if (Graph && Graph->GetName() == TEXT("AnimGraph"))
+		{
+			AnimGraph = Cast<UAnimationGraph>(Graph);
+			break;
+		}
+	}
+	if (!TestNotNull(TEXT("Crunch AnimGraph exists"), AnimGraph)) return false;
+
+	TArray<UAnimGraphNode_Base*> SequenceNodes;
+	AnimGraph->GetGraphNodesOfClass(UAnimGraphNode_SequencePlayer::StaticClass(), SequenceNodes);
+	TestEqual(TEXT("Idle and jog are the two locomotion sequence players"), SequenceNodes.Num(), 2);
+	TSet<FString> SequencePaths;
+	for (UAnimGraphNode_Base* Node : SequenceNodes)
+	{
+		if (const UAnimGraphNode_SequencePlayer* Player = Cast<UAnimGraphNode_SequencePlayer>(Node))
+		{
+			if (const UAnimSequenceBase* Sequence = Player->Node.GetSequence()) SequencePaths.Add(Sequence->GetPathName());
+		}
+	}
+	TestTrue(TEXT("Target-owned combat idle feeds the locomotion graph"), SequencePaths.Contains(
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Locomotion/Idle_CombatV4.Idle_CombatV4")));
+	TestTrue(TEXT("Target-owned forward jog feeds the locomotion graph"), SequencePaths.Contains(
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Locomotion/Jog_FwdV4.Jog_FwdV4")));
+
+	TArray<UAnimGraphNode_Base*> BlendNodes;
+	TArray<UAnimGraphNode_Base*> SlotNodes;
+	TArray<UAnimGraphNode_Base*> RootNodes;
+	AnimGraph->GetGraphNodesOfClass(UAnimGraphNode_BlendListByBool::StaticClass(), BlendNodes);
+	AnimGraph->GetGraphNodesOfClass(UAnimGraphNode_Slot::StaticClass(), SlotNodes);
+	AnimGraph->GetGraphNodesOfClass(UAnimGraphNode_Root::StaticClass(), RootNodes);
+	TestEqual(TEXT("One movement selector exists"), BlendNodes.Num(), 1);
+	TestEqual(TEXT("One montage slot exists"), SlotNodes.Num(), 1);
+	TestEqual(TEXT("One animation output exists"), RootNodes.Num(), 1);
+	if (BlendNodes.Num() != 1 || SlotNodes.Num() != 1 || RootNodes.Num() != 1) return false;
+
+	const UEdGraphPin* ActiveValue = BlendNodes[0]->FindPin(TEXT("bActiveValue"), EGPD_Input);
+	const UEdGraphPin* TruePose = BlendNodes[0]->FindPin(TEXT("BlendPose_0"), EGPD_Input);
+	const UEdGraphPin* FalsePose = BlendNodes[0]->FindPin(TEXT("BlendPose_1"), EGPD_Input);
+	const UEdGraphPin* SlotSource = SlotNodes[0]->FindPin(TEXT("Source"), EGPD_Input);
+	const UEdGraphPin* RootResult = RootNodes[0]->FindPin(TEXT("Result"), EGPD_Input);
+	auto GetLinkedSequencePath = [](const UEdGraphPin* PosePin) -> FString
+	{
+		if (!PosePin || PosePin->LinkedTo.Num() != 1 || !PosePin->LinkedTo[0]) return FString();
+		const UAnimGraphNode_SequencePlayer* Player =
+			Cast<UAnimGraphNode_SequencePlayer>(PosePin->LinkedTo[0]->GetOwningNode());
+		const UAnimSequenceBase* Sequence = Player ? Player->Node.GetSequence() : nullptr;
+		return Sequence ? Sequence->GetPathName() : FString();
+	};
+	TestTrue(TEXT("bShouldMove drives the idle/jog selector"), ActiveValue && ActiveValue->LinkedTo.Num() == 1
+		&& ActiveValue->LinkedTo[0] && ActiveValue->LinkedTo[0]->PinName == TEXT("bShouldMove"));
+	TestEqual(TEXT("Moving selects the forward jog pose"), GetLinkedSequencePath(TruePose),
+		FString(TEXT("/Game/Assets/Characters/Crunch/Animations/Locomotion/Jog_FwdV4.Jog_FwdV4")));
+	TestEqual(TEXT("Not moving selects the combat idle pose"), GetLinkedSequencePath(FalsePose),
+		FString(TEXT("/Game/Assets/Characters/Crunch/Animations/Locomotion/Idle_CombatV4.Idle_CombatV4")));
+	TestTrue(TEXT("Locomotion selector is the montage base pose"), SlotSource && SlotSource->LinkedTo.Num() == 1
+		&& SlotSource->LinkedTo[0] && SlotSource->LinkedTo[0]->GetOwningNode()->IsA<UAnimGraphNode_BlendListByBool>());
+	TestTrue(TEXT("DefaultSlot feeds the final animation output"), RootResult && RootResult->LinkedTo.Num() == 1
+		&& RootResult->LinkedTo[0] && RootResult->LinkedTo[0]->GetOwningNode()->IsA<UAnimGraphNode_Slot>());
+	return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraCivilianLocomotionAnimBlueprintTest,
+	"Aura.RoleBattle.Civilian.Presentation.LocomotionGraph",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraCivilianLocomotionAnimBlueprintTest::RunTest(const FString& Parameters)
+{
+	UAnimBlueprint* Blueprint = LoadObject<UAnimBlueprint>(nullptr,
+		TEXT("/Game/Blueprints/Character/Shaman/ABP_Shaman.ABP_Shaman"));
+	if (!TestNotNull(TEXT("Civilian Shaman AnimBlueprint loads"), Blueprint)) return false;
+
+	UEdGraph* EventGraph = nullptr;
+	TArray<UEdGraph*> Graphs;
+	Blueprint->GetAllGraphs(Graphs);
+	for (UEdGraph* Graph : Graphs)
+	{
+		if (Graph && Graph->GetName() == TEXT("EventGraph"))
+		{
+			EventGraph = Graph;
+			break;
+		}
+	}
+	if (!TestNotNull(TEXT("Civilian AnimBlueprint EventGraph exists"), EventGraph)) return false;
+
+	UK2Node_Event* UpdateEvent = nullptr;
+	TArray<UK2Node_Event*> EventNodes;
+	EventGraph->GetNodesOfClass(EventNodes);
+	for (UK2Node_Event* EventNode : EventNodes)
+	{
+		if (EventNode && EventNode->GetFunctionName() == FName(TEXT("BlueprintUpdateAnimation")))
+		{
+			UpdateEvent = EventNode;
+			break;
+		}
+	}
+	TestNotNull(TEXT("Civilian BlueprintUpdateAnimation event exists"), UpdateEvent);
+	TestTrue(TEXT("Civilian BlueprintUpdateAnimation event is enabled"), UpdateEvent
+		&& UpdateEvent->GetDesiredEnabledState() == ENodeEnabledState::Enabled);
+
+	UK2Node_CallParentFunction* ParentCall = nullptr;
+	TArray<UK2Node_CallParentFunction*> ParentCallNodes;
+	EventGraph->GetNodesOfClass(ParentCallNodes);
+	for (UK2Node_CallParentFunction* ParentCallNode : ParentCallNodes)
+	{
+		if (ParentCallNode && ParentCallNode->GetFunctionName() == FName(TEXT("BlueprintUpdateAnimation")))
+		{
+			ParentCall = ParentCallNode;
+			break;
+		}
+	}
+	TestNotNull(TEXT("Civilian parent BlueprintUpdateAnimation call exists"), ParentCall);
+	TestTrue(TEXT("Civilian parent BlueprintUpdateAnimation call is enabled"), ParentCall
+		&& ParentCall->GetDesiredEnabledState() == ENodeEnabledState::Enabled);
 	return !HasAnyErrors();
 }
 

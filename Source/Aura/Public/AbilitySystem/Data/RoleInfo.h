@@ -265,7 +265,7 @@ public:
 	 *  (e.g. a placeholder role with empty mesh/anim). */
 	bool IsRoleConfigured(FName Role) const;
 
-	/** Server/login-safe predicate. Presentation callers may inspect non-player roles separately. */
+	/** Server/login-safe predicate for normal Player roles and the bounded selectable Civilian role. */
 	bool IsPlayerRoleSelectable(FName Role) const;
 };
 

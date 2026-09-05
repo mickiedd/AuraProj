@@ -1457,6 +1457,35 @@ bool FAuraDay5ValidVersion2SchemaTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+AURA_DAY5_TEST(FAuraDay5ExplicitFourRoleCatalogTest, "ExplicitFourRoleCatalog")
+bool FAuraDay5ExplicitFourRoleCatalogTest::RunTest(const FString& Parameters)
+{
+	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
+	const TArray<FName> ExpectedRoles = { FName(TEXT("Aura")), FName(TEXT("Crunch")), FName(TEXT("BungeeMan")), FName(TEXT("Civilian")) };
+	TestTrue(TEXT("Four-role candidate publishes"), Result.bCanPublish && Result.Candidate != nullptr);
+	if (!Result.Candidate)
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("Role catalog contains exactly four stable IDs"), Result.Candidate->RoleInformation.Num(), ExpectedRoles.Num());
+	for (const FName RoleId : ExpectedRoles)
+	{
+		TestTrue(FString::Printf(TEXT("Role catalog contains %s"), *RoleId.ToString()), Result.Candidate->RoleInformation.Contains(RoleId));
+	}
+
+	const FRoleDefaultInfo* Civilian = Result.Candidate->RoleInformation.Find(TEXT("Civilian"));
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	TestTrue(TEXT("Civilian remains an ambient role with player selection enabled"), Civilian
+		&& Civilian->EntityType == Tags.Entity_AmbientNPC
+		&& Civilian->ControlType == Tags.Control_CivilianAI
+		&& Civilian->Faction == Tags.Faction_Civilian
+		&& Civilian->CombatProfile == Tags.Combat_Civilian
+		&& Civilian->bPlayerSelectable
+		&& !Civilian->bCanAttack);
+	return true;
+}
+
 AURA_DAY5_TEST(FAuraDay5LegacyVersion1MigrationTest, "LegacyVersion1Migration")
 bool FAuraDay5LegacyVersion1MigrationTest::RunTest(const FString& Parameters)
 {
@@ -1536,7 +1565,7 @@ bool FAuraDay5CivilianEmptyLoadoutTest::RunTest(const FString& Parameters)
 {
 	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
 	const FRoleDefaultInfo* Civilian = Result.Candidate ? Result.Candidate->RoleInformation.Find(TEXT("Civilian")) : nullptr;
-	TestTrue(TEXT("Civilian is valid ambient content"), Result.bCanPublish && Civilian && !Civilian->bPlayerSelectable && !Civilian->bCanAttack);
+	TestTrue(TEXT("Civilian is valid selectable ambient content"), Result.bCanPublish && Civilian && Civilian->bPlayerSelectable && !Civilian->bCanAttack);
 	TestTrue(TEXT("Civilian has empty spawn and unlock loadout"), Civilian && Civilian->StartupAbilities.IsEmpty() && Civilian->StartupAbilityDefinitions.IsEmpty() && Civilian->UnlockableAbilities.IsEmpty() && !Civilian->DefaultLMBAbility && !Civilian->DefaultLMBAbilityDefinition);
 	return true;
 }
@@ -1568,7 +1597,7 @@ bool FAuraDay5ServerRejectsInvalidConfigOrRoleTest::RunTest(const FString& Param
 	FString Error;
 	TestFalse(TEXT("Unavailable registry rejected"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(nullptr, TEXT("Aura"), Error));
 	TestFalse(TEXT("Unknown role rejected"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Unknown"), Error));
-	TestFalse(TEXT("Ambient role rejected"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Civilian"), Error));
+	TestTrue(TEXT("Civilian accepted for player selection"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Civilian"), Error));
 	return true;
 }
 
@@ -1610,7 +1639,7 @@ bool FAuraDay5LoadScreenRoleValidationTest::RunTest(const FString& Parameters)
 	FString Error;
 	TestTrue(TEXT("Aura accepted for load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Aura"), Error));
 	TestTrue(TEXT("Crunch accepted for load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Crunch"), Error));
-	TestFalse(TEXT("Civilian excluded from load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Civilian"), Error));
+	TestTrue(TEXT("Civilian included in load screen"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Civilian"), Error));
 	return true;
 }
 

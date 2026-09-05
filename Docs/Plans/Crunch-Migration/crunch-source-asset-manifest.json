@@ -21,7 +21,9 @@
     {"path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_01.uasset", "sha256": "A7F9FDD242E8C9FE671B8A4116613D473080FBAC14582DB603F140995E2BA1A8", "purpose": "combo section 1 source sequence"},
     {"path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_02.uasset", "sha256": "127EE9B374A78C370B9BF38AF539D0E2DB814A75F5E0CC55EE1E3EA26FA0336E", "purpose": "combo section 2 source sequence"},
     {"path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_03.uasset", "sha256": "712DDB458C4ABE985EF7B86320E5138F84D9C3BAFB820D4150A403D271C1EE0F", "purpose": "combo section 3 source sequence"},
-    {"path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_04.uasset", "sha256": "C8908D2C24A848C953C690B14C417B37B84AC52A34859E79F93104C1149EBC60", "purpose": "combo section 4 source sequence"}
+    {"path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Ability_Combo_04.uasset", "sha256": "C8908D2C24A848C953C690B14C417B37B84AC52A34859E79F93104C1149EBC60", "purpose": "combo section 4 source sequence"},
+    {"path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Idle_Combat.uasset", "sha256": "5F8CF69502242551E6396701B14AD3B9A5763A78FD97FF2B12845A2734F51563", "purpose": "combat idle locomotion source sequence"},
+    {"path": "Content/ParagonCrunch/Characters/Heroes/Crunch/Animations/Jog_Fwd.uasset", "sha256": "B622D2CC4FDC8B890B1AF6C7B3753A5FEA80683588DB8658CDE9F68C5F95C78A", "purpose": "forward jog locomotion source sequence"}
   ],
   "requiredEditorExport": ["dependencyClosure", "blueprintDefaults", "montageSectionTimes", "montageNotifyTimes", "gameplayCueReferences", "sourceClassReferenceScan"]
 }

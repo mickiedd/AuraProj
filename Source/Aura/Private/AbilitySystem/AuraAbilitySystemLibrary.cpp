@@ -1186,9 +1186,10 @@ FAuraRoleLoadResult UAuraAbilitySystemLibrary::ParseRoleInfoJson(const UObject* 
 		if (!Info.bCanAttack && bHasOffensive) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".canAttack"), TEXT("non-attacking role cannot have offensive spawn grants"));
 		if (RoleName == TEXT("Civilian") && UnlockableClasses.Num() > 0) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".unlockableAbilities"), TEXT("Civilian offensive unlock catalog must be empty"));
 		const bool bPlayerIdentity = Entity == TEXT("Entity.Player") && Control == TEXT("Control.Player") && Faction == TEXT("Faction.Player") && Death == TEXT("Death.PlayerRespawn");
-		const bool bCivilianIdentity = Entity == TEXT("Entity.AmbientNPC") && Control == TEXT("Control.CivilianAI") && Faction == TEXT("Faction.Civilian") && Death == TEXT("Death.PopulationRespawn") && Combat == TEXT("Combat.Civilian");
+		const bool bCivilianIdentity = Entity == TEXT("Entity.AmbientNPC") && Control == TEXT("Control.CivilianAI") && Faction == TEXT("Faction.Civilian") && (Death == TEXT("Death.PopulationRespawn") || Death == TEXT("Death.PlayerRespawn")) && Combat == TEXT("Combat.Civilian");
 		if (!bPlayerIdentity && !bCivilianIdentity) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath, TEXT("identity/profile tag combination is not supported"));
-		if (Info.bPlayerSelectable && !bPlayerIdentity) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".playerSelectable"), TEXT("only Entity.Player/Control.Player roles may be player-selectable"));
+		const bool bSelectableCivilian = RoleName == TEXT("Civilian") && bCivilianIdentity && !Info.bCanAttack && !bHasOffensive;
+		if (Info.bPlayerSelectable && !bPlayerIdentity && !bSelectableCivilian) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".playerSelectable"), TEXT("only Player roles or the bounded non-attacking Civilian role may be player-selectable"));
 
 		RoleInfo->RoleInformation.Add(RoleName, Info);
 	}
@@ -1258,7 +1259,7 @@ bool UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(const URoleInfo* Rol
 	}
 	if (!RoleInfo->IsPlayerRoleSelectable(RoleId))
 	{
-		OutError = FString::Printf(TEXT("Role '%s' is not a configured, player-selectable Player role."), *RoleId.ToString());
+		OutError = FString::Printf(TEXT("Role '%s' is not a configured, player-selectable role."), *RoleId.ToString());
 		return false;
 	}
 	OutError.Reset();

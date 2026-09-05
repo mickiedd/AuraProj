@@ -5,7 +5,7 @@
 #include "Commandlets/Commandlet.h"
 #include "AuraConfigureCrunchAnimBlueprintCommandlet.generated.h"
 
-/** Adds the minimal Aura-compatible montage slot to the translated Crunch AnimBP. */
+/** Builds the Aura-compatible Crunch idle/jog base pose and montage slot graph. */
 UCLASS()
 class AURAEDITOR_API UAuraConfigureCrunchAnimBlueprintCommandlet : public UCommandlet
 {

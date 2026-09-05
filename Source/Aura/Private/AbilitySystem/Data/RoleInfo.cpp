@@ -28,10 +28,21 @@ bool URoleInfo::IsPlayerRoleSelectable(FName Role) const
 {
 	if (const FRoleDefaultInfo* Info = RoleInformation.Find(Role))
 	{
-		return IsRoleConfigured(Role)
-			&& Info->bPlayerSelectable
-			&& Info->EntityType.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Entity.Player"), false))
-			&& Info->ControlType.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Control.Player"), false));
+		const FGameplayTag EntityPlayer = FGameplayTag::RequestGameplayTag(TEXT("Entity.Player"), false);
+		const FGameplayTag ControlPlayer = FGameplayTag::RequestGameplayTag(TEXT("Control.Player"), false);
+		const FGameplayTag EntityAmbient = FGameplayTag::RequestGameplayTag(TEXT("Entity.AmbientNPC"), false);
+		const FGameplayTag ControlCivilianAI = FGameplayTag::RequestGameplayTag(TEXT("Control.CivilianAI"), false);
+		const FGameplayTag FactionCivilian = FGameplayTag::RequestGameplayTag(TEXT("Faction.Civilian"), false);
+		const FGameplayTag CombatCivilian = FGameplayTag::RequestGameplayTag(TEXT("Combat.Civilian"), false);
+		const bool bPlayerIdentity = Info->EntityType.MatchesTagExact(EntityPlayer)
+			&& Info->ControlType.MatchesTagExact(ControlPlayer);
+		const bool bPlayableCivilian = Role == TEXT("Civilian")
+			&& Info->EntityType.MatchesTagExact(EntityAmbient)
+			&& Info->ControlType.MatchesTagExact(ControlCivilianAI)
+			&& Info->Faction.MatchesTagExact(FactionCivilian)
+			&& Info->CombatProfile.MatchesTagExact(CombatCivilian)
+			&& !Info->bCanAttack;
+		return IsRoleConfigured(Role) && Info->bPlayerSelectable && (bPlayerIdentity || bPlayableCivilian);
 	}
 	return false;
 }

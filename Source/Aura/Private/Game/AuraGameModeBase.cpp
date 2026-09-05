@@ -300,10 +300,10 @@ void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options,
 			const bool bAuraAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Aura"), Error);
 			const bool bCrunchAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Crunch"), Error);
 			const bool bBungeeAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("BungeeMan"), Error);
-			const bool bCivilianRejected = !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Civilian"), Error);
+			const bool bCivilianAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Civilian"), Error);
 			const bool bUnknownRejected = !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Unknown"), Error);
-			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] ValidStartup=1 AuraAccepted=%d CrunchAccepted=%d BungeeAccepted=%d CivilianRejected=%d UnknownRejected=%d SavedDefaultValidation=%d"),
-				bAuraAccepted, bCrunchAccepted, bBungeeAccepted, bCivilianRejected, bUnknownRejected,
+			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] ValidStartup=1 AuraAccepted=%d CrunchAccepted=%d BungeeAccepted=%d CivilianAccepted=%d UnknownRejected=%d SavedDefaultValidation=%d"),
+				bAuraAccepted, bCrunchAccepted, bBungeeAccepted, bCivilianAccepted, bUnknownRejected,
 				RoleInfo->IsPlayerRoleSelectable(RoleInfo->DefaultRole));
 		}
 	}
@@ -359,6 +359,21 @@ void AAuraGameModeBase::HandleAuthoritativeDeath(const FAuraDeathEvent& Event)
 	if (!HasAuthority()) return;
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 	GrantCivilianLethalReward(Event);
+	// Civilian's data-driven death policy is shared by its ambient and playable
+	// contexts. The actor shell is authoritative for routing: population actors
+	// refill a slot, while a player-controlled Civilian uses normal player respawn.
+	if (Event.DeathPolicyTag.MatchesTagExact(GameplayTags.Death_PopulationRespawn))
+	{
+		if (Cast<AAuraCivilian>(Event.VictimActor))
+		{
+			if (PopulationManager) PopulationManager->HandlePopulationDeath(Event);
+		}
+		else if (AAuraCharacter* Player = Cast<AAuraCharacter>(Event.VictimActor))
+		{
+			PlayerDied(Player, Player->DeathTime);
+		}
+		return;
+	}
 	if (Event.DeathPolicyTag.MatchesTagExact(GameplayTags.Death_PlayerRespawn))
 	{
 		if (AAuraCharacter* Player = Cast<AAuraCharacter>(Event.VictimActor))
@@ -371,13 +386,6 @@ void AAuraGameModeBase::HandleAuthoritativeDeath(const FAuraDeathEvent& Event)
 		if (AAuraEnemy* Enemy = Cast<AAuraEnemy>(Event.VictimActor))
 		{
 			Enemy->ApplyEnemyDeathPolicy(Event);
-		}
-	}
-	else if (Event.DeathPolicyTag.MatchesTagExact(GameplayTags.Death_PopulationRespawn))
-	{
-		if (PopulationManager)
-		{
-			PopulationManager->HandlePopulationDeath(Event);
 		}
 	}
 }
