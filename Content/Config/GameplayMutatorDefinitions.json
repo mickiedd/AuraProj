@@ -1,0 +1,1 @@
+{"schemaVersion":1,"gameplayProfile":"GameplayExpansionV1","definitionRevision":"days-42-60-mutator-contract-v1","status":"CONTRACT_ONLY","runtimeWiring":"UNWIRED","allowCombinedMutators":false,"rewardMultiplier":1,"mutators":[{"id":"RestlessPatrols","maximumExtraPerCell":2,"retainsLiveCaps":true},{"id":"VolatileVents","prevalidatedPadsOnly":true,"mandatoryRoutesBlocked":false}]}

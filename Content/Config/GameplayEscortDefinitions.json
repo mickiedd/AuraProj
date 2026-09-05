@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-escort-contract-v1",
+  "status": "CONTRACT_ONLY",
+  "runtimeWiring": "UNWIRED",
+  "missionId": "RescueRelay",
+  "requiredMemberIds": ["civilian_rescue_a", "civilian_rescue_b"],
+  "followRangeUnits": 800,
+  "stallPolicy": {
+    "firstRetryRequestedMovementSeconds": 5,
+    "secondRetryRequestedMovementSeconds": 7,
+    "technicalAbortRequestedMovementSeconds": 9,
+    "pauseDuringWaitingForEscort": true,
+    "pauseDuringIntentionalShelterWait": true
+  },
+  "damagePolicy": {
+    "playersCanDamageCivilians": false,
+    "missionEnemiesCanDamageOnlyDesignatedMembers": true
+  },
+  "arrangements": [
+    {
+      "id": "arrangement_a",
+      "shelterWaypointIds": ["shelter_a_1", "shelter_a_2"],
+      "verified": false,
+      "notes": "Runtime route, cover, LOS and safe-zone evidence must come from an engine survey."
+    },
+    {
+      "id": "arrangement_b",
+      "shelterWaypointIds": ["shelter_b_1", "shelter_b_2"],
+      "verified": false,
+      "notes": "Arrangement B reuses only surveyed assets; no guessed transforms or nav claims."
+    }
+  ]
+}

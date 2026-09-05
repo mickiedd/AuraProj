@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-reward-contract-v1",
+  "status": "CONTRACT_ONLY",
+  "runtimeWiring": "UNWIRED",
+  "rewardVersion": 1,
+  "primaryGold": 50,
+  "bossExtractionGold": 25,
+  "optionalCacheGold": 25,
+  "maximumPerParticipantGold": 100,
+  "minimumConnectedSeconds": 60,
+  "requiresReadinessAtStart": true,
+  "requiresAcceptedAction": true,
+  "lastHitBonusGold": 0,
+  "technicalAbortGold": 0
+}

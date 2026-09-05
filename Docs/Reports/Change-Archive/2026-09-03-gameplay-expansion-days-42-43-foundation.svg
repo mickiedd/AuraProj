@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="930" viewBox="0 0 1400 930" role="img" aria-labelledby="title desc">
+<title id="title">Days 42–43 inert mission and encounter foundation hardening</title>
+<desc id="desc">Before: planned mission and encounter concepts had partial source scaffolding. After: five definition sources, explicit exactly-once boundaries, driver-owned leases, narrow public replication, and fail-closed entry are represented and locally contract-tested. Runtime remains blocked by inherited evidence and survey gates.</desc>
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#0f766e"/></marker>
+  <style>
+    .title{font:700 32px 'Segoe UI',Arial,sans-serif;fill:#132b3b}.sub{font:400 18px 'Segoe UI',Arial,sans-serif;fill:#475569}.head{font:700 21px 'Segoe UI',Arial,sans-serif;fill:#132b3b}.body{font:400 16px 'Segoe UI',Arial,sans-serif;fill:#334155}.small{font:400 14px 'Segoe UI',Arial,sans-serif;fill:#64748b}.gate{font:700 17px 'Segoe UI',Arial,sans-serif;fill:#785418}.good{fill:#e3f4ef;stroke:#81b8a8}.neutral{fill:#fff;stroke:#cbd5e1}.warn{fill:#fff0cf;stroke:#d9ad53}.blocked{fill:#f8e4e4;stroke:#d08a8a}
+  </style>
+</defs>
+<rect width="1400" height="930" fill="#f3f6f7"/>
+<text x="40" y="52" class="title">AuraProj  /  Days 42–43 Foundation</text>
+<text x="40" y="84" class="sub">Contract hardening keeps the new mission profile inert until the inherited runtime gate is genuinely open.</text>
+<rect x="40" y="108" width="1320" height="52" rx="12" class="warn" stroke-width="1.5"/>
+<text x="62" y="141" class="gate">FAIL-CLOSED ENTRY  •  Day 40 packaged evidence, Day 41 readiness, and engine-surveyed anchors are still required.</text>
+
+<text x="40" y="208" class="head">BEFORE  /  partial planned foundation</text>
+<rect x="40" y="230" width="370" height="270" rx="16" class="neutral" stroke-width="1.5"/>
+<text x="64" y="264" class="head">Plans plus early scaffolding</text>
+<text x="64" y="300" class="body">Mission state had lifecycle rules</text>
+<text x="64" y="327" class="body">Encounter ledger had bounded slots</text>
+<text x="64" y="354" class="body">Five JSON files existed</text>
+<text x="64" y="381" class="body">Public actor mirrored broad run state</text>
+<text x="64" y="408" class="body">Runtime entry stayed blocked</text>
+<text x="64" y="451" class="small">Review risk: omitted role source, inferred</text>
+<text x="64" y="473" class="small">cell events, weak driver identity, private</text>
+<text x="64" y="495" class="small">authority data in a replicated structure.</text>
+
+<path d="M435 365 L485 365" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+<text x="454" y="345" class="small">handoff</text>
+
+<text x="510" y="208" class="head">AFTER  /  hardened but inert contracts</text>
+<rect x="510" y="230" width="255" height="145" rx="16" class="good" stroke-width="1.5"/>
+<text x="532" y="264" class="head">1  Definitions</text>
+<text x="532" y="297" class="body">5 explicit registry sources</text>
+<text x="532" y="322" class="body">IDs and references checked</text>
+<text x="532" y="347" class="body">Layout survey stays blocked</text>
+<rect x="790" y="230" width="255" height="145" rx="16" class="good" stroke-width="1.5"/>
+<text x="812" y="264" class="head">2  Mission reducer</text>
+<text x="812" y="297" class="body">30s preparation boundary</text>
+<text x="812" y="322" class="body">20m run deadline fields</text>
+<text x="812" y="347" class="body">One boundary receipt per cell</text>
+<rect x="1070" y="230" width="290" height="145" rx="16" class="good" stroke-width="1.5"/>
+<text x="1092" y="264" class="head">3  Encounter ownership</text>
+<text x="1092" y="297" class="body">Run + epoch + generation</text>
+<text x="1092" y="322" class="body">Immutable logical driver</text>
+<text x="1092" y="347" class="body">Duplicate death rejection</text>
+<path d="M768 302 L782 302" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/><path d="M1048 302 L1062 302" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+<rect x="510" y="405" width="390" height="145" rx="16" class="good" stroke-width="1.5"/>
+<text x="532" y="439" class="head">4  Public / private split</text>
+<text x="532" y="472" class="body">Replicated public snapshot only</text>
+<text x="532" y="497" class="body">Private death ledger stays authority-side</text>
+<text x="532" y="522" class="body">Owner-only loadout replication retained</text>
+<rect x="925" y="405" width="435" height="145" rx="16" class="good" stroke-width="1.5"/>
+<text x="947" y="439" class="head">5  Transactional activation</text>
+<text x="947" y="472" class="body">Rejected entry leaves profile disabled</text>
+<text x="947" y="497" class="body">No GameMode / persistence wiring yet</text>
+<text x="947" y="522" class="body">Legacy death policy remains untouched</text>
+<path d="M880 477 L915 477" stroke="#0f766e" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+<text x="40" y="612" class="head">VALIDATION  /  what this increment proves</text>
+<rect x="40" y="634" width="410" height="180" rx="16" class="neutral" stroke-width="1.5"/>
+<text x="64" y="668" class="head">Local contracts</text>
+<text x="64" y="701" class="body">4/4 Python definition tests</text>
+<text x="64" y="728" class="body">5 JSON documents parse</text>
+<text x="64" y="755" class="body">Native Day 42–43 cases added</text>
+<text x="64" y="782" class="body">Diff check and Python compile pass</text>
+<rect x="480" y="634" width="410" height="180" rx="16" class="neutral" stroke-width="1.5"/>
+<text x="504" y="668" class="head">Review-driven corrections</text>
+<text x="504" y="701" class="body">All five sources have an owner</text>
+<text x="504" y="728" class="body">Cell transition is an explicit result</text>
+<text x="504" y="755" class="body">Driver / generation identity is carried</text>
+<text x="504" y="782" class="body">Public actor no longer carries the ledger</text>
+<rect x="920" y="634" width="440" height="180" rx="16" class="blocked" stroke-width="1.5"/>
+<text x="944" y="668" class="head">Still blocked / intentionally deferred</text>
+<text x="944" y="701" class="body">UE build and native automation: engine absent</text>
+<text x="944" y="728" class="body">Packaged / Shipping / soak evidence</text>
+<text x="944" y="755" class="body">Anchor survey and runtime activation</text>
+<text x="944" y="782" class="body">Spawns, death-policy, persistence, rewards</text>
+<text x="40" y="875" class="small">2026-09-03  •  Safe foundation increment; no claim that Days 42–60 are complete.</text>
+</svg>

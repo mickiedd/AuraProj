@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-pacing-contract-v1",
+  "status": "CONTRACT_ONLY",
+  "runtimeWiring": "UNWIRED",
+  "schedulerHz": 2,
+  "intensity": {
+    "healthLossWindowSeconds": 5,
+    "smoothingWindowSeconds": 2,
+    "recoveryEnterThreshold": 0.75,
+    "recoveryExitThreshold": 0.45,
+    "sources": ["RecentHealthLoss", "NearbyCommittedThreats", "Incapacitated"]
+  },
+  "phases": {
+    "minimumBuildSeconds": 10,
+    "maximumPressureSeconds": 30,
+    "minimumRecoverySeconds": 8,
+    "maximumRecoverySeconds": 20,
+    "interactionMayExtendRecovery": true
+  },
+  "admission": {
+    "archetypeCosts": {
+      "Raider": 1,
+      "Lancer": 2,
+      "Bulwark": 3,
+      "Disruptor": 3
+    },
+    "waveBudget": {"solo": 6, "pair": 10},
+    "activeHostileCap": {"solo": 10, "pair": 16},
+    "recoverySuppressesNewHostiles": true,
+    "requiresConnectedAliveParticipant": true,
+    "fixedRequiredRoster": true
+  },
+  "heavyAdmission": {
+    "owner": "AuraEncounterCoordinator",
+    "maxConcurrentHeavyAttacks": 2,
+    "maxTokensPerAffectedParticipant": 2,
+    "coverageRangeUnits": 600,
+    "pacingMayResetTokens": false
+  },
+  "runtimeGates": [
+    "DAY40_PACKAGED_EVIDENCE_MISSING",
+    "DAY46_SUPPLY_RUNTIME_UNIMPLEMENTED",
+    "DAY49_LIVE_OBJECTIVE_LOOP_UNIMPLEMENTED",
+    "ANCHOR_SURVEY_UNVERIFIED"
+  ]
+}

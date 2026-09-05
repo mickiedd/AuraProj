@@ -1,8 +1,10 @@
 # Day 53 — Rewards and Mastery Settlement
 
-Status: Planned; not implemented by this planning job.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
 Depends on: Day 52 reward flags/supplies; Day 42 hub snapshot/entry marker; existing persistence manifest and economy.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds an authority-only all-or-nothing settlement reducer, closed reward/mastery definitions and all ten named native contract cases. Production save-manifest integration, debrief UI, migration writes, packaged fault injection and durable payout remain unwired.
 
 ## Player outcome
 

@@ -30,7 +30,10 @@ class Day41Tests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="aura-day41-tests-")
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        # macOS exposes the default temporary root through /var -> /private/var.
+        # Resolve that host alias so path-safety tests exercise their intended
+        # fixture children instead of failing on the operating system's alias.
+        self.root = Path(self.temp.name).resolve()
         self.repo = self.root / "repo"
         self.repo.mkdir()
         self.scope = ge.strict_json((ROOT / ge.SCOPE_PATH).read_bytes(), "scope fixture")
@@ -376,6 +379,17 @@ class Day41Tests(unittest.TestCase):
         self.assertEqual(result["completionMode"], "QueueEmptyTestExit")
         self.assertEqual(result["observedTestCount"], 1)
 
+    def test_native_mac_no_quit_queue_empty_completion(self):
+        index, log, start, _ = self.native_fixture()
+        handshake = ("LogAutomationCommandLine: Display: ...Automation Test Queue Empty 1 tests performed.\n"
+                     "LogExit: Display: **** TestExit: Automation Test Queue Empty ****\n"
+                     "LogMac: FPlatformMisc::RequestExit(1, FEngineLoop::Tick.GScopedTestExit)\n")
+        log.write_text(log.read_text(encoding="utf-8").replace("**** TEST COMPLETE. EXIT CODE: 0 ****\n", handshake), encoding="utf-8")
+        result = ge.native(index, log, 0, start)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["completionMode"], "QueueEmptyTestExit")
+        self.assertEqual(result["observedTestCount"], 1)
+
     def test_native_no_quit_incomplete_conflicting_or_reordered_completion(self):
         handshake = ["LogAutomationCommandLine: Display: ...Automation Test Queue Empty 1 tests performed.\n",
                      "LogExit: Display: **** TestExit: Automation Test Queue Empty ****\n",
@@ -486,13 +500,102 @@ class Day41Tests(unittest.TestCase):
         self.assertEqual(result["status"], "BLOCKED")
 
 
+def gameplay_binding():
+    return {"runId":"final-run","sourceRevision":"a"*40,"scopeRevision":"gameplay-expansion-v1",
+            "scopeManifestSha256":"b"*64,"contentManifestSha256":"c"*64,"packageSha256":"d"*64}
+
+
+def playtest_fixture():
+    binding=gameplay_binding(); participants=[]; sessions=[]
+    for i in range(6):
+        pid=f"P{i+1}"; initial=f"{pid}-initial"
+        participants.append({"participantId":pid,"consent":True,"priorExposure":False,"initialSessionId":initial,
+                             "objectiveSeconds":45,"augmentUnaided":True,"resupplyUnaided":True,"enjoyment":4,
+                             "voluntaryReplay":i<4,"decisionAtUtc":"2026-09-01T10:00:00Z","scheduledAtUtc":"2026-09-01T11:00:00Z",
+                             "decisionSequence":1,"taskSequence":2,"consentRecordSha256":format(i+1,'064x')})
+        for kind in ("Initial","SecondRole","ComparisonA","ComparisonB"):
+            sessions.append({"sessionId":initial if kind=="Initial" else f"{pid}-{kind}","participantId":pid,
+                             "role":"Aura" if kind in ("Initial","ComparisonA") else "BungeeMan","kind":kind,
+                             "contentManifestSha256":binding["contentManifestSha256"]})
+    return {**binding,"schemaVersion":1,"producer":"AuraConsentedPlaytestImporter","evidenceClass":"HUMAN_OBSERVATION","createdAtUtc":"2026-09-01T12:00:00Z","participants":participants,"sessions":sessions,
+            "offers":[{"offerId":f"offer-{i}","eligible":True,"selected":i<5} for i in range(10)],
+            "privacy":{"containsRawIdentity":False,"containsVoice":False,"containsVideo":False,"videoConsent":False}}
+
+
+class Day59Tests(unittest.TestCase):
+    def setUp(self): self.record=playtest_fixture();self.binding=gameplay_binding()
+    def code(self, expected, fn):
+        with self.assertRaises(ge.EvidenceError) as c: fn()
+        self.assertEqual(c.exception.code,expected)
+    def test_comparable_offer_denominator(self):
+        self.assertEqual(ge.validate_playtest(self.record,self.binding)["eligibleOfferCount"],10)
+        self.record["offers"].pop();self.code("PLAYTEST_OFFER_DENOMINATOR",lambda:ge.validate_playtest(self.record,self.binding))
+    def test_playtest_artifact_binding(self):
+        self.record["contentManifestSha256"]="e"*64;self.code("BINDING_MISMATCH",lambda:ge.validate_playtest(self.record,self.binding))
+        self.record=playtest_fixture();self.record["sessions"][1]["sessionId"]=self.record["sessions"][0]["sessionId"]
+        self.code("PLAYTEST_SESSION_INVALID",lambda:ge.validate_playtest(self.record,self.binding))
+    def test_first_use_cohort_is_fresh(self):
+        self.record["participants"][0]["priorExposure"]=True;self.code("PLAYTEST_COHORT_NOT_FRESH",lambda:ge.validate_playtest(self.record,self.binding))
+    def test_voluntary_replay_before_scheduled_tasks(self):
+        self.record["participants"][0]["decisionAtUtc"]="2026-09-01T12:00:00Z";self.code("PLAYTEST_REPLAY_COERCED",lambda:ge.validate_playtest(self.record,self.binding))
+        self.record=playtest_fixture();self.record["participants"][0]["decisionSequence"]=2;self.record["participants"][0]["taskSequence"]=2
+        self.code("PLAYTEST_REPLAY_COERCED",lambda:ge.validate_playtest(self.record,self.binding))
+    def test_usability_thresholds(self):
+        self.assertEqual(ge.validate_playtest(self.record,self.binding)["status"],"PASS")
+        for row in self.record["participants"][:2]:row["augmentUnaided"]=False
+        self.assertEqual(ge.validate_playtest(self.record,self.binding)["status"],"NEEDS_ITERATION")
+
+
+def final_bundle():
+    binding=gameplay_binding()
+    samples=[{"runId":f"perf-{i}","executableSha256":format(i+10,'064x'),"packageSha256":binding["packageSha256"],"map":"GameplayExpansion","scenario":"BusyCombat","rhi":"Metal","resolution":[1920,1080],"quality":"Medium","rendered":True,"warmupSeconds":300,"sampleSeconds":600,"traceSha256":format(i+20,'064x')} for i in range(3)]
+    perf={**binding,"schemaVersion":1,"status":"PASS","producer":"AuraPerformanceRunner","evidenceClass":"RUNTIME_RENDERED","createdAtUtc":"2026-09-01T12:00:00Z","candidateIdentity":binding["packageSha256"],"baselineIdentity":"e"*64,
+          "rendered":True,"traceSha256":"f"*64,"hardwareFingerprint":"hw","settingsFingerprint":"1080p-medium","cycles":10,
+          "memoryGrowthPercent":4,"actorCountBefore":8,"actorCountAfter":8,"timerCountBefore":3,"timerCountAfter":3,"samples":samples}
+    bundle={**binding,"schemaVersion":1,"cleanSource":True,"technicalStatus":"PASS","playtest":playtest_fixture(),"performance":perf,
+            "secondAuthorStatus":"PASS","nativeGroups":{f"Day{d}":[f"Aura.Gameplay.Day{d}.Contract"] for d in range(42,60)},
+            "standardRows":[f"{t}|{l}|{lane}" for t in ("Assault","RescueRelay","Sabotage") for l in ("arrangement_a","arrangement_b") for lane in ge.LANES],
+            "mutatorRows":[f"{t}|{l}|{m}" for t in ("Assault","RescueRelay","Sabotage") for l in ("arrangement_a","arrangement_b") for m in ("RestlessPatrols","VolatileVents")],
+            "lifecycleLanes":list(ge.LANES),"legacyLanes":list(ge.OLD_LANES),
+            "soakCycles":[{"cycleId":f"{family}-{i}","family":family,"orphanGrowth":0,"rewardDuplicates":0,"packageSha256":binding["packageSha256"]} for family in ("Solo","Listen","Dedicated") for i in range(10)],
+            "openP0P1":0,"externalProviderStatus":"BLOCKED","validatorVersion":"gameplay-finalizer-v1"}
+    bundle["inputManifestSha256"]=ge.digest(json.dumps(bundle,sort_keys=True,separators=(",",":"),ensure_ascii=True,allow_nan=False).encode())
+    return bundle
+
+
+class Day60Tests(unittest.TestCase):
+    def setUp(self): self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.output=Path(self.temp.name).resolve()/"candidate.json";self.bundle=final_bundle()
+    def code(self, expected, fn):
+        with self.assertRaises(ge.EvidenceError) as c: fn()
+        self.assertEqual(c.exception.code,expected)
+    def test_final_artifact_exact_binding(self):
+        self.bundle["playtest"]["packageSha256"]="0"*64;self.code("BINDING_MISMATCH",lambda:ge.finalize_gameplay_candidate(self.bundle,self.output))
+    def test_required_matrix_complete(self):
+        self.bundle["standardRows"].pop();self.code("STANDARD_MATRIX_INCOMPLETE",lambda:ge.finalize_gameplay_candidate(self.bundle,self.output))
+        self.bundle=final_bundle();self.bundle["standardRows"][0]="invented|row|lane";self.code("STANDARD_MATRIX_INCOMPLETE",lambda:ge.finalize_gameplay_candidate(self.bundle,self.output))
+    def test_no_false_playability_pass(self):
+        self.bundle["performance"]["status"]="BLOCKED";self.code("PERFORMANCE_NOT_PASS",lambda:ge.finalize_gameplay_candidate(self.bundle,self.output));self.assertFalse(self.output.exists())
+    def test_human_evidence_is_uncoerced_and_current(self):
+        self.bundle["playtest"]["participants"][0]["priorExposure"]=True;self.code("PLAYTEST_COHORT_NOT_FRESH",lambda:ge.finalize_gameplay_candidate(self.bundle,self.output))
+    def test_final_metrics_do_not_borrow_baseline(self):
+        self.bundle["performance"]["candidateIdentity"]=self.bundle["performance"]["baselineIdentity"];self.code("PERFORMANCE_IDENTITY_INVALID",lambda:ge.finalize_gameplay_candidate(self.bundle,self.output))
+        self.bundle=final_bundle();self.bundle["performance"]["samples"][0]["rhi"]="NullRHI";self.code("PERFORMANCE_SAMPLE_INVALID",lambda:ge.finalize_gameplay_candidate(self.bundle,self.output))
+    def test_immutable_final_record(self):
+        ge.finalize_gameplay_candidate(self.bundle,self.output)
+        with self.assertRaises(FileExistsError):ge.finalize_gameplay_candidate(self.bundle,self.output)
+    def test_soak_cycle_and_cleanup_accounting(self):
+        self.bundle["soakCycles"][0]["orphanGrowth"]=1;self.code("SOAK_CLEANUP_INVALID",lambda:ge.finalize_gameplay_candidate(self.bundle,self.output))
+    def test_external_gate_independent(self):
+        result=ge.finalize_gameplay_candidate(self.bundle,self.output);self.assertEqual(result["localGameplay"],"PASS");self.assertEqual(result["externalProvider"],"BLOCKED")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--day", type=int, default=41)
     parser.add_argument("--day41", action="store_const", const=41, dest="day")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
-    if args.day != 41:
+    if args.day not in (41,59,60):
         result = {"schemaVersion": 1, "day": args.day, "status": "FAIL", "reasonCode": "UNSUPPORTED_DAY", "passed": False, "testsRun": 0}
         try:
             ge.write_result(args.output, result, [])
@@ -501,13 +604,14 @@ def main(argv=None):
         return 1
     stream = io.StringIO()
     runner = unittest.TextTestRunner(stream=stream, verbosity=2)
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(Day41Tests)
-    from test_gameplay_baseline_readers import BaselineReaderTests
-    suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(BaselineReaderTests))
-    from test_gameplay_native_warnings import NativeWarningTests
-    suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(NativeWarningTests))
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase({41:Day41Tests,59:Day59Tests,60:Day60Tests}[args.day])
+    if args.day == 41:
+        from test_gameplay_baseline_readers import BaselineReaderTests
+        suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(BaselineReaderTests))
+        from test_gameplay_native_warnings import NativeWarningTests
+        suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(NativeWarningTests))
     outcome = runner.run(suite)
-    result = {"schemaVersion": 1, "day": 41, "status": "PASS" if outcome.wasSuccessful() else "FAIL",
+    result = {"schemaVersion": 1, "day": args.day, "status": "PASS" if outcome.wasSuccessful() else "FAIL",
               "reasonCode": "TOOLING_TESTS_PASSED" if outcome.wasSuccessful() else "TOOLING_TESTS_FAILED",
               "passed": outcome.wasSuccessful(), "testsRun": outcome.testsRun,
               "failures": [{"test": str(test), "traceback": trace} for test, trace in outcome.failures + outcome.errors],

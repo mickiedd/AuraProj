@@ -1,0 +1,14 @@
+// Copyright Druid Mechanics
+#if WITH_DEV_AUTOMATION_TESTS
+#include "Misc/AutomationTest.h"
+#include "Gameplay/AuraContentAuthoringContract.h"
+#define D57T(C,N) IMPLEMENT_SIMPLE_AUTOMATION_TEST(C,"Aura.Gameplay.Day57." N,EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+namespace { TArray<FAuraAuthoredContentRow> Rows(){return {{TEXT("training_clear"),TEXT("Encounter"),{TEXT("Raider"),TEXT("Evade")},3}};} TSet<FName> Refs(){return {TEXT("Raider"),TEXT("Evade")};} }
+D57T(D57Hashes,"StagedMatchesSourceHashes") bool D57Hashes::RunTest(const FString&){int32 G=0;TArray<FAuraAuthoredContentRow>P;FString E;TestTrue(TEXT("Validated candidate publishes"),FAuraContentAuthoringContract::ValidateAndPublish(Rows(),Refs(),3,G,P,E));TestEqual(TEXT("Published bytes represented by exact rows"),P[0].Id,FName(TEXT("training_clear")));return !HasAnyErrors();}
+D57T(D57Ref,"InvalidReferenceDiagnostic") bool D57Ref::RunTest(const FString&){auto R=Rows();R[0].References.Add(TEXT("Missing"));int32 G=0;TArray<FAuraAuthoredContentRow>P;FString E;TestFalse(TEXT("Missing ref fails"),FAuraContentAuthoringContract::ValidateAndPublish(R,Refs(),4,G,P,E));TestTrue(TEXT("Diagnostic identifies ref"),E.Contains(TEXT("Missing")));return !HasAnyErrors();}
+D57T(D57Atomic,"RegistryAtomicPublish") bool D57Atomic::RunTest(const FString&){int32 G=2;auto P=Rows();auto Bad=Rows();Bad[0].References={TEXT("Missing")};FString E;TestFalse(TEXT("Invalid candidate rejected"),FAuraContentAuthoringContract::ValidateAndPublish(Bad,Refs(),3,G,P,E));TestEqual(TEXT("Generation unchanged"),G,2);TestEqual(TEXT("Registry unchanged"),P[0].Id,FName(TEXT("training_clear")));return !HasAnyErrors();}
+D57T(D57Budget,"ContentBudgetValidation") bool D57Budget::RunTest(const FString&){int32 G=0;TArray<FAuraAuthoredContentRow>P;FString E;TestFalse(TEXT("Budget is enforced"),FAuraContentAuthoringContract::ValidateAndPublish(Rows(),Refs(),2,G,P,E));return !HasAnyErrors();}
+D57T(D57NoCode,"AuthoringWithoutNewCode") bool D57NoCode::RunTest(const FString&){auto R=Rows();R.Add({TEXT("training_flank"),TEXT("Encounter"),{TEXT("Raider"),TEXT("Evade")},1});int32 G=0;TArray<FAuraAuthoredContentRow>P;FString E;TestTrue(TEXT("Known verbs compose data-only row"),FAuraContentAuthoringContract::ValidateAndPublish(R,Refs(),4,G,P,E));TestEqual(TEXT("Two rows published"),P.Num(),2);return !HasAnyErrors();}
+D57T(D57Legacy,"LegacyManifestIsolation") bool D57Legacy::RunTest(const FString&){int32 G=7;TArray<FAuraAuthoredContentRow>P;FString E;const FString Legacy=TEXT("PlayableCandidateManifest:v1");TestTrue(TEXT("Gameplay registry publishes independently"),FAuraContentAuthoringContract::ValidateAndPublish(Rows(),Refs(),3,G,P,E));TestEqual(TEXT("Legacy identity untouched"),Legacy,FString(TEXT("PlayableCandidateManifest:v1")));return !HasAnyErrors();}
+#undef D57T
+#endif

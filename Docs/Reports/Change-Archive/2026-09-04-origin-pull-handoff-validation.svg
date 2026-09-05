@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Independent handoff validation of the origin integration</title>
+  <desc id="desc">Independent ChatGPT handoff validates the fast-forward, compares archive links from the saved local and incoming versions, checks hidden checkout state, and records the remaining LFS hydration boundary.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .bg { fill:#0f172a; }
+      .card { fill:#172033; stroke:#334155; stroke-width:2; rx:18; }
+      .good { fill:#172b36; stroke:#2dd4bf; stroke-width:2; rx:18; }
+      .warn { fill:#33251b; stroke:#f59e0b; stroke-width:2; rx:18; }
+      .result { fill:#1e293b; stroke:#60a5fa; stroke-width:2; rx:18; }
+      .title { font:700 30px Arial,sans-serif; fill:#f8fafc; }
+      .subtitle { font:400 15px Arial,sans-serif; fill:#94a3b8; }
+      .head { font:700 19px Arial,sans-serif; fill:#f8fafc; }
+      .text { font:400 15px Arial,sans-serif; fill:#dbeafe; }
+      .small { font:400 13px Arial,sans-serif; fill:#cbd5e1; }
+      .accent { font:700 14px Arial,sans-serif; fill:#5eead4; }
+      .amber { font:700 14px Arial,sans-serif; fill:#fbbf24; }
+      .blue { font:700 14px Arial,sans-serif; fill:#93c5fd; }
+      .line { stroke:#94a3b8; stroke-width:3; fill:none; marker-end:url(#arrow); }
+      .divider { stroke:#334155; stroke-width:1; }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="760"/>
+  <text class="title" x="48" y="56">Independent handoff validation</text>
+  <text class="subtitle" x="48" y="84">AuraProj origin integration • 2026-09-04 • review-only consultation</text>
+
+  <rect class="card" x="40" y="120" width="340" height="245"/>
+  <text class="head" x="64" y="158">Repository evidence</text>
+  <line class="divider" x1="64" y1="174" x2="356" y2="174"/>
+  <text class="text" x="64" y="205">HEAD = origin/main</text>
+  <text class="small" x="64" y="230">e6ced23 • branch up to date</text>
+  <text class="text" x="64" y="264">Merge residue: none</text>
+  <text class="small" x="64" y="289">no unmerged stages or markers</text>
+  <text class="text" x="64" y="323">Hidden state: clear</text>
+  <text class="small" x="64" y="348">not sparse, shallow, partial, or flagged</text>
+
+  <path class="line" d="M380 242 H430"/>
+
+  <rect class="good" x="430" y="120" width="340" height="245"/>
+  <text class="head" x="454" y="158">Three-way archive proof</text>
+  <line class="divider" x1="454" y1="174" x2="746" y2="174"/>
+  <text class="accent" x="454" y="205">Current: 141 archive links</text>
+  <text class="small" x="454" y="230">saved local: 118 • incoming: 133</text>
+  <text class="accent" x="454" y="264">Local links missing: 0</text>
+  <text class="small" x="454" y="289">all saved local rows retained</text>
+  <text class="accent" x="454" y="323">Incoming links missing: 0</text>
+  <text class="small" x="454" y="348">zero duplicate illustration/record links</text>
+
+  <path class="line" d="M770 242 H820"/>
+
+  <rect class="warn" x="820" y="120" width="340" height="245"/>
+  <text class="head" x="844" y="158">LFS boundary</text>
+  <line class="divider" x1="844" y1="174" x2="1136" y2="174"/>
+  <text class="amber" x="844" y="205">Crunch payloads: unavailable</text>
+  <text class="small" x="844" y="230">GitHub authentication blocked download</text>
+  <text class="text" x="844" y="264">Pointer checkout is valid</text>
+  <text class="small" x="844" y="289">no failed merge or displaced bad files</text>
+  <text class="text" x="844" y="323">Legacy raw binaries are separate</text>
+  <text class="small" x="844" y="348">not evidence of local-work loss</text>
+
+  <path class="line" d="M990 365 V420"/>
+
+  <rect class="result" x="100" y="420" width="1000" height="230"/>
+  <text class="head" x="130" y="460">Handoff verdict: qualified GO</text>
+  <line class="divider" x1="130" y1="477" x2="1070" y2="477"/>
+  <text class="blue" x="130" y="512">Independent finding</text>
+  <text class="text" x="130" y="538">Fast-forward and archive conflict are structurally sound; no repository edit is required.</text>
+  <text class="blue" x="130" y="575">Inventory qualification</text>
+  <text class="text" x="130" y="601">Objective/Day 48 files appeared after the first snapshot; the earlier inventory was not exhaustive.</text>
+  <text class="blue" x="130" y="628">Next step</text>
+  <text class="small" x="130" y="647">After restoring GitHub auth, run: git lfs pull origin main, then recheck status and LFS integrity.</text>
+
+  <text class="subtitle" x="48" y="710">Review-only handoff • no source edit, staging, commit, or push performed during validation.</text>
+</svg>

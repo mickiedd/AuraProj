@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-foundation-v1",
+  "roles": [
+    {"id": "Aura", "abilityIds": ["FireBolt", "ArcaneShards", "Electrocute", "FireBlast"], "emergencyRefillCharges": 1},
+    {"id": "BungeeMan", "abilityIds": ["FireGun", "FocusShot", "ShockTrap", "Melee"], "emergencyRefillCharges": 1}
+  ]
+}

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000" viewBox="0 0 1500 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Gameplay finished-plan test coverage audit</title>
+  <desc id="desc">Coverage audit showing implemented milestones, the missing Day 48 test that was added, validation results, and the separate Git LFS asset blocker affecting RoleBattle tests.</desc>
+  <style>
+    .bg { fill: #0b1220; }
+    .panel { fill: #111c2f; stroke: #263957; stroke-width: 2; }
+    .before { fill: #241a22; stroke: #925568; stroke-width: 2; }
+    .after { fill: #102a2b; stroke: #3f9b8e; stroke-width: 2; }
+    .gate { fill: #2a2415; stroke: #b18a45; stroke-width: 2; }
+    .title { fill: #f3f7ff; font: 700 30px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .subtitle { fill: #9fb2cc; font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .heading { fill: #f3f7ff; font: 700 21px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .body { fill: #d7e2f2; font: 400 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .small { fill: #b8c7da; font: 400 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .accent { fill: #78e0c4; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .warn { fill: #f0ca75; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .bad { fill: #f0a0b5; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .line { stroke: #78e0c4; stroke-width: 3; fill: none; }
+  </style>
+  <rect class="bg" x="0" y="0" width="1500" height="1000" rx="24"/>
+  <text class="title" x="60" y="62">Gameplay Expansion · finished-plan test coverage audit</text>
+  <text class="subtitle" x="60" y="94">Implemented milestones only · Day 41, Day 46A, Day 47A, Day 48 foundation, Day 49 foundation · 2026-09-04</text>
+
+  <rect class="before" x="60" y="130" width="560" height="320" rx="18"/>
+  <text class="heading" x="90" y="172">Before · two coverage defects</text>
+  <text class="bad" x="90" y="216">✕ Day 48 had 6 of 7 named native cases</text>
+  <text class="body" x="110" y="245">GeneralizedSequenceKeepsChoices existed only in plan text.</text>
+  <text class="bad" x="90" y="287">✕ Its offline inventory expected the incomplete set</text>
+  <text class="body" x="110" y="316">The missing cross-milestone case could not fail CI discovery.</text>
+  <text class="bad" x="90" y="358">✕ Day 41 tests failed before assertions on macOS</text>
+  <text class="body" x="110" y="387">/var alias rejection masked the warning-classification suite.</text>
+  <text class="small" x="90" y="426">Day 49 ownership coverage also lacked an explicit no-partial-lease assertion.</text>
+
+  <path class="line" d="M 660 290 L 840 290"/>
+  <path class="line" d="M 815 270 L 840 290 L 815 310"/>
+  <text class="accent" x="688" y="255">audit → repair → prove</text>
+
+  <rect class="after" x="880" y="130" width="560" height="320" rx="18"/>
+  <text class="heading" x="910" y="172">After · closed implemented scope</text>
+  <text class="accent" x="910" y="216">✓ Day 48 now has all 7 named cases</text>
+  <text class="body" x="930" y="245">Objective cell identity, two offer windows, and replay dedupe.</text>
+  <text class="accent" x="910" y="287">✓ Foreign-event coverage spans all three verbs</text>
+  <text class="body" x="930" y="316">Clear death, escort arrival, and relay ownership reject stale runs.</text>
+  <text class="accent" x="910" y="358">✓ Day 49 preparation is proven atomic</text>
+  <text class="body" x="930" y="387">Client replay and unavailable second civilian leave no partial lease.</text>
+  <text class="accent" x="910" y="426">✓ Day 41 fixtures resolve the macOS temp alias</text>
+
+  <rect class="panel" x="60" y="500" width="880" height="355" rx="18"/>
+  <text class="heading" x="90" y="543">Implemented milestone inventory and evidence</text>
+  <text class="accent" x="90" y="585">Day 41 tooling</text>
+  <text class="body" x="310" y="585">90/90 behavioral tests PASS</text>
+  <text class="accent" x="90" y="625">Day 46A / Day 47A</text>
+  <text class="body" x="310" y="625">9 + 8 native contract cases present and passing</text>
+  <text class="accent" x="90" y="665">Day 48 / Day 49</text>
+  <text class="body" x="310" y="665">7 + 7 named native cases present and passing</text>
+  <text class="accent" x="90" y="705">Full Aura.Gameplay</text>
+  <text class="body" x="310" y="705">50/50 passed · 0 warnings · 0 failed · 0 not-run</text>
+  <text class="accent" x="90" y="745">Offline Days 42–49</text>
+  <text class="body" x="310" y="745">29/29 definition, wiring, and fail-closed checks PASS</text>
+  <text class="accent" x="90" y="785">AuraEditor build</text>
+  <text class="body" x="310" y="785">UE 5.5 Mac UHT · compile · link · deploy PASS</text>
+  <text class="small" x="90" y="825">Plan inventory excludes full Days 42–47 and Days 50–60 because their status remains Planned.</text>
+
+  <rect class="gate" x="980" y="500" width="460" height="355" rx="18"/>
+  <text class="heading" x="1010" y="543">Separate environment blocker</text>
+  <text class="warn" x="1010" y="585">Aura.RoleBattle: 237 discovered</text>
+  <text class="body" x="1030" y="613">200 passed · 8 passed with warnings</text>
+  <text class="body" x="1030" y="639">29 failed on missing Crunch assets</text>
+  <text class="warn" x="1010" y="681">Root cause confirmed</text>
+  <text class="body" x="1030" y="709">Required .uasset files are ASCII</text>
+  <text class="body" x="1030" y="735">Git-LFS pointer records, not payloads.</text>
+  <text class="small" x="1010" y="777">Tests were kept strict; no failures were waived or rewritten.</text>
+  <text class="small" x="1010" y="813">ChatGPT handoff was denied at the protected Codex app boundary.</text>
+
+  <text class="subtitle" x="60" y="925">Outcome: implemented contract milestones have complete named coverage; runtime and asset-dependent gates remain explicit.</text>
+</svg>

@@ -2,7 +2,7 @@
 
 This directory stores the visual completion record for project jobs.
 
-Latest: [2026-08-28 WebUI bottom HUD clipping fix](2026-08-28-webui-bottom-hud-clip-fix.md) - [illustration](2026-08-28-webui-bottom-hud-clip-fix.svg)
+Latest: [2026-09-04 Gameplay Expansion submission readiness](2026-09-04-gameplay-submission-readiness.md) - [illustration](2026-09-04-gameplay-submission-readiness.svg)
 
 For each implementation or fix job, add:
 
@@ -14,6 +14,21 @@ Then append the entry to `.claude/memory/visual-change-archive.md`. Existing ent
 The date-only `daily-change-reference.svg` files are source maps for the grouped daily-reference records below. They intentionally have no one-file-per-day Markdown companion. Every job-level Markdown record has a matching SVG and a memory-index entry.
 
 ## Indexed job records
+
+- [2026-09-04 - Gameplay Expansion submission readiness](2026-09-04-gameplay-submission-readiness.md)
+- [2026-09-04 - Gameplay Expansion Days 52–60 contract foundations](2026-09-04-gameplay-expansion-days52-60-contract-foundations.md)
+- [2026-09-04 - Gameplay Expansion Day 51 cooperative recovery contract foundation](2026-09-04-gameplay-expansion-day51-recovery-contract.md)
+- [2026-09-04 - Gameplay Expansion Day 50 encounter pacing contract foundation](2026-09-04-gameplay-expansion-day50-pacing-contract.md)
+- [2026-09-04 - Gameplay Expansion finished-plan test coverage audit](2026-09-04-gameplay-finished-plan-test-coverage.md)
+- [2026-09-04 - Gameplay Expansion Day 49 escort contract foundation](2026-09-04-gameplay-expansion-day49-escort-contract.md)
+- [2026-09-04 - Gameplay Expansion Days 42–48 contract hardening and Day 48 objective foundation](2026-09-04-gameplay-expansion-days-42-48-contract-hardening.md)
+- [2026-09-03 - Gameplay Expansion all-changes review findings](2026-09-03-gameplay-expansion-review-findings.md)
+- [2026-09-03 - Day 47A deterministic augment-offer contract harness](2026-09-03-gameplay-expansion-day-47a-offer-contract.md)
+- [2026-09-03 - Day 46A deterministic cross-contract validation harness](2026-09-03-gameplay-expansion-day-46a-contract-harness.md)
+- [2026-09-03 - Days 44–45 active-lease replay/reset hardening](2026-09-03-gameplay-expansion-days-44-45-replay-reset-hardening.md)
+- [2026-09-03 - Days 44–45 contract foundation](2026-09-03-gameplay-expansion-days-44-45-contract-foundation.md)
+- [2026-09-03 - Days 42–43 mission and encounter foundation](2026-09-03-gameplay-expansion-days-42-43-foundation.md)
+- [2026-09-03 - macOS Unreal Engine stub repair](2026-09-03-macos-engine-stub-repair.md)
 
 - [2026-08-24 - Align Role/Battle plan guardrails with runtime](2026-08-24-role-battle-plan-guardrails.md)
 - [2026-08-24 - Fix Role/Battle pending-change review issues](2026-08-24-role-battle-review-fixes.md)

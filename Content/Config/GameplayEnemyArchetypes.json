@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-foundation-v1",
+  "archetypes": [
+    {
+      "id": "Raider",
+      "counterVerb": "Evade",
+      "requiresInterrupt": false,
+      "requiresEvade": true,
+      "hasSupportField": false,
+      "attacks": [
+        {
+          "id": "RaiderHeavyStrike",
+          "attackShapeId": "shape_raider_heavy_arc",
+          "telegraphProfileId": "telegraph_heavy_arc",
+          "counterVerb": "Evade",
+          "windupSeconds": 0.85,
+          "recoverySeconds": 1.0,
+          "shapeFrozenDuringWindup": true,
+          "consumesHeavyAdmission": true,
+          "interruptible": false
+        }
+      ]
+    },
+    {
+      "id": "Lancer",
+      "counterVerb": "Sidestep",
+      "requiresInterrupt": false,
+      "requiresEvade": true,
+      "hasSupportField": false,
+      "attacks": [
+        {
+          "id": "LancerLineStrike",
+          "attackShapeId": "shape_lancer_line",
+          "telegraphProfileId": "telegraph_lancer_line",
+          "counterVerb": "Sidestep",
+          "windupSeconds": 1.0,
+          "recoverySeconds": 1.0,
+          "shapeFrozenDuringWindup": true,
+          "consumesHeavyAdmission": true,
+          "interruptible": false
+        }
+      ]
+    },
+    {
+      "id": "Bulwark",
+      "counterVerb": "Flank",
+      "requiresInterrupt": false,
+      "requiresEvade": false,
+      "hasSupportField": false,
+      "frontArcDegrees": 120.0,
+      "frontDamageReductionFraction": 0.60,
+      "slamRecoverySeconds": 1.2,
+      "attacks": [
+        {
+          "id": "BulwarkSlam",
+          "attackShapeId": "shape_bulwark_slam",
+          "telegraphProfileId": "telegraph_bulwark_slam",
+          "counterVerb": "Flank",
+          "windupSeconds": 0.85,
+          "recoverySeconds": 1.2,
+          "shapeFrozenDuringWindup": true,
+          "consumesHeavyAdmission": true,
+          "interruptible": false
+        }
+      ]
+    },
+    {
+      "id": "Disruptor",
+      "counterVerb": "Interrupt",
+      "requiresInterrupt": true,
+      "requiresEvade": false,
+      "hasSupportField": true,
+      "attacks": [
+        {
+          "id": "DisruptorPulse",
+          "attackShapeId": "shape_disruptor_pulse",
+          "telegraphProfileId": "telegraph_disruptor_pulse",
+          "counterVerb": "Interrupt",
+          "windupSeconds": 0.85,
+          "recoverySeconds": 0.75,
+          "shapeFrozenDuringWindup": true,
+          "consumesHeavyAdmission": true,
+          "interruptible": false
+        }
+      ],
+      "supportField": {
+        "id": "DisruptorSupportField",
+        "durationSeconds": 2.0,
+        "damageReductionFraction": 0.20,
+        "rangeUnits": 600.0,
+        "maxAllies": 2,
+        "ownershipPolicy": "LowestLiveSourceLease",
+        "interruptible": true,
+        "removeOnRangeDeparture": true,
+        "removeOnOwnerDeath": true
+      }
+    }
+  ]
+}

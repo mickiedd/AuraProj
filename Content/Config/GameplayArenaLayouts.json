@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-foundation-v1",
+  "surveyStatus": "BLOCKED",
+  "blocker": "ANCHOR_SURVEY_UNVERIFIED",
+  "layouts": [
+    {
+      "id": "arrangement_a",
+      "verified": false,
+      "requiredAnchors": [],
+      "notes": "Populate only from an engine-queried navmesh/collision/visibility survey; no guessed transforms."
+    },
+    {
+      "id": "arrangement_b",
+      "verified": false,
+      "requiredAnchors": [],
+      "notes": "Populate only after arrangement A passes the same survey and safe-zone checks."
+    }
+  ]
+}

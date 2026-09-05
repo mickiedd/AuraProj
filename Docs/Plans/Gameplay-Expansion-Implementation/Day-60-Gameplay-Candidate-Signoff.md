@@ -1,6 +1,6 @@
 # Day 60 — Gameplay Candidate Sign-off
 
-Status: Planned; not implemented by this planning job.  
+Status: Fail-closed finalizer and synthetic evidence-handling tests implemented. Candidate publication remains BLOCKED until the real packaged matrix, soak, performance, second-author, and human gates are supplied.
 Depends on: Days 41–59; exact final technical, usability, performance, legacy regression and soak artifacts.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
 

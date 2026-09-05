@@ -1,8 +1,10 @@
 # Day 50 — Encounter Pacing
 
-Status: Planned; not implemented by this planning job.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
 Depends on: Day 49 complete objective/space loop; Day 45 enemy counters/heavy-token owner; Day 46 minimal supplies; Day 42 retained-member/proxy contract.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds an authority-only pacing reducer, a closed pacing-definition fixture, and all seven named native contract cases. It deliberately does not wire production AI/spawning, mission snapshots, HUD, supplies, health/damage scaling, or packaged play; the Day 46/49 runtime, anchor-survey, and evidence gates remain open.
 
 ## Player outcome
 

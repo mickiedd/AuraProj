@@ -1,8 +1,10 @@
 # Day 54 — Captain Boss and Extraction
 
-Status: Planned; not implemented by this planning job.  
+Status: Inert contract foundation implemented; full runtime day remains Planned.
 Depends on: Days 45–46 counterplay, Day 50 pacing, Day 51 recovery, Day 53 settlement.  
 Normative context: [shared execution contract](Execution-Contract.md), [architecture](../Gameplay-Expansion-Architecture-2026-08-31.md).
+
+This increment adds a deterministic captain/finale reducer, closed boss and attack fixtures, and all seven named native contract cases. Production boss actors, attacks, arenas, supply terminals, extraction UI and packaged evidence remain unwired.
 
 ## Player outcome
 

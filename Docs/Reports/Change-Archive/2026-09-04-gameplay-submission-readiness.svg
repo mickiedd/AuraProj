@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <title>Gameplay Expansion submission readiness</title>
+  <desc>Before and after flow for staged hygiene, Unreal Engine discovery, and validation gates.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#14212b" flood-opacity="0.16"/>
+    </filter>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill: #17212b; }
+      .head { font: 700 19px Arial, sans-serif; fill: #17212b; }
+      .body { font: 15px Arial, sans-serif; fill: #31424f; }
+      .small { font: 13px Arial, sans-serif; fill: #4e6472; }
+      .label { font: 700 13px Arial, sans-serif; letter-spacing: 1.5px; fill: #fff; }
+      .arrow { stroke: #6b7e89; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#6b7e89"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="720" fill="#f5f8fa"/>
+  <text x="64" y="62" class="title">Gameplay Expansion submission readiness</text>
+  <text x="64" y="91" class="body">Submission gate after staged hygiene cleanup and UE 5.5 discovery correction</text>
+
+  <rect x="64" y="126" width="1152" height="196" rx="18" fill="#fff0ed" stroke="#d97b6f" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="64" y="126" width="1152" height="42" rx="18" fill="#b9564a"/>
+  <text x="88" y="153" class="label">BEFORE</text>
+  <text x="88" y="207" class="head">Pending set was not ready to submit</text>
+  <text x="88" y="236" class="body">Staged diff check exposed five whitespace-only artifacts:</text>
+  <text x="110" y="263" class="body">two trailing-space lines in the Day 47 plan and three extra blank lines at C++ file ends.</text>
+  <text x="88" y="294" class="body">The manual engine check also missed the installed root under /Volumes/M2/Engine/UE_5.5.</text>
+
+  <path d="M640 331 L640 367" class="arrow"/>
+
+  <rect x="64" y="378" width="1152" height="196" rx="18" fill="#edf8f1" stroke="#6ca887" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="64" y="378" width="1152" height="42" rx="18" fill="#39845d"/>
+  <text x="88" y="405" class="label">AFTER</text>
+  <text x="88" y="459" class="head">Submission gates are clean and reproducible</text>
+  <text x="88" y="488" class="body">Whitespace-only artifacts removed; staged diff check passes.</text>
+  <text x="88" y="515" class="body">BuildEditor.command autodiscovers /Volumes/M2/Engine/UE_5.5 and deploys AuraEditor Mac Development.</text>
+  <text x="88" y="542" class="body">Workspace Python supplies Pillow; Day 41–60 contract and content gates all pass.</text>
+
+  <rect x="64" y="616" width="1152" height="58" rx="14" fill="#e8eef2" stroke="#9aabb5"/>
+  <text x="88" y="642" class="small">Evidence: Day 41 90/90 · Days 42–58 50/50 · Day 59 5/5 · Day 60 8/8 · content 22/22 · build PASS · worktree clean after commit</text>
+</svg>

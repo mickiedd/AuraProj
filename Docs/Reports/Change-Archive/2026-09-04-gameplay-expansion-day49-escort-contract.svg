@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="960" viewBox="0 0 1500 960" role="img" aria-labelledby="title desc">
+  <title id="title">Gameplay Expansion Day 49 escort contract foundation</title>
+  <desc id="desc">Before and after diagram for the Day 49 civilian rescue contract, showing the inert authority reducer, fail-closed gates, and validation evidence.</desc>
+  <style>
+    .bg { fill: #0b1220; }
+    .panel { fill: #111c2f; stroke: #263957; stroke-width: 2; }
+    .before { fill: #241a22; stroke: #925568; stroke-width: 2; }
+    .after { fill: #102a2b; stroke: #3f9b8e; stroke-width: 2; }
+    .gate { fill: #2a2415; stroke: #b18a45; stroke-width: 2; }
+    .title { fill: #f3f7ff; font: 700 30px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .subtitle { fill: #9fb2cc; font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .heading { fill: #f3f7ff; font: 700 21px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .body { fill: #d7e2f2; font: 400 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .small { fill: #b8c7da; font: 400 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .accent { fill: #78e0c4; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .warn { fill: #f0ca75; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .bad { fill: #f0a0b5; font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .line { stroke: #78e0c4; stroke-width: 3; fill: none; }
+    .mutedline { stroke: #8fa4bf; stroke-width: 2; fill: none; stroke-dasharray: 7 7; }
+  </style>
+  <rect class="bg" x="0" y="0" width="1500" height="960" rx="24"/>
+  <text class="title" x="60" y="62">Gameplay Expansion Day 49 · Civilian Rescue and Mission Space</text>
+  <text class="subtitle" x="60" y="94">Inert authority-contract milestone · 2026-09-04 · live runtime wiring remains intentionally gated</text>
+
+  <rect class="before" x="60" y="135" width="560" height="365" rx="18"/>
+  <text class="heading" x="90" y="178">Before · planned escort behavior</text>
+  <text class="bad" x="90" y="220">✕ No Day 49 ownership boundary</text>
+  <text class="body" x="110" y="247">Two civilians could not be leased atomically to one run.</text>
+  <text class="bad" x="90" y="285">✕ Arrival and life identity were unspecified</text>
+  <text class="body" x="110" y="312">Stale overlap/death events had no reducer contract.</text>
+  <text class="bad" x="90" y="350">✕ Stall and damage scope were only plan text</text>
+  <text class="body" x="110" y="377">Requested movement, waits, retries, and threats lacked proof.</text>
+  <text class="warn" x="90" y="425">Day 49: Planned only</text>
+  <text class="small" x="110" y="452">No test-only reducer, config fixture, or native cases existed.</text>
+
+  <path class="line" d="M 660 318 L 840 318"/>
+  <path class="line" d="M 815 298 L 840 318 L 815 338"/>
+  <text class="accent" x="694" y="285">contract boundary</text>
+  <text class="small" x="698" y="361">reserve → escort → release</text>
+
+  <rect class="after" x="880" y="135" width="560" height="365" rx="18"/>
+  <text class="heading" x="910" y="178">After · authority-only reducer</text>
+  <text class="accent" x="910" y="220">✓ Atomic two-member reservation</text>
+  <text class="body" x="930" y="247">RunId + Epoch + life generation + destination lease.</text>
+  <text class="accent" x="910" y="285">✓ Scoped rescue policy</text>
+  <text class="body" x="930" y="312">Players denied; only mission enemies may target designated live escorts.</text>
+  <text class="accent" x="910" y="350">✓ Exactly-once outcome rules</text>
+  <text class="body" x="930" y="377">Arrivals, deaths, terminal states, and work restoration are idempotent.</text>
+  <text class="accent" x="910" y="415">✓ Bounded movement stall</text>
+  <text class="small" x="930" y="442">Retry at 5s/7s; technical abort by 9s; intentional waits pause only stall time.</text>
+  <text class="accent" x="910" y="480">✓ Arrangement A/B contract fixture</text>
+
+  <rect class="panel" x="60" y="545" width="880" height="290" rx="18"/>
+  <text class="heading" x="90" y="588">Validation · executable evidence</text>
+  <text class="accent" x="90" y="630">✓ AuraEditor Mac Development build</text>
+  <text class="body" x="405" y="630">UHT · compile · link · deploy PASS</text>
+  <text class="accent" x="90" y="670">✓ Native Aura.Gameplay regression</text>
+  <text class="body" x="405" y="670">49/49 passed · Day 49 cases 7/7</text>
+  <text class="accent" x="90" y="710">✓ Offline Day 49 contracts</text>
+  <text class="body" x="405" y="710">3/3 Python checks · config/reducer/wiring guards</text>
+  <text class="accent" x="90" y="750">✓ Dependency regressions</text>
+  <text class="body" x="405" y="750">Days 42–43 through Day 48: 26/26 offline checks</text>
+  <text class="small" x="90" y="790">Native startup still reports existing Git-LFS placeholder animations; no asset payloads were rewritten.</text>
+  <text class="small" x="90" y="812">The separate legacy warning harness is blocked by its host /var reparse-path policy.</text>
+
+  <rect class="gate" x="980" y="545" width="460" height="290" rx="18"/>
+  <text class="heading" x="1010" y="588">Still gated · honest boundary</text>
+  <text class="warn" x="1010" y="630">Production runtime remains unwired</text>
+  <text class="body" x="1030" y="657">No objective component, HUD/RPC, AI,</text>
+  <text class="body" x="1030" y="681">live route survey, or packaged evidence.</text>
+  <text class="warn" x="1010" y="723">Inherited gates remain closed</text>
+  <text class="body" x="1030" y="750">DAY40_PACKAGED_EVIDENCE_MISSING</text>
+  <text class="body" x="1030" y="774">ANCHOR_SURVEY_UNVERIFIED</text>
+  <text class="small" x="1010" y="814">Requested ChatGPT handoff was denied at the protected app boundary.</text>
+
+  <path class="mutedline" d="M 500 835 C 620 900, 880 900, 1000 835"/>
+  <text class="subtitle" x="60" y="905">Outcome: Day 49 is ready for a future runtime slice without claiming the blocked playable milestone.</text>
+</svg>

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "profile": "gameplay-expansion-v1",
+  "server": {"targetHz": 30, "gameThreadP95MsMax": 25.0, "gameThreadP99MsMax": 33.3, "schedulingP95MsMax": 2.0},
+  "client": {"resolution": [1920, 1080], "quality": "Medium", "frameP95MsMax": 22.0, "frameP99MsMax": 33.3},
+  "network": {"outboundKiBPerSecondMax": 100.0, "growthPercentMax": 25.0},
+  "sampling": {"warmupSeconds": 300, "sampleSeconds": 600, "repeats": 3, "cleanupCycles": 10},
+  "stability": {"memoryGrowthPercentMax": 5.0, "actorAndTimerCountsMustRestore": true},
+  "evidence": {"renderedRequired": true, "traceRequired": true, "distinctBaselineAndCandidate": true}
+}

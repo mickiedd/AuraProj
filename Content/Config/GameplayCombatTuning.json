@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-foundation-v1",
+  "authority": {
+    "clock": "ServerWorldTime",
+    "clientMayAuthorStartTime": false,
+    "clientMayAuthorImpactTime": false,
+    "clientMayAuthorDistance": false,
+    "clientMayAuthorCollisionResult": false
+  },
+  "attackTimeline": {
+    "minimumWindupSeconds": 0.85,
+    "minimumPreRelevantCueLeadSeconds": 0.65,
+    "preRelevantSampleCount": 100,
+    "preRelevantPassCount": 95,
+    "cueVisibilityMetric": "FirstVisuallyConfirmedRenderedFrame",
+    "lateRelevanceReporting": "SeparateCohort",
+    "cancelledAttackerMayResolveImpact": false
+  },
+  "evade": {
+    "maxDistanceUnits": 350.0,
+    "durationSeconds": 0.25,
+    "cooldownSeconds": 2.5,
+    "maxCharges": 1,
+    "collisionResolution": "AuthoritativeSwept",
+    "directionPlane": "Horizontal",
+    "grantsInvulnerability": false,
+    "acceptedCancellation": ["OwnedInteraction", "Reload", "OwnedChannel"]
+  },
+  "cooperativeRecovery": {
+    "status": "CONTRACT_ONLY",
+    "runtimeWiring": "UNWIRED",
+    "channelSeconds": 3.0,
+    "attachmentRetryDelaySeconds": 1.0,
+    "attachmentRetryCount": 1,
+    "disconnectLeaseSeconds": 60.0,
+    "soloCharges": 1,
+    "pairSharedCharges": 2,
+    "recoveredHealthFraction": 0.35,
+    "recoveredManaFraction": 0.50,
+    "legacyRecoveryUnchanged": true,
+    "globalDownedLifeEnumAdded": false,
+    "runtimeGates": [
+      "DAY40_PACKAGED_EVIDENCE_MISSING",
+      "DAY42_POSSESSION_RUNTIME_UNIMPLEMENTED",
+      "DAY49_LIVE_OBJECTIVE_LOOP_UNIMPLEMENTED",
+      "ANCHOR_SURVEY_UNVERIFIED"
+    ]
+  },
+  "attackShapes": [
+    {"id": "shape_raider_heavy_arc", "kind": "Arc", "frozenAt": "Windup"},
+    {"id": "shape_lancer_line", "kind": "Line", "frozenAt": "Windup"},
+    {"id": "shape_bulwark_slam", "kind": "Area", "frozenAt": "Windup"},
+    {"id": "shape_disruptor_pulse", "kind": "Area", "frozenAt": "Windup"}
+  ],
+  "telegraphProfiles": [
+    {"id": "telegraph_heavy_arc", "shapeId": "shape_raider_heavy_arc"},
+    {"id": "telegraph_lancer_line", "shapeId": "shape_lancer_line"},
+    {"id": "telegraph_bulwark_slam", "shapeId": "shape_bulwark_slam"},
+    {"id": "telegraph_disruptor_pulse", "shapeId": "shape_disruptor_pulse"}
+  ]
+}

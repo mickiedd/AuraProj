@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Origin pull and conflict resolution</title>
+  <desc id="desc">Flow from a dirty branch behind origin through a guarded fast-forward and archive-index conflict resolution to validated main alignment.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .bg { fill:#0f172a; }
+      .card { fill:#172033; stroke:#334155; stroke-width:2; rx:18; }
+      .guard { fill:#172b36; stroke:#2dd4bf; stroke-width:2; rx:18; }
+      .result { fill:#1e293b; stroke:#60a5fa; stroke-width:2; rx:18; }
+      .title { font:700 30px Arial,sans-serif; fill:#f8fafc; }
+      .subtitle { font:400 15px Arial,sans-serif; fill:#94a3b8; }
+      .head { font:700 19px Arial,sans-serif; fill:#f8fafc; }
+      .text { font:400 15px Arial,sans-serif; fill:#dbeafe; }
+      .small { font:400 13px Arial,sans-serif; fill:#cbd5e1; }
+      .accent { font:700 14px Arial,sans-serif; fill:#5eead4; }
+      .blue { font:700 14px Arial,sans-serif; fill:#93c5fd; }
+      .line { stroke:#94a3b8; stroke-width:3; fill:none; marker-end:url(#arrow); }
+      .divider { stroke:#334155; stroke-width:1; }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="760"/>
+  <text class="title" x="48" y="56">Origin pull + conflict resolution</text>
+  <text class="subtitle" x="48" y="84">AuraProj • 2026-09-04 • preserved local work while aligning main with origin/main</text>
+
+  <rect class="card" x="40" y="120" width="340" height="245"/>
+  <text class="head" x="64" y="158">Before</text>
+  <line class="divider" x1="64" y1="174" x2="356" y2="174"/>
+  <text class="text" x="64" y="205">main @ 7fe5621</text>
+  <text class="small" x="64" y="230">behind origin/main by one commit</text>
+  <text class="text" x="64" y="264">Dirty local worktree</text>
+  <text class="small" x="64" y="289">source, content, tooling, and docs</text>
+  <text class="text" x="64" y="323">Git LFS client missing</text>
+  <text class="small" x="64" y="348">pull could not safely checkout assets</text>
+
+  <path class="line" d="M380 242 H430"/>
+
+  <rect class="guard" x="430" y="120" width="340" height="245"/>
+  <text class="head" x="454" y="158">Guarded integration</text>
+  <line class="divider" x1="454" y1="174" x2="746" y2="174"/>
+  <text class="accent" x="454" y="205">1. Install git-lfs</text>
+  <text class="small" x="454" y="230">restore the configured filter client</text>
+  <text class="accent" x="454" y="264">2. Preserve overlap</text>
+  <text class="small" x="454" y="289">stash only the archive index edit</text>
+  <text class="accent" x="454" y="323">3. Fast-forward</text>
+  <text class="small" x="454" y="348">use fetched origin/main; skip LFS smudge</text>
+
+  <path class="line" d="M770 242 H820"/>
+
+  <rect class="card" x="820" y="120" width="340" height="245"/>
+  <text class="head" x="844" y="158">Conflict resolution</text>
+  <line class="divider" x1="844" y1="174" x2="1136" y2="174"/>
+  <text class="text" x="844" y="205">stash pop → one conflict</text>
+  <text class="small" x="844" y="230">archive index only</text>
+  <text class="text" x="844" y="264">Keep both histories</text>
+  <text class="small" x="844" y="289">incoming Crunch rows + local rows</text>
+  <text class="text" x="844" y="323">Mark resolved</text>
+  <text class="small" x="844" y="348">remove markers; retain all entries</text>
+
+  <path class="line" d="M990 365 V420"/>
+
+  <rect class="result" x="100" y="420" width="1000" height="230"/>
+  <text class="head" x="130" y="460">After / validation</text>
+  <line class="divider" x1="130" y1="477" x2="1070" y2="477"/>
+  <text class="blue" x="130" y="512">Repository state</text>
+  <text class="text" x="130" y="538">main = origin/main = e6ced23 • no unmerged paths • no conflict markers</text>
+  <text class="blue" x="130" y="575">Checks</text>
+  <text class="text" x="130" y="601">git diff --check HEAD passed • 2,317 LFS files tracked • local edits still present</text>
+  <text class="blue" x="130" y="628">Known boundary</text>
+  <text class="small" x="130" y="647">GitHub credential prompt blocked LFS payload downloads; incoming assets remain valid LFS pointers locally.</text>
+
+  <text class="subtitle" x="48" y="710">No remote push performed. Independent ChatGPT handoff was attempted but unavailable because only the Codex app bundle was exposed.</text>
+</svg>

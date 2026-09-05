@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "gameplayProfile": "GameplayExpansionV1",
+  "definitionRevision": "days-42-60-supply-contract-v1",
+  "status": "CONTRACT_ONLY",
+  "runtimeWiring": "UNWIRED",
+  "startingMedkitsPerMember": 2,
+  "startingResourcePacksPerMember": 1,
+  "medkitHealFraction": 0.35,
+  "fieldMedicHealFraction": 0.45,
+  "auraPackManaFraction": 0.50,
+  "bungeePackReserveRounds": 24,
+  "bungeeReserveCap": 48,
+  "stationMedkitCap": 2,
+  "emergencyChannelSeconds": 3,
+  "emergencyCooldownSeconds": 30,
+  "emergencyAuraManaFraction": 0.20,
+  "emergencyBungeeReserveRounds": 6,
+  "persistentInventoryMutationAllowed": false
+}
