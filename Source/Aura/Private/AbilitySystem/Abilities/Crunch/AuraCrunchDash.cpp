@@ -5,6 +5,9 @@
 #include "AbilitySystem/Abilities/Crunch/AuraCrunchTagUtils.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AuraGameplayTags.h"
 #include "GameFramework/Character.h"
@@ -38,18 +41,18 @@ void UAuraCrunchDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	if (DashMontage)
+	if (DashMontage && ActorInfo->GetAnimInstance())
 	{
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, DashMontage);
 		if (MontageTask)
 		{
-			MontageTask->OnBlendOut.AddDynamic(this, &UAuraCrunchDash::K2_EndAbility);
-			MontageTask->OnCompleted.AddDynamic(this, &UAuraCrunchDash::K2_EndAbility);
 			MontageTask->OnCancelled.AddDynamic(this, &UAuraCrunchDash::K2_EndAbility);
 			MontageTask->OnInterrupted.AddDynamic(this, &UAuraCrunchDash::K2_EndAbility);
 			MontageTask->ReadyForActivation();
 		}
 	}
+
+	if (!IsCrunchActivationActive()) return;
 
 	DashStartEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
 		this, AuraCrunchTags::Request(TEXT("Ability.Dash.Start")), nullptr, false, false);
@@ -66,7 +69,7 @@ void UAuraCrunchDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		World->GetTimerManager().SetTimer(DashStartTimer, this, &UAuraCrunchDash::StartDash, 0.248f, false);
 		RegisterCrunchTimer(DashStartTimer);
-		World->GetTimerManager().SetTimer(DashTimeoutTimer, this, &UAuraCrunchDash::HandleDashTimeout, 0.75f, false);
+		World->GetTimerManager().SetTimer(DashTimeoutTimer, this, &UAuraCrunchDash::HandleDashTimeout, 0.248f + FMath::Max(DashDuration, 0.01f) + 0.5f, false);
 		RegisterCrunchTimer(DashTimeoutTimer);
 	}
 }
@@ -89,21 +92,40 @@ void UAuraCrunchDash::HandleDashStartEvent(FGameplayEventData Payload)
 
 void UAuraCrunchDash::StartDash()
 {
-	if (bDashActive || !IsCrunchActivationActive()) return;
+	if (bDashStarted || !IsCrunchActivationActive()) return;
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!Character) return;
 	DashDirection = Character->GetActorForwardVector().GetSafeNormal2D();
 	if (DashDirection.IsNearlyZero()) return;
-	DashElapsed = 0.f;
-	bDashActive = true;
-	if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+	UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
+	if (!Movement || !FMath::IsFinite(DashDistance) || DashDistance <= 0.f
+		|| !FMath::IsFinite(DashDuration) || DashDuration <= 0.f)
 	{
-		PreviousMaxWalkSpeed = Movement->MaxWalkSpeed;
-		PreviousBrakingDeceleration = Movement->BrakingDecelerationWalking;
-		bMovementTuningSaved = true;
-		Movement->MaxWalkSpeed = DashSpeed;
-		Movement->BrakingDecelerationWalking = 100000.f;
+		K2_EndAbility();
+		return;
 	}
+	bDashStarted = true;
+	bDashActive = true;
+	DashStartLocation = Character->GetActorLocation();
+	// Animation remains presentation-only; extracted montage motion must not override the dash source.
+	DashAnimInstance = Character->GetMesh()->GetAnimInstance();
+	if (DashAnimInstance.IsValid())
+	{
+		PreviousRootMotionMode = DashAnimInstance->RootMotionMode;
+		DashAnimInstance->SetRootMotionMode(ERootMotionMode::IgnoreRootMotion);
+	}
+	DashMovementTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
+		this, TEXT("CrunchDashMovement"), DashDirection, DashDistance / DashDuration, DashDuration,
+		false, nullptr, ERootMotionFinishVelocityMode::ClampVelocity, FVector::ZeroVector, 0.f, true);
+	if (!DashMovementTask)
+	{
+		K2_EndAbility();
+		return;
+	}
+	DashMovementTask->OnFinish.AddDynamic(this, &UAuraCrunchDash::HandleDashFinished);
+	DashMovementTask->ReadyForActivation();
+	UE_LOG(LogTemp, Log, TEXT("[CrunchDash] Start Authority=%d Distance=%.1f Duration=%.3f Speed=%.1f"),
+		Character->HasAuthority(), DashDistance, DashDuration, DashDistance / DashDuration);
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().SetTimer(DashTickTimer, this, &UAuraCrunchDash::TickDash, 0.02f, true);
@@ -116,8 +138,6 @@ void UAuraCrunchDash::TickDash()
 	if (!bDashActive || !IsCrunchActivationActive()) return;
 	ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
 	if (!Character) return;
-	Character->AddMovementInput(DashDirection, 1.f, false);
-	DashElapsed += 0.02f;
 	if (Character->HasAuthority())
 	{
 		TArray<AActor*> Targets;
@@ -128,11 +148,11 @@ void UAuraCrunchDash::TickDash()
 				DashDirection * DashPushSpeed, FAuraGameplayTags::Get().Damage_Physical);
 		}
 	}
-	if (DashElapsed >= DashDuration)
-	{
-		StopDash();
-		K2_EndAbility();
-	}
+}
+
+void UAuraCrunchDash::HandleDashFinished()
+{
+	if (IsCrunchActivationActive()) K2_EndAbility();
 }
 
 void UAuraCrunchDash::HandleDashTimeout()
@@ -145,23 +165,25 @@ void UAuraCrunchDash::HandleDashTimeout()
 
 void UAuraCrunchDash::StopDash()
 {
-	if (!bDashActive && !bMovementTuningSaved) return;
-	if (UWorld* World = GetWorld())
+	if (!bDashActive) return;
+	bDashActive = false;
+	if (UWorld* World = GetWorld()) World->GetTimerManager().ClearTimer(DashTickTimer);
+	if (DashMovementTask) DashMovementTask->EndTask();
+	DashMovementTask = nullptr;
+	if (DashAnimInstance.IsValid())
 	{
-		World->GetTimerManager().ClearTimer(DashTickTimer);
+		DashAnimInstance->SetRootMotionMode(static_cast<ERootMotionMode::Type>(PreviousRootMotionMode));
 	}
+	DashAnimInstance.Reset();
 	if (ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo()))
 	{
+		UE_LOG(LogTemp, Log, TEXT("[CrunchDash] Stop Authority=%d Travelled=%.1f Requested=%.1f"),
+			Character->HasAuthority(), FVector::Dist2D(DashStartLocation, Character->GetActorLocation()), DashDistance);
 		if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
 		{
-			if (bMovementTuningSaved)
-			{
-				Movement->MaxWalkSpeed = PreviousMaxWalkSpeed;
-				Movement->BrakingDecelerationWalking = PreviousBrakingDeceleration;
-			}
-			Movement->StopMovementImmediately();
+			// Stop horizontal dash momentum while preserving gravity/falling velocity.
+			Movement->Velocity.X = 0.f;
+			Movement->Velocity.Y = 0.f;
 		}
 	}
-	bMovementTuningSaved = false;
-	bDashActive = false;
 }

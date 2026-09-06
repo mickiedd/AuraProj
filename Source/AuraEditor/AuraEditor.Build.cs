@@ -18,6 +18,7 @@ public class AuraEditor : ModuleRules
 			"AIModule",
 			"AnimationCore",
 			"AnimGraph",
+			"AnimGraphRuntime",
 			"AssetRegistry",
 			"Aura",
 			"BlueprintGraph",

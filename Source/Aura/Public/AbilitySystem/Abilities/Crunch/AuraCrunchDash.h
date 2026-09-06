@@ -7,6 +7,8 @@
 #include "AuraCrunchDash.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
+class UAbilityTask_ApplyRootMotionConstantForce;
+class UAnimInstance;
 class UAbilityTask_WaitGameplayEvent;
 class UAnimMontage;
 
@@ -29,10 +31,10 @@ protected:
 	TObjectPtr<UAnimMontage> DashMontage = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Crunch Dash|Movement")
-	float DashDuration = 0.35f;
+	float DashDuration = 0.6f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Crunch Dash|Movement")
-	float DashSpeed = 1600.f;
+	float DashDistance = 1800.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Crunch Dash|Targeting")
 	float DashTargetRadius = 300.f;
@@ -43,6 +45,9 @@ protected:
 private:
 	UFUNCTION()
 	void HandleDashStartEvent(FGameplayEventData Payload);
+
+	UFUNCTION()
+	void HandleDashFinished();
 
 	void StartDash();
 	void TickDash();
@@ -59,9 +64,11 @@ private:
 	FTimerHandle DashTickTimer;
 	FTimerHandle DashTimeoutTimer;
 	FVector DashDirection = FVector::ForwardVector;
-	float DashElapsed = 0.f;
-	float PreviousMaxWalkSpeed = 0.f;
-	float PreviousBrakingDeceleration = 0.f;
-	bool bMovementTuningSaved = false;
+	UPROPERTY()
+	TObjectPtr<UAbilityTask_ApplyRootMotionConstantForce> DashMovementTask;
+	TWeakObjectPtr<UAnimInstance> DashAnimInstance;
+	uint8 PreviousRootMotionMode = 0;
+	FVector DashStartLocation = FVector::ZeroVector;
+	bool bDashStarted = false;
 	bool bDashActive = false;
 };

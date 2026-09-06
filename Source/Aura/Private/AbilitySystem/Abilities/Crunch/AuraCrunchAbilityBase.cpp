@@ -218,6 +218,10 @@ bool UAuraCrunchAbilityBase::ApplyCrunchDamageOnce(AActor* Target, FName EventKe
 	{
 		Params.KnockbackForce = KnockbackVelocity;
 		Params.KnockbackForceMagnitude = KnockbackVelocity.Size();
+		// Crunch impact abilities author a concrete push velocity rather than a
+		// probabilistic knockback. Keep the effect context explicit so the resolved
+		// force is actually consumed by AuraAttributeSet on the server.
+		Params.KnockbackChance = 100.f;
 	}
 	return UAuraAbilitySystemLibrary::ApplyDamageEffect(Params).IsValid();
 }

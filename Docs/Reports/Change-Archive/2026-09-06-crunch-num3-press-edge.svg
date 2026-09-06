@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="700" viewBox="0 0 1240 700">
+  <rect width="1240" height="700" fill="#101827"/>
+  <g font-family="Segoe UI,Arial,sans-serif" fill="#eef4ff">
+    <text x="42" y="48" font-size="28" font-weight="700">Crunch Num.3 — press-edge activation fix</text>
+    <text x="42" y="78" font-size="16" fill="#b4c6dd">2026-09-06 · visual DebugGame replay and native contract validation</text>
+    <rect x="36" y="112" width="1168" height="122" rx="12" fill="#503844"/>
+    <text x="58" y="145" font-size="20" font-weight="700">Before: tap appeared inert</text>
+    <text x="58" y="178" font-size="17">Started → AbilityInputTagPressed → mark spec pressed → Completed/release</text>
+    <text x="58" y="207" font-size="17">No Triggered/Held frame for a quick tap → TryActivateAbility was never reached.</text>
+    <rect x="36" y="264" width="1168" height="174" rx="12" fill="#214d60"/>
+    <text x="58" y="298" font-size="20" font-weight="700">After: numbered slots activate on press</text>
+    <text x="58" y="332" font-size="17">InputTag.1–4 → exact numbered-slot guard → TryActivateAbility(spec handle)</text>
+    <text x="58" y="362" font-size="17">InputTag.3 resolves to Abilities.Melee.CrunchGroundBlast and enters its target-data path.</text>
+    <text x="58" y="392" font-size="17">LMB remains on the existing held/targeting route; the change is isolated to discrete slots.</text>
+    <rect x="36" y="468" width="1168" height="118" rx="12" fill="#263246"/>
+    <text x="58" y="503" font-size="20" font-weight="700">Visual/runtime evidence</text>
+    <text x="58" y="536" font-size="17">Crunch login → role-battle world → GroundBlast hotbar slot visible; slot press emitted skill_ability_pressed.</text>
+    <text x="58" y="566" font-size="17">Fresh DebugGame log: Numbered press-edge activation … slot=InputTag.3 accepted=1; server confirmed and ended cleanly.</text>
+    <text x="42" y="634" font-size="17" font-weight="700">Validation</text>
+    <text x="42" y="662" font-size="15" fill="#b4c6dd">AuraEditor DebugGame build PASS · Aura.Migration.Crunch.NumberedInput.PressEdgeActivation PASS · diff check PASS</text>
+  </g>
+</svg>

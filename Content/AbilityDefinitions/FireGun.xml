@@ -12,7 +12,7 @@
         <property name="bYawOnly" value="true"/>
       </node>
       <node class="PlayMontage">
-        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_FireGun.AM_FireGun"/>
+        <property name="Montage" value="/Game/BungeeMan/Animations/AM_BungeeMan_FireGun.AM_BungeeMan_FireGun"/>
       </node>
       <node class="WaitForMontageEvent">
         <property name="EventTag" value="Event.Montage.FireGun"/>

@@ -984,7 +984,7 @@ void AAuraHUD::SendSpellCatalogToWebUI()
 			Entry->SetStringField(TEXT("nextDescription"), NextDescription);
 			const FString ManualIconDataUri = BuildManualSkillIconDataUri(Metadata.AbilityTag);
 			Entry->SetStringField(TEXT("icon"), ManualIconDataUri.IsEmpty() ? BuildAbilityIconDataUri(Metadata.Icon) : ManualIconDataUri);
-			Entry->SetStringField(TEXT("iconName"), Metadata.Icon ? Metadata.Icon->GetPathName() : FString());
+			Entry->SetStringField(TEXT("iconName"), IsValid(Metadata.Icon) ? Metadata.Icon->GetPathName() : FString());
 			Entry->SetNumberField(TEXT("level"), 0);
 			if (const FGameplayAbilitySpec* Spec = ASC->GetSpecFromAbilityTag(Metadata.AbilityTag)) Entry->SetNumberField(TEXT("level"), Spec->Level);
 			Abilities.Add(MakeShared<FJsonValueObject>(Entry));
@@ -1009,7 +1009,7 @@ void AAuraHUD::HandleAbilityInfoForWebUI(const FAuraAbilityInfo& Info)
 	Payload->SetBoolField(TEXT("clear"), bClear);
 	const FString ManualIconDataUri = BuildManualSkillIconDataUri(Info.AbilityTag);
 	Payload->SetStringField(TEXT("icon"), ManualIconDataUri.IsEmpty() ? (bClear ? FString() : BuildAbilityIconDataUri(Info.Icon)) : ManualIconDataUri);
-	Payload->SetStringField(TEXT("iconName"), Info.Icon ? Info.Icon->GetPathName() : FString());
+	Payload->SetStringField(TEXT("iconName"), IsValid(Info.Icon) ? Info.Icon->GetPathName() : FString());
 	WebUIBridge->SendEvent(TEXT("skill_panel_ability"), AuraHUDPrivate::SerializeObject(Payload));
 }
 
@@ -1247,7 +1247,7 @@ bool AAuraHUD::TryGetWebAbilityInputTag(const FString& InputTagName, FGameplayTa
 
 FString AAuraHUD::BuildAbilityIconDataUri(const UTexture2D* Icon)
 {
-	if (!Icon) return FString();
+	if (!IsValid(Icon)) return FString();
 	const FString CacheKey = Icon->GetPathName();
 	if (const FString* Cached = AbilityIconDataUriCache.Find(CacheKey)) return *Cached;
 	FString DataUri;

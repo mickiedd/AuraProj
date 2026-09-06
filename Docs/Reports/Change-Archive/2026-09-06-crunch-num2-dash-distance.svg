@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520">
+<rect width="1100" height="520" fill="#101827"/>
+<g font-family="Segoe UI,Arial" fill="#eef4ff">
+<text x="40" y="55" font-size="30">Crunch Num.2: a substantial charge</text>
+<rect x="35" y="90" width="500" height="245" rx="14" fill="#302331"/>
+<rect x="555" y="90" width="510" height="245" rx="14" fill="#17343b"/>
+<text x="55" y="130" font-size="24" fill="#ffb4b4">BEFORE</text>
+<text x="55" y="175" font-size="18">Num.2 → notify / 0.248 s fallback</text>
+<text x="55" y="215" font-size="18">Walking input: acceleration limits travel</text>
+<text x="55" y="255" font-size="18">1600 × 0.35 s = 560 units maximum</text>
+<text x="55" y="300" font-size="18">Montage blend-out can end movement early</text>
+<text x="575" y="130" font-size="24" fill="#86e6ce">AFTER</text>
+<text x="575" y="175" font-size="18">Num.2 → same start timing</text>
+<text x="575" y="215" font-size="18">GAS root motion: 3000 units/s for 0.6 s</text>
+<text x="575" y="255" font-size="18">1800 units; movement completion owns end</text>
+<text x="575" y="300" font-size="18">Collision blocks; cancellation stops; cleanup</text>
+<text x="40" y="380" font-size="21">Tests: 30/60 FPS = 1800 units · wall = 565 · cancel = 500</text>
+<text x="40" y="420" font-size="18">Development build and Crunch tests pass. No residual dash movement.</text>
+<text x="40" y="460" font-size="17" fill="#adbed6">Camera fraction and network playtest unverified. External review unavailable (browser timeout).</text>
+<text x="40" y="493" font-size="17" fill="#adbed6">2026-09-06 · Existing DebugGame editor still runs old binaries.</text>
+</g></svg>

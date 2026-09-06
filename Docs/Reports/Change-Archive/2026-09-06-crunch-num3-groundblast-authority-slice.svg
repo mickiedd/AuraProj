@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+<rect width="1200" height="620" fill="#101827"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#eef4ff">
+<text x="40" y="50" font-size="28" font-weight="700">Crunch Num.3 — GroundBlast authority slice</text>
+<text x="40" y="80" font-size="17" fill="#b4c6dd">2026-09-06 · implemented and locally validated</text>
+<rect x="35" y="108" width="1130" height="92" rx="12" fill="#47394a"/>
+<text x="55" y="140" font-size="20" font-weight="700">Before</text>
+<text x="55" y="172" font-size="17">Immediate cursor sample → vertical ground retrace → radial damage; cast-range filtering was reused for victims.</text>
+<rect x="35" y="230" width="1130" height="150" rx="12" fill="#214d60"/>
+<text x="55" y="264" font-size="20" font-weight="700">Implemented acceptance path</text>
+<text x="55" y="300" font-size="18">Target data received → preserve candidate height while horizontal range-clamping</text>
+<text x="55" y="330" font-size="18">→ final ground retrace and height recheck → caster-to-center visibility probe</text>
+<text x="55" y="360" font-size="18">→ commit once → sphere query around accepted center → authoritative damage + forced push</text>
+<rect x="35" y="410" width="1130" height="88" rx="12" fill="#263246"/>
+<text x="55" y="444" font-size="20" font-weight="700">Lifecycle guard</text>
+<text x="55" y="476" font-size="17">Timeout is armed before task activation, preventing synchronous target-data cleanup races.</text>
+<text x="40" y="540" font-size="19" font-weight="700">Validation evidence</text>
+<text x="40" y="570" font-size="16">AuraEditor build PASS · GroundBlast authority contract PASS · Crunch skill/loadout PASS · persistent ASC PASS · combo playback PASS</text>
+<text x="40" y="598" font-size="15" fill="#ffca8a">Claude browser review unavailable after bounded accessibility timeouts; documented local fallback used.</text>
+</g></svg>

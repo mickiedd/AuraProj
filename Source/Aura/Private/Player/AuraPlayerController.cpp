@@ -790,13 +790,10 @@ void AAuraPlayerController::AutoTestUseRandomEquippedAbility()
 	const FGameplayTag Chosen = EquippedTags[FMath::RandRange(0, EquippedTags.Num() - 1)];
 	UE_LOG(LogAura, Log, TEXT("[AutoTest] UseRandomAbility: firing equipped slot %s."), *Chosen.ToString());
 
-	// Mirror a real tap-hold-release. The ASC only calls TryActivateAbility from the HELD
-	// path (AbilityInputTagHeld), so a bare press+release never activates the ability —
-	// press only marks the spec input-pressed and sets LMB targeting state. We press, then
-	// drive one held tick to trigger activation (which runs the targeting task and, for
-	// projectile spells, sends cursor target data to the server), then release a short
-	// moment later so the server-side activation + target-data RPC have time to complete on
-	// a network client before the ability is ended.
+	// Mirror a real tap-hold-release. Numbered slots now activate on the press edge;
+	// the held tick remains necessary for LMB and legacy hold-targeting behavior. It
+	// also gives projectile-style abilities a frame to send cursor target data to the
+	// server before the input is released.
 	AbilityInputTagPressed(Chosen);
 	AbilityInputTagHeld(Chosen);
 

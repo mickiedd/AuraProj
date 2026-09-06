@@ -656,6 +656,22 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 			UE_LOG(LogAura, Log, TEXT("[ASC] AbilityInputTagPressed: Found ability Ability=%s Status=%s IsActive=%s"),
 				*AbilityTag.ToString(), *StatusTag.ToString(), AbilitySpec.IsActive() ? TEXT("true") : TEXT("false"));
 			AbilitySpecInputPressed(AbilitySpec);
+			// Numbered skill slots are discrete actions.  A normal keyboard tap
+			// produces Started/Completed without a Triggered frame, so waiting for
+			// AbilityInputTagHeld made slots 1-4 appear inert.  Activate on the
+			// press edge for those slots; LMB keeps its existing hold/targeting path.
+			const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+			const bool bPressActivatesNumberedSlot =
+				InputTag.MatchesTagExact(GameplayTags.InputTag_1)
+				|| InputTag.MatchesTagExact(GameplayTags.InputTag_2)
+				|| InputTag.MatchesTagExact(GameplayTags.InputTag_3)
+				|| InputTag.MatchesTagExact(GameplayTags.InputTag_4);
+			if (bPressActivatesNumberedSlot && !AbilitySpec.IsActive())
+			{
+				const bool bActivated = TryActivateAbility(AbilitySpec.Handle);
+				UE_LOG(LogAura, Log, TEXT("[ASC] Numbered press-edge activation ability=%s slot=%s accepted=%d."),
+					*AbilityTag.ToString(), *InputTag.ToString(), bActivated ? 1 : 0);
+			}
 			// FireGun is explicitly semi-auto: one activation is issued on the
 			// press edge and held callbacks never retry it. Ammo and cadence remain
 			// server-owned at the projectile boundary.
@@ -687,6 +703,11 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid()) return;
+	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+	// Numbered skills activate only on Started. Completing an instant ability
+	// while the key remains down must not turn Triggered into another cast.
+	if (InputTag == Tags.InputTag_1 || InputTag == Tags.InputTag_2
+		|| InputTag == Tags.InputTag_3 || InputTag == Tags.InputTag_4) return;
 	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
 	FScopedAbilityListLock ActiveScopeLoc(*this);
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())

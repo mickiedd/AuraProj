@@ -28,6 +28,9 @@
 #include "Net/UnrealNetwork.h"
 #include "Misc/Parse.h"
 #include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundBase.h"
 #include "Player/AuraPlayerState.h"
 #include "Player/AuraPlayerController.h"
@@ -36,8 +39,46 @@
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
 #include "AuraAbilityTypes.h"
 
+void AAuraCharacterBase::GameplayCue_Crunch_GroundBlast(EGameplayCueEvent::Type EventType,
+	const FGameplayCueParameters& Parameters)
+{
+	if (EventType != EGameplayCueEvent::Executed || GetNetMode() == NM_DedicatedServer) return;
+	if (GroundBlastEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, GroundBlastEffect,
+			Parameters.Location + FVector::UpVector * 5.f, FRotator::ZeroRotator,
+			FVector(FMath::Clamp(Parameters.RawMagnitude / 300.f, 0.1f, 10.f)));
+		UE_LOG(LogAura, Log, TEXT("[CrunchGroundBlast] Cue rendered location=%s radius=%.0f"),
+			*Parameters.Location.ToString(), Parameters.RawMagnitude);
+	}
+}
+
+void AAuraCharacterBase::GameplayCue_Crunch_Tornado(EGameplayCueEvent::Type EventType,
+	const FGameplayCueParameters& Parameters)
+{
+	if (GetNetMode() == NM_DedicatedServer) return;
+	if (EventType == EGameplayCueEvent::Removed)
+	{
+		if (TornadoEffectComponent) TornadoEffectComponent->DestroyComponent();
+		TornadoEffectComponent = nullptr;
+	}
+	else if ((EventType == EGameplayCueEvent::OnActive || EventType == EGameplayCueEvent::WhileActive)
+		&& TornadoEffect && !IsValid(TornadoEffectComponent))
+	{
+		TornadoEffectComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(TornadoEffect, GetRootComponent(),
+			NAME_None, FVector(0.f, 0.f, -GetCapsuleComponent()->GetScaledCapsuleHalfHeight()), FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset, false);
+	}
+}
+
 AAuraCharacterBase::AAuraCharacterBase()
 {
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> TornadoFinder(
+		TEXT("/Game/Assets/Effects/Firenado/NS_Tornado.NS_Tornado"));
+	TornadoEffect = TornadoFinder.Object;
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> GroundBlastFinder(
+		TEXT("/Game/Assets/Effects/Combat/NS_GroundSummon.NS_GroundSummon"));
+	GroundBlastEffect = GroundBlastFinder.Object;
 	PrimaryActorTick.bCanEverTick = true;
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 

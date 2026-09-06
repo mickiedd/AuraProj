@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+<rect width="1200" height="760" fill="#101827"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#eef4ff">
+<text x="48" y="60" font-size="30" font-weight="700">Crunch · Num.4 Tornado</text>
+<text x="48" y="94" font-size="17" fill="#b6c6db">2026-09-06 · Restore the spin, make hits bounded, clean up every exit</text>
+<rect x="40" y="126" width="540" height="390" rx="18" fill="#272337" stroke="#bd6b7d"/>
+<rect x="620" y="126" width="540" height="390" rx="18" fill="#18332f" stroke="#5cbea0"/>
+<text x="65" y="165" font-size="22" font-weight="700" fill="#ffb6c5">BEFORE · accepted input, broken presentation</text>
+<text x="650" y="165" font-size="22" font-weight="700" fill="#9af0cb">AFTER · complete four-second cast</text>
+<rect x="65" y="190" width="490" height="55" rx="8" fill="#3a314b"/>
+<text x="85" y="224" font-size="18">Num.4 → ASC activation → server confirms</text>
+<text x="302" y="273" font-size="25">↓</text>
+<text x="85" y="307" font-size="18">Legacy AM_Tornado references missing:</text>
+<text x="100" y="338" font-size="18" fill="#ffb6c5">Anim_Turnado + hook particle system</text>
+<text x="85" y="386" font-size="17">Timer and generic events both own hit cadence.</text>
+<text x="85" y="418" font-size="17">Inherited random debuff can outlive the cast.</text>
+<text x="85" y="467" font-size="16" fill="#c9b9d3">Evidence: Aura.log load warnings + accepted input.</text>
+<rect x="645" y="190" width="490" height="55" rx="8" fill="#254a41"/>
+<text x="665" y="224" font-size="18">Num.4 → existing press-edge activation</text>
+<text x="890" y="273" font-size="25">↓</text>
+<text x="665" y="305" font-size="18">Original spin adapted to Crunch_SkeletonV4</text>
+<text x="665" y="338" font-size="18">GAS montage + attached persistent Tornado cue</text>
+<text x="665" y="378" font-size="17">Server: 0.1 s cadence · 300-unit target radius</text>
+<text x="665" y="409" font-size="17">20 base damage + outward push · no random DoT</text>
+<text x="665" y="448" font-size="17" fill="#9af0cb">Timeout / interruption / cancel → stop timers,</text>
+<text x="665" y="478" font-size="17" fill="#9af0cb">stop montage, remove effect, allow next cast.</text>
+<rect x="40" y="545" width="1120" height="174" rx="15" fill="#1c293e"/>
+<text x="65" y="580" font-size="22" font-weight="700">Validation and limits</text>
+<text x="65" y="614" font-size="17">PASS · DebugGame build · 11 Crunch tests with rendering enabled · asset and real montage checks</text>
+<text x="65" y="646" font-size="17">PASS · enemy damage; friendly / dying / out-of-range rejection; timeout / cancel; no late hits; cue cleanup</text>
+<text x="65" y="678" font-size="16" fill="#b6c6db">External browser review unavailable after two timeouts. Live physical key and multiplayer visuals remain unverified.</text>
+</g></svg>

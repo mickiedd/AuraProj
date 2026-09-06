@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
+  <title id="title">BungeeMan LMB trigger fix</title>
+  <desc id="desc">Before and after diagnostic flow for the BungeeMan LMB FireGun ability, showing the missing Event.Montage.FireGun notify as the blocking condition and the repaired montage event path.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#18263b"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#000000" flood-opacity="0.24"/>
+    </filter>
+    <marker id="redArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#fb7185"/>
+    </marker>
+    <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#4ade80"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill: #f8fafc; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #cbd5e1; }
+      .section { font: 700 20px Arial, sans-serif; fill: #f8fafc; }
+      .label { font: 700 14px Arial, sans-serif; fill: #e2e8f0; }
+      .body { font: 400 14px Arial, sans-serif; fill: #dbeafe; }
+      .small { font: 400 12px Arial, sans-serif; fill: #cbd5e1; }
+      .mono { font: 400 12px Consolas, monospace; fill: #e0f2fe; }
+      .box { rx: 12; filter: url(#shadow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="820" fill="url(#bg)"/>
+  <text class="title" x="60" y="58">BungeeMan LMB trigger fix</text>
+  <text class="subtitle" x="60" y="86">The click reached FireGun; the montage event contract was the missing link.</text>
+
+  <rect class="box" x="50" y="120" width="520" height="420" fill="#3a1f2b" stroke="#fb7185" stroke-width="2"/>
+  <text class="section" x="80" y="160">Before: ability aborts</text>
+  <rect class="box" x="80" y="190" width="210" height="70" fill="#202c42"/>
+  <text class="label" x="100" y="218">LMB click</text>
+  <text class="small" x="100" y="240">InputTag.LMB</text>
+  <rect class="box" x="340" y="190" width="190" height="70" fill="#202c42"/>
+  <text class="label" x="360" y="218">ASC FireGun</text>
+  <text class="small" x="360" y="240">target data arrives</text>
+  <line x1="290" y1="225" x2="335" y2="225" stroke="#fb7185" stroke-width="3" marker-end="url(#redArrow)"/>
+  <rect class="box" x="80" y="315" width="450" height="105" fill="#4a2430" stroke="#fb7185"/>
+  <text class="label" x="105" y="345">WaitForMontageEvent</text>
+  <text class="mono" x="105" y="370">Event.Montage.FireGun</text>
+  <text class="body" x="105" y="397">not authored on AM_BungeeMan_FireGun</text>
+  <line x1="435" y1="260" x2="435" y2="310" stroke="#fb7185" stroke-width="3" marker-end="url(#redArrow)"/>
+  <text class="body" x="100" y="475">Ability becomes inactive before</text>
+  <text class="body" x="100" y="498">projectile and muzzle FX execution.</text>
+
+  <rect class="box" x="630" y="120" width="520" height="420" fill="#17352d" stroke="#4ade80" stroke-width="2"/>
+  <text class="section" x="660" y="160">After: event contract completes</text>
+  <rect class="box" x="660" y="190" width="185" height="70" fill="#202c42"/>
+  <text class="label" x="680" y="218">LMB → ASC</text>
+  <text class="small" x="680" y="240">FireGun target data</text>
+  <rect class="box" x="890" y="190" width="230" height="70" fill="#214333"/>
+  <text class="label" x="910" y="218">Play montage</text>
+  <text class="mono" x="910" y="240">AM_BungeeMan_FireGun</text>
+  <line x1="845" y1="225" x2="885" y2="225" stroke="#4ade80" stroke-width="3" marker-end="url(#greenArrow)"/>
+  <rect class="box" x="660" y="315" width="460" height="105" fill="#214333" stroke="#4ade80"/>
+  <text class="label" x="685" y="345">AN_MontageEvent branching point</text>
+  <text class="mono" x="685" y="370">EventTag=Event.Montage.FireGun</text>
+  <text class="body" x="685" y="397">WaitForMontageEvent releases the graph.</text>
+  <line x1="1005" y1="260" x2="1005" y2="310" stroke="#4ade80" stroke-width="3" marker-end="url(#greenArrow)"/>
+  <text class="body" x="680" y="475">Spawn projectile + multicast gun FX</text>
+  <text class="body" x="680" y="498">with DefaultSlot over BungeeMan locomotion.</text>
+
+  <rect class="box" x="50" y="580" width="1100" height="175" fill="#202c42" stroke="#64748b"/>
+  <text class="section" x="80" y="620">Evidence</text>
+  <text class="body" x="80" y="650">Log diagnosis: input and target data passed; WaitForMontageEvent reported the missing gameplay notify.</text>
+  <text class="body" x="80" y="677">Commandlet: PASS with Notify=Event.Montage.FireGun.  Focused automation: Success, exit 0.  Build: exit 0.</text>
+  <text class="body" x="80" y="704">Visual preview: BungeeMan body and attached rifle are shown in the repaired firing pose.</text>
+  <text class="small" x="80" y="732">The broader inventory test still reports unrelated malformed Captain XML definitions; no live post-fix click capture was available.</text>
+</svg>

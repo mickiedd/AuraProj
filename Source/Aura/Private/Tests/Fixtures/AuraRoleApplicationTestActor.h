@@ -11,7 +11,7 @@ class UAuraAbilitySystemComponent;
 
 /** UHT-visible non-shipping shell used to exercise actor-owned and persistent ASC role application. */
 UCLASS(Transient, NotBlueprintable)
-class AAuraRoleApplicationTestActor : public AAuraCharacterBase, public IGameplayCueInterface
+class AAuraRoleApplicationTestActor : public AAuraCharacterBase
 {
 	GENERATED_BODY()
 

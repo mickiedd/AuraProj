@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayCueInterface.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "AbilitySystem/Data/RoleInfo.h"
@@ -17,6 +18,7 @@ class UAuraCombatStateComponent;
 class UPassiveNiagaraComponent;
 class UDebuffNiagaraComponent;
 class UNiagaraSystem;
+class UNiagaraComponent;
 class UParticleSystem;
 class UAbilitySystemComponent;
 class UAttributeSet;
@@ -31,12 +33,27 @@ class ULoadScreenSaveGame;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAppliedRoleStateChanged, const FAuraAppliedRoleState&);
 
 UCLASS(Abstract)
-class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface, public IAuraTargetableInterface
+class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface, public IAuraTargetableInterface, public IGameplayCueInterface
 {
 	GENERATED_BODY()
 
 public:
 	AAuraCharacterBase();
+	/** Native handler for the server's replicated GroundBlast cue. */
+	UFUNCTION()
+	void GameplayCue_Crunch_GroundBlast(EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Crunch|Presentation")
+	TObjectPtr<UNiagaraSystem> GroundBlastEffect;
+
+	UFUNCTION()
+	void GameplayCue_Crunch_Tornado(EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Crunch|Presentation")
+	TObjectPtr<UNiagaraSystem> TornadoEffect;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UNiagaraComponent> TornadoEffectComponent;
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;

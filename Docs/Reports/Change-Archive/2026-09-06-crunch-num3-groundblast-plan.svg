@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640">
+<rect width="1200" height="640" fill="#101827"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#eef4ff">
+<text x="40" y="52" font-size="28" font-weight="700">Crunch Num.3 — GroundBlast completion plan</text>
+<text x="40" y="83" font-size="17" fill="#b4c6dd">2026-09-06 · Inspection and planning complete · Gameplay implementation pending</text>
+<rect x="35" y="110" width="1130" height="120" rx="12" fill="#263246"/>
+<text x="55" y="142" font-size="21" font-weight="700">CURRENT IMPLEMENTATION</text>
+<text x="55" y="178" font-size="19">Num.3 → immediate cursor sample → server ground retrace → damage / cue → end</text>
+<text x="55" y="208" font-size="16" fill="#ffca8a">No aim/confirm phase; no caster-to-point LOS test; cast replication and push need proof.</text>
+<text x="40" y="270" font-size="21" font-weight="700">PLANNED BEHAVIOR</text>
+<rect x="40" y="291" width="250" height="100" rx="10" fill="#214d60"/>
+<rect x="325" y="291" width="250" height="100" rx="10" fill="#214d60"/>
+<rect x="610" y="291" width="250" height="100" rx="10" fill="#214d60"/>
+<rect x="895" y="291" width="265" height="100" rx="10" fill="#214d60"/>
+<text x="58" y="324" font-size="19">1. Aim + local preview</text>
+<text x="58" y="354" font-size="16">LMB confirm / RMB cancel</text>
+<text x="58" y="377" font-size="16">Own input until release</text>
+<text x="297" y="345" font-size="25">→</text>
+<text x="343" y="324" font-size="19">2. Server validation</text>
+<text x="343" y="354" font-size="16">Ground, range, height, LOS</text>
+<text x="343" y="377" font-size="16">Reject before commitment</text>
+<text x="582" y="345" font-size="25">→</text>
+<text x="628" y="324" font-size="19">3. Commit once</text>
+<text x="628" y="354" font-size="16">Server selects valid victims</text>
+<text x="628" y="377" font-size="16">Damage + verified push</text>
+<text x="867" y="345" font-size="25">→</text>
+<text x="913" y="324" font-size="19">4. Cast + recover</text>
+<text x="913" y="354" font-size="16">Owner / observer presentation</text>
+<text x="913" y="377" font-size="16">Dispose tasks, timers, preview</text>
+<rect x="40" y="412" width="1120" height="65" rx="10" fill="#47394a"/>
+<text x="58" y="440" font-size="18">Cancel / invalid target / timeout → clean end; no pre-commit charge</text>
+<text x="58" y="465" font-size="16">After commit: no refund or duplicate hit. Late callbacks cannot affect another activation.</text>
+<text x="40" y="518" font-size="21" font-weight="700">IMPLEMENTATION COMPLETION GATES</text>
+<text x="40" y="550" font-size="17">Functional target / damage / cleanup tests • Standalone, listen and dedicated runtime proof</text>
+<text x="40" y="578" font-size="17">Packaged run • Owner / observer visual checks • Independent review or documented fallback</text>
+<text x="40" y="614" font-size="16" fill="#ffca8a">Existing GroundBlast Fast PASS is contract preflight only. This archive does not claim gameplay tests passed.</text>
+</g></svg>

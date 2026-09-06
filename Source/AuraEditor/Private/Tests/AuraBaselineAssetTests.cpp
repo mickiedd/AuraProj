@@ -8,11 +8,13 @@
 #include "EdGraph/EdGraphNode.h"
 #include "EdGraphSchema_K2.h"
 #include "Animation/AnimMontage.h"
+#include "GameplayTagContainer.h"
 #include "AnimationGraph.h"
 #include "AnimGraphNode_BlendListByBool.h"
 #include "AnimGraphNode_Root.h"
 #include "AnimGraphNode_SequencePlayer.h"
 #include "AnimGraphNode_Slot.h"
+#include "AnimGraphNode_StateMachine.h"
 #include "K2Node_CallParentFunction.h"
 #include "K2Node_DynamicCast.h"
 #include "K2Node_VariableSet.h"
@@ -23,6 +25,8 @@
 #include "GameFramework/Character.h"
 #include "Sound/SoundCue.h"
 #include "UObject/UnrealType.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraBaselineSoundCueGuidTest,
@@ -157,6 +161,86 @@ bool FAuraCrunchLocomotionAnimBlueprintTest::RunTest(const FString& Parameters)
 		&& SlotSource->LinkedTo[0] && SlotSource->LinkedTo[0]->GetOwningNode()->IsA<UAnimGraphNode_BlendListByBool>());
 	TestTrue(TEXT("DefaultSlot feeds the final animation output"), RootResult && RootResult->LinkedTo.Num() == 1
 		&& RootResult->LinkedTo[0] && RootResult->LinkedTo[0]->GetOwningNode()->IsA<UAnimGraphNode_Slot>());
+	return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraBungeeManGunPresentationAssetTest,
+	"Aura.RoleBattle.BungeeMan.Presentation.LmbMontageGraph",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraBungeeManGunPresentationAssetTest::RunTest(const FString& Parameters)
+{
+	UAnimBlueprint* Blueprint = LoadObject<UAnimBlueprint>(nullptr,
+		TEXT("/Game/BungeeMan/Blueprints/ABP_Bungee.ABP_Bungee"));
+	if (!TestNotNull(TEXT("BungeeMan AnimBlueprint loads"), Blueprint)) return false;
+
+	UAnimMontage* Montage = LoadObject<UAnimMontage>(nullptr,
+		TEXT("/Game/BungeeMan/Animations/AM_BungeeMan_FireGun.AM_BungeeMan_FireGun"));
+	USkeleton* BungeeSkeleton = LoadObject<USkeleton>(nullptr, TEXT("/Game/BungeeMan/SK_BungeeMan.SK_BungeeMan"));
+	if (!TestNotNull(TEXT("BungeeMan LMB fire montage loads"), Montage)
+		|| !TestNotNull(TEXT("BungeeMan skeleton loads"), BungeeSkeleton)) return false;
+	TestEqual(TEXT("BungeeMan LMB fire montage uses the BungeeMan skeleton"), Montage->GetSkeleton(), BungeeSkeleton);
+	TestTrue(TEXT("BungeeMan LMB fire montage has a playable length"), Montage->GetPlayLength() > 0.0f);
+	bool bHasFireGunNotify = false;
+	for (const FAnimNotifyEvent& NotifyEvent : Montage->Notifies)
+	{
+		const UObject* NotifyObject = NotifyEvent.Notify
+			? static_cast<const UObject*>(NotifyEvent.Notify)
+			: static_cast<const UObject*>(NotifyEvent.NotifyStateClass);
+		if (!NotifyObject) continue;
+		const FStructProperty* EventTagProperty = CastField<FStructProperty>(
+			NotifyObject->GetClass()->FindPropertyByName(TEXT("EventTag")));
+		if (!EventTagProperty || EventTagProperty->Struct != FGameplayTag::StaticStruct()) continue;
+		const FGameplayTag* AuthoredTag = EventTagProperty->ContainerPtrToValuePtr<FGameplayTag>(NotifyObject);
+		if (AuthoredTag && *AuthoredTag == FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.FireGun"), false))
+		{
+			bHasFireGunNotify = true;
+			break;
+		}
+	}
+	TestTrue(TEXT("BungeeMan LMB fire montage authors the Event.Montage.FireGun gameplay notify"), bHasFireGunNotify);
+
+	FString FireGunXml;
+	const FString FireGunPath = FPaths::ProjectContentDir() / TEXT("AbilityDefinitions/FireGun.xml");
+	TestTrue(TEXT("FireGun XML loads"), FFileHelper::LoadFileToString(FireGunXml, *FireGunPath));
+	TestTrue(TEXT("FireGun LMB graph references the BungeeMan montage"), FireGunXml.Contains(
+		TEXT("/Game/BungeeMan/Animations/AM_BungeeMan_FireGun.AM_BungeeMan_FireGun")));
+
+	TArray<UEdGraph*> Graphs;
+	Blueprint->GetAllGraphs(Graphs);
+	UAnimationGraph* AnimGraph = nullptr;
+	for (UEdGraph* Graph : Graphs)
+	{
+		if (Graph && Graph->GetName() == TEXT("AnimGraph"))
+		{
+			AnimGraph = Cast<UAnimationGraph>(Graph);
+			break;
+		}
+	}
+	if (!TestNotNull(TEXT("BungeeMan AnimGraph exists"), AnimGraph)) return false;
+
+	TArray<UAnimGraphNode_Base*> RootNodes;
+	TArray<UAnimGraphNode_Base*> StateMachineNodes;
+	TArray<UAnimGraphNode_Base*> SlotNodes;
+	AnimGraph->GetGraphNodesOfClass(UAnimGraphNode_Root::StaticClass(), RootNodes);
+	AnimGraph->GetGraphNodesOfClass(UAnimGraphNode_StateMachine::StaticClass(), StateMachineNodes);
+	AnimGraph->GetGraphNodesOfClass(UAnimGraphNode_Slot::StaticClass(), SlotNodes);
+	TestEqual(TEXT("BungeeMan has one AnimGraph output root"), RootNodes.Num(), 1);
+	TestEqual(TEXT("BungeeMan has one main state machine"), StateMachineNodes.Num(), 1);
+	TestEqual(TEXT("BungeeMan has one montage slot"), SlotNodes.Num(), 1);
+	if (RootNodes.Num() != 1 || StateMachineNodes.Num() != 1 || SlotNodes.Num() != 1) return false;
+
+	const UAnimGraphNode_Slot* SlotNode = CastChecked<UAnimGraphNode_Slot>(SlotNodes[0]);
+	TestEqual(TEXT("BungeeMan montage slot is DefaultSlot"), SlotNode->Node.SlotName, FName(TEXT("DefaultSlot")));
+	const UEdGraphPin* RootResult = RootNodes[0]->FindPin(TEXT("Result"), EGPD_Input);
+	const UEdGraphPin* SlotSource = SlotNode->FindPin(TEXT("Source"), EGPD_Input);
+	const UEdGraphPin* SlotPose = SlotNode->FindPin(TEXT("Pose"), EGPD_Output);
+	TestTrue(TEXT("BungeeMan slot feeds the output pose"), RootResult && RootResult->LinkedTo.Num() == 1
+		&& RootResult->LinkedTo[0] && RootResult->LinkedTo[0]->GetOwningNode()->IsA<UAnimGraphNode_Slot>());
+	TestTrue(TEXT("BungeeMan state machine feeds the montage slot"), SlotSource && SlotSource->LinkedTo.Num() == 1
+		&& SlotSource->LinkedTo[0] && SlotSource->LinkedTo[0]->GetOwningNode()->IsA<UAnimGraphNode_StateMachine>());
+	TestTrue(TEXT("BungeeMan slot pose output exists"), SlotPose != nullptr);
 	return !HasAnyErrors();
 }
 

@@ -50,6 +50,8 @@ private:
 
 	UFUNCTION()
 	void HandleTargetTimeout();
+	UFUNCTION()
+	void HandleCastFinished();
 
 	bool ValidateGroundTarget(const FHitResult& HitResult, FVector& OutPoint) const;
 	void CommitGroundBlast(const FVector& Point);
@@ -61,5 +63,6 @@ private:
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
 	FTimerHandle TargetTimeoutTimer;
+	FTimerHandle RecoveryTimer;
 	bool bCommitted = false;
 };

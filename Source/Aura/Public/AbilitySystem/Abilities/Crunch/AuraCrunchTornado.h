@@ -7,7 +7,7 @@
 #include "AuraCrunchTornado.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
-class UAbilityTask_WaitGameplayEvent;
+
 class UAnimMontage;
 
 /** Bounded, server-authored hit cadence for Crunch's Tornado. */
@@ -42,9 +42,6 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleAuthoredDamageEvent(FGameplayEventData Payload);
-
-	UFUNCTION()
 	void HandleTornadoTimeout();
 
 	void ProcessTornadoHit(int32 EventIndex);
@@ -53,11 +50,8 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
 
-	UPROPERTY()
-	TObjectPtr<UAbilityTask_WaitGameplayEvent> DamageEventTask;
-
 	FTimerHandle HitTimer;
 	FTimerHandle TimeoutTimer;
-	float TornadoElapsed = 0.f;
+	bool bTornadoCueActive = false;
 	int32 TornadoEventIndex = 0;
 };
