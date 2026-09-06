@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="780" viewBox="0 0 1200 780">
+  <title>Aura Num.1 FireBlast validation fixes</title>
+  <desc>Before and after diagram showing FireBlast's exactly-once montage release arbitration and unique full-circle radial directions.</desc>
+  <style>
+    .bg { fill: #0d1424; }
+    .panel { fill: #151f35; stroke: #31425f; stroke-width: 2; }
+    .before { fill: #2a1c27; stroke: #9b5167; stroke-width: 2; }
+    .after { fill: #152d32; stroke: #48b6a2; stroke-width: 2; }
+    .test { fill: #182b27; stroke: #4dbb8d; stroke-width: 2; }
+    .warn { fill: #30281a; stroke: #c99a4b; stroke-width: 2; }
+    .title { fill: #f4f7ff; font: 700 28px Arial, sans-serif; }
+    .subtitle { fill: #a9b8d3; font: 16px Arial, sans-serif; }
+    .heading { fill: #f4f7ff; font: 700 19px Arial, sans-serif; }
+    .body { fill: #d9e3f5; font: 15px Arial, sans-serif; }
+    .small { fill: #a9b8d3; font: 13px Arial, sans-serif; }
+    .accent { fill: #71e0c7; font: 700 15px Arial, sans-serif; }
+    .danger { fill: #f08a9d; font: 700 15px Arial, sans-serif; }
+    .arrow { stroke: #71e0c7; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    .muted-arrow { stroke: #a16a7b; stroke-width: 3; fill: none; marker-end: url(#arrowMuted); }
+    .ray { stroke: #71e0c7; stroke-width: 2; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#71e0c7"/>
+    </marker>
+    <marker id="arrowMuted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a16a7b"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1200" height="780"/>
+  <text class="title" x="48" y="54">Aura Num.1 FireBlast — validation fixes</text>
+  <text class="subtitle" x="48" y="82">Confirmed packet findings: one release winner, and twelve unique directions around a full circle.</text>
+
+  <rect class="panel" x="40" y="112" width="540" height="270" rx="14"/>
+  <text class="heading" x="68" y="148">Before: conditional validation boundary</text>
+  <rect class="before" x="68" y="176" width="210" height="78" rx="10"/>
+  <text class="body" x="88" y="208">Montage notify</text>
+  <text class="small" x="88" y="232">Event.Montage.FireBlast</text>
+  <rect class="before" x="342" y="176" width="210" height="78" rx="10"/>
+  <text class="body" x="362" y="208">Authority fallback</text>
+  <text class="small" x="362" y="232">0.35 s timer</text>
+  <path class="muted-arrow" d="M278 216 L342 216"/>
+  <rect class="warn" x="130" y="286" width="360" height="64" rx="10"/>
+  <text class="danger" x="154" y="314">No explicit one-winner latch</text>
+  <text class="small" x="154" y="336">Static tests did not prove race-safe exactly-once release.</text>
+
+  <rect class="panel" x="620" y="112" width="540" height="270" rx="14"/>
+  <text class="heading" x="648" y="148">After: release arbitration</text>
+  <rect class="after" x="648" y="176" width="178" height="64" rx="10"/>
+  <text class="body" x="668" y="204">Notify</text>
+  <text class="small" x="668" y="225">claims wait</text>
+  <rect class="after" x="930" y="176" width="178" height="64" rx="10"/>
+  <text class="body" x="950" y="204">Fallback</text>
+  <text class="small" x="950" y="225">claims wait</text>
+  <rect class="test" x="772" y="278" width="236" height="64" rx="10"/>
+  <text class="accent" x="799" y="306">first claim wins</text>
+  <text class="small" x="799" y="328">late path is inert + timers cleared</text>
+  <path class="arrow" d="M737 240 L842 278"/>
+  <path class="arrow" d="M1019 240 L938 278"/>
+
+  <rect class="panel" x="40" y="412" width="540" height="300" rx="14"/>
+  <text class="heading" x="68" y="448">Before: endpoint-inclusive 360° fan</text>
+  <circle cx="310" cy="578" r="83" fill="none" stroke="#9b5167" stroke-width="2"/>
+  <line class="ray" x1="310" y1="578" x2="310" y2="485" stroke="#f08a9d"/>
+  <line class="ray" x1="310" y1="578" x2="310" y2="485" stroke="#f08a9d" transform="rotate(360 310 578)"/>
+  <text class="danger" x="112" y="686">12 actors, 11 unique directions</text>
+  <text class="small" x="112" y="706">Spread / (Count - 1) duplicates the first/last ray.</text>
+
+  <rect class="panel" x="620" y="412" width="540" height="300" rx="14"/>
+  <text class="heading" x="648" y="448">After: closed full-circle distribution</text>
+  <circle cx="890" cy="578" r="83" fill="none" stroke="#48b6a2" stroke-width="2"/>
+  <g transform="translate(890 578)">
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(0)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(30)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(60)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(90)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(120)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(150)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(180)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(210)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(240)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(270)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(300)"/>
+    <line class="ray" x1="0" y1="0" x2="0" y2="-83" transform="rotate(330)"/>
+  </g>
+  <text class="accent" x="706" y="686">12 actors, 12 unique directions, 30° spacing</text>
+  <text class="small" x="706" y="706">Full circles use Spread / Count; partial fans keep endpoint spacing.</text>
+</svg>

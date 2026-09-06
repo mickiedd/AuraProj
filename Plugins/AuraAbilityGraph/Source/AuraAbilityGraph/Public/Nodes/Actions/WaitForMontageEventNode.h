@@ -51,6 +51,12 @@ private:
     UFUNCTION()
     void OnEventReceived(FGameplayEventData EventData);
 
+    // Montage notify and authority fallback are independent completion sources. The
+    // first one to claim the wait wins; later callbacks are inert even if their timer
+    // was already queued by the same frame.
+    bool TryClaimCompletion();
+    void ClearWaitTimers();
+
     // Fired by TimeoutHandle when the wait has gone on too long — advances the graph
     // with Failure so the ability ends (cancelled) instead of hanging Running forever.
     void OnTimeout();
@@ -61,4 +67,5 @@ private:
 
     FTimerHandle TimeoutHandle;
     FTimerHandle AuthorityFallbackHandle;
+    bool bCompletionClaimed = false;
 };

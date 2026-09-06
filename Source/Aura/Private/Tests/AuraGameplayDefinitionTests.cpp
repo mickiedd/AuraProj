@@ -492,6 +492,72 @@ bool FAuraArcaneShardsAuthorityFallbackDefinitionTest::RunTest(const FString& Pa
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraFireBlastAuthorityFallbackDefinitionTest,
+	"Aura.AbilityGraph.FireBlastAuthorityFallback",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraFireBlastAuthorityFallbackDefinitionTest::RunTest(const FString& Parameters)
+{
+	const FString XmlPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions/FireBlast.xml"));
+	FString Xml;
+	if (!TestTrue(TEXT("FireBlast definition is readable"), FFileHelper::LoadFileToString(Xml, *XmlPath)))
+	{
+		return false;
+	}
+
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	if (!TestNotNull(TEXT("FireBlast definition object created"), Definition)
+		|| !TestTrue(TEXT("FireBlast definition parses"), Definition->LoadFromXML(Xml)))
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("FireBlast remains assigned to Num.1"), Definition->InputTag, FGameplayTag::RequestGameplayTag(TEXT("InputTag.1")));
+	if (!TestNotNull(TEXT("FireBlast graph root exists"), Definition->RootNode.Get()))
+	{
+		return false;
+	}
+
+	const UPlayMontageNode* PlayMontageNode = nullptr;
+	const UWaitForMontageEventNode* MontageEventNode = nullptr;
+	int32 SpawnProjectilesIndex = INDEX_NONE;
+	for (int32 Index = 0; Index < Definition->RootNode->Children.Num(); ++Index)
+	{
+		const UAuraAbilityActionNode* Child = Definition->RootNode->Children[Index];
+		if (const UPlayMontageNode* Candidate = Cast<UPlayMontageNode>(Child))
+		{
+			PlayMontageNode = Candidate;
+		}
+		else if (const UWaitForMontageEventNode* EventCandidate = Cast<UWaitForMontageEventNode>(Child))
+		{
+			MontageEventNode = EventCandidate;
+		}
+		else if (Child && Child->NodeClassName == TEXT("SpawnProjectiles"))
+		{
+			SpawnProjectilesIndex = Index;
+		}
+	}
+
+	if (!TestNotNull(TEXT("FireBlast contains a PlayMontage node"), PlayMontageNode)
+		|| !TestNotNull(TEXT("FireBlast contains its montage-event wait"), MontageEventNode))
+	{
+		return false;
+	}
+
+	TestEqual(TEXT("FireBlast uses the dedicated cast montage"), PlayMontageNode->MontagePath,
+		FString(TEXT("/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBlast.AM_Cast_FireBlast")));
+	TestNotNull(TEXT("FireBlast cast montage loads"), PlayMontageNode->Montage.Get());
+	TestEqual(TEXT("FireBlast waits for the expected montage event"), MontageEventNode->EventTag,
+		FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.FireBlast")));
+	TestEqual(TEXT("FireBlast montage wait uses the five-second recovery timeout"), MontageEventNode->Timeout, 5.f);
+	TestEqual(TEXT("FireBlast uses the configured authority fallback delay"), MontageEventNode->AuthorityFallbackDelay, 0.35f);
+	TestTrue(TEXT("FireBlast montage event is authored on the cast montage"),
+		PlayMontageNode->Montage && MontageContainsGameplayEventTagForTest(PlayMontageNode->Montage, MontageEventNode->EventTag));
+	TestEqual(TEXT("FireBlast spawns projectiles after the montage wait"), SpawnProjectilesIndex, 2);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraPlayerSkillAuthoritySafetyTest,
 	"Aura.Abilities.PlayerSkillAuthoritySafety",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -630,8 +696,8 @@ bool FAuraPlayerSkillAuthoritySafetyTest::RunTest(const FString& Parameters)
 		}
 		else
 		{
-			// FireBlast is intentionally a direct, non-montage skill; it still needs a
-			// reachable authority effect node so the activation cannot be presentation-only.
+			// A player skill without a montage is still required to expose a reachable
+			// authority effect node so activation cannot become presentation-only.
 			TestTrue(FString::Printf(TEXT("Direct skill has an authority effect node: %s"), *SkillName), AuthorityEffectIndex != INDEX_NONE);
 		}
 	}

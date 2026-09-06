@@ -4,7 +4,16 @@
   <damage type="Damage.Fire" base="60" deathImpulseMagnitude="3000" knockbackForceMagnitude="1000" knockbackChance="0.2" debuffChance="0.5" debuffDamage="5" debuffDuration="5" debuffFrequency="1"/>
   <graph>
     <node class="Sequence" id="1">
-      <node class="SpawnProjectiles" id="2">
+      <node class="PlayMontage" id="2">
+        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBlast.AM_Cast_FireBlast"/>
+      </node>
+      <node class="WaitForMontageEvent" id="3">
+        <property name="EventTag" value="Event.Montage.FireBlast"/>
+        <!-- The server owns fireball gameplay; do not block it on a client-local montage notify. -->
+        <property name="Timeout" value="5"/>
+        <property name="AuthorityFallbackDelay" value="0.35"/>
+      </node>
+      <node class="SpawnProjectiles" id="4">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
         <property name="ProjectileDefinition" value="fireBall"/>
         <property name="Count" value="12"/>

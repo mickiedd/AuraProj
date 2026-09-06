@@ -99,8 +99,32 @@ void UWaitForMontageEventNode::LoadFromProperties(int32 Version, const TArray<FA
     }
 }
 
+bool UWaitForMontageEventTask::TryClaimCompletion()
+{
+    if (bCompletionClaimed)
+    {
+        return false;
+    }
+
+    bCompletionClaimed = true;
+    return true;
+}
+
+void UWaitForMontageEventTask::ClearWaitTimers()
+{
+    if (UWorld* World = OwnerAbility ? OwnerAbility->GetWorld() : nullptr)
+    {
+        World->GetTimerManager().ClearTimer(TimeoutHandle);
+        World->GetTimerManager().ClearTimer(AuthorityFallbackHandle);
+    }
+
+    TimeoutHandle.Invalidate();
+    AuthorityFallbackHandle.Invalidate();
+}
+
 EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecutionContext& Ctx)
 {
+    bCompletionClaimed = false;
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnStart OwnerAbility=%s"), *GetNameSafe(OwnerAbility));
     if (!OwnerAbility)
     {
@@ -221,12 +245,21 @@ EAuraAbilityActionStatus UWaitForMontageEventTask::OnStart(FAuraAbilityExecution
 
 void UWaitForMontageEventTask::OnTimeout()
 {
+	if (!TryClaimCompletion())
+	{
+		return;
+	}
+
     // Event never arrived in time. Clear our handle and advance with Failure so the
     // Sequence ends this node and the DataAbility ends as cancelled instead of hanging.
-    TimeoutHandle.Invalidate();
+    ClearWaitTimers();
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
         UE_LOG(LogAuraAbilityGraph, Warning, TEXT("[WaitForMontageEvent] Timed out waiting for montage event — ending ability as cancelled"));
+        if (DataAbility->PendingMontageEventTask.IsValid())
+        {
+            DataAbility->PendingMontageEventTask->EndTask();
+        }
         DataAbility->PendingMontageEventTask.Reset();
         DataAbility->AdvanceGraph(EAuraAbilityActionStatus::Failure);
     }
@@ -234,7 +267,12 @@ void UWaitForMontageEventTask::OnTimeout()
 
 void UWaitForMontageEventTask::OnAuthorityFallback()
 {
-    AuthorityFallbackHandle.Invalidate();
+    if (!TryClaimCompletion())
+    {
+		return;
+	}
+
+    ClearWaitTimers();
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
         UE_LOG(LogAuraAbilityGraph, Log, TEXT("[WaitForMontageEvent] Authority fallback advanced the graph after the montage event was not observed"));
@@ -250,9 +288,13 @@ void UWaitForMontageEventTask::OnAuthorityFallback()
 
 void UWaitForMontageEventTask::OnEventReceived(FGameplayEventData EventData)
 {
+    if (!TryClaimCompletion())
+    {
+        return;
+    }
+
     UE_LOG(LogAuraAbilityGraph, VeryVerbose, TEXT("[WaitForMontageEvent] OnEventReceived received"));
-    TimeoutHandle.Invalidate();   // event arrived — cancel the safety-net timeout
-    AuthorityFallbackHandle.Invalidate();
+    ClearWaitTimers();
     PendingStatus = EAuraAbilityActionStatus::Success;
     if (UAuraDataAbility* DataAbility = Cast<UAuraDataAbility>(OwnerAbility))
     {
@@ -268,18 +310,12 @@ void UWaitForMontageEventTask::OnEventReceived(FGameplayEventData EventData)
 void UWaitForMontageEventTask::OnExit(FAuraAbilityExecutionContext& Ctx, EAuraAbilityActionStatus Status)
 {
     UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[WaitForMontageEvent] OnExit status=%s"), *StaticEnum<EAuraAbilityActionStatus>()->GetValueAsString(Status));
-    if (UWorld* World = OwnerAbility ? OwnerAbility->GetWorld() : nullptr)
-    {
-        World->GetTimerManager().ClearTimer(TimeoutHandle);
-        World->GetTimerManager().ClearTimer(AuthorityFallbackHandle);
-    }
+    bCompletionClaimed = true;
+    ClearWaitTimers();
 }
 
 void UWaitForMontageEventTask::Cancel(FAuraAbilityExecutionContext& Ctx)
 {
-    if (UWorld* World = OwnerAbility ? OwnerAbility->GetWorld() : nullptr)
-    {
-        World->GetTimerManager().ClearTimer(TimeoutHandle);
-        World->GetTimerManager().ClearTimer(AuthorityFallbackHandle);
-    }
+    bCompletionClaimed = true;
+    ClearWaitTimers();
 }

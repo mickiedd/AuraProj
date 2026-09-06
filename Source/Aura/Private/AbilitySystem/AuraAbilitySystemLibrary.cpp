@@ -1831,13 +1831,22 @@ TArray<FRotator> UAuraAbilitySystemLibrary::EvenlySpacedRotators(const FVector& 
 {
 	TArray<FRotator> Rotators;
 	
-	const FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread / 2.f, Axis);
+	// A full-circle burst is a closed distribution: including both endpoints would
+	// rotate the last projectile back onto the first one. Partial spreads keep the
+	// historical endpoint-inclusive spacing so a 90-degree, five-projectile fan
+	// still spans -45..+45 degrees.
+	const bool bFullCircle = FMath::IsNearlyEqual(FMath::Abs(Spread), 360.f, 0.001f);
+	const FVector StartDirection = bFullCircle
+		? Forward
+		: Forward.RotateAngleAxis(-Spread / 2.f, Axis);
 	if (NumRotators > 1)
 	{
-		const float DeltaSpread = Spread / (NumRotators - 1);
+		const float DeltaSpread = bFullCircle
+			? Spread / NumRotators
+			: Spread / (NumRotators - 1);
 		for (int32 i = 0; i < NumRotators; i++)
 		{
-			const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * i, FVector::UpVector);
+			const FVector Direction = StartDirection.RotateAngleAxis(DeltaSpread * i, Axis);
 			Rotators.Add(Direction.Rotation());
 		}
 	}
@@ -1852,13 +1861,18 @@ TArray<FVector> UAuraAbilitySystemLibrary::EvenlyRotatedVectors(const FVector& F
 {
 	TArray<FVector> Vectors;
 	
-	const FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread / 2.f, Axis);
+	const bool bFullCircle = FMath::IsNearlyEqual(FMath::Abs(Spread), 360.f, 0.001f);
+	const FVector StartDirection = bFullCircle
+		? Forward
+		: Forward.RotateAngleAxis(-Spread / 2.f, Axis);
 	if (NumVectors > 1)
 	{
-		const float DeltaSpread = Spread / (NumVectors - 1);
+		const float DeltaSpread = bFullCircle
+			? Spread / NumVectors
+			: Spread / (NumVectors - 1);
 		for (int32 i = 0; i < NumVectors; i++)
 		{
-			const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * i, FVector::UpVector);
+			const FVector Direction = StartDirection.RotateAngleAxis(DeltaSpread * i, Axis);
 			Vectors.Add(Direction);
 		}
 	}

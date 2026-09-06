@@ -862,19 +862,55 @@ static bool SmokeTest_FireBlastFileGraph()
 		return false;
 	}
 
-	if (Def->RootNode->Children.Num() != 1)
+	if (Def->RootNode->Children.Num() != 3)
 	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: expected 1 child, got %d"), Def->RootNode->Children.Num());
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: expected 3 children, got %d"), Def->RootNode->Children.Num());
 		return false;
 	}
 
-	if (Def->RootNode->Children[0]->NodeClassName != TEXT("SpawnProjectiles"))
+	if (Def->RootNode->Children[0]->NodeClassName != TEXT("PlayMontage")
+		|| Def->RootNode->Children[1]->NodeClassName != TEXT("WaitForMontageEvent")
+		|| Def->RootNode->Children[2]->NodeClassName != TEXT("SpawnProjectiles"))
 	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: child[0] is not SpawnProjectiles, got '%s'"), *Def->RootNode->Children[0]->NodeClassName);
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: expected PlayMontage -> WaitForMontageEvent -> SpawnProjectiles, got '%s' -> '%s' -> '%s'"),
+			*Def->RootNode->Children[0]->NodeClassName,
+			*Def->RootNode->Children[1]->NodeClassName,
+			*Def->RootNode->Children[2]->NodeClassName);
 		return false;
 	}
 
-	if (USpawnProjectilesNode* SpawnNode = Cast<USpawnProjectilesNode>(Def->RootNode->Children[0]))
+	if (UPlayMontageNode* PlayNode = Cast<UPlayMontageNode>(Def->RootNode->Children[0]))
+	{
+		if (PlayNode->MontagePath != TEXT("/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBlast.AM_Cast_FireBlast") || !PlayNode->Montage)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: FireBlast montage did not load from the expected path '%s'"), *PlayNode->MontagePath);
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: failed to cast child[0] to UPlayMontageNode"));
+		return false;
+	}
+
+	if (UWaitForMontageEventNode* EventNode = Cast<UWaitForMontageEventNode>(Def->RootNode->Children[1]))
+	{
+		if (EventNode->EventTag.ToString() != TEXT("Event.Montage.FireBlast")
+			|| EventNode->Timeout <= 0.f
+			|| EventNode->AuthorityFallbackDelay <= 0.f
+			|| EventNode->AuthorityFallbackDelay >= EventNode->Timeout)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: montage wait event/fallback configuration is invalid"));
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: failed to cast child[1] to UWaitForMontageEventNode"));
+		return false;
+	}
+
+	if (USpawnProjectilesNode* SpawnNode = Cast<USpawnProjectilesNode>(Def->RootNode->Children[2]))
 	{
 		if (SpawnNode->Count != 12)
 		{
@@ -894,11 +930,11 @@ static bool SmokeTest_FireBlastFileGraph()
 	}
 	else
 	{
-		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: failed to cast child[0] to USpawnProjectilesNode"));
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastFileGraph: failed to cast child[2] to USpawnProjectilesNode"));
 		return false;
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] FireBlastFileGraph PASSED (SpawnProjectiles Count=12 Spread=360 bSetReturnToOwner=true)."));
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] FireBlastFileGraph PASSED (PlayMontage -> WaitForMontageEvent -> SpawnProjectiles; Count=12 Spread=360 bSetReturnToOwner=true)."));
 	return true;
 }
 
@@ -1471,8 +1507,184 @@ static bool SmokeTest_EvenlySpacedRotators()
 		return false;
 	}
 
-	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] EvenlySpacedRotators PASSED (5 rotors @90deg + N==1)."));
+	// FireBlast uses a closed 12-projectile radial burst. A literal endpoint-
+	// inclusive 360-degree fan would duplicate the first direction at the end;
+	// the full-circle contract is one 30-degree step per projectile instead.
+	const int32 FullCircleCount = 12;
+	const TArray<FRotator> FullCircle = UAuraAbilitySystemLibrary::EvenlySpacedRotators(
+		Forward, FVector::UpVector, 360.f, FullCircleCount);
+	if (FullCircle.Num() != FullCircleCount)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EvenlySpacedRotators: full-circle count=%d, expected %d"), FullCircle.Num(), FullCircleCount);
+		return false;
+	}
+
+	const float FullCircleDelta = 360.f / FullCircleCount;
+	for (int32 i = 0; i < FullCircle.Num(); ++i)
+	{
+		const FVector ActualDirection = FullCircle[i].Vector().GetSafeNormal();
+		const FVector ExpectedDirection = Forward.RotateAngleAxis(FullCircleDelta * i, FVector::UpVector).GetSafeNormal();
+		if (!ActualDirection.Equals(ExpectedDirection, 0.01f))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EvenlySpacedRotators: full-circle direction[%d]=%s expected=%s"),
+				i, *ActualDirection.ToString(), *ExpectedDirection.ToString());
+			return false;
+		}
+
+		for (int32 PreviousIndex = 0; PreviousIndex < i; ++PreviousIndex)
+		{
+			if (ActualDirection.Equals(FullCircle[PreviousIndex].Vector().GetSafeNormal(), 0.01f))
+			{
+				UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] EvenlySpacedRotators: full-circle direction[%d] duplicates direction[%d]"), i, PreviousIndex);
+				return false;
+			}
+		}
+	}
+
+	UE_LOG(LogAuraAbilityGraph, Log, TEXT("[SmokeTest] EvenlySpacedRotators PASSED (5 rotors @90deg + N==1 + 12 unique rotors @360deg)."));
 	return true;
+}
+
+// Runtime release-path regression for FireBlast/Num.1. The montage notify and the
+// authority fallback are both allowed to request the same graph transition, but one
+// activation must create one projectile burst. The scenarios intentionally exercise
+// each winner and both callback orders at the fallback boundary.
+static bool SmokeTest_FireBlastMontageReleaseExactlyOnce()
+{
+	const FString XmlPath = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("AbilityDefinitions/FireBlast.xml"));
+	FString Xml;
+	if (!FFileHelper::LoadFileToString(Xml, *XmlPath))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastExactlyOnce: failed to read '%s'"), *XmlPath);
+		return false;
+	}
+
+	UAuraAbilityDefinition* Definition = NewObject<UAuraAbilityDefinition>(GetTransientPackage());
+	if (!Definition || !Definition->LoadFromXML(Xml))
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastExactlyOnce: failed to parse FireBlast definition"));
+		return false;
+	}
+
+	USpawnProjectilesNode* SpawnNode = nullptr;
+	UWaitForMontageEventNode* EventNode = nullptr;
+	if (Definition->RootNode)
+	{
+		for (UAuraAbilityActionNode* Child : Definition->RootNode->Children)
+		{
+			if (!Child)
+			{
+				continue;
+			}
+			if (!SpawnNode)
+			{
+				SpawnNode = Cast<USpawnProjectilesNode>(Child);
+			}
+			if (!EventNode)
+			{
+				EventNode = Cast<UWaitForMontageEventNode>(Child);
+			}
+		}
+	}
+	if (!SpawnNode || !EventNode)
+	{
+		UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastExactlyOnce: required graph nodes are missing"));
+		return false;
+	}
+
+	// Keep the runtime graph and montage timing real, but use the native projectile
+	// class so this headless test does not depend on the content-side projectile table.
+	SpawnNode->ProjectileDefinition = NAME_None;
+	SpawnNode->ProjectileClass = AAuraProjectile::StaticClass()->GetPathName();
+
+	auto CountProjectiles = [](UWorld* World) -> int32
+	{
+		int32 Count = 0;
+		if (World)
+		{
+			for (AAuraProjectile* Projectile : TActorRange<AAuraProjectile>(World))
+			{
+				if (Projectile)
+				{
+					++Count;
+				}
+			}
+		}
+		return Count;
+	};
+
+	auto RunScenario = [&](const TCHAR* ScenarioName, TFunction<void(FSpawnTestEnv&)> Trigger) -> bool
+	{
+		FSpawnTestEnv Env = CreateSpawnTestEnv(FVector::ZeroVector, FRotator::ZeroRotator);
+		if (!Env.World || !Env.Avatar || !Env.Ability)
+		{
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+
+		Env.Ability->InitTestOwner(Env.Avatar, 2, Definition->AbilityTag, Definition);
+		if (!Env.Ability->ActivateGraphFromChildForTest(Definition, 1))
+		{
+			UE_LOG(LogAuraAbilityGraph, Error, TEXT("[SmokeTest] FireBlastExactlyOnce[%s]: graph did not reach montage wait"), ScenarioName);
+			Env.Ability->EndForTest();
+			DestroySpawnTestEnv(Env);
+			return false;
+		}
+
+		Trigger(Env);
+		const int32 FirstReleaseCount = CountProjectiles(Env.World);
+		// A duplicate notify arriving after the winner must not re-enter the graph.
+		Env.Ability->SendGameplayEventForTest(EventNode->EventTag);
+		Env.World->GetTimerManager().Tick(0.01f);
+		const int32 FinalReleaseCount = CountProjectiles(Env.World);
+		const bool bPassed = FinalReleaseCount == 12
+			&& !Env.Ability->IsGraphRunningForTest();
+		if (!bPassed)
+		{
+			UE_LOG(LogAuraAbilityGraph, Error,
+				TEXT("[SmokeTest] FireBlastExactlyOnce[%s]: first=%d final=%d graphRunning=%s"),
+				ScenarioName,
+				FirstReleaseCount,
+				FinalReleaseCount,
+				Env.Ability->IsGraphRunningForTest() ? TEXT("true") : TEXT("false"));
+		}
+
+		Env.Ability->EndForTest();
+		DestroySpawnTestEnv(Env);
+		return bPassed;
+	};
+
+	const bool bNotifyWins = RunScenario(TEXT("notify"), [&](FSpawnTestEnv& Env)
+	{
+		Env.Ability->SendGameplayEventForTest(EventNode->EventTag);
+	});
+	const bool bFallbackWins = RunScenario(TEXT("fallback"), [&](FSpawnTestEnv& Env)
+	{
+		Env.World->GetTimerManager().Tick(EventNode->AuthorityFallbackDelay);
+	});
+	const bool bNotifyAtBoundary = RunScenario(TEXT("notify-at-boundary"), [&](FSpawnTestEnv& Env)
+	{
+		Env.Ability->SendGameplayEventForTest(EventNode->EventTag);
+		Env.World->GetTimerManager().Tick(EventNode->AuthorityFallbackDelay);
+	});
+	const bool bFallbackAtBoundary = RunScenario(TEXT("fallback-at-boundary"), [&](FSpawnTestEnv& Env)
+	{
+		Env.World->GetTimerManager().Tick(EventNode->AuthorityFallbackDelay);
+		Env.Ability->SendGameplayEventForTest(EventNode->EventTag);
+	});
+
+	const bool bPassed = bNotifyWins && bFallbackWins && bNotifyAtBoundary && bFallbackAtBoundary;
+	if (bPassed)
+	{
+		UE_LOG(LogAuraAbilityGraph, Log,
+			TEXT("[SmokeTest] FireBlastExactlyOnce PASSED (notify, fallback, and both boundary orders)"));
+	}
+	else
+	{
+		UE_LOG(LogAuraAbilityGraph, Error,
+			TEXT("[SmokeTest] FireBlastExactlyOnce FAILED (notify, fallback, and both boundary orders)"));
+	}
+	return bPassed;
 }
 
 // Verifies SpawnProjectiles actually spawns Count actors, all at the socket location,
@@ -2523,6 +2735,7 @@ static void HandleSmokeTestCommand(const TArray<FString>& Args)
 	Run(TEXT("SequenceCancelPropagation"), SmokeTest_SequenceCancelPropagation);
 	Run(TEXT("ElectrocuteBeamTaskCancelSafe"), SmokeTest_ElectrocuteBeamTaskCancelSafe);
 	Run(TEXT("EvenlySpacedRotators"), SmokeTest_EvenlySpacedRotators);
+	Run(TEXT("FireBlastMontageReleaseExactlyOnce"), SmokeTest_FireBlastMontageReleaseExactlyOnce);
 	Run(TEXT("ProjectileSpawnCountAndLocation"), SmokeTest_ProjectileSpawnCountAndLocation);
 	Run(TEXT("ProjectileWallImpact"), SmokeTest_ProjectileWallImpact);
 	Run(TEXT("ElectrocuteBeamSpawnEndpoints"), SmokeTest_ElectrocuteBeamSpawnEndpoints);

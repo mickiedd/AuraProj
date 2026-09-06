@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <title>Aura Num.1 FireBlast cast montage release flow</title>
+  <desc>Before and after diagram showing FireBlast gaining a dedicated cast montage, authored release event, timeout and authority fallback before its twelve radial fireballs spawn.</desc>
+  <style>
+    .bg { fill: #0d1424; }
+    .panel { fill: #151f35; stroke: #31425f; stroke-width: 2; }
+    .before { fill: #2a1c27; stroke: #9b5167; stroke-width: 2; }
+    .after { fill: #152d32; stroke: #48b6a2; stroke-width: 2; }
+    .check { fill: #182b27; stroke: #4dbb8d; stroke-width: 2; }
+    .warn { fill: #30281a; stroke: #c99a4b; stroke-width: 2; }
+    .title { fill: #f4f7ff; font: 700 28px Arial, sans-serif; }
+    .subtitle { fill: #a9b8d3; font: 16px Arial, sans-serif; }
+    .heading { fill: #f4f7ff; font: 700 19px Arial, sans-serif; }
+    .body { fill: #d9e3f5; font: 15px Arial, sans-serif; }
+    .small { fill: #a9b8d3; font: 13px Arial, sans-serif; }
+    .accent { fill: #71e0c7; font: 700 15px Arial, sans-serif; }
+    .danger { fill: #f08a9d; font: 700 15px Arial, sans-serif; }
+    .arrow { stroke: #71e0c7; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    .muted-arrow { stroke: #a16a7b; stroke-width: 3; fill: none; marker-end: url(#arrowMuted); }
+    .pill { fill: #203d43; stroke: #48b6a2; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#71e0c7"/>
+    </marker>
+    <marker id="arrowMuted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a16a7b"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1200" height="760"/>
+  <text class="title" x="48" y="52">Aura Num.1 — FireBlast cast montage release</text>
+  <text class="subtitle" x="48" y="80">The skill now follows the same montage/event boundary as the other Aura skills before authoritative fireball release.</text>
+
+  <rect class="before" x="48" y="118" width="510" height="230" rx="16"/>
+  <text class="danger" x="76" y="153">BEFORE · direct release</text>
+  <text class="body" x="76" y="181">InputTag.1 / FireBlast</text>
+  <path class="muted-arrow" d="M 190 176 H 246"/>
+  <rect class="panel" x="260" y="157" width="155" height="48" rx="10"/>
+  <text class="heading" x="278" y="187">DataAbility</text>
+  <path class="muted-arrow" d="M 415 181 H 480"/>
+  <rect class="panel" x="360" y="224" width="160" height="64" rx="10"/>
+  <text class="heading" x="377" y="251">SpawnProjectiles</text>
+  <text class="small" x="377" y="273">12 · 360° · return owner</text>
+  <text class="body" x="76" y="319">No cast presentation or authored release timing.</text>
+
+  <rect class="after" x="592" y="118" width="560" height="362" rx="16"/>
+  <text class="accent" x="620" y="153">AFTER · montage-gated release</text>
+  <text class="body" x="620" y="181">InputTag.1 / FireBlast</text>
+  <path class="arrow" d="M 744 176 H 770"/>
+  <rect class="pill" x="780" y="151" width="332" height="55" rx="10"/>
+  <text class="heading" x="798" y="177">PlayMontage</text>
+  <text class="small" x="902" y="177">AM_Cast_FireBlast · SK_Aura</text>
+
+  <path class="arrow" d="M 946 206 V 230"/>
+  <rect class="pill" x="700" y="238" width="412" height="68" rx="10"/>
+  <text class="heading" x="718" y="264">WaitForMontageEvent</text>
+  <text class="small" x="718" y="287">Event.Montage.FireBlast · timeout 5s · authority fallback 0.35s</text>
+
+  <path class="arrow" d="M 906 306 V 330"/>
+  <rect class="pill" x="780" y="338" width="332" height="62" rx="10"/>
+  <text class="heading" x="798" y="364">SpawnProjectiles</text>
+  <text class="small" x="798" y="386">12 fireballs · 360° · return owner</text>
+  <text class="body" x="620" y="442">Client notify drives presentation timing; the authority fallback prevents a stuck activation.</text>
+
+  <rect class="panel" x="48" y="520" width="1104" height="82" rx="14"/>
+  <text class="heading" x="76" y="551">Authored asset</text>
+  <text class="body" x="76" y="578">AM_Cast_FireBlast.uasset generated from the Aura fire-cast motion; length 0.583s; release notify at 0.321s; tag registered in DefaultGameplayTags.ini.</text>
+
+  <rect class="check" x="48" y="636" width="342" height="76" rx="12"/>
+  <text class="accent" x="70" y="666">PASS · build + asset generation</text>
+  <text class="small" x="70" y="691">AuraEditor build; AuraCreateFireBlastMontage</text>
+
+  <rect class="check" x="429" y="636" width="342" height="76" rx="12"/>
+  <text class="accent" x="451" y="666">PASS · focused behavior</text>
+  <text class="small" x="451" y="691">FireBlastAuthorityFallback; graph smoke 26/26</text>
+
+  <rect class="warn" x="810" y="636" width="342" height="76" rx="12"/>
+  <text class="small" x="832" y="663">Known unrelated baseline:</text>
+  <text class="small" x="832" y="685">PlayerSkillAuthoritySafety still sees stale Captain/FireGun fixtures.</text>
+</svg>

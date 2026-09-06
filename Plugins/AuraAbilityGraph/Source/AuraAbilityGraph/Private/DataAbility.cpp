@@ -790,7 +790,8 @@ void UAuraDataAbility::OnMontageEventReceived(FGameplayEventData EventData)
 
     if (PendingMontageEventTask.IsValid())
     {
-        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] OnMontageEventReceived resetting PendingMontageEventTask"));
+        UE_LOG(LogAuraAbilityGraph, Verbose, TEXT("[DataAbility] OnMontageEventReceived ending PendingMontageEventTask"));
+        PendingMontageEventTask->EndTask();
         PendingMontageEventTask.Reset();
     }
 

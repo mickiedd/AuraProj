@@ -541,7 +541,7 @@ But `SpawnFireBalls()` is complex internally (the C++ function does all the work
 
 In the traditional BP approach, the `SpawnFireBalls()` function had to be implemented as a C++ `UFUNCTION(BlueprintCallable)` or as a complex Blueprint macro — there's no visual node graph for it.
 
-**Key difference from FireBolt:** FireBlast has **no montage, no WaitForTargetData, no FaceTarget, no WaitForMontageEvent**. It's a "fire and forget" ability with no targeting or cast time.
+**Key difference from FireBolt:** FireBlast has no target-selection phase (`WaitForTargetData`/`FaceTarget`), but it now plays its dedicated cast montage and waits for the authored release event before spawning the radial fireballs. It remains a fire-and-forget ability from the player's targeting perspective.
 
 **Step 5: Register in RoleConfig**
 
@@ -561,7 +561,15 @@ Add a traditional `GA_FireBlast` class path to Aura's `startupAbilities` (not `l
   <damage type="Damage.Fire" base="60" debuffChance="0.5" .../>
   <graph>
     <node class="Sequence" id="1">
-      <node class="SpawnProjectiles" id="2">
+      <node class="PlayMontage" id="2">
+        <property name="Montage" value="/Game/Assets/Characters/Aura/Animations/Abilities/AM_Cast_FireBlast.AM_Cast_FireBlast"/>
+      </node>
+      <node class="WaitForMontageEvent" id="3">
+        <property name="EventTag" value="Event.Montage.FireBlast"/>
+        <property name="Timeout" value="5"/>
+        <property name="AuthorityFallbackDelay" value="0.35"/>
+      </node>
+      <node class="SpawnProjectiles" id="4">
         <property name="SocketTag" value="CombatSocket.Weapon"/>
         <property name="ProjectileDefinition" value="fireBall"/>
         <property name="Count" value="12"/>
@@ -576,7 +584,7 @@ Add a traditional `GA_FireBlast` class path to Aura's `startupAbilities` (not `l
 
 **Key Diff:** `ProjectileDefinition="fireBall"` resolves to native `AAuraFireBall` through `ProjectileDefinitions.json`. The `bSetReturnToOwner` property sets `ReturnToActor` and `Owner`; outbound distance/duration and return speed/distance come from the named projectile definition.
 
-Also notable: **no `<montage>` element** — FireBlast has no cast animation. No targeting nodes either (no WaitForTargetData/FaceTarget). The simplest graph in the system.
+Also notable: FireBlast still has no targeting nodes (no `WaitForTargetData`/`FaceTarget`), but its radial projectile release is now synchronized to `Event.Montage.FireBlast` with the same timeout/authority-fallback safety as the other montage-driven skills. A full-circle `Spread="360"` uses closed-loop spacing (`Spread / Count`) so all twelve directions remain unique; partial spreads retain endpoint-inclusive spacing.
 
 ---
 
@@ -585,7 +593,7 @@ Also notable: **no `<montage>` element** — FireBlast has no cast animation. No
 | Aspect | GAS-Version (Traditional) | AuraAbilityGraph (Data-Driven) |
 |---|---|---|
 | **Ability class** | Blueprint `GA_FireBlast` extending `UAuraFireBlast` | No Blueprint; `UAuraDataAbility` generic |
-| **No montage/cast** | Must remember to omit PlayMontage/WaitForMontageEvent | XML naturally omits `<montage>` element |
+| **Cast presentation** | Dedicated FireBlast cast montage and release event | `PlayMontage` -> `WaitForMontageEvent` -> `SpawnProjectiles` |
 | **No targeting** | Must remember to omit WaitForTargetData/FaceTarget | XML naturally omits these nodes |
 | **360° spread** | Hardcoded in `UAuraAbilitySystemLibrary::EvenlySpacedRotators` call | XML property `Spread="360"` |
 | **Return-to-owner** | C++ code: `FireBall->ReturnToActor = AvatarActor` | XML property `bSetReturnToOwner="true"` |
@@ -816,7 +824,7 @@ Verified against the current implementation on 2026-08-02:
 | Medium | FireBolt projectile count does not scale with ability level in the data-driven path | FireBolt; XML `Count=5` is always used, unlike legacy `Min(Level, NumProjectiles)` |
 | Medium | Electrocute selects chain targets once and removes only invalid actor references | Electrocute does not reacquire targets each tick and does not explicitly test the combat dead state during cleanup |
 | Low | XML cooldown parsing supports only a constant, although runtime calls `GetValueAtLevel()` | All five definitions if level-scaled cooldowns are desired |
-| Low | `PlayMontage` treats an empty montage as a successful no-op and a nonempty unloadable path as failure | Only graphs containing `PlayMontage`; FireBlast has no such node and is unaffected |
+| Low | `PlayMontage` treats an empty montage as a successful no-op and a nonempty unloadable path as failure | All montage-driven graphs, including FireBlast, use a valid authored montage path |
 | Low | `ApplyDamage` and `CauseDamage` construct different damage contexts; `ApplyDamage` forces non-radial damage | Resolved 2026-08-03: both nodes now share `FDamageEffectParams` construction and `ApplyDamageEffect`; both remain non-radial |
 
 Projectile damage params now carry the cursor target's ASC when one is known; `AAuraProjectile::ApplyImpactAndDestroy()` still replaces it with the actual collided target ASC before applying the effect.

@@ -9,6 +9,7 @@
 
 class AActor;
 class UAbilitySystemComponent;
+class UAuraAbilityDefinition;
 
 /**
  * Test-only subclass of UAuraDataAbility used to drive spawn nodes headlessly without a
@@ -32,17 +33,26 @@ public:
     // Point the ability's actor info at the test avatar so GetOwningActorFromActorInfo()
     // returns it and GetAbilityLevel() returns 1. The ActorInfo member must outlive the
     // ability's use of it, so it is held on this object.
-    void InitTestOwner(AActor* Owner, int32 AbilityLevel = 1, FGameplayTag ReplicatedAbilityTag = FGameplayTag());
+    void InitTestOwner(
+        AActor* Owner,
+        int32 AbilityLevel = 1,
+        FGameplayTag ReplicatedAbilityTag = FGameplayTag(),
+        UAuraAbilityDefinition* SourceDefinition = nullptr);
 
     // Exercise UAuraDataAbility::ActivateAbility directly after InitTestOwner(). The
     // simulated-proxy fixture makes the target-data task take its server wait path,
     // which avoids requiring a real cursor/controller while still proving that the
     // recovered definition reaches graph activation instead of the RootNode-null abort.
     void ActivateForTest();
+    // Start a supplied graph at a specific sequence child. This lets release-path tests
+    // exercise WaitForMontageEvent and the authoritative spawn node without requiring a
+    // rendered skeletal mesh for PlayMontageAndWait.
+    bool ActivateGraphFromChildForTest(UAuraAbilityDefinition* Definition, int32 ChildIndex);
     void EndForTest();
     bool IsGraphRunningForTest() const;
     bool HasPendingTargetDataForTest() const;
     bool HasReplicatedTagOnlySpecForTest() const;
+    bool SendGameplayEventForTest(const FGameplayTag& EventTag);
 
 private:
     FGameplayAbilityActorInfo ActorInfo;

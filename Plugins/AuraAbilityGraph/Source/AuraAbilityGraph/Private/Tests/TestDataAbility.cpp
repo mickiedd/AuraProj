@@ -1,12 +1,18 @@
 // Copyright Druid Mechanics
 
 #include "Tests/TestDataAbility.h"
+#include "AbilityDefinition.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Actor.h"
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Nodes/AbilityActionTask.h"
+#include "Nodes/Composites/SequenceNode.h"
 
-void UTestDataAbility::InitTestOwner(AActor* Owner, int32 AbilityLevel, FGameplayTag ReplicatedAbilityTag)
+void UTestDataAbility::InitTestOwner(
+    AActor* Owner,
+    int32 AbilityLevel,
+    FGameplayTag ReplicatedAbilityTag,
+    UAuraAbilityDefinition* SourceDefinition)
 {
     if (!Owner)
     {
@@ -24,6 +30,10 @@ void UTestDataAbility::InitTestOwner(AActor* Owner, int32 AbilityLevel, FGamepla
             TestAbilitySystemComponent->RegisterComponent();
             TestAbilitySystemComponent->InitAbilityActorInfo(Owner, Owner);
             FGameplayAbilitySpec Spec(GetClass(), AbilityLevel);
+            if (SourceDefinition)
+            {
+                Spec.SourceObject = SourceDefinition;
+            }
             if (ReplicatedAbilityTag.IsValid())
             {
                 Spec.GetDynamicSpecSourceTags().AddTag(ReplicatedAbilityTag);
@@ -54,6 +64,45 @@ void UTestDataAbility::ActivateForTest()
     }
     bIsActive = true;
     ActivateAbility(CurrentSpecHandle, &ActorInfo, CurrentActivationInfo, nullptr);
+}
+
+bool UTestDataAbility::ActivateGraphFromChildForTest(UAuraAbilityDefinition* Definition, int32 ChildIndex)
+{
+    if (!Definition || !Definition->RootNode || !TestAbilitySystemComponent || !CurrentSpecHandle.IsValid()
+        || ChildIndex < 0 || ChildIndex >= Definition->RootNode->Children.Num())
+    {
+        return false;
+    }
+
+    if (FGameplayAbilitySpec* Spec = TestAbilitySystemComponent->FindAbilitySpecFromHandle(CurrentSpecHandle))
+    {
+        Spec->ActiveCount = 1;
+    }
+    bIsActive = true;
+
+    PersistentCtx = FAuraAbilityExecutionContext();
+    PersistentCtx.ASC = TestAbilitySystemComponent;
+    PersistentCtx.AvatarActor = ActorInfo.AvatarActor.Get();
+    PersistentCtx.SpecHandle = CurrentSpecHandle;
+    PersistentCtx.Definition = Definition;
+    PersistentCtx.NodeDef = Definition->RootNode;
+
+    RootTask = NewObject<UAuraSequenceTask>(this);
+    if (!RootTask)
+    {
+        return false;
+    }
+    RootTask->Init(const_cast<UAuraAbilityActionNode*>(Definition->RootNode.Get()), this);
+    RootTask->ActiveChildIndex = ChildIndex;
+    bGraphActive = true;
+
+    const EAuraAbilityActionStatus Status = RootTask->Execute(PersistentCtx);
+    if (Status != EAuraAbilityActionStatus::Running)
+    {
+        EndAbility(CurrentSpecHandle, &ActorInfo, CurrentActivationInfo, true, Status == EAuraAbilityActionStatus::Failure);
+        return false;
+    }
+    return true;
 }
 
 void UTestDataAbility::EndForTest()
@@ -91,4 +140,16 @@ bool UTestDataAbility::HasReplicatedTagOnlySpecForTest() const
 
     const FGameplayAbilitySpec* Spec = TestAbilitySystemComponent->FindAbilitySpecFromHandle(CurrentSpecHandle);
     return Spec && !Spec->SourceObject.IsValid() && Spec->GetDynamicSpecSourceTags().Num() > 0;
+}
+
+bool UTestDataAbility::SendGameplayEventForTest(const FGameplayTag& EventTag)
+{
+    if (!TestAbilitySystemComponent || !EventTag.IsValid())
+    {
+        return false;
+    }
+
+    FGameplayEventData EventData;
+    TestAbilitySystemComponent->HandleGameplayEvent(EventTag, &EventData);
+    return true;
 }
