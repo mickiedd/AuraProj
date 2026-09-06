@@ -19,6 +19,7 @@
       "allowFriendlyFire": false,
       "mesh": "/Game/Assets/Characters/Aura/SKM_Aura",
       "animBlueprint": "/Game/Blueprints/Character/Aura/ABP_Aura.ABP_Aura_C",
+      "movementSpeed": 600.0,
       "equipment": {
         "weaponMesh": "/Game/Assets/Characters/Aura/Staff/SKM_Staff",
         "attachSocket": "WeaponHandSocket",
@@ -70,6 +71,7 @@
       "allowFriendlyFire": false,
       "mesh": "/Game/Assets/Characters/Crunch/Meshes/SM_CrunchV4",
       "animBlueprint": "/Game/Blueprints/Character/Crunch/ABP_Crunch_AuraV5.ABP_Crunch_AuraV5_C",
+      "movementSpeed": 600.0,
       "leftHandSocket": "",
       "rightHandSocket": "",
       "tailSocket": "",
@@ -113,6 +115,7 @@
       "allowFriendlyFire": false,
       "mesh": "/Game/BungeeMan/SKM_BungeeMan.SKM_BungeeMan",
       "animBlueprint": "/Game/BungeeMan/Blueprints/ABP_Bungee.ABP_Bungee_C",
+      "movementSpeed": 600.0,
       "equipment": {
         "weaponMesh": "/Game/MilitaryWeapDark/Weapons/Assault_Rifle_B.Assault_Rifle_B",
         "attachSocket": "WeaponHandSocket",
@@ -160,6 +163,7 @@
       "allowFriendlyFire": false,
       "mesh": "/Game/Assets/Enemies/Shaman/SKM_Shaman",
       "animBlueprint": "/Game/Blueprints/Character/Shaman/ABP_Shaman.ABP_Shaman_C",
+      "movementSpeed": 120.0,
       "leftHandSocket": "",
       "rightHandSocket": "",
       "tailSocket": "",

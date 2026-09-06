@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="640" viewBox="0 0 1100 640" role="img" aria-labelledby="title desc">
+  <title id="title">Civilian movement owner animation fix</title>
+  <desc id="desc">Before and after flow showing the failed AuraEnemy cast and the generic ACharacter cast that now supplies CharacterMovement to the shared locomotion graph.</desc>
+  <style>
+    .bg{fill:#101827}.panel{fill:#172338;stroke:#344968;stroke-width:2}.bad{fill:#3a2028;stroke:#d66a78;stroke-width:2}.good{fill:#17382f;stroke:#55c99a;stroke-width:2}.txt{fill:#eef4ff;font-family:Arial,sans-serif}.h{font-size:25px;font-weight:700}.body{font-size:18px}.small{font-size:16px}.arrow{stroke:#9fb4d2;stroke-width:3;fill:none;marker-end:url(#arrow)}.badline{stroke:#e1818d;stroke-width:3;fill:none;stroke-dasharray:8 7;marker-end:url(#arrowBad)}.goodline{stroke:#6be0ad;stroke-width:3;fill:none;marker-end:url(#arrowGood)}
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#9fb4d2"/></marker>
+    <marker id="arrowBad" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#e1818d"/></marker>
+    <marker id="arrowGood" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#6be0ad"/></marker>
+  </defs>
+  <rect class="bg" width="1100" height="640"/>
+  <text class="txt h" x="48" y="48">Civilian walking animation: movement owner fix</text>
+  <text class="txt small" x="48" y="76">ABP_Shaman inherits ABP_Enemy; the shared movement cache must accept every Aura character shell.</text>
+
+  <rect class="bad" x="48" y="115" width="475" height="300" rx="14"/>
+  <text class="txt h" x="72" y="153">Before: Civilian path stopped</text>
+  <rect class="panel" x="78" y="185" width="170" height="70" rx="10"/>
+  <text class="txt body" x="101" y="228">TryGetPawnOwner</text>
+  <path class="badline" d="M248 220 L318 220"/>
+  <rect class="panel" x="318" y="185" width="170" height="70" rx="10"/>
+  <text class="txt body" x="334" y="215">Cast to</text><text class="txt body" x="334" y="239">AuraEnemy</text>
+  <text class="txt body" x="94" y="303">Civilian is AuraCharacterBase</text>
+  <text class="txt body" x="94" y="333">Cast fails → CharacterMovement unset</text>
+  <text class="txt body" x="94" y="363">GroundSpeed stays 0 → idle sample</text>
+  <path class="badline" d="M404 255 L404 360 L286 360"/>
+
+  <rect class="good" x="577" y="115" width="475" height="300" rx="14"/>
+  <text class="txt h" x="601" y="153">After: shared movement path works</text>
+  <rect class="panel" x="607" y="185" width="170" height="70" rx="10"/>
+  <text class="txt body" x="630" y="228">TryGetPawnOwner</text>
+  <path class="goodline" d="M777 220 L847 220"/>
+  <rect class="panel" x="847" y="185" width="170" height="70" rx="10"/>
+  <text class="txt body" x="866" y="215">Cast to</text><text class="txt body" x="866" y="239">ACharacter</text>
+  <path class="goodline" d="M932 255 L932 300"/>
+  <rect class="panel" x="847" y="300" width="170" height="55" rx="10"/>
+  <text class="txt body" x="864" y="335">CharacterMovement</text>
+  <path class="goodline" d="M847 328 L777 328"/>
+  <rect class="panel" x="607" y="300" width="170" height="55" rx="10"/>
+  <text class="txt body" x="633" y="335">GroundSpeed</text>
+  <text class="txt body" x="625" y="385">Civilian and enemies feed</text><text class="txt body" x="625" y="408">the inherited locomotion graph.</text>
+
+  <rect class="panel" x="48" y="460" width="1004" height="125" rx="14"/>
+  <text class="txt h" x="72" y="500">Validation evidence</text>
+  <text class="txt body" x="72" y="533">✓ AuraConfigureCivilianAnimBlueprint saved ABP_Enemy + ABP_Shaman</text>
+  <text class="txt body" x="72" y="561">✓ Civilian LocomotionGraph and MovementOwner automation tests passed</text>
+</svg>

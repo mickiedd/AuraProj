@@ -348,10 +348,11 @@ bool FAuraWebSkillPanelHUDContractTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	TestTrue(TEXT("HUD creates three dedicated bounded WebUI panels"),
+	TestTrue(TEXT("HUD creates four dedicated bounded WebUI panels"),
 		HUDSource.Contains(TEXT("WebUI/hud-left-top.html"))
 		&& HUDSource.Contains(TEXT("WebUI/hud-right-top.html"))
 		&& HUDSource.Contains(TEXT("WebUI/hud-bottom.html"))
+		&& HUDSource.Contains(TEXT("WebUI/hud-interaction.html"))
 		&& HUDSource.Contains(TEXT("CreateWebHUDPanel")));
 	TestTrue(TEXT("HUD uses non-overlapping panel geometry around the level viewport"),
 		HUDSource.Contains(TEXT("FAnchors(0.f, 0.f, 0.f, 0.f)"))
@@ -359,7 +360,7 @@ bool FAuraWebSkillPanelHUDContractTest::RunTest(const FString& Parameters)
 		&& HUDSource.Contains(TEXT("FAnchors(0.f, 1.f, 1.f, 1.f)"))
 		&& HUDSource.Contains(TEXT("FMargin(-390.f, 24.f, 366.f, 210.f)"))
 		&& HUDSource.Contains(TEXT("FMargin(24.f, -140.f, 24.f, 116.f)"))
-		&& HUDSource.Contains(TEXT("FMargin(24.f, -420.f, 24.f, 396.f)")));
+		&& HUDSource.Contains(TEXT("FMargin(-260.f, 32.f, 520.f, 210.f)")));
 	TestTrue(TEXT("HUD publishes ability state through the bridge"), HUDSource.Contains(TEXT("skill_panel_ability")) && HUDSource.Contains(TEXT("HandleAbilityInfoForWebUI")));
 	TestTrue(TEXT("HUD sends authored PNG skill icons through the bridge"),
 		HUDSource.Contains(TEXT("BuildManualSkillIconDataUri"))
@@ -503,12 +504,14 @@ bool FAuraWebSkillPanelHUDRuntimeTest::RunTest(const FString& Parameters)
 	UWebUIWidget* WebHUDLeftTop = Cast<UWebUIWidget>(ReadObjectProperty(HUD, TEXT("WebHUDLeftTop")));
 	UWebUIWidget* WebHUDRightTop = Cast<UWebUIWidget>(ReadObjectProperty(HUD, TEXT("WebHUDRightTop")));
 	UWebUIWidget* WebHUDBottom = Cast<UWebUIWidget>(ReadObjectProperty(HUD, TEXT("WebHUDBottom")));
+	UWebUIWidget* WebHUDInteraction = Cast<UWebUIWidget>(ReadObjectProperty(HUD, TEXT("WebHUDInteraction")));
 	UWebUIBridgeSubsystem* Bridge = TestWorld->GetSubsystem<UWebUIBridgeSubsystem>();
 	TestNotNull(TEXT("HUD mounts the left-top WebUI panel"), WebHUDLeftTop);
 	TestNotNull(TEXT("HUD mounts the right-top WebUI panel"), WebHUDRightTop);
 	TestNotNull(TEXT("HUD mounts the bottom WebUI panel"), WebHUDBottom);
+	TestNotNull(TEXT("HUD mounts the separate interaction WebUI panel"), WebHUDInteraction);
 	TestNotNull(TEXT("HUD runtime fixture owns the Web UI bridge"), Bridge);
-	if (WebHUDLeftTop && WebHUDRightTop && WebHUDBottom && Bridge)
+	if (WebHUDLeftTop && WebHUDRightTop && WebHUDBottom && WebHUDInteraction && Bridge)
 	{
 		TestTrue(TEXT("HUD binds its Web UI command handler to the live bridge"), Bridge->OnCommand.IsBound());
 		const TArray<UObject*> CommandListeners = Bridge->OnCommand.GetAllObjects();
@@ -522,37 +525,46 @@ bool FAuraWebSkillPanelHUDRuntimeTest::RunTest(const FString& Parameters)
 		TestNotNull(TEXT("Mounted left-top panel creates a native WebBrowser root"), WebHUDLeftTop->GetWebBrowser());
 		TestNotNull(TEXT("Mounted right-top panel creates a native WebBrowser root"), WebHUDRightTop->GetWebBrowser());
 		TestNotNull(TEXT("Mounted bottom panel creates a native WebBrowser root"), WebHUDBottom->GetWebBrowser());
+		TestNotNull(TEXT("Mounted interaction panel creates a native WebBrowser root"), WebHUDInteraction->GetWebBrowser());
 		TestTrue(TEXT("All HUD panels enable transparent browser compositing"),
 			WebHUDLeftTop->IsBrowserTransparencyEnabled()
 			&& WebHUDRightTop->IsBrowserTransparencyEnabled()
-			&& WebHUDBottom->IsBrowserTransparencyEnabled());
+			&& WebHUDBottom->IsBrowserTransparencyEnabled()
+			&& WebHUDInteraction->IsBrowserTransparencyEnabled());
 		TestEqual(TEXT("Left-top panel loads its dedicated page"), WebHUDLeftTop->GetLastLoadedHtmlAssetPath(), FString(TEXT("WebUI/hud-left-top.html")));
 		TestEqual(TEXT("Right-top panel loads its dedicated page"), WebHUDRightTop->GetLastLoadedHtmlAssetPath(), FString(TEXT("WebUI/hud-right-top.html")));
 		TestEqual(TEXT("Bottom panel loads its dedicated page"), WebHUDBottom->GetLastLoadedHtmlAssetPath(), FString(TEXT("WebUI/hud-bottom.html")));
+		TestEqual(TEXT("Interaction panel loads its dedicated page"), WebHUDInteraction->GetLastLoadedHtmlAssetPath(), FString(TEXT("WebUI/hud-interaction.html")));
 		TestTrue(TEXT("All HUD panels load non-empty HTML"),
 			WebHUDLeftTop->GetLastLoadedHtmlBytes() > 1000
 			&& WebHUDRightTop->GetLastLoadedHtmlBytes() > 1000
-			&& WebHUDBottom->GetLastLoadedHtmlBytes() > 1000);
+			&& WebHUDBottom->GetLastLoadedHtmlBytes() > 1000
+			&& WebHUDInteraction->GetLastLoadedHtmlBytes() > 1000);
 
 		if (UGameViewportSubsystem* ViewportSubsystem = UGameViewportSubsystem::Get(TestWorld))
 		{
 			if (ViewportSubsystem->IsWidgetAdded(WebHUDLeftTop)
 				&& ViewportSubsystem->IsWidgetAdded(WebHUDRightTop)
-				&& ViewportSubsystem->IsWidgetAdded(WebHUDBottom))
+				&& ViewportSubsystem->IsWidgetAdded(WebHUDBottom)
+				&& ViewportSubsystem->IsWidgetAdded(WebHUDInteraction))
 			{
 				const FGameViewportWidgetSlot LeftTopSlot = ViewportSubsystem->GetWidgetSlot(WebHUDLeftTop);
 				const FGameViewportWidgetSlot RightTopSlot = ViewportSubsystem->GetWidgetSlot(WebHUDRightTop);
 				const FGameViewportWidgetSlot BottomSlot = ViewportSubsystem->GetWidgetSlot(WebHUDBottom);
+				const FGameViewportWidgetSlot InteractionSlot = ViewportSubsystem->GetWidgetSlot(WebHUDInteraction);
 				TestEqual(TEXT("All Web HUD panels are mounted above native HUD layers"), LeftTopSlot.ZOrder, 200);
 				TestEqual(TEXT("Right-top panel shares the Web HUD z-order"), RightTopSlot.ZOrder, 200);
 				TestEqual(TEXT("Bottom panel shares the Web HUD z-order"), BottomSlot.ZOrder, 200);
+				TestEqual(TEXT("Interaction panel shares the Web HUD z-order"), InteractionSlot.ZOrder, 200);
 				TestTrue(TEXT("Web HUD panels use bounded, non-fullscreen geometry"),
 					LeftTopSlot.Anchors.Minimum.X == 0.f && LeftTopSlot.Anchors.Maximum.X == 0.f
 					&& RightTopSlot.Anchors.Minimum.X == 1.f && RightTopSlot.Anchors.Maximum.X == 1.f
 					&& BottomSlot.Anchors.Minimum.Y == 1.f && BottomSlot.Anchors.Maximum.Y == 1.f
+					&& InteractionSlot.Anchors.Minimum.X == 0.5f && InteractionSlot.Anchors.Maximum.X == 0.5f
 					&& RightTopSlot.Offsets.Right > 0.f && RightTopSlot.Offsets.Bottom > 0.f
 					&& BottomSlot.Offsets.Right > 0.f && BottomSlot.Offsets.Top == -140.f
-					&& BottomSlot.Offsets.Bottom >= 116.f);
+					&& BottomSlot.Offsets.Bottom >= 116.f
+					&& InteractionSlot.Offsets.Right == 520.f && InteractionSlot.Offsets.Bottom == 210.f);
 			}
 			else
 			{

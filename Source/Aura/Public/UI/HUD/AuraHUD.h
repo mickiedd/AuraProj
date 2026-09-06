@@ -159,7 +159,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerClass;
 
-	/** Three bounded browser surfaces keep HUD interaction local to its visible panel. */
+	/** Bounded browser surfaces keep each HUD concern local to its visible panel. */
 	UPROPERTY()
 	TObjectPtr<UWebUIWidget> WebHUDLeftTop;
 
@@ -168,6 +168,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UWebUIWidget> WebHUDBottom;
+
+	UPROPERTY()
+	TObjectPtr<UWebUIWidget> WebHUDInteraction;
 
 	UPROPERTY()
 	TObjectPtr<UWebUIBridgeSubsystem> WebUIBridge;
@@ -181,6 +184,8 @@ private:
 	bool bWebHUDReady = false;
 	/** True while WebUI-originated LMB input is held, so browser disconnects can release it safely. */
 	bool bWebGameplayLMBDown = false;
+	/** True while the interaction preview is presented, so DrawHUD can close a stale panel. */
+	bool bWebInteractionVisible = false;
 
 	/** Last replicated vitals, replayed when the Web UI reports that it is ready. */
 	float WebHealth = 0.f;

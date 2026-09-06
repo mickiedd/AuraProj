@@ -229,6 +229,20 @@ bool FAuraDay8CivilianRoleIdentityTest::RunTest(const FString& Parameters)
 	const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
 	TestTrue(TEXT("Civilian identity remains ambient and selectable"), Civilian && Civilian->EntityType == Tags.Entity_AmbientNPC && Civilian->ControlType == Tags.Control_CivilianAI && Civilian->Faction == Tags.Faction_Civilian && Civilian->CombatProfile == Tags.Combat_Civilian && Civilian->DeathPolicy == Tags.Death_PopulationRespawn && Civilian->bPlayerSelectable);
 	TestTrue(TEXT("Civilian default policy is protected but targetable"), Civilian && Civilian->bTargetable && !Civilian->bCanAttack && Civilian->bCanBeDamaged && !Civilian->bAllowFriendlyFire);
+	TestEqual(TEXT("Civilian role publishes a slow walk speed"), Civilian ? Civilian->MovementSpeed : 0.f, 120.f);
+	return true;
+}
+
+AURA_DAY789_TEST(FAuraDay8CivilianRoleMovementApplicationContractTest, "Day8.CivilianRoleMovementApplicationContract")
+bool FAuraDay8CivilianRoleMovementApplicationContractTest::RunTest(const FString& Parameters)
+{
+	FString BaseSource;
+	FString ControllerSource;
+	TestTrue(TEXT("Role presentation source readable"), AuraRoleBattleDays789TestsPrivate::ReadProjectFile(TEXT("Source/Aura/Private/Character/AuraCharacterBase.cpp"), BaseSource));
+	TestTrue(TEXT("Player controller source readable"), AuraRoleBattleDays789TestsPrivate::ReadProjectFile(TEXT("Source/Aura/Private/Player/AuraPlayerController.cpp"), ControllerSource));
+	TestTrue(TEXT("Role presentation applies the configured movement speed"), BaseSource.Contains(TEXT("RoleDefinition.MovementSpeed")) && BaseSource.Contains(TEXT("RoleMovement")));
+	TestTrue(TEXT("Role presentation refreshes sprint cache"), BaseSource.Contains(TEXT("RefreshCachedWalkSpeed")));
+	TestTrue(TEXT("Sprint cache can be rebased after role presentation"), ControllerSource.Contains(TEXT("void AAuraPlayerController::RefreshCachedWalkSpeed")));
 	return true;
 }
 

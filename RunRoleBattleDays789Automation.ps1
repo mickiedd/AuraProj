@@ -71,7 +71,7 @@ try {
         $LogText = Get-Content -Raw -LiteralPath $LogPath
         $ExpectedTestCount = switch ($Day) {
             '7' { 10 }
-            '8' { 6 }
+            '8' { 7 }
             '9' { 9 }
         }
         # Unreal localizes the automation result token. Accept the English

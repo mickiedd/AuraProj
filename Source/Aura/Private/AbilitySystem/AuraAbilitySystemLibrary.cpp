@@ -1049,6 +1049,14 @@ FAuraRoleLoadResult UAuraAbilitySystemLibrary::ParseRoleInfoJson(const UObject* 
 		if (!AnimPath.IsEmpty()) Info.AnimBlueprintClass = LoadClass<UAnimInstance>(nullptr, *AnimPath);
 		if (!MeshPath.IsEmpty() && !Info.SkeletalMesh) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".mesh"), FString::Printf(TEXT("failed to load '%s'"), *MeshPath));
 		if (!AnimPath.IsEmpty() && !Info.AnimBlueprintClass) AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".animBlueprint"), FString::Printf(TEXT("failed to load '%s'"), *AnimPath));
+		if (RoleObj->HasField(TEXT("movementSpeed")))
+		{
+			if (ReadNumber(RoleObj, TEXT("movementSpeed"), Info.MovementSpeed, Result, RoleName, BasePath)
+				&& Info.MovementSpeed <= 0.f)
+			{
+				AddIssue(Result, EAuraRoleValidationSeverity::Error, RoleName, BasePath + TEXT(".movementSpeed"), TEXT("must be greater than zero"));
+			}
+		}
 		if (Info.SkeletalMesh && Info.AnimBlueprintClass)
 		{
 			const IAnimClassInterface* AnimInterface = IAnimClassInterface::GetFromClass(Info.AnimBlueprintClass);

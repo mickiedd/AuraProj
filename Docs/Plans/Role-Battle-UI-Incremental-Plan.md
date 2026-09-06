@@ -39,7 +39,7 @@ Days 19–20 are multiplayer hardening and release evidence milestones. They do 
 | --- | --- | --- | --- |
 | `hud_role_state` | `AAuraHUD` | Left-top panel | Applied role, combat identity, life state, and persistence mode |
 | `hud_battle_state` | `AAuraHUD` / replicated battle director | Left-top panel | Phase, event ID, active/max/pending population, and casualties |
-| `hud_interaction` | Target interaction controller | Bottom panel | Relationship, life, activity, attack permission, and Interact/Trade options |
+| `hud_interaction` | Target interaction controller | Dedicated centered interaction panel | Relationship, life, activity, attack permission, and Interact/Trade options; hidden when no target descriptor is focused |
 | `hud_economy` | `AAuraHUD` / owner-only PlayerState components | Right-top panel | Wallet, inventory, revisions, and registry display names |
 | `hud_merchant` | `AAuraHUD` / focused merchant | Right-top panel | Merchant offers and current stock |
 | `hud_merchant_result` | Purchase result delegate | Right-top panel | Server result code and revision snapshot |
@@ -50,7 +50,7 @@ Commands remain narrow and validated: `hud_interaction_select`, `hud_interaction
 
 1. Add tutorial/first-use callouts for the Bag, Trade, and Combat protected labels once the onboarding flow is available.
 2. Add an explicit save/load transition indicator if persistence exposes a replicated in-progress state; the current HUD intentionally reports only the authoritative loaded/session result.
-3. Add dedicated visual QA captures for the three panels at the supported packaged resolutions and for late-join replay.
+3. Add dedicated visual QA captures for the four panels at the supported packaged resolutions and for late-join replay.
 
 ## UI test matrix
 

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Civilian animation diagnostics</title>
+  <desc id="desc">Flow showing the corrected generic movement owner execution path and the runtime diagnostic values captured for civilian locomotion.</desc>
+  <style>
+    .bg{fill:#101827}.panel{fill:#172338;stroke:#3a5276;stroke-width:2}.bad{fill:#3a2028;stroke:#d66a78;stroke-width:2}.good{fill:#17382f;stroke:#55c99a;stroke-width:2}.probe{fill:#1d3150;stroke:#6fa7e8;stroke-width:2}.txt{fill:#eef4ff;font-family:Arial,sans-serif}.h{font-size:25px;font-weight:700}.body{font-size:18px}.small{font-size:15px}.arrow{stroke:#6be0ad;stroke-width:3;fill:none;marker-end:url(#good)}.badline{stroke:#e1818d;stroke-width:3;fill:none;stroke-dasharray:8 7;marker-end:url(#bad)}
+  </style>
+  <defs>
+    <marker id="good" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#6be0ad"/></marker>
+    <marker id="bad" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#e1818d"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="700"/>
+  <text class="txt h" x="42" y="46">Civilian animation diagnostic pass</text>
+  <text class="txt small" x="42" y="72">The missing execution link was corrected, then the client and server logs were instrumented to separate movement, graph, and montage failures.</text>
+
+  <rect class="bad" x="42" y="105" width="340" height="210" rx="14"/>
+  <text class="txt h" x="66" y="143">Previous graph</text>
+  <rect class="panel" x="70" y="170" width="125" height="52" rx="9"/><text class="txt body" x="85" y="203">Initialize</text>
+  <path class="badline" d="M195 196 L245 196"/>
+  <rect class="panel" x="245" y="170" width="112" height="52" rx="9"/><text class="txt body" x="258" y="203">AuraEnemy cast</text>
+  <text class="txt body" x="68" y="256">Civilian cast failed</text>
+  <text class="txt body" x="68" y="284">setter never executed</text>
+
+  <rect class="good" x="415" y="105" width="360" height="210" rx="14"/>
+  <text class="txt h" x="439" y="143">Corrected execution</text>
+  <rect class="panel" x="443" y="170" width="125" height="52" rx="9"/><text class="txt body" x="458" y="203">Initialize</text>
+  <path class="arrow" d="M568 196 L615 196"/>
+  <rect class="panel" x="615" y="170" width="130" height="52" rx="9"/><text class="txt body" x="632" y="203">ACharacter cast</text>
+  <path class="arrow" d="M680 222 L680 252"/>
+  <rect class="panel" x="592" y="252" width="176" height="45" rx="9"/><text class="txt body" x="607" y="281">Set CharacterMovement</text>
+
+  <rect class="probe" x="808" y="105" width="350" height="210" rx="14"/>
+  <text class="txt h" x="832" y="143">Runtime probe</text>
+  <text class="txt body" x="832" y="178">GroundSpeed update → diagnostic call</text>
+  <text class="txt body" x="832" y="208">movementMatches=1</text>
+  <text class="txt body" x="832" y="236">blueprintGroundSpeed=actual speed</text>
+  <text class="txt body" x="832" y="264">state=IdleWalkRun</text>
+  <text class="txt body" x="832" y="292">mesh=SKM_Shaman, anim=ABP_Shaman_C</text>
+
+  <rect class="panel" x="42" y="350" width="1116" height="280" rx="14"/>
+  <text class="txt h" x="68" y="390">Captured evidence</text>
+  <text class="txt body" x="68" y="426">• Server: 90 CivilianAnimDiag lines; moving samples report 68.91–120.00 speed and matching BlueprintGroundSpeed.</text>
+  <text class="txt body" x="68" y="458">• Client 1: 33 lines; all sampled civilians have valid ABP_Shaman_C instances and matching movement owners.</text>
+  <text class="txt body" x="68" y="490">• Client 2: 6 late-join lines; state remains IdleWalkRun with valid mesh and AnimBP.</text>
+  <text class="txt body" x="68" y="522">• Dedicated Day 09 smoke: PASS; no fatal, assertion, ensure, or unexpected server failure signatures.</text>
+  <text class="txt body" x="68" y="554">• Focused LocomotionGraph and MovementOwner automation: PASS; configure commandlet: PASS.</text>
+  <text class="txt small" x="68" y="594">A montage field remains “none” because locomotion is a state-machine BlendSpace; the state/speed fields are the relevant walking signal.</text>
+</svg>

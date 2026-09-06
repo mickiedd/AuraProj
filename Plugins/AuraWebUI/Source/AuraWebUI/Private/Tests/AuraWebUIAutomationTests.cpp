@@ -379,7 +379,8 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	const TArray<FString> HudPanelNames = {
 		TEXT("hud-left-top.html"),
 		TEXT("hud-right-top.html"),
-		TEXT("hud-bottom.html")
+		TEXT("hud-bottom.html"),
+		TEXT("hud-interaction.html")
 	};
 	const FString SkillPanelHtmlPath = FPaths::Combine(Plugin->GetBaseDir(), TEXT("Content/WebUI/skill-panel.html"));
 	const FString DefaultEnginePath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("DefaultEngine.ini"));
@@ -466,17 +467,18 @@ bool FAuraWebUIPluginContentContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Config editor reads files through the bridge"), ConfigEditorHtml.Contains(TEXT("send(\"config_read\"")));
 	TestTrue(TEXT("Config editor saves with an optimistic version"), ConfigEditorHtml.Contains(TEXT("send(\"config_save\"")) && ConfigEditorHtml.Contains(TEXT("version: state.version")));
 	TestTrue(TEXT("Config editor includes structured and raw editing modes"), ConfigEditorHtml.Contains(TEXT("Structured view")) && ConfigEditorHtml.Contains(TEXT("Raw JSON")));
-	TestTrue(TEXT("Every gameplay HUD panel uses the native WebSocket URL placeholder"), HudPanelHtml.Num() == HudPanelNames.Num() && HudPanelHtml[0].Contains(TEXT("__AURA_WEBSOCKET_URL__")) && HudPanelHtml[1].Contains(TEXT("__AURA_WEBSOCKET_URL__")) && HudPanelHtml[2].Contains(TEXT("__AURA_WEBSOCKET_URL__")));
-	TestTrue(TEXT("HUD panels report readiness on their shared bridge"), HudPanelHtml[0].Contains(TEXT("hud_ready")) && HudPanelHtml[1].Contains(TEXT("hud_ready")) && HudPanelHtml[2].Contains(TEXT("hud_ready")));
-	TestTrue(TEXT("Bottom HUD panel consumes vitals, abilities, and interaction events"), HudPanelHtml[2].Contains(TEXT("hud_vitals")) && HudPanelHtml[2].Contains(TEXT("skill_panel_ability")) && HudPanelHtml[2].Contains(TEXT("hud_interaction")));
+	TestTrue(TEXT("Every gameplay HUD panel uses the native WebSocket URL placeholder"), HudPanelHtml.Num() == HudPanelNames.Num() && HudPanelHtml[0].Contains(TEXT("__AURA_WEBSOCKET_URL__")) && HudPanelHtml[1].Contains(TEXT("__AURA_WEBSOCKET_URL__")) && HudPanelHtml[2].Contains(TEXT("__AURA_WEBSOCKET_URL__")) && HudPanelHtml[3].Contains(TEXT("__AURA_WEBSOCKET_URL__")));
+	TestTrue(TEXT("HUD panels report readiness on their shared bridge"), HudPanelHtml[0].Contains(TEXT("hud_ready")) && HudPanelHtml[1].Contains(TEXT("hud_ready")) && HudPanelHtml[2].Contains(TEXT("hud_ready")) && HudPanelHtml[3].Contains(TEXT("hud_ready")));
+	TestTrue(TEXT("Bottom HUD panel owns only vitals and skill presentation"), HudPanelHtml[2].Contains(TEXT("hud_vitals")) && HudPanelHtml[2].Contains(TEXT("skill_panel_ability")) && !HudPanelHtml[2].Contains(TEXT("hud_interaction")));
+	TestTrue(TEXT("Dedicated interaction HUD owns target preview and clear behavior"), HudPanelHtml[3].Contains(TEXT("hud_interaction")) && HudPanelHtml[3].Contains(TEXT("hud_interaction_cleared")) && HudPanelHtml[3].Contains(TEXT("state.selectedOption=-1")));
 	TestTrue(TEXT("Bottom HUD skill strip reserves enough height for its tiles and labels"), HudPanelHtml[2].Contains(TEXT("align-items:center")) && HudPanelHtml[2].Contains(TEXT("min-height:104px")));
 	TestTrue(TEXT("Right-top HUD panel owns menus and their controller commands"), HudPanelHtml[1].Contains(TEXT("hud_attribute_upgrade")) && HudPanelHtml[1].Contains(TEXT("hud_spell_slot")) && HudPanelHtml[1].Contains(TEXT("hud_quit_confirm")) && HudPanelHtml[1].Contains(TEXT("hud_menu_closed")));
 	TestTrue(TEXT("Left-top HUD panel owns progress and transient messages"), HudPanelHtml[0].Contains(TEXT("hud_progress")) && HudPanelHtml[0].Contains(TEXT("hud_message")) && HudPanelHtml[0].Contains(TEXT("hud_level_up")));
 	TestTrue(TEXT("Left-top HUD explains role, life, battle, population, and persistence state"), HudPanelHtml[0].Contains(TEXT("hud_role_state")) && HudPanelHtml[0].Contains(TEXT("hud_battle_state")) && HudPanelHtml[0].Contains(TEXT("populationSummary")) && HudPanelHtml[0].Contains(TEXT("persistentProfile")) && HudPanelHtml[0].Contains(TEXT("lifeState")));
-	TestTrue(TEXT("Bottom HUD explains civilian activity and combat protection"), HudPanelHtml[2].Contains(TEXT("p.activity")) && HudPanelHtml[2].Contains(TEXT("Combat protected")) && HudPanelHtml[2].Contains(TEXT("hud_merchant_open")));
+	TestTrue(TEXT("Interaction HUD explains civilian activity and combat protection"), HudPanelHtml[3].Contains(TEXT("p.activity")) && HudPanelHtml[3].Contains(TEXT("Combat protected")) && HudPanelHtml[3].Contains(TEXT("hud_merchant_open")));
 	TestTrue(TEXT("Right-top HUD exposes owner-only economy and merchant results"), HudPanelHtml[1].Contains(TEXT("hud_economy")) && HudPanelHtml[1].Contains(TEXT("hud_merchant")) && HudPanelHtml[1].Contains(TEXT("hud_merchant_buy")) && HudPanelHtml[1].Contains(TEXT("hud_merchant_result")) && HudPanelHtml[1].Contains(TEXT("inventoryModal")));
-	TestTrue(TEXT("Gameplay HUD panels are transparent and not full-screen HTML surfaces"), HudPanelHtml[0].Contains(TEXT("background:transparent")) && HudPanelHtml[1].Contains(TEXT("background:transparent")) && HudPanelHtml[2].Contains(TEXT("background:transparent")) && !HudPanelHtml[0].Contains(TEXT("position:fixed;inset:0")) && !HudPanelHtml[1].Contains(TEXT("position:fixed;inset:0")) && !HudPanelHtml[2].Contains(TEXT("position:fixed;inset:0")));
-	TestTrue(TEXT("Gameplay HUD does not synthesize level LMB clicks from browser pointer events"), !HudPanelHtml[0].Contains(TEXT("startGameplayLmb")) && !HudPanelHtml[1].Contains(TEXT("startGameplayLmb")) && !HudPanelHtml[2].Contains(TEXT("startGameplayLmb")) && HudPanelHtml[2].Contains(TEXT("skill_ability_pressed")) && HudPanelHtml[2].Contains(TEXT("skill_ability_released")));
+	TestTrue(TEXT("Gameplay HUD panels are transparent and not full-screen HTML surfaces"), HudPanelHtml[0].Contains(TEXT("background:transparent")) && HudPanelHtml[1].Contains(TEXT("background:transparent")) && HudPanelHtml[2].Contains(TEXT("background:transparent")) && HudPanelHtml[3].Contains(TEXT("background:transparent")) && !HudPanelHtml[0].Contains(TEXT("position:fixed;inset:0")) && !HudPanelHtml[1].Contains(TEXT("position:fixed;inset:0")) && !HudPanelHtml[2].Contains(TEXT("position:fixed;inset:0")) && !HudPanelHtml[3].Contains(TEXT("position:fixed;inset:0")));
+	TestTrue(TEXT("Gameplay HUD does not synthesize level LMB clicks from browser pointer events"), !HudPanelHtml[0].Contains(TEXT("startGameplayLmb")) && !HudPanelHtml[1].Contains(TEXT("startGameplayLmb")) && !HudPanelHtml[2].Contains(TEXT("startGameplayLmb")) && !HudPanelHtml[3].Contains(TEXT("startGameplayLmb")) && HudPanelHtml[2].Contains(TEXT("skill_ability_pressed")) && HudPanelHtml[2].Contains(TEXT("skill_ability_released")));
 	TestTrue(TEXT("Gameplay HUD uses modern ability icon treatments"), HudPanelHtml[2].Contains(TEXT("skill::before")) && HudPanelHtml[2].Contains(TEXT("skill.offensive")) && HudPanelHtml[2].Contains(TEXT("saturate(1.14)")) && HudPanelHtml[2].Contains(TEXT("skill.equipped")));
 	TestTrue(TEXT("Gameplay HUD renders PNG icons supplied by the native bridge"), HudPanelHtml[2].Contains(TEXT("img.src=info.icon")) && HudPanelHtml[2].Contains(TEXT("img.className=info.icon?'show':''")));
 	TestTrue(TEXT("Gameplay HUD uses the canonical native passive input tags"), HudPanelHtml[2].Contains(TEXT("const passiveSlots=['InputTag.Passive.1','InputTag.Passive.2'];")) && !HudPanelHtml[2].Contains(TEXT("InputTag.Passive_1")) && !HudPanelHtml[2].Contains(TEXT("InputTag.Passive_2")));
@@ -525,10 +527,12 @@ bool FAuraWebUIRoleBattleHUDContractTest::RunTest(const FString& Parameters)
 	FString LeftTop;
 	FString RightTop;
 	FString Bottom;
+	FString Interaction;
 	const bool bLoaded =
 		TestTrue(TEXT("Role/Battle left-top HUD page is readable"), FFileHelper::LoadFileToString(LeftTop, *FPaths::Combine(HUDDirectory, TEXT("hud-left-top.html"))))
 		&& TestTrue(TEXT("Role/Battle right-top HUD page is readable"), FFileHelper::LoadFileToString(RightTop, *FPaths::Combine(HUDDirectory, TEXT("hud-right-top.html"))))
-		&& TestTrue(TEXT("Role/Battle bottom HUD page is readable"), FFileHelper::LoadFileToString(Bottom, *FPaths::Combine(HUDDirectory, TEXT("hud-bottom.html"))));
+		&& TestTrue(TEXT("Role/Battle bottom HUD page is readable"), FFileHelper::LoadFileToString(Bottom, *FPaths::Combine(HUDDirectory, TEXT("hud-bottom.html"))))
+		&& TestTrue(TEXT("Role/Battle interaction HUD page is readable"), FFileHelper::LoadFileToString(Interaction, *FPaths::Combine(HUDDirectory, TEXT("hud-interaction.html"))));
 	if (!bLoaded)
 	{
 		return false;
@@ -545,18 +549,23 @@ bool FAuraWebUIRoleBattleHUDContractTest::RunTest(const FString& Parameters)
 		&& LeftTop.Contains(TEXT("populationMaximum"))
 		&& LeftTop.Contains(TEXT("populationPending"))
 		&& LeftTop.Contains(TEXT("populationCasualties")));
-	TestTrue(TEXT("Bottom renders orthogonal target, activity, and combat affordance fields"),
-		Bottom.Contains(TEXT("p.relationshipTag"))
-		&& Bottom.Contains(TEXT("p.lifeTag"))
-		&& Bottom.Contains(TEXT("p.activity"))
-		&& Bottom.Contains(TEXT("p.attackAllowed"))
-		&& Bottom.Contains(TEXT("Combat protected"))
-		&& Bottom.Contains(TEXT("hud_interaction_activate")));
-	TestTrue(TEXT("Bottom keeps Trade discoverability separate from Interact execution"),
-		Bottom.Contains(TEXT("Interaction.Trade"))
-		&& Bottom.Contains(TEXT("hud_merchant_open"))
-		&& Bottom.Contains(TEXT("Shop ready"))
-		&& Bottom.Contains(TEXT("hud_interaction_activate")));
+	TestTrue(TEXT("Bottom HUD keeps interaction content out of the skill panel"),
+		!Bottom.Contains(TEXT("hud_interaction"))
+		&& !Bottom.Contains(TEXT("interaction-head")));
+	TestTrue(TEXT("Interaction HUD renders orthogonal target, activity, and combat affordance fields"),
+		Interaction.Contains(TEXT("p.relationshipTag"))
+		&& Interaction.Contains(TEXT("p.lifeTag"))
+		&& Interaction.Contains(TEXT("p.activity"))
+		&& Interaction.Contains(TEXT("p.attackAllowed"))
+		&& Interaction.Contains(TEXT("Combat protected"))
+		&& Interaction.Contains(TEXT("hud_interaction_activate"))
+		&& Interaction.Contains(TEXT("hud_interaction_cleared"))
+		&& Interaction.Contains(TEXT("state.selectedOption=-1")));
+	TestTrue(TEXT("Interaction HUD keeps Trade discoverability separate from Interact execution"),
+		Interaction.Contains(TEXT("Interaction.Trade"))
+		&& Interaction.Contains(TEXT("hud_merchant_open"))
+		&& Interaction.Contains(TEXT("Shop ready"))
+		&& Interaction.Contains(TEXT("hud_interaction_activate")));
 	TestTrue(TEXT("Right-top renders owner economy, inventory, and merchant result state"),
 		RightTop.Contains(TEXT("hud_economy"))
 		&& RightTop.Contains(TEXT("inventoryModal"))
@@ -587,6 +596,10 @@ bool FAuraWebUIRoleBattleHUDContractTest::RunTest(const FString& Parameters)
 			HUDSource.Contains(TEXT("GetFocusedTargetActor()"))
 			&& HUDSource.Contains(TEXT("RequestPurchase"))
 			&& HUDSource.Contains(TEXT("GetInteractionComponent()")));
+		TestTrue(TEXT("HUD clears a stale interaction preview in its separate browser panel"),
+			HUDSource.Contains(TEXT("WebUI/hud-interaction.html"))
+			&& HUDSource.Contains(TEXT("else if (bWebInteractionVisible) HandleTargetPreviewClearedForWebUI();"))
+			&& HUDSource.Contains(TEXT("bWebInteractionVisible = false;")));
 	}
 
 	return !HasAnyErrors();

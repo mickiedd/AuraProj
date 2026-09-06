@@ -163,11 +163,14 @@ void AAuraHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (WebHUDLeftTop && IsValid(WebHUDLeftTop)) WebHUDLeftTop->RemoveFromParent();
 	if (WebHUDRightTop && IsValid(WebHUDRightTop)) WebHUDRightTop->RemoveFromParent();
 	if (WebHUDBottom && IsValid(WebHUDBottom)) WebHUDBottom->RemoveFromParent();
+	if (WebHUDInteraction && IsValid(WebHUDInteraction)) WebHUDInteraction->RemoveFromParent();
 	WebHUDLeftTop = nullptr;
 	WebHUDRightTop = nullptr;
 	WebHUDBottom = nullptr;
+	WebHUDInteraction = nullptr;
 	WebUIBridge = nullptr;
 	bWebHUDReady = false;
+	bWebInteractionVisible = false;
 	AbilityIconDataUriCache.Empty();
 	ManualSkillIconDataUriCache.Empty();
 	LastInteractionPayloadJson.Empty();
@@ -233,7 +236,7 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 
 void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 {
-	if (!PC || !PC->IsLocalController() || WebHUDLeftTop || WebHUDRightTop || WebHUDBottom) return;
+	if (!PC || !PC->IsLocalController() || WebHUDLeftTop || WebHUDRightTop || WebHUDBottom || WebHUDInteraction) return;
 
 	UWorld* World = GetWorld();
 	if (!World) return;
@@ -268,15 +271,23 @@ void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 		// not clipped by the native WebBrowser host.
 		FMargin(24.f, -140.f, 24.f, 116.f),
 		TEXT("bottom"));
-	if (!WebHUDLeftTop || !WebHUDRightTop || !WebHUDBottom)
+	WebHUDInteraction = CreateWebHUDPanel(
+		PC,
+		TEXT("WebUI/hud-interaction.html"),
+		FAnchors(0.5f, 0.f, 0.5f, 0.f),
+		FMargin(-260.f, 32.f, 520.f, 210.f),
+		TEXT("interaction"));
+	if (!WebHUDLeftTop || !WebHUDRightTop || !WebHUDBottom || !WebHUDInteraction)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[AuraHUD] Failed to create all three bounded WebUI HUD panels"));
 		if (WebHUDLeftTop && IsValid(WebHUDLeftTop)) WebHUDLeftTop->RemoveFromParent();
 		if (WebHUDRightTop && IsValid(WebHUDRightTop)) WebHUDRightTop->RemoveFromParent();
 		if (WebHUDBottom && IsValid(WebHUDBottom)) WebHUDBottom->RemoveFromParent();
+		if (WebHUDInteraction && IsValid(WebHUDInteraction)) WebHUDInteraction->RemoveFromParent();
 		WebHUDLeftTop = nullptr;
 		WebHUDRightTop = nullptr;
 		WebHUDBottom = nullptr;
+		WebHUDInteraction = nullptr;
 		WebUIBridge = nullptr;
 		return;
 	}
@@ -342,10 +353,11 @@ void AAuraHUD::InitializeWebHUD(APlayerController* PC)
 
 	WebUIBridge->OnCommand.AddDynamic(this, &AAuraHUD::HandleWebUICommand);
 	WebUIBridge->OnConnectionChanged.AddDynamic(this, &AAuraHUD::HandleWebUIConnectionChanged);
-	UE_LOG(LogTemp, Display, TEXT("[AuraHUD] Bounded WebUI HUD mounted: left-top=%s right-top=%s bottom=%s context=%s"),
+	UE_LOG(LogTemp, Display, TEXT("[AuraHUD] Bounded WebUI HUD mounted: left-top=%s right-top=%s bottom=%s interaction=%s context=%s"),
 		*GetNameSafe(WebHUDLeftTop->GetWebBrowser()),
 		*GetNameSafe(WebHUDRightTop->GetWebBrowser()),
 		*GetNameSafe(WebHUDBottom->GetWebBrowser()),
+		*GetNameSafe(WebHUDInteraction->GetWebBrowser()),
 		PC->GetLocalPlayer() ? TEXT("LocalPlayer") : TEXT("WorldFallback"));
 }
 
@@ -388,15 +400,8 @@ void AAuraHUD::SetWebHUDMenuLayout(bool bExpanded)
 
 void AAuraHUD::SetWebHUDInteractionLayout(bool bExpanded)
 {
-	if (!WebHUDBottom) return;
-	if (bExpanded)
-	{
-		WebHUDBottom->ConfigureViewportLayout(FAnchors(0.f, 1.f, 1.f, 1.f), FMargin(24.f, -420.f, 24.f, 396.f), FVector2D(0.f, 0.f));
-	}
-	else
-	{
-		WebHUDBottom->ConfigureViewportLayout(FAnchors(0.f, 1.f, 1.f, 1.f), FMargin(24.f, -140.f, 24.f, 116.f), FVector2D(0.f, 0.f));
-	}
+	if (!WebHUDInteraction) return;
+	WebHUDInteraction->SetVisibility(bExpanded ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 }
 
 void AAuraHUD::SendInitialWebHUDState()
@@ -607,6 +612,7 @@ void AAuraHUD::HandleWebUIConnectionChanged(bool bConnected)
 	if (!bConnected)
 	{
 		LastInteractionPayloadJson.Empty();
+		bWebInteractionVisible = false;
 		LastRoleStatePayloadJson.Empty();
 		LastBattleStatePayloadJson.Empty();
 		LastMerchantPayloadJson.Empty();
@@ -1085,8 +1091,10 @@ void AAuraHUD::HandleSpellReassignedForWebUI(const FGameplayTag& AbilityTag)
 void AAuraHUD::SendInteractionToWebUI(const FAuraTargetDescriptor& Descriptor)
 {
 	if (!WebUIBridge || !WebUIBridge->IsServerRunning()) return;
+	bWebInteractionVisible = true;
 	SetWebHUDInteractionLayout(true);
 	const TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
+	Payload->SetBoolField(TEXT("visible"), true);
 	AuraHUDPrivate::SetTagField(Payload, TEXT("relationshipTag"), Descriptor.RelationshipTag);
 	AuraHUDPrivate::SetTagField(Payload, TEXT("kindTag"), Descriptor.KindTag);
 	AuraHUDPrivate::SetTagField(Payload, TEXT("lifeTag"), Descriptor.LifeTag);
@@ -1138,6 +1146,7 @@ void AAuraHUD::SendInteractionToWebUI(const FAuraTargetDescriptor& Descriptor)
 void AAuraHUD::HandleTargetPreviewForWebUI(const FAuraTargetDescriptor& Descriptor) { SendInteractionToWebUI(Descriptor); }
 void AAuraHUD::HandleTargetPreviewClearedForWebUI()
 {
+	bWebInteractionVisible = false;
 	LastInteractionPayloadJson.Empty();
 	if (WebUIBridge && WebUIBridge->IsServerRunning()) WebUIBridge->SendEvent(TEXT("hud_interaction_cleared"), TEXT("{}"));
 	if (bMerchantUIOpen || WebMerchantComponent.IsValid()) SendMerchantClearedToWebUI();
@@ -1312,5 +1321,6 @@ void AAuraHUD::DrawHUD()
 	{
 		const FAuraTargetDescriptor& Descriptor = AuraPC->GetFocusedTargetDescriptor();
 		if (Descriptor.IsValid()) SendInteractionToWebUI(Descriptor);
+		else if (bWebInteractionVisible) HandleTargetPreviewClearedForWebUI();
 	}
 }

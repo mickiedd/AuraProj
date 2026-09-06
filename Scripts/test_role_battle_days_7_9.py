@@ -84,6 +84,7 @@ def main() -> int:
         },
         8: {
             "CivilianRoleIdentity",
+            "CivilianRoleMovementApplicationContract",
             "CivilianASCInitialization",
             "EmptyOffensiveLoadout",
             "InvalidRoleFailsClosed",

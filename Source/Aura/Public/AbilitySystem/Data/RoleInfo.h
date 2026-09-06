@@ -153,6 +153,10 @@ struct FRoleDefaultInfo
 	UPROPERTY(EditDefaultsOnly, Category = "Role|Visuals")
 	FName WeaponSocketName = FName("WeaponHandSocket");
 
+	/** Ground movement speed used by this role's actor shell. */
+	UPROPERTY(EditDefaultsOnly, Category = "Role|Movement", meta = (ClampMin = "1.0"))
+	float MovementSpeed = 600.f;
+
 	/* Combat sockets (skeleton-dependent). Copied onto the character at apply time
 	   so GetCombatSocketLocation returns sockets that exist on this role's skeleton. */
 

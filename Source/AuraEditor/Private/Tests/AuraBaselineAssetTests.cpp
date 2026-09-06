@@ -6,6 +6,7 @@
 #include "Animation/AnimBlueprint.h"
 #include "EdGraph/EdGraph.h"
 #include "EdGraph/EdGraphNode.h"
+#include "EdGraphSchema_K2.h"
 #include "Animation/AnimMontage.h"
 #include "AnimationGraph.h"
 #include "AnimGraphNode_BlendListByBool.h"
@@ -13,8 +14,13 @@
 #include "AnimGraphNode_SequencePlayer.h"
 #include "AnimGraphNode_Slot.h"
 #include "K2Node_CallParentFunction.h"
+#include "K2Node_DynamicCast.h"
+#include "K2Node_VariableSet.h"
+#include "K2Node_CallFunction.h"
+#include "Animation/AuraAnimationDiagnosticsLibrary.h"
 #include "K2Node_Event.h"
 #include "K2Node_VariableGet.h"
+#include "GameFramework/Character.h"
 #include "Sound/SoundCue.h"
 #include "UObject/UnrealType.h"
 
@@ -207,6 +213,111 @@ bool FAuraCivilianLocomotionAnimBlueprintTest::RunTest(const FString& Parameters
 	TestNotNull(TEXT("Civilian parent BlueprintUpdateAnimation call exists"), ParentCall);
 	TestTrue(TEXT("Civilian parent BlueprintUpdateAnimation call is enabled"), ParentCall
 		&& ParentCall->GetDesiredEnabledState() == ENodeEnabledState::Enabled);
+	return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraCivilianMovementOwnerAnimBlueprintTest,
+	"Aura.RoleBattle.Civilian.Presentation.MovementOwner",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraCivilianMovementOwnerAnimBlueprintTest::RunTest(const FString& Parameters)
+{
+	UAnimBlueprint* Blueprint = LoadObject<UAnimBlueprint>(nullptr,
+		TEXT("/Game/Blueprints/Character/ABP_Enemy.ABP_Enemy"));
+	if (!TestNotNull(TEXT("Shared enemy locomotion AnimBlueprint loads"), Blueprint)) return false;
+
+	UEdGraph* EventGraph = nullptr;
+	TArray<UEdGraph*> Graphs;
+	Blueprint->GetAllGraphs(Graphs);
+	for (UEdGraph* Graph : Graphs)
+	{
+		if (Graph && Graph->GetName() == TEXT("EventGraph"))
+		{
+			EventGraph = Graph;
+			break;
+		}
+	}
+	if (!TestNotNull(TEXT("Shared enemy EventGraph exists"), EventGraph)) return false;
+
+	UK2Node_DynamicCast* CharacterCast = nullptr;
+	TArray<UK2Node_DynamicCast*> CastNodes;
+	EventGraph->GetNodesOfClass(CastNodes);
+	for (UK2Node_DynamicCast* CastNode : CastNodes)
+	{
+		if (CastNode && CastNode->TargetType == ACharacter::StaticClass())
+		{
+			CharacterCast = CastNode;
+			break;
+		}
+	}
+	if (!TestNotNull(TEXT("Generic ACharacter movement cast exists"), CharacterCast)) return false;
+
+	UK2Node_VariableGet* MovementGetter = nullptr;
+	TArray<UK2Node_VariableGet*> VariableGets;
+	EventGraph->GetNodesOfClass(VariableGets);
+	for (UK2Node_VariableGet* VariableGet : VariableGets)
+	{
+		if (VariableGet && VariableGet->VariableReference.GetMemberName() == FName(TEXT("CharacterMovement")))
+		{
+			MovementGetter = VariableGet;
+			break;
+		}
+	}
+	if (!TestNotNull(TEXT("CharacterMovement getter exists"), MovementGetter)) return false;
+
+	const UEdGraphPin* MovementSelf = MovementGetter->FindPin(TEXT("self"), EGPD_Input);
+	const FString CastCharacterPinName = FString(UEdGraphSchema_K2::PN_CastedValuePrefix)
+		+ ACharacter::StaticClass()->GetDisplayNameText().ToString();
+	const UEdGraphPin* CastCharacter = CharacterCast->FindPin(*CastCharacterPinName, EGPD_Output);
+	TestTrue(TEXT("CharacterMovement reads the generic character cast"), MovementSelf && CastCharacter
+		&& MovementSelf->LinkedTo.Contains(const_cast<UEdGraphPin*>(CastCharacter)));
+
+	UK2Node_VariableSet* MovementSetter = nullptr;
+	TArray<UK2Node_VariableSet*> VariableSets;
+	EventGraph->GetNodesOfClass(VariableSets);
+	for (UK2Node_VariableSet* VariableSet : VariableSets)
+	{
+		const FName MemberName = VariableSet ? VariableSet->VariableReference.GetMemberName() : NAME_None;
+		if (VariableSet && (MemberName == FName(TEXT("CharacterMovement"))
+			|| MemberName == FName(TEXT("Character Movement"))))
+		{
+			MovementSetter = VariableSet;
+			break;
+		}
+	}
+	TestNotNull(TEXT("CharacterMovement setter exists"), MovementSetter);
+	const UEdGraphPin* CastThen = CharacterCast->FindPin(TEXT("then"), EGPD_Output);
+	const UEdGraphPin* MovementExecute = MovementSetter ? MovementSetter->FindPin(TEXT("execute"), EGPD_Input) : nullptr;
+	TestTrue(TEXT("CharacterMovement setter executes from the generic character cast"), CastThen && MovementExecute
+		&& MovementExecute->LinkedTo.Contains(const_cast<UEdGraphPin*>(CastThen)));
+
+	const UFunction* DiagnosticFunction = UAuraAnimationDiagnosticsLibrary::StaticClass()->FindFunctionByName(
+		GET_FUNCTION_NAME_CHECKED(UAuraAnimationDiagnosticsLibrary, LogCivilianAnimationState));
+	UK2Node_CallFunction* DiagnosticCall = nullptr;
+	TArray<UK2Node_CallFunction*> FunctionNodes;
+	EventGraph->GetNodesOfClass(FunctionNodes);
+	for (UK2Node_CallFunction* FunctionNode : FunctionNodes)
+	{
+		if (FunctionNode && FunctionNode->GetTargetFunction() == DiagnosticFunction)
+		{
+			DiagnosticCall = FunctionNode;
+			break;
+		}
+	}
+	TestNotNull(TEXT("Civilian animation diagnostic call exists"), DiagnosticCall);
+	const UEdGraphPin* DiagnosticExecute = DiagnosticCall ? DiagnosticCall->FindPin(TEXT("execute"), EGPD_Input) : nullptr;
+	const UEdGraphPin* GroundSpeedThen = nullptr;
+	for (UK2Node_VariableSet* VariableSet : VariableSets)
+	{
+		if (VariableSet && VariableSet->VariableReference.GetMemberName() == FName(TEXT("GroundSpeed")))
+		{
+			GroundSpeedThen = VariableSet->FindPin(TEXT("then"), EGPD_Output);
+			break;
+		}
+	}
+	TestTrue(TEXT("Civilian animation diagnostics run after GroundSpeed update"), DiagnosticExecute && GroundSpeedThen
+		&& DiagnosticExecute->LinkedTo.Contains(const_cast<UEdGraphPin*>(GroundSpeedThen)));
 	return !HasAnyErrors();
 }
 

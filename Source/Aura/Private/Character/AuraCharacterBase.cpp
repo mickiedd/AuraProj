@@ -30,6 +30,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Sound/SoundBase.h"
 #include "Player/AuraPlayerState.h"
+#include "Player/AuraPlayerController.h"
 #include "Game/AuraGameModeBase.h"
 
 #include "AuraAbilityGraph/Public/AbilityDefinition.h"
@@ -296,6 +297,20 @@ FAuraRoleApplicationResult AAuraCharacterBase::ApplyRolePresentationFromDefiniti
 	if (!LoadRoleRuntimeState(RoleDefinition, Error))
 	{
 		return FAuraRoleApplicationResult::Failure(AuthorizedRoleId, EAuraRoleApplicationError::PresentationFailed, MoveTemp(Error));
+	}
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		const float PreviousSpeed = MovementComponent->MaxWalkSpeed;
+		BaseWalkSpeed = FMath::Max(1.f, RoleDefinition.MovementSpeed);
+		MovementComponent->MaxWalkSpeed = BaseWalkSpeed;
+		if (AAuraPlayerController* PlayerController = Cast<AAuraPlayerController>(GetController()))
+		{
+			PlayerController->RefreshCachedWalkSpeed();
+		}
+		UE_LOG(LogAura, Display,
+			TEXT("[RoleMovement][%s] Actor=%s Role=%s PreviousMaxWalkSpeed=%.1f AppliedMaxWalkSpeed=%.1f"),
+			HasAuthority() ? TEXT("Server") : TEXT("Client"), *GetNameSafe(this), *AuthorizedRoleId.ToString(),
+			PreviousSpeed, MovementComponent->MaxWalkSpeed);
 	}
 	UE_LOG(LogAura, Display, TEXT("[RolePresentation][%s] Actor=%s Role=%s Weapon=%s Tip=%s"),
 		HasAuthority() ? TEXT("Server") : TEXT("Client"), *GetNameSafe(this), *AuthorizedRoleId.ToString(),

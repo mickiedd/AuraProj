@@ -4,7 +4,7 @@ Status: complete. The gameplay HUD is WebUI-only, split into three bounded brows
 
 ## Goal
 
-Move the complete gameplay HUD to the existing in-game Web UI bridge: health, mana, progress, skills, attributes, spells, interaction, messages, location, and quit flow. Use independent transparent bottom, left-top, and right-top browser surfaces, preserve GAS press/hold/release behavior for explicit skill controls, and keep blank level clicks in the native viewport.
+Move the complete gameplay HUD to the existing in-game Web UI bridge: health, mana, progress, skills, attributes, spells, interaction, messages, location, and quit flow. Use independent transparent bottom, left-top, right-top, and centered interaction browser surfaces, preserve GAS press/hold/release behavior for explicit skill controls, and keep blank level clicks in the native viewport.
 
 ## Role/battle coverage
 

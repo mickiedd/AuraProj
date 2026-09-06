@@ -119,6 +119,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientRejectLogin(const FString& Reason);
 
+	/** Rebase sprinting on the role's newly applied walk speed. */
+	void RefreshCachedWalkSpeed();
+
 
 protected:
 	virtual void BeginPlay() override;

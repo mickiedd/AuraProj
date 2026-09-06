@@ -298,6 +298,15 @@ void AAuraPlayerController::ApplySprintState(bool bShouldSprint)
 	}
 }
 
+void AAuraPlayerController::RefreshCachedWalkSpeed()
+{
+	if (UCharacterMovementComponent* CharacterMovement = GetControlledCharacterMovement())
+	{
+		CachedWalkSpeed = FMath::Max(1.f, CharacterMovement->MaxWalkSpeed);
+		ApplySprintState(bIsSprinting);
+	}
+}
+
 UCharacterMovementComponent* AAuraPlayerController::GetControlledCharacterMovement() const
 {
 	if (ACharacter* ControlledCharacter = GetPawn<ACharacter>())

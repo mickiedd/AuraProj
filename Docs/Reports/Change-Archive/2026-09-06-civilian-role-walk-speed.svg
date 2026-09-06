@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Civilian role walk speed and standing locomotion</title>
+  <desc id="desc">The Civilian role definition supplies a 120 units per second cap, role presentation applies it on server and client, the sprint cache is rebased, and the Shaman IdleWalkRun state evaluates on the ground.</desc>
+  <style>
+    .bg{fill:#0f172a}.panel{fill:#172338;stroke:#385274;stroke-width:2}.good{fill:#15382f;stroke:#52c99a;stroke-width:2}.warn{fill:#3b2e1b;stroke:#e8b65b;stroke-width:2}.probe{fill:#193456;stroke:#73a9e8;stroke-width:2}.txt{fill:#eef4ff;font-family:Arial,sans-serif}.h{font-size:25px;font-weight:700}.body{font-size:18px}.small{font-size:15px}.arrow{stroke:#64e0ae;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64e0ae"/></marker></defs>
+  <rect class="bg" width="1200" height="760"/>
+  <text class="txt h" x="42" y="46">Civilian role walk speed and standing locomotion</text>
+  <text class="txt small" x="42" y="73">Role presentation now owns the movement cap, while the inherited Shaman state machine supplies the grounded walk pose.</text>
+
+  <rect class="panel" x="42" y="110" width="250" height="190" rx="14"/>
+  <text class="txt h" x="66" y="148">Role definition</text>
+  <text class="txt body" x="66" y="184">role = Civilian</text>
+  <text class="txt body" x="66" y="214">movementSpeed = 120</text>
+  <text class="txt body" x="66" y="244">mesh = SKM_Shaman</text>
+  <text class="txt body" x="66" y="274">anim = ABP_Shaman_C</text>
+
+  <path class="arrow" d="M292 205 L345 205"/>
+  <rect class="good" x="345" y="110" width="300" height="190" rx="14"/>
+  <text class="txt h" x="369" y="148">Role presentation</text>
+  <text class="txt body" x="369" y="184">BaseWalkSpeed ← 120</text>
+  <text class="txt body" x="369" y="214">MaxWalkSpeed ← 120</text>
+  <text class="txt body" x="369" y="244">server + replicated client</text>
+  <text class="txt body" x="369" y="274">[RoleMovement] emitted</text>
+
+  <path class="arrow" d="M645 205 L698 205"/>
+  <rect class="good" x="698" y="110" width="220" height="190" rx="14"/>
+  <text class="txt h" x="722" y="148">Sprint cache</text>
+  <text class="txt body" x="722" y="184">rebase cached walk</text>
+  <text class="txt body" x="722" y="214">reapply sprint state</text>
+  <text class="txt body" x="722" y="244">no stale 600 cap</text>
+  <text class="txt body" x="722" y="274">steady state = 120</text>
+
+  <path class="arrow" d="M918 205 L971 205"/>
+  <rect class="probe" x="971" y="110" width="187" height="190" rx="14"/>
+  <text class="txt h" x="995" y="148">Animation</text>
+  <text class="txt body" x="995" y="184">GroundSpeed = velocity</text>
+  <text class="txt body" x="995" y="214">state = IdleWalkRun</text>
+  <text class="txt body" x="995" y="244">BS_IdleWalk</text>
+  <text class="txt body" x="995" y="274">montage = none*</text>
+
+  <rect class="warn" x="42" y="345" width="1116" height="120" rx="14"/>
+  <text class="txt h" x="66" y="383">Grounded standing guard</text>
+  <text class="txt body" x="66" y="418">Runtime diagnostic samples: mode=1, movingOnGround=1, actuallyInAir=0, dead=0, movementMatches=1.</text>
+  <text class="txt small" x="66" y="446">The state-machine BlendSpace drives walking; a missing montage is not a missing walk animation.</text>
+
+  <rect class="panel" x="42" y="505" width="1116" height="205" rx="14"/>
+  <text class="txt h" x="66" y="545">Evidence</text>
+  <text class="txt body" x="66" y="580">• Build, configure commandlet, Day 8 automation (7/7), Day 8/9 network smoke, and role contracts pass.</text>
+  <text class="txt body" x="66" y="612">• Manual Role=Civilian movement samples: 35.65 → 56.68 → 80.95 → 102.82 → 120.00 uu/s.</text>
+  <text class="txt body" x="66" y="644">• Relevant animation: 1.583 s advancing walk asset while moving; 4.167 s idle asset at zero speed.</text>
+  <text class="txt body" x="66" y="676">• Rendered capture: upright Shaman actor remains on the floor with facing/stride pose changes.</text>
+  <text class="txt small" x="66" y="706">Review fallback: local Unreal evidence retained after bounded in-app Claude browser attempts timed out.</text>
+</svg>
