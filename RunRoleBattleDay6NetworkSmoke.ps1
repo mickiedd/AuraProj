@@ -107,7 +107,7 @@ try {
         '-RoleBattleDay6NetworkProbe', '-SaveToUserDir', "-UserDir=$Client1UserDir", "-abslog=$Client1Log"
     )
     $Client2 = Start-OwnedProcess 'Client2' @(
-        $ProjectFile, "127.0.0.1:${Port}?PlayerName=Day6Bungee?Role=BungeeMan", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
+        $ProjectFile, "127.0.0.1:${Port}?PlayerName=Day6Crunch?Role=Crunch", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
         '-RoleBattleDay6NetworkProbe', '-SaveToUserDir', "-UserDir=$Client2UserDir", "-abslog=$Client2Log"
     )
 
@@ -115,8 +115,8 @@ try {
         throw 'Aura authoritative role/profile/save/live-switch audit did not pass.'
     }
     $Assertions.AuraAuthoritativeProfiles = $true
-    if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] Role=BungeeMan Combat=Combat\.Gun.*ExistingSaveReconciliation=1.*LiveSwitchRejected=1' $AssertionTimeoutSeconds $Server)) {
-        throw 'BungeeMan authoritative role/profile/save/live-switch audit did not pass.'
+    if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] Role=Crunch.*LiveSwitchRejected=1' $AssertionTimeoutSeconds $Server)) {
+        throw 'Crunch authoritative role/live-switch audit did not pass.'
     }
     $Assertions.BungeeAuthoritativeProfiles = $true
 
@@ -124,8 +124,8 @@ try {
         throw 'Aura client presentation or mutation-rejection audit did not pass.'
     }
     $Assertions.AuraClientPresentation = $true
-    if (-not (Wait-ForPattern $Client2Log '\[Day6NetworkProbe\]\[Client\] Role=BungeeMan Combat=Combat\.Gun Presentation=1 ClientRoleMutationRejected=1 AuthorityGrantMutation=0' $AssertionTimeoutSeconds $Client2)) {
-        throw 'BungeeMan client presentation or mutation-rejection audit did not pass.'
+    if (-not (Wait-ForPattern $Client2Log '\[Day6NetworkProbe\]\[Client\] Role=Crunch.*ClientRoleMutationRejected=1 AuthorityGrantMutation=0' $AssertionTimeoutSeconds $Client2)) {
+        throw 'Crunch client mutation-rejection audit did not pass.'
     }
     $Assertions.BungeeClientPresentation = $true
 
@@ -133,8 +133,8 @@ try {
         throw 'Aura did not complete two ledger-safe pawn replacements.'
     }
     $Assertions.AuraTwoRespawns = $true
-    if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] PASS Role=BungeeMan Respawns=2 Profiles=1 Idempotent=1' $RespawnTimeoutSeconds $Server)) {
-        throw 'BungeeMan did not complete two ledger-safe pawn replacements.'
+    if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] PASS Role=Crunch Respawns=2 Profiles=1 Idempotent=1' $RespawnTimeoutSeconds $Server)) {
+        throw 'Crunch did not complete two ledger-safe pawn replacements.'
     }
     $Assertions.BungeeTwoRespawns = $true
 

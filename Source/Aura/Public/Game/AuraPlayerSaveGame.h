@@ -46,7 +46,7 @@ public:
 	UPROPERTY()
 	bool bMigrationCompleted = false;
 
-	/** Completed BungeeMan firearm state only; a reload is never persisted. */
+	/** Completed firearm state only; a reload is never persisted. */
 	UPROPERTY()
 	bool bFirearmApplicable = false;
 

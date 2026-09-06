@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+  <title>BungeeMan and FireGun retirement review fixes</title>
+  <desc>Before and after flow for removing BungeeMan and FireGun from the playable contract, retaining shared firearm compatibility, and migrating legacy saves to Crunch.</desc>
+  <style>
+    .bg{fill:#f8fafc}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:2}.bad{fill:#fff1f2;stroke:#fb7185;stroke-width:2}.good{fill:#ecfdf5;stroke:#34d399;stroke-width:2}.title{font:700 28px sans-serif;fill:#0f172a}.h{font:700 20px sans-serif;fill:#0f172a}.body{font:16px sans-serif;fill:#334155}.mono{font:15px monospace;fill:#1e293b}.small{font:14px sans-serif;fill:#475569}.arrow{stroke:#64748b;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#64748b"/></marker></defs>
+  <rect class="bg" width="1200" height="620"/>
+  <text class="title" x="48" y="52">BungeeMan / FireGun retirement review fixes</text>
+  <text class="small" x="48" y="80">2026-09-06 · confirmed issues resolved in runtime contracts and active validation surfaces</text>
+  <rect class="panel" x="40" y="112" width="520" height="390" rx="14"/>
+  <text class="h" x="68" y="150">Before — mixed retirement state</text>
+  <rect class="bad" x="68" y="178" width="464" height="72" rx="10"/>
+  <text class="body" x="88" y="207">Staged: assets and FireGun deleted</text>
+  <text class="mono" x="88" y="231">Unstaged: source/config/test cleanup</text>
+  <path class="arrow" d="M300 250 V276"/>
+  <rect class="bad" x="68" y="284" width="464" height="72" rx="10"/>
+  <text class="body" x="88" y="313">Active smoke/tests still require</text>
+  <text class="mono" x="88" y="337">BungeeMan · FireGun.xml · fireGunBullet</text>
+  <path class="arrow" d="M300 356 V382"/>
+  <rect class="bad" x="68" y="390" width="464" height="78" rx="10"/>
+  <text class="body" x="88" y="420">Legacy save role is preserved blindly</text>
+  <text class="small" x="88" y="446">undefined load/reconnect behavior after registry removal</text>
+  <rect class="panel" x="640" y="112" width="520" height="390" rx="14"/>
+  <text class="h" x="668" y="150">After — explicit, testable boundary</text>
+  <rect class="good" x="668" y="178" width="464" height="72" rx="10"/>
+  <text class="body" x="688" y="207">Atomic review unit includes cleanup</text>
+  <text class="mono" x="688" y="231">runtime · config · scripts · tests · archive</text>
+  <path class="arrow" d="M900 250 V276"/>
+  <rect class="good" x="668" y="284" width="464" height="72" rx="10"/>
+  <text class="body" x="688" y="313">Playable contract is Aura + Crunch</text>
+  <text class="mono" x="688" y="337">retired role/firearm checks fail closed</text>
+  <path class="arrow" d="M900 356 V382"/>
+  <rect class="good" x="668" y="390" width="464" height="78" rx="10"/>
+  <text class="body" x="688" y="420">Legacy BungeeMan save → Crunch</text>
+  <text class="small" x="688" y="446">deterministic server-side migration before restore/reconnect</text>
+  <text class="small" x="48" y="548">Evidence: Python contract suites pass · scope/content validators pass · AuraEditor Win64 Development build passes (94/94).</text>
+  <text class="small" x="48" y="576">Known limitation: ten ignored local .uasset remnants remain because cleanup was blocked by the execution environment.</text>
+</svg>

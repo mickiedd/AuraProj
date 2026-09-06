@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-REM Bounded Day 1 smoke test: validates BungeeMan asset/FireGun wiring,
+REM Bounded Day 1 smoke test: validates the retired-role rejection boundary,
 REM forces two authoritative player deaths, checks respawn vitals, and exits.
 
 set "SCRIPT_DIR=%~dp0"

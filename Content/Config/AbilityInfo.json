@@ -7,12 +7,6 @@
       "levelRequirement": 1
     },
     {
-      "abilityTag": "Abilities.Gun.Fire",
-      "icon": "/Game/Assets/UI/Spells/FireBolt.FireBolt",
-      "backgroundMaterial": "/Game/Assets/UI/Globes/MI_FireSkillBG.MI_FireSkillBG",
-      "levelRequirement": 1
-    },
-    {
       "abilityTag": "Abilities.Lightning.Electrocute",
       "icon": "/Game/Assets/UI/Spells/Shock.Shock",
       "backgroundMaterial": "/Game/Assets/UI/Globes/MI_ShockSkillBG.MI_ShockSkillBG",

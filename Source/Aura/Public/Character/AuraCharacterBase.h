@@ -121,7 +121,7 @@ public:
 
 	/**
 	 * Multicasts the gun's muzzle flash + fire sound to all clients. Called server-side by
-	 * UAuraFireGun when it spawns the bullet. Impact + tracer FX are handled by the AAuraBullet
+	 * the firearm ability when it spawns the bullet. Impact + tracer FX are handled by the projectile
 	 * projectile itself, so only muzzle cosmetics are relayed here. FX are Cascade
 	 * UParticleSystem assets (SpawnEmitterAtLocation).
 	 */

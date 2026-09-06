@@ -4,7 +4,7 @@
   "generatedFrom": "Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json",
   "canonicalMap": "/Game/Maps/StartupMap",
   "mapAlias": "RoleBattleCivilianTest",
-  "requiredRoles": ["Aura", "BungeeMan"],
+  "requiredRoles": ["Aura", "Crunch"],
   "requiredTopologies": ["listen", "dedicated"],
   "requiredFiles": [
     "Content/Config/RoleConfig.json",
@@ -18,7 +18,6 @@
     "Content/Config/EconomyConfig.json",
     "Content/Config/RewardDefinitions.json",
     "Content/Config/PlayableCandidateTutorial.json",
-    "Content/AbilityDefinitions/FireGun.xml",
     "Plugins/AuraWebUI/Content/WebUI/hud-left-top.html",
     "Plugins/AuraWebUI/Content/WebUI/hud-right-top.html",
     "Plugins/AuraWebUI/Content/WebUI/hud-bottom.html"
@@ -28,19 +27,6 @@
     "abilityDefinitionGlob": "Content/AbilityDefinitions/*.xml",
     "webUiGlob": "Plugins/AuraWebUI/Content/WebUI/*.html",
     "runtimeGenerated": ["Civilian actors", "population markers", "merchant actor bindings"]
-  },
-  "firearm": {
-    "abilityDefinition": "Content/AbilityDefinitions/FireGun.xml",
-    "role": "BungeeMan",
-    "fireMode": "SemiAuto",
-    "oneAcceptedShotPerPress": true,
-    "heldInputRepeats": false,
-    "minimumShotInterval": 0.2,
-    "magazineCapacity": 12,
-    "reserveCapacity": 48,
-    "shotConsumption": 1,
-    "reloadDuration": 1.25,
-    "auraState": "NotApplicable"
   },
   "reward": {
     "rewardId": "RoleBattle.CivilianLethalReward",

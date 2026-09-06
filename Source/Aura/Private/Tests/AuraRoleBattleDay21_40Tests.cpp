@@ -36,7 +36,7 @@ namespace AuraRoleBattleDay21_40TestsPrivate
 	bool ClassName::RunTest(const FString& Parameters) { TestTrue(TEXT(#Expression), (Expression)); return !HasAnyErrors(); }
 
 AURA_CANDIDATE_TEST(FAuraDay21ScopeContractTest, "Day21.Scope.Contract",
-	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json"), { TEXT("playable-candidate-v1"), TEXT("Aura-listen"), TEXT("BungeeMan-dedicated"), TEXT("server-issued-at-most-once") }));
+	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json"), { TEXT("playable-candidate-v1"), TEXT("Aura-listen"), TEXT("Crunch-dedicated"), TEXT("server-issued-at-most-once") }));
 
 AURA_CANDIDATE_TEST(FAuraDay22BaselineRunnerTest, "Day22.Baseline.Runner",
 	AuraRoleBattleDay21_40TestsPrivate::FileExists(TEXT("Scripts/RunPlayableCandidateDay22.ps1")) && AuraRoleBattleDay21_40TestsPrivate::FileExists(TEXT("Scripts/test_playable_candidate.py")));
@@ -56,7 +56,7 @@ AURA_CANDIDATE_TEST(FAuraDay26HudReplayTest, "Day26.HUD.Replay",
 	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/UI/HUD/AuraHUD.cpp"), { TEXT("SendFirearmStateToWebUI"), TEXT("hud_firearm"), TEXT("Not applicable to Aura") }));
 
 AURA_CANDIDATE_TEST(FAuraDay27SemiAutoInputTest, "Day27.FireMode.SemiAuto",
-	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/AbilitySystem/AuraAbilitySystemComponent.cpp"), { TEXT("Press-edge activation"), TEXT("held notifications into automatic fire") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Content/AbilityDefinitions/FireGun.xml"), { TEXT("fireMode=\"SemiAuto\""), TEXT("shotConsumption=\"1\"") }));
+	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/AbilitySystem/AuraAbilitySystemComponent.cpp"), { TEXT("Press-edge activation"), TEXT("held notifications into automatic fire") }));
 
 AURA_CANDIDATE_TEST(FAuraDay28RecoveryCancellationTest, "Day28.Recovery.Cancellation",
 	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/Player/AuraPlayerState.cpp"), { TEXT("CancelFirearmReload"), TEXT("FinishFirearmReload"), TEXT("RecoveryState"), TEXT("NotAlive") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/Game/AuraGameModeBase.cpp"), { TEXT("CancelFirearmReload(TEXT(\"PlayerDeath\"))"), TEXT("SetRecoveryState(TEXT(\"Dead\"))"), TEXT("SetRecoveryState(TEXT(\"Alive\"))") }));
@@ -92,7 +92,7 @@ AURA_CANDIDATE_TEST(FAuraDay38PipelinePropagationTest, "Day38.Pipeline.Propagati
 	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("RunPlayableCandidate.ps1"), { TEXT("candidate-draft.json"), TEXT("-Finalize"), TEXT("LaneEvidencePath"), TEXT("DIAGNOSTIC"), TEXT("packageSha256"), TEXT("clean working tree") }));
 
 AURA_CANDIDATE_TEST(FAuraDay39SoakMatrixTest, "Day39.Soak.FourLanes",
-	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json"), { TEXT("Aura-listen"), TEXT("BungeeMan-listen"), TEXT("Aura-dedicated"), TEXT("BungeeMan-dedicated") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("RunPlayableCandidate.ps1"), { TEXT("cyclesPerLane = 0"), TEXT("No packaged four-lane ten-cycle soak was executed") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Scripts/RunPlayableCandidateDay39Soak.ps1"), { TEXT("-Stage Candidate -Soak") }));
+	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json"), { TEXT("Aura-listen"), TEXT("Crunch-listen"), TEXT("Aura-dedicated"), TEXT("Crunch-dedicated") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("RunPlayableCandidate.ps1"), { TEXT("cyclesPerLane = 0"), TEXT("No packaged four-lane ten-cycle soak was executed") }) && AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("Scripts/RunPlayableCandidateDay39Soak.ps1"), { TEXT("-Stage Candidate -Soak") }));
 
 AURA_CANDIDATE_TEST(FAuraDay40ImmutableSignoffTest, "Day40.Signoff.Immutable",
 	AuraRoleBattleDay21_40TestsPrivate::ContainsAll(TEXT("RunPlayableCandidate.ps1"), { TEXT("Immutable candidate already exists"), TEXT("candidate.json"), TEXT("SHA-256"), TEXT("Assert-RecordBinding"), TEXT("cyclesPerLane"), TEXT("Set-ItemProperty"), TEXT("packageSha256") }) && AuraRoleBattleDay21_40TestsPrivate::FileExists(TEXT("Scripts/RunPlayableCandidateDay40.ps1")));

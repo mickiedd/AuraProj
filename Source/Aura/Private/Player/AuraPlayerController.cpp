@@ -1597,16 +1597,6 @@ bool AAuraPlayerController::ValidateRoleBattleDay6Pawn(AAuraCharacter* PlayerCha
 			return false;
 		}
 	}
-	if (RoleId == TEXT("BungeeMan"))
-	{
-		const USkeletalMeshComponent* WeaponComponent = ICombatInterface::Execute_GetWeapon(PlayerCharacter);
-		if (!WeaponComponent || WeaponComponent->GetSkeletalMeshAsset() != Definition->WeaponMesh
-			|| Definition->WeaponTipSocketName != TEXT("Muzzle"))
-		{
-			OutFailure = TEXT("BungeeMan explicit rifle/Muzzle presentation is incomplete.");
-			return false;
-		}
-	}
 	return true;
 }
 
@@ -1665,7 +1655,7 @@ void AAuraPlayerController::TickRoleBattleDay6NetworkProbe()
 	if (!HasAuthority())
 	{
 		if (bRoleBattleDay6ClientAuditComplete) return;
-		const FName OtherRole = PlayerCharacter->GetAppliedRoleState().RoleId == TEXT("Aura") ? FName(TEXT("BungeeMan")) : FName(TEXT("Aura"));
+		const FName OtherRole = PlayerCharacter->GetAppliedRoleState().RoleId == TEXT("Aura") ? FName(TEXT("Crunch")) : FName(TEXT("Aura"));
 		const FAuraRoleApplicationResult Mutation = PlayerCharacter->ApplyRoleAtSpawn(OtherRole);
 		const bool bRejected = !Mutation.bSuccess && Mutation.Error == EAuraRoleApplicationError::NotAuthority;
 		UE_LOG(LogAura, Display,
@@ -1693,7 +1683,7 @@ void AAuraPlayerController::TickRoleBattleDay6NetworkProbe()
 			bRoleBattleDay6ProbeEnabled = false;
 			return;
 		}
-		const FName OtherRole = PlayerCharacter->GetAppliedRoleState().RoleId == TEXT("Aura") ? FName(TEXT("BungeeMan")) : FName(TEXT("Aura"));
+		const FName OtherRole = PlayerCharacter->GetAppliedRoleState().RoleId == TEXT("Aura") ? FName(TEXT("Crunch")) : FName(TEXT("Aura"));
 		const FAuraRoleApplicationResult Switch = PlayerCharacter->ApplyRoleAtSpawn(OtherRole);
 		if (Switch.bSuccess || Switch.Error != EAuraRoleApplicationError::UnsupportedLiveSwitch)
 		{
@@ -1742,44 +1732,12 @@ void AAuraPlayerController::TickRoleBattleDay6NetworkProbe()
 bool AAuraPlayerController::ValidateRoleBattleDay1Assets(FString& OutFailure) const
 {
 	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(this);
-	const FRoleDefaultInfo* Bungee = RoleInfo ? RoleInfo->RoleInformation.Find(FName("BungeeMan")) : nullptr;
-	if (!Bungee)
+	if (!RoleInfo || RoleInfo->RoleInformation.Contains(FName("BungeeMan")))
 	{
-		OutFailure = TEXT("BungeeMan role is missing from RoleConfig.json.");
+		OutFailure = TEXT("Removed role is still present in RoleConfig.json.");
 		return false;
 	}
-	if (!Bungee->SkeletalMesh || !Bungee->AnimBlueprintClass || !Bungee->WeaponMesh)
-	{
-		OutFailure = TEXT("BungeeMan body mesh, animation blueprint, or weapon mesh failed to load.");
-		return false;
-	}
-	if (Bungee->WeaponTipSocketName.IsNone() || !Bungee->WeaponMesh->FindSocket(Bungee->WeaponTipSocketName))
-	{
-		OutFailure = FString::Printf(TEXT("BungeeMan weapon socket '%s' is missing."), *Bungee->WeaponTipSocketName.ToString());
-		return false;
-	}
-
-	const UAuraAbilityDefinition* FireGun = Cast<UAuraAbilityDefinition>(Bungee->DefaultLMBAbilityDefinition.Get());
-	if (!FireGun || !FireGun->RootNode || !FireGun->AbilityTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"))))
-	{
-		OutFailure = TEXT("BungeeMan FireGun ability definition failed to load.");
-		return false;
-	}
-
-	const FAuraProjectileDefinition* Bullet = FAuraGameplayConfig::FindProjectile(TEXT("fireGunBullet"));
-	if (!Bullet || Bullet->NativeClass.Get() != AAuraProjectile::StaticClass())
-	{
-		OutFailure = TEXT("FireGun fireGunBullet projectile definition failed to resolve to AAuraProjectile.");
-		return false;
-	}
-
-	UE_LOG(LogAura, Display, TEXT("[Day1Smoke] BungeeMan assets pass: mesh=%s anim=%s weapon=%s socket=%s FireGun=%s projectile=%s."),
-		*Bungee->SkeletalMesh->GetName(),
-		*GetNameSafe(Bungee->AnimBlueprintClass),
-		*Bungee->WeaponMesh->GetName(),
-		*Bungee->WeaponTipSocketName.ToString(),
-		*FireGun->AbilityTag.ToString(),
-		*Bullet->Name.ToString());
+		UE_LOG(LogAura, Display, TEXT("[Day1Smoke] Removed-role registry check passed: retired role is absent."));
 	return true;
 }
 
@@ -1977,7 +1935,7 @@ void AAuraPlayerController::TickRoleBattleDay1Smoke()
 
 	if (RoleBattleDay1SmokeRespawns >= 2)
 	{
-		FinishRoleBattleDay1Smoke(true, TEXT("BungeeMan asset wiring and two respawn vital checks passed."));
+		FinishRoleBattleDay1Smoke(true, TEXT("Removed-role registry check and two respawn vital checks passed."));
 		return;
 	}
 

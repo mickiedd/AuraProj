@@ -208,10 +208,6 @@ namespace
 				TEXT("Abilities.Lightning.Electrocute")
 			};
 		}
-		else if (RoleId == TEXT("BungeeMan"))
-		{
-			ShippedTags = { TEXT("Abilities.Gun.Fire") };
-		}
 		return ShippedTags.Contains(AbilityTag.ToString());
 	}
 

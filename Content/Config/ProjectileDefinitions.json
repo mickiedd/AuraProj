@@ -31,23 +31,6 @@
       "outboundDuration": 1,
       "returnSpeed": 800,
       "returnDistance": 150
-    },
-    "fireGunBullet": {
-      "nativeClass": "/Script/Aura.AuraBullet",
-      "collisionRadius": 15,
-      "initialSpeed": 550,
-      "maxSpeed": 550,
-      "gravityScale": 0,
-      "lifeSpan": 15,
-      "worldStaticResponse": "Block",
-      "meshScale": [0.3, 0.3, 0.3],
-      "tracerMesh": "/Game/MilitaryWeapDark/FX/Meshes/St_Tracer_A.St_Tracer_A",
-      "flightParticle": "/Game/MilitaryWeapDark/FX/P_AssaultRifle_Tracer_01.P_AssaultRifle_Tracer_01",
-      "impactParticle": "/Game/MilitaryWeapDark/FX/P_Impact_Stone_Medium_01.P_Impact_Stone_Medium_01",
-      "impactSound": "/Game/MilitaryWeapDark/Sound/Rifle/Rifle_ImpactSurface_Cue.Rifle_ImpactSurface_Cue",
-      "surfaceMarkMaterial": "/Game/Assets/Effects/Combat/M_BulletHoleClean.M_BulletHoleClean",
-      "surfaceMarkSize": 8,
-      "surfaceMarkLifeSpan": 30
     }
   }
 }

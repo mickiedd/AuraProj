@@ -26,12 +26,12 @@ if ([string]::IsNullOrWhiteSpace([string]$manifest.scopeRevision)) { Add-Issue '
 if ([string]::IsNullOrWhiteSpace([string]$manifest.sourceRevisionAtFreeze)) { Add-Issue 'sourceRevisionAtFreeze is required' }
 if ([string]$manifest.canonicalMap -ne '/Game/Maps/StartupMap') { Add-Issue 'canonicalMap must resolve to /Game/Maps/StartupMap' }
 
-$expectedLanes = @('Aura-listen','BungeeMan-listen','Aura-dedicated','BungeeMan-dedicated')
+$expectedLanes = @('Aura-listen','Crunch-listen','Aura-dedicated','Crunch-dedicated')
 $actualLanes = @($manifest.lanes | ForEach-Object { [string]$_.id })
 foreach ($lane in $expectedLanes) { if ($actualLanes -notcontains $lane) { Add-Issue "missing mandatory lane: $lane" } }
 if (($actualLanes | Sort-Object -Unique).Count -ne $actualLanes.Count) { Add-Issue 'lane IDs must be unique' }
 foreach ($lane in @($manifest.lanes)) {
-    if (@('Aura','BungeeMan') -notcontains [string]$lane.role) { Add-Issue "unknown lane role: $($lane.id)" }
+    if (@('Aura','Crunch') -notcontains [string]$lane.role) { Add-Issue "unknown lane role: $($lane.id)" }
     if (@('listen','dedicated') -notcontains [string]$lane.topology) { Add-Issue "unknown lane topology: $($lane.id)" }
 }
 
@@ -59,9 +59,7 @@ $allText = $manifest | ConvertTo-Json -Depth 20 -Compress
 foreach ($token in @('TBD','choose','normally','if persistent','where applicable')) {
     if ($allText -match [regex]::Escape($token)) { Add-Issue "unresolved decision token: $token" }
 }
-if ([string]$manifest.fireGunPolicy.fireMode -ne 'SemiAuto') { Add-Issue 'FireGun fireMode must be SemiAuto' }
-if ([double]$manifest.fireGunPolicy.minimumShotInterval -le 0) { Add-Issue 'minimumShotInterval must be positive' }
-if ([int]$manifest.fireGunPolicy.magazineCapacity -le 0 -or [int]$manifest.fireGunPolicy.reserveCapacity -le 0) { Add-Issue 'FireGun capacities must be positive' }
+if ($manifest.fireGunPolicy) { Add-Issue 'retired FireGun policy must not be present' }
 if ([int]$manifest.rewardPolicy.amount -ne 25 -or [int]$manifest.rewardPolicy.purchasePrice -ne 25) { Add-Issue 'reward and canonical purchase must both be 25' }
 if ([int]$manifest.merchantRestockPolicy.initialStock -ne 20 -or [int]$manifest.merchantRestockPolicy.restockIntervalSeconds -ne 600) { Add-Issue 'merchant restock values drifted from frozen contract' }
 if ([string]$manifest.externalPreflight.status -notin @('BLOCKED','READY')) { Add-Issue 'external preflight must be BLOCKED or READY' }

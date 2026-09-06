@@ -25,7 +25,7 @@ def main() -> int:
 
     roles = {entry["role"]: entry for entry in role["roles"]}
     assert roles["Aura"]["lmbAbilityDefinition"].endswith("FireBolt.xml")
-    assert roles["BungeeMan"]["lmbAbilityDefinition"].endswith("FireGun.xml")
+    assert "BungeeMan" not in roles
     assert roles["Civilian"]["entityType"] == "Entity.AmbientNPC"
     assert roles["Civilian"]["controlType"] == "Control.CivilianAI"
     assert roles["Civilian"]["playerSelectable"] is True
@@ -72,15 +72,9 @@ def main() -> int:
     expected_tests = {
         7: {
             "AuraDefinitionContract",
-            "BungeeDefinitionContract",
-            "AbilityAssetMontageSocketValidation",
-            "ExactRoleGrantSets",
-            "FinalProfileAssertions",
-            "CostCooldownAndDamageTypes",
             "SameFactionRejection",
             "IsolatedSingleProfileSaveReloadAndRespawn",
             "ClientCannotGrantOrDamage",
-            "PackagingConfigContract",
         },
         8: {
             "CivilianRoleIdentity",

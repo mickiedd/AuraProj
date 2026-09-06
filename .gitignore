@@ -26,7 +26,6 @@
 # Project maps (Login is the GameDefaultMap and must be shared so others can run).
 !/Content/Maps/
 # Assets referenced by RoleConfig.json / C++ code and required to run roles, the car, and levels.
-!/Content/BungeeMan/
 !/Content/MilitaryWeapDark/
 !/Content/Cartoon_City_Free/
 !/Content/Fantastic_Dungeon_Pack/

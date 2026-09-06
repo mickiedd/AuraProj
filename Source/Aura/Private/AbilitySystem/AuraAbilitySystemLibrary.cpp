@@ -822,7 +822,7 @@ namespace RoleConfigPrivate
 		FGameplayTag AbilityTag;
 		if (DefaultAbility)
 		{
-			for (const FGameplayTag& Tag : DefaultAbility->AbilityTags)
+			for (const FGameplayTag& Tag : DefaultAbility->GetAssetTags())
 			{
 				if (Tag.MatchesTag(AbilitiesRoot))
 				{
@@ -1009,21 +1009,21 @@ FAuraRoleLoadResult UAuraAbilitySystemLibrary::ParseRoleInfoJson(const UObject* 
 		ReadString(RoleObj, TEXT("displayName"), Info.DisplayName, Result, RoleName, BasePath, true);
 
 		FString Entity, Control, Combat, Faction, Death, Economy, Interaction;
-		const bool bLegacyKnown = Result.DetectedVersion == 1 && (RoleName == TEXT("Aura") || RoleName == TEXT("BungeeMan"));
-		auto LegacyString = [&](const TCHAR* Field, FString& Out, const TCHAR* AuraValue, const TCHAR* BungeeValue)
+		const bool bLegacyKnown = Result.DetectedVersion == 1 && RoleName == TEXT("Aura");
+		auto LegacyString = [&](const TCHAR* Field, FString& Out, const TCHAR* AuraValue)
 		{
 			if (!ReadString(RoleObj, Field, Out, Result, RoleName, BasePath, !bLegacyKnown) && bLegacyKnown)
 			{
-				Out = RoleName == TEXT("Aura") ? AuraValue : BungeeValue;
+				Out = AuraValue;
 			}
 		};
-		LegacyString(TEXT("entityType"), Entity, TEXT("Entity.Player"), TEXT("Entity.Player"));
-		LegacyString(TEXT("controlType"), Control, TEXT("Control.Player"), TEXT("Control.Player"));
-		LegacyString(TEXT("combatProfile"), Combat, TEXT("Combat.Magic"), TEXT("Combat.Gun"));
-		LegacyString(TEXT("faction"), Faction, TEXT("Faction.Player"), TEXT("Faction.Player"));
-		LegacyString(TEXT("deathPolicy"), Death, TEXT("Death.PlayerRespawn"), TEXT("Death.PlayerRespawn"));
-		LegacyString(TEXT("economyProfile"), Economy, TEXT("Economy.None"), TEXT("Economy.None"));
-		LegacyString(TEXT("interactionProfile"), Interaction, TEXT("Interaction.Combatant"), TEXT("Interaction.Combatant"));
+		LegacyString(TEXT("entityType"), Entity, TEXT("Entity.Player"));
+		LegacyString(TEXT("controlType"), Control, TEXT("Control.Player"));
+		LegacyString(TEXT("combatProfile"), Combat, TEXT("Combat.Magic"));
+		LegacyString(TEXT("faction"), Faction, TEXT("Faction.Player"));
+		LegacyString(TEXT("deathPolicy"), Death, TEXT("Death.PlayerRespawn"));
+		LegacyString(TEXT("economyProfile"), Economy, TEXT("Economy.None"));
+		LegacyString(TEXT("interactionProfile"), Interaction, TEXT("Interaction.Combatant"));
 		Info.EntityType = ReadSupportedTag(Entity, TEXT("Entity"), EntityTags, Result, RoleName, BasePath + TEXT(".entityType"));
 		Info.ControlType = ReadSupportedTag(Control, TEXT("Control"), ControlTags, Result, RoleName, BasePath + TEXT(".controlType"));
 		Info.CombatProfile = ReadSupportedTag(Combat, TEXT("Combat"), CombatTags, Result, RoleName, BasePath + TEXT(".combatProfile"));

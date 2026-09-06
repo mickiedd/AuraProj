@@ -9,16 +9,16 @@
     "civilianMarkers": "runtime-created",
     "duplicateAuthoredFixtureMap": false
   },
-  "roles": ["Aura", "BungeeMan"],
+  "roles": ["Aura", "Crunch"],
   "topologies": {
     "listen": { "host": 1, "remoteClients": 1, "packaged": true },
     "dedicated": { "server": 1, "remoteClients": 2, "packaged": true }
   },
   "lanes": [
     { "id": "Aura-listen", "role": "Aura", "topology": "listen", "firearmState": "NotApplicable" },
-    { "id": "BungeeMan-listen", "role": "BungeeMan", "topology": "listen", "firearmState": "Required" },
+    { "id": "Crunch-listen", "role": "Crunch", "topology": "listen", "firearmState": "NotApplicable" },
     { "id": "Aura-dedicated", "role": "Aura", "topology": "dedicated", "firearmState": "NotApplicable" },
-    { "id": "BungeeMan-dedicated", "role": "BungeeMan", "topology": "dedicated", "firearmState": "Required" }
+    { "id": "Crunch-dedicated", "role": "Crunch", "topology": "dedicated", "firearmState": "NotApplicable" }
   ],
   "journeySteps": [
     { "id": "launch", "order": 1, "owner": "boot", "expected": "LoginPending" },
@@ -47,22 +47,6 @@
     "fields": ["worldPersistenceId", "generation", "population", "battlePhase", "merchantStock", "lastRestockAtUtc", "lastObservedAtUtc", "stockRevision"],
     "forcedKill": "restore last valid manifest generation",
     "offlineProgression": "none"
-  },
-  "fireGunPolicy": {
-    "definition": "Content/AbilityDefinitions/FireGun.xml",
-    "activeGrantPath": "xml-data-ability",
-    "compatibilityClass": "UAuraFireGun",
-    "fireMode": "SemiAuto",
-    "oneAcceptedShotPerPress": true,
-    "heldInputRepeats": false,
-    "minimumShotInterval": 0.2,
-    "magazineCapacity": 12,
-    "reserveCapacity": 48,
-    "shotConsumption": 1,
-    "reloadDuration": 1.25,
-    "role": "BungeeMan",
-    "auraHudState": "NotApplicable",
-    "inputLeaseSeconds": 2
   },
   "rewardPolicy": {
     "rewardId": "RoleBattle.CivilianLethalReward",

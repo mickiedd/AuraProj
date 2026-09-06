@@ -699,7 +699,7 @@ void AAuraHUD::SendFirearmStateToWebUI()
 
 TSharedRef<FJsonObject> AAuraHUD::BuildFirearmStatePayload(const FAuraFirearmState& State, FName RoleId, bool bAlive)
 {
-	const bool bApplicable = State.bApplicable && RoleId == TEXT("BungeeMan");
+	const bool bApplicable = State.bApplicable;
 	const bool bCanReload = bApplicable && bAlive && !State.bReloading
 		&& State.MagazineRounds < State.MagazineCapacity && State.ReserveRounds > 0;
 	const TCHAR* DisplayState = !bApplicable ? TEXT("NotApplicable") : !bAlive ? TEXT("Unavailable")

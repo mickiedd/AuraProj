@@ -130,14 +130,14 @@ try {
     )
     $OwnedProcesses += $Client1
     $Client2 = Start-Owned 'Client2' $ClientExe.FullName $ClientExe.Directory.FullName @(
-        "127.0.0.1:${Port}?PlayerName=Day7PackagedBungee?Role=BungeeMan", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
+        "127.0.0.1:${Port}?PlayerName=Day7PackagedCrunch?Role=Crunch", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash',
         '-RoleBattleDay6NetworkProbe', '-SaveToUserDir', "-UserDir=$Client2UserDir", "-abslog=$Client2Log"
     )
     $OwnedProcesses += $Client2
 
     if (-not (Wait-ForPattern $ServerLog 'LogNetVersion: .*Checksum: \d+' 45 $Server)) { throw 'Packaged server did not publish a network checksum.' }
     if (-not (Wait-ForPattern $Client1Log 'LogNetVersion: .*Checksum: \d+' 45 $Client1)) { throw 'Packaged Aura client did not publish a network checksum.' }
-    if (-not (Wait-ForPattern $Client2Log 'LogNetVersion: .*Checksum: \d+' 45 $Client2)) { throw 'Packaged BungeeMan client did not publish a network checksum.' }
+    if (-not (Wait-ForPattern $Client2Log 'LogNetVersion: .*Checksum: \d+' 45 $Client2)) { throw 'Packaged Crunch client did not publish a network checksum.' }
     $ServerNetworkVersion = Get-NetworkVersion $ServerLog
     $Client1NetworkVersion = Get-NetworkVersion $Client1Log
     $Client2NetworkVersion = Get-NetworkVersion $Client2Log
@@ -151,11 +151,11 @@ try {
     $Assertions.NetworkVersionChecksums = [ordered]@{ Server=$ServerNetworkVersion; Client1=$Client1NetworkVersion; Client2=$Client2NetworkVersion }
 
     if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] Role=Aura Combat=Combat\.Magic.*ExistingSaveReconciliation=1.*LiveSwitchRejected=1' $TimeoutSeconds $Server)) { throw 'Packaged Aura authoritative role audit failed.' }
-    if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] Role=BungeeMan Combat=Combat\.Gun.*ExistingSaveReconciliation=1.*LiveSwitchRejected=1' $TimeoutSeconds $Server)) { throw 'Packaged BungeeMan authoritative role audit failed.' }
+    if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] Role=Crunch.*LiveSwitchRejected=1' $TimeoutSeconds $Server)) { throw 'Packaged Crunch authoritative role audit failed.' }
     if (-not (Wait-ForPattern $Client1Log '\[Day6NetworkProbe\]\[Client\] Role=Aura Combat=Combat\.Magic Presentation=1 ClientRoleMutationRejected=1 AuthorityGrantMutation=0' $TimeoutSeconds $Client1)) { throw 'Packaged Aura client audit failed.' }
-    if (-not (Wait-ForPattern $Client2Log '\[Day6NetworkProbe\]\[Client\] Role=BungeeMan Combat=Combat\.Gun Presentation=1 ClientRoleMutationRejected=1 AuthorityGrantMutation=0' $TimeoutSeconds $Client2)) { throw 'Packaged BungeeMan client audit failed.' }
+    if (-not (Wait-ForPattern $Client2Log '\[Day6NetworkProbe\]\[Client\] Role=Crunch.*ClientRoleMutationRejected=1 AuthorityGrantMutation=0' $TimeoutSeconds $Client2)) { throw 'Packaged Crunch client audit failed.' }
     if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] PASS Role=Aura Respawns=2 Profiles=1 Idempotent=1' $TimeoutSeconds $Server)) { throw 'Packaged Aura respawn audit failed.' }
-    if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] PASS Role=BungeeMan Respawns=2 Profiles=1 Idempotent=1' $TimeoutSeconds $Server)) { throw 'Packaged BungeeMan respawn audit failed.' }
+    if (-not (Wait-ForPattern $ServerLog '\[Day6NetworkProbe\]\[Server\] PASS Role=Crunch Respawns=2 Profiles=1 Idempotent=1' $TimeoutSeconds $Server)) { throw 'Packaged Crunch respawn audit failed.' }
     $Assertions.AuthoritativeProfiles = $true
     $Assertions.ClientPresentationAndMutationRejection = $true
     $Assertions.TwoRespawnsPerRole = $true

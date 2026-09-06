@@ -132,20 +132,7 @@ bool AAuraPlayerState::InitializeFirearmForRole(FName InRole, int32 InMagazineCa
 		return false;
 	}
 	CancelFirearmReload(TEXT("RoleInitialize"));
-	const bool bIsBungeeMan = InRole == TEXT("BungeeMan");
 	FirearmState = FAuraFirearmState();
-	FirearmState.bApplicable = bIsBungeeMan;
-	if (bIsBungeeMan)
-	{
-		FirearmState.MagazineCapacity = InMagazineCapacity;
-		FirearmState.MagazineRounds = InMagazineCapacity;
-		FirearmState.ReserveCapacity = InReserveCapacity;
-		FirearmState.ReserveRounds = InReserveCapacity;
-		FirearmState.ReloadDuration = InReloadDuration;
-		FirearmState.FireMode = TEXT("SemiAuto");
-		FirearmState.MinimumShotInterval = InMinimumShotInterval;
-		FirearmState.AmmoRevision = 1;
-	}
 	ForceNetUpdate();
 	OnFirearmStateChanged.Broadcast(FirearmState);
 	return true;

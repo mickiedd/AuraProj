@@ -32,7 +32,7 @@ def load_json(relative: str):
 
 @dataclass
 class CandidateState:
-    role: str = "BungeeMan"
+    role: str = "Crunch"
     alive: bool = True
     held: bool = False
     magazine: int = 12
@@ -49,7 +49,7 @@ class CandidateState:
     processed_death_sequences: set[int] = field(default_factory=set)
 
     def press(self) -> str:
-        if self.role != "BungeeMan":
+        if self.role != "Retired-BungeeMan":
             return "NotApplicable"
         if self.held:
             return "HeldInputIgnored"
@@ -65,7 +65,7 @@ class CandidateState:
         self.held = False
 
     def reload(self) -> str:
-        if self.role != "BungeeMan":
+        if self.role != "Retired-BungeeMan":
             return "NotApplicable"
         if self.magazine == 12:
             return "MagazineFull"
@@ -132,12 +132,12 @@ class CandidateContractTests(unittest.TestCase):
     def test_day21_scope_is_frozen(self):
         self.assertEqual(self.scope["scopeRevision"], "playable-candidate-v1")
         self.assertEqual(self.scope["canonicalMap"], "/Game/Maps/StartupMap")
-        self.assertEqual({lane["id"] for lane in self.scope["lanes"]}, {"Aura-listen", "BungeeMan-listen", "Aura-dedicated", "BungeeMan-dedicated"})
+        self.assertEqual({lane["id"] for lane in self.scope["lanes"]}, {"Aura-listen", "Crunch-listen", "Aura-dedicated", "Crunch-dedicated"})
         self.assertEqual([step["order"] for step in self.scope["journeySteps"]], list(range(1, 17)))
 
     def test_day22_baseline_contract(self):
         self.assertEqual(self.manifest["mapAlias"], "RoleBattleCivilianTest")
-        self.assertEqual(set(self.manifest["requiredRoles"]), {"Aura", "BungeeMan"})
+        self.assertEqual(set(self.manifest["requiredRoles"]), {"Aura", "Crunch"})
         self.assertEqual(set(self.manifest["requiredTopologies"]), {"listen", "dedicated"})
 
     def test_day23_boot_is_bounded(self):
@@ -150,7 +150,7 @@ class CandidateContractTests(unittest.TestCase):
         self.assertEqual(len(self.tutorial["steps"]), 6)
         self.assertEqual([step["order"] for step in self.tutorial["steps"]], list(range(1, 7)))
         self.assertEqual(self.tutorial["completionAuthority"], "server-owned-event-or-observed-authoritative-state")
-        self.assertTrue(all(set(step["roles"]) == {"Aura", "BungeeMan"} for step in self.tutorial["steps"]))
+        self.assertTrue(all(set(step["roles"]) == {"Aura", "Crunch"} for step in self.tutorial["steps"]))
         player_state = (ROOT / "Source/Aura/Private/Player/AuraPlayerState.cpp").read_text(encoding="utf-8")
         hud = (ROOT / "Source/Aura/Private/UI/HUD/AuraHUD.cpp").read_text(encoding="utf-8")
         interaction = (ROOT / "Source/Aura/Private/Interaction/AuraInteractionComponent.cpp").read_text(encoding="utf-8")
@@ -161,23 +161,15 @@ class CandidateContractTests(unittest.TestCase):
 
     def test_day25_ammo_is_authoritative_and_bounded(self):
         state = CandidateState()
-        self.assertEqual(state.press(), "Accepted")
-        self.assertEqual(state.magazine, 11)
-        self.assertEqual(state.press(), "HeldInputIgnored")
-        self.assertEqual(state.magazine, 11)
-        state.release()
-        self.assertEqual(state.reload(), "ReloadCompleted")
-        self.assertEqual((state.magazine, state.reserve), (12, 47))
-        firearm = self.manifest["firearm"]
-        self.assertEqual(firearm["fireMode"], "SemiAuto")
-        self.assertEqual(firearm["shotConsumption"], 1)
+        self.assertEqual(state.press(), "NotApplicable")
+        self.assertEqual(state.reload(), "NotApplicable")
         source = (ROOT / "Plugins/AuraAbilityGraph/Source/AuraAbilityGraph/Private/Nodes/Actions/SpawnProjectileNode.cpp").read_text(encoding="utf-8")
         self.assertIn("AuthorityUnavailable", source)
         self.assertLess(source.index("ConfigureFromDefinition"), source.index("TryConsumeFirearmRound"))
         self.assertLess(source.index("TryConsumeFirearmRound"), source.index("FinishSpawning"))
 
     def test_day26_hud_is_owner_safe(self):
-        self.assertEqual(self.scope["fireGunPolicy"]["auraHudState"], "NotApplicable")
+        self.assertNotIn("fireGunPolicy", self.scope)
         hud = (ROOT / "Plugins/AuraWebUI/Content/WebUI/hud-right-top.html").read_text(encoding="utf-8")
         self.assertIn("hud_firearm", hud)
         self.assertIn("Not applicable", hud)
@@ -186,7 +178,7 @@ class CandidateContractTests(unittest.TestCase):
         source = (ROOT / "Source/Aura/Private/AbilitySystem/AuraAbilitySystemComponent.cpp").read_text(encoding="utf-8")
         self.assertIn("Press-edge activation", source)
         self.assertIn("Do not turn browser/native held notifications into automatic fire", source)
-        self.assertEqual(self.scope["fireGunPolicy"]["heldInputRepeats"], False)
+        self.assertNotIn("fireGunPolicy", self.scope)
 
     def test_day28_death_recovery_is_once(self):
         state = CandidateState()
@@ -243,7 +235,7 @@ class CandidateContractTests(unittest.TestCase):
         state = CandidateState(role="Aura")
         self.assertEqual(state.press(), "NotApplicable")
         state = CandidateState(magazine=0)
-        self.assertEqual(state.press(), "EmptyMagazine")
+        self.assertEqual(state.press(), "NotApplicable")
         self.assertEqual(state.purchase_health_potion(), "Success")
 
     def test_day34_content_graph_is_resolvable(self):
@@ -255,8 +247,7 @@ class CandidateContractTests(unittest.TestCase):
             ref = role.get("lmbAbilityDefinition", "")
             if ref:
                 self.assertIn("Content/" + ref.removeprefix("/Game/"), ability_paths)
-        firegun = ET.parse(ROOT / "Content/AbilityDefinitions/FireGun.xml").getroot()
-        self.assertEqual(firegun.attrib["fireMode"], "SemiAuto")
+        self.assertFalse((ROOT / "Content/AbilityDefinitions/FireGun.xml").exists())
 
     def test_day35_diagnostics_are_redacted(self):
         diagnostics = self.manifest["diagnostics"]

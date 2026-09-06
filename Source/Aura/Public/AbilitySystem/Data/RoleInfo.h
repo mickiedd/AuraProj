@@ -233,7 +233,7 @@ struct FRoleDefaultInfo
 	   Data-driven: when set, ApplyRole grants this ability as the role's LMB skill and equips
 	   the role's weapon; when empty, the role gets NO LMB skill and NO weapon (any BP-default
 	   LMB-tagged startup ability is stripped). This is what distinguishes a weaponless role
-	   (e.g. BungeeMan) from Aura, whose LMB skill is GA_FireBolt. */
+	   from Aura, whose LMB skill is GA_FireBolt. */
 	UPROPERTY(EditDefaultsOnly, Category = "Role|Gameplay")
 	TSubclassOf<UGameplayAbility> DefaultLMBAbility;
 };

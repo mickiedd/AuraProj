@@ -23,7 +23,7 @@ def test_day20_native_matrix_is_complete() -> None:
     source = read("Source/Aura/Private/Tests/AuraRoleBattleDay20Tests.cpp")
     names = [
         "Cleanup.SharedCombatRules", "Cleanup.PickupEligibilityPolicy",
-        "FireGun.SingleActivePath", "FireGun.AssetReferences",
+        "Cleanup.RetiredBungeeManContract",
         "Security.ShippingMutationSurface", "Roles.IdempotentGrantLedger",
         "Civilian.IndependentLifecycle", "Economy.OwnerPurchaseOnly",
         "Persistence.LifecycleCleanup", "Respawn.CollisionSafeFallback",
@@ -44,26 +44,15 @@ def test_shared_policy_has_no_legacy_direct_faction_checks() -> None:
     assert "IsNotFriend(" not in melee
 
 
-def test_firegun_active_path_and_compatibility_are_explicit() -> None:
+def test_retired_role_and_compatibility_boundary_are_explicit() -> None:
     role_config = read("Content/Config/RoleConfig.json")
-    assert '"lmbAbilityDefinition": "/Game/AbilityDefinitions/FireGun.xml"' in role_config
-    assert "AuraFireGun" not in role_config
-    assert contains("Source/Aura/Public/AbilitySystem/Abilities/AuraFireGun.h", "non-active compatibility", "not granted or selected by RoleConfig")
-    assert contains("Content/AbilityDefinitions/FireGun.xml", "Abilities.Gun.Fire", "Event.Montage.FireGun")
-    require("Content/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/GA_FireGun.uasset")
-    assert contains("Content/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/GA_FireGun.snapshot.json", "/Script/Aura.AuraFireGun")
+    assert "BungeeMan" not in role_config
+    assert not (ROOT / "Content/AbilityDefinitions/FireGun.xml").exists()
 
 
-def test_firegun_projectile_presentation_contract_is_complete() -> None:
-    projectile_config = json.loads(read("Content/Config/ProjectileDefinitions.json"))["projectiles"]["fireGunBullet"]
-    assert projectile_config["nativeClass"] == "/Script/Aura.AuraBullet"
-    assert projectile_config["tracerMesh"] == "/Game/MilitaryWeapDark/FX/Meshes/St_Tracer_A.St_Tracer_A"
-    assert projectile_config["flightParticle"] == "/Game/MilitaryWeapDark/FX/P_AssaultRifle_Tracer_01.P_AssaultRifle_Tracer_01"
-    assert projectile_config["impactParticle"] == "/Game/MilitaryWeapDark/FX/P_Impact_Stone_Medium_01.P_Impact_Stone_Medium_01"
-    assert projectile_config["impactSound"] == "/Game/MilitaryWeapDark/Sound/Rifle/Rifle_ImpactSurface_Cue.Rifle_ImpactSurface_Cue"
-    assert projectile_config["surfaceMarkMaterial"] == "/Game/Assets/Effects/Combat/M_BulletHoleClean.M_BulletHoleClean"
-    assert projectile_config["surfaceMarkSize"] > 0 and projectile_config["surfaceMarkLifeSpan"] > 0
-    require("Content/Assets/Effects/Combat/M_BulletHoleClean.uasset")
+def test_retired_projectile_definition_is_absent() -> None:
+    projectile_config = json.loads(read("Content/Config/ProjectileDefinitions.json"))["projectiles"]
+    assert "fireGunBullet" not in projectile_config
 
     bullet_source = read("Source/Aura/Private/Actor/AuraBullet.cpp")
     projectile_source = read("Source/Aura/Private/Actor/AuraProjectile.cpp")

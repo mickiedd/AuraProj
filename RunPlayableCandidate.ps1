@@ -2,7 +2,7 @@
 param(
     [ValidateSet('Fast','Candidate','External')][string]$Stage = 'Fast',
     [ValidateSet('Listen','Dedicated','Both')][string]$Mode = 'Both',
-    [ValidateSet('Aura','BungeeMan','Both')][string]$Role = 'Both',
+    [ValidateSet('Aura','Crunch','Both')][string]$Role = 'Both',
     [switch]$Soak,
     [switch]$Finalize,
     [string]$RunId = '',
@@ -89,7 +89,7 @@ if ($Finalize) {
     if ($soakResult.status -ne 'PASS' -or $soakResult.passed -ne $true -or [int]$soakResult.cyclesPerLane -lt 10) {
         throw 'Soak result does not contain the required passing ten-cycle evidence.'
     }
-    $expectedLaneIds = @('Aura-listen','BungeeMan-listen','Aura-dedicated','BungeeMan-dedicated')
+    $expectedLaneIds = @('Aura-listen','Crunch-listen','Aura-dedicated','Crunch-dedicated')
     $lanes = @($laneEvidence.lanes)
     $actualLaneIds = @($lanes | ForEach-Object { [string]$_.laneId } | Sort-Object)
     $laneSetMismatch = $null -ne (Compare-Object ($expectedLaneIds | Sort-Object) $actualLaneIds)

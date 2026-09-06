@@ -46,12 +46,12 @@ namespace AuraRoleBattleMultiplayerTests
 			&& SourceContains(TEXT("Source/Aura/Private/Actor/AuraProjectile.cpp"), { TEXT("HasAuthority()"), TEXT("ApplyDamageEffect") });
 	}
 
-	bool FireGunContract()
+	bool RetiredRoleAndFirearmBoundaryContract()
 	{
-		return FileContains(TEXT("Content/Config/RoleConfig.json"), TEXT("FireGun.xml"))
-			&& FileContains(TEXT("Content/AbilityDefinitions/FireGun.xml"), TEXT("InputTag.LMB"))
-			&& FileContains(TEXT("Content/Config/ProjectileDefinitions.json"), TEXT("fireGunBullet"))
-			&& SourceContains(TEXT("Source/Aura/Private/Character/AuraCharacterBase.cpp"), { TEXT("MulticastPlayGunFireFX") });
+		return !FileContains(TEXT("Content/Config/RoleConfig.json"), TEXT("BungeeMan"))
+			&& !FileContains(TEXT("Content/Config/RoleConfig.json"), TEXT("FireGun.xml"))
+			&& !FileContains(TEXT("Content/Config/ProjectileDefinitions.json"), TEXT("fireGunBullet"))
+			&& SourceContains(TEXT("Source/Aura/Private/Player/AuraPlayerState.cpp"), { TEXT("bApplicable"), TEXT("NotApplicable") });
 	}
 
 	bool CommerceSecurityContract()
@@ -95,9 +95,7 @@ AURA_DAY19_TEST(FAuraDay19ServerAuthorityTest, "Aura.RoleBattle.Day19.Security.S
 AURA_DAY19_TEST(FAuraDay19RoleSelectionServerOwnedTest, "Aura.RoleBattle.Day19.Security.RoleSelectionServerOwned", AuraRoleBattleMultiplayerTests::SourceContains(TEXT("Source/Aura/Private/Character/AuraCharacterBase.cpp"), { TEXT("Only the server may apply a role at spawn"), TEXT("HasAuthority") }))
 AURA_DAY19_TEST(FAuraDay19AbilityActivationTest, "Aura.RoleBattle.Day19.Security.AbilityActivationRequiresEquippedSlottedSpec", AuraRoleBattleMultiplayerTests::SourceContains(TEXT("Source/Aura/Private/AbilitySystem/AuraAbilitySystemComponent.cpp"), { TEXT("FindAbilitySpecFromHandle"), TEXT("Abilities_Status_Equipped"), TEXT("AbilityHasAnySlot") }))
 AURA_DAY19_TEST(FAuraDay19DamageRulesTest, "Aura.RoleBattle.Day19.Security.DamageRulesRemainAuthoritative", AuraRoleBattleMultiplayerTests::DamageProducerContract())
-AURA_DAY19_TEST(FAuraDay19FireGunAuthorityTest, "Aura.RoleBattle.Day19.FireGun.AuthorityConfigured", AuraRoleBattleMultiplayerTests::FireGunContract())
-AURA_DAY19_TEST(FAuraDay19FireGunCooldownTest, "Aura.RoleBattle.Day19.FireGun.CooldownConfigured", AuraRoleBattleMultiplayerTests::FileContains(TEXT("Content/AbilityDefinitions/FireGun.xml"), TEXT("cooldown")))
-AURA_DAY19_TEST(FAuraDay19FireGunAttributionTest, "Aura.RoleBattle.Day19.FireGun.AttributionReplicates", AuraRoleBattleMultiplayerTests::SourceContains(TEXT("Source/Aura/Private/AbilitySystem/ExecCalc/ExecCalc_Damage.cpp"), { TEXT("SourceAbilitySystemComponent"), TEXT("DamageType") }))
+AURA_DAY19_TEST(FAuraDay19RetiredRoleBoundaryTest, "Aura.RoleBattle.Day19.Cleanup.RetiredRoleAndFirearmBoundary", AuraRoleBattleMultiplayerTests::RetiredRoleAndFirearmBoundaryContract())
 AURA_DAY19_TEST(FAuraDay19FriendlyFireTest, "Aura.RoleBattle.Day19.Security.FriendlyFireDenied", AuraRoleBattleMultiplayerTests::SourceContains(TEXT("Source/Aura/Private/Combat/AuraCombatRules.cpp"), { TEXT("Friendly"), TEXT("bAllowFriendlyFire") }))
 AURA_DAY19_TEST(FAuraDay19ProtectedCivilianTest, "Aura.RoleBattle.Day19.Security.ProtectedCivilianDenied", AuraRoleBattleMultiplayerTests::SourceContains(TEXT("Source/Aura/Private/Combat/AuraCombatRules.cpp"), { TEXT("bTargetProtected"), TEXT("Civilian") }))
 AURA_DAY19_TEST(FAuraDay19CommerceAuthorityTest, "Aura.RoleBattle.Day19.Security.CommerceAuthority", AuraRoleBattleMultiplayerTests::CommerceSecurityContract())

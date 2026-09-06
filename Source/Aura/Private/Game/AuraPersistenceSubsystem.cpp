@@ -922,7 +922,16 @@ bool UAuraPersistenceSubsystem::MigrateLegacySave(const ULoadScreenSaveGame& Leg
 	OutSave.RecordGeneration = 0;
 	OutSave.IdentityProvider = Identity.ProviderName;
 	OutSave.IdentityValue = Identity.UniqueId;
-	OutSave.Role = Legacy.Role.IsNone() ? RequestedRole : Legacy.Role;
+	// BungeeMan was a shipped role in legacy records but is no longer a valid
+	// registry key. Migrate it deterministically to the replacement playable
+	// combat role so load/reconnect cannot depend on parser fallback behavior.
+	const FName LegacyRole = Legacy.Role.IsNone() ? RequestedRole : Legacy.Role;
+	OutSave.Role = LegacyRole == TEXT("BungeeMan") ? FName(TEXT("Crunch")) : LegacyRole;
+	if (OutSave.Role.IsNone())
+	{
+		OutError = TEXT("Legacy migration produced no playable role.");
+		return false;
+	}
 	OutSave.PlayerName = Legacy.PlayerName;
 	OutSave.MapName = Legacy.MapName;
 	OutSave.MapAssetName = Legacy.MapAssetName;

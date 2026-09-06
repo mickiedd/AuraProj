@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" viewBox="0 0 1000 520">
+  <title>Role parser build fix</title>
+  <desc>Before and after flow for the Aura role parser compile fix.</desc>
+  <style>
+    .bg{fill:#f8fafc}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:2}.bad{fill:#fff1f2;stroke:#fb7185;stroke-width:2}.good{fill:#ecfdf5;stroke:#34d399;stroke-width:2}.title{font:700 27px sans-serif;fill:#0f172a}.head{font:700 20px sans-serif;fill:#334155}.body{font:16px sans-serif;fill:#334155}.mono{font:14px monospace;fill:#475569}.arrow{stroke:#64748b;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker></defs>
+  <rect class="bg" width="1000" height="520"/>
+  <text class="title" x="45" y="52">Aura role parser — compile compatibility fix</text>
+  <text class="body" x="45" y="82">2026-09-06 · UE 5.5 DebugGame build</text>
+  <rect class="bad" x="45" y="125" width="390" height="285" rx="16"/>
+  <text class="head" x="72" y="165">Before</text>
+  <text class="body" x="72" y="205">Role parser source</text>
+  <text class="mono" x="90" y="235">LegacyString(..., 4 args)</text>
+  <text class="mono" x="90" y="265">DefaultAbility-&gt;AbilityTags</text>
+  <text class="body" x="72" y="325">Build result</text>
+  <text class="mono" x="90" y="355">C2064 at line 1026</text>
+  <text class="mono" x="90" y="380">C4996 deprecation warning</text>
+  <path class="arrow" d="M450 267 L545 267"/>
+  <rect class="good" x="565" y="125" width="390" height="285" rx="16"/>
+  <text class="head" x="592" y="165">After</text>
+  <text class="body" x="592" y="205">Role parser source</text>
+  <text class="mono" x="610" y="235">LegacyString(..., 3 args)</text>
+  <text class="mono" x="610" y="265">DefaultAbility-&gt;GetAssetTags()</text>
+  <text class="body" x="592" y="325">Build result</text>
+  <text class="mono" x="610" y="355">AuraEditor DebugGame: exit 0</text>
+  <text class="mono" x="610" y="380">6 actions compiled/linked</text>
+  <text class="body" x="45" y="470">Guard preserved: legacy Aura defaults still apply only to version-1 Aura records.</text>
+</svg>

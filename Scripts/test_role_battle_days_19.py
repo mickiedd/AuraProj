@@ -22,8 +22,7 @@ def test_named_native_matrix_is_complete() -> None:
     source = read("Source/Aura/Private/Tests/AuraRoleBattleMultiplayerTests.cpp")
     names = [
         "ServerAuthorityBoundary", "RoleSelectionServerOwned", "AbilityActivationRequiresEquippedSlottedSpec",
-        "DamageRulesRemainAuthoritative", "FireGun.AuthorityConfigured", "FireGun.CooldownConfigured",
-        "FireGun.AttributionReplicates", "FriendlyFireDenied", "ProtectedCivilianDenied",
+        "DamageRulesRemainAuthoritative", "RetiredRoleAndFirearmBoundary", "FriendlyFireDenied", "ProtectedCivilianDenied",
         "CommerceAuthority", "ForgedCommercePayloadRejected", "ReplayCacheBounded",
         "OwnerOnlyEconomy", "LateJoinUsesReplicatedState", "ReconnectRotatesSessionNonce",
         "ExactlyOnceDeath", "PopulationStableIds", "MerchantDeathClosure",
@@ -97,11 +96,13 @@ def test_combat_and_damage_paths_are_shared() -> None:
     assert contains("Source/Aura/Private/Actor/AuraProjectile.cpp", "HasAuthority()", "ApplyDamageEffect")
 
 
-def test_firegun_data_and_replication_contract() -> None:
-    assert contains("Content/Config/RoleConfig.json", "FireGun.xml")
-    assert contains("Content/AbilityDefinitions/FireGun.xml", "InputTag.LMB", "Cooldown.Gun.Fire")
-    assert contains("Content/Config/ProjectileDefinitions.json", "fireGunBullet")
-    assert contains("Source/Aura/Private/Character/AuraCharacterBase.cpp", "MulticastPlayGunFireFX")
+def test_retired_role_and_firearm_boundary_contract() -> None:
+    role_config = read("Content/Config/RoleConfig.json")
+    projectile_config = read("Content/Config/ProjectileDefinitions.json")
+    assert "BungeeMan" not in role_config
+    assert "FireGun.xml" not in role_config
+    assert "fireGunBullet" not in projectile_config
+    assert contains("Source/Aura/Private/Player/AuraPlayerState.cpp", "bApplicable", "NotApplicable")
 
 
 def test_privacy_and_reconnect_contract() -> None:
@@ -120,7 +121,7 @@ def test_xml_contract() -> None:
     root = ET.parse(ROOT / "Content/AutoTests/RoleBattleDay19VerticalSlice.xml").getroot()
     assert root.attrib["agenttype"] == "AuraAutoTest"
     assert {node.attrib["name"] for node in root.findall(".//node")} >= {
-        "AuthorityAndRoleSecurity", "FireGunAuthorityCooldownAttribution", "CommerceForgeryReplayAndPrivacy",
+        "AuthorityAndRoleSecurity", "RetiredRoleAndFirearmBoundary", "CommerceForgeryReplayAndPrivacy",
         "LateJoinReconnectAndNonce", "ListenAndDedicated", "PerformanceAndBoundedState",
     }
 

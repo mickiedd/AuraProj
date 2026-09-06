@@ -299,11 +299,10 @@ void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options,
 			FString Error;
 			const bool bAuraAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Aura"), Error);
 			const bool bCrunchAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Crunch"), Error);
-			const bool bBungeeAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("BungeeMan"), Error);
 			const bool bCivilianAccepted = UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Civilian"), Error);
 			const bool bUnknownRejected = !UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleInfo, TEXT("Unknown"), Error);
-			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] ValidStartup=1 AuraAccepted=%d CrunchAccepted=%d BungeeAccepted=%d CivilianAccepted=%d UnknownRejected=%d SavedDefaultValidation=%d"),
-				bAuraAccepted, bCrunchAccepted, bBungeeAccepted, bCivilianAccepted, bUnknownRejected,
+			UE_LOG(LogAura, Display, TEXT("[Day5ConfigProbe][Server] ValidStartup=1 AuraAccepted=%d CrunchAccepted=%d CivilianAccepted=%d UnknownRejected=%d SavedDefaultValidation=%d"),
+				bAuraAccepted, bCrunchAccepted, bCivilianAccepted, bUnknownRejected,
 				RoleInfo->IsPlayerRoleSelectable(RoleInfo->DefaultRole));
 		}
 	}

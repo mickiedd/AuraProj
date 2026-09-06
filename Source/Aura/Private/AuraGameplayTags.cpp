@@ -380,7 +380,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 
 	GameplayTags.Abilities_Gun_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Gun.Fire"),
-		FString("Gun Fire Ability Tag (BungeeMan LMB hitscan)")
+		FString("Gun Fire Ability Tag")
 		);
 	GameplayTags.Abilities_Melee_CrunchUppercut = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Melee.CrunchUppercut"), FString("Crunch UpperCut"));

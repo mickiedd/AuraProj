@@ -126,44 +126,10 @@ bool FAuraRoleBattleCatalogTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	const FRoleDefaultInfo* Bungee = Roles->RoleInformation.Find(FName(TEXT("BungeeMan")));
-	if (!TestNotNull(TEXT("BungeeMan role exists"), Bungee))
-	{
-		return false;
-	}
-
-	TestTrue(TEXT("BungeeMan role is configured"), Roles->IsRoleConfigured(FName(TEXT("BungeeMan"))));
-	TestNotNull(TEXT("BungeeMan body mesh resolves"), Bungee->SkeletalMesh.Get());
-	TestNotNull(TEXT("BungeeMan animation blueprint resolves"), Bungee->AnimBlueprintClass.Get());
-	TestNotNull(TEXT("BungeeMan rifle mesh resolves"), Bungee->WeaponMesh.Get());
-	TestEqual(TEXT("BungeeMan weapon tip socket is Muzzle"), Bungee->WeaponTipSocketName, FName(TEXT("Muzzle")));
-	if (Bungee->WeaponMesh)
-	{
-		TestTrue(TEXT("BungeeMan rifle exposes Muzzle socket"), Bungee->WeaponMesh->FindSocket(Bungee->WeaponTipSocketName) != nullptr);
-	}
-
-	const UAuraAbilityDefinition* FireGun = Cast<UAuraAbilityDefinition>(Bungee->DefaultLMBAbilityDefinition.Get());
-	if (!TestNotNull(TEXT("BungeeMan FireGun definition resolves"), FireGun))
-	{
-		return false;
-	}
-	TestEqual(TEXT("BungeeMan FireGun tag"), FireGun->AbilityTag, FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire")));
-	TestEqual(TEXT("BungeeMan FireGun input"), FireGun->InputTag, FGameplayTag::RequestGameplayTag(TEXT("InputTag.LMB")));
-	TestNotNull(TEXT("BungeeMan FireGun graph resolves"), FireGun->RootNode.Get());
-
-	const FAuraProjectileDefinition* Bullet = FAuraGameplayConfig::FindProjectile(TEXT("fireGunBullet"));
-	if (!TestNotNull(TEXT("FireGun bullet definition resolves"), Bullet))
-	{
-		return false;
-	}
-	TestEqual(TEXT("FireGun bullet uses native bullet projectile"), Bullet->NativeClass.Get(), AAuraBullet::StaticClass());
-	TestEqual(TEXT("FireGun bullet speed"), Bullet->InitialSpeed, 550.f);
-	TestEqual(TEXT("FireGun bullet collision radius"), Bullet->CollisionRadius, 15.f);
-	TestFalse(TEXT("FireGun tracer mesh is configured"), Bullet->TracerMesh.IsNull());
-	TestFalse(TEXT("FireGun flight particle is configured"), Bullet->FlightParticle.IsNull());
-	TestFalse(TEXT("FireGun impact particle is configured"), Bullet->ImpactParticle.IsNull());
-	TestFalse(TEXT("FireGun impact sound is configured"), Bullet->ImpactSound.IsNull());
-	TestFalse(TEXT("FireGun surface mark material is configured"), Bullet->SurfaceMarkMaterial.IsNull());
+	TestFalse(TEXT("Retired BungeeMan role is absent"), Roles->RoleInformation.Contains(FName(TEXT("BungeeMan"))));
+	TestTrue(TEXT("Aura role remains configured"), Roles->IsRoleConfigured(FName(TEXT("Aura"))));
+	TestTrue(TEXT("Crunch role remains configured"), Roles->IsRoleConfigured(FName(TEXT("Crunch"))));
+	TestTrue(TEXT("Civilian role remains configured"), Roles->IsRoleConfigured(FName(TEXT("Civilian"))));
 	return true;
 }
 
@@ -1461,7 +1427,7 @@ AURA_DAY5_TEST(FAuraDay5ExplicitFourRoleCatalogTest, "ExplicitFourRoleCatalog")
 bool FAuraDay5ExplicitFourRoleCatalogTest::RunTest(const FString& Parameters)
 {
 	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
-	const TArray<FName> ExpectedRoles = { FName(TEXT("Aura")), FName(TEXT("Crunch")), FName(TEXT("BungeeMan")), FName(TEXT("Civilian")) };
+	const TArray<FName> ExpectedRoles = { FName(TEXT("Aura")), FName(TEXT("Crunch")), FName(TEXT("Civilian")) };
 	TestTrue(TEXT("Four-role candidate publishes"), Result.bCanPublish && Result.Candidate != nullptr);
 	if (!Result.Candidate)
 	{
@@ -1555,8 +1521,7 @@ AURA_DAY5_TEST(FAuraDay5EquipmentAndSocketValidationTest, "EquipmentAndSocketVal
 bool FAuraDay5EquipmentAndSocketValidationTest::RunTest(const FString& Parameters)
 {
 	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
-	const FRoleDefaultInfo* Bungee = Result.Candidate ? Result.Candidate->RoleInformation.Find(TEXT("BungeeMan")) : nullptr;
-	TestTrue(TEXT("Bungee equipment and sockets validate"), Result.bCanPublish && Bungee && Bungee->SkeletalMesh->FindSocket(Bungee->WeaponSocketName) && Bungee->WeaponMesh->FindSocket(Bungee->WeaponTipSocketName));
+	TestTrue(TEXT("Retired role is absent from the published catalog"), Result.bCanPublish && Result.Candidate && !Result.Candidate->RoleInformation.Contains(TEXT("BungeeMan")));
 	return true;
 }
 
@@ -1607,9 +1572,9 @@ bool FAuraDay5ConnectionScopedRoleRequestTest::RunTest(const FString& Parameters
 	AAuraPlayerState* First = NewObject<AAuraPlayerState>(GetTransientPackage());
 	AAuraPlayerState* Second = NewObject<AAuraPlayerState>(GetTransientPackage());
 	First->SetPendingAcceptedRoleId(TEXT("Aura"));
-	Second->SetPendingAcceptedRoleId(TEXT("BungeeMan"));
+	Second->SetPendingAcceptedRoleId(TEXT("Crunch"));
 	TestEqual(TEXT("First connection retains Aura"), First->GetPendingAcceptedRoleId(), FName(TEXT("Aura")));
-	TestEqual(TEXT("Second connection retains BungeeMan"), Second->GetPendingAcceptedRoleId(), FName(TEXT("BungeeMan")));
+	TestEqual(TEXT("Second connection retains Crunch"), Second->GetPendingAcceptedRoleId(), FName(TEXT("Crunch")));
 	return true;
 }
 
@@ -1650,7 +1615,7 @@ bool FAuraDay5SavedRoleIdCompatibilityTest::RunTest(const FString& Parameters)
 	FString Error;
 	TestTrue(TEXT("Stable Aura save ID retained"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Aura"), Error));
 	TestTrue(TEXT("Stable Crunch save ID retained"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("Crunch"), Error));
-	TestTrue(TEXT("Stable BungeeMan save ID retained"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("BungeeMan"), Error));
+	TestFalse(TEXT("Retired BungeeMan save ID is rejected"), UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(Result.Candidate, TEXT("BungeeMan"), Error));
 	return true;
 }
 
@@ -1924,7 +1889,7 @@ bool FAuraDay6CrunchPersistentASCLifecycleTest::RunTest(const FString& Parameter
 	return true;
 }
 
-AURA_DAY6_TEST(FAuraDay6BungeeAppliedIdentityAndProfilesTest, "BungeeAppliedIdentityAndProfiles")
+#if 0 // Retired BungeeMan role tests retained as historical source context.
 bool FAuraDay6BungeeAppliedIdentityAndProfilesTest::RunTest(const FString& Parameters)
 {
 	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
@@ -1953,8 +1918,6 @@ bool FAuraDay6FreshCivilianDefinitionHasEmptyLoadoutTest::RunTest(const FString&
 	return true;
 }
 
-AURA_DAY6_TEST(FAuraDay6ExplicitEquipmentOnlyTest, "ExplicitEquipmentOnly")
-bool FAuraDay6ExplicitEquipmentOnlyTest::RunTest(const FString& Parameters)
 {
 	const URoleInfo* RoleInfo = UAuraAbilitySystemLibrary::GetRoleInfo(nullptr);
 	const FRoleDefaultInfo* Bungee = RoleInfo ? RoleInfo->RoleInformation.Find(TEXT("BungeeMan")) : nullptr;
@@ -1976,8 +1939,6 @@ bool FAuraDay6ExplicitEquipmentOnlyTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-AURA_DAY6_TEST(FAuraDay6SpawnGrantIdempotenceTest, "SpawnGrantIdempotence")
-bool FAuraDay6SpawnGrantIdempotenceTest::RunTest(const FString& Parameters)
 {
 	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
 	if (!TestNotNull(TEXT("BungeeMan fixture"), Fixture)) return false;
@@ -1993,6 +1954,7 @@ bool FAuraDay6SpawnGrantIdempotenceTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+#endif
 AURA_DAY6_TEST(FAuraDay6PersistentASCRespawnLedgerTest, "PersistentASCRespawnLedger")
 bool FAuraDay6PersistentASCRespawnLedgerTest::RunTest(const FString& Parameters)
 {
@@ -2039,11 +2001,7 @@ bool FAuraDay6PersistentASCRespawnLedgerTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-	FAuraFireGunEmptyMagazineActivationGateTest,
-	"Aura.Abilities.FireGun.EmptyMagazineActivationGate",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-
+#if 0 // Retired FireGun tests retained as historical source context.
 bool FAuraFireGunEmptyMagazineActivationGateTest::RunTest(const FString& Parameters)
 {
 	UWorld* World = AuraRoleBattleTestsPrivate::FindAutomationWorld();
@@ -2125,8 +2083,6 @@ bool FAuraDay6ExistingSaveGrantReconciliationTest::RunTest(const FString& Parame
 	return true;
 }
 
-AURA_DAY6_TEST(FAuraDay6RemovedRoleGrantNotPromotedTest, "RemovedRoleGrantNotPromoted")
-bool FAuraDay6RemovedRoleGrantNotPromotedTest::RunTest(const FString& Parameters)
 {
 	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
 	if (!TestNotNull(TEXT("Bungee fixture"), Fixture)) return false;
@@ -2145,8 +2101,6 @@ bool FAuraDay6RemovedRoleGrantNotPromotedTest::RunTest(const FString& Parameters
 	return true;
 }
 
-AURA_DAY6_TEST(FAuraDay6RoleGrantSourceMetadataTest, "RoleGrantSourceMetadata")
-bool FAuraDay6RoleGrantSourceMetadataTest::RunTest(const FString& Parameters)
 {
 	AAuraRoleApplicationTestActor* Fixture = AuraRoleBattleDay6TestsPrivate::SpawnFixture(TEXT("BungeeMan"));
 	if (!TestNotNull(TEXT("Bungee fixture"), Fixture)) return false;
@@ -2165,6 +2119,7 @@ bool FAuraDay6RoleGrantSourceMetadataTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+#endif
 AURA_DAY6_TEST(FAuraDay6ClientRoleMutationRejectedTest, "ClientRoleMutationRejected")
 bool FAuraDay6ClientRoleMutationRejectedTest::RunTest(const FString& Parameters)
 {

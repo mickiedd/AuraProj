@@ -332,7 +332,7 @@ foreach ($selectedMode in $selectedModes) {
 
         foreach ($clientName in @('Client1', 'Client2')) {
             $clientLog = if ($clientName -eq 'Client1') { $client1Log } else { $client2Log }
-            $clientUri = if ($clientName -eq 'Client1') { "127.0.0.1:${port}?PlayerName=Day2Aura?Role=Aura" } else { "127.0.0.1:${port}?PlayerName=Day2Bungee?Role=BungeeMan" }
+            $clientUri = if ($clientName -eq 'Client1') { "127.0.0.1:${port}?PlayerName=Day2Aura?Role=Aura" } else { "127.0.0.1:${port}?PlayerName=Day2Crunch?Role=Crunch" }
             $clientArguments = @(
                 $projectFile,
                 $clientUri,

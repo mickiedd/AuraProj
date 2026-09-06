@@ -29,7 +29,7 @@ if (Test-Path -LiteralPath $Day7ReportPath) {
 $Day7SpecificPassed = $Day7ExitCode -eq 0 -and $Day7ReportPassed
 
 $AuraGrant = (Test-Path -LiteralPath $Day6ServerLog) -and [bool](Select-String -LiteralPath $Day6ServerLog -Pattern '\[RoleGrant\]\[Server\] Role=Aura Required=4 OwnedSpecs=4' -Quiet)
-$BungeeGrant = (Test-Path -LiteralPath $Day6ServerLog) -and [bool](Select-String -LiteralPath $Day6ServerLog -Pattern '\[RoleGrant\]\[Server\] Role=BungeeMan Required=1 OwnedSpecs=1' -Quiet)
+$CrunchGrant = (Test-Path -LiteralPath $Day6ServerLog) -and [bool](Select-String -LiteralPath $Day6ServerLog -Pattern '\[RoleGrant\]\[Server\] Role=Crunch Required=1 OwnedSpecs=1' -Quiet)
 $Day6PrerequisitePassed = $Day6ExitCode -eq 0 -and $AuraGrant -and $BungeeGrant
 $AggregatePassed = $Day7SpecificPassed -and $Day6PrerequisitePassed
 

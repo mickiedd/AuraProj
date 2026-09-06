@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620">
+  <title>Remove BungeeMan role</title>
+  <desc>Before and after flow showing BungeeMan selectable role, assets, FireGun definition, and runtime manifests removed while Aura, Crunch, and Civilian remain.</desc>
+  <style>
+    .bg{fill:#f8fafc}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:2}.old{fill:#fff1f2;stroke:#fb7185;stroke-width:2}.new{fill:#ecfdf5;stroke:#34d399;stroke-width:2}.title{font:700 28px sans-serif;fill:#0f172a}.head{font:700 20px sans-serif;fill:#334155}.body{font:16px sans-serif;fill:#334155}.mono{font:14px monospace;fill:#475569}.strike{stroke:#e11d48;stroke-width:3}.arrow{stroke:#64748b;stroke-width:3;fill:none;marker-end:url(#arrow)}
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker></defs>
+  <rect class="bg" width="1100" height="620"/>
+  <text class="title" x="55" y="55">BungeeMan role removal — runtime and content boundary</text>
+  <text class="body" x="55" y="84">2026-09-06 · selectable role, dedicated assets, and FireGun role definition retired</text>
+  <rect class="old" x="55" y="125" width="430" height="390" rx="16"/>
+  <text class="head" x="82" y="165">Before</text>
+  <text class="body" x="82" y="205">RoleConfig.json</text>
+  <text class="mono" x="100" y="232">Aura · Crunch · BungeeMan · Civilian</text>
+  <text class="body" x="82" y="275">Playable role path</text>
+  <text class="mono" x="100" y="302">BungeeMan → rifle mesh / ABP → FireGun.xml</text>
+  <text class="body" x="82" y="345">Packaged content</text>
+  <text class="mono" x="100" y="372">Content/BungeeMan/*</text>
+  <text class="mono" x="100" y="398">fireGunBullet + gun HUD metadata</text>
+  <line class="strike" x1="78" y1="430" x2="448" y2="430"/>
+  <text class="body" x="82" y="468">Selectable and cookable</text>
+  <path class="arrow" d="M500 320 H600"/>
+  <rect class="new" x="615" y="125" width="430" height="390" rx="16"/>
+  <text class="head" x="642" y="165">After</text>
+  <text class="body" x="642" y="205">RoleConfig.json</text>
+  <text class="mono" x="660" y="232">Aura · Crunch · Civilian</text>
+  <text class="body" x="642" y="275">Runtime manifests</text>
+  <text class="mono" x="660" y="302">loadouts, tutorial, candidate scope cleaned</text>
+  <text class="body" x="642" y="345">Content and definitions</text>
+  <text class="mono" x="660" y="372">BungeeMan/* and FireGun.xml deleted</text>
+  <text class="mono" x="660" y="398">gun projectile/tag metadata removed</text>
+  <text class="body" x="642" y="445">Guard</text>
+  <text class="mono" x="660" y="472">absence regression + JSON parse + diff check</text>
+  <text class="body" x="55" y="570">Validation: registry/manifest regression, JSON parsing, git diff --check; pytest unavailable; ignored editor-locked remnants noted.</text>
+</svg>

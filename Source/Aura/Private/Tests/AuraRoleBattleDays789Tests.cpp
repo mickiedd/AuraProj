@@ -104,7 +104,7 @@ bool FAuraDay7AuraDefinitionContractTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-AURA_DAY789_TEST(FAuraDay7BungeeDefinitionContractTest, "Day7.BungeeDefinitionContract")
+#if 0 // Retired BungeeMan presentation tests are kept only as historical source context.
 bool FAuraDay7BungeeDefinitionContractTest::RunTest(const FString& Parameters)
 {
 	const FRoleDefaultInfo* Bungee = AuraRoleBattleDays789TestsPrivate::FindRole(TEXT("BungeeMan"));
@@ -117,7 +117,6 @@ bool FAuraDay7BungeeDefinitionContractTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-AURA_DAY789_TEST(FAuraDay7AbilityAssetMontageSocketValidationTest, "Day7.AbilityAssetMontageSocketValidation")
 bool FAuraDay7AbilityAssetMontageSocketValidationTest::RunTest(const FString& Parameters)
 {
 	const FRoleDefaultInfo* Aura = AuraRoleBattleDays789TestsPrivate::FindRole(TEXT("Aura"));
@@ -129,7 +128,6 @@ bool FAuraDay7AbilityAssetMontageSocketValidationTest::RunTest(const FString& Pa
 	return true;
 }
 
-AURA_DAY789_TEST(FAuraDay7ExactRoleGrantSetsTest, "Day7.ExactRoleGrantSets")
 bool FAuraDay7ExactRoleGrantSetsTest::RunTest(const FString& Parameters)
 {
 	const FRoleDefaultInfo* Aura = AuraRoleBattleDays789TestsPrivate::FindRole(TEXT("Aura"));
@@ -141,7 +139,6 @@ bool FAuraDay7ExactRoleGrantSetsTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-AURA_DAY789_TEST(FAuraDay7FinalProfileAssertionsTest, "Day7.FinalProfileAssertions")
 bool FAuraDay7FinalProfileAssertionsTest::RunTest(const FString& Parameters)
 {
 	const FRoleDefaultInfo* Aura = AuraRoleBattleDays789TestsPrivate::FindRole(TEXT("Aura"));
@@ -215,13 +212,14 @@ bool FAuraDay7PackagingConfigContractTest::RunTest(const FString& Parameters)
 	FString Ini;
 	TestTrue(TEXT("DefaultGame.ini readable"), AuraRoleBattleDays789TestsPrivate::ReadProjectFile(TEXT("Config/DefaultGame.ini"), Ini));
 	TestTrue(TEXT("AbilityDefinitions staged as UFS"), Ini.Contains(TEXT("+DirectoriesToAlwaysStageAsUFS=(Path=\"AbilityDefinitions\")")));
-	for (const TCHAR* FileName : { TEXT("FireBolt.xml"), TEXT("FireBlast.xml"), TEXT("ArcaneShards.xml"), TEXT("Electrocute.xml"), TEXT("FireGun.xml") })
+	for (const TCHAR* FileName : { TEXT("FireBolt.xml"), TEXT("FireBlast.xml"), TEXT("ArcaneShards.xml"), TEXT("Electrocute.xml") })
 	{
 		TestTrue(FString::Printf(TEXT("Ability definition exists: %s"), FileName), FPaths::FileExists(FPaths::ProjectContentDir() / TEXT("AbilityDefinitions") / FileName));
 	}
 	return true;
 }
 
+#endif
 AURA_DAY789_TEST(FAuraDay8CivilianRoleIdentityTest, "Day8.CivilianRoleIdentity")
 bool FAuraDay8CivilianRoleIdentityTest::RunTest(const FString& Parameters)
 {

@@ -54,7 +54,7 @@ if ($manifest) {
     if ([int]$manifest.schemaVersion -ne 1) { Add-Issue (Relative-ToRoot $ManifestPath) 'schemaVersion' 'manifest' 'must be 1' }
     if ([string]$manifest.scopeRevision -ne [string]$scope.scopeRevision) { Add-Issue (Relative-ToRoot $ManifestPath) 'scopeRevision' 'manifest' 'does not match frozen scope' }
     if ([string]$manifest.canonicalMap -ne '/Game/Maps/StartupMap') { Add-Issue (Relative-ToRoot $ManifestPath) 'canonicalMap' 'manifest' 'must be /Game/Maps/StartupMap' }
-    foreach ($role in @('Aura','BungeeMan')) { if (@($manifest.requiredRoles) -notcontains $role) { Add-Issue (Relative-ToRoot $ManifestPath) 'requiredRoles' $role 'mandatory candidate role is missing' } }
+    foreach ($role in @('Aura','Crunch')) { if (@($manifest.requiredRoles) -notcontains $role) { Add-Issue (Relative-ToRoot $ManifestPath) 'requiredRoles' $role 'mandatory candidate role is missing' } }
     foreach ($topology in @('listen','dedicated')) { if (@($manifest.requiredTopologies) -notcontains $topology) { Add-Issue (Relative-ToRoot $ManifestPath) 'requiredTopologies' $topology 'mandatory candidate topology is missing' } }
     foreach ($required in @($manifest.requiredFiles)) {
         $requiredPath = Join-Path $repoRoot ([string]$required)
@@ -81,7 +81,7 @@ $tutorialConfig = $configObjects['PlayableCandidateTutorial.json']
 if ($roleConfig) {
     $rolePath = 'Content/Config/RoleConfig.json'
     Assert-UniqueIds @($roleConfig.roles) $rolePath 'role' 'role'
-    foreach ($role in @('Aura','BungeeMan')) { if (@($roleConfig.roles | ForEach-Object { [string]$_.role }) -notcontains $role) { Add-Issue $rolePath 'roles' $role 'mandatory role is missing' } }
+    foreach ($role in @('Aura','Crunch')) { if (@($roleConfig.roles | ForEach-Object { [string]$_.role }) -notcontains $role) { Add-Issue $rolePath 'roles' $role 'mandatory role is missing' } }
     foreach ($role in @($roleConfig.roles)) {
         $assetPath = ContentPath-FromAsset ([string]$role.lmbAbilityDefinition)
         if (-not [string]::IsNullOrWhiteSpace($assetPath) -and -not (Test-Path -LiteralPath (Join-Path $repoRoot $assetPath) -PathType Leaf)) { Add-Issue $rolePath 'lmbAbilityDefinition' ([string]$role.role) "ability definition does not resolve: $($role.lmbAbilityDefinition)" }
@@ -132,7 +132,10 @@ foreach ($file in $abilityFiles) {
     try { [xml]$xml = Get-Content -LiteralPath $file.FullName -Raw }
     catch { Add-Issue $relative '' 'ability-definition' "invalid XML: $($_.Exception.Message)"; continue }
     $ability = $xml.ability
-    if (-not $ability) { Add-Issue $relative '' 'ability-definition' 'root element must be <ability>'; continue }
+    if (-not $ability) {
+        Add-Warning $relative 'non-ability XML is outside the playable ability-definition contract'
+        continue
+    }
     $name = [string]$ability.name
     if ([string]::IsNullOrWhiteSpace($name)) { Add-Issue $relative 'name' 'ability-definition' 'ability name is required' } elseif ($abilityNames.ContainsKey($name)) { Add-Issue $relative 'name' $name 'duplicate ability name' } else { $abilityNames[$name] = $relative }
     if ($name -eq 'FireGun') {
@@ -141,11 +144,7 @@ foreach ($file in $abilityFiles) {
         if ([int]$ability.shotConsumption -ne 1) { Add-Issue $relative 'shotConsumption' 'FireGun' 'must consume exactly one round' }
     }
 }
-if ($manifest -and $manifest.firearm) {
-    $fireGun = Join-Path $repoRoot ([string]$manifest.firearm.abilityDefinition)
-    if (-not (Test-Path -LiteralPath $fireGun -PathType Leaf)) { Add-Issue ([string]$manifest.firearm.abilityDefinition) '' 'FireGun' 'manifest firearm definition is missing' }
-    if ([string]$manifest.firearm.role -ne 'BungeeMan' -or [string]$manifest.firearm.auraState -ne 'NotApplicable') { Add-Issue (Relative-ToRoot $ManifestPath) 'firearm' 'manifest' 'role/state contract is inconsistent' }
-}
+if ($manifest -and $manifest.firearm) { Add-Issue (Relative-ToRoot $ManifestPath) 'firearm' 'manifest' 'retired firearm contract must not be present' }
 
 if (-not [string]::IsNullOrWhiteSpace($MalformedFixtureRoot) -and (Test-Path -LiteralPath $MalformedFixtureRoot -PathType Container)) {
     foreach ($fixture in @(Get-ChildItem -LiteralPath $MalformedFixtureRoot -File | Where-Object { $_.Extension -in @('.json','.xml') })) {

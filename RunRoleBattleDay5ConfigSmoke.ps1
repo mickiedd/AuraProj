@@ -141,18 +141,18 @@ try {
     Stop-OwnedProcess $InvalidClient
 
     $Client1 = Start-OwnedProcess 'Client1' @($ProjectFile, "127.0.0.1:${ListenPort}?PlayerName=Day5Aura?Role=Aura", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-abslog=$Client1Log")
-    $Client2 = Start-OwnedProcess 'Client2' @($ProjectFile, "127.0.0.1:${ListenPort}?PlayerName=Day5Bungee?Role=BungeeMan", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-abslog=$Client2Log")
+        $Client2 = Start-OwnedProcess 'Client2' @($ProjectFile, "127.0.0.1:${ListenPort}?PlayerName=Day5Crunch?Role=Crunch", '-game', '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-abslog=$Client2Log")
     $ConnectionDeadline = [DateTime]::UtcNow.AddSeconds($AssertionTimeoutSeconds)
     do {
         if ((Get-ProcessState $Server.Process) -ne 'Running') { throw 'Server exited during connection assertions.' }
         $AuraPending = Test-Pattern $ServerLog '\[RoleLogin\]\[InitNewPlayer\] PendingAcceptedRoleId=Aura '
-        $BungeePending = Test-Pattern $ServerLog '\[RoleLogin\]\[InitNewPlayer\] PendingAcceptedRoleId=BungeeMan '
-        if ($AuraPending -and $BungeePending) { break }
+            $CrunchPending = Test-Pattern $ServerLog '\[RoleLogin\]\[InitNewPlayer\] PendingAcceptedRoleId=Crunch '
+        if ($AuraPending -and $CrunchPending) { break }
         Start-Sleep -Milliseconds 500
     } while ([DateTime]::UtcNow -lt $ConnectionDeadline)
     $Assertions.AuraConnectionScopedRole = $AuraPending
-    $Assertions.BungeeConnectionScopedRole = $BungeePending
-    if (-not $AuraPending -or -not $BungeePending) { throw 'Two simultaneous connections did not retain distinct accepted role IDs.' }
+    $Assertions.CrunchConnectionScopedRole = $CrunchPending
+    if (-not $AuraPending -or -not $CrunchPending) { throw 'Two simultaneous connections did not retain distinct accepted role IDs.' }
 
     $PublishedLine = Select-String -LiteralPath $ServerLog -Pattern '\[RoleConfig\]\[InitGame\] Published' | Select-Object -First 1
     $FirstPreLogin = Select-String -LiteralPath $ServerLog -Pattern '\[RoleLogin\]\[PreLogin\]' | Select-Object -First 1

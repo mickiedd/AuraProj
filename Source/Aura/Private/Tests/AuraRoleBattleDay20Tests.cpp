@@ -32,6 +32,11 @@ namespace AuraRoleBattleDay20TestsPrivate
 	{
 		return IFileManager::Get().FileExists(*(FPaths::ProjectDir() / RelativePath));
 	}
+
+	bool DirectoryExists(const TCHAR* RelativePath)
+	{
+		return IFileManager::Get().DirectoryExists(*(FPaths::ProjectDir() / RelativePath));
+	}
 }
 
 #define AURA_DAY20_TEST(ClassName, PrettyName, Expression) \
@@ -46,15 +51,10 @@ AURA_DAY20_TEST(FAuraDay20PickupEligibilityPolicyTest, "Aura.RoleBattle.Day20.Cl
 	AuraRoleBattleDay20TestsPrivate::ContainsAll(TEXT("Source/Aura/Private/Combat/AuraPickupEligibility.cpp"), { TEXT("Faction_Player"), TEXT("Faction_Enemy"), TEXT("bAllowEnemies"), TEXT("Civilians and unknown factions") })
 	&& AuraRoleBattleDay20TestsPrivate::ContainsAll(TEXT("Source/Aura/Public/Combat/AuraPickupEligibility.h"), { TEXT("Players are eligible"), TEXT("civilians and unknown identities reject") }));
 
-AURA_DAY20_TEST(FAuraDay20FireGunSingleActivePathTest, "Aura.RoleBattle.Day20.FireGun.SingleActivePath",
-	AuraRoleBattleDay20TestsPrivate::ContainsAll(TEXT("Content/Config/RoleConfig.json"), { TEXT("\"lmbAbilityDefinition\": \"/Game/AbilityDefinitions/FireGun.xml\"") })
-	&& !AuraRoleBattleDay20TestsPrivate::Read(TEXT("Content/Config/RoleConfig.json")).Contains(TEXT("AuraFireGun"))
-	&& AuraRoleBattleDay20TestsPrivate::ContainsAll(TEXT("Source/Aura/Public/AbilitySystem/Abilities/AuraFireGun.h"), { TEXT("non-active compatibility"), TEXT("not granted or selected by RoleConfig") }));
-
-AURA_DAY20_TEST(FAuraDay20FireGunAssetReferenceTest, "Aura.RoleBattle.Day20.FireGun.AssetReferences",
-	AuraRoleBattleDay20TestsPrivate::FileExists(TEXT("Content/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/GA_FireGun.uasset"))
-	&& AuraRoleBattleDay20TestsPrivate::ContainsAll(TEXT("Content/Blueprints/AbilitySystem/Aura/Abilities/Fire/FireBolt/GA_FireGun.snapshot.json"), { TEXT("/Script/Aura.AuraFireGun") })
-	&& AuraRoleBattleDay20TestsPrivate::ContainsAll(TEXT("Content/AbilityDefinitions/FireGun.xml"), { TEXT("Abilities.Gun.Fire"), TEXT("Event.Montage.FireGun") }));
+AURA_DAY20_TEST(FAuraDay20RetiredRoleContractTest, "Aura.RoleBattle.Day20.Cleanup.RetiredBungeeManContract",
+	!AuraRoleBattleDay20TestsPrivate::Read(TEXT("Content/Config/RoleConfig.json")).Contains(TEXT("BungeeMan"))
+	&& !AuraRoleBattleDay20TestsPrivate::FileExists(TEXT("Content/AbilityDefinitions/FireGun.xml"))
+	&& !AuraRoleBattleDay20TestsPrivate::DirectoryExists(TEXT("Content/BungeeMan")));
 
 AURA_DAY20_TEST(FAuraDay20ShippingMutationSurfaceTest, "Aura.RoleBattle.Day20.Security.ShippingMutationSurface",
 	!AuraRoleBattleDay20TestsPrivate::FileExists(TEXT("Source/Aura/Public/Player/AuraCheatManager.h"))

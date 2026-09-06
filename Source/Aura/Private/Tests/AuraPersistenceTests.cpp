@@ -104,9 +104,9 @@ bool FAuraDay18LegacyV0Migration::RunTest(const FString& Parameters)
 	TestTrue(TEXT("checked-in version-zero fixture deserializes"), bFixtureLoaded);
 	if (!bFixtureLoaded) return false;
 	UAuraPlayerSaveGame* Migrated = NewObject<UAuraPlayerSaveGame>();
-	const bool bMigrated = UAuraPersistenceSubsystem::MigrateLegacySave(*Legacy, AuraPersistenceTestsPrivate::MakeIdentity(TEXT("legacy-account")), TEXT("BungeeMan"), *Migrated, Error);
-	TestTrue(TEXT("version-zero legacy record migrates"), bMigrated); TestEqual(TEXT("role is preserved"), Migrated->Role, FName(TEXT("BungeeMan"))); TestEqual(TEXT("progression is preserved"), Migrated->PlayerLevel, 8); TestEqual(TEXT("experience is preserved"), Migrated->XP, 144); TestFalse(TEXT("migration never duplicates inventory"), Migrated->InventorySlots.Num() > 0);
-	return bMigrated && Migrated->Role == TEXT("BungeeMan") && Migrated->PlayerLevel == 8 && Migrated->XP == 144;
+	const bool bMigrated = UAuraPersistenceSubsystem::MigrateLegacySave(*Legacy, AuraPersistenceTestsPrivate::MakeIdentity(TEXT("legacy-account")), TEXT("Crunch"), *Migrated, Error);
+	TestTrue(TEXT("version-zero legacy record migrates"), bMigrated); TestEqual(TEXT("retired BungeeMan role migrates to Crunch"), Migrated->Role, FName(TEXT("Crunch"))); TestEqual(TEXT("progression is preserved"), Migrated->PlayerLevel, 8); TestEqual(TEXT("experience is preserved"), Migrated->XP, 144); TestFalse(TEXT("migration never duplicates inventory"), Migrated->InventorySlots.Num() > 0);
+	return bMigrated && Migrated->Role == TEXT("Crunch") && Migrated->PlayerLevel == 8 && Migrated->XP == 144;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAuraDay18FutureVersionRejected, "Aura.RoleBattle.Day18.Save.FutureVersionRejected", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
