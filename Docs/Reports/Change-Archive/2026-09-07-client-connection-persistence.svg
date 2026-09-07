@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+<defs><style>text{font-family:Segoe UI,Arial,sans-serif;fill:#e7edf8}.title{font-size:30px;font-weight:700}.head{font-size:23px;font-weight:650}.body{font-size:18px}.small{font-size:16px}.box{fill:#17263c;stroke:#435978;stroke-width:2}.arrow{stroke:#9badc9;stroke-width:3;fill:none;marker-end:url(#a)}</style><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#9badc9"/></marker></defs>
+<rect width="1200" height="760" fill="#0c1627"/>
+<text x="40" y="52" class="title">Why the client kept connecting</text>
+<text x="40" y="84" class="body">2026-09-07 · Login / dedicated server / campaign persistence</text>
+<text x="40" y="131" class="head" style="fill:#ffb7ae">Before</text>
+<rect x="40" y="150" width="345" height="112" rx="12" class="box"/>
+<text x="60" y="181" class="body">Login map restores shared campaign</text>
+<text x="60" y="210" class="body">Writes generation-named records</text>
+<text x="60" y="239" class="small">Stale writers can overwrite saved state</text>
+<path d="M385 205H422" class="arrow"/>
+<rect x="432" y="150" width="336" height="112" rx="12" class="box"/>
+<text x="451" y="181" class="body">Both manifests reference G179</text>
+<text x="451" y="210" class="body">Expected EF2B3283 ≠ 9EB5501B</text>
+<text x="451" y="239" class="small">Record now contains map=None</text>
+<path d="M768 205H805" class="arrow"/>
+<rect x="815" y="150" width="345" height="112" rx="12" class="box"/>
+<text x="835" y="181" class="body">Server refuses unhealthy world</text>
+<text x="835" y="210" class="body">Manager failure → fallback → reject</text>
+<text x="835" y="239" class="small">Login reload starts auto-login again</text>
+<text x="40" y="314" class="head" style="fill:#9be2c1">After the code fixes</text>
+<rect x="40" y="334" width="540" height="141" rx="12" class="box"/>
+<text x="62" y="368" class="head">Protect the campaign</text>
+<text x="62" y="400" class="body">Login has no authority restore/checkpoint path.</text>
+<text x="62" y="429" class="body">Unique record names; serialized manifest publication.</text>
+<text x="62" y="458" class="body">Stale writers fail; valid prior-checkpoint recovery remains.</text>
+<rect x="610" y="334" width="550" height="141" rx="12" class="box"/>
+<text x="632" y="368" class="head">Finish a failed connection clearly</text>
+<text x="632" y="400" class="body">Explicit manager errors stop fallback travel.</text>
+<text x="632" y="429" class="body">Errors survive map loading and appear on Login.</text>
+<text x="632" y="458" class="body">Auto-login runs once per game instance.</text>
+<rect x="40" y="508" width="1120" height="121" rx="12" fill="#12372f" stroke="#4f947a"/>
+<text x="62" y="543" class="head">Validation</text>
+<text x="62" y="576" class="body">Development + DebugGame builds passed · 16 tests passed · healthy client joined and possessed a pawn</text>
+<text x="62" y="606" class="body">Immediate manager rejection returned to Login · failure message retained · no automatic retry</text>
+<rect x="40" y="657" width="1120" height="72" rx="12" fill="#3a3020" stroke="#c6a366"/>
+<text x="62" y="686" class="body">Live campaign recovery is pending: existing saves were preserved, not reset or silently accepted.</text>
+<text x="62" y="713" class="small">The healthy connection used a separate validation campaign. Original campaign hashes remain unchanged.</text>
+</svg>

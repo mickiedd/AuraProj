@@ -170,6 +170,10 @@ void UServerTravelComponent::HandleNetworkFailure(UWorld* InWorld, UNetDriver* N
 	const FString UserMessage = bVersionMismatch
 		? TEXT("Client/server build mismatch. Rebuild and restart UnrealEditor from the same project and engine build as the server, then retry.")
 		: (ErrorString.IsEmpty() ? TEXT("Please check your network and try again.") : *ErrorString);
+	if (UAuraGameInstance* GI = Cast<UAuraGameInstance>(PlayerController->GetGameInstance()))
+	{
+		GI->PendingServerLostMessage = UserMessage;
+	}
 	BroadcastStatusMessage(FString::Printf(TEXT("Network error (code %s). %s"),
 		*FailureCode,
 		*UserMessage));

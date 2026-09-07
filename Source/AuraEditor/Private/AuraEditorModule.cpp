@@ -52,7 +52,9 @@
 #include "Framework/SlateDelegates.h"
 #include "UObject/Class.h"
 #include "UObject/UnrealType.h"
+#include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Text/STextBlock.h"
 
 #define LOCTEXT_NAMESPACE "FAuraEditorModule"
 
@@ -214,7 +216,7 @@ private:
 		MenuBuilder.AddSubMenu(
 			LOCTEXT("LaunchNullRhiClientLabel", "Launch NullRHI Client (Headless)"),
 			bLoadedDedicatedServerLaunchLevels
-				? LOCTEXT("LaunchNullRhiClientTooltip", "Launch the Aura game client in headless -nullrhi editor -game mode and auto-drive the Login -> battleground flow for the selected level (passes -AutoLoginLevel=<id>).\n\nStart the Game Server Manager and a dedicated server for the level first; the client writes to Saved/Logs/Aura.log.")
+				? LOCTEXT("LaunchNullRhiClientTooltip", "Launch the Aura game client in headless -nullrhi editor -game mode and auto-drive the Login -> battleground flow for the selected role and level (passes -AutoLoginRole=<role> and -AutoLoginLevel=<id>).\n\nStart the Game Server Manager and a dedicated server for the level first; the client writes to Saved/Logs/Aura.log.")
 				: FText::Format(
 					LOCTEXT("LaunchNullRhiClientConfigFailureTooltip", "Could not load the configured levels for the NullRHI client.\n\n{0}"),
 					DedicatedServerLaunchError),
@@ -388,6 +390,12 @@ private:
 		int32 QueryPort = 0;
 	};
 
+	struct FNullRhiClientRoleOption
+	{
+		FString Id;
+		FString DisplayName;
+	};
+
 	FString GetDedicatedServerLevelConfigPath() const
 	{
 		// LevelConfig.json lives under Content/Config (same path the runtime
@@ -428,6 +436,50 @@ private:
 
 	void BuildNullRhiClientLevelMenu(FMenuBuilder& MenuBuilder, const TArray<FDedicatedServerLaunchLevel>& LaunchLevels) const
 	{
+		FText RoleFailure;
+		if (!LoadNullRhiClientRoles(RoleFailure))
+		{
+			AddDisabledMenuEntry(
+				MenuBuilder,
+				LOCTEXT("NullRhiClientNoRolesLabel", "No selectable roles available"),
+				RoleFailure);
+			return;
+		}
+
+		MenuBuilder.AddWidget(
+			SNew(SComboBox<TSharedPtr<FNullRhiClientRoleOption>>)
+				.OptionsSource(&NullRhiClientRoleOptions)
+				.InitiallySelectedItem(SelectedNullRhiClientRole)
+				.OnGenerateWidget_Lambda([](TSharedPtr<FNullRhiClientRoleOption> RoleOption)
+				{
+					return SNew(STextBlock)
+						.Text(RoleOption.IsValid()
+							? FText::FromString(RoleOption->DisplayName)
+							: LOCTEXT("NullRhiClientInvalidRoleOption", "Invalid role"));
+				})
+				.OnSelectionChanged_Lambda([this](TSharedPtr<FNullRhiClientRoleOption> RoleOption, ESelectInfo::Type)
+				{
+					if (RoleOption.IsValid())
+					{
+						SelectedNullRhiClientRole = RoleOption;
+						UE_LOG(LogAuraEditor, Display, TEXT("NullRHI role selected | Role='%s'"), *RoleOption->Id);
+					}
+				})
+			[
+				SNew(STextBlock)
+					.Text_Lambda([this]()
+					{
+						return SelectedNullRhiClientRole.IsValid()
+							? FText::FromString(SelectedNullRhiClientRole->DisplayName)
+							: LOCTEXT("NullRhiClientSelectRolePlaceholder", "Select role");
+					})
+			],
+			LOCTEXT("NullRhiClientRoleLabel", "Role"),
+			false,
+			true,
+			LOCTEXT("NullRhiClientRoleTooltip", "Choose a configured player-selectable role. The selected stable role ID is validated and passed to the NullRHI Login flow."));
+		MenuBuilder.AddMenuSeparator();
+
 		// Toggle: when checked, every level entry below launches with -stress (the bat emits
 		// -AutoRun=AutoRunMap), turning the client into a stress-test bot after battleground
 		// arrival. State persists in the module across menu rebuilds; mutable because these
@@ -448,10 +500,15 @@ private:
 			// mapPath (no spaces) when an entry lacks an explicit id. The runtime auto-login
 			// hook matches id first, then displayName, then mapPath.
 			const FString LevelIdForLaunch = !LaunchLevel.Id.IsEmpty() ? LaunchLevel.Id : LaunchLevel.MapPath;
+			const FString SelectedRoleId = SelectedNullRhiClientRole.IsValid()
+				? SelectedNullRhiClientRole->Id
+				: FString();
 
 			const FText LevelTooltip = FText::Format(
-				LOCTEXT("NullRhiClientLevelTooltip", "Launch the headless -nullrhi client and auto-connect to {0}.\nLevel id: {1}\nMap: {2}"),
+				LOCTEXT("NullRhiClientLevelTooltip", "Launch the headless -nullrhi client and auto-connect as role {0} to {1}.\nRole id: {2}\nLevel id: {3}\nMap: {4}"),
+				FText::FromString(SelectedNullRhiClientRole->DisplayName),
 				FText::FromString(LaunchLevel.DisplayName),
+				FText::FromString(SelectedRoleId),
 				FText::FromString(LaunchLevel.Id.IsEmpty() ? LevelIdForLaunch : LaunchLevel.Id),
 				FText::FromString(LaunchLevel.MapPath));
 
@@ -459,21 +516,87 @@ private:
 				FText::FromString(LaunchLevel.DisplayName),
 				LevelTooltip,
 				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
-				FUIAction(FExecuteAction::CreateLambda([this, LevelIdForLaunch, LaunchLevel]()
+				FUIAction(FExecuteAction::CreateLambda([this, LevelIdForLaunch, SelectedRoleId, LaunchLevel]()
 				{
-					LaunchNullRhiClientLevel(LaunchLevel, LevelIdForLaunch);
+					LaunchNullRhiClientLevel(LaunchLevel, LevelIdForLaunch, SelectedRoleId);
 				})));
 		}
 	}
 
-	bool LaunchNullRhiClientLevel(const FDedicatedServerLaunchLevel& LaunchLevel, const FString& LevelId) const
+	bool LoadNullRhiClientRoles(FText& OutFailureReason) const
+	{
+		OutFailureReason = FText();
+		const FString PreviousRoleId = SelectedNullRhiClientRole.IsValid()
+			? SelectedNullRhiClientRole->Id
+			: FString();
+		NullRhiClientRoleOptions.Reset();
+		SelectedNullRhiClientRole.Reset();
+
+		const FAuraRoleLoadResult RoleLoad = UAuraAbilitySystemLibrary::LoadRoleInfoCandidate(nullptr);
+		if (!RoleLoad.bCanPublish || !RoleLoad.Candidate)
+		{
+			OutFailureReason = FText::Format(
+				LOCTEXT("NullRhiClientRoleConfigFailure", "Could not load a valid selectable role catalog from Content/Config/RoleConfig.json.\n\n{0}"),
+				FText::FromString(RoleLoad.ToLogString()));
+			return false;
+		}
+		const FString PreferredRoleId = !PreviousRoleId.IsEmpty()
+			? PreviousRoleId
+			: RoleLoad.Candidate->DefaultRole.ToString();
+
+		TArray<FName> RoleNames = RoleLoad.Candidate->GetRoleNames();
+		RoleNames.Sort([](const FName& Left, const FName& Right)
+		{
+			return Left.ToString() < Right.ToString();
+		});
+
+		for (const FName RoleName : RoleNames)
+		{
+			FString RoleError;
+			if (!UAuraAbilitySystemLibrary::ValidatePlayerRoleSelection(RoleLoad.Candidate, RoleName, RoleError))
+			{
+				continue;
+			}
+
+			const FRoleDefaultInfo RoleDefaults = RoleLoad.Candidate->GetRoleDefaultInfo(RoleName);
+			TSharedPtr<FNullRhiClientRoleOption> RoleOption = MakeShared<FNullRhiClientRoleOption>();
+			RoleOption->Id = RoleName.ToString();
+			RoleOption->DisplayName = RoleDefaults.DisplayName.IsEmpty() ? RoleOption->Id : RoleDefaults.DisplayName;
+			NullRhiClientRoleOptions.Add(RoleOption);
+			if (RoleOption->Id.Equals(PreferredRoleId, ESearchCase::CaseSensitive))
+			{
+				SelectedNullRhiClientRole = RoleOption;
+			}
+		}
+
+		if (NullRhiClientRoleOptions.IsEmpty())
+		{
+			OutFailureReason = LOCTEXT("NullRhiClientNoSelectableRoles", "RoleConfig.json contains no configured player-selectable roles.");
+			return false;
+		}
+
+		if (!SelectedNullRhiClientRole.IsValid())
+		{
+			SelectedNullRhiClientRole = NullRhiClientRoleOptions[0];
+		}
+		return true;
+	}
+
+	bool LaunchNullRhiClientLevel(const FDedicatedServerLaunchLevel& LaunchLevel, const FString& LevelId, const FString& RoleId) const
 	{
 		const FString SuccessLabel = FString::Printf(TEXT("RunClientNullRHI:%s"), *LaunchLevel.DisplayName);
-		UE_LOG(LogAuraEditor, Display, TEXT("NullRHI client launch requested | Level='%s' | LevelId='%s' | AutoRun=%s"), *LaunchLevel.DisplayName, *LevelId, bNullRhiClientAutoRun ? TEXT("true") : TEXT("false"));
+		if (RoleId.IsEmpty())
+		{
+			UE_LOG(LogAuraEditor, Error, TEXT("NullRHI client launch blocked: no selectable role was chosen | Level='%s'"), *LaunchLevel.DisplayName);
+			FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("RunClientNullRhiMissingRole", "Choose a player-selectable role before launching the NullRHI client."));
+			return false;
+		}
+
+		UE_LOG(LogAuraEditor, Display, TEXT("NullRHI client launch requested | Role='%s' | Level='%s' | LevelId='%s' | AutoRun=%s"), *RoleId, *LaunchLevel.DisplayName, *LevelId, bNullRhiClientAutoRun ? TEXT("true") : TEXT("false"));
 
 		// RunClientNullRHI.bat takes the levelId as its positional argument; append -stress when
 		// the submenu checkbox is checked so the client auto-runs AutoRunMap.xml after arrival.
-		FString ScriptArgs = LevelId;
+		FString ScriptArgs = FString::Printf(TEXT("%s -role %s"), *LevelId, *RoleId);
 		if (bNullRhiClientAutoRun)
 		{
 			ScriptArgs += TEXT(" -stress");
@@ -494,7 +617,8 @@ private:
 			FMessageDialog::Open(
 				EAppMsgType::Ok,
 				FText::Format(
-					LOCTEXT("RunClientNullRhiLaunched", "NullRHI client launch request sent for level '{0}'.\n\nThe client runs headless (-nullrhi) and auto-drives Login -> Loading -> battleground. Output is written to Saved/Logs/Aura.log (or Aura_2.log if Aura.log is locked). Start the Game Server Manager and a dedicated server for the level first."),
+					LOCTEXT("RunClientNullRhiLaunched", "NullRHI client launch request sent as role '{0}' for level '{1}'.\n\nThe client runs headless (-nullrhi) and auto-drives Login -> Loading -> battleground with the selected role. Output is written to Saved/Logs/Aura.log (or Aura_2.log if Aura.log is locked). Start the Game Server Manager and a dedicated server for the level first."),
+					FText::FromString(RoleId),
 					FText::FromString(LaunchLevel.DisplayName)));
 		}
 		return bLaunched;
@@ -2536,6 +2660,11 @@ private:
 	// entries launch with -stress (-AutoRun=AutoRunMap). Mutable because the menu-builder/launch
 	// helpers are const but this is UI toggle state, not logical object state.
 	mutable bool bNullRhiClientAutoRun = false;
+
+	// Role options are rebuilt from RoleConfig.json each time the NullRHI submenu opens so the
+	// editor menu observes the same selectable-role contract as the runtime Login UI.
+	mutable TArray<TSharedPtr<FNullRhiClientRoleOption>> NullRhiClientRoleOptions;
+	mutable TSharedPtr<FNullRhiClientRoleOption> SelectedNullRhiClientRole;
 };
 
 #undef LOCTEXT_NAMESPACE

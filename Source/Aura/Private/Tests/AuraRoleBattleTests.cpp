@@ -134,6 +134,42 @@ bool FAuraRoleBattleCatalogTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraNullRhiRoleLoginFlowContractTest,
+	"Aura.RoleBattle.NullRhi.RoleLoginFlowContract",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraNullRhiRoleLoginFlowContractTest::RunTest(const FString& Parameters)
+{
+	const FString EditorModulePath = FPaths::Combine(FPaths::ProjectDir(), TEXT("Source/AuraEditor/Private/AuraEditorModule.cpp"));
+	const FString LoginControllerPath = FPaths::Combine(FPaths::ProjectDir(), TEXT("Source/Aura/Private/Game/LoginPlayerController.cpp"));
+	const FString NullRhiScriptPath = FPaths::Combine(FPaths::ProjectDir(), TEXT("RunClientNullRHI.bat"));
+
+	FString EditorModule;
+	FString LoginController;
+	FString NullRhiScript;
+	const bool bLoadedEditorModule = FFileHelper::LoadFileToString(EditorModule, *EditorModulePath);
+	const bool bLoadedLoginController = FFileHelper::LoadFileToString(LoginController, *LoginControllerPath);
+	const bool bLoadedNullRhiScript = FFileHelper::LoadFileToString(NullRhiScript, *NullRhiScriptPath);
+	if (!TestTrue(TEXT("NullRHI editor module source is readable"), bLoadedEditorModule)
+		|| !TestTrue(TEXT("Login controller source is readable"), bLoadedLoginController)
+		|| !TestTrue(TEXT("NullRHI launcher script is readable"), bLoadedNullRhiScript))
+	{
+		return false;
+	}
+
+	TestTrue(TEXT("NullRHI menu uses a role combo box"), EditorModule.Contains(TEXT("SComboBox<TSharedPtr<FNullRhiClientRoleOption>>")));
+	TestTrue(TEXT("NullRHI menu filters roles through the shared selectable-role validator"), EditorModule.Contains(TEXT("ValidatePlayerRoleSelection(RoleLoad.Candidate")));
+	TestTrue(TEXT("NullRHI menu launches with the selected role"), EditorModule.Contains(TEXT("LaunchNullRhiClientLevel(LaunchLevel, LevelIdForLaunch, SelectedRoleId)")));
+	TestTrue(TEXT("NullRHI menu passes the role option to the launcher"), EditorModule.Contains(TEXT("ScriptArgs = FString::Printf(TEXT(\"%s -role %s\")")));
+	TestTrue(TEXT("Batch launcher accepts a role option"), NullRhiScript.Contains(TEXT("if /i \"%~1\"==\"-role\"")));
+	TestTrue(TEXT("Batch launcher emits AutoLoginRole"), NullRhiScript.Contains(TEXT("-AutoLoginRole=%AUTO_ROLE%")));
+	TestTrue(TEXT("Command-line Login validates AutoLoginRole"), LoginController.Contains(TEXT("FParse::Value(CmdLine, TEXT(\"AutoLoginRole=\"), RequestedRoleId)")));
+	TestTrue(TEXT("Command-line Login forwards the resolved role through menu selection"), LoginController.Contains(TEXT("HandleLoginMenuSelectionChanged(DisplayName, RequestedLevelId, FallbackPort, ResolvedRoleId)")));
+	TestTrue(TEXT("Command-line Login forwards the resolved role through connect"), LoginController.Contains(TEXT("RequestLoginMenuConnect(DisplayName, RequestedLevelId, FallbackPort, ResolvedRoleId)")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraRespawnAttributeGuardTest,
 	"Aura.RoleBattle.Day1RespawnAttributeGuard",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)

@@ -99,7 +99,7 @@ void ALoadingPlayerController::BeginPlay()
 								return;
 							}
 
-							if (!PortalFallbackEndpoint.IsEmpty())
+							if (!Response.bReceivedManagerResponse && !PortalFallbackEndpoint.IsEmpty())
 							{
 								UE_LOG(LogTemp, Warning, TEXT("[LoadingPC] Portal GSM failed (%s); using fallback endpoint=%s"), *Response.ErrorMessage, *PortalFallbackEndpoint);
 								PC->SetLoadingProgressTarget(88.f, FString::Printf(TEXT("Connecting to %s..."), *PortalFallbackEndpoint));
@@ -112,6 +112,7 @@ void ALoadingPlayerController::BeginPlay()
 
 							UE_LOG(LogTemp, Error, TEXT("[LoadingPC] Portal GSM failed with no fallback: %s"), *Response.ErrorMessage);
 							PC->SetLoadingProgressTarget(100.f, TEXT("Connection failed. Returning to Login..."));
+							PC->OnCrossServerTravelFailed(Response.ErrorMessage);
 						}
 					}));
 				return;
@@ -130,7 +131,11 @@ void ALoadingPlayerController::BeginPlay()
 			// already resolved by the time BeginPlay runs (the broadcast went to zero
 			// listeners because we had not bound yet).  Consume the cached endpoint
 			// directly instead of waiting on a broadcast that already happened.
-			if (GI->HasResolvedCrossServerTravel())
+			if (GI->HasPendingServerLostMessage())
+			{
+				OnCrossServerTravelFailed(GI->PendingServerLostMessage);
+			}
+			else if (GI->HasResolvedCrossServerTravel())
 			{
 				const FString Endpoint = GI->PendingCrossServerResolvedEndpoint;
 				const FString PlayerName = GI->PendingCrossServerResolvedPlayerName;
@@ -335,6 +340,7 @@ void ALoadingPlayerController::OnCrossServerTravelFailed(const FString& ErrorMes
 
 	if (UAuraGameInstance* GI = GetGameInstance<UAuraGameInstance>())
 	{
+		GI->PendingServerLostMessage = ErrorMessage;
 		GI->ClearPendingCrossServerTravel();
 		UnbindCrossServerDelegates(GI);
 	}

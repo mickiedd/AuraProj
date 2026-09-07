@@ -32,6 +32,8 @@
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "UObject/GarbageCollection.h"
+#include "UObject/StrongObjectPtr.h"
 #include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -72,6 +74,12 @@ bool FAuraAbilityInfoBoundaryTest::RunTest(const FString& Parameters)
 	}
 
 	URuntimeAbilityInfo* RuntimeInfo = NewObject<URuntimeAbilityInfo>();
+	const FMapProperty* AbilityInfoMapProperty = FindFProperty<FMapProperty>(URuntimeAbilityInfo::StaticClass(), TEXT("AbilityInfoMap"));
+	TestNotNull(TEXT("Runtime ability metadata map is reflected for asset lifetime tracking"), AbilityInfoMapProperty);
+	if (AbilityInfoMapProperty)
+	{
+		TestTrue(TEXT("Runtime ability metadata map is transient"), AbilityInfoMapProperty->HasAnyPropertyFlags(CPF_Transient));
+	}
 	if (!TestTrue(TEXT("Shipped ability metadata loads"), RuntimeInfo->LoadFromJSON(Json))) return false;
 	const TArray<FAuraAbilityInfo> AllInfo = RuntimeInfo->GetAllAbilityInfo();
 	TestEqual(TEXT("Every shipped JSON entry is retained"), AllInfo.Num(), Entries->Num());
@@ -88,6 +96,59 @@ bool FAuraAbilityInfoBoundaryTest::RunTest(const FString& Parameters)
 		TestFalse(TEXT("JSON metadata does not provide an input slot"), Info.InputTag.IsValid());
 	}
 	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraAbilityInfoAssetReferencesSurviveGCTest,
+	"Aura.Abilities.Metadata.RuntimeAssetReferencesSurviveGC",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraAbilityInfoAssetReferencesSurviveGCTest::RunTest(const FString& Parameters)
+{
+	TStrongObjectPtr<URuntimeAbilityInfo> RuntimeInfo(UAuraAbilitySystemLibrary::LoadAbilityInfoFromJSON());
+	if (!TestTrue(TEXT("Runtime ability metadata loads through the production JSON loader"), RuntimeInfo.IsValid())) return false;
+
+	FGameplayTag AssetAbilityTag;
+	const UTexture2D* IconBeforeGC = nullptr;
+	const UMaterialInterface* BackgroundBeforeGC = nullptr;
+	for (const FAuraAbilityInfo& Info : RuntimeInfo->GetAllAbilityInfo())
+	{
+		if (Info.Icon && Info.BackgroundMaterial)
+		{
+			AssetAbilityTag = Info.AbilityTag;
+			IconBeforeGC = Info.Icon.Get();
+			BackgroundBeforeGC = Info.BackgroundMaterial.Get();
+			break;
+		}
+	}
+	if (!TestTrue(TEXT("Shipped metadata contains an icon and background asset pair"), AssetAbilityTag.IsValid())) return false;
+
+	// GARBAGE_COLLECTION_KEEPFLAGS expands to RF_Standalone in the editor. If either
+	// fixture carries that flag, it could survive without the reflected map reference
+	// and make this regression test pass after AbilityInfoMap loses UPROPERTY.
+	TestFalse(
+		TEXT("Icon must not be protected from test GC"),
+		IconBeforeGC->HasAnyFlags(GARBAGE_COLLECTION_KEEPFLAGS));
+	TestFalse(
+		TEXT("Background material must not be protected from test GC"),
+		BackgroundBeforeGC->HasAnyFlags(GARBAGE_COLLECTION_KEEPFLAGS));
+
+	// Use no keep flags so the only intended lifetime path for these assets is the
+	// reflected FAuraAbilityInfo references held by the rooted RuntimeInfo object.
+	CollectGarbage(RF_NoFlags, true);
+
+	const FAuraAbilityInfo AfterGC = RuntimeInfo->FindAbilityInfoForTag(AssetAbilityTag);
+	const bool bIconValidAfterGC = IsValid(AfterGC.Icon.Get());
+	const bool bBackgroundValidAfterGC = IsValid(AfterGC.BackgroundMaterial.Get());
+	TestTrue(TEXT("Icon reference remains valid after forced garbage collection"), bIconValidAfterGC);
+	TestTrue(TEXT("Icon identity remains stable after forced garbage collection"), bIconValidAfterGC && AfterGC.Icon.Get() == IconBeforeGC);
+	TestTrue(TEXT("Background material remains valid after forced garbage collection"), bBackgroundValidAfterGC);
+	TestTrue(TEXT("Background material identity remains stable after forced garbage collection"), bBackgroundValidAfterGC && AfterGC.BackgroundMaterial.Get() == BackgroundBeforeGC);
+
+	// Touch the same properties used by HUD/WebUI serialization after collection.
+	TestTrue(TEXT("Icon path remains readable after forced garbage collection"), bIconValidAfterGC && !AfterGC.Icon->GetPathName().IsEmpty());
+	TestTrue(TEXT("Background material path remains readable after forced garbage collection"), bBackgroundValidAfterGC && !AfterGC.BackgroundMaterial->GetPathName().IsEmpty());
+	return !HasAnyErrors();
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(

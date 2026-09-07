@@ -90,6 +90,8 @@ public:
 	FAuraAbilityInfo FindAbilityInfoForTag(const FGameplayTag& AbilityTag, bool bLogNotFound = false) const;
 
 private:
+	/** Keep JSON-resolved UI assets visible to GC for the lifetime of this rooted registry. */
+	UPROPERTY(Transient)
 	TMap<FGameplayTag, FAuraAbilityInfo> AbilityInfoMap;
 };
 

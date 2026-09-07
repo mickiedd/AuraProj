@@ -326,7 +326,8 @@ void AAuraGameModeBase::InitGame(const FString& MapName, const FString& Options,
 		}
 	}
 	EconomyRegistry = GetGameInstance() ? GetGameInstance()->GetSubsystem<UAuraEconomyRegistrySubsystem>() : nullptr;
-	PersistenceSubsystem = GetGameInstance() ? GetGameInstance()->GetSubsystem<UAuraPersistenceSubsystem>() : nullptr;
+	PersistenceSubsystem = bEnableAuthorityWorldPersistence && GetGameInstance()
+		? GetGameInstance()->GetSubsystem<UAuraPersistenceSubsystem>() : nullptr;
 	if (PersistenceSubsystem)
 	{
 		FString PersistenceError;
@@ -1160,6 +1161,11 @@ void AAuraGameModeBase::ScheduleDedicatedServerReadyNotification()
 void AAuraGameModeBase::FinalizeRoleBattleStartup()
 {
 	if (!HasAuthority() || WorldReadiness != EAuraWorldReadiness::Initializing) return;
+	if (!bEnableAuthorityWorldPersistence)
+	{
+		UE_LOG(LogAura, Display, TEXT("[Persistence][World] Frontend map: authority campaign restore/checkpoint disabled."));
+		return;
+	}
 	FString PersistenceError;
 	const FName CurrentMapId = PopulationManager ? PopulationManager->GetCurrentMapId() : NAME_None;
 	const bool bPersistenceReady = PersistenceSubsystem

@@ -338,6 +338,10 @@ void UGameServerClient::RequestServer(
 			CleanupAndDispatch(MoveTemp(Result));
 			return;
 		}
+		// A complete line proves the manager answered.  Keep fallback reserved for
+		// transport failures; malformed or semantically invalid payloads must not
+		// silently send the client to a different authority.
+		Result.bReceivedManagerResponse = true;
 
 		SS->DestroySocket(Socket);
 		Socket = nullptr;

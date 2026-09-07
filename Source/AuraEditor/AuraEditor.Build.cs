@@ -29,6 +29,7 @@ public class AuraEditor : ModuleRules
 			"Json",
 			"GameplayAbilities",
 			"GameplayTags",
+			"InputCore",
 			"Slate",
 			"SlateCore",
 			"ToolMenus",

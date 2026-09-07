@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820" role="img" aria-labelledby="title desc">
+  <title id="title">NullRHI launch blockers and verified path</title>
+  <desc id="desc">The wrong Unreal checkout caused the missing modules gate, then an unrooted runtime ability metadata map caused a HUD crash after login. The corrected engine resolver, reflected asset map, runtime-safe test, and isolated persistence namespace produce a stable headless role-battle run.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f7f9fc; }
+      .title { font: 700 28px Segoe UI, sans-serif; fill: #172033; }
+      .subtitle { font: 15px Segoe UI, sans-serif; fill: #526079; }
+      .head { font: 700 18px Segoe UI, sans-serif; fill: #172033; }
+      .body { font: 14px Segoe UI, sans-serif; fill: #23324d; }
+      .small { font: 12px Segoe UI, sans-serif; fill: #526079; }
+      .bad { fill: #fff0f0; stroke: #d05454; stroke-width: 2; }
+      .fix { fill: #eef5ff; stroke: #4d83c4; stroke-width: 2; }
+      .good { fill: #edf9f1; stroke: #3e9b61; stroke-width: 2; }
+      .arrow { stroke: #65748b; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .pill { fill: #ffffff; stroke: #b7c2d2; stroke-width: 1.5; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#65748b" />
+    </marker>
+  </defs>
+  <rect class="bg" width="1280" height="820" />
+  <text class="title" x="48" y="52">Launch NullRHI Client (Headless): blockers to verified flow</text>
+  <text class="subtitle" x="48" y="80">Aura · RoleBattleCivilianTest · UE 5.5 · validation archive 2026-09-07</text>
+
+  <rect class="bad" x="48" y="125" width="350" height="265" rx="14" />
+  <text class="head" x="72" y="160">Observed blockers</text>
+  <text class="body" x="72" y="196">1. Stale UE_EDITOR_EXE selected</text>
+  <text class="body" x="90" y="220">UE_5.5.4 instead of the project</text>
+  <text class="body" x="90" y="241">EngineAssociation checkout.</text>
+  <text class="small" x="72" y="270">Result: every Aura/plugin module</text>
+  <text class="small" x="72" y="289">reported missing or incompatible.</text>
+  <text class="body" x="72" y="326">2. Matching-engine run reached HUD</text>
+  <text class="body" x="90" y="350">then crashed on a stale icon pointer.</text>
+  <text class="small" x="72" y="376">Cause: JSON-resolved UI assets lived in</text>
+  <text class="small" x="72" y="395">a non-reflected map invisible to GC.</text>
+
+  <path class="arrow" d="M 398 255 L 454 255" />
+  <rect class="fix" x="454" y="125" width="370" height="265" rx="14" />
+  <text class="head" x="478" y="160">Targeted fixes</text>
+  <text class="body" x="478" y="198">Engine resolution:</text>
+  <text class="body" x="496" y="221">EngineAssociation registry lookup wins</text>
+  <text class="body" x="496" y="242">over inherited fallback; explicit override</text>
+  <text class="body" x="496" y="263">remains available.</text>
+  <text class="body" x="478" y="301">Asset lifetime:</text>
+  <text class="body" x="496" y="324">UPROPERTY(Transient) roots AbilityInfoMap</text>
+  <text class="body" x="496" y="345">inside the rooted runtime registry.</text>
+  <text class="body" x="478" y="376">Runtime test:</text>
+  <text class="body" x="568" y="376">GetNumberOfSampledKeys()</text>
+
+  <path class="arrow" d="M 824 255 L 880 255" />
+  <rect class="good" x="880" y="125" width="350" height="265" rx="14" />
+  <text class="head" x="904" y="160">Verified result</text>
+  <text class="body" x="904" y="198">C:\Git\UE_5.5\UnrealEditor.exe</text>
+  <text class="body" x="904" y="222">loads compatible Aura modules.</text>
+  <text class="body" x="904" y="259">Fresh persistence namespace</text>
+  <text class="body" x="904" y="282">reaches WorldReadiness=Ready.</text>
+  <text class="body" x="904" y="319">Client welcomed into StartupMap;</text>
+  <text class="body" x="904" y="342">AutoRunMap produces behavior activity.</text>
+  <text class="body" x="904" y="379">No crash/block signatures after 120+s.</text>
+
+  <text class="head" x="48" y="455">Evidence chain</text>
+  <rect class="pill" x="48" y="480" width="270" height="120" rx="12" />
+  <text class="body" x="68" y="514">Build</text>
+  <text class="small" x="68" y="540">Aura Win64 Development</text>
+  <text class="small" x="68" y="561">AuraEditor Win64 Development</text>
+  <text class="small" x="68" y="582">both exit 0; editor DLL linked</text>
+
+  <path class="arrow" d="M 318 540 L 360 540" />
+  <rect class="pill" x="360" y="480" width="270" height="120" rx="12" />
+  <text class="body" x="380" y="514">Automation</text>
+  <text class="small" x="380" y="540">RuntimeBoundary: 1/1</text>
+  <text class="small" x="380" y="561">RoleLoginFlowContract: 1/1</text>
+  <text class="small" x="380" y="582">0 failures / 0 warnings</text>
+
+  <path class="arrow" d="M 630 540 L 672 540" />
+  <rect class="pill" x="672" y="480" width="270" height="120" rx="12" />
+  <text class="body" x="692" y="514">Live NullRHI</text>
+  <text class="small" x="692" y="540">role=Aura · stress enabled</text>
+  <text class="small" x="692" y="561">StartupMap · 460 behavior lines</text>
+  <text class="small" x="692" y="582">client alive beyond crash window</text>
+
+  <path class="arrow" d="M 942 540 L 984 540" />
+  <rect class="pill" x="984" y="480" width="246" height="120" rx="12" />
+  <text class="body" x="1004" y="514">Recorded</text>
+  <text class="small" x="1004" y="540">archive SVG + Markdown</text>
+  <text class="small" x="1004" y="561">validation packet</text>
+  <text class="small" x="1004" y="582">diff check clean</text>
+
+  <rect class="fix" x="48" y="655" width="1182" height="105" rx="14" />
+  <text class="head" x="72" y="690">Operational note</text>
+  <text class="body" x="72" y="718">The default AuraCampaignMain save namespace still contains invalid manifest references and correctly fails closed.</text>
+  <text class="body" x="72" y="741">The live proof used isolated WorldPersistenceId=NullRHI_GCFix_0907; no existing save data was deleted or overwritten.</text>
+</svg>

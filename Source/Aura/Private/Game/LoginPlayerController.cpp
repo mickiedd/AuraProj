@@ -121,6 +121,7 @@ void ALoginPlayerController::EnsureLoginWebUIWidget()
 	}
 
 	LoginWebUIWidget->HtmlAssetPath = TEXT("WebUI/login.html");
+	LoginWebUIWidget->SetIsFocusable(true);
 	if (UWorld* World = GetWorld())
 	{
 		if (UWebUIBridgeSubsystem* Bridge = World->GetSubsystem<UWebUIBridgeSubsystem>())
@@ -435,7 +436,7 @@ void ALoginPlayerController::SurfacePendingServerLostMessage()
 
 	// Show it in the Login page status region; the level selector remains usable.
 	ShowLoginMenuStatusMessage(Message);
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Surfacing mid-game server-lost message on Login screen: %s"), *Message);
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] Surfacing connection failure on Login screen: %s"), *Message);
 }
 
 void ALoginPlayerController::HandleServerTravelStatusMessage(const FString& InMessage)
@@ -564,7 +565,7 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 				UE_LOG(LogTemp, Display, TEXT("[LoginConn] GSM callback: success -> endpoint=%s player='%s'"),
 					*Endpoint, *ResolvedPlayerName);
 			}
-			else if (!FallbackEndpoint.IsEmpty())
+			else if (!Response.bReceivedManagerResponse && !FallbackEndpoint.IsEmpty())
 			{
 				Endpoint = FallbackEndpoint;
 				UE_LOG(LogTemp, Warning, TEXT("[LoginConn] GSM callback: failed (%s), using fallback endpoint=%s"),
@@ -572,8 +573,9 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("[LoginConn] GSM callback: failed with no fallback — %s"), *Response.ErrorMessage);
+				UE_LOG(LogTemp, Error, TEXT("[LoginConn] GSM callback: request failed; aborting travel — %s"), *Response.ErrorMessage);
 				ResolvedGI->ClearPendingCrossServerTravel();
+				ResolvedGI->PendingServerLostMessage = Response.ErrorMessage;
 				ResolvedGI->OnCrossServerTravelFailed.Broadcast(Response.ErrorMessage);
 				return;
 			}
@@ -948,6 +950,40 @@ void ALoginPlayerController::TryAutoLoginFromCommandLine()
 	}
 
 	bAutoLoginDispatched = true;
+	UAuraGameInstance* AutoLoginGI = GetGameInstance<UAuraGameInstance>();
+	if (!AutoLoginGI || AutoLoginGI->bCommandLineAutoLoginAttempted) return;
+	AutoLoginGI->bCommandLineAutoLoginAttempted = true;
+
+	// Resolve and validate the role before replaying the menu sequence.  The editor NullRHI
+	// launcher passes -AutoLoginRole=<stable role id>; when a script omits it, retain the same
+	// save/default-role fallback as the normal Login UI.  In both cases the selected role is
+	// forwarded through GameInstance and the Loading travel URL for server-side revalidation.
+	FString RequestedRoleId;
+	if (FParse::Value(CmdLine, TEXT("AutoLoginRole="), RequestedRoleId))
+	{
+		RequestedRoleId.TrimStartAndEndInline();
+		FString ExplicitRoleError;
+		if (RequestedRoleId.IsEmpty() || !SelectLoginRole(RequestedRoleId, ExplicitRoleError))
+		{
+			const FString ErrorMessage = ExplicitRoleError.IsEmpty()
+				? TEXT("Select a valid player role before launching the NullRHI client.")
+				: ExplicitRoleError;
+			UpdateConnectingStatus(ErrorMessage);
+			UE_LOG(LogTemp, Error, TEXT("[LoginConn] AutoLogin: explicit role validation failed: %s"), *ErrorMessage);
+			return;
+		}
+	}
+
+	FString RoleError;
+	const FName ResolvedRole = ResolveRequestedRole(RoleError);
+	if (ResolvedRole.IsNone())
+	{
+		UpdateConnectingStatus(RoleError);
+		UE_LOG(LogTemp, Error, TEXT("[LoginConn] AutoLogin: role resolution failed: %s"), *RoleError);
+		return;
+	}
+	const FString ResolvedRoleId = ResolvedRole.ToString();
+	SelectedRoleId = ResolvedRoleId;
 
 	// Optional command-line overrides, applied after LoadServerConnectionFromJson() so they win.
 	FString OverrideHost;
@@ -1001,27 +1037,27 @@ void ALoginPlayerController::TryAutoLoginFromCommandLine()
 
 	const int32 FallbackPort = (OverrideFallbackPort >= 1 && OverrideFallbackPort <= 65535) ? OverrideFallbackPort : LevelConfigPort;
 
-	UE_LOG(LogTemp, Display, TEXT("[LoginConn] AutoLogin: level '%s' -> displayName='%s' map='%s' fallbackPort=%d (delay=%.2fs)"),
-		*RequestedLevelId, *DisplayName, *MapPath, FallbackPort, AutoLoginDelay);
+	UE_LOG(LogTemp, Display, TEXT("[LoginConn] AutoLogin: role='%s' level '%s' -> displayName='%s' map='%s' fallbackPort=%d (delay=%.2fs)"),
+		*ResolvedRoleId, *RequestedLevelId, *DisplayName, *MapPath, FallbackPort, AutoLoginDelay);
 
 	// Replay the exact menu sequence: register the selection now, then connect after a short
 	// delay so the world/widget are settled before ClientTravel fires to the Loading level.
-	HandleLoginMenuSelectionChanged(DisplayName, RequestedLevelId, FallbackPort);
+	HandleLoginMenuSelectionChanged(DisplayName, RequestedLevelId, FallbackPort, ResolvedRoleId);
 
 	if (UWorld* World = GetWorld())
 	{
 		FTimerHandle AutoLoginTimer;
 		FTimerDelegate AutoLoginDelegate;
 		AutoLoginDelegate.BindWeakLambda(this,
-			[this, DisplayName, RequestedLevelId, FallbackPort]()
+			[this, DisplayName, RequestedLevelId, FallbackPort, ResolvedRoleId]()
 			{
-				RequestLoginMenuConnect(DisplayName, RequestedLevelId, FallbackPort);
+				RequestLoginMenuConnect(DisplayName, RequestedLevelId, FallbackPort, ResolvedRoleId);
 			});
 		World->GetTimerManager().SetTimer(AutoLoginTimer, AutoLoginDelegate, AutoLoginDelay, false);
 	}
 	else
 	{
-		RequestLoginMenuConnect(DisplayName, RequestedLevelId, FallbackPort);
+		RequestLoginMenuConnect(DisplayName, RequestedLevelId, FallbackPort, ResolvedRoleId);
 	}
 }
 

@@ -39,6 +39,7 @@ public:
 	 * @param SelectedDisplayName  Human-readable level name.
 	 * @param SelectedLevelId      Level id string (from LevelConfig.json "id" field).
 	 * @param FallbackPort         Port from LevelConfig used if the game server is unreachable.
+	 * @param InSelectedRoleId     Stable player-selectable role id from RoleConfig.json.
 	 */
 	void HandleLoginMenuSelectionChanged(const FString& SelectedDisplayName, const FString& SelectedLevelId, int32 FallbackPort, const FString& InSelectedRoleId = FString());
 
@@ -150,7 +151,8 @@ protected:
 
 	/**
 	 * Headless / scripted launch path.  When -AutoLoginLevel=<levelId> is on the command line
-	 * (e.g. from RunClientNullRHI.bat in -nullrhi mode), this replays the exact menu sequence —
+	 * (e.g. from RunClientNullRHI.bat in -nullrhi mode), -AutoLoginRole=<roleId> is validated
+	 * and this replays the exact menu sequence —
 	 * HandleLoginMenuSelectionChanged then a delayed RequestLoginMenuConnect — so the client
 	 * drives the full Login -> Loading -> cross-server travel -> battleground flow without a
 	 * human clicking the Login Web UI.  Inert when the flag is absent: the normal Web UI

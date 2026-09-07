@@ -20,6 +20,9 @@ struct AURA_API FGameServerResponse
 	UPROPERTY(BlueprintReadOnly, Category = "GameServer")
 	bool bSuccess = false;
 
+	/** A parsed manager response is authoritative, including a startup rejection. */
+	bool bReceivedManagerResponse = false;
+
 	/** Hostname or IP of the dedicated server (valid when bSuccess is true). */
 	UPROPERTY(BlueprintReadOnly, Category = "GameServer")
 	FString Host;

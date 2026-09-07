@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="730" viewBox="0 0 1200 730">
+<rect width="1200" height="730" fill="#101827"/>
+<g font-family="Segoe UI,Arial,sans-serif" fill="#edf4ff">
+<text x="42" y="55" font-size="30" font-weight="700">PIE connection diagnosis and deadline repair</text>
+<text x="42" y="86" font-size="17" fill="#b7c8e0">September 7, 2026 • exact editor viewport tested • campaign recovery awaits approval</text>
+<rect x="35" y="115" width="1130" height="155" rx="15" fill="#342333" stroke="#f27889"/>
+<text x="57" y="150" font-size="22" font-weight="700">BEFORE: timeout hides a failed world restore</text>
+<text x="57" y="183" font-size="19">PIE Login → manager may wait 12 + 32 seconds → client times out at 35 seconds</text>
+<text x="57" y="215" font-size="19">Fallback to port 7790 → PreLogin rejected: world checksum mismatch → Login</text>
+<text x="57" y="245" font-size="17" fill="#ffc1ca">Both campaign manifests reference damaged G179. Running process does not mean a healthy world.</text>
+<rect x="35" y="290" width="1130" height="157" rx="15" fill="#183449" stroke="#65baff"/>
+<text x="57" y="325" font-size="22" font-weight="700">AFTER: bounded launch + authenticated readiness wait</text>
+<text x="57" y="359" font-size="19">PIE Login → manager shares a 30-second budget across launch and world readiness</text>
+<text x="57" y="392" font-size="19">Unhealthy world → explicit manager error → visible PIE Login error, no fallback</text>
+<text x="57" y="423" font-size="17" fill="#b9dfff">Healthy world → authenticated server_ready → endpoint → client joins StartupMap</text>
+<rect x="35" y="467" width="550" height="220" rx="15" fill="#173b33" stroke="#67d8ae"/>
+<text x="57" y="505" font-size="22" font-weight="700">VERIFIED</text>
+<text x="57" y="541" font-size="18">4 TCP deadline regressions + routing checks pass</text>
+<text x="57" y="573" font-size="18">Live PIE error response: 30.000 seconds</text>
+<text x="57" y="605" font-size="18">Separate test campaign: ready in 12.015 seconds</text>
+<text x="57" y="637" font-size="18">Join succeeded: mickie; visible pawn and HUD</text>
+<text x="57" y="669" font-size="16" fill="#b4ead8">Screenshots and paired logs archived with the report.</text>
+<rect x="605" y="467" width="560" height="220" rx="15" fill="#3e3421" stroke="#e6bb64"/>
+<text x="627" y="505" font-size="22" font-weight="700">PENDING: ORIGINAL CAMPAIGN RECOVERY</text>
+<text x="627" y="541" font-size="18">G139 passed a fresh Unreal runtime audit</text>
+<text x="627" y="573" font-size="18">Proposed manifest preserves 43 profile references</text>
+<text x="627" y="605" font-size="18">949 original saves backed up and unchanged</text>
+<text x="627" y="637" font-size="18">Rollback to Sep 6, 23:02 requires user choice</text>
+<text x="627" y="669" font-size="16" fill="#f6dba8">Isolated PIE success is not original campaign recovery.</text>
+</g></svg>

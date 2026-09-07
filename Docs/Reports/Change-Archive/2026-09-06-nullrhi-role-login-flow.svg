@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">NullRHI role-aware Login flow</title>
+  <desc id="desc">Before and after flow for the AuraEditor NullRHI client launcher, showing selectable role validation, batch forwarding, Login auto-login, Loading travel, and server authority.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#16233b"/>
+    </linearGradient>
+    <linearGradient id="before" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3b1f2b"/>
+      <stop offset="1" stop-color="#51242d"/>
+    </linearGradient>
+    <linearGradient id="after" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#123b45"/>
+      <stop offset="1" stop-color="#145448"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#91a8c7"/>
+    </marker>
+    <style>
+      .title { fill:#f5f8ff; font:700 30px 'Segoe UI',Arial,sans-serif; }
+      .subtitle { fill:#aabbd4; font:400 16px 'Segoe UI',Arial,sans-serif; }
+      .section { fill:#f5f8ff; font:700 21px 'Segoe UI',Arial,sans-serif; }
+      .label { fill:#f5f8ff; font:700 15px 'Segoe UI',Arial,sans-serif; }
+      .body { fill:#d6e2f4; font:400 14px 'Segoe UI',Arial,sans-serif; }
+      .small { fill:#aabbd4; font:400 13px 'Segoe UI',Arial,sans-serif; }
+      .bad { fill:#ffb4bd; font:700 14px 'Segoe UI',Arial,sans-serif; }
+      .good { fill:#8df0bf; font:700 14px 'Segoe UI',Arial,sans-serif; }
+      .node { stroke:#557092; stroke-width:1.5; rx:12; }
+      .arrow { stroke:#91a8c7; stroke-width:2.4; fill:none; marker-end:url(#arrow); }
+      .dash { stroke-dasharray:7 6; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="900" fill="url(#bg)"/>
+  <text x="56" y="58" class="title">Aura NullRHI Client — role-aware Login flow</text>
+  <text x="56" y="88" class="subtitle">The editor now selects only configured player roles and carries the stable role ID through the existing server-authoritative travel contract.</text>
+
+  <rect x="45" y="120" width="630" height="560" rx="18" fill="#1b1823" stroke="#75404a" stroke-width="2"/>
+  <text x="72" y="158" class="section">Before — level-only headless launch</text>
+  <rect x="72" y="184" width="250" height="72" class="node" fill="url(#before)"/>
+  <text x="92" y="213" class="label">AuraEditor submenu</text>
+  <text x="92" y="237" class="body">Level entries + stress checkbox</text>
+  <path d="M322 220 H365" class="arrow"/>
+  <rect x="365" y="184" width="250" height="72" class="node" fill="url(#before)"/>
+  <text x="385" y="213" class="label">RunClientNullRHI.bat</text>
+  <text x="385" y="237" class="body">-AutoLoginLevel only</text>
+
+  <rect x="150" y="306" width="430" height="72" class="node" fill="#2a2630"/>
+  <text x="170" y="335" class="label">TryAutoLoginFromCommandLine</text>
+  <text x="170" y="359" class="body">No explicit role argument is parsed</text>
+  <path d="M490 256 V306" class="arrow"/>
+  <rect x="150" y="428" width="430" height="72" class="node" fill="#2a2630"/>
+  <text x="170" y="457" class="label">Menu replay / connect</text>
+  <text x="170" y="481" class="body">Level forwarded; role uses save/default fallback</text>
+  <path d="M365 378 V428" class="arrow"/>
+  <rect x="150" y="550" width="430" height="72" class="node" fill="#3d2029" stroke="#a25460"/>
+  <text x="170" y="579" class="bad">Gap: cannot choose Crunch/Civilian from NullRHI menu</text>
+  <text x="170" y="603" class="body">No explicit role-login proof for the selected test client</text>
+  <path d="M365 500 V550" class="arrow"/>
+
+  <rect x="725" y="120" width="630" height="560" rx="18" fill="#11242b" stroke="#348c78" stroke-width="2"/>
+  <text x="752" y="158" class="section">After — validated role + level launch</text>
+  <rect x="752" y="184" width="260" height="72" class="node" fill="url(#after)"/>
+  <text x="772" y="213" class="label">RoleConfig.json</text>
+  <text x="772" y="237" class="body">Selectable-role validator</text>
+  <path d="M1012 220 H1055" class="arrow"/>
+  <rect x="1055" y="184" width="260" height="72" class="node" fill="url(#after)"/>
+  <text x="1075" y="213" class="label">NullRHI combo list</text>
+  <text x="1075" y="237" class="body">Aura · Crunch · Civilian</text>
+
+  <rect x="790" y="306" width="500" height="72" class="node" fill="#17433d"/>
+  <text x="810" y="335" class="label">RunClientNullRHI.bat</text>
+  <text x="810" y="359" class="body">-AutoLoginLevel + -AutoLoginRole</text>
+  <path d="M1185 256 V306" class="arrow"/>
+  <rect x="790" y="428" width="500" height="72" class="node" fill="#17433d"/>
+  <text x="810" y="457" class="label">Login auto-login</text>
+  <text x="810" y="481" class="body">Validate role → replay selection + connect</text>
+  <path d="M1040 378 V428" class="arrow"/>
+  <rect x="790" y="550" width="500" height="72" class="node" fill="#17433d"/>
+  <text x="810" y="579" class="label">GameInstance → Loading → server</text>
+  <text x="810" y="603" class="body">Pending role → ?Role=StableRoleId → server revalidates</text>
+  <path d="M1040 500 V550" class="arrow"/>
+  <text x="752" y="650" class="good">Guard: invalid / unconfigured roles never reach launch</text>
+
+  <rect x="45" y="720" width="1310" height="130" rx="16" fill="#0e1727" stroke="#3c5579"/>
+  <text x="72" y="754" class="section">Validation evidence</text>
+  <text x="72" y="786" class="body">✓ AuraEditor Win64 Development build passed after adding InputCore for Slate EKeys</text>
+  <text x="72" y="810" class="body">✓ Aura.RoleBattle.NullRhi.RoleLoginFlowContract: 1/1 passed · batch help and source contracts passed · git diff --check passed</text>
+  <text x="72" y="834" class="small">Live multi-process GSM/dedicated-server execution was not run in this change; the required in-app external review timed out before any content was sent.</text>
+</svg>

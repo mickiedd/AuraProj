@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L11,4 z" fill="#4a5568"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="500" fill="#f7fafc"/>
+  <text x="40" y="48" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="#1a202c">Implementation validation handoff update</text>
+
+  <rect x="40" y="95" width="310" height="190" rx="16" fill="#fed7d7" stroke="#c53030" stroke-width="2"/>
+  <text x="68" y="135" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#742a2a">Before</text>
+  <text x="68" y="170" font-family="Arial, sans-serif" font-size="16" fill="#742a2a">Completed implementation</text>
+  <text x="68" y="198" font-family="Arial, sans-serif" font-size="16" fill="#742a2a">→ ask Google AI Studio</text>
+  <text x="68" y="226" font-family="Arial, sans-serif" font-size="16" fill="#742a2a">→ return external validation</text>
+  <text x="68" y="262" font-family="Arial, sans-serif" font-size="13" fill="#742a2a">Browser and transmission dependent</text>
+
+  <path d="M370 190 H445" stroke="#4a5568" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="465" y="95" width="310" height="190" rx="16" fill="#bee3f8" stroke="#2b6cb0" stroke-width="2"/>
+  <text x="493" y="135" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#2a4365">Updated skill</text>
+  <text x="493" y="170" font-family="Arial, sans-serif" font-size="16" fill="#2a4365">Inventory the full change set</text>
+  <text x="493" y="198" font-family="Arial, sans-serif" font-size="16" fill="#2a4365">Capture relevant code/scripts</text>
+  <text x="493" y="226" font-family="Arial, sans-serif" font-size="16" fill="#2a4365">Record tests, gaps, and questions</text>
+  <text x="493" y="262" font-family="Arial, sans-serif" font-size="13" fill="#2a4365">Local evidence bundle; legacy ID retained</text>
+
+  <path d="M795 190 H870" stroke="#4a5568" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="890" y="95" width="270" height="190" rx="16" fill="#c6f6d5" stroke="#2f855a" stroke-width="2"/>
+  <text x="918" y="135" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#22543d">After</text>
+  <text x="918" y="170" font-family="Arial, sans-serif" font-size="16" fill="#22543d">implementation-</text>
+  <text x="918" y="198" font-family="Arial, sans-serif" font-size="16" fill="#22543d">validation-packet.md</text>
+  <text x="918" y="226" font-family="Arial, sans-serif" font-size="16" fill="#22543d">→ independent reviewer</text>
+  <text x="918" y="262" font-family="Arial, sans-serif" font-size="13" fill="#22543d">No automatic external transmission</text>
+
+  <rect x="40" y="345" width="1120" height="92" rx="14" fill="#edf2f7" stroke="#718096" stroke-width="2"/>
+  <text x="68" y="380" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3748">Packet contents</text>
+  <text x="68" y="407" font-family="Arial, sans-serif" font-size="15" fill="#2d3748">changed files • relevant code/scripts • assets/config/docs • commands/results • before/after • risks and review questions</text>
+</svg>

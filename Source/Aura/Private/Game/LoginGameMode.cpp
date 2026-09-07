@@ -5,6 +5,7 @@
 
 ALoginGameMode::ALoginGameMode()
 {
+	bEnableAuthorityWorldPersistence = false;
 	// Set the player controller class for this game mode
 	PlayerControllerClass = ALoginPlayerController::StaticClass();
 }

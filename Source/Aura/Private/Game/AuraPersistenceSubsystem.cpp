@@ -20,6 +20,7 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
+#include "HAL/CriticalSection.h"
 #include "Player/AuraPlayerState.h"
 #include "OnlineSubsystemTypes.h"
 #include "UObject/UObjectGlobals.h"
@@ -440,7 +441,8 @@ bool UAuraPersistenceSubsystem::SavePlayerProfileRecord(AAuraPlayerState* Player
 	Save->InventoryRevision = PlayerState->GetInventoryComponent()->GetRevision();
 	CaptureAbilityState(*Save, AbilitySystemComponent);
 	if (!ValidatePlayerSaveRecord(*Save, PlayerState->GetProfileIdentity(), ExpectedProviderName, Error)) return false;
-	const FString Slot = FString::Printf(TEXT("%s_G%d"), *PlayerState->GetProfileIdentity().BuildSlotName(WorldPersistenceId), Save->RecordGeneration);
+	const FString Slot = FString::Printf(TEXT("%s_G%d_%s"), *PlayerState->GetProfileIdentity().BuildSlotName(WorldPersistenceId),
+		Save->RecordGeneration, *FGuid::NewGuid().ToString(EGuidFormats::Digits));
 	if (!UGameplayStatics::SaveGameToSlot(Save, Slot, 0)) { Error = TEXT("Player record write failed."); return false; }
 	UAuraPlayerSaveGame* Verify = Cast<UAuraPlayerSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
 	if (!Verify || !ValidatePlayerSaveRecord(*Verify, PlayerState->GetProfileIdentity(), ExpectedProviderName, Error))
@@ -622,6 +624,10 @@ bool UAuraPersistenceSubsystem::LoadWorldState(const FString& MapName, FString& 
 			break;
 		}
 		bSawInvalidWorldRecord = true;
+		UE_LOG(LogAura, Warning, TEXT("[Persistence][World] Rejected record=%s loaded=%d expectedChecksum=%s actualChecksum=%s validation=%s"),
+			*Candidate.Manifest->WorldRecord.RecordSlot, WorldSave != nullptr,
+			*Candidate.Manifest->WorldRecord.Checksum,
+			*(WorldSave ? ComputeWorldSaveChecksum(*WorldSave) : TEXT("missing")), *WorldError);
 		UE_LOG(LogAura, Warning, TEXT("[Persistence][World] Ignoring manifest slot=%s because its referenced world record is torn, corrupt, or invalid; trying the prior manifest."),
 			*Candidate.Slot);
 	}
@@ -638,7 +644,7 @@ bool UAuraPersistenceSubsystem::LoadWorldState(const FString& MapName, FString& 
 	if (!SelectedManifest || !SelectedWorldSave)
 	{
 		WorldGeneration = SelectedManifest ? SelectedManifest->Generation : 0;
-		ActiveManifestGeneration = WorldGeneration;
+		ActiveManifestGeneration = Candidates.IsEmpty() ? WorldGeneration : Candidates[0].Manifest->Generation;
 		ActiveManifestSlot = SelectedManifestSlot;
 		WorldManifestRecord = FAuraPersistenceManifestRecord();
 		PlayerManifestRecords.Reset();
@@ -658,7 +664,9 @@ bool UAuraPersistenceSubsystem::LoadWorldState(const FString& MapName, FString& 
 	LoadedPopulationSnapshot = SelectedWorldSave->PopulationSlots;
 	LoadedMerchantStocks = SelectedWorldSave->Merchants;
 	WorldGeneration = SelectedWorldSave->RecordGeneration;
-	ActiveManifestGeneration = SelectedManifest->Generation;
+	// Preserve the observed publication high-water mark even when recovering an older
+	// world record, so the next commit can safely replace the rejected newer record.
+	ActiveManifestGeneration = Candidates.IsEmpty() ? SelectedManifest->Generation : Candidates[0].Manifest->Generation;
 	ActiveManifestSlot = SelectedManifestSlot;
 	WorldManifestRecord = SelectedManifest->WorldRecord;
 	PlayerManifestRecords.Reset();
@@ -762,6 +770,25 @@ bool UAuraPersistenceSubsystem::ValidateManifest(const UAuraPersistenceManifestS
 
 bool UAuraPersistenceSubsystem::WriteManifest(int32 Generation, FString& OutError)
 {
+	// Records are immutable; serialize publication and reject a writer whose snapshot
+	// predates another process's commit instead of replacing that process's manifest.
+	FSystemWideCriticalSection CommitLock(FString::Printf(TEXT("AuraPersistence_%08X"), FCrc::StrCrc32(*WorldPersistenceId)));
+	if (!CommitLock.IsValid())
+	{
+		OutError = TEXT("Another process is committing this campaign; checkpoint was not published.");
+		return false;
+	}
+	for (const FString& ExistingSlot : { BuildManifestSlot(true), BuildManifestSlot(false) })
+	{
+		UAuraPersistenceManifestSaveGame* Existing = nullptr;
+		FString ValidationError;
+		if (LoadManifestCandidate(ExistingSlot, Existing) && Existing && ValidateManifest(*Existing, ValidationError)
+			&& Existing->Generation > ActiveManifestGeneration)
+		{
+			OutError = TEXT("Campaign changed in another authority process; restart this server to reload before saving.");
+			return false;
+		}
+	}
 	UAuraPersistenceManifestSaveGame* Manifest = Cast<UAuraPersistenceManifestSaveGame>(UGameplayStatics::CreateSaveGameObject(UAuraPersistenceManifestSaveGame::StaticClass()));
 	if (!Manifest) { OutError = TEXT("Could not create manifest object."); return false; }
 	Manifest->SaveSchemaVersion = UAuraPersistenceManifestSaveGame::CurrentSchemaVersion;
@@ -771,6 +798,9 @@ bool UAuraPersistenceSubsystem::WriteManifest(int32 Generation, FString& OutErro
 	PlayerManifestRecords.GenerateValueArray(Manifest->PlayerRecords);
 	Manifest->PlayerRecords.Sort([](const FAuraPersistenceManifestRecord& A, const FAuraPersistenceManifestRecord& B) { return A.IdentityKey < B.IdentityKey; });
 	Manifest->Checksum = ComputeManifestChecksum(*Manifest);
+	// Publish only to the inactive A/B slot.  The currently active manifest is
+	// never overwritten, so a torn or interrupted publication always leaves one
+	// previously valid manifest for LoadWorldState to select.
 	const FString Slot = ActiveManifestSlot == BuildManifestSlot(true) ? BuildManifestSlot(false) : BuildManifestSlot(true);
 	if (!UGameplayStatics::SaveGameToSlot(Manifest, Slot, 0)) { OutError = TEXT("Manifest write failed after durable record verification."); return false; }
 	UAuraPersistenceManifestSaveGame* Verify = Cast<UAuraPersistenceManifestSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
@@ -782,7 +812,8 @@ bool UAuraPersistenceSubsystem::WriteManifest(int32 Generation, FString& OutErro
 
 FString UAuraPersistenceSubsystem::BuildWorldRecordSlot(int32 Generation) const
 {
-	return FString::Printf(TEXT("AuraWorld_%08X_G%d"), FCrc::StrCrc32(*WorldPersistenceId), Generation);
+	return FString::Printf(TEXT("AuraWorld_%08X_G%d_%s"), FCrc::StrCrc32(*WorldPersistenceId), Generation,
+		*FGuid::NewGuid().ToString(EGuidFormats::Digits));
 }
 
 FString UAuraPersistenceSubsystem::BuildManifestSlot(bool bUseA) const

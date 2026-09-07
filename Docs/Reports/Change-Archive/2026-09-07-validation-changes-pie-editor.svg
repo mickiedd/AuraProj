@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820">
+  <defs>
+    <style>
+      text{font-family:Segoe UI,Arial,sans-serif;fill:#e8eef8}
+      .title{font-size:30px;font-weight:700}.subtitle{font-size:17px;fill:#aabbd4}
+      .head{font-size:21px;font-weight:700}.body{font-size:17px}.small{font-size:15px;fill:#b8c7dc}
+      .box{fill:#16263d;stroke:#4a6385;stroke-width:2}.good{fill:#123c3d;stroke:#56d4bf;stroke-width:2}
+      .warn{fill:#3b2e1d;stroke:#f0b45d;stroke-width:2}.arrow{stroke:#a6b9d3;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a6b9d3"/></marker>
+  </defs>
+  <rect width="1280" height="820" fill="#0b1422"/>
+  <text x="60" y="64" class="title">PIE editor validation — Login to dedicated server</text>
+  <text x="60" y="96" class="subtitle">Fresh Unreal Editor Play In Editor run on 2026-09-07</text>
+
+  <rect x="60" y="145" width="330" height="190" rx="14" class="box"/>
+  <text x="84" y="185" class="head">1. PIE Login</text>
+  <text x="84" y="220" class="body">Role: Aura</text>
+  <text x="84" y="248" class="body">Server: Role Battle Civilian Test</text>
+  <text x="84" y="276" class="body">Connect button visible</text>
+  <text x="84" y="310" class="small">Editor Outliner: Login (Play In Editor)</text>
+
+  <path d="M390 240 L455 240" class="arrow"/>
+
+  <rect x="455" y="145" width="330" height="190" rx="14" class="box"/>
+  <text x="479" y="185" class="head">2. PIE Loading</text>
+  <text x="479" y="220" class="body">Preparing your world</text>
+  <text x="479" y="248" class="body">Resolving game server…</text>
+  <text x="479" y="276" class="body">Progress reached 30%</text>
+  <text x="479" y="310" class="small">Loading (Play In Editor)</text>
+
+  <path d="M785 240 L850 240" class="arrow"/>
+
+  <rect x="850" y="145" width="370" height="190" rx="14" class="good"/>
+  <text x="874" y="185" class="head">3. GSM success</text>
+  <text x="874" y="220" class="body">Manager launched isolated DS</text>
+  <text x="874" y="248" class="body">127.0.0.1:7790 ready in 8.6s</text>
+  <text x="874" y="276" class="body">Client received server welcome</text>
+  <text x="874" y="310" class="small">WorldPersistenceId isolated from campaign saves</text>
+
+  <rect x="60" y="410" width="560" height="260" rx="14" class="good"/>
+  <text x="84" y="450" class="head">4. PIE gameplay viewport</text>
+  <text x="84" y="486" class="body">Aura pawn possessed as player “mickie”</text>
+  <text x="84" y="514" class="body">Combat identity HUD visible</text>
+  <text x="84" y="542" class="body">Health, mana, spell bar, Bag/Location/Quit controls visible</text>
+  <text x="84" y="580" class="small">Captured: pie-success-gameplay.png</text>
+  <text x="84" y="612" class="small">Log: Welcomed by server; LoadMap 127.0.0.1:7790</text>
+
+  <rect x="660" y="410" width="560" height="260" rx="14" class="warn"/>
+  <text x="684" y="450" class="head">5. Fail-closed control</text>
+  <text x="684" y="486" class="body">Production AuraCampaignMain remains unhealthy</text>
+  <text x="684" y="514" class="body">PIE surfaced the exact manifest/world-record error</text>
+  <text x="684" y="542" class="body">and returned to Login instead of looping</text>
+  <text x="684" y="580" class="small">Captured: pie-error-clean.png</text>
+  <text x="684" y="612" class="small">Original LevelConfig restored byte-for-byte</text>
+
+  <text x="60" y="748" class="subtitle">Evidence: PIE screenshots, Aura.log, pie-manager-isolated.stderr.log, and isolated DS log.</text>
+  <text x="60" y="780" class="subtitle">Result: PIE Login → Loading → dedicated-server gameplay works on the isolated healthy namespace.</text>
+</svg>

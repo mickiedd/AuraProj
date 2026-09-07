@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">NullRHI independent-review remediation</title>
+  <desc id="desc">Three review findings flow into targeted code and test changes, then into build, automation, launcher-matrix, and diff validation gates.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#17263d"/>
+    </linearGradient>
+    <style>
+      .bg { fill: url(#bg); }
+      .panel { stroke-width: 2; rx: 16; }
+      .finding { fill: #3b2530; stroke: #e57e92; }
+      .fix { fill: #173c3c; stroke: #67d5b5; }
+      .gate { fill: #213252; stroke: #8db4ff; }
+      .title { fill: #f4f7ff; font: 700 30px Arial, sans-serif; }
+      .subtitle { fill: #b6c5df; font: 16px Arial, sans-serif; }
+      .head { fill: #ffffff; font: 700 20px Arial, sans-serif; }
+      .body { fill: #edf3ff; font: 16px Arial, sans-serif; }
+      .small { fill: #c5d4ed; font: 14px Arial, sans-serif; }
+      .pass { fill: #9af0cb; font: 700 15px Arial, sans-serif; }
+      .arrow { stroke: #a9bad8; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#a9bad8"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1400" height="900"/>
+  <text class="title" x="48" y="56">NullRHI independent-review remediation</text>
+  <text class="subtitle" x="48" y="84">2026-09-07 · confirmed findings applied with persistence and mixed-worktree boundaries preserved</text>
+
+  <rect class="panel finding" x="48" y="130" width="380" height="430"/>
+  <text class="head" x="76" y="170">Review findings confirmed</text>
+  <text class="body" x="76" y="214">F1 · Tornado assertion drift</text>
+  <text class="small" x="96" y="240">Sampled-key count was weaker than the</text>
+  <text class="small" x="96" y="262">original authored bone-track contract.</text>
+  <text class="body" x="76" y="310">F2 · GC test was indirect</text>
+  <text class="small" x="96" y="336">Reflection guard did not force collection</text>
+  <text class="small" x="96" y="358">before reading JSON-resolved assets.</text>
+  <text class="body" x="76" y="406">F3 · Launcher branches lacked coverage</text>
+  <text class="small" x="96" y="432">Precedence design was right, but explicit,</text>
+  <text class="small" x="96" y="454">associated, fallback, and fail-closed paths</text>
+  <text class="small" x="96" y="476">were not independently exercised.</text>
+  <text class="small" x="76" y="526">Separate: corrupt default persistence remains</text>
+  <text class="small" x="76" y="548">fail-closed and was not bypassed.</text>
+
+  <path class="arrow" d="M 428 345 L 490 345"/>
+
+  <rect class="panel fix" x="490" y="130" width="420" height="430"/>
+  <text class="head" x="518" y="170">Targeted remediation</text>
+  <text class="body" x="518" y="214">Runtime animation contract</text>
+  <text class="small" x="538" y="240">CompressedTrackToSkeletonMapTable</text>
+  <text class="small" x="538" y="262">plus valid skeleton bone-index checks.</text>
+  <text class="body" x="518" y="310">Runtime metadata lifetime</text>
+  <text class="small" x="538" y="336">Production JSON loader → strong registry</text>
+  <text class="small" x="538" y="358">→ forced GC → icon/material path access.</text>
+  <text class="body" x="518" y="406">Launcher resolution coverage</text>
+  <text class="small" x="538" y="432">-dry-run suppresses process launch.</text>
+  <text class="small" x="538" y="454">Static invalid-association fixture drives</text>
+  <text class="small" x="538" y="476">the environment fallback and failure cases.</text>
+  <text class="pass" x="518" y="526">Six-case precedence matrix added</text>
+
+  <path class="arrow" d="M 910 345 L 972 345"/>
+
+  <rect class="panel gate" x="972" y="130" width="380" height="430"/>
+  <text class="head" x="1000" y="170">Completion gates</text>
+  <text class="pass" x="1000" y="216">PASS · Aura build</text>
+  <text class="pass" x="1000" y="250">PASS · AuraEditor build</text>
+  <text class="pass" x="1000" y="284">PASS · forced-GC automation 1/1</text>
+  <text class="pass" x="1000" y="318">PASS · Tornado runtime test</text>
+  <text class="small" x="1020" y="342">success, known asset warnings only</text>
+  <text class="pass" x="1000" y="376">PASS · launcher matrix 6/6</text>
+  <text class="pass" x="1000" y="410">PASS · NullRHI launcher contract 1/1</text>
+  <text class="pass" x="1000" y="444">PASS · git diff --check</text>
+  <text class="small" x="1000" y="500">No Blueprint assets changed.</text>
+  <text class="small" x="1000" y="524">Earlier archive entries remain immutable.</text>
+
+  <rect x="48" y="630" width="1304" height="190" rx="16" fill="#121d31" stroke="#354a70" stroke-width="2"/>
+  <text class="head" x="76" y="672">Resulting behavior</text>
+  <text class="body" x="76" y="712">Matching-engine NullRHI launches retain the authored Tornado-track contract and keep JSON UI assets alive across GC.</text>
+  <text class="body" x="76" y="742">The launcher selects: explicit override → project EngineAssociation → inherited UE_EDITOR_EXE fallback.</text>
+  <text class="body" x="76" y="772">Invalid explicit and unresolved configurations fail clearly, while dry-run evidence cannot spawn an editor.</text>
+</svg>

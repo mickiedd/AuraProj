@@ -26,6 +26,8 @@ class AURA_API UAuraGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 public:
+	/** Command-line auto-login is one attempt per game instance, including failed travel. */
+	bool bCommandLineAutoLoginAttempted = false;
 
 	UPROPERTY()
 	FName PlayerStartTag = FName();

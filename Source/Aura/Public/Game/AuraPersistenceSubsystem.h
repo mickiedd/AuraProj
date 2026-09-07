@@ -70,6 +70,7 @@ public:
 		FName RequestedRole, UAuraPlayerSaveGame& OutSave, FString& OutError);
 
 private:
+	friend class FAuraPersistenceCheckpointIsolation;
 	void ResetWorldRestoreState();
 	bool LoadOrCreatePlayerSave(const FAuraPlayerProfileId& Identity, FName RequestedRole,
 		UAuraPlayerSaveGame*& OutSave, FString& OutError);

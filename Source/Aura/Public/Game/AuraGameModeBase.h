@@ -245,11 +245,15 @@ public:
 	EAuraWorldReadiness GetWorldReadiness() const { return WorldReadiness; }
 	const FString& GetWorldReadinessReason() const { return WorldReadinessReason; }
 	bool IsWorldReadyForPlay() const { return WorldReadiness == EAuraWorldReadiness::Ready; }
+	/** Frontend maps leave authority persistence disabled; gameplay maps keep it enabled. */
+	bool IsAuthorityWorldPersistenceEnabled() const { return bEnableAuthorityWorldPersistence; }
 	int32 GetLoadedMonsterSpawnRowCount() const { return LoadedMonsterSpawnRows.Num(); }
 	static EAuraWorldReadiness EvaluateWorldReadiness(bool bRoleReady, bool bDispatcherReady, bool bDirectorReady,
 		bool bPopulationReady, bool bCrossValidationReady, bool bPopulationFinalized);
 
 protected:
+	/** Frontend maps must never restore or checkpoint the authority campaign. */
+	bool bEnableAuthorityWorldPersistence = true;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 

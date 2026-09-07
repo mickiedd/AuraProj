@@ -15,6 +15,7 @@
 #include "Tests/Fixtures/AuraRoleApplicationTestActor.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
+#include "Animation/Skeleton.h"
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
 #include "UObject/UnrealType.h"
@@ -32,7 +33,18 @@ bool FAuraCrunchTornadoRuntimeTest::RunTest(const FString& Parameters)
 	if (Montage->SlotAnimTracks.Num() != 1 || Montage->SlotAnimTracks[0].AnimTrack.AnimSegments.Num() != 1) return false;
 	auto* Animation = Cast<UAnimSequence>(Montage->SlotAnimTracks[0].AnimTrack.AnimSegments[0].GetAnimReference());
 	if (!TestNotNull(TEXT("Actual spin animation resolves"), Animation)) return false;
-	TestTrue(TEXT("Spin has authored bone tracks"), Animation->GetDataModel()->GetNumBoneTracks() > 0);
+	const TArray<FTrackToSkeletonMap>& CompressedTrackMap = Animation->GetCompressedTrackToSkeletonMapTable();
+	TestTrue(TEXT("Spin has authored compressed bone tracks"), CompressedTrackMap.Num() > 0);
+	if (USkeleton* Skeleton = Animation->GetSkeleton())
+	{
+		const int32 SkeletonBoneCount = Skeleton->GetReferenceSkeleton().GetNum();
+		for (const FTrackToSkeletonMap& Track : CompressedTrackMap)
+		{
+			TestTrue(
+				FString::Printf(TEXT("Spin track maps to a valid skeleton bone (%d)"), Track.BoneTreeIndex),
+				Track.BoneTreeIndex >= 0 && Track.BoneTreeIndex < SkeletonBoneCount);
+		}
+	}
 	TestTrue(TEXT("Animation skeleton agrees with montage"), Animation->GetSkeleton() == Montage->GetSkeleton());
 	TestEqual(TEXT("No legacy animation notifies"), Animation->Notifies.Num(), 0);
 	TestNotNull(TEXT("Tornado effect resolves"), GetDefault<AAuraRoleApplicationTestActor>()->TornadoEffect.Get());

@@ -64,6 +64,9 @@ GSM_LOG_DIR = PROJECT_DIR / "Saved" / "Logs" / "GameServerManager"
 
 # Maximum bytes accepted in a single client request line (prevents abuse).
 MAX_REQUEST_BYTES = 4096
+# The game client abandons a manager query after 35 seconds. Leave time for
+# the explicit error to reach it instead of triggering transport fallback.
+SERVER_REQUEST_BUDGET_SECONDS = 30.0
 AUTH_TOKEN_ENV = "AURA_GSM_AUTH_TOKEN"
 SERVER_AUTH_TOKEN_ENV = "AURA_GSM_SERVER_AUTH_TOKEN"
 ALLOWED_CLIENTS_ENV = "AURA_GSM_ALLOWED_CLIENTS"
@@ -289,7 +292,7 @@ class DedicatedServerEntry:
             return False
 
         logger.info(
-            "DS '%s' is ready on port %d (pid=%d, elapsed=%.3fs)",
+            "DS '%s' process is alive on port %d; world readiness still requires server_ready (pid=%d, elapsed=%.3fs)",
             self.level_id,
             self.port,
             self._process.pid,
@@ -1099,7 +1102,13 @@ class GameServerManager:
                     )
                     return
 
-            ok = await entry.ensure_running(requested_server_exe)
+            remaining = max(0.0, SERVER_REQUEST_BUDGET_SECONDS - (time.monotonic() - request_start))
+            try:
+                ok = await asyncio.wait_for(entry.ensure_running(requested_server_exe), timeout=remaining)
+            except asyncio.TimeoutError:
+                await self._send_error(writer, request_id,
+                    f"Dedicated server for '{level_id}' exceeded the startup request deadline. Retry shortly; check the server log if it persists.")
+                return
             if not ok:
                 logger.error("[%s] Failed ensuring DS is running for levelId='%s'", request_id, level_id)
                 await self._send_error(
@@ -1110,7 +1119,8 @@ class GameServerManager:
                 )
                 return
 
-            ready_info = await self._wait_for_ready(level_id, entry.port, self.startup_grace + 20.0)
+            remaining = max(0.0, SERVER_REQUEST_BUDGET_SECONDS - (time.monotonic() - request_start))
+            ready_info = await self._wait_for_ready(level_id, entry.port, remaining)
             if ready_info is None:
                 logger.error(
                     "[%s] Timed out waiting for server_ready for levelId='%s' port=%d",
@@ -1121,7 +1131,7 @@ class GameServerManager:
                 await self._send_error(
                     writer,
                     request_id,
-                    f"Dedicated server for '{level_id}' did not report ready in time.",
+                    f"Dedicated server for '{level_id}' did not report healthy world readiness before the request deadline. Check its server log for WorldReadiness or persistence errors.",
                 )
                 return
 
@@ -1245,7 +1255,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--startup-grace", type=float, default=12.0,
-        help="Seconds to wait after launching a DS before declaring it ready (default: 12)"
+        help="Process startup grace in seconds; authenticated world readiness is still required (default: 12)"
     )
     parser.add_argument(
         "--auth-token",

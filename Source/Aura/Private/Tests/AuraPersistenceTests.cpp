@@ -4,11 +4,17 @@
 #include "Kismet/GameplayStatics.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "HAL/FileManager.h"
+#include "Engine/GameInstance.h"
 
 #include "Game/AuraPersistenceManifestSaveGame.h"
 #include "Game/AuraPersistenceSubsystem.h"
 #include "Game/AuraPlayerSaveGame.h"
 #include "Game/AuraWorldSaveGame.h"
+#include "Game/AuraGameModeBase.h"
+#include "Game/LoginGameMode.h"
 #include "Game/LoadScreenSaveGame.h"
 
 namespace AuraPersistenceTestsPrivate
@@ -196,4 +202,111 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAuraDay18WorldPersistenceIdIsolation, "Aura.Ro
 bool FAuraDay18WorldPersistenceIdIsolation::RunTest(const FString& Parameters)
 {
 	const FAuraPlayerProfileId Identity = AuraPersistenceTestsPrivate::MakeIdentity(TEXT("same-account")); const FString A = Identity.BuildSlotName(TEXT("campaign-a")); const FString B = Identity.BuildSlotName(TEXT("campaign-b")); TestFalse(TEXT("world IDs isolate profile record slots"), A == B); return A != B;
+}
+
+// Read-only incident audit, deliberately opt-in so normal tests never depend on local saves.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAuraPersistenceRecordAudit, "Aura.Persistence.RecordAudit", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FAuraPersistenceRecordAudit::RunTest(const FString& Parameters)
+{
+    FString Prefix;
+    if (!FParse::Value(FCommandLine::Get(), TEXT("AuraAuditWorldPrefix="), Prefix)) return true;
+    TArray<FString> Files;
+    IFileManager::Get().FindFiles(Files, *FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("SaveGames"), Prefix + TEXT("*.sav")), true, false);
+    for (const FString& File : Files)
+    {
+        const FString Slot = FPaths::GetBaseFilename(File);
+        if (UAuraWorldSaveGame* Save = Cast<UAuraWorldSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0)))
+        {
+            FString Error;
+            const bool bValid = UAuraPersistenceSubsystem::ValidateWorldSaveRecord(*Save, Save->WorldPersistenceId, Error);
+            AddInfo(FString::Printf(TEXT("RecordAudit slot=%s generation=%d checksum=%s map=%s valid=%d reason=%s"),
+                *Slot, Save->RecordGeneration, *UAuraPersistenceSubsystem::ComputeWorldSaveChecksum(*Save), *Save->MapPackage, bValid, *Error));
+        }
+    }
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAuraPersistenceCheckpointIsolation, "Aura.Persistence.CheckpointIsolation", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FAuraPersistenceCheckpointIsolation::RunTest(const FString& Parameters)
+{
+    const FString WorldId = TEXT("ConnectionFix_") + FGuid::NewGuid().ToString(EGuidFormats::Digits);
+    const auto MakeStore = [&]()
+    {
+        UAuraPersistenceSubsystem* Store = NewObject<UAuraPersistenceSubsystem>(NewObject<UGameInstance>());
+        Store->WorldPersistenceId = WorldId;
+        Store->bAuthorityPersistenceEnabled = true;
+        return Store;
+    };
+    UAuraPersistenceSubsystem* First = MakeStore();
+    UAuraPersistenceSubsystem* Stale = MakeStore();
+    FString Error;
+    const FName MapId(TEXT("ConnectionFixTest"));
+    TestTrue(TEXT("first writer loads empty campaign"), First->LoadWorldState(TEXT("Test"), Error, MapId));
+    TestTrue(TEXT("second writer observes same empty campaign"), Stale->LoadWorldState(TEXT("Test"), Error, MapId));
+	FAuraPopulationDebugSnapshot Snapshot;
+	Snapshot.MapId = MapId;
+	TestTrue(TEXT("first writer publishes checkpoint"), First->SaveWorldState(Snapshot, {}, Error));
+	const FString OriginalSlot = First->WorldManifestRecord.RecordSlot;
+	const FString OriginalChecksum = First->WorldManifestRecord.Checksum;
+	TestFalse(TEXT("stale writer cannot replace published manifest"), Stale->SaveWorldState(Snapshot, {}, Error));
+	TestTrue(TEXT("stale writer gets actionable error"), Error.Contains(TEXT("another authority process")));
+	UAuraWorldSaveGame* Original = Cast<UAuraWorldSaveGame>(UGameplayStatics::LoadGameFromSlot(OriginalSlot, 0));
+	TestNotNull(TEXT("stale rollback preserves original world record"), Original);
+	if (Original) TestEqual(TEXT("original checksum survives stale write"), UAuraPersistenceSubsystem::ComputeWorldSaveChecksum(*Original), OriginalChecksum);
+	TestTrue(TEXT("first writer can publish next checkpoint"), First->SaveWorldState(Snapshot, {}, Error));
+	const FString NewSlot = First->WorldManifestRecord.RecordSlot;
+	const FString NewChecksum = First->WorldManifestRecord.Checksum;
+	TestTrue(TEXT("records use distinct immutable slots"), OriginalSlot != NewSlot);
+	UAuraWorldSaveGame* NewRecord = Cast<UAuraWorldSaveGame>(UGameplayStatics::LoadGameFromSlot(NewSlot, 0));
+	TestNotNull(TEXT("newest checkpoint is durable before manifest fault injection"), NewRecord);
+	if (NewRecord) TestEqual(TEXT("newest checkpoint checksum is durable"), UAuraPersistenceSubsystem::ComputeWorldSaveChecksum(*NewRecord), NewChecksum);
+
+	UAuraWorldSaveGame* Torn = Cast<UAuraWorldSaveGame>(UGameplayStatics::LoadGameFromSlot(NewSlot, 0));
+	if (Torn)
+	{
+		Torn->MapPackage = TEXT("damaged");
+		UGameplayStatics::SaveGameToSlot(Torn, NewSlot, 0);
+	}
+	UAuraPersistenceSubsystem* RestartedWorld = MakeStore();
+	TestTrue(TEXT("torn newest world falls back to prior committed checkpoint"), RestartedWorld->LoadWorldState(TEXT("Test"), Error, MapId));
+	TestEqual(TEXT("torn world recovery selects original world record"), RestartedWorld->WorldManifestRecord.RecordSlot, OriginalSlot);
+	TestTrue(TEXT("world recovery may publish above observed manifest generation"), RestartedWorld->SaveWorldState(Snapshot, {}, Error));
+	const FString RecoverySlot = RestartedWorld->WorldManifestRecord.RecordSlot;
+	const FString RecoveryChecksum = RestartedWorld->WorldManifestRecord.Checksum;
+
+	// Fault-inject a torn write into the inactive manifest slot.  Recovery must
+	// ignore that slot and retain the last valid manifest/checkpoint.
+	const FString TornManifestSlot = RestartedWorld->ActiveManifestSlot == RestartedWorld->BuildManifestSlot(true)
+		? RestartedWorld->BuildManifestSlot(false) : RestartedWorld->BuildManifestSlot(true);
+	const FString TornManifestPath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("SaveGames"), TornManifestSlot + TEXT(".sav"));
+	TArray<uint8> TornManifestBytes;
+	TestTrue(TEXT("inactive manifest exists for torn-write injection"), FFileHelper::LoadFileToArray(TornManifestBytes, *TornManifestPath));
+	TestTrue(TEXT("inactive manifest has enough bytes to tear"), TornManifestBytes.Num() > 1);
+	if (TornManifestBytes.Num() > 1)
+	{
+		TornManifestBytes.SetNum(FMath::Max(1, TornManifestBytes.Num() / 2));
+		TestTrue(TEXT("torn inactive manifest write succeeds"), FFileHelper::SaveArrayToFile(TornManifestBytes, *TornManifestPath));
+	}
+	UAuraPersistenceSubsystem* RestartedManifest = MakeStore();
+	TestTrue(TEXT("torn manifest recovery loads the surviving publication"), RestartedManifest->LoadWorldState(TEXT("Test"), Error, MapId));
+	TestEqual(TEXT("torn manifest recovery keeps the surviving checkpoint"), RestartedManifest->WorldManifestRecord.RecordSlot, RecoverySlot);
+	TestEqual(TEXT("torn manifest recovery keeps the surviving checksum"), RestartedManifest->WorldManifestRecord.Checksum, RecoveryChecksum);
+	for (const FString& Slot : { OriginalSlot, NewSlot, RecoverySlot,
+		First->BuildManifestSlot(true), First->BuildManifestSlot(false) })
+	{
+		UGameplayStatics::DeleteGameInSlot(Slot, 0);
+	}
+	return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAuraFrontendPersistenceIsolationContract, "Aura.Persistence.FrontendIsolationContract", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FAuraFrontendPersistenceIsolationContract::RunTest(const FString& Parameters)
+{
+	const ALoginGameMode* LoginMode = GetDefault<ALoginGameMode>();
+	const AAuraGameModeBase* GameplayMode = GetDefault<AAuraGameModeBase>();
+	TestNotNull(TEXT("login game mode default object exists"), LoginMode);
+	TestNotNull(TEXT("gameplay game mode default object exists"), GameplayMode);
+	if (LoginMode) TestFalse(TEXT("login map disables authority world persistence"), LoginMode->IsAuthorityWorldPersistenceEnabled());
+	if (GameplayMode) TestTrue(TEXT("gameplay map enables authority world persistence"), GameplayMode->IsAuthorityWorldPersistenceEnabled());
+	return !HasAnyErrors();
 }

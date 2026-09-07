@@ -225,3 +225,45 @@ See the [saved ArcaneShards debugging lead](../../Docs/Reports/Change-Archive/20
 - [Change record](../../Docs/Reports/Change-Archive/2026-09-06-crunch-num4-tornado.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-06-crunch-num4-tornado.svg)
 - 2026-09-06 — [BungeeMan / FireGun retirement review fixes](../../Docs/Reports/Change-Archive/2026-09-06-bungeeman-retirement-review-fix.md) — reconciled the playable Aura/Crunch contract, added deterministic legacy-save migration, updated active retirement checks, and recorded local/build evidence.
 - 2026-09-06 | Add Aura Num.1 FireBlast cast montage release boundary | [FireBlast cast montage](../../Docs/Reports/Change-Archive/2026-09-06-aura-fireblast-cast-montage.svg) | [archive record](../../Docs/Reports/Change-Archive/2026-09-06-aura-fireblast-cast-montage.md) | FireBlast now plays AM_Cast_FireBlast, waits for Event.Montage.FireBlast with timeout/fallback, then spawns 12 radial fireballs; AuraEditor build, montage commandlet, graph smoke 26/26, focused automation, and diff check pass; stale Captain/removed FireGun fixtures remain outside this change
+
+## 2026-09-06 — NullRHI role-aware Login flow
+
+- Added selectable RoleConfig-backed role selection to the NullRHI editor submenu and forwarded the chosen role through the batch launcher and command-line Login replay into the existing server-authoritative `?Role=` travel contract.
+- [Change record](../../Docs/Reports/Change-Archive/2026-09-06-nullrhi-role-login-flow.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-06-nullrhi-role-login-flow.svg)
+
+## 2026-09-06 — Implementation validation packet skill
+
+- Replaced the operational Google AI Studio validation handoff with a local packet workflow that records changed files, relevant code/scripts, validation evidence, risks, and reviewer questions while preserving the legacy skill identifier.
+- [Change record](../../Docs/Reports/Change-Archive/2026-09-06-implementation-validation-packet-skill.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-06-implementation-validation-packet-skill.svg)
+
+## 2026-09-07 — NullRHI launch blockers and verified fix
+
+- Resolved stale UE editor selection, GC-invisible runtime ability assets, and a runtime-target animation-test API; matching-engine builds, focused automation, and a 120+ second role-aware NullRHI soak now pass. The default corrupt persistence namespace remains fail-closed and was not deleted.
+- [Change record](../../Docs/Reports/Change-Archive/2026-09-07-nullrhi-launch-blockers.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-07-nullrhi-launch-blockers.svg)
+
+## 2026-09-07 — NullRHI independent-review remediation
+
+- Applied the review findings by restoring a runtime bone-track contract, adding forced-GC asset lifetime coverage, and exercising the complete launcher precedence/fail-closed matrix with a non-spawning dry run.
+- [Change record](../../Docs/Reports/Change-Archive/2026-09-07-nullrhi-review-remediation.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-07-nullrhi-review-remediation.svg)
+
+## 2026-09-07 — Client connection and campaign persistence protection
+
+- Disabled Login campaign checkpointing, made record writes immutable, rejected stale manifest publishers, and retained connection failures without repeated auto-login. Development build, 16 persistence tests, and isolated successful/failed connection probes passed. Original campaign recovery remains pending; saves were preserved.
+- [Change record](../../Docs/Reports/Change-Archive/2026-09-07-client-connection-persistence.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-07-client-connection-persistence.svg)
+
+## 2026-09-07 — NullRHI forced-GC regression test hardening
+
+- Confirmed the editor keep-flag false-positive risk in the metadata lifetime test, asserted the shipped fixtures are not keep-flag protected, and switched collection to `RF_NoFlags` before verifying reflected asset reachability. Aura build, focused GC test, metadata suite, and launcher matrix pass.
+- [Change record](../../Docs/Reports/Change-Archive/2026-09-07-nullrhi-gc-test-hardening.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-07-nullrhi-gc-test-hardening.svg)
+
+## 2026-09-07 — Validation Changes connection flow and persistence recovery
+
+- Verified the review findings, added torn-manifest recovery and frontend persistence assertions, separated malformed manager responses from transport fallback, and proved GSM success plus direct fallback through rendered Login, Loading, and gameplay states.
+- [Change record](../../Docs/Reports/Change-Archive/2026-09-07-validation-changes-connection-flow.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-07-validation-changes-connection-flow.svg)
+
+## 2026-09-07 — Validation Changes PIE editor visual check
+
+- Repeated the flow inside Unreal Editor Play In Editor mode: production failure surfaced the readiness error and returned to Login; an isolated healthy namespace reached the dedicated server and visibly possessed the Aura pawn with gameplay HUD.
+- [Change record](../../Docs/Reports/Change-Archive/2026-09-07-validation-changes-pie-editor.md) · [Diagram](../../Docs/Reports/Change-Archive/2026-09-07-validation-changes-pie-editor.svg)
+
+- 2026-09-07: [PIE connection deadline repair](../../Docs/Reports/Change-Archive/2026-09-07-pie-connection-deadline.md) | [Diagram](../../Docs/Reports/Change-Archive/2026-09-07-pie-connection-deadline.svg) — 30-second shared manager deadline; exact PIE error and isolated gameplay verified; original campaign recovery pending approval.
