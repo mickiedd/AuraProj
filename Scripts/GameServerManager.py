@@ -31,6 +31,7 @@ managed servers, and never logged.
 
 import argparse
 import asyncio
+import errno
 import hmac
 import ipaddress
 import json
@@ -1108,6 +1109,7 @@ class GameServerManager:
             except asyncio.TimeoutError:
                 await self._send_error(writer, request_id,
                     f"Dedicated server for '{level_id}' exceeded the startup request deadline. Retry shortly; check the server log if it persists.")
+                self._reset_failed_level(entry, level_id, request_id, "startup request deadline")
                 return
             if not ok:
                 logger.error("[%s] Failed ensuring DS is running for levelId='%s'", request_id, level_id)
@@ -1133,6 +1135,7 @@ class GameServerManager:
                     request_id,
                     f"Dedicated server for '{level_id}' did not report healthy world readiness before the request deadline. Check its server log for WorldReadiness or persistence errors.",
                 )
+                self._reset_failed_level(entry, level_id, request_id, "server_ready timeout")
                 return
 
             response = {
@@ -1183,6 +1186,26 @@ class GameServerManager:
         except Exception as exc:
             logger.warning("[%s] Failed flushing error response: %s", request_id, exc)
 
+    def _reset_failed_level(
+        self,
+        entry: DedicatedServerEntry,
+        level_id: str,
+        request_id: str,
+        reason: str,
+    ) -> None:
+        """Stop and forget a child that failed the control-plane readiness contract."""
+        self._clear_ready_state(level_id)
+        if not entry.is_running():
+            return
+        logger.warning(
+            "[%s] Stopping unready DS levelId='%s' pid=%s after %s",
+            request_id,
+            level_id,
+            str(entry.get_pid()),
+            reason,
+        )
+        entry.stop()
+
     # ------------------------------------------------------------------
     async def run(self) -> None:
         policy_error = self.control_plane_policy_error()
@@ -1200,9 +1223,20 @@ class GameServerManager:
                 "No dedicated server executable resolved. Set AURA_SERVER_EXE or build AuraServer."
             )
 
-        server = await asyncio.start_server(
-            self.handle_client, self.listen_host, self.listen_port
-        )
+        try:
+            server = await asyncio.start_server(
+                self.handle_client, self.listen_host, self.listen_port
+            )
+        except OSError as exc:
+            if exc.errno == errno.EADDRINUSE:
+                logger.error(
+                    "Game Server Manager could not bind %s:%d because the address is already in use. "
+                    "Another GSM instance or service may already be running; refusing to start a duplicate.",
+                    self.listen_host,
+                    self.listen_port,
+                )
+                return
+            raise
         addr = server.sockets[0].getsockname()
         logger.info(
             "Game Server Manager listening on %s:%d  (public_host=%s)",

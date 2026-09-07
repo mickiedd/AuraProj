@@ -2,12 +2,12 @@
   "gameServerPort": 9000,
   "levels": [    
     {
-      "id": "RoleBattleCivilianTest",
-      "displayName": "Role Battle Civilian Test",
-      "mapPath": "/Game/Maps/StartupMap",
+      "id": "Scifi_Desert_Level",
+      "displayName": "Scifi Desert Level",
+      "mapPath": "/Game/Scifi_desert_city/Level/L_showcase_level",
       "groundAltitude": 0.0,
-      "port": 7790,
-      "queryPort": 27029,
+      "port": 7784,
+      "queryPort": 27023,
       "launchArgs": [
         "-game",
         "-server",
@@ -17,12 +17,12 @@
       ]
     },
     {
-      "id": "Scifi_Desert_Level",
-      "displayName": "Scifi Desert Level",
-      "mapPath": "/Game/Scifi_desert_city/Level/L_showcase_level",
+      "id": "RoleBattleCivilianTest",
+      "displayName": "Role Battle Civilian Test",
+      "mapPath": "/Game/Maps/StartupMap",
       "groundAltitude": 0.0,
-      "port": 7784,
-      "queryPort": 27023,
+      "port": 7790,
+      "queryPort": 27029,
       "launchArgs": [
         "-game",
         "-server",

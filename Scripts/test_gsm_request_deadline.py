@@ -1,5 +1,6 @@
 """Exercise the real TCP handler with slow/healthy dedicated-server fixtures."""
 import asyncio
+import errno
 import json
 import unittest
 from pathlib import Path
@@ -16,6 +17,8 @@ class RequestDeadlineTests(unittest.IsolatedAsyncioTestCase):
         manager.levels['fixture'] = entry
         manager.server_exe = Path(__file__)
         entry.is_running = lambda: True
+        stop_calls = []
+        entry.stop = lambda: stop_calls.append('stop')
 
         async def start(_):
             await asyncio.sleep(startup_delay)
@@ -38,7 +41,7 @@ class RequestDeadlineTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(await asyncio.wait_for(reader.read(), 0.6), b'')
                 writer.close()
                 await writer.wait_closed()
-                return response
+                return response, stop_calls
         finally:
             server.close()
             await server.wait_closed()
@@ -46,23 +49,35 @@ class RequestDeadlineTests(unittest.IsolatedAsyncioTestCase):
                 await task
 
     async def test_missing_readiness_returns_explicit_error(self):
-        response = await self.request(0)
+        response, stop_calls = await self.request(0)
         self.assertEqual(response['status'], 'error')
         self.assertIn('healthy world readiness', response['message'])
+        self.assertEqual(stop_calls, ['stop'])
 
     async def test_startup_wait_is_bounded(self):
-        response = await self.request(2)
+        response, stop_calls = await self.request(2)
         self.assertEqual(response['status'], 'error')
         self.assertIn('startup request deadline', response['message'])
+        self.assertEqual(stop_calls, ['stop'])
 
     async def test_launch_and_readiness_share_budget(self):
-        response = await self.request(0.15, 0.30)
+        response, stop_calls = await self.request(0.15, 0.30)
         self.assertEqual(response['status'], 'error')
+        self.assertEqual(stop_calls, ['stop'])
 
     async def test_ready_server_returns_endpoint(self):
-        response = await self.request(0.02, 0.05)
+        response, stop_calls = await self.request(0.02, 0.05)
         self.assertEqual(response['status'], 'ready')
         self.assertEqual(response['port'], 17790)
+        self.assertEqual(stop_calls, [])
+
+    async def test_port_conflict_is_clean_exit(self):
+        manager = gsm.GameServerManager('127.0.0.1', 9000, '127.0.0.1', None, 0)
+        with patch.object(manager, 'load_levels'), patch.object(manager, 'locate_server_exe', return_value=None), patch.object(
+            gsm.asyncio, 'start_server', side_effect=OSError(errno.EADDRINUSE, 'address in use')
+        ), self.assertLogs('AuraGSM', level='ERROR') as logs:
+            await manager.run()
+        self.assertTrue(any('already in use' in line for line in logs.output))
 
 
 if __name__ == '__main__':

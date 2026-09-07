@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">GSM recovery, stale process cleanup, and Scifi Desert PIE login</title>
+  <desc id="desc">A before and after flow showing duplicate GSM bind protection, readiness timeout cleanup, valid persistence recovery, and successful PIE login.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#111827"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/></marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".35"/></filter>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="60" y="58" fill="#f8fafc" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">GSM recovery and Scifi Desert PIE connection</text>
+  <text x="60" y="88" fill="#cbd5e1" font-family="Segoe UI, sans-serif" font-size="16">2026-09-08 validation archive · client → GSM → dedicated server → gameplay</text>
+
+  <rect x="60" y="120" width="500" height="230" rx="16" fill="#3f1d2e" stroke="#f87171" stroke-width="2" filter="url(#shadow)"/>
+  <text x="88" y="158" fill="#fecaca" font-family="Segoe UI, sans-serif" font-size="21" font-weight="700">Observed blocking path</text>
+  <text x="88" y="192" fill="#fee2e2" font-family="Segoe UI, sans-serif" font-size="16">Duplicate GSM startup</text>
+  <text x="88" y="218" fill="#fecaca" font-family="Consolas, monospace" font-size="14">127.0.0.1:9000 → OSError 10048</text>
+  <text x="88" y="250" fill="#fee2e2" font-family="Segoe UI, sans-serif" font-size="16">Failed DS remained after readiness timeout</text>
+  <text x="88" y="276" fill="#fecaca" font-family="Consolas, monospace" font-size="14">client waited 30s → stale process/ready state</text>
+  <text x="88" y="308" fill="#fee2e2" font-family="Segoe UI, sans-serif" font-size="16">A/B manifests referenced a torn world record</text>
+  <text x="88" y="334" fill="#fecaca" font-family="Consolas, monospace" font-size="14">G179 checksum EF2B3283 ≠ 9EB5501B</text>
+
+  <rect x="640" y="120" width="500" height="230" rx="16" fill="#12352b" stroke="#34d399" stroke-width="2" filter="url(#shadow)"/>
+  <text x="668" y="158" fill="#bbf7d0" font-family="Segoe UI, sans-serif" font-size="21" font-weight="700">Applied guards and recovery</text>
+  <text x="668" y="192" fill="#d1fae5" font-family="Segoe UI, sans-serif" font-size="16">EADDRINUSE exits cleanly with one GSM owner</text>
+  <text x="668" y="224" fill="#d1fae5" font-family="Segoe UI, sans-serif" font-size="16">Readiness/startup timeout clears state and stops DS</text>
+  <text x="668" y="256" fill="#d1fae5" font-family="Segoe UI, sans-serif" font-size="16">Recovered B slot bootstraps a valid Scifi world</text>
+  <text x="668" y="282" fill="#a7f3d0" font-family="Consolas, monospace" font-size="14">G188 · L_showcase_level · population=37</text>
+  <text x="668" y="314" fill="#d1fae5" font-family="Segoe UI, sans-serif" font-size="16">A/B rewritten by the successful checkpoint</text>
+
+  <line x1="560" y1="235" x2="640" y2="235" stroke="#94a3b8" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="60" y="400" width="1080" height="170" rx="16" fill="#172554" stroke="#60a5fa" stroke-width="2" filter="url(#shadow)"/>
+  <text x="88" y="440" fill="#dbeafe" font-family="Segoe UI, sans-serif" font-size="21" font-weight="700">Verified exact PIE flow</text>
+  <g font-family="Segoe UI, sans-serif" font-size="16" text-anchor="middle">
+    <rect x="90" y="468" width="180" height="60" rx="10" fill="#1e3a8a"/><text x="180" y="493" fill="#eff6ff">Login UI</text><text x="180" y="514" fill="#bfdbfe" font-size="13">Scifi Desert (7784)</text>
+    <rect x="330" y="468" width="180" height="60" rx="10" fill="#1e3a8a"/><text x="420" y="493" fill="#eff6ff">GSM :9000</text><text x="420" y="514" fill="#bfdbfe" font-size="13">ready in 15.25s</text>
+    <rect x="570" y="468" width="180" height="60" rx="10" fill="#1e3a8a"/><text x="660" y="493" fill="#eff6ff">DS :7784</text><text x="660" y="514" fill="#bfdbfe" font-size="13">WorldReadiness=Ready</text>
+    <rect x="810" y="468" width="240" height="60" rx="10" fill="#166534"/><text x="930" y="493" fill="#f0fdf4">L_showcase_level</text><text x="930" y="514" fill="#bbf7d0" font-size="13">mickie · Join succeeded</text>
+  </g>
+  <g stroke="#93c5fd" stroke-width="3" marker-end="url(#arrow)"><line x1="270" y1="498" x2="330" y2="498"/><line x1="510" y1="498" x2="570" y2="498"/><line x1="750" y1="498" x2="810" y2="498"/></g>
+
+  <rect x="60" y="610" width="1080" height="62" rx="12" fill="#0b1220" stroke="#475569"/>
+  <text x="88" y="638" fill="#cbd5e1" font-family="Consolas, monospace" font-size="14">PASS  py_compile · 5 GSM deadline tests · GameServerManager contract · manifest audit · duplicate-bind smoke · git diff --check</text>
+  <text x="88" y="660" fill="#94a3b8" font-family="Segoe UI, sans-serif" font-size="13">Non-blocking runtime warnings remain in the DS log (AI navigation, missing Crunch assets, marker roots).</text>
+</svg>
