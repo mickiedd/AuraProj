@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Crunch runtime asset package repair</title>
+  <desc id="desc">Before and after flow showing invalid Git LFS placeholders being replaced with target-owned Unreal packages and validated by build and runtime automation.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52606d"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#17202a" flood-opacity="0.16"/>
+    </filter>
+    <style>
+      .title { font: 700 30px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #17202a; }
+      .subtitle { font: 400 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52606d; }
+      .panel { font: 700 19px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #17202a; }
+      .boxhead { font: 700 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #17202a; }
+      .body { font: 400 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334e68; }
+      .small { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52606d; }
+      .pill { font: 700 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="#f7f9fb"/>
+  <text x="60" y="58" class="title">Crunch runtime asset package repair</text>
+  <text x="60" y="86" class="subtitle">2026-09-09 · invalid LFS placeholders replaced with target-owned, loadable presentation assets</text>
+
+  <rect x="50" y="120" width="330" height="470" rx="16" fill="#fff1f0" stroke="#e06c75" stroke-width="2" filter="url(#shadow)"/>
+  <text x="76" y="158" class="panel">Before · startup failure</text>
+  <rect x="76" y="184" width="278" height="94" rx="10" fill="#ffffff" stroke="#e06c75"/>
+  <text x="94" y="211" class="boxhead">Crunch .uasset files</text>
+  <text x="94" y="236" class="body">Git LFS pointer text instead of</text>
+  <text x="94" y="257" class="body">Unreal package bytes</text>
+  <rect x="76" y="318" width="278" height="94" rx="10" fill="#ffffff" stroke="#e06c75"/>
+  <text x="94" y="345" class="boxhead">Asset registry</text>
+  <text x="94" y="370" class="body">PACKAGE_FILE_TAG rejected</text>
+  <text x="94" y="391" class="body">and dependent objects fail to load</text>
+  <rect x="76" y="452" width="278" height="94" rx="10" fill="#ffffff" stroke="#e06c75"/>
+  <text x="94" y="479" class="boxhead">Runtime consequence</text>
+  <text x="94" y="504" class="body">missing mesh, skeleton, montages</text>
+  <text x="94" y="525" class="body">→ role/population startup blocked</text>
+  <path d="M215 278 L215 318" stroke="#e06c75" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M215 412 L215 452" stroke="#e06c75" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="435" y="120" width="330" height="470" rx="16" fill="#eef5ff" stroke="#5b8def" stroke-width="2" filter="url(#shadow)"/>
+  <text x="461" y="158" class="panel">Repair · deterministic translation</text>
+  <rect x="461" y="184" width="278" height="94" rx="10" fill="#ffffff" stroke="#5b8def"/>
+  <text x="479" y="211" class="boxhead">Local source checkout</text>
+  <text x="479" y="236" class="body">Hydrated Crunch mesh, skeleton,</text>
+  <text x="479" y="257" class="body">sequences, and skill montages</text>
+  <rect x="461" y="318" width="278" height="94" rx="10" fill="#ffffff" stroke="#5b8def"/>
+  <text x="479" y="345" class="boxhead">AuraCreateCrunchPresentation</text>
+  <text x="479" y="370" class="body">Duplicate to Aura package paths</text>
+  <text x="479" y="391" class="body">and bind the target skeleton</text>
+  <rect x="461" y="452" width="278" height="94" rx="10" fill="#ffffff" stroke="#5b8def"/>
+  <text x="479" y="479" class="boxhead">Guard against source-only refs</text>
+  <text x="479" y="504" class="body">Strip unavailable Crunch notify</text>
+  <text x="479" y="525" class="body">classes; retain native fallbacks</text>
+  <path d="M600 278 L600 318" stroke="#5b8def" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M600 412 L600 452" stroke="#5b8def" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="820" y="120" width="330" height="470" rx="16" fill="#eefbf3" stroke="#35a66f" stroke-width="2" filter="url(#shadow)"/>
+  <text x="846" y="158" class="panel">After · runtime verified</text>
+  <rect x="846" y="184" width="278" height="94" rx="10" fill="#ffffff" stroke="#35a66f"/>
+  <text x="864" y="211" class="boxhead">Target-owned packages</text>
+  <text x="864" y="236" class="body">Mesh, skeleton, locomotion, combo,</text>
+  <text x="864" y="257" class="body">Dash, UpperCut, Blast, Tornado</text>
+  <rect x="846" y="318" width="278" height="94" rx="10" fill="#ffffff" stroke="#35a66f"/>
+  <text x="864" y="345" class="boxhead">Unreal load path</text>
+  <text x="864" y="370" class="body">Canonical /Game/Assets paths resolve</text>
+  <text x="864" y="391" class="body">with zero object-load errors</text>
+  <rect x="846" y="452" width="278" height="94" rx="10" fill="#ffffff" stroke="#35a66f"/>
+  <text x="864" y="479" class="boxhead">Validation outcome</text>
+  <text x="864" y="504" class="body">13/13 Crunch automation tests pass</text>
+  <text x="864" y="525" class="body">combo presentation validation passes</text>
+  <path d="M380 355 L435 355" stroke="#52606d" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M765 355 L820 355" stroke="#52606d" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="50" y="635" width="1100" height="72" rx="12" fill="#17202a"/>
+  <text x="76" y="664" class="pill">Checks</text>
+  <text x="145" y="664" class="pill">AuraEditor Mac Development build · presentation commandlet PASS · combo validator PASS</text>
+  <text x="145" y="688" class="pill">Aura.Migration.Crunch: 13/13 · git diff --check PASS</text>
+</svg>

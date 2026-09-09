@@ -40,6 +40,24 @@ namespace AuraCreateCrunchPresentationPrivate
 		TEXT("/Game/Assets/Characters/Crunch/Animations/Locomotion/Jog_FwdV4")
 	};
 	constexpr TCHAR TargetMontagePackage[] = TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_CrunchComboV4");
+	constexpr TCHAR SourceSkillMontagePaths[5][256] = {
+		TEXT("/Game/Characters/Crunch/GameplayAbility/Dash/AM_Dash.AM_Dash"),
+		TEXT("/Game/Characters/Crunch/GameplayAbility/UpperCut/Animation/AM_UpperCut.AM_UpperCut"),
+		TEXT("/Game/Characters/Crunch/GameplayAbility/GroundBlast/Animation/AM_GroundBlast_Casting.AM_GroundBlast_Casting"),
+		TEXT("/Game/Characters/Crunch/GameplayAbility/GroundBlast/Animation/AM_GroundBlast_Targetting.AM_GroundBlast_Targetting"),
+		TEXT("/Game/Characters/Crunch/GameplayAbility/Turnado/Animation/AM_Tornado.AM_Tornado")
+	};
+	constexpr TCHAR TargetSkillMontagePackages[5][256] = {
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_Dash"),
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_UpperCut"),
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_GroundBlast_Casting"),
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_GroundBlast_Targetting"),
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_Tornado")
+	};
+	constexpr TCHAR TargetSkillMontageNames[5][64] = {
+		TEXT("AM_Dash"), TEXT("AM_UpperCut"), TEXT("AM_GroundBlast_Casting"),
+		TEXT("AM_GroundBlast_Targetting"), TEXT("AM_Tornado")
+	};
 	constexpr TCHAR NotifyClassPath[] = TEXT("/Game/Blueprints/AnimNotifies/AN_MontageEvent.AN_MontageEvent_C");
 	constexpr TCHAR OpenTagName[] = TEXT("Event.Montage.Crunch.Combo.Window.Open");
 	constexpr TCHAR DamageTagName[] = TEXT("Event.Montage.Crunch.Combo.Damage");
@@ -80,6 +98,30 @@ namespace AuraCreateCrunchPresentationPrivate
 	Event.SetTime(Time);
 	Montage->Notifies.Add(MoveTemp(Event));
 	return true;
+	}
+
+	bool CreateTargetSkillMontage(const TCHAR* SourcePath, const TCHAR* TargetPackageName,
+		const TCHAR* TargetAssetName, USkeleton* TargetSkeleton)
+	{
+		UAnimMontage* SourceMontage = LoadObject<UAnimMontage>(nullptr, SourcePath);
+		if (!SourceMontage || !TargetSkeleton)
+		{
+			return false;
+		}
+
+		UPackage* TargetPackage = CreatePackage(TargetPackageName);
+		UAnimMontage* TargetMontage = DuplicateObject<UAnimMontage>(SourceMontage, TargetPackage, TargetAssetName);
+		if (!TargetMontage)
+		{
+			return false;
+		}
+
+		TargetMontage->SetSkeleton(TargetSkeleton);
+		// The source package's notify classes belong to the unavailable Crunch
+		// plugin. Aura abilities use native gameplay-event fallbacks, so keep the
+		// animation timing but remove those runtime-invalid notify references.
+		TargetMontage->Notifies.Empty();
+		return SavePackageAsset(TargetPackage, TargetMontage, TargetPackageName);
 	}
 }
 
@@ -162,6 +204,16 @@ int32 UAuraCreateCrunchPresentationCommandlet::Main(const FString& Params)
 		UE_LOG(LogTemp, Display, TEXT("[CrunchPresentation] PASS LocomotionOnly=1 Skeleton=%s Locomotion=2"),
 			*TargetSkeleton->GetPathName());
 		return 0;
+	}
+
+	for (int32 Index = 0; Index < UE_ARRAY_COUNT(SourceSkillMontagePaths); ++Index)
+	{
+		if (!CreateTargetSkillMontage(SourceSkillMontagePaths[Index], TargetSkillMontagePackages[Index],
+			TargetSkillMontageNames[Index], TargetSkeleton))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CrunchPresentation] Failed to translate skill montage %d."), Index + 1);
+			return 1;
+		}
 	}
 
 	TArray<UAnimSequence*> TargetSequences;
