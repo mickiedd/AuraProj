@@ -9,25 +9,12 @@
 #include "Character/AuraCivilian.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HAL/PlatformTime.h"
 
 namespace AuraAnimationDiagnosticsPrivate
 {
-	struct FState
-	{
-		double LastLogTime = -BIG_NUMBER;
-		float LastActualSpeed = -1.f;
-		float LastBlueprintSpeed = -1.f;
-		bool bLastCachedMovementValid = false;
-		bool bLastMovementMatches = false;
-		bool bLastMeshValid = false;
-		bool bLastAnimInstanceValid = false;
-		int32 LastMovementMode = INDEX_NONE;
-		FName LastCurrentState = NAME_None;
-		float LastRelevantAnimLength = -1.f;
-		float LastRelevantAnimTime = -1.f;
-	};
-
-	TMap<const APawn*, FState> States;
+	// Weak keys avoid retaining destroyed pawns or reusing state at recycled addresses.
+	TMap<TWeakObjectPtr<APawn>, double> LastLogTimes;
 }
 
 void UAuraAnimationDiagnosticsLibrary::LogCivilianAnimationState(
@@ -35,12 +22,32 @@ void UAuraAnimationDiagnosticsLibrary::LogCivilianAnimationState(
 	UCharacterMovementComponent* CachedMovement,
 	float BlueprintGroundSpeed)
 {
+	// Do not inspect animation state or mutate diagnostic bookkeeping unless explicitly enabled.
+	if (!UE_LOG_ACTIVE(LogAuraAnimationDiagnostics, Verbose))
+	{
+		AuraAnimationDiagnosticsPrivate::LastLogTimes.Reset();
+		return;
+	}
+
 	AAuraCharacterBase* Character = Cast<AAuraCharacterBase>(PawnOwner);
 	if (!Character || (!Character->GetCharacterRole().IsEqual(FName(TEXT("Civilian")))
 		&& !Character->IsA(AAuraCivilian::StaticClass())))
 	{
 		return;
 	}
+
+	const double Now = FPlatformTime::Seconds();
+	const TWeakObjectPtr<APawn> PawnKey(PawnOwner);
+	const double* LastLogTime = AuraAnimationDiagnosticsPrivate::LastLogTimes.Find(PawnKey);
+	if (LastLogTime && Now - *LastLogTime < 1.0)
+	{
+		return;
+	}
+	for (auto It = AuraAnimationDiagnosticsPrivate::LastLogTimes.CreateIterator(); It; ++It)
+	{
+		if (!It.Key().IsValid()) It.RemoveCurrent();
+	}
+	AuraAnimationDiagnosticsPrivate::LastLogTimes.Add(PawnKey, Now);
 
 	const FVector ActualVelocity = Character->GetVelocity();
 	const float ActualGroundSpeed = ActualVelocity.Size2D();
@@ -67,37 +74,7 @@ void UAuraAnimationDiagnosticsLibrary::LogCivilianAnimationState(
 	const bool bActuallyInAir = ActualMovement && ActualMovement->IsFalling();
 	const bool bDead = Character->IsDead_Implementation();
 
-	AuraAnimationDiagnosticsPrivate::FState& State = AuraAnimationDiagnosticsPrivate::States.FindOrAdd(Character);
-	const double Now = Character->GetWorld() ? Character->GetWorld()->GetTimeSeconds() : 0.0;
-	const bool bStateChanged = State.LastActualSpeed < 0.f
-		|| FMath::Abs(State.LastActualSpeed - ActualGroundSpeed) > 5.f
-		|| FMath::Abs(State.LastBlueprintSpeed - BlueprintGroundSpeed) > 5.f
-		|| State.bLastCachedMovementValid != bCachedMovementValid
-		|| State.bLastMovementMatches != bMovementMatches
-		|| State.bLastMeshValid != (Mesh && Mesh->GetSkeletalMeshAsset())
-		|| State.bLastAnimInstanceValid != IsValid(AnimInstance)
-		|| State.LastMovementMode != MovementMode
-		|| State.LastCurrentState != CurrentState
-		|| !FMath::IsNearlyEqual(State.LastRelevantAnimLength, RelevantAnimLength, 0.01f)
-		|| !FMath::IsNearlyEqual(State.LastRelevantAnimTime, RelevantAnimTime, 0.01f);
-	if (!bStateChanged && Now - State.LastLogTime < 1.0)
-	{
-		return;
-	}
-
-	State.LastLogTime = Now;
-	State.LastActualSpeed = ActualGroundSpeed;
-	State.LastBlueprintSpeed = BlueprintGroundSpeed;
-	State.bLastCachedMovementValid = bCachedMovementValid;
-	State.bLastMovementMatches = bMovementMatches;
-	State.bLastMeshValid = Mesh && Mesh->GetSkeletalMeshAsset();
-	State.bLastAnimInstanceValid = IsValid(AnimInstance);
-	State.LastMovementMode = MovementMode;
-	State.LastCurrentState = CurrentState;
-	State.LastRelevantAnimLength = RelevantAnimLength;
-	State.LastRelevantAnimTime = RelevantAnimTime;
-
-	UE_LOG(LogAura, Display,
+	UE_LOG(LogAuraAnimationDiagnostics, Verbose,
 		TEXT("[CivilianAnimDiag] actor=%s authority=%d role=%s pawnClass=%s cachedMovement=%d movementMatches=%d "
 			"actualMovement=%d mode=%d movingOnGround=%d actuallyInAir=%d dead=%d maxWalkSpeed=%.1f "
 			"actualVelocity=%s actualGroundSpeed=%.2f blueprintGroundSpeed=%.2f mesh=%s animClass=%s animInstance=%s state=%s relevantAnimLength=%.3f relevantAnimTime=%.3f montage=%s"),

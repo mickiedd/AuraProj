@@ -12,6 +12,7 @@
 #include "GameFramework/Controller.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
+#include "NavigationPath.h"
 #include "NiagaraFunctionLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
@@ -40,6 +41,7 @@
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "UI/WidgetController/SpellMenuWidgetController.h"
 #include "UI/Widget/DamageTextComponent.h"
+#include "World/AuraLandmarkWorldSubsystem.h"
 #include "InputCoreTypes.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -467,6 +469,14 @@ void AAuraPlayerController::HideMagicCircle()
 	}
 }
 
+void AAuraPlayerController::ToggleLandmarkPanel()
+{
+	if (AAuraHUD* HUD = Cast<AAuraHUD>(GetHUD()))
+	{
+		HUD->ToggleLandmarkPanel();
+	}
+}
+
 void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit)
 {
 	if (IsValid(TargetCharacter) && DamageTextComponentClass && IsLocalController())
@@ -481,6 +491,11 @@ void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, 
 
 void AAuraPlayerController::AutoRun()
 {
+	if (bLandmarkGuideActive)
+	{
+		TickLandmarkGuide(GetWorld() ? GetWorld()->GetDeltaSeconds() : 0.f);
+		return;
+	}
 	if (!bAutoRunning) return;
 	if (APawn* ControlledPawn = GetPawn())
 	{
@@ -494,6 +509,181 @@ void AAuraPlayerController::AutoRun()
 			bAutoRunning = false;
 		}
 	}
+}
+
+bool AAuraPlayerController::StartLandmarkGuide(FName LandmarkId)
+{
+	if (LandmarkId.IsNone())
+	{
+		SetLandmarkGuideState(EAuraLandmarkGuideState::Failed, TEXT("Missing landmark ID"));
+		return false;
+	}
+
+	APawn* ControlledPawn = GetPawn();
+	UWorld* World = GetWorld();
+	UAuraLandmarkWorldSubsystem* Registry = World ? World->GetSubsystem<UAuraLandmarkWorldSubsystem>() : nullptr;
+	FAuraLandmarkDescriptor Descriptor;
+	if (!ControlledPawn || !Registry || !Registry->ResolveLandmark(LandmarkId, Descriptor) || !Descriptor.bAvailable)
+	{
+		SetLandmarkGuideState(EAuraLandmarkGuideState::Failed, TEXT("Landmark is unavailable"));
+		return false;
+	}
+
+	const FVector Destination = Descriptor.ApproachTransform.GetLocation();
+	if (Destination.ContainsNaN())
+	{
+		SetLandmarkGuideState(EAuraLandmarkGuideState::Failed, TEXT("Landmark has an invalid approach point"));
+		return false;
+	}
+
+	UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(World, ControlledPawn->GetActorLocation(), Destination, ControlledPawn);
+	if (!NavPath || NavPath->PathPoints.Num() < 2 || NavPath->IsPartial())
+	{
+		SetLandmarkGuideState(EAuraLandmarkGuideState::Failed, TEXT("No complete navigable path to landmark"));
+		UE_LOG(LogAura, Warning, TEXT("[Landmark] Guide rejected for %s: no complete path from %s to %s"),
+			*LandmarkId.ToString(), *ControlledPawn->GetActorLocation().ToCompactString(), *Destination.ToCompactString());
+		return false;
+	}
+
+	if (!HasAuthority())
+	{
+		ServerRequestLandmarkGuide(LandmarkId);
+	}
+
+	Spline->ClearSplinePoints(false);
+	for (const FVector& Point : NavPath->PathPoints)
+	{
+		Spline->AddSplinePoint(Point, ESplineCoordinateSpace::World, false);
+	}
+	Spline->UpdateSpline();
+	CachedDestination = Destination;
+	ActiveLandmarkId = LandmarkId;
+	LandmarkLookAtLocation = Descriptor.LookAtLocation;
+	LandmarkArrivalRadius = FMath::Max(Descriptor.ArrivalRadius, 25.f);
+	LandmarkGuideElapsed = 0.f;
+	LandmarkLastProgressTime = 0.f;
+	LandmarkLastProgressLocation = ControlledPawn->GetActorLocation();
+	bLandmarkGuideActive = true;
+	bAutoRunning = false;
+	SetLandmarkGuideState(EAuraLandmarkGuideState::Facing);
+	UE_LOG(LogAura, Log, TEXT("[Landmark] Guide started: %s trip path points=%d destination=%s"),
+		*LandmarkId.ToString(), NavPath->PathPoints.Num(), *Destination.ToCompactString());
+	return true;
+}
+
+void AAuraPlayerController::CancelLandmarkGuide(const FString& Reason)
+{
+	if (!bLandmarkGuideActive && LandmarkGuideState != EAuraLandmarkGuideState::Facing && LandmarkGuideState != EAuraLandmarkGuideState::Running)
+	{
+		return;
+	}
+	if (!HasAuthority())
+	{
+		ServerCancelLandmarkGuide();
+	}
+	StopLandmarkGuideInternal(EAuraLandmarkGuideState::Cancelled, Reason);
+}
+
+void AAuraPlayerController::ServerRequestLandmarkGuide_Implementation(FName LandmarkId)
+{
+	// The server resolves the same registry entry and path; the owning client still
+	// supplies normal CharacterMovement input rather than an AI controller.
+	StartLandmarkGuide(LandmarkId);
+}
+
+void AAuraPlayerController::ServerCancelLandmarkGuide_Implementation()
+{
+	StopLandmarkGuideInternal(EAuraLandmarkGuideState::Cancelled, TEXT("Cancelled by player"));
+}
+
+void AAuraPlayerController::SetLandmarkGuideState(EAuraLandmarkGuideState NewState, const FString& Reason)
+{
+	if (NewState == EAuraLandmarkGuideState::Failed)
+	{
+		// A rejected retarget must never leave the previous route feeding input.
+		bLandmarkGuideActive = false;
+		bAutoRunning = false;
+	}
+	LandmarkGuideState = NewState;
+	const float Remaining = (GetPawn() && bLandmarkGuideActive) ? FVector::Dist2D(GetPawn()->GetActorLocation(), CachedDestination) : 0.f;
+	OnLandmarkGuideStateChanged.Broadcast(ActiveLandmarkId, NewState, Remaining, Reason);
+	UE_LOG(LogAura, Log, TEXT("[Landmark] %s state=%d remaining=%.1f reason=%s"),
+		*ActiveLandmarkId.ToString(), static_cast<int32>(NewState), Remaining, Reason.IsEmpty() ? TEXT("-") : *Reason);
+}
+
+void AAuraPlayerController::StopLandmarkGuideInternal(EAuraLandmarkGuideState TerminalState, const FString& Reason)
+{
+	if (!bLandmarkGuideActive && ActiveLandmarkId.IsNone()) return;
+	bLandmarkGuideActive = false;
+	bAutoRunning = false;
+	SetLandmarkGuideState(TerminalState, Reason);
+	ActiveLandmarkId = NAME_None;
+}
+
+void AAuraPlayerController::TickLandmarkGuide(float DeltaTime)
+{
+	APawn* ControlledPawn = GetPawn();
+	if (!ControlledPawn || !Spline || Spline->GetNumberOfSplinePoints() < 2)
+	{
+		StopLandmarkGuideInternal(EAuraLandmarkGuideState::Failed, TEXT("Controlled pawn or route disappeared"));
+		return;
+	}
+
+	LandmarkGuideElapsed += DeltaTime;
+	if (LandmarkGuideElapsed > 600.f)
+	{
+		StopLandmarkGuideInternal(EAuraLandmarkGuideState::Failed, TEXT("Landmark guide timed out"));
+		return;
+	}
+
+	const FVector PawnLocation = ControlledPawn->GetActorLocation();
+	const float DistanceToDestination = FVector::Dist2D(PawnLocation, CachedDestination);
+	if (DistanceToDestination <= LandmarkArrivalRadius)
+	{
+		bLandmarkGuideActive = false;
+		bAutoRunning = false;
+		SetLandmarkGuideState(EAuraLandmarkGuideState::AwaitingArrival);
+		SetLandmarkGuideState(EAuraLandmarkGuideState::Arrived);
+		return;
+	}
+
+	if (FVector::DistSquared2D(PawnLocation, LandmarkLastProgressLocation) >= FMath::Square(30.f))
+	{
+		LandmarkLastProgressLocation = PawnLocation;
+		LandmarkLastProgressTime = LandmarkGuideElapsed;
+	}
+	else if (LandmarkGuideElapsed - LandmarkLastProgressTime > 3.f)
+	{
+		StopLandmarkGuideInternal(EAuraLandmarkGuideState::Failed, TEXT("Movement blocked; route cancelled"));
+		return;
+	}
+
+	const FVector LookDirection = (LandmarkLookAtLocation - PawnLocation).GetSafeNormal2D();
+	if (LandmarkGuideState == EAuraLandmarkGuideState::Facing)
+	{
+		if (!LookDirection.IsNearlyZero())
+		{
+			const FRotator Current = ControlledPawn->GetActorRotation();
+			const FRotator Desired = LookDirection.Rotation();
+			const FRotator Next = FMath::RInterpConstantTo(Current, Desired, DeltaTime, 360.f);
+			ControlledPawn->SetActorRotation(FRotator(0.f, Next.Yaw, 0.f));
+			if (FMath::Abs(FMath::FindDeltaAngleDegrees(Next.Yaw, Desired.Yaw)) <= 5.f)
+			{
+				SetLandmarkGuideState(EAuraLandmarkGuideState::Running);
+			}
+		}
+		return;
+	}
+
+	const FVector SplineLocation = Spline->FindLocationClosestToWorldLocation(PawnLocation, ESplineCoordinateSpace::World);
+	const FVector Direction = Spline->FindDirectionClosestToWorldLocation(SplineLocation, ESplineCoordinateSpace::World).GetSafeNormal2D();
+	if (Direction.IsNearlyZero())
+	{
+		StopLandmarkGuideInternal(EAuraLandmarkGuideState::Failed, TEXT("Route has no forward direction"));
+		return;
+	}
+	ControlledPawn->SetActorRotation(FRotator(0.f, Direction.Rotation().Yaw, 0.f));
+	ControlledPawn->AddMovementInput(Direction);
 }
 
 void AAuraPlayerController::UpdateMagicCircleLocation()
@@ -655,6 +845,10 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 		}
 		UE_LOG(LogAura, Log, TEXT("[PC] LMB Pressed: TargetingStatus=%d ThisActor=%s"),
 			(int32)TargetingStatus, *GetNameSafe(ThisActor));
+		if (bLandmarkGuideActive)
+		{
+			CancelLandmarkGuide(TEXT("Manual or ability input"));
+		}
 		bAutoRunning = false;
 	}
 	if (GetASC()) GetASC()->AbilityInputTagPressed(InputTag);
@@ -1986,6 +2180,7 @@ void AAuraPlayerController::SetupInputComponent()
 	InputComponent->BindKey(EKeys::E, EInputEvent::IE_Pressed, this, &AAuraPlayerController::BroomDescendPressed);
 	InputComponent->BindKey(EKeys::E, EInputEvent::IE_Released, this, &AAuraPlayerController::BroomDescendReleased);
 	InputComponent->BindKey(EKeys::R, EInputEvent::IE_Pressed, this, &AAuraPlayerController::RequestFirearmReload);
+	InputComponent->BindKey(EKeys::L, EInputEvent::IE_Pressed, this, &AAuraPlayerController::ToggleLandmarkPanel);
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
@@ -2137,6 +2332,10 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 	const bool bCanLogMoveBlocked = CurrentTime - LastMoveBlockedLogTime >= MoveInputLogInterval;
 
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
+	if (!InputAxisVector.IsNearlyZero() && bLandmarkGuideActive)
+	{
+		CancelLandmarkGuide(TEXT("Manual movement"));
+	}
 
 	// ── Broom flight ───────────────────────────────────────────────────────────
 	// Checked BEFORE the Player_Block_InputPressed gate so that broom locomotion

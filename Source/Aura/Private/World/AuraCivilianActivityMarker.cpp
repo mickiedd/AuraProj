@@ -2,6 +2,7 @@
 
 #include "World/AuraCivilianActivityMarker.h"
 
+#include "Components/SceneComponent.h"
 #include "Game/AuraGameModeBase.h"
 #include "World/AuraPopulationManager.h"
 
@@ -9,6 +10,8 @@ AAuraCivilianActivityMarker::AAuraCivilianActivityMarker()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	// Replication relevancy and AI destinations require a world-space root.
+	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot")));
 }
 
 void AAuraCivilianActivityMarker::BeginPlay()

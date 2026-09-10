@@ -250,8 +250,13 @@ private:
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStopAllDedicatedServersClicked)));
 
 		MenuBuilder.AddMenuEntry(
+			#if PLATFORM_WINDOWS
+			LOCTEXT("StartNativeGameServerManagerLabel", "Start Native GSM (C++)"),
+			LOCTEXT("StartNativeGameServerManagerTooltip", "Launch the standalone C++ Game Server Manager. Dashboard: http://127.0.0.1:9080. Stop the Python GSM before using the same manager port."),
+			#else
 			LOCTEXT("StartGameServerManagerLabel", "Start Game Server Manager"),
 			LOCTEXT("StartGameServerManagerTooltip", "Launch the game server manager bridge that allocates dedicated servers and returns host:port to clients."),
+			#endif
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"),
 			FUIAction(FExecuteAction::CreateRaw(this, &FAuraEditorModule::OnStartGameServerManagerClicked)));
 
@@ -2491,13 +2496,13 @@ private:
 
 		#if PLATFORM_WINDOWS
 		const bool bStarted = LaunchProjectScript(
-			TEXT("StartGameServer.bat"),
-			FString(),
+			TEXT("StartNativeGSM.bat"),
+			FString::Printf(TEXT("--editor-exe \"%s\""), *FPaths::Combine(FPlatformProcess::BaseDir(), FPlatformProcess::ExecutableName(false))),
 			FText::Format(
-				LOCTEXT("StartGameServerManagerMissingWindows", "Could not find StartGameServer.bat at:\n{0}"),
-				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartGameServer.bat")))),
-			TEXT("Failed to launch the game server manager."),
-			TEXT("StartGameServerManager"));
+				LOCTEXT("StartNativeGameServerManagerMissingWindows", "Could not find StartNativeGSM.bat at:\n{0}"),
+				FText::FromString(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("StartNativeGSM.bat")))),
+			TEXT("Failed to launch the native C++ game server manager."),
+			TEXT("StartNativeGameServerManager"));
 		#elif PLATFORM_MAC
 		const bool bStarted = LaunchProjectScript(
 			TEXT("StartGameServer.command"),
@@ -2518,7 +2523,11 @@ private:
 			return;
 		}
 
+		#if PLATFORM_WINDOWS
+		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartNativeGameServerManagerComplete", "Native C++ GSM launch request sent.\n\nDashboard: http://127.0.0.1:9080\nThe first launch builds the program if needed. Check the launcher console for startup errors. Stop the Python GSM before using the same manager port."));
+		#else
 		FMessageDialog::Open(EAppMsgType::Ok, LOCTEXT("StartGameServerManagerComplete", "Game server manager launch request sent."));
+		#endif
 	}
 
 	void OnOpenBTDebuggerClicked() const

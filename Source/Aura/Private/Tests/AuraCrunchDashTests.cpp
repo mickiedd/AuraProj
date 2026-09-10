@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Animation/AnimMontage.h"
 #include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAuraCrunchDashTravelTest,
@@ -14,6 +15,31 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAuraCrunchDashTravelTest,
  EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FAuraCrunchDashTravelTest::RunTest(const FString& Parameters)
 {
+ const UAuraCrunchDash* DashCDO = GetDefault<UAuraCrunchDash>();
+ const FFloatProperty* DistanceProperty = FindFProperty<FFloatProperty>(DashCDO->GetClass(), TEXT("DashDistance"));
+ const FFloatProperty* DurationProperty = FindFProperty<FFloatProperty>(DashCDO->GetClass(), TEXT("DashDuration"));
+ TestNotNull(TEXT("Dash distance property is reflected"), DistanceProperty);
+ TestNotNull(TEXT("Dash duration property is reflected"), DurationProperty);
+ if (DistanceProperty && DurationProperty)
+ {
+  TestEqual(TEXT("Dash distance is a substantial world-space charge"), DistanceProperty->GetPropertyValue_InContainer(DashCDO), 1800.f);
+  TestEqual(TEXT("Dash duration is long enough to read as a charge"), DurationProperty->GetPropertyValue_InContainer(DashCDO), 0.6f);
+ }
+ const FObjectProperty* MontageProperty = FindFProperty<FObjectProperty>(DashCDO->GetClass(), TEXT("DashMontage"));
+ UAnimMontage* DashMontage = MontageProperty
+  ? Cast<UAnimMontage>(MontageProperty->GetObjectPropertyValue_InContainer(DashCDO))
+  : nullptr;
+ TestNotNull(TEXT("Dash presentation montage loads"), DashMontage);
+ if (DashMontage)
+ {
+  TestTrue(TEXT("Dash presentation montage has playable length"), DashMontage->GetPlayLength() > 0.f);
+  TestNotNull(TEXT("Dash presentation montage uses the target Crunch skeleton"), DashMontage->GetSkeleton());
+  if (DashMontage->GetSkeleton())
+  {
+   TestEqual(TEXT("Dash montage skeleton is Crunch_SkeletonV4"), DashMontage->GetSkeleton()->GetPathName(),
+    FString(TEXT("/Game/Assets/Characters/Crunch/Meshes/Crunch_SkeletonV4.Crunch_SkeletonV4")));
+  }
+ }
  for (int32 Scenario = 0; Scenario < 4; ++Scenario)
  {
   UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);

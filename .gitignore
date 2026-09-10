@@ -19,6 +19,8 @@
 /.idea/
 /Content/*
 !/Content/Blueprints/
+!/Content/BehaviorTrees/
+!/Content/BehaviorTrees/*.xml
 !/Content/Assets/
 !/Content/Config/
 !/Content/BehaviorTrees/

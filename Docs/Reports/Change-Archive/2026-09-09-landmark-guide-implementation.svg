@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+<rect width="1200" height="760" fill="#101a2b"/>
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#edf4ff}.title{font-size:30px;font-weight:700}.head{font-size:21px;font-weight:600}.body{font-size:17px}.small{font-size:15px}.box{fill:#203650;stroke:#5b7fa6;stroke-width:2}.ok{fill:#20483f;stroke:#66d4c1;stroke-width:2}.warn{fill:#4e3d28;stroke:#e2ad5c;stroke-width:2}.arrow{stroke:#66d4c1;stroke-width:3;fill:none;marker-end:url(#arr)}</style>
+<defs><marker id="arr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8" fill="#66d4c1"/></marker></defs>
+<text x="40" y="50" class="title">Landmark guide — implementation slice</text>
+<text x="40" y="80" class="body">Native UMG + player movement adapter • 2026-09-09</text>
+<rect x="40" y="110" width="260" height="135" rx="12" class="box"/>
+<text x="60" y="143" class="head">Landmarks panel</text><text x="60" y="174" class="body">Zhenhai Tower</text><text x="60" y="199" class="body">Great North Gate</text><text x="60" y="226" class="small">Stop • Close • L toggle</text>
+<path d="M302 178H347" class="arrow"/>
+<rect x="355" y="110" width="260" height="135" rx="12" class="box"/>
+<text x="375" y="143" class="head">World registry</text><text x="375" y="174" class="body">Stable ID + approach</text><text x="375" y="199" class="body">Duplicate guard</text><text x="375" y="226" class="small">Tag fallback for current map</text>
+<path d="M617 178H662" class="arrow"/>
+<rect x="670" y="110" width="250" height="135" rx="12" class="box"/>
+<text x="690" y="143" class="head">Guide adapter</text><text x="690" y="174" class="body">Path validation</text><text x="690" y="199" class="body">Face → run → arrive</text><text x="690" y="226" class="small">Manual/ability cancellation</text>
+<path d="M922 178H967" class="arrow"/>
+<rect x="975" y="110" width="185" height="135" rx="12" class="box"/>
+<text x="993" y="143" class="head">Pawn</text><text x="993" y="174" class="body">Spline route</text><text x="993" y="199" class="body">CharacterMovement</text><text x="993" y="226" class="small">No AI possession</text>
+<rect x="40" y="285" width="1120" height="125" rx="12" class="ok"/>
+<text x="60" y="320" class="head">Validated</text><text x="60" y="350" class="body">Editor build pass • Game build pass • 2/2 Aura.Landmark automation tests pass</text><text x="60" y="378" class="body">NullRHI launch mounted panel and discovered both tagged actors without a crash</text>
+<rect x="40" y="445" width="1120" height="145" rx="12" class="warn"/>
+<text x="60" y="480" class="head">Readiness guard observed in the current map</text><text x="60" y="512" class="body">Tower: available via grounded tag fallback</text><text x="60" y="540" class="body">Gate: available via grounded tag fallback</text><text x="60" y="568" class="small">Explicit marker authoring remains the production tuning gate.</text>
+<text x="40" y="642" class="head">Next gates</text><text x="40" y="675" class="body">Author entrances + NavMesh → restore BehaviorU source binding → server trip/arrival proof → rendered/package QA</text><text x="40" y="716" class="small">The BehaviorU XML contract is staged; compiled plugin integration is pending because this checkout contains binaries without source/descriptor.</text>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+<title id="title">Crunch mesh and texture dependency repair</title>
+<desc id="desc">Missing ParagonCrunch dependencies for the active Crunch V4 skeletal mesh were copied into a target-owned package closure, references were remapped, and Unreal load probes passed.</desc>
+<rect width="1200" height="760" fill="#101827"/>
+<g font-family="Segoe UI,Arial" fill="#eef4ff">
+<text x="42" y="48" font-size="30" font-weight="700">Crunch · mesh and texture dependency repair</text>
+<text x="42" y="80" font-size="17" fill="#adbed6">2026-09-10 · target-owned V4 presentation assets restored from the available source checkout</text>
+
+<rect x="42" y="112" width="1116" height="132" rx="14" fill="#3a2630"/>
+<text x="68" y="149" font-size="21" fill="#ffb4b4">Before: broken package boundary</text>
+<text x="68" y="181" font-size="18">SM_CrunchV4 referenced /Game/ParagonCrunch/... packages that were not present in AuraProj/Content.</text>
+<text x="68" y="211" font-size="17" fill="#ffd2d2">Logs: 2 material classes + 5 MICs + Crunch_Extents + Crunch_ShadowCyl skipped as unavailable.</text>
+
+<path d="M600 244 V274" stroke="#ffcf7a" stroke-width="5"/>
+<path d="M588 263 L600 280 L612 263" fill="#ffcf7a"/>
+
+<rect x="42" y="286" width="1116" height="166" rx="14" fill="#20314a"/>
+<text x="68" y="323" font-size="21" fill="#ffcf7a">Repair: deterministic dependency closure</text>
+<text x="68" y="356" font-size="18">Source Crunch-master packages were scanned recursively from the mesh/material seeds.</text>
+<text x="68" y="387" font-size="18">82 .uasset packages · 493.3 MiB · 43 texture packages · 9 material packages</text>
+<text x="68" y="418" font-size="18">Copied to /Game/Assets/Crunch/... and byte-preserving references remapped to the target prefix.</text>
+
+<path d="M600 452 V482" stroke="#86e6ce" stroke-width="5"/>
+<path d="M588 471 L600 488 L612 471" fill="#86e6ce"/>
+
+<rect x="42" y="494" width="1116" height="142" rx="14" fill="#17343b"/>
+<text x="68" y="531" font-size="21" fill="#86e6ce">After: self-contained active presentation path</text>
+<text x="68" y="564" font-size="18">SM_CrunchV4 → target-owned MIC/material assets → Crunch_SkeletonV4</text>
+<text x="68" y="595" font-size="18">All repaired target packages: legacy prefix references = 0 · Unreal load probe = 3/3</text>
+<text x="68" y="620" font-size="16" fill="#adbed6">The old AM_Dash/AM_UpperCut legacy animation warnings remain outside this mesh/texture repair.</text>
+
+<rect x="42" y="668" width="1116" height="58" rx="12" fill="#18263a" stroke="#41617e"/>
+<text x="68" y="703" font-size="18">Validation: Fast Assets preflight PASS · combo commandlet PASS · direct Unreal/Python asset probe PASS · diff check clean.</text>
+</g>
+</svg>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#101a29"/>
+  <style>
+    text { font-family: Segoe UI, Arial, sans-serif; fill: #e7edf6; }
+    .title { font-size: 30px; font-weight: 700; }
+    .h { font-size: 20px; font-weight: 600; }
+    .body { font-size: 16px; }
+    .note { font-size: 14px; fill: #b9c8dc; }
+  </style>
+  <text x="40" y="52" class="title">Scifi Desert placement — Guangzhou Landmark Park</text>
+  <text x="40" y="82" class="note">L_showcase_level • saved 2026-09-10 • top-down placement and validation</text>
+
+  <rect x="40" y="120" width="680" height="500" rx="16" fill="#b8753d" stroke="#e4c18a" stroke-width="3"/>
+  <path d="M266 120V620 M493 120V620 M40 287H720 M40 454H720" stroke="#d69a5e" stroke-width="2" opacity=".8"/>
+  <text x="55" y="148" class="note">Landscape_6</text>
+  <text x="280" y="148" class="note">Landscape_8</text>
+  <text x="506" y="148" class="note">Landscape_7 / outer desert edge</text>
+
+  <g fill="#263f55" stroke="#8fe1d0" stroke-width="3">
+    <rect x="84" y="194" width="56" height="28" rx="4"/>
+    <rect x="84" y="260" width="62" height="32" rx="4"/>
+    <rect x="84" y="326" width="60" height="36" rx="4"/>
+    <rect x="84" y="392" width="59" height="32" rx="4"/>
+  </g>
+  <g class="body">
+    <text x="154" y="214">Great South Gate</text>
+    <text x="154" y="283">Great North Gate</text>
+    <text x="154" y="350">Xiaobeimen</text>
+    <text x="154" y="415">Zhenhai Tower</text>
+  </g>
+  <path d="M114 222V260 M114 292V326 M114 362V392" stroke="#8fe1d0" stroke-width="3" stroke-dasharray="7 6"/>
+  <text x="76" y="494" class="note">Four footprints are on the same 100 cm terrain contour.</text>
+  <text x="76" y="519" class="note">The row is 10,000 cm apart and outside the existing</text>
+  <text x="76" y="542" class="note">central showcase layout and scattered structures.</text>
+
+  <rect x="760" y="120" width="400" height="500" rx="16" fill="#173d43"/>
+  <text x="790" y="158" class="h">Placement contract</text>
+  <text x="790" y="198" class="body">Level: /Game/Scifi_desert_city/</text>
+  <text x="790" y="222" class="body">       Level/L_showcase_level</text>
+  <text x="790" y="270" class="body">Tag: ImportedGuangzhouLandmark</text>
+  <text x="790" y="308" class="body">Actors: 4 StaticMeshActor instances</text>
+  <text x="790" y="346" class="body">Ground: Z = 99.999 cm</text>
+  <text x="790" y="384" class="body">Search margin: 12,000 cm</text>
+  <text x="790" y="422" class="body">Existing overlap: none</text>
+  <text x="790" y="460" class="body">Map validation: 0 warnings/errors</text>
+  <text x="790" y="518" class="h">Reversible evidence</text>
+  <text x="790" y="552" class="note">Saved/RawModelImport/</text>
+  <text x="790" y="575" class="note">guangzhou-landmark-placement.json</text>
+  <text x="790" y="598" class="note">records labels, assets and transforms</text>
+
+  <rect x="40" y="665" width="1120" height="55" rx="10" fill="#243b36"/>
+  <text x="60" y="699" class="body">PASS: saved .umap • 4 intended mesh references • ground contact • spacing • no overlap with existing static meshes</text>
+</svg>

@@ -27,7 +27,7 @@ UAuraCrunchDash::UAuraCrunchDash()
 	CrunchCooldown = 0.f;
 	DefaultCrunchDamage = 30.f;
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> MontageFinder(
-		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_Dash.AM_Dash"));
+		TEXT("/Game/Assets/Characters/Crunch/Animations/Abilities/AM_Dash_Reapplied.AM_Dash"));
 	if (MontageFinder.Succeeded()) DashMontage = MontageFinder.Object;
 }
 
@@ -46,8 +46,9 @@ void UAuraCrunchDash::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, DashMontage);
 		if (MontageTask)
 		{
-			MontageTask->OnCancelled.AddDynamic(this, &UAuraCrunchDash::K2_EndAbility);
-			MontageTask->OnInterrupted.AddDynamic(this, &UAuraCrunchDash::K2_EndAbility);
+			// Montage playback is presentation-only. A missing or skeleton-mismatched
+			// montage must not cancel the movement source; the notify/fallback path
+			// still starts the gameplay dash below.
 			MontageTask->ReadyForActivation();
 		}
 	}

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="560" viewBox="0 0 1120 560">
+  <rect width="1120" height="560" fill="#101b2c"/>
+  <g font-family="Segoe UI,Arial" fill="#edf4ff">
+    <text x="40" y="52" font-size="28">Native GSM re-applied</text>
+    <text x="40" y="84" font-size="17">The reverted C++ manager, WebView2 dashboard, launcher and editor menu are restored.</text>
+    <rect x="40" y="120" width="1040" height="88" rx="12" fill="#593442"/>
+    <text x="62" y="153" font-size="20">Before: editor menu launched the Python manager</text>
+    <text x="62" y="183" font-size="17">No native GSM program or embedded dashboard was available after the revert.</text>
+    <rect x="40" y="240" width="300" height="124" rx="12" fill="#24506b"/>
+    <text x="60" y="276" font-size="19">Unreal Editor</text>
+    <text x="60" y="307" font-size="16">Start Native GSM (C++)</text>
+    <text x="60" y="334" font-size="16">passes current editor variant</text>
+    <rect x="410" y="240" width="300" height="124" rx="12" fill="#24506b"/>
+    <text x="430" y="276" font-size="19">AuraGSM.exe</text>
+    <text x="430" y="307" font-size="16">owns DS processes</text>
+    <text x="430" y="334" font-size="16">nonce-authenticated readiness</text>
+    <rect x="780" y="240" width="300" height="124" rx="12" fill="#24506b"/>
+    <text x="800" y="276" font-size="19">Native WebView2</text>
+    <text x="800" y="307" font-size="16">embedded dashboard</text>
+    <text x="800" y="334" font-size="16">DS count, params and metrics</text>
+    <path d="M340 302h70M710 302h70" stroke="#8ed5ff" stroke-width="4"/>
+    <path d="M400 292l12 10-12 10M770 292l12 10-12 10" fill="none" stroke="#8ed5ff" stroke-width="4"/>
+    <rect x="40" y="405" width="1040" height="76" rx="12" fill="#245344"/>
+    <text x="62" y="438" font-size="19">Validation: native Release build, 11 integration tests, editor translation-unit compile, archive visual check</text>
+    <text x="62" y="466" font-size="16">Automatic editor discovery remains available without UE_EDITOR_EXE configuration.</text>
+  </g>
+</svg>

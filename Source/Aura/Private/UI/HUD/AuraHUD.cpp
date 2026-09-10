@@ -35,6 +35,8 @@
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
 #include "UI/WidgetController/SpellMenuWidgetController.h"
 #include "UI/WidgetController/TargetInteractionWidgetController.h"
+#include "UI/Widget/AuraLandmarkPanelWidget.h"
+#include "Aura/AuraLogChannels.h"
 #include "WebBrowser.h"
 
 namespace AuraHUDPrivate
@@ -232,6 +234,32 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 	if (AttributeController) AttributeController->BroadcastInitialValues();
 	if (SpellController) SpellController->BroadcastInitialValues();
 	SendInitialWebHUDState();
+
+	if (PC && !LandmarkPanel)
+	{
+		LandmarkPanel = CreateWidget<UAuraLandmarkPanelWidget>(PC, UAuraLandmarkPanelWidget::StaticClass());
+		if (LandmarkPanel)
+		{
+			LandmarkPanel->InitializePanel(Cast<AAuraPlayerController>(PC));
+			LandmarkPanel->AddToViewport(20);
+			LandmarkPanel->ShowPanel(bLandmarkPanelVisible);
+			UE_LOG(LogAura, Log, TEXT("[Landmark] Native guide panel mounted"));
+		}
+	}
+}
+
+void AAuraHUD::ToggleLandmarkPanel()
+{
+	SetLandmarkPanelVisible(!bLandmarkPanelVisible);
+}
+
+void AAuraHUD::SetLandmarkPanelVisible(bool bVisible)
+{
+	bLandmarkPanelVisible = bVisible;
+	if (LandmarkPanel)
+	{
+		LandmarkPanel->ShowPanel(bVisible);
+	}
 }
 
 void AAuraHUD::InitializeWebHUD(APlayerController* PC)

@@ -20,6 +20,21 @@ class UAuraAbilitySystemComponent;
 class UAuraAttributeSet;
 class USplineComponent;
 class AMagicCircle;
+struct FAuraLandmarkDescriptor;
+
+UENUM(BlueprintType)
+enum class EAuraLandmarkGuideState : uint8
+{
+	Idle,
+	Facing,
+	Running,
+	AwaitingArrival,
+	Arrived,
+	Cancelled,
+	Failed
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FAuraLandmarkGuideStateChanged, FName, LandmarkId, EAuraLandmarkGuideState, State, float, RemainingDistance, const FString&, Reason);
 class AAuraBroomVehicle;
 class UCharacterMovementComponent;
 class UServerTravelComponent;
@@ -99,6 +114,28 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void HideMagicCircle();
+
+	/** Start a server-validated guide trip to a registered landmark. */
+	UFUNCTION(BlueprintCallable, Category="Landmark Guide")
+	bool StartLandmarkGuide(FName LandmarkId);
+
+	UFUNCTION(BlueprintCallable, Category="Landmark Guide")
+	void CancelLandmarkGuide(const FString& Reason = TEXT("Cancelled by player"));
+
+	UFUNCTION(BlueprintPure, Category="Landmark Guide")
+	bool IsLandmarkGuideActive() const { return bLandmarkGuideActive; }
+
+	UFUNCTION(BlueprintPure, Category="Landmark Guide")
+	EAuraLandmarkGuideState GetLandmarkGuideState() const { return LandmarkGuideState; }
+
+	UFUNCTION(BlueprintPure, Category="Landmark Guide")
+	FName GetActiveLandmarkId() const { return ActiveLandmarkId; }
+
+	UFUNCTION(BlueprintCallable, Category="Landmark Guide")
+	void ToggleLandmarkPanel();
+
+	UPROPERTY(BlueprintAssignable, Category="Landmark Guide")
+	FAuraLandmarkGuideStateChanged OnLandmarkGuideStateChanged;
 
 	void RequestBroomMount(AAuraBroomVehicle* BroomToMount);
 	void RequestBroomDismount(AAuraBroomVehicle* BroomToDismount);
@@ -297,6 +334,15 @@ private:
 	TObjectPtr<UNiagaraSystem> ClickNiagaraSystem;
 
 	void AutoRun();
+	void TickLandmarkGuide(float DeltaTime);
+	void SetLandmarkGuideState(EAuraLandmarkGuideState NewState, const FString& Reason = FString());
+	void StopLandmarkGuideInternal(EAuraLandmarkGuideState TerminalState, const FString& Reason);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRequestLandmarkGuide(FName LandmarkId);
+
+	UFUNCTION(Server, Reliable)
+	void ServerCancelLandmarkGuide();
 
 	/** Runs the bounded Day 1 role/respawn smoke test when launched with
 	 * -AuraRoleBattleDay1SmokeTest. The test is server-authoritative and exits
@@ -338,6 +384,15 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AMagicCircle> MagicCircle;
+
+	bool bLandmarkGuideActive = false;
+	EAuraLandmarkGuideState LandmarkGuideState = EAuraLandmarkGuideState::Idle;
+	FName ActiveLandmarkId = NAME_None;
+	FVector LandmarkLookAtLocation = FVector::ZeroVector;
+	float LandmarkArrivalRadius = 150.f;
+	float LandmarkGuideElapsed = 0.f;
+	float LandmarkLastProgressTime = 0.f;
+	FVector LandmarkLastProgressLocation = FVector::ZeroVector;
 
 	void UpdateMagicCircleLocation();
 

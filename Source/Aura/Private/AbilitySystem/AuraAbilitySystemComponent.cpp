@@ -851,7 +851,7 @@ void UAuraAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate
 
 FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
 {
-	UE_LOG(LogAura, Log, TEXT("[ASC] GetAbilityTagFromSpec Ability=%s DynamicTags=%d"),
+	UE_LOG(LogAura, Verbose, TEXT("[ASC] GetAbilityTagFromSpec Ability=%s DynamicTags=%d"),
 		*GetNameSafe(AbilitySpec.Ability), AbilitySpec.GetDynamicSpecSourceTags().Num());
 	if (AbilitySpec.Ability)
 	{
@@ -859,7 +859,7 @@ FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayA
 		{
 			if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities"))))
 			{
-				UE_LOG(LogAura, Log, TEXT("[ASC] GetAbilityTagFromSpec resolved from AbilityTags: %s"), *Tag.ToString());
+				UE_LOG(LogAura, Verbose, TEXT("[ASC] GetAbilityTagFromSpec resolved from AbilityTags: %s"), *Tag.ToString());
 				return Tag;
 			}
 		}
@@ -868,7 +868,7 @@ FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayA
 	{
 		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities"))))
 		{
-				UE_LOG(LogAura, Log, TEXT("[ASC] GetAbilityTagFromSpec resolved from dynamic spec source tags: %s"), *Tag.ToString());
+				UE_LOG(LogAura, Verbose, TEXT("[ASC] GetAbilityTagFromSpec resolved from dynamic spec source tags: %s"), *Tag.ToString());
 			return Tag;
 		}
 	}

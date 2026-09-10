@@ -18,6 +18,7 @@ class UAttributeSet;
 class UAbilitySystemComponent;
 struct FWidgetControllerParams;
 class USpellMenuWidgetController;
+class UAuraLandmarkPanelWidget;
 class UTargetInteractionWidgetController;
 class UWebUIBridgeSubsystem;
 class UWebUIWidget;
@@ -40,6 +41,12 @@ public:
 	USpellMenuWidgetController* GetSpellMenuWidgetController(const FWidgetControllerParams& WCParams);
 
 	void InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
+
+	UFUNCTION(BlueprintCallable, Category="Landmark Guide")
+	void ToggleLandmarkPanel();
+
+	UFUNCTION(BlueprintCallable, Category="Landmark Guide")
+	void SetLandmarkPanelVisible(bool bVisible);
 
 	/** Dynamic bridge targets are public so runtime automation can exercise the exact reflected handlers. */
 	UFUNCTION()
@@ -217,5 +224,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<USpellMenuWidgetController> SpellMenuWidgetControllerClass;
+
+	UPROPERTY()
+	TObjectPtr<UAuraLandmarkPanelWidget> LandmarkPanel;
+
+	bool bLandmarkPanelVisible = true;
 
 };

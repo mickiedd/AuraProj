@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  BehaviorU contract for the player landmark guide.
+  The current checkout contains BehaviorU editor binaries without its source
+  module/descriptor, so the native player adapter owns execution for now. When
+  the plugin source is restored, bind these four methods to the guide component
+  and load this tree from the owning controller only.
+
+  ValidateGuideRequest (BT_RUNNING): server-authorized trip, pawn generation,
+    complete route and current marker.
+  FaceLandmark (BT_RUNNING): turn pawn toward LookAtLocation within tolerance.
+  FollowLandmarkPath (BT_RUNNING): apply normal CharacterMovement input along
+    the accepted route; manual input or a lifecycle event cancels the trip.
+  ConfirmGuideArrival (BT_RUNNING): wait for server arrival acknowledgement.
+-->
+<behavior version="3" agenttype="AuraPlayerLandmarkGuide">
+  <node class="Sequence" id="0">
+    <node class="Action" id="1">
+      <property name="Method" value="ValidateGuideRequest"/>
+      <property name="ResultOption" value="BT_RUNNING"/>
+    </node>
+    <node class="Action" id="2">
+      <property name="Method" value="FaceLandmark"/>
+      <property name="ResultOption" value="BT_RUNNING"/>
+    </node>
+    <node class="Action" id="3">
+      <property name="Method" value="FollowLandmarkPath"/>
+      <property name="ResultOption" value="BT_RUNNING"/>
+    </node>
+    <node class="Action" id="4">
+      <property name="Method" value="ConfirmGuideArrival"/>
+      <property name="ResultOption" value="BT_RUNNING"/>
+    </node>
+  </node>
+</behavior>

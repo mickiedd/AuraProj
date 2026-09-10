@@ -160,7 +160,7 @@ EBTNodeResult::Type UBTTask_FindCivilianDestination::ExecuteTask(UBehaviorTreeCo
 	Blackboard->SetValueAsBool(TEXT("bHasSafeDestination"), true);
 	Civilian->SetCivilianActivity(EAuraCivilianActivity::Wander);
 	if (Civilian->GetCharacterMovement()) Civilian->GetCharacterMovement()->MaxWalkSpeed = Profile->MovementSpeed;
-	UE_LOG(LogAura, Log, TEXT("[CivilianAI][BT] %s destination=%s activity=Wander."),
+	UE_LOG(LogAura, Verbose, TEXT("[CivilianAI][BT] %s destination=%s activity=Wander."),
 		*GetNameSafe(Civilian), *Destination.Location.ToCompactString());
 	return EBTNodeResult::Succeeded;
 }

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="700" viewBox="0 0 1120 700">
+<rect width="1120" height="700" fill="#101a29"/><style>text{font-family:Segoe UI,Arial,sans-serif;fill:#e7edf6}.title{font-size:30px;font-weight:700}.h{font-size:21px;font-weight:600}.body{font-size:17px}.note{font-size:15px;fill:#b9c8dc}</style>
+<text x="40" y="53" class="title">Guangzhou landmarks → Aura / Unreal Engine 5.5</text>
+<text x="40" y="85" class="note">2026-09-10 • Four textured buildings imported, normalized, saved and visually inspected</text>
+<rect x="40" y="118" width="300" height="203" rx="14" fill="#27364c"/>
+<text x="60" y="151" class="h">BEFORE: source ZIP packets</text>
+<text x="60" y="186" class="body">3 GLB buildings + 1 OBJ building</text>
+<text x="60" y="216" class="body">Z-up GLBs; mixed meters / cm</text>
+<text x="60" y="246" class="body">Xiaobeimen: 12,020 OBJ parts</text>
+<text x="60" y="282" class="note">No assets in the new target folder</text>
+<path d="M350 216 H400" stroke="#65c7ef" stroke-width="4"/><path d="M389 208 L401 216 L389 224" fill="none" stroke="#65c7ef" stroke-width="4"/>
+<rect x="415" y="118" width="665" height="203" rx="14" fill="#173d43"/>
+<text x="438" y="151" class="h">AFTER: /Game/Assets/Environment/GuangzhouLandmarks</text>
+<text x="438" y="186" class="body">4 Nanite static meshes • 33 materials • 160 textures</text>
+<text x="438" y="216" class="body">GLB roll −90°; Zhenhai import scale 0.01</text>
+<text x="438" y="246" class="body">OBJ combined by material; original faces and UVs preserved</text>
+<text x="438" y="282" class="body">External PBR maps replace invalid GLB TextureObject nodes</text>
+<rect x="40" y="349" width="1040" height="165" rx="14" fill="#202f45"/>
+<text x="60" y="382" class="h">Building                         Width × depth × height (meters)              Source triangles</text>
+<text x="60" y="409" class="body">GreatSouthGate</text><text x="360" y="409" class="body">32.60 × 15.45 × 24.86</text><text x="850" y="409" class="body">92,794</text><text x="60" y="437" class="body">GreatNorthGate</text><text x="360" y="437" class="body">36.00 × 17.50 × 24.76</text><text x="850" y="437" class="body">13,377,152</text><text x="60" y="465" class="body">ZhenhaiTower</text><text x="360" y="465" class="body">34.67 × 28.35 × 20.85</text><text x="850" y="465" class="body">5,053,728</text><text x="60" y="493" class="body">Xiaobeimen</text><text x="360" y="493" class="body">34.82 × 37.31 × 25.32</text><text x="850" y="493" class="body">817,152</text><rect x="40" y="540" width="1040" height="126" rx="14" fill="#243b36"/>
+<text x="60" y="573" class="h">Completion checks</text>
+<text x="60" y="603" class="body">PASS: 197 asset loads • 36 assigned slots • texture sizes and PBR inputs • dimensions • Nanite</text>
+<text x="60" y="631" class="note">Four Unreal mesh previews inspected. No overwrite imports. Source ZIPs retained. Local validation packet archived.</text>
+<text x="60" y="652" class="note">Limits: source UV/tangent artifacts retained; collision, baked-lightmap UVs and level placement are separate work.</text>
+</svg>

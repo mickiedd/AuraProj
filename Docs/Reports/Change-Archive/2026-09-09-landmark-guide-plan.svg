@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="740" viewBox="0 0 1200 740">
+<rect width="1200" height="740" fill="#101b2d"/>
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#edf4ff} .title{font-size:30px;font-weight:700}.head{font-size:21px;font-weight:600}.body{font-size:17px}.small{font-size:15px}.box{fill:#22354e;stroke:#52769c;stroke-width:2}.arrow{stroke:#69d8c5;stroke-width:3;fill:none;marker-end:url(#a)}</style>
+<defs><marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8" fill="#69d8c5"/></marker></defs>
+<text x="40" y="53" class="title">Landmarks guide — proposed implementation</text>
+<text x="40" y="85" class="body">2026-09-09 • Planning artifact • Gameplay and runtime verification pending</text>
+<rect x="40" y="110" width="1120" height="100" rx="12" class="box"/>
+<text x="60" y="142" class="head">BEFORE: buildings and separate movement systems</text>
+<text x="60" y="171" class="body">Tagged tower / gate meshes • existing HUD bridge • player spline autorun • enemy-only BehaviorU example</text>
+<text x="60" y="195" class="small">No guide registry found. Entrance collision and complete navigation routes still require live verification.</text>
+<text x="40" y="248" class="head">AFTER IMPLEMENTATION: one panel, one active trip, player keeps possession</text>
+<rect x="40" y="275" width="240" height="125" rx="12" class="box"/>
+<text x="59" y="308" class="head">Landmarks panel</text><text x="59" y="337" class="body">Zhenhai Tower</text><text x="59" y="362" class="body">Great North Gate</text><text x="59" y="386" class="small">Select • status • Stop</text>
+<path d="M282 337H327" class="arrow"/>
+<rect x="335" y="275" width="250" height="125" rx="12" class="box"/>
+<text x="351" y="308" class="head">Server validates ID</text><text x="351" y="338" class="body">Eligible pawn + entrance</text><text x="351" y="365" class="body">Complete navigable path</text><text x="351" y="387" class="small">Trip ID rejects stale replies</text>
+<path d="M587 337H630" class="arrow"/>
+<rect x="638" y="275" width="250" height="125" rx="12" class="box"/>
+<text x="654" y="308" class="head">BehaviorU sequence</text><text x="654" y="338" class="body">Validate → Face → Run</text><text x="654" y="365" class="body">Confirm arrival</text><text x="654" y="387" class="small">Real Running / Failure results</text>
+<path d="M890 337H927" class="arrow"/>
+<rect x="935" y="275" width="225" height="125" rx="12" class="box"/>
+<text x="950" y="308" class="head">Player movement</text><text x="950" y="338" class="body">Follow route corners</text><text x="950" y="365" class="body">Stop at entrance</text><text x="950" y="387" class="small">Server confirms arrival</text>
+<rect x="40" y="430" width="1120" height="105" rx="12" fill="#21443f" stroke="#69d8c5"/>
+<text x="60" y="462" class="head">Guards that make travel reliable</text><text x="60" y="491" class="body">Manual input / Stop / death / mount cancel • Retarget invalidates old trip • No direct walk without navigation</text><text x="60" y="517" class="body">Separate look target and entrance • Bounded replans and timeouts • Close panel keeps trip running</text>
+<text x="40" y="579" class="head">Five implementation gates</text>
+<text x="40" y="612" class="body">1 Registry + entrances → 2 Network movement proof → 3 BehaviorU → 4 Single panel → 5 Packaged acceptance</text>
+<text x="40" y="653" class="body">Validation: full paths • stale/cancel races • two clients • input conflicts • rendered UI • packaged XML / HTML</text>
+<text x="40" y="695" class="small">Current change: repository analysis and implementation plan only. This diagram does not claim the feature is implemented.</text>
+</svg>

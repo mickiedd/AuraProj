@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="590" viewBox="0 0 1100 590">
+<rect width="1100" height="590" fill="#101b2b"/>
+<g font-family="Segoe UI, sans-serif" fill="#eff5ff">
+<text x="40" y="52" font-size="29" font-weight="bold">Dedicated-server log optimization reapplied</text>
+<text x="40" y="84" font-size="17" fill="#b7c8de">2026-09-10 · source had drifted back to the noisy defaults</text>
+<rect x="40" y="110" width="490" height="355" rx="14" fill="#352835"/>
+<rect x="570" y="110" width="490" height="355" rx="14" fill="#183b3c"/>
+<text x="65" y="150" font-size="23" font-weight="bold">RESTORED FROM</text>
+<text x="595" y="150" font-size="23" font-weight="bold">DEFAULT AFTER REAPPLY</text>
+<g font-size="18">
+<text x="65" y="193">CivilianAnimDiag → LogAura Display</text>
+<text x="65" y="221">Playback time defeated the old 1 s throttle</text>
+<text x="595" y="193">Separate LogAuraAnimationDiagnostics category</text>
+<text x="595" y="221">Verbose + early guard; one sample/pawn/second</text>
+<text x="65" y="277">Successful ASC tag lookup → normal Log</text>
+<text x="65" y="305">Repeated on every ability tag lookup</text>
+<text x="595" y="277">Successful lookup trace → Verbose</text>
+<text x="595" y="305">Unresolved tags remain Warning</text>
+<text x="65" y="361">Wander destination → normal Log</text>
+<text x="65" y="389">Replicated marker had no spatial root</text>
+<text x="595" y="361">Wander destination → Verbose</text>
+<text x="595" y="389">Base marker gets SceneRoot for relevancy</text>
+<text x="65" y="441" fill="#f2b9bc">Historical backup: 519,778 animation dumps</text>
+<text x="595" y="441" fill="#f6d28b">Smoke: 0 targeted entries before unrelated startup fault</text>
+</g>
+<text x="40" y="505" font-size="19">Validation: Aura + AuraEditor builds; 2/2 Aura.ServerLogging tests passed</text>
+<text x="40" y="536" font-size="17" fill="#b7c8de">Editor automation: diagnostics default off, warnings/errors active, marker roots and relevancy pass</text>
+<text x="40" y="565" font-size="17" fill="#b7c8de">Standalone server smoke hit unrelated corrupt EngineMaterials/WorldGridMaterial before gameplay</text>
+</g>
+</svg>
