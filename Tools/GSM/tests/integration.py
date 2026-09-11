@@ -37,6 +37,21 @@ def process_alive(pid):
     return alive
 
 
+def terminate_pid(pid):
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    kernel.TerminateProcess.argtypes = [ctypes.c_void_p, ctypes.c_uint]
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    handle = kernel.OpenProcess(0x0001, False, pid)
+    if not handle:
+        raise OSError(ctypes.get_last_error(), f'OpenProcess({pid}) failed')
+    try:
+        if not kernel.TerminateProcess(handle, 99):
+            raise OSError(ctypes.get_last_error(), f'TerminateProcess({pid}) failed')
+    finally:
+        kernel.CloseHandle(handle)
+
+
 class NativeGSM(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='gsm native ')
@@ -172,33 +187,112 @@ class NativeGSM(unittest.TestCase):
             self.assertEqual(self.request(**dict(base, host='attacker.example'))['status'], 'ok')
             self.assertEqual(future.result()['host'], 'configured.example')
 
-    def test_timeout_cleanup_and_retry(self):
+    def test_request_deadline_preserves_startup_and_accepts_late_readiness(self):
         self.write_config('timeout')
+        self.data['requestDeadlineSeconds'] = .5
+        self.data['serverStartupDeadlineSeconds'] = 3
+        self.config.write_text(json.dumps(self.data), encoding='utf-8')
         self.start()
         started = time.monotonic()
         result = self.request()
         elapsed = time.monotonic() - started
         self.assertEqual(result['status'], 'error')
-        self.assertIn('deadline', result['message'])
-        self.assertGreaterEqual(elapsed, 29)
-        self.assertLess(elapsed, 33)
+        self.assertTrue(result['retryable'])
+        self.assertIn('startup continues in the background', result['message'])
+        self.assertGreaterEqual(elapsed, .4)
+        self.assertLess(elapsed, 2)
         row = self.status()['levels'][0]
-        old_nonce = json.loads(self.record.read_text())['nonce']
-        self.assertEqual(row['state'], 'failed')
-        self.wait_for(lambda: not process_alive(row['pid']))
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            future = pool.submit(self.request)
-            self.wait_for(lambda: self.status()['levels'][0]['launchCount'] == 2)
-            def new_record():
-                try:
-                    value = json.loads(self.record.read_text())
-                    return value if value['nonce'] != old_nonce else None
-                except (OSError, ValueError):
-                    return None
-            child = self.wait_for(new_record)
-            self.assertEqual(self.request(action='server_ready',serverAuthToken='server-private-token',port=self.game,readyNonce=old_nonce)['status'], 'error')
-            self.assertEqual(self.request(action='server_ready',serverAuthToken='server-private-token',port=self.game,readyNonce=child['nonce'])['status'], 'ok')
-            self.assertEqual(future.result()['status'], 'ready')
+        child = json.loads(self.record.read_text())
+        self.assertEqual(row['state'], 'starting')
+        self.assertTrue(row['running'])
+        self.assertTrue(process_alive(row['pid']))
+        self.assertEqual(row['launchCount'], 1)
+        self.assertEqual(self.request(action='server_ready', serverAuthToken='server-private-token',
+                                      port=self.game, readyNonce=child['nonce'])['status'], 'ok')
+        self.assertEqual(self.request()['status'], 'ready')
+        after = self.status()['levels'][0]
+        self.assertEqual(after['pid'], row['pid'])
+        self.assertEqual(after['launchCount'], 1)
+
+    def test_stale_readiness_from_replaced_launch_is_rejected(self):
+        self.write_config('timeout')
+        self.data['requestDeadlineSeconds'] = .2
+        self.data['serverStartupDeadlineSeconds'] = 3
+        self.config.write_text(json.dumps(self.data), encoding='utf-8')
+        self.start()
+
+        self.assertTrue(self.request()['retryable'])
+        first = self.status()['levels'][0]
+        first_child = json.loads(self.record.read_text())
+        first_nonce = first_child['nonce']
+        terminate_pid(first['pid'])
+        self.wait_for(lambda: self.status()['levels'][0]['state'] == 'exited')
+
+        self.assertTrue(self.request()['retryable'])
+        second = self.status()['levels'][0]
+        second_child = json.loads(self.record.read_text())
+        self.assertNotEqual(second['pid'], first['pid'])
+        self.assertNotEqual(second_child['nonce'], first_nonce)
+        stale = self.request(action='server_ready', serverAuthToken='server-private-token',
+                              port=self.game, readyNonce=first_nonce)
+        self.assertEqual(stale['status'], 'error')
+        self.assertEqual(self.status()['levels'][0]['state'], 'starting')
+        self.assertEqual(self.request(action='server_ready', serverAuthToken='server-private-token',
+                                      port=self.game, readyNonce=second_child['nonce'])['status'], 'ok')
+        self.assertEqual(self.request()['status'], 'ready')
+
+    def test_startup_deadline_wins_over_late_readiness(self):
+        self.write_config('timeout')
+        self.data['requestDeadlineSeconds'] = .2
+        self.data['serverStartupDeadlineSeconds'] = .8
+        self.config.write_text(json.dumps(self.data), encoding='utf-8')
+        self.start()
+        self.assertTrue(self.request()['retryable'])
+        pid = self.status()['levels'][0]['pid']
+        child = json.loads(self.record.read_text())
+        failed = self.wait_for(lambda: (
+            row if (row := self.status()['levels'][0])['state'] == 'failed' else None), timeout=2)
+        self.assertIn('server startup deadline', failed['error'])
+        self.wait_for(lambda: not process_alive(pid))
+        late = self.request(action='server_ready', serverAuthToken='server-private-token',
+                            port=self.game, readyNonce=child['nonce'])
+        self.assertEqual(late['status'], 'error')
+        self.assertEqual(self.status()['levels'][0]['state'], 'failed')
+
+    def test_request_disconnect_does_not_cleanup_starting_child(self):
+        self.write_config('timeout')
+        self.data['requestDeadlineSeconds'] = .5
+        self.data['serverStartupDeadlineSeconds'] = 3
+        self.config.write_text(json.dumps(self.data), encoding='utf-8')
+        self.start()
+        payload = json.dumps(dict(action='request_server', levelId='fixture',
+                                  authToken='client-private-token')).encode() + b'\n'
+        with socket.create_connection(('127.0.0.1', self.tcp), timeout=3) as sock:
+            sock.sendall(payload)
+        row = self.wait_for(lambda: (
+            value if (value := self.status()['levels'][0])['state'] == 'starting' else None))
+        self.assertTrue(process_alive(row['pid']))
+        self.wait_for(self.record.exists)
+        child = json.loads(self.record.read_text())
+        self.assertEqual(self.request(action='server_ready', serverAuthToken='server-private-token',
+                                      port=self.game, readyNonce=child['nonce'])['status'], 'ok')
+        self.assertEqual(self.request()['status'], 'ready')
+
+    def test_server_startup_deadline_eventually_cleans_up(self):
+        self.write_config('timeout')
+        self.data['requestDeadlineSeconds'] = .2
+        self.data['serverStartupDeadlineSeconds'] = .8
+        self.config.write_text(json.dumps(self.data), encoding='utf-8')
+        self.start()
+        result = self.request()
+        self.assertEqual(result['status'], 'error')
+        self.assertTrue(result['retryable'])
+        self.assertIn('startup continues in the background', result['message'])
+        pid = self.status()['levels'][0]['pid']
+        row = self.wait_for(lambda: (
+            value if (value := self.status()['levels'][0])['state'] == 'failed' else None), timeout=2)
+        self.assertIn('server startup deadline', row['error'])
+        self.wait_for(lambda: not process_alive(pid))
 
     def test_early_exit_and_failed_launch(self):
         self.write_config('exit')
@@ -289,6 +383,31 @@ class NativeGSM(unittest.TestCase):
         result = subprocess.run(self.args(), env=self.env, capture_output=True, timeout=5)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn(b'integers', result.stderr)
+        self.write_config()
+        self.data['requestDeadlineSeconds'] = 'fast'
+        self.config.write_text(json.dumps(self.data), encoding='utf-8')
+        result = subprocess.run(self.args(), env=self.env, capture_output=True, timeout=5)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(b'requestDeadlineSeconds must be a number', result.stderr)
+        self.write_config()
+        self.data['requestDeadlineSeconds'] = 2
+        self.data['serverStartupDeadlineSeconds'] = 1
+        self.config.write_text(json.dumps(self.data), encoding='utf-8')
+        result = subprocess.run(self.args(), env=self.env, capture_output=True, timeout=5)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(b'must be greater', result.stderr)
+        for literal in ['NaN', 'Infinity', '-Infinity', '1e309']:
+            self.write_config()
+            self.data['requestDeadlineSeconds'] = 1.0
+            raw = json.dumps(self.data).replace('"requestDeadlineSeconds": 1.0',
+                                                 f'"requestDeadlineSeconds": {literal}')
+            self.config.write_text(raw, encoding='utf-8')
+            result = subprocess.run(self.args(), env=self.env, capture_output=True, timeout=5)
+            self.assertNotEqual(result.returncode, 0, literal)
+            if literal == '1e309':
+                self.assertTrue(
+                    b'between 0.1 and 3600' in result.stderr or b'number overflow' in result.stderr,
+                    result.stderr)
         self.write_config()
         result = subprocess.run(self.args() + ['--host', '0.0.0.0'], env=self.env, capture_output=True, timeout=5)
         self.assertNotEqual(result.returncode, 0)

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="760" viewBox="0 0 1240 760">
+<rect width="1240" height="760" fill="#f4f7fb"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#162a46">
+<text x="48" y="52" font-size="30" font-weight="700">Landmark toggle keyboard fix — 2026-09-11</text>
+<text x="48" y="84" font-size="18" fill="#4c607a">The log showed the panel mounted, but no key reached the toggle path</text>
+
+<rect x="48" y="122" width="350" height="198" rx="16" fill="#ffe7e3" stroke="#d26a5e" stroke-width="2"/>
+<text x="72" y="158" font-size="21" font-weight="700">Observed before</text>
+<text x="72" y="194" font-size="17">Native panel mounted in Aura.log</text>
+<text x="72" y="222" font-size="17">WebUI ready events were present</text>
+<text x="72" y="250" font-size="17">No native toggle callback</text>
+<text x="72" y="278" font-size="17">No visible response to L</text>
+
+<path d="M418 220 H492" fill="none" stroke="#56718f" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="510" y="122" width="350" height="198" rx="16" fill="#dff2ff" stroke="#5b96bd" stroke-width="2"/>
+<text x="534" y="158" font-size="21" font-weight="700">Delivery fix</text>
+<text x="534" y="194" font-size="17">Each gameplay browser listens for KeyL</text>
+<text x="534" y="222" font-size="17">Guard ignores repeats and modifiers</text>
+<text x="534" y="250" font-size="17">Sends hud_landmarks_toggle</text>
+<text x="534" y="278" font-size="17">Viewport BindKey remains available</text>
+
+<rect x="872" y="122" width="320" height="198" rx="16" fill="#e1f5e7" stroke="#5b9a70" stroke-width="2"/>
+<text x="896" y="158" font-size="21" font-weight="700">Authoritative result</text>
+<text x="896" y="194" font-size="17">AuraHUD routes one toggle</text>
+<text x="896" y="222" font-size="17">Panel visibility is logged</text>
+<text x="896" y="250" font-size="17">L can close or reopen the list</text>
+<text x="896" y="278" font-size="15" fill="#376348">Same controller path for both sources</text>
+
+<rect x="48" y="366" width="1144" height="250" rx="16" fill="#ffffff" stroke="#b7c5d5" stroke-width="2"/>
+<text x="76" y="408" font-size="22" font-weight="700">Validation evidence</text>
+<circle cx="86" cy="448" r="8" fill="#3a9d5d"/><text x="108" y="454" font-size="17">Aura Win64 Development build and UHT: PASS</text>
+<circle cx="86" cy="488" r="8" fill="#3a9d5d"/><text x="108" y="494" font-size="17">Four-panel Landmark keyboard contract: PASS</text>
+<circle cx="86" cy="528" r="8" fill="#3a9d5d"/><text x="108" y="534" font-size="17">All four WebUI scripts: node --check PASS</text>
+<circle cx="650" cy="448" r="8" fill="#3a9d5d"/><text x="672" y="454" font-size="17">git diff --check: PASS</text>
+<circle cx="650" cy="488" r="8" fill="#d28a2e"/><text x="672" y="494" font-size="17">PIE replay waits for the open editor to release its module</text>
+<circle cx="650" cy="528" r="8" fill="#3a9d5d"/><text x="672" y="534" font-size="17">Runtime diagnostics identify native vs WebUI delivery</text>
+
+<text x="48" y="684" font-size="16" fill="#4c607a">Next PIE log markers: [Landmark] Toggle requested by WebUI keyboard command, or native player input, followed by panel visibility.</text>
+</g>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#56718f"/></marker></defs>
+</svg>

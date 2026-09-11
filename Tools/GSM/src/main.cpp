@@ -9,6 +9,7 @@
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -43,6 +44,7 @@ static std::string readFile(const fs::path& p) {
     return {std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>()};
 }
 static Json error(const std::string& s) { return {{"status", "error"}, {"message", s}}; }
+static Json retryableError(const std::string& s) { return {{"status", "error"}, {"message", s}, {"retryable", true}}; }
 static bool equalSecret(const std::string& a, const std::string& b) {
     size_t diff = a.size() ^ b.size();
     for (size_t i = 0; i < a.size(); ++i) diff |= static_cast<unsigned char>(a[i]) ^ (i < b.size() ? static_cast<unsigned char>(b[i]) : 0);
@@ -99,6 +101,14 @@ static int portNumber(const std::string& s) {
     size_t used = 0; int n = std::stoi(s, &used);
     if (used != s.size() || n < 1 || n > 65535) throw std::runtime_error("Invalid port"); return n;
 }
+static double durationSetting(const Json& config, const char* key, double fallback) {
+    if (!config.contains(key)) return fallback;
+    if (!config.at(key).is_number()) throw std::runtime_error(std::string(key) + " must be a number");
+    const double value = config.at(key).get<double>();
+    if (!std::isfinite(value) || value < 0.1 || value > 3600.0)
+        throw std::runtime_error(std::string(key) + " must be between 0.1 and 3600 seconds");
+    return value;
+}
 struct Level {
     Json config; HANDLE process = nullptr, job = nullptr; DWORD pid = 0;
     std::string state = "stopped", secret, failure, executable, log;
@@ -110,9 +120,9 @@ struct Level {
 };
 struct Connection {
     SOCKET socket = INVALID_SOCKET; bool http = false; std::string input, output, waiting; size_t sent = 0;
-    double accepted = now(), writeStarted = 0;
+    double accepted = now(), waitingStarted = 0, writeStarted = 0;
     ~Connection() { if (socket != INVALID_SOCKET) closesocket(socket); }
-    void reply(const Json& j) { output = j.dump() + "\n"; waiting.clear(); writeStarted = now(); }
+    void reply(const Json& j) { output = j.dump() + "\n"; waiting.clear(); waitingStarted = 0; writeStarted = now(); }
 };
 class Manager {
     fs::path root, web, server, editorExe;
@@ -123,6 +133,7 @@ class Manager {
     std::vector<std::unique_ptr<Connection>> clients;
     SOCKET tcp = INVALID_SOCKET, http = INVALID_SOCKET;
     double boot = now(); unsigned long long requests = 0;
+    double requestDeadlineSeconds = 30.0, serverStartupDeadlineSeconds = 900.0;
     std::string redact(std::string s) const {
         for (const auto& secret : {auth, serverAuth}) if (!secret.empty()) {
             size_t p = 0; while ((p = s.find(secret, p)) != std::string::npos) { s.replace(p, secret.size(), "[redacted]"); p += 10; }
@@ -259,7 +270,7 @@ class Manager {
             if (!l.alive()) {
                 try { launch(l, exe); } catch (const std::exception& e) { l.failure = e.what(); l.state = "failed"; l.ended = now(); throw; }
             }
-            c.waiting = id;
+            c.waiting = id; c.waitingStarted = now();
         } catch (const Json::exception&) { c.reply(error("Malformed JSON or invalid field type")); }
         catch (const std::exception& e) { c.reply(error(redact(e.what()))); }
     }
@@ -270,14 +281,17 @@ class Manager {
                 DWORD exit = 0; GetExitCodeProcess(l.process, &exit); l.exitCode = exit;
                 l.failure = l.state == "starting" ? "Process exited before world readiness" : "Process exited";
                 l.state = "exited"; l.ended = now(); l.cleanup();
-            } else if (l.state == "starting" && now() - l.started >= 30) {
-                l.failure = "World readiness exceeded 30-second launch deadline"; l.state = "failed"; l.ended = now(); l.cleanup();
+            } else if (l.state == "starting" && now() - l.started >= serverStartupDeadlineSeconds) {
+                l.failure = "World readiness exceeded " + std::to_string(static_cast<int>(serverStartupDeadlineSeconds)) + "-second server startup deadline";
+                l.state = "failed"; l.ended = now(); l.cleanup();
             }
         }
         for (auto& c : clients) if (!c->waiting.empty()) {
             auto& l = *levels.at(c->waiting);
             if (l.state == "ready" && l.alive()) c->reply({{"status", "ready"}, {"host", publicHost}, {"port", l.config.at("port")}, {"serverMode", editor(fs::u8path(l.executable)) ? "editor" : "packaged"}});
             else if (l.state != "starting") c->reply(error(l.failure.empty() ? "Server unavailable" : l.failure));
+            else if (now() - c->waitingStarted >= requestDeadlineSeconds)
+                c->reply(retryableError("Server is still starting after " + std::to_string(static_cast<int>(requestDeadlineSeconds)) + " seconds; startup continues in the background. Retry shortly."));
         }
     }
     Json snapshot() {
@@ -296,7 +310,7 @@ class Manager {
             }
             rows.push_back({{"id", kv.first}, {"name", l.config.value("displayName", kv.first)}, {"map", l.config.at("mapPath")}, {"port", l.config.at("port")}, {"queryPort", l.config.value("queryPort", 0)}, {"state", l.state}, {"running", alive}, {"pid", l.pid ? Json(l.pid) : Json(nullptr)}, {"executable", redact(l.executable)}, {"arguments", safeArgs(l.args)}, {"configuredArguments", safeArgs(l.config.at("launchArgs").get<std::vector<std::string>>())}, {"logPath", l.log}, {"uptimeSeconds", l.started ? (alive ? now() : l.ended) - l.started : 0}, {"workingSetBytes", memory}, {"privateBytes", privateMemory}, {"cpuSeconds", cpu}, {"exitCode", l.exitCode}, {"launchCount", l.launches}, {"error", redact(l.failure)}});
         }
-        return {{"version", "1.0.0"}, {"scope", "Processes owned by this GSM instance only"}, {"managerPid", GetCurrentProcessId()}, {"uptimeSeconds", now() - boot}, {"tcpEndpoint", "127.0.0.1:" + std::to_string(tcpPort)}, {"webEndpoint", "127.0.0.1:" + std::to_string(httpPort)}, {"publicHost", publicHost}, {"requestCount", requests}, {"counts", {{"configured", levels.size()}, {"running", running}, {"ready", ready}, {"starting", starting}, {"failed", failed}}}, {"levels", rows}};
+        return {{"version", "1.0.0"}, {"scope", "Processes owned by this GSM instance only"}, {"managerPid", GetCurrentProcessId()}, {"uptimeSeconds", now() - boot}, {"tcpEndpoint", "127.0.0.1:" + std::to_string(tcpPort)}, {"webEndpoint", "127.0.0.1:" + std::to_string(httpPort)}, {"publicHost", publicHost}, {"requestCount", requests}, {"requestDeadlineSeconds", requestDeadlineSeconds}, {"serverStartupDeadlineSeconds", serverStartupDeadlineSeconds}, {"counts", {{"configured", levels.size()}, {"running", running}, {"ready", ready}, {"starting", starting}, {"failed", failed}}}, {"levels", rows}};
     }
     void httpReply(Connection& c, int code, const std::string& type, const std::string& body) {
         c.output = "HTTP/1.1 " + std::to_string(code) + (code == 200 ? " OK" : " Error") + "\r\nContent-Type: " + type + "\r\nContent-Length: " + std::to_string(body.size()) + "\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nContent-Security-Policy: default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'\r\n\r\n" + body; c.writeStarted = now();
@@ -346,6 +360,10 @@ public:
         if (!server.empty()) server = fs::absolute(server); if (!editorExe.empty()) editorExe = fs::absolute(editorExe);
         if (publicHost.empty()) throw std::runtime_error("Public host cannot be empty");
         auto cfg = Json::parse(readFile(config)); if (!explicitPort) tcpPort = portNumber(std::to_string(cfg.value("gameServerPort", 9000)));
+        requestDeadlineSeconds = durationSetting(cfg, "requestDeadlineSeconds", requestDeadlineSeconds);
+        serverStartupDeadlineSeconds = durationSetting(cfg, "serverStartupDeadlineSeconds", serverStartupDeadlineSeconds);
+        if (serverStartupDeadlineSeconds <= requestDeadlineSeconds)
+            throw std::runtime_error("serverStartupDeadlineSeconds must be greater than requestDeadlineSeconds");
         std::set<int> ports = {tcpPort, httpPort}; if (tcpPort == httpPort) throw std::runtime_error("TCP and web ports must differ");
         for (auto item : cfg.at("levels")) {
             const auto id = item.at("id").get<std::string>();

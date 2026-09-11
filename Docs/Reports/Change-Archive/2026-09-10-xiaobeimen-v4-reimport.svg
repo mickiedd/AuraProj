@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#101a29"/>
+  <style>
+    text { font-family: Segoe UI, Arial, sans-serif; fill: #e7edf6; }
+    .title { font-size: 30px; font-weight: 700; }
+    .h { font-size: 20px; font-weight: 600; }
+    .body { font-size: 16px; }
+    .note { font-size: 14px; fill: #b9c8dc; }
+    .small { font-size: 13px; fill: #b9c8dc; }
+  </style>
+  <text x="40" y="52" class="title">Xiaobeimen v4 geometry repair — level retarget</text>
+  <text x="40" y="82" class="note">Scifi Desert / L_showcase_level • saved 2026-09-10 • v3 retained for rollback</text>
+
+  <rect x="40" y="125" width="330" height="270" rx="16" fill="#263f55" stroke="#8fe1d0" stroke-width="3"/>
+  <text x="70" y="170" class="h">Supplied package</text>
+  <text x="70" y="215" class="body">v4 GeometryFixed ZIP</text>
+  <text x="70" y="245" class="small">816,912 final triangles</text>
+  <text x="70" y="270" class="small">0 degenerate triangles</text>
+  <text x="70" y="295" class="small">0 roof tiles inside gate opening</text>
+  <text x="70" y="340" class="small">2K PBR texture set preserved</text>
+  <path d="M370 260H420" stroke="#8fe1d0" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="420" y="125" width="330" height="270" rx="16" fill="#173d43" stroke="#8fe1d0" stroke-width="3"/>
+  <text x="450" y="170" class="h">Imported asset</text>
+  <text x="450" y="215" class="body">SM_Xiaobeimen_</text>
+  <text x="450" y="240" class="body">GeometryFixed</text>
+  <text x="450" y="285" class="small">Nanite enabled</text>
+  <text x="450" y="310" class="small">12 existing PBR slots reused</text>
+  <text x="450" y="335" class="small">3,482 × 2,676 × 2,532 cm</text>
+  <path d="M750 260H800" stroke="#8fe1d0" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="800" y="125" width="360" height="270" rx="16" fill="#3d304d" stroke="#d9a5ff" stroke-width="3"/>
+  <text x="830" y="170" class="h">Placed landmark</text>
+  <text x="830" y="215" class="body">GuangzhouLandmark_Xiaobeimen</text>
+  <text x="830" y="255" class="small">StaticMeshActor_451</text>
+  <text x="830" y="280" class="small">center: X=-140400, Y=95400</text>
+  <text x="830" y="305" class="small">ground: Z=99.999 cm</text>
+  <text x="830" y="330" class="small">no overlap with 3 landmarks</text>
+  <text x="830" y="355" class="small">no overlap with existing meshes</text>
+
+  <rect x="40" y="455" width="1120" height="175" rx="16" fill="#243b36"/>
+  <text x="70" y="500" class="h">Validation contract</text>
+  <text x="70" y="540" class="body">PASS: source repair statistics • imported bounds • Nanite • 12 material slots • saved map reference</text>
+  <text x="70" y="570" class="body">PASS: placement center and ground contact • four tagged actors • pairwise and existing-mesh overlap checks</text>
+  <text x="70" y="600" class="note">Old asset /Game/Assets/Environment/GuangzhouLandmarks/Xiaobeimen/SM_Xiaobeimen remains available for rollback.</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#8fe1d0"/>
+    </marker>
+  </defs>
+</svg>

@@ -1,6 +1,7 @@
 // Copyright Druid Mechanics
 
 #include "UI/Widget/AuraLandmarkPanelWidget.h"
+#include "Aura/AuraLogChannels.h"
 #include "UI/Widget/AuraLandmarkButton.h"
 #include "World/AuraLandmarkWorldSubsystem.h"
 #include "Blueprint/WidgetTree.h"
@@ -124,7 +125,9 @@ void UAuraLandmarkPanelWidget::RefreshCatalog()
 
 void UAuraLandmarkPanelWidget::ShowPanel(bool bShow)
 {
-	SetVisibility(bShow ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	const ESlateVisibility NewVisibility = bShow ? ESlateVisibility::Visible : ESlateVisibility::Collapsed;
+	SetVisibility(NewVisibility);
+	UE_LOG(LogAura, Display, TEXT("[Landmark] Panel widget visibility applied visible=%s"), bShow ? TEXT("true") : TEXT("false"));
 	if (bShow) RefreshCatalog();
 }
 

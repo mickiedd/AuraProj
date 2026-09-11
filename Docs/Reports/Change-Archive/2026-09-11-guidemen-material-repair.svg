@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <title>Guidemen embedded material repair</title>
+  <desc>Repair flow that preserves the nine original shared maps and adds six plaque and inscription maps with explicit PBR material graphs.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f7f4ed}.panel{fill:#fffdf8;stroke:#d8cdbb;stroke-width:2}.warn{fill:#fff2f2;stroke:#bf6f6f;stroke-width:2}.process{fill:#fff0d8;stroke:#c58b3b;stroke-width:2}.result{fill:#e6f5ec;stroke:#5f9b76;stroke-width:2}.h{font:700 25px Arial,sans-serif;fill:#243247}.title{font:700 32px Arial,sans-serif;fill:#1e2938}.body{font:17px Arial,sans-serif;fill:#334155}.small{font:15px Arial,sans-serif;fill:#475569}.label{font:700 18px Arial,sans-serif;fill:#243247}.arrow{stroke:#7c8798;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7c8798"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="760"/>
+  <text class="title" x="60" y="62">Guidemen PBR material repair</text>
+  <text class="small" x="60" y="92">Follow-up archive | 2026-09-11</text>
+
+  <rect class="panel" x="50" y="125" width="1100" height="180" rx="18"/>
+  <text class="h" x="78" y="165">Confirmed import gap</text>
+  <rect class="warn" x="78" y="190" width="430" height="88" rx="12"/>
+  <text class="label" x="100" y="222">Interchange first pass</text>
+  <text class="body" x="100" y="249">9 shared maps saved; 6 plaque/inscription</text>
+  <text class="body" x="100" y="272">images warned with no generated mips.</text>
+  <path class="arrow" d="M 530 234 L 680 234"/>
+  <rect class="process" x="708" y="178" width="410" height="115" rx="12"/>
+  <text class="label" x="732" y="214">GLB source verification</text>
+  <text class="body" x="732" y="241">15 valid embedded PNG images</text>
+  <text class="body" x="732" y="267">8 materials | 10 mesh nodes</text>
+
+  <rect class="panel" x="50" y="335" width="1100" height="205" rx="18"/>
+  <text class="h" x="78" y="375">Repair result</text>
+  <rect class="process" x="78" y="402" width="280" height="104" rx="12"/>
+  <text class="label" x="100" y="436">ExtractGuidemenTextures.py</text>
+  <text class="body" x="100" y="465">15 deterministic PNGs</text>
+  <text class="body" x="100" y="490">hash-checked in Saved/</text>
+  <path class="arrow" d="M 378 454 L 490 454"/>
+  <rect class="process" x="516" y="388" width="310" height="132" rx="12"/>
+  <text class="label" x="540" y="422">RepairGuidemenMaterials.py</text>
+  <text class="body" x="540" y="451">5 explicit PBR graphs</text>
+  <text class="body" x="540" y="477">9 maps reused + 6 added</text>
+  <text class="body" x="540" y="503">ORM R/G/B = AO/Rough/Metal</text>
+  <path class="arrow" d="M 846 454 L 958 454"/>
+  <rect class="result" x="984" y="388" width="140" height="132" rx="12"/>
+  <text class="label" x="1005" y="422">Validated</text>
+  <text class="small" x="1005" y="451">15 textures</text>
+  <text class="small" x="1005" y="475">8 materials</text>
+  <text class="small" x="1005" y="499">Nanite mesh</text>
+
+  <rect class="panel" x="50" y="575" width="530" height="130" rx="18"/>
+  <text class="h" x="78" y="615">Color-space guard</text>
+  <text class="body" x="78" y="645">BaseColor sRGB; Normal and ORM linear.</text>
+  <text class="body" x="78" y="672">Normal maps use TC_NORMALMAP; ORM uses TC_MASKS.</text>
+  <rect class="result" x="620" y="575" width="530" height="130" rx="18"/>
+  <text class="h" x="648" y="615">Cleanup and evidence</text>
+  <text class="body" x="648" y="645">Removed nine exact duplicate shared-texture assets.</text>
+  <text class="body" x="648" y="672">Repair + validator both returned success.</text>
+</svg>

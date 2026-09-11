@@ -471,9 +471,14 @@ void AAuraPlayerController::HideMagicCircle()
 
 void AAuraPlayerController::ToggleLandmarkPanel()
 {
+	UE_LOG(LogAura, Display, TEXT("[Landmark] Toggle routed through player controller=%s"), *GetNameSafe(this));
 	if (AAuraHUD* HUD = Cast<AAuraHUD>(GetHUD()))
 	{
 		HUD->ToggleLandmarkPanel();
+	}
+	else
+	{
+		UE_LOG(LogAura, Warning, TEXT("[Landmark] Native toggle ignored because the controller HUD is unavailable"));
 	}
 }
 

@@ -61,6 +61,16 @@ def main() -> int:
     login_source = (ROOT / "Source/Aura/Private/Game/LoginPlayerController.cpp").read_text(encoding="utf-8")
     assert "AURA_GSM_ADDRESS" in login_source
     assert "AURA_GSM_ADDRESS" in game_mode_source
+    assert '#include "Async/Async.h"' in login_source
+    assert "auto ReleaseHandler = [HandleResponse]" in login_source
+    assert "AsyncTask(ENamedThreads::GameThread" in login_source
+    assert "QueryTimeout, HandleResponse, ReleaseHandler]()" in login_source
+    assert login_source.count("*HandleResponse = FLoginGsmResponseHandler();") == 1
+    handler_start = login_source.index("*HandleResponse = [")
+    handler_end = login_source.index("\n\t};", handler_start)
+    handler_source = login_source[handler_start:handler_end]
+    assert "*HandleResponse = FLoginGsmResponseHandler();" not in handler_source
+    assert "ReleaseHandler();" in handler_source
 
     manager = load_manager_module()
     assert manager.editor_executable_name("UnrealEditor-Win64-DebugGame.exe") == (

@@ -43,3 +43,26 @@ bool FAuraLandmarkBehaviorContractTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Actions forward real Running state"), TreeText.Contains(TEXT("ResultOption\" value=\"BT_RUNNING\"")));
 	return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FAuraLandmarkKeyboardContractTest,
+	"Aura.Landmark.Keyboard.Contract",
+	EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+
+bool FAuraLandmarkKeyboardContractTest::RunTest(const FString& Parameters)
+{
+	const TArray<FString> Panels = {
+		TEXT("hud-bottom.html"),
+		TEXT("hud-interaction.html"),
+		TEXT("hud-left-top.html"),
+		TEXT("hud-right-top.html")
+	};
+	for (const FString& Panel : Panels)
+	{
+		FString Html;
+		const FString Path = FPaths::ProjectDir() / TEXT("Plugins/AuraWebUI/Content/WebUI") / Panel;
+		TestTrue(FString::Printf(TEXT("Gameplay panel %s is present"), *Panel), FFileHelper::LoadFileToString(Html, *Path));
+		TestTrue(FString::Printf(TEXT("Gameplay panel %s forwards KeyL"), *Panel), Html.Contains(TEXT("KeyL")));
+		TestTrue(FString::Printf(TEXT("Gameplay panel %s uses the landmark toggle command"), *Panel), Html.Contains(TEXT("hud_landmarks_toggle")));
+	}
+	return true;
+}

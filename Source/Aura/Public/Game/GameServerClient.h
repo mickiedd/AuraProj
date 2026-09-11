@@ -10,6 +10,8 @@
  * Response received from the Game Server Manager.
  * bSuccess == true  -> Host and Port are valid and the dedicated server is ready.
  * bSuccess == false -> ErrorMessage describes what went wrong.
+ * bRetryable == true -> the manager is healthy but the requested server is
+ *                       still starting; callers should retry the request.
  */
 USTRUCT(BlueprintType)
 struct AURA_API FGameServerResponse
@@ -22,6 +24,9 @@ struct AURA_API FGameServerResponse
 
 	/** A parsed manager response is authoritative, including a startup rejection. */
 	bool bReceivedManagerResponse = false;
+
+	/** The manager accepted the request but the server is still starting; callers may retry. */
+	bool bRetryable = false;
 
 	/** Hostname or IP of the dedicated server (valid when bSuccess is true). */
 	UPROPERTY(BlueprintReadOnly, Category = "GameServer")

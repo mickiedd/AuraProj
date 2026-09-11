@@ -400,6 +400,7 @@ void UGameServerClient::RequestServer(
 		else
 		{
 			Result.bSuccess = false;
+			ResponseObj->TryGetBoolField(TEXT("retryable"), Result.bRetryable);
 			ResponseObj->TryGetStringField(TEXT("message"), Result.ErrorMessage);
 			if (Result.ErrorMessage.IsEmpty())
 			{

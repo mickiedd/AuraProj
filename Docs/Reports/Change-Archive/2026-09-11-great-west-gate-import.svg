@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#101a29"/>
+  <style>
+    text { font-family: Segoe UI, Arial, sans-serif; fill: #e7edf6; }
+    .title { font-size: 30px; font-weight: 700; }
+    .h { font-size: 20px; font-weight: 600; }
+    .body { font-size: 16px; }
+    .note { font-size: 14px; fill: #b9c8dc; }
+    .small { font-size: 13px; fill: #b9c8dc; }
+  </style>
+  <text x="40" y="52" class="title">Great West Gate — new building import and placement</text>
+  <text x="40" y="82" class="note">Scifi Desert / L_showcase_level • saved 2026-09-11 • source GLB retained outside the project</text>
+
+  <rect x="40" y="125" width="330" height="270" rx="16" fill="#263f55" stroke="#8fe1d0" stroke-width="3"/>
+  <text x="70" y="170" class="h">Source</text>
+  <text x="70" y="215" class="body">SM_Zhengximen_</text>
+  <text x="70" y="240" class="body">GreatWestGate_5M_PBR.glb</text>
+  <text x="70" y="285" class="small">20 source mesh parts</text>
+  <text x="70" y="310" class="small">~5.7M triangles</text>
+  <text x="70" y="335" class="small">embedded PBR materials/textures</text>
+  <path d="M370 260H420" stroke="#8fe1d0" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="420" y="125" width="330" height="270" rx="16" fill="#173d43" stroke="#8fe1d0" stroke-width="3"/>
+  <text x="450" y="170" class="h">Project assets</text>
+  <text x="450" y="215" class="body">GreatWestGate/</text>
+  <text x="450" y="245" class="small">20 StaticMesh assets</text>
+  <text x="450" y="270" class="small">6 PBR materials</text>
+  <text x="450" y="295" class="small">13 imported textures</text>
+  <text x="450" y="335" class="small">regular static meshes for stable build</text>
+  <path d="M750 260H800" stroke="#8fe1d0" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="800" y="125" width="360" height="270" rx="16" fill="#3d304d" stroke="#d9a5ff" stroke-width="3"/>
+  <text x="830" y="170" class="h">Level building group</text>
+  <text x="830" y="215" class="body">20 tagged StaticMeshActors</text>
+  <text x="830" y="255" class="small">center: X=-140400, Y=100400</text>
+  <text x="830" y="280" class="small">ground: Z=99.999 cm</text>
+  <text x="830" y="305" class="small">bounds: 4005.5 × 1932 × 1456.5 cm</text>
+  <text x="830" y="345" class="small">no overlap with existing meshes</text>
+
+  <rect x="40" y="455" width="1120" height="175" rx="16" fill="#243b36"/>
+  <text x="70" y="500" class="h">Validation contract</text>
+  <text x="70" y="540" class="body">PASS: all 20 parts reference the GreatWestGate folder and have assigned PBR materials</text>
+  <text x="70" y="570" class="body">PASS: saved level reload, shared transform, terrain contact, group bounds, and existing-mesh clearance</text>
+  <text x="70" y="600" class="note">Map Check: 0 errors; two pre-existing untagged null StaticMeshActor warnings remain outside this group.</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#8fe1d0"/>
+    </marker>
+  </defs>
+</svg>

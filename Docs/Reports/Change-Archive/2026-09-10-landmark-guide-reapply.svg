@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+<rect width="1200" height="700" fill="#f4f7fb"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#162a46">
+<text x="48" y="54" font-size="30" font-weight="700">Landmark Guide reapply — 2026-09-10</text>
+<text x="48" y="86" font-size="18" fill="#4c607a">Recovered source slice restored into the current AuraProj checkout</text>
+
+<rect x="48" y="124" width="330" height="178" rx="16" fill="#ffe7e3" stroke="#d26a5e" stroke-width="2"/>
+<text x="72" y="160" font-size="21" font-weight="700">Before reapply</text>
+<text x="72" y="196" font-size="17">No landmark registry or panel files</text>
+<text x="72" y="224" font-size="17">No controller guide declarations</text>
+<text x="72" y="252" font-size="17">No staged BehaviorU guide contract</text>
+<text x="72" y="280" font-size="15" fill="#7c3f38">Current map/asset work preserved</text>
+
+<path d="M398 212 H488" fill="none" stroke="#56718f" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="510" y="124" width="330" height="178" rx="16" fill="#dff2ff" stroke="#5b96bd" stroke-width="2"/>
+<text x="534" y="160" font-size="21" font-weight="700">Reapplied slice</text>
+<text x="534" y="196" font-size="17">World registry + grounded tag fallback</text>
+<text x="534" y="224" font-size="17">Native list panel and L toggle</text>
+<text x="534" y="252" font-size="17">Face/run/cancel guide state machine</text>
+<text x="534" y="280" font-size="15" fill="#315a73">BehaviorU XML action contract restored</text>
+
+<rect x="872" y="124" width="280" height="178" rx="16" fill="#e1f5e7" stroke="#5b9a70" stroke-width="2"/>
+<text x="896" y="160" font-size="21" font-weight="700">Current result</text>
+<text x="896" y="196" font-size="17">Game target links successfully</text>
+<text x="896" y="224" font-size="17">New Landmark tests compile</text>
+<text x="896" y="252" font-size="17">XML contract parses</text>
+<text x="896" y="280" font-size="15" fill="#376348">Editor link waits for open editor</text>
+
+<rect x="48" y="350" width="1104" height="220" rx="16" fill="#ffffff" stroke="#b7c5d5" stroke-width="2"/>
+<text x="76" y="392" font-size="22" font-weight="700">Validation evidence</text>
+<circle cx="86" cy="430" r="8" fill="#3a9d5d"/><text x="108" y="436" font-size="17">Aura Win64 Development build: PASS</text>
+<circle cx="86" cy="470" r="8" fill="#3a9d5d"/><text x="108" y="476" font-size="17">UHT and Landmark source compilation: PASS</text>
+<circle cx="86" cy="510" r="8" fill="#3a9d5d"/><text x="108" y="516" font-size="17">BehaviorU XML method/result contract: PASS</text>
+<circle cx="650" cy="430" r="8" fill="#d28a2e"/><text x="672" y="436" font-size="17">Editor target final link: blocked by open UnrealEditor DLL</text>
+<circle cx="650" cy="470" r="8" fill="#d28a2e"/><text x="672" y="476" font-size="17">Runtime screenshot / editor automation: pending editor close</text>
+<circle cx="650" cy="510" r="8" fill="#3a9d5d"/><text x="672" y="516" font-size="17">Prior map smoke evidence retained in archive packet</text>
+
+<text x="48" y="632" font-size="16" fill="#4c607a">Next gate: close the user-owned editor, rebuild AuraEditor, then run Aura.Landmark automation and rendered UI smoke.</text>
+</g>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#56718f"/></marker></defs>
+</svg>

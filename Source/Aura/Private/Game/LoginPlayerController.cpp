@@ -3,6 +3,8 @@
 #include "Game/LoginPlayerController.h"
 #include "Game/GameServerClient.h"
 #include "Game/ServerTravelComponent.h"
+#include "Async/Async.h"
+#include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "HAL/PlatformMisc.h"
@@ -539,58 +541,136 @@ void ALoginPlayerController::RequestLoginMenuConnect(const FString& SelectedDisp
 	UE_LOG(LogTemp, Display, TEXT("[LoginConn] RequestLoginMenuConnect: traveling to Loading level now (GSM query in flight)"));
 	ClientTravel(UServerTravelComponent::LoadingLevelPath, TRAVEL_Absolute);
 
-	// Start the async GSM query.  Only captures GI (weak) and value types.
+	// Start the async GSM query.  Only captures GI (weak) and value types.  A
+	// request can receive a manager-authoritative, retryable "still starting"
+	// response after the short GSM request deadline.  Keep the Loading level in
+	// place and issue another query so a cold server does not force a manual
+	// login retry.  The manager's separate startup deadline remains the bound.
+	using FLoginGsmResponseHandler = TFunction<void(const FGameServerResponse&)>;
 	TWeakObjectPtr<UAuraGameInstance> WeakGI(GI);
+	TSharedPtr<FLoginGsmResponseHandler> HandleResponse = MakeShared<FLoginGsmResponseHandler>();
+	// The handler owns a shared pointer to itself so retry callbacks can outlive
+	// this controller.  Do not clear that TFunction from inside the callback: the
+	// currently executing lambda owns the player-name and fallback captures, so
+	// clearing it in place destroys those captures before the terminal result uses
+	// them.  Defer the release until the current invocation has returned.
+	auto ReleaseHandler = [HandleResponse]()
+	{
+		AsyncTask(ENamedThreads::GameThread, [HandleResponse]() mutable
+		{
+			*HandleResponse = FLoginGsmResponseHandler();
+		});
+	};
+	*HandleResponse = [WeakGI, FallbackEndpoint, ResolvedPlayerName, GSMAddress, GSMPort, InSelectedLevelId, QueryTimeout, HandleResponse, ReleaseHandler](const FGameServerResponse& Response)
+	{
+		UAuraGameInstance* ResolvedGI = WeakGI.Get();
+		if (!IsValid(ResolvedGI))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[LoginConn] GSM callback: GameInstance is gone, cannot dispatch travel"));
+			ReleaseHandler();
+			return;
+		}
+
+		if (Response.bRetryable)
+		{
+			UE_LOG(LogTemp, Display, TEXT("[LoginConn] GSM callback: server still starting (%s); scheduling retry while Loading remains active"), *Response.ErrorMessage);
+			const TWeakObjectPtr<UAuraGameInstance> WeakRetryGI(ResolvedGI);
+			auto RetryRequest = [WeakRetryGI, GSMAddress, GSMPort, InSelectedLevelId, QueryTimeout, HandleResponse, ReleaseHandler]()
+			{
+				UAuraGameInstance* RetryGI = WeakRetryGI.Get();
+				if (!IsValid(RetryGI))
+				{
+					ReleaseHandler();
+					return;
+				}
+				if (!RetryGI->HasPendingCrossServerTravel())
+				{
+					UE_LOG(LogTemp, Display, TEXT("[LoginConn] GSM retry cancelled because pending cross-server travel is no longer active"));
+					ReleaseHandler();
+					return;
+				}
+				UGameServerClient* RetryClient = NewObject<UGameServerClient>(RetryGI);
+				if (!IsValid(RetryClient))
+				{
+					FGameServerResponse RetryFailure;
+					RetryFailure.ErrorMessage = TEXT("Could not allocate a retry for the Game Server Manager request");
+					(*HandleResponse)(RetryFailure);
+					return;
+				}
+				RetryGI->PendingGameServerClient = RetryClient;
+				RetryClient->RequestServer(
+					GSMAddress,
+					GSMPort,
+					InSelectedLevelId,
+					QueryTimeout,
+					FOnGameServerResponse::CreateLambda([HandleResponse](const FGameServerResponse& RetryResponse)
+					{
+						(*HandleResponse)(RetryResponse);
+					}));
+			};
+			if (UWorld* World = ResolvedGI->GetWorld())
+			{
+				FTimerHandle RetryTimer;
+				World->GetTimerManager().SetTimer(RetryTimer, FTimerDelegate::CreateLambda([RetryRequest]() mutable
+				{
+					RetryRequest();
+				}), 1.0f, false);
+			}
+			else
+			{
+				RetryRequest();
+			}
+			return;
+		}
+
+		// Release the GSM client only once the request has reached a terminal
+		// result.  A retry keeps the pending client rooted through the level travel.
+		ResolvedGI->PendingGameServerClient = nullptr;
+
+		FString Endpoint;
+		if (Response.bSuccess)
+		{
+			Endpoint = FString::Printf(TEXT("%s:%d"), *Response.Host, Response.Port);
+			UE_LOG(LogTemp, Display, TEXT("[LoginConn] GSM callback: success -> endpoint=%s player='%s'"),
+				*Endpoint, *ResolvedPlayerName);
+		}
+		else if (!Response.bReceivedManagerResponse && !FallbackEndpoint.IsEmpty())
+		{
+			Endpoint = FallbackEndpoint;
+			UE_LOG(LogTemp, Warning, TEXT("[LoginConn] GSM callback: failed (%s), using fallback endpoint=%s"),
+				*Response.ErrorMessage, *Endpoint);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[LoginConn] GSM callback: request failed; aborting travel — %s"), *Response.ErrorMessage);
+			ResolvedGI->ClearPendingCrossServerTravel();
+			ResolvedGI->PendingServerLostMessage = Response.ErrorMessage;
+			ResolvedGI->OnCrossServerTravelFailed.Broadcast(Response.ErrorMessage);
+			ReleaseHandler();
+			return;
+		}
+
+		// Cache the resolved endpoint BEFORE broadcasting.  If the GSM resolves before
+		// the Loading level has finished loading, ALoadingPlayerController::BeginPlay
+		// will not have bound to OnCrossServerTravelReady yet and the broadcast would go
+		// to zero listeners (the endpoint only existed as a lambda-local before, so it
+		// was lost).  The cache lets BeginPlay consume the result directly regardless of
+		// whether the callback wins or loses the race against BeginPlay.  The pending
+		// flag is cleared when the result is actually consumed (in LoadingPlayerController).
+		ResolvedGI->PendingCrossServerResolvedEndpoint = Endpoint;
+		ResolvedGI->PendingCrossServerResolvedPlayerName = ResolvedPlayerName;
+		ResolvedGI->bCrossServerTravelReady = true;
+		ResolvedGI->OnCrossServerTravelReady.Broadcast(Endpoint, ResolvedPlayerName);
+		ReleaseHandler();
+	};
 	GameServerClient->RequestServer(
 		GSMAddress,
 		GSMPort,
 		InSelectedLevelId,
 		QueryTimeout,
-		FOnGameServerResponse::CreateLambda([WeakGI, FallbackEndpoint, ResolvedPlayerName](const FGameServerResponse& Response)
+		FOnGameServerResponse::CreateLambda([HandleResponse](const FGameServerResponse& Response)
 		{
-			UAuraGameInstance* ResolvedGI = WeakGI.Get();
-			if (!IsValid(ResolvedGI))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("[LoginConn] GSM callback: GameInstance is gone, cannot dispatch travel"));
-				return;
-			}
-
-			// Release the GSM client so it can be GC'd.
-			ResolvedGI->PendingGameServerClient = nullptr;
-
-			FString Endpoint;
-			if (Response.bSuccess)
-			{
-				Endpoint = FString::Printf(TEXT("%s:%d"), *Response.Host, Response.Port);
-				UE_LOG(LogTemp, Display, TEXT("[LoginConn] GSM callback: success -> endpoint=%s player='%s'"),
-					*Endpoint, *ResolvedPlayerName);
-			}
-			else if (!Response.bReceivedManagerResponse && !FallbackEndpoint.IsEmpty())
-			{
-				Endpoint = FallbackEndpoint;
-				UE_LOG(LogTemp, Warning, TEXT("[LoginConn] GSM callback: failed (%s), using fallback endpoint=%s"),
-					*Response.ErrorMessage, *Endpoint);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("[LoginConn] GSM callback: request failed; aborting travel — %s"), *Response.ErrorMessage);
-				ResolvedGI->ClearPendingCrossServerTravel();
-				ResolvedGI->PendingServerLostMessage = Response.ErrorMessage;
-				ResolvedGI->OnCrossServerTravelFailed.Broadcast(Response.ErrorMessage);
-				return;
-			}
-
-			// Cache the resolved endpoint BEFORE broadcasting.  If the GSM resolves before
-			// the Loading level has finished loading, ALoadingPlayerController::BeginPlay
-			// will not have bound to OnCrossServerTravelReady yet and the broadcast would go
-			// to zero listeners (the endpoint only existed as a lambda-local before, so it
-			// was lost).  The cache lets BeginPlay consume the result directly regardless of
-			// whether the callback wins or loses the race against BeginPlay.  The pending
-			// flag is cleared when the result is actually consumed (in LoadingPlayerController).
-			ResolvedGI->PendingCrossServerResolvedEndpoint = Endpoint;
-			ResolvedGI->PendingCrossServerResolvedPlayerName = ResolvedPlayerName;
-			ResolvedGI->bCrossServerTravelReady = true;
-			ResolvedGI->OnCrossServerTravelReady.Broadcast(Endpoint, ResolvedPlayerName);
+			(*HandleResponse)(Response);
 		}));
 }
 

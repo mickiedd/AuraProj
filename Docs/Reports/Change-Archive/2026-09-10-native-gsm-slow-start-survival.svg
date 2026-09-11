@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Native GSM slow-start survival</title>
+  <desc id="desc">Before and after flow showing a 30-second client deadline no longer killing a healthy Unreal server that needs several minutes to load.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#111827"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/></marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".35"/></filter>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <text x="60" y="58" fill="#f8fafc" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700">Native GSM slow-start survival</text>
+  <text x="60" y="88" fill="#cbd5e1" font-family="Segoe UI, sans-serif" font-size="16">2026-09-10 crash triage · request deadline separated from process lifetime</text>
+
+  <rect x="60" y="125" width="500" height="245" rx="16" fill="#3f1d2e" stroke="#f87171" stroke-width="2" filter="url(#shadow)"/>
+  <text x="88" y="165" fill="#fecaca" font-family="Segoe UI, sans-serif" font-size="21" font-weight="700">Before: false crash</text>
+  <text x="88" y="205" fill="#fee2e2" font-family="Segoe UI, sans-serif" font-size="16">Client request and server startup share 30 seconds</text>
+  <text x="88" y="238" fill="#fecaca" font-family="Consolas, monospace" font-size="14">t=30.000s · state=starting · exitCode=null</text>
+  <text x="88" y="278" fill="#fee2e2" font-family="Segoe UI, sans-serif" font-size="16">GSM closes JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE</text>
+  <text x="88" y="311" fill="#fecaca" font-family="Consolas, monospace" font-size="14">healthy Unreal child terminates mid-map-load</text>
+  <text x="88" y="344" fill="#fda4af" font-family="Segoe UI, sans-serif" font-size="14">Log ends abruptly; no Unreal fatal or dump is produced.</text>
+
+  <rect x="640" y="125" width="500" height="245" rx="16" fill="#12352b" stroke="#34d399" stroke-width="2" filter="url(#shadow)"/>
+  <text x="668" y="165" fill="#bbf7d0" font-family="Segoe UI, sans-serif" font-size="21" font-weight="700">After: bounded survival</text>
+  <text x="668" y="205" fill="#d1fae5" font-family="Segoe UI, sans-serif" font-size="16">30s request → explicit retry response</text>
+  <text x="668" y="238" fill="#a7f3d0" font-family="Consolas, monospace" font-size="14">state=starting · same PID · same nonce</text>
+  <text x="668" y="278" fill="#d1fae5" font-family="Segoe UI, sans-serif" font-size="16">Server keeps loading toward authenticated readiness</text>
+  <text x="668" y="311" fill="#a7f3d0" font-family="Consolas, monospace" font-size="14">startup ceiling=900s · configurable</text>
+  <text x="668" y="344" fill="#86efac" font-family="Segoe UI, sans-serif" font-size="14">Only exit, final ceiling, or manager shutdown closes the job.</text>
+
+  <line x1="560" y1="248" x2="640" y2="248" stroke="#94a3b8" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="60" y="420" width="1080" height="178" rx="16" fill="#172554" stroke="#60a5fa" stroke-width="2" filter="url(#shadow)"/>
+  <text x="88" y="460" fill="#dbeafe" font-family="Segoe UI, sans-serif" font-size="21" font-weight="700">Verified lifecycle</text>
+  <g font-family="Segoe UI, sans-serif" text-anchor="middle">
+    <rect x="90" y="493" width="190" height="65" rx="10" fill="#1e3a8a"/><text x="185" y="519" fill="#eff6ff" font-size="16">Request</text><text x="185" y="541" fill="#bfdbfe" font-size="13">30.045s response</text>
+    <rect x="345" y="493" width="220" height="65" rx="10" fill="#1e3a8a"/><text x="455" y="519" fill="#eff6ff" font-size="16">Server PID 33812</text><text x="455" y="541" fill="#bfdbfe" font-size="13">running · launchCount=1</text>
+    <rect x="630" y="493" width="200" height="65" rx="10" fill="#1e3a8a"/><text x="730" y="519" fill="#eff6ff" font-size="16">Late readiness</text><text x="730" y="541" fill="#bfdbfe" font-size="13">same nonce accepted</text>
+    <rect x="895" y="493" width="215" height="65" rx="10" fill="#166534"/><text x="1002" y="519" fill="#f0fdf4" font-size="16">Subsequent request</text><text x="1002" y="541" fill="#bbf7d0" font-size="13">ready · no relaunch</text>
+  </g>
+  <g stroke="#93c5fd" stroke-width="3" marker-end="url(#arrow)"><line x1="280" y1="525" x2="345" y2="525"/><line x1="565" y1="525" x2="630" y2="525"/><line x1="830" y1="525" x2="895" y2="525"/></g>
+
+  <rect x="60" y="630" width="1080" height="48" rx="10" fill="#0b1220" stroke="#475569"/>
+  <text x="88" y="660" fill="#cbd5e1" font-family="Consolas, monospace" font-size="14">PASS · Release build · 12 black-box tests · real Scifi process survival · diff check</text>
+</svg>

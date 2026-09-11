@@ -14,9 +14,16 @@ Date: 2026-09-09. The first implementation slice is complete and compiled. The r
 
 1. `Build.bat AuraEditor Win64 Development C:/Git/AuraProj/Aura.uproject -WaitMutex` — pass.
 2. `Build.bat Aura Win64 Development C:/Git/AuraProj/Aura.uproject -WaitMutex` — pass.
-3. Unreal automation `Aura.Landmark` — 2/2 pass (`Aura.Landmark.Marker.Contract`, `Aura.Landmark.Behavior.Contract`), report in `Saved/LandmarkGuide/Automation2/index.json`.
-4. NullRHI showcase launch — pass; `Saved/Logs/Aura_2.log` records both fallback rows as available and `[Landmark] Native guide panel mounted`.
+3. Initial implementation run (historical) — Unreal automation `Aura.Landmark` reported 2/2 pass (`Aura.Landmark.Marker.Contract`, `Aura.Landmark.Behavior.Contract`).
+4. Initial implementation run (historical) — NullRHI showcase launch recorded both fallback rows as available and `[Landmark] Native guide panel mounted`.
 5. Visual evidence — the native panel mounted during a rendered game launch; the available UI automation surface did not expose an Unreal window for screenshot capture. The SVG archive below is the durable visual summary, and rendered screenshot capture remains a Day 5 acceptance gate.
+
+## Reapply validation — 2026-09-10
+
+1. `Build.bat Aura Win64 Development C:/Git/AuraProj/Aura.uproject -WaitMutex` — pass; the freshly restored controller, registry, panel and contract-test translation units compile and `Aura.exe` links.
+2. `Build.bat AuraEditor Win64 Development C:/Git/AuraProj/Aura.uproject -WaitMutex` — source compilation and UHT pass, but the final editor link is blocked by the already-open user-owned `UnrealEditor.exe` holding `UnrealEditor-BehaviorURuntime.dll`.
+3. Live `Aura.Landmark` automation and rendered smoke — pending until that editor is closed and the new editor module can be linked; the attempt against the running editor's old module correctly reported no matching restored tests.
+4. Standalone XML contract parse and scoped whitespace checks — pass. Prior map smoke evidence remains in the implementation validation packet; no user-owned editor process was stopped.
 
 ## Next gated work
 

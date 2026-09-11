@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Guidemen actor wrapper and rotation fix</title>
+  <desc id="desc">Before and after diagram showing ten top-level Guidemen mesh actors wrapped under one static root actor while preserving the verified zero-degree level rotation and visual placement.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101b2d"/>
+      <stop offset="1" stop-color="#182338"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#07101c" flood-opacity="0.5"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#68d5ff"/>
+    </marker>
+    <style>
+      .title { font: 700 30px 'Segoe UI', Arial, sans-serif; fill: #f1f6ff; }
+      .subtitle { font: 400 16px 'Segoe UI', Arial, sans-serif; fill: #a9bad1; }
+      .panel { fill: #20304a; stroke: #405979; stroke-width: 2; }
+      .panel-title { font: 700 21px 'Segoe UI', Arial, sans-serif; fill: #f1f6ff; }
+      .body { font: 400 16px 'Segoe UI', Arial, sans-serif; fill: #d5e1ef; }
+      .small { font: 400 14px 'Segoe UI', Arial, sans-serif; fill: #b5c7dc; }
+      .mono { font: 400 13px Consolas, monospace; fill: #d5e1ef; }
+      .good { font: 700 16px 'Segoe UI', Arial, sans-serif; fill: #7ce3a3; }
+      .warn { font: 700 16px 'Segoe UI', Arial, sans-serif; fill: #ffd17c; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="56" y="58" class="title">Guidemen visual placement fix</text>
+  <text x="56" y="88" class="subtitle">Same visual transform, now represented as one level actor with attached mesh parts</text>
+
+  <rect x="56" y="126" width="500" height="510" rx="16" class="panel"/>
+  <text x="84" y="170" class="panel-title">Before — fragmented outliner</text>
+  <text x="84" y="199" class="body">Ten static mesh actors were siblings at the level root.</text>
+  <rect x="94" y="236" width="420" height="260" rx="10" fill="#142235" stroke="#49627f"/>
+  <text x="116" y="270" class="mono">L_showcase_level (Editor)</text>
+  <g font-family="Consolas, monospace" font-size="14" fill="#c2d1df">
+    <text x="128" y="306">▸ GuangzhouLandmark_Guidemen__SM_...</text>
+    <text x="128" y="335">▸ GuangzhouLandmark_Guidemen__SM_...</text>
+    <text x="128" y="364">▸ GuangzhouLandmark_Guidemen__SM_...</text>
+    <text x="128" y="393">▸ GuangzhouLandmark_Guidemen__SM_...</text>
+    <text x="128" y="422">▸ GuangzhouLandmark_Guidemen__SM_...</text>
+    <text x="128" y="451">▸ + 5 more sibling actors</text>
+  </g>
+  <text x="94" y="543" class="warn">Hard to move, rotate, or select as one building</text>
+  <text x="94" y="578" class="mono">All parts yaw: 0° · shared world location</text>
+  <text x="94" y="608" class="small">Visual capture: guidemen_visual_before.png</text>
+
+  <line x1="575" y1="382" x2="625" y2="382" stroke="#68d5ff" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="600" y="355" text-anchor="middle" class="small">wrap + save</text>
+
+  <rect x="654" y="126" width="490" height="510" rx="16" class="panel"/>
+  <text x="682" y="170" class="panel-title">After — one actor group</text>
+  <text x="682" y="199" class="body">A static root actor owns all ten mesh children.</text>
+  <rect x="694" y="236" width="410" height="260" rx="10" fill="#142235" stroke="#49627f"/>
+  <text x="716" y="270" class="mono">▾ GuangzhouLandmark_Guidemen</text>
+  <rect x="714" y="287" width="370" height="38" rx="7" fill="#2d5368" stroke="#6bc9df"/>
+  <text x="732" y="312" class="mono">Static root · yaw 0° · grounded</text>
+  <g font-family="Consolas, monospace" font-size="14" fill="#c2d1df">
+    <text x="736" y="352">└─ SM_Guidemen_StoneStructure</text>
+    <text x="736" y="379">└─ SM_Guidemen_StoneFacade_Front</text>
+    <text x="736" y="406">└─ SM_Guidemen_StoneFacade_Back</text>
+    <text x="736" y="433">└─ SM_Guidemen_Timber / Roofs / Details</text>
+    <text x="736" y="460">└─ + 6 attached mesh parts</text>
+  </g>
+  <text x="682" y="543" class="good">One selectable/movable/rotatable building</text>
+  <text x="682" y="578" class="mono">Location: (-140400, 110295, 100) cm</text>
+  <text x="682" y="608" class="small">Visual capture: guidemen_visual_after.png</text>
+
+  <rect x="56" y="666" width="1088" height="54" rx="12" fill="#14273a" stroke="#365a70"/>
+  <text x="80" y="700" class="good">Verified:</text>
+  <text x="164" y="700" class="body">10 parent links · yaw 0° matches the adjacent gate row · bounds and ground contact unchanged · save/reload passed</text>
+</svg>

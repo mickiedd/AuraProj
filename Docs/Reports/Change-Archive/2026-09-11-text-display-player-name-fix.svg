@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="760" viewBox="0 0 1240 760">
+<rect width="1240" height="760" fill="#f4f7fb"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#162a46">
+<text x="48" y="52" font-size="30" font-weight="700">Player-name text display fix — 2026-09-11</text>
+<text x="48" y="84" font-size="18" fill="#4c607a">The screenshot showed three replacement glyphs because a callback destroyed its own text captures</text>
+
+<rect x="48" y="122" width="352" height="228" rx="16" fill="#ffe7e3" stroke="#d26a5e" stroke-width="2"/>
+<text x="72" y="158" font-size="21" font-weight="700">Observed in Aura.log</text>
+<text x="72" y="198" font-size="17">Login request: player='mickie'</text>
+<text x="72" y="230" font-size="17">GSM callback: player='?䟵ਫ'</text>
+<text x="72" y="262" font-size="17">Travel URL carried the same garbage</text>
+<text x="72" y="294" font-size="17">Gameplay rendered replacement glyphs</text>
+
+<path d="M420 236 H494" fill="none" stroke="#56718f" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="512" y="122" width="352" height="228" rx="16" fill="#dff2ff" stroke="#5b96bd" stroke-width="2"/>
+<text x="536" y="158" font-size="21" font-weight="700">Root cause</text>
+<text x="536" y="198" font-size="17">Self-referential TFunction held captures</text>
+<text x="536" y="230" font-size="17">Terminal callback cleared the TFunction</text>
+<text x="536" y="262" font-size="17">The active lambda lost its FString data</text>
+<text x="536" y="294" font-size="17">Later reads became use-after-destruction</text>
+
+<path d="M884 236 H958" fill="none" stroke="#56718f" stroke-width="4" marker-end="url(#arrow)"/>
+<rect x="976" y="122" width="216" height="228" rx="16" fill="#e1f5e7" stroke="#5b9a70" stroke-width="2"/>
+<text x="1000" y="158" font-size="21" font-weight="700">After fix</text>
+<text x="1000" y="198" font-size="17">Name remains mickie</text>
+<text x="1000" y="230" font-size="17">Handler release is deferred</text>
+<text x="1000" y="262" font-size="17">Travel payload stays intact</text>
+<text x="1000" y="294" font-size="17">Glyphs can render normally</text>
+
+<rect x="48" y="398" width="1144" height="236" rx="16" fill="#ffffff" stroke="#b7c5d5" stroke-width="2"/>
+<text x="76" y="440" font-size="22" font-weight="700">Validation evidence</text>
+<circle cx="86" cy="480" r="8" fill="#3a9d5d"/><text x="108" y="486" font-size="17">Focused Game Server Manager contract: PASS</text>
+<circle cx="86" cy="520" r="8" fill="#3a9d5d"/><text x="108" y="526" font-size="17">UnrealHeaderTool and LoginPlayerController.cpp compile: PASS</text>
+<circle cx="86" cy="560" r="8" fill="#3a9d5d"/><text x="108" y="566" font-size="17">git diff --check: PASS</text>
+<circle cx="650" cy="480" r="8" fill="#d28a2e"/><text x="672" y="486" font-size="17">Final DLL link held by open editor</text>
+<circle cx="650" cy="520" r="8" fill="#d28a2e"/><text x="672" y="526" font-size="17">Post-rebuild gameplay capture remains</text>
+<text x="650" y="566" font-size="15" fill="#6b5a28">The supplied image/log are preserved as pre-fix evidence.</text>
+
+<text x="48" y="700" font-size="16" fill="#4c607a">Flow: Login resolves name → GSM callback → Loading handoff → PlayerState/travel text. The fix changes only callback lifetime.</text>
+</g>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#56718f"/></marker></defs>
+</svg>

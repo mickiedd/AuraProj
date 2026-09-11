@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Native GSM slow-start review hardening</title>
+  <desc id="desc">The client request can expire with retryable metadata while the same owned server process continues. Late readiness is accepted only for the current nonce; a separate startup ceiling performs cleanup. The Login flow retries automatically.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Segoe UI,Arial,sans-serif; fill:#0f172a }
+      .sub { font: 15px Segoe UI,Arial,sans-serif; fill:#475569 }
+      .label { font: 700 16px Segoe UI,Arial,sans-serif; fill:#0f172a }
+      .body { font: 14px Segoe UI,Arial,sans-serif; fill:#334155 }
+      .small { font: 13px Segoe UI,Arial,sans-serif; fill:#475569 }
+      .box { stroke:#64748b; stroke-width:2; rx:14 }
+      .arrow { stroke:#334155; stroke-width:2.5; fill:none; marker-end:url(#arrow) }
+      .dash { stroke:#64748b; stroke-width:2; stroke-dasharray:7 6; fill:none; marker-end:url(#arrow) }
+    </style>
+  </defs>
+  <rect width="1200" height="760" fill="#f8fafc"/>
+  <text x="50" y="52" class="title">Native GSM slow-start review hardening</text>
+  <text x="50" y="80" class="sub">Verified contract: request lifetime is independent from the owned server process lifetime.</text>
+
+  <rect x="55" y="125" width="215" height="105" class="box" fill="#dbeafe"/>
+  <text x="75" y="157" class="label">Client request</text>
+  <text x="75" y="183" class="body">request_server starts one launch</text>
+  <text x="75" y="204" class="body">request deadline = 30 s</text>
+
+  <rect x="330" y="125" width="235" height="105" class="box" fill="#dcfce7"/>
+  <text x="350" y="157" class="label">Owned child: starting</text>
+  <text x="350" y="183" class="body">Job + PID + nonce remain live</text>
+  <text x="350" y="204" class="body">startup ceiling = 900 s</text>
+
+  <rect x="625" y="125" width="235" height="105" class="box" fill="#fef3c7"/>
+  <text x="645" y="157" class="label">Request expiry</text>
+  <text x="645" y="183" class="body">status=error</text>
+  <text x="645" y="204" class="body">retryable=true; child untouched</text>
+
+  <rect x="920" y="125" width="225" height="105" class="box" fill="#e0e7ff"/>
+  <text x="940" y="157" class="label">Login flow retry</text>
+  <text x="940" y="183" class="body">Loading remains visible</text>
+  <text x="940" y="204" class="body">new query reuses same launch</text>
+
+  <path d="M270 177 L330 177" class="arrow"/>
+  <path d="M565 177 L625 177" class="arrow"/>
+  <path d="M860 177 L920 177" class="arrow"/>
+  <path d="M1032 230 L1032 285 L447 285 L447 230" class="dash"/>
+  <text x="670" y="274" class="small">retry loop is bounded by the server startup ceiling</text>
+
+  <rect x="155" y="355" width="265" height="120" class="box" fill="#ecfccb"/>
+  <text x="180" y="388" class="label">Late readiness</text>
+  <text x="180" y="414" class="body">server_ready must match:</text>
+  <text x="180" y="436" class="body">live owned PID · configured port</text>
+  <text x="180" y="458" class="body">current per-launch nonce</text>
+
+  <rect x="500" y="355" width="265" height="120" class="box" fill="#dcfce7"/>
+  <text x="525" y="388" class="label">Ready response</text>
+  <text x="525" y="414" class="body">status=ready, same PID</text>
+  <text x="525" y="436" class="body">launchCount remains 1</text>
+  <text x="525" y="458" class="body">client connects without relaunch</text>
+
+  <rect x="845" y="355" width="265" height="120" class="box" fill="#fee2e2"/>
+  <text x="870" y="388" class="label">Stuck or stale</text>
+  <text x="870" y="414" class="body">startup ceiling or process exit</text>
+  <text x="870" y="436" class="body">closes only this level's job</text>
+  <text x="870" y="458" class="body">old nonce cannot ready replacement</text>
+
+  <path d="M447 230 L447 300 L287 300 L287 355" class="arrow"/>
+  <path d="M420 415 L500 415" class="arrow"/>
+  <path d="M765 415 L845 415" class="arrow"/>
+  <text x="305" y="328" class="small">callback arrives while child is alive</text>
+  <text x="770" y="400" class="small">deadline / exit path</text>
+
+  <rect x="95" y="550" width="1010" height="145" class="box" fill="#ffffff"/>
+  <text x="125" y="585" class="label">Review findings verified and covered</text>
+  <text x="125" y="613" class="body">• finite deadline tests: NaN, ±Infinity, 1e309</text>
+  <text x="125" y="637" class="body">• stale readiness after relaunch; late readiness after final deadline</text>
+  <text x="610" y="613" class="body">• disconnect/write teardown leaves starting child alive</text>
+  <text x="610" y="637" class="body">• monotonic steady_clock and /api/status deadline observability retained</text>
+  <text x="125" y="670" class="small">Validation: Release GSM build · 15 native integration tests · legacy manager contracts · request-deadline tests · Unreal client source compile</text>
+</svg>

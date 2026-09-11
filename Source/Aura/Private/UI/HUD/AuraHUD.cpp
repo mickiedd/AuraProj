@@ -250,12 +250,18 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 
 void AAuraHUD::ToggleLandmarkPanel()
 {
-	SetLandmarkPanelVisible(!bLandmarkPanelVisible);
+	const bool bNextVisible = !bLandmarkPanelVisible;
+	UE_LOG(LogAura, Display, TEXT("[Landmark] Toggle requested by HUD; visible=%s -> %s"),
+		bLandmarkPanelVisible ? TEXT("true") : TEXT("false"),
+		bNextVisible ? TEXT("true") : TEXT("false"));
+	SetLandmarkPanelVisible(bNextVisible);
 }
 
 void AAuraHUD::SetLandmarkPanelVisible(bool bVisible)
 {
 	bLandmarkPanelVisible = bVisible;
+	UE_LOG(LogAura, Display, TEXT("[Landmark] Panel visibility set visible=%s panel=%s"),
+		bVisible ? TEXT("true") : TEXT("false"), LandmarkPanel ? TEXT("valid") : TEXT("null"));
 	if (LandmarkPanel)
 	{
 		LandmarkPanel->ShowPanel(bVisible);
@@ -492,6 +498,15 @@ void AAuraHUD::HandleWebUICommand(const FString& Command, const FString& Payload
 	}
 	if (Command == TEXT("hud_quit_confirm")) { UGameplayStatics::OpenLevel(this, FName(TEXT("LoadMenu"))); return; }
 	if (Command == TEXT("hud_location_toggle")) { ToggleLocationDisplay(); return; }
+	if (Command == TEXT("hud_landmarks_toggle"))
+	{
+		UE_LOG(LogAura, Display, TEXT("[Landmark] Toggle requested by WebUI keyboard command"));
+		if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController()))
+		{
+			AuraPC->ToggleLandmarkPanel();
+		}
+		return;
+	}
 	if (Command == TEXT("hud_reload"))
 	{
 		if (AAuraPlayerController* AuraPC = Cast<AAuraPlayerController>(GetOwningPlayerController())) AuraPC->RequestFirearmReload();
