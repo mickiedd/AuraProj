@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">V3 building fine-tune archive</title>
+  <desc id="desc">Three independent V3 building Blueprints receive render, lighting, material, and collision tuning, followed by fresh validation and visual capture.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111827"/><stop offset="1" stop-color="#1f2937"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#243447"/><stop offset="1" stop-color="#172333"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity=".3"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#60a5fa"/></marker>
+    <style>
+      .title{font:700 36px 'Segoe UI',Arial,sans-serif;fill:#f8fafc}.sub{font:400 18px 'Segoe UI',Arial,sans-serif;fill:#cbd5e1}
+      .cardTitle{font:700 20px 'Segoe UI',Arial,sans-serif;fill:#f8fafc}.body{font:400 16px 'Segoe UI',Arial,sans-serif;fill:#dbeafe}
+      .small{font:400 14px 'Segoe UI',Arial,sans-serif;fill:#cbd5e1}.label{font:700 14px 'Segoe UI',Arial,sans-serif;fill:#93c5fd}
+      .ok{font:700 16px 'Segoe UI',Arial,sans-serif;fill:#86efac}.mono{font:400 14px Consolas,monospace;fill:#bfdbfe}
+    </style>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bg)"/>
+  <text x="70" y="72" class="title">V3 independent building fine-tune</text>
+  <text x="70" y="105" class="sub">Asset-local quality pass after clean reimport; source geometry, package boundaries, and existing buildings stay unchanged.</text>
+
+  <rect x="70" y="145" width="1260" height="150" rx="18" fill="#0f172a" stroke="#334155" stroke-width="2" filter="url(#shadow)"/>
+  <text x="105" y="181" class="label">INPUT</text>
+  <text x="105" y="215" class="body">3 preserved V3 packages</text>
+  <text x="105" y="244" class="small">Xiaobeimen AAA • Xiaobeimen Production • Zhengnanmen AAA</text>
+  <path d="M520 220 H625" stroke="#60a5fa" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="660" y="181" class="label">FINE-TUNE SCRIPT</text>
+  <text x="660" y="215" class="body">Nanite • lightmap UV1 • resolution • PBR material defaults</text>
+  <text x="660" y="244" class="small">Static mobility • overlap off • explicit visible/collision query behavior</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="340" width="390" height="270" rx="16" fill="url(#card)" stroke="#38bdf8" stroke-width="2"/>
+    <rect x="505" y="340" width="390" height="270" rx="16" fill="url(#card)" stroke="#34d399" stroke-width="2"/>
+    <rect x="940" y="340" width="390" height="270" rx="16" fill="url(#card)" stroke="#fbbf24" stroke-width="2"/>
+  </g>
+  <text x="100" y="382" class="cardTitle">Xiaobeimen_AAA_V3</text>
+  <text x="100" y="414" class="body">237 meshes • 38 visible • 5 collision</text>
+  <text x="100" y="450" class="small">Nanite enabled on 176 assets</text>
+  <text x="100" y="476" class="small">Lightmap resolution normalized on 214</text>
+  <text x="100" y="502" class="small">Blueprint mobility/query defaults fixed</text>
+  <text x="100" y="555" class="ok">✓ complete</text>
+
+  <text x="535" y="382" class="cardTitle">Xiaobeimen_Production_V3</text>
+  <text x="535" y="414" class="body">62 meshes • 10 visible • 6 collision</text>
+  <text x="535" y="450" class="small">Nanite enabled on 36 assets</text>
+  <text x="535" y="476" class="small">Lightmap resolution normalized on 46</text>
+  <text x="535" y="502" class="small">Two-sided cloth/vegetation materials fixed</text>
+  <text x="535" y="555" class="ok">✓ complete</text>
+
+  <text x="970" y="382" class="cardTitle">Zhengnanmen_AAA_V3</text>
+  <text x="970" y="414" class="body">49 meshes • 7 visible • 6 collision</text>
+  <text x="970" y="450" class="small">Nanite enabled on 36 assets</text>
+  <text x="970" y="476" class="small">Lightmap resolution normalized on 43</text>
+  <text x="970" y="502" class="small">Gate, roof, ornaments, and foliage preserved</text>
+  <text x="970" y="555" class="ok">✓ complete</text>
+
+  <path d="M700 610 V655" stroke="#94a3b8" stroke-width="4"/>
+  <rect x="70" y="670" width="1260" height="165" rx="18" fill="#0f172a" stroke="#334155" stroke-width="2" filter="url(#shadow)"/>
+  <text x="105" y="710" class="label">VALIDATION + VISUAL CHECK</text>
+  <text x="105" y="746" class="ok">✓ Fresh UnrealEditor-Cmd validation passed all 3</text>
+  <text x="105" y="773" class="ok">✓ Source validation: 1,161 files unchanged; 419 existing assets/maps unchanged</text>
+  <text x="105" y="800" class="ok">✓ Six post-tune front/rear captures inspected; all assemblies intact</text>
+  <text x="1000" y="746" class="mono">fine-tune.json</text>
+  <text x="1000" y="773" class="mono">validation.json</text>
+  <text x="1000" y="800" class="mono">source-validation-fine-tune.log</text>
+</svg>

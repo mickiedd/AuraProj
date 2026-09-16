@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+  <rect width="1200" height="820" fill="#101b2b"/>
+  <g font-family="Segoe UI, Arial, sans-serif" fill="#eef4ff">
+    <text x="48" y="58" font-size="30" font-weight="700">Xiaobeimen / Small North Gate — reference tuning</text>
+    <text x="48" y="90" font-size="17" fill="#b7c8dc">2026-09-15 • V3 Blueprint facade repair • supplied reference sheet</text>
+
+    <rect x="42" y="126" width="526" height="402" rx="16" fill="#253145" stroke="#53647c"/>
+    <rect x="592" y="126" width="566" height="402" rx="16" fill="#253145" stroke="#53647c"/>
+    <text x="70" y="170" font-size="24" fill="#ffbb99" font-weight="700">Before</text>
+    <text x="620" y="170" font-size="24" fill="#9eebbc" font-weight="700">After</text>
+    <text x="70" y="198" font-size="16" fill="#cbd5e1">Open lattice showed the preview background.</text>
+    <text x="620" y="198" font-size="16" fill="#cbd5e1">Aged-wood backing follows both timber levels.</text>
+
+    <!-- before tower -->
+    <g transform="translate(102,222)">
+      <path d="M42 72 L182 30 L322 72 L305 88 L59 88 Z" fill="#269a93"/>
+      <path d="M72 88 H292 V164 H72 Z" fill="#ad593d"/>
+      <path d="M18 180 L182 148 L346 180 L328 195 L36 195 Z" fill="#269a93"/>
+      <path d="M54 196 H310 V268 H54 Z" fill="#ad593d"/>
+      <path d="M0 282 H364 V340 H0 Z" fill="#a8a99b"/>
+      <g stroke="#e7b08d" stroke-width="4" opacity=".9">
+        <path d="M78 91 V160 M110 91 V160 M142 91 V160 M174 91 V160 M206 91 V160 M238 91 V160 M270 91 V160"/>
+        <path d="M60 199 V264 M92 199 V264 M124 199 V264 M156 199 V264 M188 199 V264 M220 199 V264 M252 199 V264 M284 199 V264"/>
+      </g>
+      <g fill="#d8e1eb" opacity=".8"><rect x="88" y="104" width="20" height="46"/><rect x="152" y="104" width="20" height="46"/><rect x="216" y="104" width="20" height="46"/><rect x="88" y="211" width="20" height="40"/><rect x="152" y="211" width="20" height="40"/><rect x="216" y="211" width="20" height="40"/></g>
+      <text x="0" y="376" font-size="15" fill="#ffcfbf">background gaps visible through windows</text>
+    </g>
+
+    <!-- after tower -->
+    <g transform="translate(652,222)">
+      <path d="M42 72 L182 30 L322 72 L305 88 L59 88 Z" fill="#269a93"/>
+      <path d="M72 88 H292 V164 H72 Z" fill="#8f452f"/>
+      <path d="M18 180 L182 148 L346 180 L328 195 L36 195 Z" fill="#269a93"/>
+      <path d="M54 196 H310 V268 H54 Z" fill="#8f452f"/>
+      <path d="M0 282 H364 V340 H0 Z" fill="#a8a99b"/>
+      <g fill="#6d3326" stroke="#d79a78" stroke-width="4">
+        <rect x="72" y="90" width="220" height="74"/><rect x="54" y="198" width="256" height="70"/>
+      </g>
+      <g stroke="#d79a78" stroke-width="4" opacity=".95">
+        <path d="M78 91 V160 M110 91 V160 M142 91 V160 M174 91 V160 M206 91 V160 M238 91 V160 M270 91 V160"/>
+        <path d="M60 199 V264 M92 199 V264 M124 199 V264 M156 199 V264 M188 199 V264 M220 199 V264 M252 199 V264 M284 199 V264"/>
+      </g>
+      <text x="0" y="376" font-size="15" fill="#b9f3d0">8 package-local panels • 2 levels × 4 facades</text>
+    </g>
+
+    <rect x="42" y="560" width="1116" height="210" rx="16" fill="#192638" stroke="#53647c"/>
+    <text x="70" y="604" font-size="21" fill="#efc27d" font-weight="700">Implementation and guard</text>
+    <text x="70" y="638" font-size="16">ReferenceInfill_L{0,1}_{F,B,L,R} • Cube primitive • M_AgedWood • NoCollision</text>
+    <text x="70" y="668" font-size="16">Plaque, split studded wooden door, roofs, brackets, moss, flags, and 5 collision components preserved.</text>
+    <text x="70" y="714" font-size="19" fill="#9eebbc" font-weight="700">PASS</text>
+    <text x="130" y="714" font-size="16">front/rear renders • focused fresh-world validator • detail audit • placement validator</text>
+    <text x="70" y="742" font-size="15" fill="#b7c8dc">Scope: facade infill only; source geometry and package-local dependency closure remain authoritative.</text>
+  </g>
+</svg>

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="980" viewBox="0 0 1440 980" role="img" aria-labelledby="title desc">
+  <title id="title">Zhengnanmen: original manually authored 4K PBR material images</title>
+  <desc id="desc">Before: the V2 actor's old materials produced default white surfaces because of sampler compilation errors. After: seven original 4K PBR surfaces feed correctly configured color, normal, ORM and height samplers, bound only to this Blueprint. Geometry, UVs, collision and the user's dirty map are preserved. Image, live Unreal and fresh serialized-state validations passed.</desc>
+  <defs>
+    <style>text{font-family:Arial,'Microsoft YaHei',sans-serif;fill:#e3e8df}.title{font-size:32px;font-weight:bold}.head{font-size:23px;font-weight:bold}.body{font-size:19px}.small{font-size:16px}.muted{fill:#a8b7b0}.panel{fill:#202d30;stroke:#435653;stroke-width:2}.box{fill:#2c3b3b;stroke:#596d60;stroke-width:1.5}.flow{stroke:#d6bc77;stroke-width:3;fill:none;marker-end:url(#arrow)}.ok{fill:#97d6b1}</style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#d6bc77"/></marker>
+  </defs>
+  <rect width="1440" height="980" fill="#131f22"/>
+  <text x="38" y="52" class="title">ZHENGNANMEN / MANUAL 4K PBR</text>
+  <text x="38" y="83" class="body muted">2026-09-16 · Great South Gate V2 ActorAsset · original surface images, not a shape rebuild</text>
+  <rect x="30" y="112" width="410" height="292" rx="14" class="panel"/>
+  <text x="52" y="150" class="head">BEFORE / failed surface sampling</text>
+  <g fill="#d9dcda" stroke="#879490" stroke-width="2">
+    <path d="M90 198L230 176L370 198L355 211H105Z"/><path d="M85 258L230 235L375 258L360 270H100Z"/><path d="M80 318L230 295L380 318L365 330H95Z"/>
+    <rect x="113" y="212" width="235" height="24"/><rect x="107" y="271" width="247" height="24"/><rect x="100" y="331" width="260" height="24"/>
+  </g>
+  <text x="52" y="380" class="small muted">Old sampler errors → white/default surfaces.</text>
+  <rect x="460" y="112" width="950" height="292" rx="14" class="panel"/>
+  <text x="484" y="150" class="head">AFTER / seven original, registered surface sets</text>
+  <g class="body">
+    <rect x="486" y="174" width="26" height="26" fill="#aaa48f"/><text x="530" y="195">Stone — mineral pores, fissures, olive lichen</text>
+    <rect x="486" y="215" width="26" height="26" fill="#4d7960"/><text x="530" y="236">Glaze — jade/celadon, kiln variation, native crazing</text>
+    <rect x="486" y="256" width="26" height="26" fill="#924832"/><text x="530" y="277">Red timber — satin lacquer, grain and paint wear</text>
+    <rect x="486" y="297" width="26" height="26" fill="#45301f"/><text x="530" y="318">Dark timber + interior — checking, pores, soot aging</text>
+    <rect x="486" y="338" width="26" height="26" fill="#b78e44"/><text x="530" y="359">Bronze/gold — oxide + scratches; unique Kai plaque</text>
+  </g>
+  <text x="1000" y="381" class="small muted">6 × 4096² sets + 4096 × 1024 plaque</text>
+  <rect x="30" y="430" width="1380" height="222" rx="14" class="panel"/>
+  <text x="53" y="467" class="head">MATCHED PBR FLOW / four samples per material</text>
+  <rect x="52" y="494" width="205" height="113" rx="9" class="box"/>
+  <text x="70" y="528" class="body">Native brush/fields</text><text x="70" y="557" class="small muted">Registered relief + wear</text><text x="70" y="585" class="small muted">49 lossless source PNGs</text>
+  <path d="M260 550H288" class="flow"/>
+  <rect x="300" y="491" width="233" height="120" rx="9" class="box"/>
+  <text x="316" y="521" class="body">BaseColor · sRGB</text><text x="316" y="548" class="small">Normal DX · linear / BC5</text><text x="316" y="575" class="small">ORM · R=AO / G=R / B=M</text><text x="316" y="601" class="small muted">Height · linear / half-float</text>
+  <path d="M536 550H572" class="flow"/>
+  <rect x="584" y="494" width="230" height="113" rx="9" class="box"/>
+  <text x="602" y="529" class="body">Restrained BumpOffset</text><text x="602" y="557" class="small muted">Same offset UV for all maps</text><text x="602" y="585" class="small muted">Default Lit + authored gloss</text>
+  <path d="M817 550H850" class="flow"/>
+  <rect x="862" y="494" width="223" height="113" rx="9" class="box"/>
+  <text x="880" y="529" class="body">7 new active materials</text><text x="880" y="557" class="small muted">±8% per-instance value only</text><text x="880" y="585" class="small muted">Correct samplers + face culling</text>
+  <path d="M1088 550H1120" class="flow"/>
+  <rect x="1132" y="494" width="248" height="113" rx="9" class="box"/>
+  <text x="1150" y="529" class="small">Exact V2 Blueprint overrides</text><text x="1150" y="557" class="small muted">115 component templates</text><text x="1150" y="585" class="small muted">12,388 instances preserved</text>
+  <rect x="30" y="679" width="663" height="171" rx="14" class="panel"/>
+  <text x="53" y="716" class="head">GUARDS / keep the change material-only</text>
+  <text x="53" y="748" class="body">Shared mesh bytes, UVs, collision, transforms unchanged</text>
+  <text x="53" y="778" class="body">No level load/save · dirty showcase map preserved</text>
+  <text x="53" y="808" class="small muted">Exact old per-slot bindings retained for explicit rollback.</text>
+  <rect x="714" y="679" width="696" height="171" rx="14" class="panel"/>
+  <text x="738" y="716" class="head ok">VALIDATION / passed local evidence</text>
+  <text x="738" y="748" class="body">49 hashes + sizes · 42 seamless maps · exact ORM packing</text>
+  <text x="738" y="778" class="body">Live SM6/P40 + fresh NullRHI serialized graph checks</text>
+  <text x="738" y="808" class="small muted">Native actor captures inspected; reviewer packet is not independent review.</text>
+  <text x="38" y="892" class="body">QUALITY BOUNDARY: AAA-targeted texture resources, not whole-model AAA certification.</text>
+  <text x="38" y="925" class="body muted">Pre-existing mesh faceting, roof/ornament shape, UV scale, lighting and platform performance need separate art/production gates.</text>
+  <text x="38" y="956" class="small muted">Manual authoring: no AI image service, stock texture reuse, reference cropping or 2K upscaling. Schematic above is not a beauty render.</text>
+</svg>

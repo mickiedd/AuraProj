@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">Great West Gate AAA material regeneration</title>
+  <desc id="desc">Before and after flow showing the Great West Gate moving from the older AAA bindings to eight hand-authored AAARedone PBR materials with direct six-map inputs, height BumpOffset microdetail, and preserved geometry, UVs, collision, placement, and Blueprint structure.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f0e7"/>
+      <stop offset="1" stop-color="#e7e0d2"/>
+    </linearGradient>
+    <linearGradient id="before" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#45484b"/>
+      <stop offset="1" stop-color="#847b67"/>
+    </linearGradient>
+    <linearGradient id="after" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6e7c83"/>
+      <stop offset="0.42" stop-color="#b6b7aa"/>
+      <stop offset="1" stop-color="#5a3c2b"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#4a4136" flood-opacity="0.20"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#896b45"/>
+    </marker>
+    <style>
+      .title { font: 700 32px Georgia, serif; fill: #29271f; }
+      .subtitle { font: 16px Arial, sans-serif; fill: #625b4e; letter-spacing: 1px; }
+      .heading { font: 700 20px Arial, sans-serif; fill: #302e28; }
+      .body { font: 15px Arial, sans-serif; fill: #403d35; }
+      .small { font: 13px Arial, sans-serif; fill: #686052; }
+      .mono { font: 13px Consolas, monospace; fill: #494238; }
+      .card { fill: #fffdf8; stroke: #c8bda9; stroke-width: 2; }
+      .tag { fill: #eadfcf; stroke: #c8bda9; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="820" fill="url(#bg)"/>
+  <text x="60" y="58" class="title">Zhengximen · Great West Gate</text>
+  <text x="60" y="88" class="subtitle">AAA MATERIAL REGENERATION · SAVED BLUEPRINT RELOAD CHECK</text>
+
+  <rect x="55" y="125" width="355" height="505" rx="14" class="card" filter="url(#shadow)"/>
+  <text x="82" y="167" class="heading">Before · older binding</text>
+  <text x="82" y="194" class="small">Generic `_AAA` siblings from the prior batch</text>
+  <rect x="86" y="225" width="293" height="170" rx="8" fill="url(#before)"/>
+  <path d="M118 348 L155 290 L310 290 L346 348 Z" fill="#34383a"/>
+  <path d="M135 345 L135 374 L327 374 L327 345 Z" fill="#7c705d"/>
+  <path d="M156 305 H309 M164 321 H302 M173 337 H294" stroke="#a39b87" stroke-width="3" opacity=".5"/>
+  <path d="M160 277 H302 L316 290 H145 Z" fill="#24282b"/>
+  <text x="82" y="438" class="body">• Mid-gray albedo multiplication reduced contrast</text>
+  <text x="82" y="464" class="body">• Tile roof and masonry read too dark/flat</text>
+  <text x="82" y="490" class="body">• Mesh and Blueprint stayed structurally valid</text>
+  <rect x="82" y="525" width="300" height="64" rx="8" class="tag"/>
+  <text x="99" y="551" class="mono">M_*_AAA → mesh slots</text>
+  <text x="99" y="574" class="small">rollback assets retained</text>
+
+  <line x1="430" y1="380" x2="500" y2="380" stroke="#896b45" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="520" y="125" width="360" height="505" rx="14" class="card" filter="url(#shadow)"/>
+  <text x="547" y="167" class="heading">Manual graph rebuild</text>
+  <text x="547" y="194" class="small">8 new materials · authored 4K PBR inputs</text>
+  <rect x="550" y="225" width="300" height="58" rx="8" fill="#efe5d1"/>
+  <text x="570" y="260" class="mono">BaseColor · Normal · Roughness</text>
+  <rect x="550" y="297" width="300" height="58" rx="8" fill="#e6eef0"/>
+  <text x="570" y="332" class="mono">Metallic · AO · Height</text>
+  <line x1="700" y1="355" x2="700" y2="390" stroke="#896b45" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="550" y="400" width="300" height="78" rx="8" fill="#dce5e6" stroke="#91a7aa"/>
+  <text x="570" y="430" class="heading" font-size="17">Readable PBR layer</text>
+  <text x="570" y="454" class="small">albedo lift + palette lerp · calibrated roughness</text>
+  <line x1="700" y1="478" x2="700" y2="510" stroke="#896b45" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="550" y="520" width="300" height="64" rx="8" fill="#e8d8c6" stroke="#b99670"/>
+  <text x="570" y="548" class="heading" font-size="17">Height microdetail</text>
+  <text x="570" y="570" class="small">coherent UVs → restrained BumpOffset</text>
+
+  <line x1="900" y1="380" x2="970" y2="380" stroke="#896b45" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="990" y="125" width="355" height="505" rx="14" class="card" filter="url(#shadow)"/>
+  <text x="1017" y="167" class="heading">After · saved result</text>
+  <text x="1017" y="194" class="small">`M_*_AAARedone` bound to both templates</text>
+  <rect x="1020" y="225" width="295" height="170" rx="8" fill="url(#after)"/>
+  <path d="M1052 348 L1089 290 L1244 290 L1281 348 Z" fill="#aeb0a8"/>
+  <path d="M1069 345 L1069 374 L1262 374 L1262 345 Z" fill="#c0bfb1"/>
+  <path d="M1090 305 H1243 M1098 321 H1236 M1107 337 H1228" stroke="#e8e5d8" stroke-width="3" opacity=".75"/>
+  <path d="M1094 277 H1240 L1254 290 H1079 Z" fill="#78868d"/>
+  <text x="1017" y="438" class="body">• Masonry texture and course relief remain readable</text>
+  <text x="1017" y="464" class="body">• Cool tile, aged timber, plaque, and iron separate</text>
+  <text x="1017" y="490" class="body">• Geometry, UVs, collision, and placement preserved</text>
+  <rect x="1017" y="525" width="302" height="64" rx="8" class="tag"/>
+  <text x="1034" y="551" class="mono">7 slots · 2 BP components</text>
+  <text x="1034" y="574" class="small">saved asset and reload verified</text>
+
+  <rect x="55" y="670" width="1290" height="100" rx="14" fill="#3a3934"/>
+  <text x="82" y="704" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#f8f3e8">Validation evidence</text>
+  <text x="82" y="730" class="small" fill="#e8dfd0">LIVE: focused AAA validator passed · all six maps/material · UV0 · collision · Blueprint rebind</text>
+  <text x="82" y="752" class="small" fill="#e8dfd0">FRESH: UnrealEditor-Cmd passed with manifest-backed texture check · VISUAL: front / close / rear captures inspected</text>
+</svg>

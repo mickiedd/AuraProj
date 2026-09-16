@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640" role="img" aria-labelledby="title desc">
+  <title id="title">Wuxianmen AAA material regeneration</title>
+  <desc id="desc">A flow diagram showing six 4K PBR maps feeding regenerated Wuxianmen materials, then all imported meshes and Blueprint components, with focused validation and visual captures.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f5f8fb"/>
+      <stop offset="1" stop-color="#e8edf2"/>
+    </linearGradient>
+    <linearGradient id="source" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#d9e4ed"/>
+      <stop offset="1" stop-color="#b9c9d7"/>
+    </linearGradient>
+    <linearGradient id="graph" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#e9d8b9"/>
+      <stop offset="1" stop-color="#d8aa72"/>
+    </linearGradient>
+    <linearGradient id="bind" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#d8ead8"/>
+      <stop offset="1" stop-color="#9ac7a2"/>
+    </linearGradient>
+    <linearGradient id="check" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#e5dcf2"/>
+      <stop offset="1" stop-color="#b6a2d7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#263746" flood-opacity=".16"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#526577"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #20313e; }
+      .subtitle { font: 400 14px Arial, sans-serif; fill: #5a6c7b; }
+      .head { font: 700 18px Arial, sans-serif; fill: #20313e; }
+      .body { font: 400 14px Arial, sans-serif; fill: #2d414f; }
+      .small { font: 400 12px Arial, sans-serif; fill: #536675; }
+      .label { font: 700 12px Arial, sans-serif; letter-spacing: 1px; fill: #526577; }
+    </style>
+  </defs>
+
+  <rect width="960" height="640" fill="url(#bg)"/>
+  <text x="48" y="54" class="title">Wuxianmen — AAA material regeneration</text>
+  <text x="48" y="80" class="subtitle">Saved second-pass PBR rebuild with readable daylight values, restrained macro variation, height relief, and full binding coverage.</text>
+
+  <text x="66" y="122" class="label">SOURCE PACKAGE</text>
+  <rect x="48" y="138" width="190" height="222" rx="14" fill="url(#source)" filter="url(#shadow)"/>
+  <text x="68" y="174" class="head">8 × 4K PBR sets</text>
+  <text x="68" y="205" class="body">Base Color</text>
+  <text x="68" y="229" class="body">Normal</text>
+  <text x="68" y="253" class="body">Roughness</text>
+  <text x="68" y="277" class="body">Metallic</text>
+  <text x="68" y="301" class="body">AO</text>
+  <text x="68" y="325" class="body">Height</text>
+  <text x="68" y="347" class="small">Weathered stone, gray brick,</text>
+  <text x="68" y="363" class="small">aged wood, roof, plaster,</text>
+  <text x="68" y="379" class="small">metal, plaque.</text>
+
+  <line x1="238" y1="249" x2="286" y2="249" stroke="#526577" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <text x="304" y="122" class="label">REGENERATED GRAPH</text>
+  <rect x="286" y="138" width="286" height="222" rx="14" fill="url(#graph)" filter="url(#shadow)"/>
+  <text x="308" y="174" class="head">M_*_AAA_Redone</text>
+  <text x="308" y="205" class="body">• neutral albedo lift + material tint</text>
+  <text x="308" y="229" class="body">• low-repeat macro UV</text>
+  <text x="308" y="253" class="body">• procedural 1± variation</text>
+  <text x="308" y="277" class="body">• Height → BumpOffset</text>
+  <text x="308" y="301" class="body">• micro normal detail</text>
+  <text x="308" y="325" class="body">• calibrated roughness / AO</text>
+  <text x="308" y="347" class="small">GrayBrick macro tiling reduced to</text>
+  <text x="308" y="363" class="small">0.38 × 0.46 to suppress grid repeat.</text>
+
+  <line x1="572" y1="249" x2="620" y2="249" stroke="#526577" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <text x="638" y="122" class="label">SAVED BINDINGS</text>
+  <rect x="620" y="138" width="292" height="222" rx="14" fill="url(#bind)" filter="url(#shadow)"/>
+  <text x="642" y="174" class="head">Wuxianmen V4</text>
+  <text x="642" y="208" class="body">40 imported mesh assets</text>
+  <text x="642" y="234" class="body">8 unique Blueprint components</text>
+  <text x="642" y="260" class="body">Nanite-compatible materials</text>
+  <text x="642" y="286" class="body">Complex-as-simple collision kept</text>
+  <text x="642" y="320" class="small">Primary + LOD0–LOD3 source imports</text>
+  <text x="642" y="342" class="small">rebound to matching redone slots.</text>
+
+  <line x1="480" y1="360" x2="480" y2="405" stroke="#526577" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="66" y="406" class="label">VALIDATION + HUMAN CHECK</text>
+  <rect x="48" y="422" width="864" height="148" rx="14" fill="url(#check)" filter="url(#shadow)"/>
+  <text x="72" y="458" class="head">Focused pass</text>
+  <text x="72" y="486" class="body">8 materials · 48 texture references · 40 meshes · 8 Blueprint components · all slots use _AAA_Redone</text>
+  <text x="72" y="515" class="body">Python compile + live Unreal validator passed; persisted slot bindings verified after the rebuild.</text>
+  <text x="72" y="544" class="body">Front and close captures inspected: brighter masonry, readable roof tile relief, warm timber, and plaque contrast.</text>
+
+  <text x="48" y="612" class="small">Scope boundary: material graphs and bindings only; authored geometry, UVs, placement, and collision were preserved.</text>
+</svg>

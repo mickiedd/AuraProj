@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101923"/><stop offset="1" stop-color="#26394a"/>
+    </linearGradient>
+    <linearGradient id="before" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4e5960"/><stop offset="1" stop-color="#242b30"/></linearGradient>
+    <linearGradient id="after" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c8c1a7"/><stop offset="1" stop-color="#655f52"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity=".35"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#f0b85a"/></marker>
+    <style>
+      .title{font:700 34px Arial,sans-serif;fill:#f6f1e5}.h{font:700 23px Arial,sans-serif;fill:#f6f1e5}.body{font:17px Arial,sans-serif;fill:#dbe4e8}.small{font:15px Arial,sans-serif;fill:#b7c7cf}.metric{font:700 28px Arial,sans-serif;fill:#f7c978}.label{font:700 16px Arial,sans-serif;fill:#f0b85a;letter-spacing:1px}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <text x="70" y="72" class="title">Dadongmen V4 · Deep AAA material + geometry pass</text>
+  <text x="70" y="108" class="small">Rollback-safe additive variant · source UV0 / collision / placement preserved · Dadongmen scope only</text>
+
+  <rect x="70" y="155" width="430" height="420" rx="18" fill="#18222b" stroke="#65727a" stroke-width="2" filter="url(#shadow)"/>
+  <text x="105" y="205" class="h">Before · prior _AAA state</text>
+  <rect x="112" y="245" width="345" height="155" fill="url(#before)" stroke="#7f8c91"/>
+  <path d="M112 400 L457 400 L430 445 L140 445 Z" fill="#30383c"/>
+  <path d="M170 330 Q285 245 400 330 L382 350 Q285 285 188 350 Z" fill="#22292e"/>
+  <path d="M260 400 L260 343 Q285 310 310 343 L310 400" fill="#171b1d"/>
+  <path d="M125 280 L190 260 M210 270 L285 252 M305 260 L380 270 M400 275 L445 292" stroke="#666d70" stroke-width="4" opacity=".45"/>
+  <text x="112" y="485" class="body">• Flat/repeated masonry response</text>
+  <text x="112" y="515" class="body">• Roof and door tone crushed dark</text>
+  <text x="112" y="545" class="body">• Detached source vegetation shards</text>
+
+  <path d="M540 365 C650 365 650 365 740 365" stroke="#f0b85a" stroke-width="7" fill="none" marker-end="url(#arrow)"/>
+  <text x="554" y="332" class="label">DEEPER PASS</text>
+  <text x="557" y="420" class="small">new siblings + additive hero mesh</text>
+
+  <rect x="790" y="155" width="740" height="420" rx="18" fill="#18222b" stroke="#d5a55a" stroke-width="2" filter="url(#shadow)"/>
+  <text x="825" y="205" class="h">After · `_DeepAAA` state</text>
+  <rect x="830" y="245" width="660" height="155" fill="url(#after)" stroke="#d9cda9"/>
+  <path d="M830 400 L1490 400 L1450 445 L870 445 Z" fill="#6c675b"/>
+  <path d="M865 310 Q1160 220 1455 310 L1435 338 Q1160 270 885 338 Z" fill="#8b8d87" stroke="#555a59" stroke-width="6"/>
+  <path d="M900 302 L910 335 M940 292 L950 330 M980 283 L990 326 M1020 275 L1030 322 M1060 267 L1070 320 M1100 260 L1110 318 M1140 255 L1150 318 M1180 255 L1190 318 M1220 260 L1230 318 M1260 267 L1270 320 M1300 275 L1310 322 M1340 283 L1350 326 M1380 292 L1390 330 M1420 302 L1430 335" stroke="#d2d0bf" stroke-width="8"/>
+  <path d="M830 342 H1490 M830 366 H1490 M830 390 H1490" stroke="#4f514d" stroke-width="7"/>
+  <path d="M1115 400 V332 Q1160 285 1205 332 V400" fill="#272b2b" stroke="#3b3932" stroke-width="10"/>
+  <path d="M1080 400 V320 M1240 400 V320 M1100 320 H1220 M1095 345 H1225 M1100 370 H1220" stroke="#6b472d" stroke-width="10"/>
+  <path d="M1115 382 L1115 335 M1135 382 L1135 320 M1155 382 L1155 310 M1175 382 L1175 310 M1195 382 L1195 320" stroke="#b49d73" stroke-width="3" opacity=".8"/>
+  <text x="830" y="485" class="body">• 10 layered PBR graphs: macro/micro, grime, streak, edge wear, normal reinforcement, BumpOffset</text>
+  <text x="830" y="515" class="body">• Beveled courses, dressed arch, paving, timber/dougong, tile ribs, door hardware, anchored leaves</text>
+  <text x="830" y="545" class="body">• One `DeepAAA_DetailGeometry` component, NoCollision; 60 prior detail components retained</text>
+
+  <rect x="70" y="640" width="1460" height="170" rx="18" fill="#111920" stroke="#52636b" stroke-width="2"/>
+  <text x="105" y="688" class="label">VALIDATION EVIDENCE</text>
+  <text x="105" y="740" class="metric">22,462 verts</text><text x="315" y="740" class="small">/</text><text x="345" y="740" class="metric">92,248 tris</text>
+  <text x="610" y="740" class="metric">62</text><text x="670" y="740" class="small">components checked</text>
+  <text x="910" y="740" class="metric">60</text><text x="970" y="740" class="small">prior details preserved</text>
+  <text x="1225" y="740" class="metric">PASS</text><text x="1325" y="740" class="small">focused validator</text>
+  <text x="105" y="780" class="small">Deterministic front / close / rear captures refreshed and visually inspected in the Dadongmen V4 preview level.</text>
+</svg>

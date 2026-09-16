@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="866" viewBox="0 0 1200 866" role="img" aria-labelledby="title desc">
+  <title id="title">GreatNorthGate updated to the DabeiMen model</title>
+  <desc id="desc">Diagram of replacing the GreatNorthGate HighDetail wrapper with the DabeiMen GLB: five Nanite meshes imported through Interchange with the bake_meshes orientation guard, the superseded actor retired, and the discovery that the 6M-triangle roof mesh has no upward-facing surface.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101b2d"/>
+      <stop offset="1" stop-color="#182338"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#07101c" flood-opacity="0.5"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#68d5ff"/>
+    </marker>
+    <style>
+      .title { font: 700 30px 'Segoe UI', Arial, sans-serif; fill: #f1f6ff; }
+      .subtitle { font: 400 16px 'Segoe UI', Arial, sans-serif; fill: #a9bad1; }
+      .panel { fill: #20304a; stroke: #405979; stroke-width: 2; }
+      .panel-title { font: 700 20px 'Segoe UI', Arial, sans-serif; fill: #f1f6ff; }
+      .body { font: 400 15px 'Segoe UI', Arial, sans-serif; fill: #d5e1ef; }
+      .small { font: 400 13px 'Segoe UI', Arial, sans-serif; fill: #b5c7dc; }
+      .mono { font: 400 12px Consolas, monospace; fill: #d5e1ef; }
+      .good { font: 700 15px 'Segoe UI', Arial, sans-serif; fill: #7ce3a3; }
+      .warn { font: 700 15px 'Segoe UI', Arial, sans-serif; fill: #ffd17c; }
+      .guard { font: 700 14px 'Segoe UI', Arial, sans-serif; fill: #ffd17c; }
+      .bad { font: 700 15px 'Segoe UI', Arial, sans-serif; fill: #ff9d9d; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="866" fill="url(#bg)"/>
+  <text x="56" y="56" class="title">GreatNorthGate — updated to the DabeiMen model</text>
+  <text x="56" y="86" class="subtitle">192 MB Z-up GLB becomes five Nanite meshes; the superseded HighDetail wrapper is retired</text>
+
+  <!-- 1 Source -->
+  <rect x="56" y="122" width="296" height="418" rx="16" class="panel" filter="url(#shadow)"/>
+  <text x="78" y="162" class="panel-title">1 · Source GLB</text>
+  <text x="78" y="186" class="mono">GreatNorthGate_DabeiMen_</text>
+  <text x="78" y="202" class="mono">UE5_Nanite_6M</text>
+  <rect x="76" y="216" width="256" height="164" rx="10" fill="#142235" stroke="#49627f"/>
+  <g class="mono">
+    <text x="90" y="242">5 meshes · 5 PBR materials</text>
+    <text x="90" y="264">15 embedded PNG textures</text>
+    <text x="90" y="286">6,005,624 triangles</text>
+    <text x="90" y="308">68.0 × 12.1 × 24.5 m</text>
+    <text x="90" y="336">stone  6800 × 1120 × 1358</text>
+    <text x="90" y="356">roof   3420 × 1180 ×  779</text>
+    <text x="90" y="376">plaque  640 ×   22 ×  170</text>
+  </g>
+  <text x="78" y="404" class="good">No instancing</text>
+  <text x="78" y="426" class="small">Every mesh is used by exactly one</text>
+  <text x="78" y="444" class="small">node; all five sit at identity under</text>
+  <text x="78" y="462" class="small">one "world" root, so the parts need</text>
+  <text x="78" y="480" class="small">no reassembly.</text>
+  <text x="78" y="508" class="warn">Authored Z-up, not Y-up</text>
+  <text x="78" y="530" class="small">Stone spans Z 0–13.6 m with the</text>
+
+  <line x1="352" y1="340" x2="392" y2="340" stroke="#68d5ff" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="372" y="316" text-anchor="middle" class="small">import</text>
+
+  <!-- 2 Import -->
+  <rect x="400" y="122" width="330" height="418" rx="16" class="panel" filter="url(#shadow)"/>
+  <text x="422" y="162" class="panel-title">2 · Interchange import</text>
+  <g class="mono">
+    <text x="422" y="190">combine_static_meshes = False</text>
+    <text x="422" y="210">build_nanite = True</text>
+    <text x="422" y="230" fill="#ffd17c">bake_meshes = True</text>
+    <text x="422" y="250">import_offset_rotation = −90°</text>
+    <text x="422" y="270">collision = False</text>
+    <text x="422" y="290">replace_existing = True</text>
+  </g>
+  <rect x="420" y="306" width="290" height="108" rx="10" fill="#2d3a26" stroke="#8a7a3a"/>
+  <text x="434" y="330" class="guard">GUARD — orientation</text>
+  <text x="434" y="352" class="small">With bake_meshes = False the</text>
+  <text x="434" y="370" class="small">offset rotation is ignored and the</text>
+  <text x="434" y="388" class="small">Z-up gate lands on its side. The</text>
+  <text x="434" y="406" class="small">assert is width &gt; height &gt; depth.</text>
+  <rect x="420" y="426" width="290" height="104" rx="10" fill="#2d3a26" stroke="#8a7a3a"/>
+  <text x="434" y="450" class="guard">GUARD — mesh set + fidelity</text>
+  <text x="434" y="472" class="small">Assert exactly 5 meshes, each</text>
+  <text x="434" y="490" class="small">mapped to its glTF source name,</text>
+  <text x="434" y="508" class="small">all Nanite with every slot filled,</text>
+  <text x="434" y="526" class="small">size within ±60 cm of source.</text>
+
+  <line x1="736" y1="340" x2="776" y2="340" stroke="#68d5ff" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="756" y="316" text-anchor="middle" class="small">wrap</text>
+
+  <!-- 3 Level -->
+  <rect x="784" y="122" width="360" height="418" rx="16" class="panel" filter="url(#shadow)"/>
+  <text x="806" y="162" class="panel-title">3 · Level actor change</text>
+  <rect x="804" y="176" width="320" height="66" rx="10" fill="#3a2a2a" stroke="#8a5a3a"/>
+  <text x="818" y="198" class="bad">RETIRED — actor only</text>
+  <text x="818" y="216" class="small">GuangzhouLandmark_GreatNorthGate_</text>
+  <text x="818" y="232" class="small">HighDetail  +  its 6 part actors</text>
+  <rect x="804" y="254" width="320" height="196" rx="10" fill="#142235" stroke="#49627f"/>
+  <text x="818" y="278" class="mono">▾ GuangzhouLandmark_</text>
+  <text x="818" y="294" class="mono">   GreatNorthGate_DabeiMen</text>
+  <rect x="818" y="304" width="292" height="26" rx="6" fill="#2d5368" stroke="#6bc9df"/>
+  <text x="830" y="322" class="mono">root · yaw 0° · grounded z = 100</text>
+  <g class="mono" font-size="11">
+    <text x="832" y="350">├─ GNG_STONE    6800 × 1120 × 1358</text>
+    <text x="832" y="368">├─ GNG_PLASTER  2910 ×  815 ×  355</text>
+    <text x="832" y="386">├─ GNG_WOOD     3465 × 1210 ×  928</text>
+    <text x="832" y="404">├─ GNG_ROOF     3420 × 1180 ×  779</text>
+    <text x="832" y="422">└─ GNG_PLAQUE    640 ×   22 ×  170</text>
+  </g>
+  <text x="818" y="440" fill="#7ce3a3" font-size="12">5 parts · all at identity</text>
+  <text x="806" y="472" class="good">5 parts · 6800 × 1210 × 2450 cm</text>
+  <text x="806" y="494" class="mono">(-140400, 110442.5, 100)</text>
+  <text x="806" y="518" class="small">Same footprint centre as before;</text>
+  <text x="806" y="534" class="small">3562.5 cm clear of each neighbour.</text>
+
+  <!-- Roof defect -->
+  <rect x="56" y="562" width="1088" height="146" rx="14" fill="#3a2323" stroke="#a05a5a"/>
+  <text x="80" y="592" class="bad">Source-model defect — the "6M" roof is a soffit with no top surface</text>
+  <text x="80" y="620" class="body">Area-weighted face orientation measured straight from the GLB: GNG_ROOF is 0.30% up / 83.65% down / 16.05% side,</text>
+  <text x="80" y="642" class="body">while GNG_STONE and GNG_WOOD are symmetric at ~25% up / ~25% down — which confirms the measurement is sound.</text>
+  <text x="80" y="664" class="body">With backface culling on, the roof vanishes from every above-horizon view; an isolated overhead capture showed only edge slivers.</text>
+  <text x="80" y="686" class="small">Workaround applied: M_Roof_GrayClayTile two_sided = True (the tile surface is then visible from above, but it is still the authored soffit).</text>
+  <text x="80" y="704" class="small">Proper fix: re-export the roof with an upward-facing tile shell — a re-import regenerates this material and clears the workaround.</text>
+
+  <!-- Footer -->
+  <rect x="56" y="724" width="1088" height="120" rx="14" fill="#14273a" stroke="#365a70"/>
+  <text x="80" y="752" class="panel-title">Verification</text>
+  <text x="80" y="778" class="good">Passed:</text>
+  <text x="152" y="778" class="body">5 parts parented · root yaw 0° · grounded z = 100.0 · 1 roof part · all 5 materials assigned · no HighDetail actors left</text>
+  <text x="80" y="800" class="good">Untouched:</text>
+  <text x="178" y="800" class="body">GreatNorthGate, GreatSouthGate, Xiaobeimen, ZhenhaiTower re-measured after save/reload — drift ≤ 0.03 cm</text>
+  <text x="80" y="824" class="mono">AnalyzeDabeiMenGlb · ImportGreatNorthGateDabeiMen · PlaceAndWrapGreatNorthGateDabeiMen · Validate… · CheckDabeiMenRoofFacing</text>
+  <text x="80" y="840" class="small">Saved/RawModelImport/great_north_gate_dabeimen_{hero,visual,closeup,roof_isolated,roof_twosided}.png</text>
+</svg>

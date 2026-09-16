@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1130" viewBox="0 0 1400 1130">
+<rect width="1400" height="1130" fill="#111c29"/>
+<g font-family="Segoe UI,Arial" fill="#edf4fa">
+<text x="44" y="55" font-size="32" font-weight="bold">Zhengnanmen V2 — remove the duplicated complete gate</text>
+<text x="44" y="89" font-size="19">Exact asset: BP_GreatSouthGate_Zhengnanmen_V2_ActorAsset · 2026-09-16</text>
+<text x="44" y="140" font-size="25" fill="#ffb5a6">BEFORE: two full assemblies at different floor heights</text>
+<text x="724" y="140" font-size="25" fill="#a3e4c2">AFTER: one reference-shaped assembly</text>
+<image href="2026-09-16-zhengnanmen-duplicate-assembly-fix-before.png" x="40" y="160" width="640" height="400"/>
+<image href="2026-09-16-zhengnanmen-duplicate-assembly-fix-after.png" x="720" y="160" width="640" height="400"/>
+<text x="44" y="590" font-size="19">Straight roof overlay + packed upturned roof model</text>
+<text x="44" y="620" font-size="19">Extra roofs cross floor openings; three extra plaques</text>
+<text x="724" y="590" font-size="19">Three stepped upturned roofs; one signboard</text>
+<text x="724" y="620" font-size="19">4K materials and original detail instances retained</text>
+<rect x="44" y="662" width="620" height="140" rx="12" fill="#432c34"/>
+<rect x="724" y="662" width="630" height="140" rx="12" fill="#1b3d37"/>
+<text x="65" y="700" font-size="22">Blueprint root</text>
+<text x="65" y="735" font-size="20">114 packed components / 12,387 instances</text>
+<text x="65" y="772" font-size="20" fill="#ffb5a6">+ UltraAAA_HeroGeometry: another complete gate</text>
+<text x="745" y="700" font-size="22">Blueprint root</text>
+<text x="745" y="735" font-size="20">114 packed components / 12,387 instances</text>
+<text x="745" y="772" font-size="20" fill="#a3e4c2">Overlay component deleted from serialized Blueprint</text>
+<text x="44" y="853" font-size="24" font-weight="bold">Recurrence guard</text>
+<text x="44" y="890" font-size="21">UltraAAA upgrade → Zhengnanmen policy: packed_reference_model_only → no second gate mounted</text>
+<text x="44" y="941" font-size="24" font-weight="bold">Validation</text>
+<text x="44" y="979" font-size="20">PASS: live portable spawn, source snapshot preservation, existing packed-asset validator, upgrade guard</text>
+<text x="44" y="1013" font-size="20">PASS: fresh NullRHI serialized Blueprint check; three roof shells, one signboard face, zero overlays</text>
+<text x="44" y="1047" font-size="20">Visual: isolated before/original/overlay renders; finished hero and rear views inspected</text>
+<text x="44" y="1085" font-size="18" fill="#b9c9d8">Fresh commandlet spawn is unsupported; live spawn verified. Full art conformance remains a separate pass.</text>
+</g></svg>

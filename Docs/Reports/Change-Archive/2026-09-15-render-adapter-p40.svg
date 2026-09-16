@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="920" viewBox="0 0 1400 920">
+  <defs>
+    <linearGradient id="paper" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f5f1e8"/><stop offset="1" stop-color="#e5ded0"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-opacity=".22"/></filter>
+  </defs>
+
+  <rect width="1400" height="920" fill="url(#paper)"/>
+
+  <text x="60" y="58" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#24201b">Render adapter selection — Unreal Engine on the Aura workstation</text>
+  <text x="60" y="88" font-family="Arial, sans-serif" font-size="17" fill="#61584e">Tesla P40 restored as the D3D12 render adapter after a silent fallback to the Intel iGPU • 2026-09-15</text>
+
+  <!-- ===================== BEFORE ===================== -->
+  <g transform="translate(60,120)" filter="url(#shadow)">
+    <rect width="612" height="620" rx="14" fill="#fffaf1" stroke="#b8aa96" stroke-width="2"/>
+    <rect width="612" height="6" rx="3" fill="#8c2f26"/>
+    <text x="28" y="46" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#8c2f26">Before — editor session started 00:18 today</text>
+    <text x="28" y="74" font-family="Arial, sans-serif" font-size="15" fill="#6b6158">P40 not yet enumerable ~3 min after a cold boot; UE degraded silently</text>
+
+    <!-- step 1 -->
+    <g transform="translate(28,104)">
+      <rect width="556" height="76" rx="9" fill="#f7e6e3" stroke="#c98b81" stroke-width="2"/>
+      <circle cx="30" cy="38" r="16" fill="#8c2f26"/>
+      <text x="30" y="44" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#fffaf1" text-anchor="middle">1</text>
+      <text x="58" y="31" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#3a2b26">EnumAdapterByGpuPreference(HIGH_PERFORMANCE)</text>
+      <text x="58" y="55" font-family="Arial, sans-serif" font-size="15" fill="#5b4a44">returns  [0] Intel Iris Xe   [1] WARP</text>
+    </g>
+    <text x="306" y="192" font-family="Arial, sans-serif" font-size="15" fill="#8c2f26" text-anchor="middle">▼  Tesla P40 absent</text>
+
+    <!-- step 2 -->
+    <g transform="translate(28,204)">
+      <rect width="556" height="76" rx="9" fill="#f7e6e3" stroke="#c98b81" stroke-width="2"/>
+      <circle cx="30" cy="38" r="16" fill="#8c2f26"/>
+      <text x="30" y="44" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#fffaf1" text-anchor="middle">2</text>
+      <text x="58" y="31" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#3a2b26">UE auto-selects the Intel iGPU</text>
+      <text x="58" y="55" font-family="Arial, sans-serif" font-size="15" fill="#5b4a44">no discrete adapter left to prefer</text>
+    </g>
+    <text x="306" y="292" font-family="Arial, sans-serif" font-size="15" fill="#8c2f26" text-anchor="middle">▼</text>
+
+    <!-- step 3 -->
+    <g transform="translate(28,304)">
+      <rect width="556" height="76" rx="9" fill="#f7e6e3" stroke="#c98b81" stroke-width="2"/>
+      <circle cx="30" cy="38" r="16" fill="#8c2f26"/>
+      <text x="30" y="44" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#fffaf1" text-anchor="middle">3</text>
+      <text x="58" y="31" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#3a2b26">Intel reports atomic64 = false</text>
+      <text x="58" y="55" font-family="Arial, sans-serif" font-size="15" fill="#5b4a44">UE computes max RHI feature level SM5</text>
+    </g>
+    <text x="306" y="392" font-family="Arial, sans-serif" font-size="15" fill="#8c2f26" text-anchor="middle">▼</text>
+
+    <!-- step 4 -->
+    <g transform="translate(28,404)">
+      <rect width="556" height="76" rx="9" fill="#f7e6e3" stroke="#c98b81" stroke-width="2"/>
+      <circle cx="30" cy="38" r="16" fill="#8c2f26"/>
+      <text x="30" y="44" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#fffaf1" text-anchor="middle">4</text>
+      <text x="58" y="31" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#3a2b26">D3D12/SM6 rejected → whole engine falls back to D3D11/SM5</text>
+      <text x="58" y="55" font-family="Arial, sans-serif" font-size="15" fill="#5b4a44">"RHI D3D12 with Feature Level SM6 is not supported on your system"</text>
+    </g>
+    <text x="306" y="492" font-family="Arial, sans-serif" font-size="15" fill="#8c2f26" text-anchor="middle">▼</text>
+
+    <!-- step 5 -->
+    <g transform="translate(28,504)">
+      <rect width="556" height="88" rx="9" fill="#8c2f26" stroke="#5e1c16" stroke-width="2"/>
+      <circle cx="30" cy="44" r="16" fill="#fffaf1"/>
+      <text x="30" y="50" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#8c2f26" text-anchor="middle">5</text>
+      <text x="58" y="34" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#fffaf1">Nanite OFF · Lumen OFF</text>
+      <text x="58" y="58" font-family="Arial, sans-serif" font-size="15" fill="#f6d9d4">166 × "UseNanite(PCD3D_SM5) returned false" in that session</text>
+    </g>
+  </g>
+
+  <!-- ===================== AFTER ===================== -->
+  <g transform="translate(728,120)" filter="url(#shadow)">
+    <rect width="612" height="620" rx="14" fill="#fffaf1" stroke="#b8aa96" stroke-width="2"/>
+    <rect width="612" height="6" rx="3" fill="#2f6b3f"/>
+    <text x="28" y="46" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#2f6b3f">After — editor session started 08:58 today</text>
+    <text x="28" y="74" font-family="Arial, sans-serif" font-size="15" fill="#6b6158">P40 present and healthy; UE selects it and keeps the SM6 path</text>
+
+    <!-- step 1 -->
+    <g transform="translate(28,104)">
+      <rect width="556" height="76" rx="9" fill="#e8f3e9" stroke="#8ab894" stroke-width="2"/>
+      <circle cx="30" cy="38" r="16" fill="#2f6b3f"/>
+      <text x="30" y="44" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#fffaf1" text-anchor="middle">1</text>
+      <text x="58" y="31" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#243b2a">EnumAdapterByGpuPreference(HIGH_PERFORMANCE)</text>
+      <text x="58" y="55" font-family="Arial, sans-serif" font-size="15" fill="#3f5546">returns  [0] Tesla P40   [1] Intel Iris Xe   [2] WARP</text>
+    </g>
+    <text x="306" y="192" font-family="Arial, sans-serif" font-size="15" fill="#2f6b3f" text-anchor="middle">▼  P40 is adapter 0, 24268 MB dedicated</text>
+
+    <!-- step 2 -->
+    <g transform="translate(28,204)">
+      <rect width="556" height="76" rx="9" fill="#e8f3e9" stroke="#8ab894" stroke-width="2"/>
+      <circle cx="30" cy="38" r="16" fill="#2f6b3f"/>
+      <text x="30" y="44" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#fffaf1" text-anchor="middle">2</text>
+      <text x="58" y="31" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#243b2a">UE auto-selects the P40</text>
+      <text x="58" y="55" font-family="Arial, sans-serif" font-size="15" fill="#3f5546">largest dedicated VRAM of the non-integrated adapters</text>
+    </g>
+    <text x="306" y="292" font-family="Arial, sans-serif" font-size="15" fill="#2f6b3f" text-anchor="middle">▼</text>
+
+    <!-- step 3 -->
+    <g transform="translate(28,304)">
+      <rect width="556" height="76" rx="9" fill="#e8f3e9" stroke="#8ab894" stroke-width="2"/>
+      <circle cx="30" cy="38" r="16" fill="#2f6b3f"/>
+      <text x="30" y="44" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#fffaf1" text-anchor="middle">3</text>
+      <text x="58" y="31" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#243b2a">P40 reports atomic64 = true</text>
+      <text x="58" y="55" font-family="Arial, sans-serif" font-size="15" fill="#3f5546">UE computes max RHI feature level SM6</text>
+    </g>
+    <text x="306" y="392" font-family="Arial, sans-serif" font-size="15" fill="#2f6b3f" text-anchor="middle">▼</text>
+
+    <!-- step 4 -->
+    <g transform="translate(28,404)">
+      <rect width="556" height="76" rx="9" fill="#e8f3e9" stroke="#8ab894" stroke-width="2"/>
+      <circle cx="30" cy="38" r="16" fill="#2f6b3f"/>
+      <text x="30" y="44" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#fffaf1" text-anchor="middle">4</text>
+      <text x="58" y="31" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#243b2a">"RHI D3D12 with Feature Level SM6 is supported and will be used"</text>
+      <text x="58" y="55" font-family="Arial, sans-serif" font-size="15" fill="#3f5546">no D3D11 fallback</text>
+    </g>
+    <text x="306" y="492" font-family="Arial, sans-serif" font-size="15" fill="#2f6b3f" text-anchor="middle">▼</text>
+
+    <!-- step 5 -->
+    <g transform="translate(28,504)">
+      <rect width="556" height="88" rx="9" fill="#2f6b3f" stroke="#1d4a2a" stroke-width="2"/>
+      <circle cx="30" cy="44" r="16" fill="#fffaf1"/>
+      <text x="30" y="50" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#2f6b3f" text-anchor="middle">5</text>
+      <text x="58" y="34" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#fffaf1">Nanite ON · Lumen ON</text>
+      <text x="58" y="58" font-family="Arial, sans-serif" font-size="15" fill="#d8ecd9">0 × "UseNanite(PCD3D_SM5) returned false" in this session</text>
+    </g>
+  </g>
+
+  <!-- ===================== GUARD ===================== -->
+  <g transform="translate(60,768)">
+    <rect width="1280" height="118" rx="12" fill="#2f2a25"/>
+    <g font-family="Arial, sans-serif" fill="#f3eadb">
+      <text x="28" y="34" font-size="18" font-weight="700">Guard added — Scripts/PreflightRenderAdapter.ps1</text>
+      <text x="28" y="62" font-size="15">-Preflight  reproduces UE's own enumeration and fails if the P40 is absent or reports atomic64 = false   ·   exit 1 on failure</text>
+      <text x="28" y="86" font-size="15">-Verify  reads Saved\Logs\Aura.log and asserts the session really got D3D12/SM6 on the P40 with no Nanite-disabled messages</text>
+      <text x="28" y="110" font-size="15" fill="#b9ae9c">Verified this run: -Preflight PASS (exit 0) · -Verify PASS (exit 0) · -Verify against the degraded 00:18 session FAIL (exit 1, 166 Nanite hits)</text>
+    </g>
+  </g>
+</svg>

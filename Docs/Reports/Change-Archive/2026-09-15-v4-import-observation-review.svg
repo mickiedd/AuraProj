@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1010" width="1240" height="1010" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="1240" height="1010" fill="#f7f8fa"/>
+
+  <text x="40" y="48" font-size="26" font-weight="700" fill="#1a1d21">V4 landmark import &amp; tuning — independent observation review</text>
+  <text x="40" y="76" font-size="14" fill="#5a6270">Read-only monitoring of the Codex agent run, 2026-09-15 01:04–07:15 · four buildings: Dadongmen, Guidemen, Wuxianmen, Zhengximen</text>
+
+  <!-- Legend -->
+  <g font-size="12.5">
+    <rect x="40" y="96" width="16" height="16" rx="3" fill="#c0392b"/>
+    <text x="64" y="109" fill="#33383f">blocking failure (corrected mid-run)</text>
+    <rect x="300" y="96" width="16" height="16" rx="3" fill="#d97706"/>
+    <text x="324" y="109" fill="#33383f">quality / correctness left in result</text>
+    <rect x="600" y="96" width="16" height="16" rx="3" fill="#2563eb"/>
+    <text x="624" y="109" fill="#33383f">evidence / measurement integrity</text>
+    <rect x="880" y="96" width="16" height="16" rx="3" fill="#6b7280"/>
+    <text x="904" y="109" fill="#33383f">operational / hygiene</text>
+  </g>
+
+  <!-- Pipeline row -->
+  <g>
+    <text x="40" y="150" font-size="15" font-weight="700" fill="#1a1d21">Observed pipeline</text>
+
+    <rect x="40" y="164" width="150" height="58" rx="8" fill="#ffffff" stroke="#c8cdd6"/>
+    <text x="115" y="188" font-size="13" font-weight="600" text-anchor="middle" fill="#1a1d21">Prepare</text>
+    <text x="115" y="207" font-size="11" text-anchor="middle" fill="#5a6270">extract · hash · repair</text>
+
+    <rect x="212" y="164" width="150" height="58" rx="8" fill="#ffffff" stroke="#c8cdd6"/>
+    <text x="287" y="188" font-size="13" font-weight="600" text-anchor="middle" fill="#1a1d21">Import glTF/GLB</text>
+    <text x="287" y="207" font-size="11" text-anchor="middle" fill="#5a6270">3 of 4 buildings</text>
+
+    <rect x="384" y="164" width="150" height="58" rx="8" fill="#fdecea" stroke="#c0392b"/>
+    <text x="459" y="188" font-size="13" font-weight="600" text-anchor="middle" fill="#8e2a1f">Import FBX</text>
+    <text x="459" y="207" font-size="11" text-anchor="middle" fill="#8e2a1f">Zhengximen · failed</text>
+
+    <rect x="556" y="164" width="150" height="58" rx="8" fill="#ffffff" stroke="#c8cdd6"/>
+    <text x="631" y="188" font-size="13" font-weight="600" text-anchor="middle" fill="#1a1d21">Wrap Blueprint</text>
+    <text x="631" y="207" font-size="11" text-anchor="middle" fill="#5a6270">one actor per gate</text>
+
+    <rect x="728" y="164" width="150" height="58" rx="8" fill="#fff7ed" stroke="#d97706"/>
+    <text x="803" y="188" font-size="13" font-weight="600" text-anchor="middle" fill="#8a4b06">Finalize facing</text>
+    <text x="803" y="207" font-size="11" text-anchor="middle" fill="#8a4b06">blanket two-sided</text>
+
+    <rect x="900" y="164" width="150" height="58" rx="8" fill="#eef3fe" stroke="#2563eb"/>
+    <text x="975" y="188" font-size="13" font-weight="600" text-anchor="middle" fill="#1b3f9e">Validate</text>
+    <text x="975" y="207" font-size="11" text-anchor="middle" fill="#1b3f9e">editor + commandlet</text>
+
+    <rect x="1072" y="164" width="128" height="58" rx="8" fill="#ffffff" stroke="#c8cdd6"/>
+    <text x="1136" y="188" font-size="13" font-weight="600" text-anchor="middle" fill="#1a1d21">Tune + archive</text>
+    <text x="1136" y="207" font-size="11" text-anchor="middle" fill="#5a6270">4 passes</text>
+
+    <g stroke="#9aa2ae" stroke-width="1.6" fill="none">
+      <path d="M190 193 H208"/><path d="M362 193 H380"/><path d="M534 193 H552"/>
+      <path d="M706 193 H724"/><path d="M878 193 H896"/><path d="M1050 193 H1068"/>
+    </g>
+    <g fill="#9aa2ae">
+      <path d="M208 193 l-7 -4 v8 z"/><path d="M380 193 l-7 -4 v8 z"/><path d="M552 193 l-7 -4 v8 z"/>
+      <path d="M724 193 l-7 -4 v8 z"/><path d="M896 193 l-7 -4 v8 z"/><path d="M1068 193 l-7 -4 v8 z"/>
+    </g>
+  </g>
+
+  <!-- Issue callouts -->
+  <g font-size="12.5">
+    <text x="40" y="268" font-size="15" font-weight="700" fill="#1a1d21">Issues recorded</text>
+
+    <!-- Blocking -->
+    <rect x="40" y="284" width="370" height="150" rx="8" fill="#ffffff" stroke="#e6c3bd"/>
+    <rect x="40" y="284" width="5" height="150" rx="2" fill="#c0392b"/>
+    <text x="58" y="308" font-size="13.5" font-weight="700" fill="#8e2a1f">B1 · Silent zero-mesh FBX import</text>
+    <text x="58" y="330" fill="#33383f">Interchange returned no meshes and no error for the</text>
+    <text x="58" y="349" fill="#33383f">package ASCII FBX. Only a hand-written assertion caught it.</text>
+    <text x="58" y="373" fill="#33383f">Fix applied two changes at once (FBX text repair +</text>
+    <text x="58" y="392" fill="#33383f">Interchange.FeatureFlags.Import.FBX 0 + FbxFactory), so the</text>
+    <text x="58" y="411" fill="#33383f">real root cause was never isolated.</text>
+
+    <rect x="430" y="284" width="370" height="150" rx="8" fill="#ffffff" stroke="#e6c3bd"/>
+    <rect x="430" y="284" width="5" height="150" rx="2" fill="#c0392b"/>
+    <text x="448" y="308" font-size="13.5" font-weight="700" fill="#8e2a1f">B2 · Clean .glb sibling ignored</text>
+    <text x="448" y="330" fill="#33383f">Zhengximen ships SM_Zhengximen_LOD0.glb (4.6 MB) beside</text>
+    <text x="448" y="349" fill="#33383f">the 22.5 MB ASCII FBX. GLB imports cleanly through the same</text>
+    <text x="448" y="373" fill="#33383f">path the other three gates used, yet the config pins the FBX.</text>
+    <text x="448" y="392" fill="#33383f">The whole failure class was avoidable by source choice.</text>
+
+    <rect x="820" y="284" width="380" height="150" rx="8" fill="#ffffff" stroke="#e6c3bd"/>
+    <rect x="820" y="284" width="5" height="150" rx="2" fill="#c0392b"/>
+    <text x="838" y="308" font-size="13.5" font-weight="700" fill="#8e2a1f">B3 · Guard widened, then narrowed to pass</text>
+    <text x="838" y="330" fill="#33383f">The tuned-material assertion first covered every mesh. After</text>
+    <text x="838" y="349" fill="#33383f">it failed on LOD1–LOD3 it was narrowed to the primary LOD,</text>
+    <text x="838" y="373" fill="#33383f">so those LODs still bind untuned materials and nothing tests</text>
+    <text x="838" y="392" fill="#33383f">them. Archives call this "strengthened validation".</text>
+  </g>
+
+  <!-- Quality row -->
+  <g font-size="12.5">
+    <rect x="40" y="452" width="370" height="178" rx="8" fill="#ffffff" stroke="#f0d5a8"/>
+    <rect x="40" y="452" width="5" height="178" rx="2" fill="#d97706"/>
+    <text x="58" y="476" font-size="13.5" font-weight="700" fill="#8a4b06">Q1 · Blanket two-sided on 84 assets</text>
+    <text x="58" y="498" fill="#33383f">FinalizeV4BuildingMaterials sets two_sided on every material</text>
+    <text x="58" y="517" fill="#33383f">and double_sided_geometry on every mesh of Guidemen and</text>
+    <text x="58" y="536" fill="#33383f">Zhengximen — including LOD1–LOD4 and UCX collision meshes.</text>
+    <text x="58" y="560" fill="#33383f">The project's own skill documents two-sided as a stopgap that</text>
+    <text x="58" y="579" fill="#33383f">belongs in the 3D pipeline; here it disables back-face culling</text>
+    <text x="58" y="598" fill="#33383f">across two entire landmarks.</text>
+
+    <rect x="430" y="452" width="370" height="178" rx="8" fill="#ffffff" stroke="#f0d5a8"/>
+    <rect x="430" y="452" width="5" height="178" rx="2" fill="#d97706"/>
+    <text x="448" y="476" font-size="13.5" font-weight="700" fill="#8a4b06">Q2 · Collision meshes imported, never used</text>
+    <text x="448" y="498" fill="#33383f">create_blueprint hardcodes collision = False and skips every</text>
+    <text x="448" y="517" fill="#33383f">non-primary source, so the Collision_* branch is dead code.</text>
+    <text x="448" y="536" fill="#33383f">Every UCX_* mesh is imported, material-bound and saved but</text>
+    <text x="448" y="560" fill="#33383f">never attached — collision_components is 0 for all four gates.</text>
+    <text x="448" y="579" fill="#33383f">Meanwhile the primary Nanite mesh carries</text>
+    <text x="448" y="598" fill="#33383f">CTF_USE_COMPLEX_AS_SIMPLE, so physics uses the full</text>
+
+    <rect x="820" y="452" width="380" height="178" rx="8" fill="#ffffff" stroke="#f0d5a8"/>
+    <rect x="820" y="452" width="5" height="178" rx="2" fill="#d97706"/>
+    <text x="838" y="476" font-size="13.5" font-weight="700" fill="#8a4b06">Q3 · Duplicate textures not consolidated</text>
+    <text x="838" y="498" fill="#33383f">Byte-identical 4K maps ship under different material names and</text>
+    <text x="838" y="517" fill="#33383f">each becomes its own Texture2D asset:</text>
+    <text x="838" y="541" fill="#33383f">Wuxianmen 6× *_Metallic_4K   ·   Zhengximen 7× *_Metallic</text>
+    <text x="838" y="560" fill="#33383f">Guidemen 4× *_Metallic   ·   Dadongmen 3× *_M_4K</text>
+    <text x="838" y="584" fill="#33383f">Also: M_Dadongmen_Vegetation has no texture maps at all and</text>
+    <text x="838" y="603" fill="#33383f">falls back to a flat constant colour.</text>
+  </g>
+
+  <!-- Evidence row -->
+  <g font-size="12.5">
+    <rect x="40" y="648" width="560" height="196" rx="8" fill="#ffffff" stroke="#c7d7f7"/>
+    <rect x="40" y="648" width="5" height="196" rx="2" fill="#2563eb"/>
+    <text x="58" y="672" font-size="13.5" font-weight="700" fill="#1b3f9e">E1 · Validation is not reproducible</text>
+    <text x="58" y="694" fill="#33383f">Same script, same assets, two processes — different heights:</text>
+    <text x="58" y="718" fill="#33383f">Dadongmen 2248.0 (editor) vs 2138.5 (commandlet) — 1.10 m apart</text>
+    <text x="58" y="737" fill="#33383f">Guidemen 1690.7 vs 1562.7 · Wuxianmen 1900.3 vs 1888.4</text>
+    <text x="58" y="756" fill="#33383f">Zhengximen 1781.7 vs 1689.7</text>
+    <text x="58" y="780" fill="#33383f">Both runs are recorded PASS and cited as equivalent evidence.</text>
+    <text x="58" y="799" fill="#33383f">The orientation guard 1200 &lt; size[2] &lt; 3000 accepts both, so it</text>
+    <text x="58" y="818" fill="#33383f">cannot detect the discrepancy it exists to catch.</text>
+
+    <rect x="620" y="648" width="580" height="196" rx="8" fill="#ffffff" stroke="#c7d7f7"/>
+    <rect x="620" y="648" width="5" height="196" rx="2" fill="#2563eb"/>
+    <text x="638" y="672" font-size="13.5" font-weight="700" fill="#1b3f9e">E2 · Bounds do not describe the mesh</text>
+    <text x="638" y="694" fill="#33383f">SM_Dadongmen_LOD0 asset bounds are an 18.5 cm-thick slab</text>
+    <text x="638" y="713" fill="#33383f">(2000 × 18.5 × 2100) while get_actor_bounds on the spawned</text>
+    <text x="638" y="732" fill="#33383f">Blueprint reports 3800 × 3120.8 × 2248. Neither matches the</text>
+    <text x="638" y="751" fill="#33383f">other, so the "height" the validator asserts on is not the real</text>
+    <text x="638" y="770" fill="#33383f">building height. Still under investigation when observation ended.</text>
+    <text x="638" y="796" font-size="13.5" font-weight="700" fill="#1b3f9e">E3 · Component count double-reported</text>
+    <text x="638" y="818" fill="#33383f">k2_gather_subobject_data_for_blueprint returns each component</text>
+  </g>
+
+  <!-- Operational + outcome -->
+  <g font-size="12.5">
+    <rect x="40" y="862" width="560" height="120" rx="8" fill="#ffffff" stroke="#dcdfe5"/>
+    <rect x="40" y="862" width="5" height="120" rx="2" fill="#6b7280"/>
+    <text x="58" y="886" font-size="13.5" font-weight="700" fill="#4b5563">O1–O4 · Operational hygiene</text>
+    <text x="58" y="908" fill="#33383f">Second UnrealEditor-Cmd opened against the same project while</text>
+    <text x="58" y="927" fill="#33383f">the interactive editor was live. Validation's new_blank_map left</text>
+    <text x="58" y="946" fill="#33383f">unsaved Untitled maps until the tuning guard aborted on /Temp/</text>
+    <text x="58" y="965" fill="#33383f">Untitled_21. Resume guard is non-idempotent.</text>
+
+    <rect x="620" y="862" width="580" height="120" rx="8" fill="#f0fdf4" stroke="#86c98f"/>
+    <text x="638" y="886" font-size="13.5" font-weight="700" fill="#1f6b2e">Outcome of the observed run</text>
+    <text x="638" y="908" fill="#33383f">All four gates imported as independent Blueprints, tuned, rendered</text>
+    <text x="638" y="927" fill="#33383f">front/rear/close, and archived with records + diagrams. Editor and</text>
+    <text x="638" y="946" fill="#33383f">commandlet validation both report PASS on the final state. No commit</text>
+    <text x="638" y="965" fill="#33383f">was made; 119 files untracked; 2 tracked files modified.</text>
+  </g>
+</svg>

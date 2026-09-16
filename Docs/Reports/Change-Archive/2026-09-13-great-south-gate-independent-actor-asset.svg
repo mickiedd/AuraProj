@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">Great South Gate V2 independent Actor Asset</title>
+  <desc id="desc">The repaired Great South Gate preview collection is serialized into a portable PackedLevelActor Blueprint with grouped hierarchical instanced mesh components.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101a2a"/>
+      <stop offset="1" stop-color="#182b3d"/>
+    </linearGradient>
+    <linearGradient id="source" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#21465e"/>
+      <stop offset="1" stop-color="#1b354b"/>
+    </linearGradient>
+    <linearGradient id="asset" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2d6b66"/>
+      <stop offset="1" stop-color="#234b55"/>
+    </linearGradient>
+    <linearGradient id="check" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7e5d2b"/>
+      <stop offset="1" stop-color="#604324"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8ed5d0"/>
+    </marker>
+    <style>
+      .title { font: 700 30px 'Segoe UI', Arial, sans-serif; fill: #f5f8fb; }
+      .subtitle { font: 400 16px 'Segoe UI', Arial, sans-serif; fill: #b6c8d6; }
+      .heading { font: 700 19px 'Segoe UI', Arial, sans-serif; fill: #f5f8fb; }
+      .body { font: 400 16px 'Segoe UI', Arial, sans-serif; fill: #d8e4eb; }
+      .small { font: 400 14px 'Segoe UI', Arial, sans-serif; fill: #b6c8d6; }
+      .metric { font: 700 24px 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+      .metric-label { font: 400 13px 'Segoe UI', Arial, sans-serif; fill: #c8d8df; }
+      .pill { font: 700 14px 'Segoe UI', Arial, sans-serif; fill: #d8fffa; }
+    </style>
+  </defs>
+  <rect width="1400" height="820" fill="url(#bg)"/>
+  <text x="70" y="68" class="title">Great South Gate V2 · independent Actor Asset</text>
+  <text x="70" y="98" class="subtitle">Post-job packaging and validation summary · 2026-09-13</text>
+
+  <rect x="70" y="140" width="365" height="475" rx="18" fill="url(#source)" stroke="#47758c" stroke-width="2" filter="url(#shadow)"/>
+  <text x="100" y="184" class="heading">Source preview collection</text>
+  <text x="100" y="214" class="small">GreatSouthGate_Zhengnanmen_HighFidelity_Preview</text>
+  <rect x="100" y="250" width="305" height="72" rx="12" fill="#153044" stroke="#5c8ea3"/>
+  <text x="122" y="280" class="body">Imported scene geometry</text>
+  <text x="122" y="307" class="metric">12,195</text>
+  <text x="235" y="305" class="metric-label">StaticMeshActors · 112 shared meshes</text>
+  <rect x="100" y="340" width="305" height="72" rx="12" fill="#153044" stroke="#5c8ea3"/>
+  <text x="122" y="370" class="body">Repaired solid infill</text>
+  <text x="122" y="397" class="metric">192</text>
+  <text x="194" y="395" class="metric-label">fill panels · hollow areas covered</text>
+  <rect x="100" y="430" width="305" height="72" rx="12" fill="#153044" stroke="#5c8ea3"/>
+  <text x="122" y="460" class="body">Excluded from portable asset</text>
+  <text x="122" y="487" class="small">wrapper root + 2 preview lights</text>
+  <text x="100" y="557" class="pill">WORLD TRANSFORMS READ FROM SOURCE ACTORS</text>
+  <text x="100" y="585" class="small">The asset preserves the repaired model footprint</text>
+  <text x="100" y="605" class="small">without carrying preview-level lighting.</text>
+
+  <path d="M 455 375 C 515 375, 515 375, 570 375" fill="none" stroke="#8ed5d0" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="472" y="350" class="small">flatten + group by mesh/material</text>
+
+  <rect x="600" y="140" width="390" height="475" rx="18" fill="url(#asset)" stroke="#68aaa1" stroke-width="2" filter="url(#shadow)"/>
+  <text x="630" y="184" class="heading">Independent Unreal asset</text>
+  <text x="630" y="214" class="small">BP_GreatSouthGate_Zhengnanmen_V2_ActorAsset</text>
+  <rect x="630" y="250" width="330" height="76" rx="12" fill="#1d4b4e" stroke="#7fc9be"/>
+  <text x="652" y="281" class="body">Parent class</text>
+  <text x="652" y="309" class="metric">PackedLevelActor</text>
+  <rect x="630" y="344" width="155" height="95" rx="12" fill="#1d4b4e" stroke="#7fc9be"/>
+  <text x="652" y="378" class="metric">114</text>
+  <text x="652" y="407" class="metric-label">HISM components</text>
+  <rect x="805" y="344" width="155" height="95" rx="12" fill="#1d4b4e" stroke="#7fc9be"/>
+  <text x="827" y="378" class="metric">12,387</text>
+  <text x="827" y="407" class="metric-label">mesh instances</text>
+  <rect x="630" y="462" width="330" height="96" rx="12" fill="#1d4b4e" stroke="#7fc9be"/>
+  <text x="652" y="494" class="body">Portable placement behavior</text>
+  <text x="652" y="522" class="small">Place in any level; source transforms are baked</text>
+  <text x="652" y="545" class="small">into world-space instances. Preview lights are absent.</text>
+
+  <path d="M 1010 375 C 1065 375, 1065 375, 1120 375" fill="none" stroke="#8ed5d0" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="1023" y="350" class="small">save .uasset</text>
+
+  <rect x="1150" y="140" width="180" height="475" rx="18" fill="url(#check)" stroke="#c69a4c" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1177" y="184" class="heading">Validation</text>
+  <text x="1177" y="218" class="pill">PASS</text>
+  <path d="M 1179 252 l 13 14 l 28 -33" fill="none" stroke="#b9f2c8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1177" y="300" class="small">Asset reopened</text>
+  <text x="1177" y="322" class="small">from disk</text>
+  <path d="M 1179 360 l 13 14 l 28 -33" fill="none" stroke="#b9f2c8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1177" y="408" class="small">Mesh count</text>
+  <text x="1177" y="430" class="small">and instances match</text>
+  <path d="M 1179 468 l 13 14 l 28 -33" fill="none" stroke="#b9f2c8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1177" y="516" class="small">No empty mesh</text>
+  <text x="1177" y="538" class="small">components</text>
+  <text x="1177" y="583" class="small">SHA-256 recorded</text>
+
+  <rect x="70" y="670" width="1260" height="88" rx="14" fill="#102433" stroke="#355366"/>
+  <text x="100" y="705" class="heading">Result</text>
+  <text x="100" y="732" class="body">The repaired Great South Gate V2 is now a self-contained Blueprint Actor Asset that can be placed independently.</text>
+  <text x="100" y="754" class="small">Creator and reload-validation reports: Saved/RawModelImport/GreatSouthGate_Zhengnanmen_V2-actor-asset*.json</text>
+</svg>

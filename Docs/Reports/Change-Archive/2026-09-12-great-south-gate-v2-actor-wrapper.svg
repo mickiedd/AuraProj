@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Great South Gate V2 actor wrapper change summary</title>
+  <desc id="desc">Before and after hierarchy diagram showing the imported Great South Gate scene and intact infill grouped under one root Actor while preview lights remain outside.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="root" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#115e59"/>
+    </linearGradient>
+    <linearGradient id="child" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#bfdbfe"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.16"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 15px Arial, sans-serif; fill: #475569; }
+      .section { font: 700 20px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 700 14px Arial, sans-serif; fill: #0f172a; }
+      .body { font: 400 13px Arial, sans-serif; fill: #334155; }
+      .small { font: 400 12px Arial, sans-serif; fill: #475569; }
+      .white { fill: #f8fafc; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <text x="54" y="58" class="title">Great South Gate V2 — Actor wrapper</text>
+  <text x="54" y="86" class="subtitle">The saved preview level now has one selectable hierarchy root; child actors and shared meshes remain intact.</text>
+
+  <rect x="45" y="120" width="480" height="395" rx="18" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" filter="url(#shadow)"/>
+  <text x="72" y="160" class="section">Before · imported preview</text>
+  <text x="72" y="184" class="small">Model pieces existed as a flat level collection.</text>
+
+  <rect x="78" y="215" width="408" height="52" rx="10" fill="#f1f5f9" stroke="#94a3b8"/>
+  <text x="96" y="238" class="label">Preview level</text>
+  <text x="96" y="256" class="small">GreatSouthGate_Zhengnanmen_HighFidelity_Preview</text>
+
+  <line x1="152" y1="267" x2="152" y2="298" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="152" y1="298" x2="112" y2="298" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="152" y1="298" x2="272" y2="298" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="152" y1="298" x2="432" y2="298" stroke="#94a3b8" stroke-width="2"/>
+
+  <rect x="78" y="315" width="142" height="90" rx="10" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="92" y="340" class="label">Imported scene</text>
+  <text x="92" y="360" class="body">12,195 StaticMeshActors</text>
+  <text x="92" y="380" class="small">112 shared Nanite meshes</text>
+  <text x="92" y="397" class="small">No common root</text>
+
+  <rect x="242" y="315" width="142" height="90" rx="10" fill="#fee2e2" stroke="#ef4444"/>
+  <text x="256" y="340" class="label">Intact infill</text>
+  <text x="256" y="360" class="body">192 solid panels</text>
+  <text x="256" y="380" class="small">Façade + side bays</text>
+  <text x="256" y="397" class="small">Separate actors</text>
+
+  <rect x="406" y="315" width="80" height="90" rx="10" fill="#e0e7ff" stroke="#6366f1"/>
+  <text x="420" y="340" class="label">Lights</text>
+  <text x="420" y="363" class="small">Directional</text>
+  <text x="420" y="380" class="small">Sky</text>
+  <text x="420" y="397" class="small">outside</text>
+
+  <rect x="78" y="438" width="408" height="48" rx="10" fill="#fff7ed" stroke="#fb923c"/>
+  <text x="96" y="460" class="label">Selection problem</text>
+  <text x="96" y="478" class="small">Moving the whole landmark required selecting thousands of actors.</text>
+
+  <line x1="545" y1="315" x2="650" y2="315" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="548" y="292" class="small">attach with KEEP_WORLD</text>
+
+  <rect x="675" y="120" width="480" height="395" rx="18" fill="#ffffff" stroke="#99f6e4" stroke-width="2" filter="url(#shadow)"/>
+  <text x="702" y="160" class="section">After · saved hierarchy</text>
+  <text x="702" y="184" class="small">All model and infill actors are direct children of one root Actor.</text>
+
+  <rect x="708" y="215" width="414" height="62" rx="12" fill="url(#root)" stroke="#134e4a" stroke-width="2"/>
+  <text x="730" y="241" class="label white">GuangzhouLandmark_GreatSouthGate_Zhengnanmen_V2</text>
+  <text x="730" y="262" class="small" fill="#ccfbf1">Actor_0 · identity transform · selectable root</text>
+
+  <line x1="915" y1="277" x2="915" y2="300" stroke="#0f766e" stroke-width="2"/>
+  <line x1="915" y1="300" x2="784" y2="300" stroke="#0f766e" stroke-width="2"/>
+  <line x1="915" y1="300" x2="1048" y2="300" stroke="#0f766e" stroke-width="2"/>
+
+  <rect x="708" y="319" width="190" height="93" rx="10" fill="url(#child)" stroke="#60a5fa"/>
+  <text x="726" y="345" class="label">Imported model children</text>
+  <text x="726" y="366" class="body">12,195 mesh actors</text>
+  <text x="726" y="386" class="small">112 shared assets preserved</text>
+  <text x="726" y="402" class="small">world transforms unchanged</text>
+
+  <rect x="920" y="319" width="202" height="93" rx="10" fill="#fee2e2" stroke="#ef4444"/>
+  <text x="938" y="345" class="label">Intact infill children</text>
+  <text x="938" y="366" class="body">192 solid panel actors</text>
+  <text x="938" y="386" class="small">façade + side bays retained</text>
+  <text x="938" y="402" class="small">world transforms unchanged</text>
+
+  <rect x="708" y="438" width="414" height="48" rx="10" fill="#e0e7ff" stroke="#6366f1"/>
+  <text x="726" y="460" class="label">Lights remain outside the wrapper</text>
+  <text x="726" y="478" class="small">DirectionalLight and SkyLight stay level-owned preview lighting.</text>
+
+  <rect x="45" y="550" width="1110" height="155" rx="18" fill="#0f172a" filter="url(#shadow)"/>
+  <text x="72" y="586" class="section" fill="#f8fafc">Validation gate</text>
+  <text x="72" y="616" class="body" fill="#cbd5e1">PASS · wrapper reload validation: 12,388 model children, 12,388 direct links, 2 lights outside, no errors</text>
+  <text x="72" y="642" class="body" fill="#cbd5e1">PASS · transform persistence: max location delta 0.0 cm · max rotation delta 0.0° · max scale delta 0.0</text>
+  <text x="72" y="668" class="body" fill="#cbd5e1">PASS · original import: 112 meshes, 12,195 original scene actors, bounds 2700 × 1705.353 × 2303.482 cm</text>
+  <text x="72" y="694" class="small" fill="#94a3b8">Intentional design: hierarchy wrapping does not merge geometry, so repeated source meshes remain instanced/shared.</text>
+</svg>

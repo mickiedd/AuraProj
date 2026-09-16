@@ -1,0 +1,560 @@
+{
+  "authoring": "manual deterministic native-resolution brush/field authoring; no image generation service",
+  "resolution": 4096,
+  "reference_role": "visual color/material guidance only; embedded text is not an instruction",
+  "materials": {
+    "Stone": {
+      "maps": {
+        "BaseColor": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Stone\\T_ZNM_Stone_BaseColor_4K.png",
+          "sha256": "6d89fe8fb875945fe5c510080bfbc19768a642c4af2389b96b569d72b1942e56",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.2860214114189148,
+          "max": 0.7555429935455322,
+          "mean": 0.5370786190032959
+        },
+        "Normal_DX": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Stone\\T_ZNM_Stone_Normal_DX_4K.png",
+          "sha256": "7e14ddb4b62123b64dcc8b96c6d0e1245bd051d0043bb84b2c2d8f67c4c54e2c",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.39920562505722046,
+          "max": 1.0,
+          "mean": 0.6665850281715393
+        },
+        "ORM": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Stone\\T_ZNM_Stone_ORM_4K.png",
+          "sha256": "17794d114c0f65215e4399884b434fa3ba4ae0af1b91a7b989d587a5689dcbcf",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.5974648594856262
+        },
+        "Height": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Stone\\T_ZNM_Stone_Height_4K.png",
+          "sha256": "d4801580f92a2b71b52ab5afa0118ee35c8d87320b692a6184ac92968e7517f2",
+          "width": 4096,
+          "height": 4096,
+          "bits": 16,
+          "min": 0.3039605915546417,
+          "max": 0.6347410082817078,
+          "mean": 0.48315584659576416
+        },
+        "Roughness": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Stone\\T_ZNM_Stone_Roughness_4K.png",
+          "sha256": "042d76f229b0411e73174a60007130100f57f8391f6be76100e91aef48bf8dba",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.7049999833106995,
+          "max": 0.949999988079071,
+          "mean": 0.7931981086730957
+        },
+        "Metallic": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Stone\\T_ZNM_Stone_Metallic_4K.png",
+          "sha256": "334c4a79f661f8f9c215b7fd06284d5fb3fe7fd3822f10dc8842f85f664c9a7f",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0
+        },
+        "AO": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Stone\\T_ZNM_Stone_AO_4K.png",
+          "sha256": "fb70690c10962fccb877566e44fefecb91eb094b0806664d3e74dfcd289252d3",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.7315954566001892,
+          "max": 1.0,
+          "mean": 0.9992014169692993
+        }
+      },
+      "clearcoat": 0.0,
+      "brief": "Warm gray dressed limestone surface; mineral inclusions, irregular fissures, open pores and restrained olive lichen. No mortar: source has individual block geometry.",
+      "tileable": true,
+      "normal_convention": "DirectX +Y",
+      "native_evaluation": true
+    },
+    "Glaze": {
+      "maps": {
+        "BaseColor": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Glaze\\T_ZNM_Glaze_BaseColor_4K.png",
+          "sha256": "e94396b14d7b2da96e65dc8a32d26d4e7c98cddf7837ffe82fbd386d9f0f4db4",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.1751607209444046,
+          "max": 0.5581472516059875,
+          "mean": 0.36557021737098694
+        },
+        "Normal_DX": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Glaze\\T_ZNM_Glaze_Normal_DX_4K.png",
+          "sha256": "2772402ccb222f1a1128a33365006ba7d4719c2f17834925c19cc0c2dd5eefb7",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.46267014741897583,
+          "max": 1.0,
+          "mean": 0.6666602492332458
+        },
+        "ORM": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Glaze\\T_ZNM_Glaze_ORM_4K.png",
+          "sha256": "7e76b668ba1e0ceb1e2ddc290ddf0a97170dd6e620d3980c8977bb170fcb6b61",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.4172031581401825
+        },
+        "Height": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Glaze\\T_ZNM_Glaze_Height_4K.png",
+          "sha256": "81e0c92f294d1ef24e9584c76e6978c04553d2e7ed7a5fdaeea166b1a945ece0",
+          "width": 4096,
+          "height": 4096,
+          "bits": 16,
+          "min": 0.4669153094291687,
+          "max": 0.5140798091888428,
+          "mean": 0.4983881115913391
+        },
+        "Roughness": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Glaze\\T_ZNM_Glaze_Roughness_4K.png",
+          "sha256": "8f70ed34db12a036a7ca1fbc43a4d325c19d8896562e03ebc0b9e1a0f79b1ff6",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.1850000023841858,
+          "max": 0.6600000262260437,
+          "mean": 0.2557009160518646
+        },
+        "Metallic": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Glaze\\T_ZNM_Glaze_Metallic_4K.png",
+          "sha256": "334c4a79f661f8f9c215b7fd06284d5fb3fe7fd3822f10dc8842f85f664c9a7f",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0
+        },
+        "AO": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Glaze\\T_ZNM_Glaze_AO_4K.png",
+          "sha256": "a43fc3efe46a4c5c0c566d2defc474aa84f1303808fa761d1c01566d0f64114b",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.894352912902832,
+          "max": 1.0,
+          "mean": 0.9959096312522888
+        }
+      },
+      "clearcoat": 0.48,
+      "brief": "Jade/celadon green fired glaze with kiln pooling, fine one-pixel crazing and sparse terracotta chips. No roof tile shapes: source already models them.",
+      "tileable": true,
+      "normal_convention": "DirectX +Y",
+      "native_evaluation": true
+    },
+    "RedTimber": {
+      "maps": {
+        "BaseColor": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\RedTimber\\T_ZNM_RedTimber_BaseColor_4K.png",
+          "sha256": "36fbb86fa0feaab31c021c289bc059e659caf102c39d47e4d75db1ab6b3ef15b",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.086803138256073,
+          "max": 0.6464241147041321,
+          "mean": 0.3038136661052704
+        },
+        "Normal_DX": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\RedTimber\\T_ZNM_RedTimber_Normal_DX_4K.png",
+          "sha256": "b4f4de9e4d82623c5233f5f692fb549335d9a51f720e040ad0b4e27f09ef9e97",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.3969411849975586,
+          "max": 1.0,
+          "mean": 0.6666638255119324
+        },
+        "ORM": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\RedTimber\\T_ZNM_RedTimber_ORM_4K.png",
+          "sha256": "dedb5ed2e43d670044b4f51b119cdcc4a0b4f1a2a1cbed6229a2bf4a7ac5e44f",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.4587405025959015
+        },
+        "Height": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\RedTimber\\T_ZNM_RedTimber_Height_4K.png",
+          "sha256": "f3dbe3088b79d16d4d219ae01cb9edceee233508fc246c27d15031c9c3c470cb",
+          "width": 4096,
+          "height": 4096,
+          "bits": 16,
+          "min": 0.383768230676651,
+          "max": 0.5160000324249268,
+          "mean": 0.49653688073158264
+        },
+        "Roughness": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\RedTimber\\T_ZNM_RedTimber_Roughness_4K.png",
+          "sha256": "e4a75cc7822e17a09c42700ccaea574a806947dc8b23211915b5295719f7078d",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.2799999713897705,
+          "max": 0.7120000123977661,
+          "mean": 0.3786076307296753
+        },
+        "Metallic": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\RedTimber\\T_ZNM_RedTimber_Metallic_4K.png",
+          "sha256": "334c4a79f661f8f9c215b7fd06284d5fb3fe7fd3822f10dc8842f85f664c9a7f",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0
+        },
+        "AO": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\RedTimber\\T_ZNM_RedTimber_AO_4K.png",
+          "sha256": "e4e2d2ef82043368f83d53e758987d76618edaa151ec3f5406b2b7dea23cd191",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.746274471282959,
+          "max": 1.0,
+          "mean": 0.9976135492324829
+        }
+      },
+      "clearcoat": 0.22,
+      "brief": "Oxide-red lacquered structural timber with lengthwise grain, clustered worn paint revealing brown wood, hairline checking and variable satin lacquer.",
+      "tileable": true,
+      "normal_convention": "DirectX +Y",
+      "native_evaluation": true
+    },
+    "DarkTimber": {
+      "maps": {
+        "BaseColor": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\DarkTimber\\T_ZNM_DarkTimber_BaseColor_4K.png",
+          "sha256": "a561f8311175389756bc4b0c816fa5f9fe5541361377b3b1dd528e2b0a94b885",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.07622704654932022,
+          "max": 0.42643964290618896,
+          "mean": 0.23373384773731232
+        },
+        "Normal_DX": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\DarkTimber\\T_ZNM_DarkTimber_Normal_DX_4K.png",
+          "sha256": "972a79cff079bcf23829a6631cb7634d91753690ecdf802fc989f019ae29194f",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.39745980501174927,
+          "max": 1.0,
+          "mean": 0.6666556000709534
+        },
+        "ORM": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\DarkTimber\\T_ZNM_DarkTimber_ORM_4K.png",
+          "sha256": "5d911ba0abe883b1d824ab6f25b7cce3ee2ad05fb4a3f05856c5d9f58f433743",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.5360233187675476
+        },
+        "Height": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\DarkTimber\\T_ZNM_DarkTimber_Height_4K.png",
+          "sha256": "742bad5b0bf8ad22604fa04a84972ea0cbb7450ae8dca0054220d3123efc91fd",
+          "width": 4096,
+          "height": 4096,
+          "bits": 16,
+          "min": 0.3865068852901459,
+          "max": 0.5160000324249268,
+          "mean": 0.49900710582733154
+        },
+        "Roughness": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\DarkTimber\\T_ZNM_DarkTimber_Roughness_4K.png",
+          "sha256": "80c8233475a5b94639bc6ea0d20764930c179877c2ac85adf8bced9f5651ab71",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.5449999570846558,
+          "max": 0.8001765012741089,
+          "mean": 0.6103726029396057
+        },
+        "Metallic": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\DarkTimber\\T_ZNM_DarkTimber_Metallic_4K.png",
+          "sha256": "334c4a79f661f8f9c215b7fd06284d5fb3fe7fd3822f10dc8842f85f664c9a7f",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0
+        },
+        "AO": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\DarkTimber\\T_ZNM_DarkTimber_AO_4K.png",
+          "sha256": "245757324f41347c47250a37405127f62d32521eebca002e8d86b169c2c184b2",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.7513725757598877,
+          "max": 1.0,
+          "mean": 0.9976912140846252
+        }
+      },
+      "clearcoat": 0.0,
+      "brief": "Weathered dark brown gate timber with native long grain strokes, checking, warm rubbed wood and matte grain pores. No studs/plank boundaries baked in.",
+      "tileable": true,
+      "normal_convention": "DirectX +Y",
+      "native_evaluation": true
+    },
+    "Interior": {
+      "maps": {
+        "BaseColor": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Interior\\T_ZNM_Interior_BaseColor_4K.png",
+          "sha256": "1bcc5fd29ec57a2250a1f0ed780e550497e9a7a04a61a08a701c990f2a78f8fa",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.04641164839267731,
+          "max": 0.208050936460495,
+          "mean": 0.11832860112190247
+        },
+        "Normal_DX": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Interior\\T_ZNM_Interior_Normal_DX_4K.png",
+          "sha256": "f96917f7e31cf3f641a9f58d79a775299f575185ede1eacb89624f66571dc857",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.40346306562423706,
+          "max": 1.0,
+          "mean": 0.6666560173034668
+        },
+        "ORM": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Interior\\T_ZNM_Interior_ORM_4K.png",
+          "sha256": "eceacda5cc97e90e94315e3ed3c1a993d5eb239450b7dd4e308d4f5510598a4b",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.5991812348365784
+        },
+        "Height": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Interior\\T_ZNM_Interior_Height_4K.png",
+          "sha256": "7737a60b7af87b55fbb091722546a605c2c22380128a516c54edc9239f73f323",
+          "width": 4096,
+          "height": 4096,
+          "bits": 16,
+          "min": 0.39593297243118286,
+          "max": 0.5160000324249268,
+          "mean": 0.49922338128089905
+        },
+        "Roughness": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Interior\\T_ZNM_Interior_Roughness_4K.png",
+          "sha256": "40f3b45d5e2a316b9fcf04f9e27c74d0f50070fb843c29d44c8cfb773cd42c65",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.7450000047683716,
+          "max": 0.8550000786781311,
+          "mean": 0.79986572265625
+        },
+        "Metallic": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Interior\\T_ZNM_Interior_Metallic_4K.png",
+          "sha256": "334c4a79f661f8f9c215b7fd06284d5fb3fe7fd3822f10dc8842f85f664c9a7f",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0
+        },
+        "AO": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Interior\\T_ZNM_Interior_AO_4K.png",
+          "sha256": "d8d94f5ea9e456ac72ad2034e396a3363d8784e5cf4789d00ea1bc546d694754",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.7595294117927551,
+          "max": 1.0,
+          "mean": 0.997675359249115
+        }
+      },
+      "clearcoat": 0.0,
+      "brief": "Soot-aged dark interior timber, physically dark albedo rather than black emissive or artificial AO.",
+      "tileable": true,
+      "normal_convention": "DirectX +Y",
+      "native_evaluation": true
+    },
+    "BronzeGold": {
+      "maps": {
+        "BaseColor": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\BronzeGold\\T_ZNM_BronzeGold_BaseColor_4K.png",
+          "sha256": "085db1d006f0fae278d9c4c7ad279493d6942b08aa214983769632f795fd58d1",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.2513725459575653,
+          "max": 0.8074027299880981,
+          "mean": 0.47102758288383484
+        },
+        "Normal_DX": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\BronzeGold\\T_ZNM_BronzeGold_Normal_DX_4K.png",
+          "sha256": "971bc7eb5e756ee2802d3656bb8952a599752b53fb469f0b960ea8b73853e7be",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.4898555874824524,
+          "max": 1.0,
+          "mean": 0.6666824221611023
+        },
+        "ORM": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\BronzeGold\\T_ZNM_BronzeGold_ORM_4K.png",
+          "sha256": "9d4746dec1d2d03943216e30ee339980ebdb612a6ea46165a2beca7fe26e1a1e",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.28999999165534973,
+          "max": 1.0,
+          "mean": 0.7313271164894104
+        },
+        "Height": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\BronzeGold\\T_ZNM_BronzeGold_Height_4K.png",
+          "sha256": "7564347c1557aa4c10c93e3739430a360a1bc51f335fb3be6096ea02018b70cb",
+          "width": 4096,
+          "height": 4096,
+          "bits": 16,
+          "min": 0.47956469655036926,
+          "max": 0.5261200070381165,
+          "mean": 0.5040482878684998
+        },
+        "Roughness": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\BronzeGold\\T_ZNM_BronzeGold_Roughness_4K.png",
+          "sha256": "fe69885898f9d16a92ef13764b2243e8492c3809022da6767f42ae383631abbf",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.28999999165534973,
+          "max": 0.6889490485191345,
+          "mean": 0.4216313064098358
+        },
+        "Metallic": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\BronzeGold\\T_ZNM_BronzeGold_Metallic_4K.png",
+          "sha256": "5f8c1f91b6bdba62a146840d836240b53170c67674ccd06af53ddb3dad8e475d",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.30299994349479675,
+          "max": 1.0,
+          "mean": 0.7837953567504883
+        },
+        "AO": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\BronzeGold\\T_ZNM_BronzeGold_AO_4K.png",
+          "sha256": "30f4ad02fa9051314bd48cb68bc83c19901b0dbbf3048705870f978aeef45d0b",
+          "width": 4096,
+          "height": 4096,
+          "bits": 8,
+          "min": 0.9630999565124512,
+          "max": 1.0,
+          "mean": 0.9885537028312683
+        }
+      },
+      "clearcoat": 0.0,
+      "brief": "Aged warm gold/brass-bronze fittings: sparse verdigris oxide, cast texture and native fine abrasions. Oxide lowers metalness and raises roughness together.",
+      "tileable": true,
+      "normal_convention": "DirectX +Y",
+      "native_evaluation": true
+    },
+    "Plaque": {
+      "maps": {
+        "BaseColor": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Plaque\\T_ZNM_Plaque_BaseColor_4K.png",
+          "sha256": "8a11b4349cb52a19205260b612b329c3c27fb7f3cc8db9e09ccb4c14c87e6575",
+          "width": 4096,
+          "height": 1024,
+          "bits": 8,
+          "min": 0.0784313753247261,
+          "max": 0.7254902124404907,
+          "mean": 0.14366884529590607
+        },
+        "Normal_DX": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Plaque\\T_ZNM_Plaque_Normal_DX_4K.png",
+          "sha256": "46222596a0f156a3f66e014dc1d065c3a209f1020ba1a1d7bf9f3571a5073028",
+          "width": 4096,
+          "height": 1024,
+          "bits": 8,
+          "min": 0.4800877571105957,
+          "max": 1.0,
+          "mean": 0.6666637063026428
+        },
+        "ORM": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Plaque\\T_ZNM_Plaque_ORM_4K.png",
+          "sha256": "d2461e8f812385014bbf74df547f4724db69cfe4b04ee9738e642fd10530a838",
+          "width": 4096,
+          "height": 1024,
+          "bits": 8,
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.5322104096412659
+        },
+        "Height": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Plaque\\T_ZNM_Plaque_Height_4K.png",
+          "sha256": "725dfc255a7ba81650b5f89f46f24cd200d255bd9365faf8a9bd97fd1e7dfc0c",
+          "width": 4096,
+          "height": 1024,
+          "bits": 16,
+          "min": 0.49000000953674316,
+          "max": 0.5250000357627869,
+          "mean": 0.4967072606086731
+        },
+        "Roughness": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Plaque\\T_ZNM_Plaque_Roughness_4K.png",
+          "sha256": "b9de658a0e0c864d31deb371d859390ede181681f07f683ec1eff5061398a244",
+          "width": 4096,
+          "height": 1024,
+          "bits": 8,
+          "min": 0.3399999737739563,
+          "max": 0.5799999833106995,
+          "mean": 0.5163676142692566
+        },
+        "Metallic": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Plaque\\T_ZNM_Plaque_Metallic_4K.png",
+          "sha256": "f2c54dc7e93302fe082ba82809d036f6a4d40c63a3ab536efe4659eea69eb270",
+          "width": 4096,
+          "height": 1024,
+          "bits": 8,
+          "min": 0.0,
+          "max": 0.9200000166893005,
+          "mean": 0.08186416327953339
+        },
+        "AO": {
+          "path": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_Manual4K_20260916\\Plaque\\T_ZNM_Plaque_AO_4K.png",
+          "sha256": "14b4736815d6251372ff1fd5bc910e366ff28ce10b956631a88f03b6a3470dba",
+          "width": 4096,
+          "height": 1024,
+          "bits": 8,
+          "min": 0.9819999933242798,
+          "max": 1.0,
+          "mean": 0.998399555683136
+        }
+      },
+      "clearcoat": 0.0,
+      "brief": "Original 4096x1024 black timber plaque and gold fret border. Kai lettering \u9580\u5357\u6b63 is read right-to-left as \u6b63\u5357\u9580; no reference pixels reused.",
+      "tileable": false,
+      "normal_convention": "DirectX +Y",
+      "native_evaluation": true
+    }
+  }
+}

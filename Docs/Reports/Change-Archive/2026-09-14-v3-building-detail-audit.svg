@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#101827"/>
+  <g font-family="Segoe UI, Arial, sans-serif" fill="#eef4ff">
+    <text x="42" y="52" font-size="30">V3 building detail audit and focused repairs</text>
+    <text x="42" y="84" font-size="17" fill="#b7c8dd">Three Blueprints checked • geometry, materials, collision, placements, front/rear visuals</text>
+    <rect x="36" y="116" width="350" height="310" rx="16" fill="#24354d" stroke="#55708f"/>
+    <rect x="425" y="116" width="350" height="310" rx="16" fill="#24354d" stroke="#55708f"/>
+    <rect x="814" y="116" width="350" height="310" rx="16" fill="#24354d" stroke="#55708f"/>
+    <text x="58" y="158" font-size="22" fill="#9eebbc">Xiaobeimen AAA</text>
+    <text x="447" y="158" font-size="22" fill="#ffcf8a">Xiaobeimen Production</text>
+    <text x="836" y="158" font-size="22" fill="#9eebbc">Zhengnanmen AAA</text>
+    <g stroke="#9eb4cc" fill="none" stroke-width="6">
+      <path d="M76 354 V250 L145 196 L215 250 V354 Z"/><path d="M98 354 V282 H192 V354"/><path d="M111 282 V230 H178 V282"/>
+      <path d="M463 354 V250 L532 196 L602 250 V354 Z"/><path d="M487 354 V282 H584 V354"/><path d="M497 282 V230 H571 V282"/>
+      <path d="M852 354 V250 L921 196 L991 250 V354 Z"/><path d="M875 354 V282 H971 V354"/><path d="M886 282 V230 H958 V282"/>
+    </g>
+    <g fill="#9eebbc" font-size="16">
+      <text x="58" y="389">43 components • 38 visible / 5 collision</text>
+      <text x="836" y="389">13 components • 7 visible / 6 collision</text>
+    </g>
+    <g fill="#ffcf8a" font-size="16">
+      <text x="447" y="389">16 components • 10 visible / 6 collision</text>
+      <text x="447" y="411">No detached fragments or external materials</text>
+    </g>
+    <rect x="58" y="468" width="1084" height="126" rx="14" fill="#2d2430" stroke="#9a6b72"/>
+    <text x="80" y="506" font-size="22" fill="#ffb4a8">Confirmed Production defect</text>
+    <text x="80" y="538" font-size="17">Two disconnected roof fragments (432 vertices / 856 triangles) formed a floating teal slab across the gate arch.</text>
+    <text x="80" y="568" font-size="17">Derived RoofClean mesh removes only those fragments; source GLB, other roof tiles, materials, and collision stay intact.</text>
+    <path d="M350 426 V468" stroke="#ffcf8a" stroke-width="4" marker-end="url(#arrow)"/>
+    <rect x="58" y="632" width="1084" height="78" rx="14" fill="#183126" stroke="#4e9c74"/>
+    <text x="80" y="665" font-size="18" fill="#9eebbc">Validation PASS</text>
+    <text x="240" y="665" font-size="16">all-details audit • corrected door references • grounded/non-overlapping showcase placements • refreshed visual closeups</text>
+    <text x="80" y="691" font-size="15" fill="#b7c8dd">Production arch is clear; all three Blueprints retain package-local materials and hidden collision geometry.</text>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ffcf8a"/></marker></defs>
+</svg>

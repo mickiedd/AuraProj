@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860">
+  <defs>
+    <linearGradient id="paper" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f5f1e8"/><stop offset="1" stop-color="#e5ded0"/></linearGradient>
+    <linearGradient id="stone" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#8d8172"/><stop offset="1" stop-color="#514a42"/></linearGradient>
+    <linearGradient id="wood" x1="0" x2="1"><stop offset="0" stop-color="#2b1008"/><stop offset="0.5" stop-color="#6d321d"/><stop offset="1" stop-color="#34130a"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-opacity=".25"/></filter>
+  </defs>
+  <rect width="1400" height="860" fill="url(#paper)"/>
+  <text x="60" y="62" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#24201b">Dadongmen / Great East Gate — door and approach detail</text>
+  <text x="60" y="94" font-family="Arial, sans-serif" font-size="17" fill="#61584e">Reference-driven Blueprint refinement • 2026-09-15</text>
+
+  <g transform="translate(60,145)" filter="url(#shadow)">
+    <rect width="380" height="480" rx="14" fill="#fffaf1" stroke="#b8aa96" stroke-width="2"/>
+    <text x="28" y="42" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#4b4035">Before • imported source</text>
+    <text x="28" y="72" font-family="Arial, sans-serif" font-size="15" fill="#6b6158">One combined mesh, two oversized slabs</text>
+    <rect x="52" y="112" width="276" height="190" fill="url(#stone)" stroke="#3b332b" stroke-width="4"/>
+    <path d="M155 302 V225 Q190 174 225 225 V302" fill="#1b1714" stroke="#b7aa98" stroke-width="5"/>
+    <rect x="78" y="340" width="155" height="78" fill="#3b2c19" stroke="#6d5130" stroke-width="3"/>
+    <text x="87" y="386" font-family="Arial, sans-serif" font-size="15" fill="#f4e6cf">20 m × 12 m dirt</text>
+    <rect x="246" y="340" width="82" height="78" fill="#0a2528" stroke="#27545a" stroke-width="3"/>
+    <text x="254" y="386" font-family="Arial, sans-serif" font-size="15" fill="#b9d7d6">18 m × 8 m water</text>
+    <text x="28" y="454" font-family="Arial, sans-serif" font-size="14" fill="#6b6158">Source geometry retained for rollback.</text>
+  </g>
+
+  <g transform="translate(480,335)">
+    <path d="M0 60 H170" stroke="#7e6d5a" stroke-width="5"/>
+    <path d="M140 40 L175 60 L140 80" fill="none" stroke="#7e6d5a" stroke-width="5"/>
+    <text x="10" y="24" font-family="Arial, sans-serif" font-size="17" fill="#61584e">Blueprint detail layer</text>
+  </g>
+
+  <g transform="translate(720,145)" filter="url(#shadow)">
+    <rect width="620" height="480" rx="14" fill="#fffaf1" stroke="#b8aa96" stroke-width="2"/>
+    <text x="28" y="42" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#4b4035">After • independent Blueprint</text>
+    <text x="28" y="72" font-family="Arial, sans-serif" font-size="15" fill="#6b6158">Source mesh unchanged; authored details sit in the gate opening</text>
+    <path d="M44 392 V220 Q44 150 118 150 H502 Q576 150 576 220 V392 Z" fill="url(#stone)" stroke="#3b332b" stroke-width="4"/>
+    <path d="M205 392 V258 Q205 206 310 206 Q415 206 415 258 V392" fill="#1b1714" stroke="#c1af94" stroke-width="6"/>
+    <g transform="translate(215,265)">
+      <rect width="92" height="120" fill="url(#wood)" stroke="#170b07" stroke-width="3"/>
+      <rect x="98" width="92" height="120" fill="url(#wood)" stroke="#170b07" stroke-width="3"/>
+      <g stroke="#d17c3e" stroke-width="3" opacity=".82">
+        <path d="M14 7 V113 M36 7 V113 M58 7 V113 M80 7 V113"/>
+        <path d="M112 7 V113 M134 7 V113 M156 7 V113 M178 7 V113"/>
+      </g>
+      <g stroke="#0d0a08" stroke-width="6">
+        <path d="M4 18 H186 M4 101 H186"/>
+        <path d="M46 3 V117 M142 3 V117"/>
+      </g>
+      <g fill="#b48758" stroke="#2a1309" stroke-width="2">
+        <circle cx="46" cy="26" r="6"/><circle cx="46" cy="60" r="6"/><circle cx="46" cy="94" r="6"/>
+        <circle cx="142" cy="26" r="6"/><circle cx="142" cy="60" r="6"/><circle cx="142" cy="94" r="6"/>
+      </g>
+    </g>
+    <rect x="180" y="390" width="260" height="18" fill="#63584c" stroke="#2d2824" stroke-width="3"/>
+    <rect x="74" y="414" width="210" height="34" fill="#7d552d" opacity=".9"/>
+    <rect x="310" y="414" width="130" height="34" fill="#12353a" opacity=".9"/>
+    <text x="84" y="437" font-family="Arial, sans-serif" font-size="14" fill="#fff0d6">compact approach</text>
+    <text x="323" y="437" font-family="Arial, sans-serif" font-size="14" fill="#cfe2df">water edge</text>
+  </g>
+
+  <g transform="translate(60,680)">
+    <rect width="1280" height="112" rx="12" fill="#2f2a25"/>
+    <g font-family="Arial, sans-serif" fill="#f3eadb">
+      <text x="28" y="35" font-size="18" font-weight="700">Validation and behavior guard</text>
+      <text x="28" y="68" font-size="16">59 package-local visual components • 60 total runtime static-mesh components • detail collision profile: NoCollision</text>
+      <text x="28" y="94" font-size="16">Source combined mesh and authored collision preserved • live editor + fresh NullRHI validation passed for all four V4 Blueprints</text>
+    </g>
+  </g>
+</svg>

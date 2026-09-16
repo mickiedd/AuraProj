@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">V3 building placement in Scifi Desert</title>
+  <desc id="desc">Three independent V3 Blueprint actors are placed on clear, grounded slots in the showcase level, with existing geometry checked for overlap and save/reload validation passing.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#172033"/><stop offset="1" stop-color="#26364a"/></linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b87845"/><stop offset="1" stop-color="#73452f"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000" flood-opacity=".32"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#67e8f9"/></marker>
+    <style>
+      .title{font:700 36px 'Segoe UI',Arial,sans-serif;fill:#f8fafc}.sub{font:400 18px 'Segoe UI',Arial,sans-serif;fill:#cbd5e1}
+      .h{font:700 19px 'Segoe UI',Arial,sans-serif;fill:#f8fafc}.b{font:400 16px 'Segoe UI',Arial,sans-serif;fill:#dbeafe}
+      .s{font:400 14px 'Segoe UI',Arial,sans-serif;fill:#cbd5e1}.ok{font:700 16px 'Segoe UI',Arial,sans-serif;fill:#86efac}
+      .coord{font:600 14px Consolas,monospace;fill:#a5f3fc}
+    </style>
+  </defs>
+  <rect width="1400" height="820" fill="url(#bg)"/>
+  <text x="65" y="68" class="title">V3 buildings placed in Scifi Desert</text>
+  <text x="65" y="101" class="sub">Saved to /Game/Scifi_desert_city/Level/L_showcase_level as independent Blueprint actors.</text>
+
+  <rect x="65" y="140" width="1270" height="150" rx="18" fill="#0f172a" stroke="#334155" stroke-width="2" filter="url(#shadow)"/>
+  <text x="100" y="178" class="h">Placement guard</text>
+  <text x="100" y="211" class="b">Clear terrain-slot search • 1,586 existing geometry actors checked</text>
+  <text x="100" y="239" class="s">Support volumes/foliage excluded from footprint search; existing buildings remain in place.</text>
+  <path d="M635 215 H755" stroke="#67e8f9" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="805" y="178" class="h">Ground + save</text>
+  <text x="805" y="211" class="b">Landscape trace, static Blueprint actors, tagged manifest</text>
+  <text x="805" y="239" class="s">Every actor bottom sits at terrain Z≈100 cm; map saved after overlap checks.</text>
+
+  <rect x="65" y="330" width="1270" height="210" rx="18" fill="url(#sand)" stroke="#d6a16d" stroke-width="2" filter="url(#shadow)"/>
+  <path d="M120 490 C300 420, 430 470, 590 395 S900 430, 1110 360 S1270 390, 1300 350" fill="none" stroke="#d39a64" stroke-width="3" opacity=".55"/>
+  <path d="M175 440 H1200" stroke="#4b2f28" stroke-width="5" opacity=".5"/>
+  <rect x="270" y="390" width="145" height="95" rx="8" fill="#2dd4bf" stroke="#e2e8f0" stroke-width="3"/>
+  <rect x="625" y="390" width="150" height="95" rx="8" fill="#064e3b" stroke="#e2e8f0" stroke-width="3"/>
+  <rect x="970" y="390" width="120" height="95" rx="8" fill="#16a34a" stroke="#e2e8f0" stroke-width="3"/>
+  <text x="285" y="425" class="h">Xiaobeimen</text><text x="285" y="451" class="s">AAA V3</text><text x="285" y="474" class="coord">Y 135400</text>
+  <text x="640" y="425" class="h">Xiaobeimen</text><text x="640" y="451" class="s">Production V3</text><text x="640" y="474" class="coord">Y 115400</text>
+  <text x="985" y="425" class="h">Zhengnanmen</text><text x="985" y="451" class="s">AAA V3</text><text x="985" y="474" class="coord">Y 100400</text>
+  <text x="110" y="520" class="s">Shared X center: -140400 • separate footprints • no actor replacement</text>
+
+  <rect x="65" y="580" width="1270" height="175" rx="18" fill="#0f172a" stroke="#334155" stroke-width="2" filter="url(#shadow)"/>
+  <text x="100" y="620" class="h">Save/reload validation and visual check</text>
+  <text x="100" y="653" class="ok">✓ 3 Blueprint classes and labels match the placement manifest</text>
+  <text x="100" y="680" class="ok">✓ Grounding, transforms, component counts, and pairwise overlap pass</text>
+  <text x="100" y="707" class="ok">✓ No overlap with 1,586 existing geometry actors</text>
+  <text x="100" y="734" class="ok">✓ Overview plus three close-ups captured and inspected</text>
+  <text x="1010" y="653" class="coord">v3-level-placement.json</text>
+  <text x="1010" y="680" class="coord">v3-level-placement-validation.json</text>
+  <text x="1010" y="707" class="coord">v3-level-placement-overview.png</text>
+</svg>

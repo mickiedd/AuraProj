@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">A Little Princess illustrated EPUB export</title>
+  <desc id="desc">The reviewed nineteen-chapter manuscript is packaged with one cover and nineteen grayscale chapter illustrations, then checked as an EPUB archive.</desc>
+  <defs>
+    <style>
+      .bg { fill: #fbfaf7; }
+      .ink { fill: #202124; font-family: Georgia, 'Times New Roman', serif; }
+      .small { font-size: 18px; }
+      .body { font-size: 21px; }
+      .head { font-size: 28px; font-weight: bold; }
+      .title { font-size: 38px; font-weight: bold; }
+      .box { fill: #ffffff; stroke: #3c4043; stroke-width: 3; rx: 18; }
+      .blue { fill: #e7f0fb; stroke: #42678e; stroke-width: 3; }
+      .gold { fill: #fff2c9; stroke: #9a741f; stroke-width: 3; }
+      .green { fill: #e7f4e8; stroke: #4e7d55; stroke-width: 3; }
+      .line { stroke: #555; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .check { fill: #2d6a3a; font-size: 22px; font-weight: bold; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#555"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1200" height="900"/>
+  <text class="ink title" x="60" y="68">A Little Princess: Illustrated EPUB</text>
+  <text class="ink body" x="60" y="105">Change archive • 2026-09-16 • image-complete replacement for the text-only export</text>
+
+  <rect class="box blue" x="60" y="155" width="285" height="265"/>
+  <text class="ink head" x="85" y="198">Reviewed source</text>
+  <text class="ink body" x="85" y="242">19 chapters</text>
+  <text class="ink body" x="85" y="278">58,741 words</text>
+  <text class="ink body" x="85" y="314">3,004–3,344 words</text>
+  <text class="ink body" x="85" y="350">A1–A2 / age 10</text>
+  <text class="ink body" x="85" y="386">duplicate and typo review</text>
+
+  <path class="line" d="M345,286 L420,286"/>
+
+  <rect class="box gold" x="420" y="155" width="335" height="265"/>
+  <text class="ink head" x="445" y="198">Illustration layer</text>
+  <text class="ink body" x="445" y="242">1 portrait cover</text>
+  <text class="ink body" x="445" y="278">19 chapter scenes</text>
+  <text class="ink body" x="445" y="314">clean black ink</text>
+  <text class="ink body" x="445" y="350">large white areas</text>
+  <text class="ink body" x="445" y="386">normalized grayscale (L)</text>
+
+  <path class="line" d="M755,286 L830,286"/>
+
+  <rect class="box green" x="830" y="155" width="310" height="265"/>
+  <text class="ink head" x="855" y="198">EPUB package</text>
+  <text class="ink body" x="855" y="242">title page + cover</text>
+  <text class="ink body" x="855" y="278">19 XHTML chapters</text>
+  <text class="ink body" x="855" y="314">19 matching PNG refs</text>
+  <text class="ink body" x="855" y="350">nav + OPF manifest</text>
+  <text class="ink body" x="855" y="386">cover-image property</text>
+
+  <rect class="box" x="60" y="515" width="1080" height="290"/>
+  <text class="ink head" x="85" y="558">Validation gates</text>
+  <text class="ink check" x="95" y="605">✓</text><text class="ink body" x="130" y="605">ZIP integrity and CRCs; mimetype first, stored, exact</text>
+  <text class="ink check" x="95" y="647">✓</text><text class="ink body" x="130" y="647">container.xml, content.opf, nav.xhtml, and all XHTML parse</text>
+  <text class="ink check" x="95" y="689">✓</text><text class="ink body" x="130" y="689">19 chapter pages, 20 navigation links, 19 chapter image manifest items</text>
+  <text class="ink check" x="95" y="731">✓</text><text class="ink body" x="130" y="731">cover is present, referenced by title page, and marked cover-image</text>
+  <text class="ink check" x="95" y="773">✓</text><text class="ink body" x="130" y="773">manuscript duplicate/placeholder checks remain clear; EPUBCheck unavailable locally</text>
+</svg>

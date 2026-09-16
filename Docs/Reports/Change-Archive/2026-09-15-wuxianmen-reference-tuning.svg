@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f4f1e9"/><stop offset="1" stop-color="#d8d1c4"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#51483d" flood-opacity=".22"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L9,3 L0,6 Z" fill="#5a6f7c"/></marker>
+  </defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <text x="60" y="62" font-family="Georgia,serif" font-size="30" fill="#27251f">Wuxianmen · Gate of the Five Genii reference tuning</text>
+  <text x="60" y="92" font-family="Arial,sans-serif" font-size="16" fill="#655f57">Eight-part Nanite primary assembly remains one independent Blueprint.</text>
+  <g filter="url(#shadow)">
+    <rect x="55" y="135" width="280" height="390" rx="16" fill="#ece6da" stroke="#9c8c75" stroke-width="2"/>
+    <text x="80" y="178" font-family="Arial,sans-serif" font-size="21" font-weight="bold" fill="#3d3932">Reference sheet</text>
+    <rect x="80" y="205" width="230" height="112" rx="8" fill="#a7b5bd"/>
+    <path d="M90 286 L122 250 155 271 190 235 230 263 265 244 300 281" fill="none" stroke="#f2eadc" stroke-width="9"/>
+    <rect x="80" y="337" width="230" height="42" rx="6" fill="#676963"/>
+    <rect x="80" y="394" width="230" height="42" rx="6" fill="#5a3f2d"/>
+    <rect x="80" y="451" width="230" height="42" rx="6" fill="#343a40"/>
+    <text x="92" y="364" font-family="Arial,sans-serif" font-size="14" fill="#fff">weathered gray brick / stone</text>
+    <text x="92" y="421" font-family="Arial,sans-serif" font-size="14" fill="#fff">aged timber and gate wood</text>
+    <text x="92" y="478" font-family="Arial,sans-serif" font-size="14" fill="#fff">cool tile / muted metal</text>
+  </g>
+  <line x1="350" y1="330" x2="450" y2="330" stroke="#5a6f7c" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="355" y="306" font-family="Arial,sans-serif" font-size="14" fill="#4f6470">source textures</text>
+  <g filter="url(#shadow)">
+    <rect x="465" y="135" width="310" height="390" rx="16" fill="#e3ddd3" stroke="#8a7d6c" stroke-width="2"/>
+    <text x="490" y="178" font-family="Arial,sans-serif" font-size="21" font-weight="bold" fill="#3d3932">ReferenceTuned siblings</text>
+    <text x="490" y="214" font-family="Arial,sans-serif" font-size="15" fill="#5c554c">8 package-local materials</text>
+    <g font-family="Arial,sans-serif" font-size="14" fill="#3c3a35">
+      <text x="500" y="252">M_WeatheredStone_ReferenceTuned</text>
+      <text x="500" y="282">M_GrayBrick_ReferenceTuned</text>
+      <text x="500" y="312">M_AgedWood_ReferenceTuned</text>
+      <text x="500" y="342">M_GateWood_ReferenceTuned</text>
+      <text x="500" y="372">M_ClayRoof_ReferenceTuned</text>
+      <text x="500" y="402">M_DarkMetal_ReferenceTuned</text>
+      <text x="500" y="432">M_Plaque_ReferenceTuned</text>
+      <text x="500" y="462">M_LimePlaster_ReferenceTuned</text>
+    </g>
+    <text x="490" y="500" font-family="Arial,sans-serif" font-size="14" fill="#5c554c">Tint + roughness controls; two-sided enabled</text>
+  </g>
+  <line x1="790" y1="330" x2="890" y2="330" stroke="#5a6f7c" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="796" y="306" font-family="Arial,sans-serif" font-size="14" fill="#4f6470">rebind 8 meshes</text>
+  <g filter="url(#shadow)">
+    <rect x="905" y="135" width="240" height="390" rx="16" fill="#e6e1d8" stroke="#7e7466" stroke-width="2"/>
+    <text x="930" y="178" font-family="Arial,sans-serif" font-size="21" font-weight="bold" fill="#3d3932">Blueprint result</text>
+    <path d="M945 404 L945 320 1002 285 1055 320 1055 404 Z" fill="#6b675f" stroke="#3d3932" stroke-width="4"/>
+    <path d="M960 320 L1003 278 1040 320" fill="#343a40" stroke="#3d3932" stroke-width="4"/>
+    <rect x="991" y="354" width="23" height="50" rx="11" fill="#252525"/>
+    <text x="930" y="446" font-family="Arial,sans-serif" font-size="15" fill="#4d4941">BP_Wuxianmen_V4</text>
+    <text x="930" y="474" font-family="Arial,sans-serif" font-size="14" fill="#4d4941">8 component templates</text>
+    <text x="930" y="502" font-family="Arial,sans-serif" font-size="14" fill="#4d4941">geometry_changed: false</text>
+  </g>
+  <rect x="60" y="575" width="1080" height="76" rx="12" fill="#eef4f5" stroke="#91a6ae" stroke-width="2"/>
+  <text x="85" y="608" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#31444d">Guards and validation</text>
+  <text x="85" y="633" font-family="Arial,sans-serif" font-size="15" fill="#435860">Original materials preserved for rollback · all primary meshes and Blueprint templates use tuned siblings · live + fresh Unreal validation: all four V4 Blueprints passed · front/rear/close renders inspected</text>
+</svg>

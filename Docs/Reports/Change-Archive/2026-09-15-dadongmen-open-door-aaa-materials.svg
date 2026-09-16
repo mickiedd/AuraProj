@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#101820"/>
+  <text x="52" y="58" fill="#f4ead7" font-family="Arial, sans-serif" font-size="28" font-weight="700">V4 gate completion pass</text>
+  <text x="52" y="88" fill="#b9c7c9" font-family="Arial, sans-serif" font-size="16">Dadongmen open passage · AAA material graphs · hollow-space infill</text>
+
+  <g font-family="Arial, sans-serif">
+    <rect x="52" y="132" width="220" height="126" rx="12" fill="#263746" stroke="#d2a85a" stroke-width="2"/>
+    <text x="72" y="164" fill="#f4ead7" font-size="18" font-weight="700">Reference inputs</text>
+    <text x="72" y="193" fill="#d8e2e3" font-size="14">Dadongmen sheet</text>
+    <text x="72" y="216" fill="#d8e2e3" font-size="14">open-door screenshot</text>
+    <text x="72" y="239" fill="#d8e2e3" font-size="14">existing 4K maps</text>
+
+    <rect x="330" y="132" width="240" height="126" rx="12" fill="#263746" stroke="#68b0a8" stroke-width="2"/>
+    <text x="350" y="164" fill="#f4ead7" font-size="18" font-weight="700">Open source mesh</text>
+    <text x="350" y="193" fill="#d8e2e3" font-size="14">closed baked leaves removed</text>
+    <text x="350" y="216" fill="#d8e2e3" font-size="14">SM_Dadongmen_OpenDoor_LOD0</text>
+    <text x="350" y="239" fill="#d8e2e3" font-size="14">canonical mesh + collision kept</text>
+
+    <rect x="628" y="132" width="240" height="126" rx="12" fill="#263746" stroke="#68b0a8" stroke-width="2"/>
+    <text x="648" y="164" fill="#f4ead7" font-size="18" font-weight="700">Hinged detail layer</text>
+    <text x="648" y="193" fill="#d8e2e3" font-size="14">4 timber leaves tucked in</text>
+    <text x="648" y="216" fill="#d8e2e3" font-size="14">planks · braces · straps · studs</text>
+    <text x="648" y="239" fill="#d8e2e3" font-size="14">NoCollision visual components</text>
+
+    <rect x="926" y="132" width="220" height="126" rx="12" fill="#263746" stroke="#d2a85a" stroke-width="2"/>
+    <text x="946" y="164" fill="#f4ead7" font-size="18" font-weight="700">AAA surfaces</text>
+    <text x="946" y="193" fill="#d8e2e3" font-size="14">4K BC / N / R / M / AO</text>
+    <text x="946" y="216" fill="#d8e2e3" font-size="14">manual tint + macro blend</text>
+    <text x="946" y="239" fill="#d8e2e3" font-size="14">wood · stone · roof · iron · growth</text>
+
+    <path d="M272 195 H330" stroke="#d2a85a" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M570 195 H628" stroke="#d2a85a" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M868 195 H926" stroke="#d2a85a" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <rect x="184" y="336" width="300" height="154" rx="12" fill="#1d2b35" stroke="#68b0a8" stroke-width="2"/>
+    <text x="208" y="370" fill="#f4ead7" font-size="18" font-weight="700">All four V4 Blueprints</text>
+    <text x="208" y="400" fill="#d8e2e3" font-size="14">Dadongmen · Guidemen</text>
+    <text x="208" y="423" fill="#d8e2e3" font-size="14">Wuxianmen · Zhengximen</text>
+    <text x="208" y="457" fill="#d8e2e3" font-size="14">AAA materials rebound on source meshes</text>
+    <text x="208" y="480" fill="#d8e2e3" font-size="14">independent building assets preserved</text>
+
+    <rect x="552" y="336" width="300" height="154" rx="12" fill="#1d2b35" stroke="#68b0a8" stroke-width="2"/>
+    <text x="576" y="370" fill="#f4ead7" font-size="18" font-weight="700">Intact fill pass</text>
+    <text x="576" y="400" fill="#d8e2e3" font-size="14">interior floor liners added</text>
+    <text x="576" y="423" fill="#d8e2e3" font-size="14">stone tunnel floor for Dadongmen</text>
+    <text x="576" y="446" fill="#d8e2e3" font-size="14">thin NoCollision floors for the other 3</text>
+    <text x="576" y="480" fill="#d8e2e3" font-size="14">existing source geometry remains rollback-safe</text>
+
+    <path d="M744 258 V336" stroke="#d2a85a" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M424 258 V336" stroke="#d2a85a" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <rect x="250" y="568" width="700" height="112" rx="12" fill="#263746" stroke="#d2a85a" stroke-width="2"/>
+    <text x="278" y="603" fill="#f4ead7" font-size="18" font-weight="700">Validation evidence</text>
+    <text x="278" y="630" fill="#d8e2e3" font-size="14">Editor validator: 4/4 V4 packages pass · fresh NullRHI: exit 0</text>
+    <text x="278" y="653" fill="#d8e2e3" font-size="14">Visual captures: exterior, three-quarter, and tunnel views show clear passage</text>
+    <text x="278" y="676" fill="#d8e2e3" font-size="14">Known unrelated output: 12 pre-existing Crunch/Aura warnings</text>
+    <path d="M484 490 V568" stroke="#d2a85a" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M702 490 V568" stroke="#d2a85a" stroke-width="3" marker-end="url(#arrow)"/>
+  </g>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#d2a85a"/>
+    </marker>
+  </defs>
+</svg>
