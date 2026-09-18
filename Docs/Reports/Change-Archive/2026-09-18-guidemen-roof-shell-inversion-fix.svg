@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1140" viewBox="0 0 1500 1140">
+  <rect width="1500" height="1140" fill="#101923"/>
+  <style>
+    .title{font:700 33px Arial;fill:#f3f7fb}.sub{font:15px Arial;fill:#aec0cc}
+    .h{font:700 20px Arial;fill:#9fe3ff}.t{font:15px Arial;fill:#d6e2ea}
+    .small{font:13px Arial;fill:#aec0cc}.mono{font:12px Consolas,monospace;fill:#cfe6f2}
+    .box{fill:#172735;stroke:#4c7188;stroke-width:2}
+    .good{fill:#163c37;stroke:#54d5ae;stroke-width:2}
+    .warn{fill:#3a3320;stroke:#e0c15a;stroke-width:2}
+    .bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}
+    .arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+
+  <text x="60" y="60" class="title">Guidemen V5 4K — Inverted Roof Shells Corrected</text>
+  <text x="60" y="88" class="sub">2026-09-18 • BP_Guidemen_V5_4K • 8 of 18,822 instance transforms changed, 18,814 preserved</text>
+  <text x="60" y="110" class="sub">Reported by the user after an earlier pass wrongly concluded the roof was correct</text>
+
+  <!-- MY ERROR -->
+  <rect x="60" y="140" width="440" height="290" rx="14" class="bad"/>
+  <text x="84" y="174" class="h">What I got wrong</text>
+  <text x="84" y="206" class="small">My first probe correlated the top surface Z against distance from the</text>
+  <text x="84" y="226" class="small">whole roof group's centre and read a clean fall from 2,002 cm at the</text>
+  <text x="84" y="246" class="small">centre to 1,465 cm at the perimeter — which I took as a correct ridge.</text>
+  <text x="84" y="278" class="t">That measurement is confounded on a two-tier roof</text>
+  <text x="84" y="306" class="small">The upper tier sits near the centre and higher; the lower tier reaches</text>
+  <text x="84" y="326" class="small">further out and lower. The aggregate therefore falls with radius even</text>
+  <text x="84" y="346" class="small">when each tier's own slope is inverted.</text>
+  <text x="84" y="378" class="t">A correlation across tiers is not a roof test.</text>
+  <text x="84" y="404" class="small">Per-tier measurement is required, and the deciding evidence was not</text>
+  <text x="84" y="422" class="small">the slope at all — it was where the ridge bars sit.</text>
+
+  <path d="M510 285 L560 285" class="arrow"/>
+
+  <!-- DIAGNOSIS -->
+  <rect x="560" y="140" width="880" height="290" rx="14" class="warn"/>
+  <text x="584" y="174" class="h">The diagnosis — the ridge bar is the anchor</text>
+  <text x="584" y="206" class="small">A ridge bar must cap the roof's highest line. Guidemen's ridge bars sit exactly on their tier's</text>
+  <text x="584" y="226" class="small">tile apex, and the tile surface rises to that apex, so the tiles and the ridges agree with each</text>
+  <text x="584" y="246" class="small">other. The eight roof shells do not agree with either of them.</text>
+  <text x="620" y="286" class="mono">tier   shells spanned      ridge bar          tile surface       shells sat</text>
+  <text x="620" y="310" class="mono">R1     1462 .. 1634       1472 .. 1500       1292 .. 1472       342 cm ABOVE the tiles at the eaves</text>
+  <text x="620" y="334" class="mono">R2     1855 .. 2002       1864.5 .. 1891.5   1710 .. 1865       342 cm ABOVE the tiles at the eaves</text>
+  <text x="584" y="368" class="t">Sheathing cannot sit above its own tiles. That is the inversion.</text>
+  <text x="584" y="396" class="small">Reflecting each shell about the horizontal plane at its own minimum Z — its ridge-side edge —</text>
+  <text x="584" y="414" class="small">makes it lie 2 cm under the tiled surface on both tiers.</text>
+
+  <path d="M750 446 L750 476" class="arrow"/>
+
+  <!-- FIX -->
+  <rect x="60" y="490" width="660" height="300" rx="14" class="good"/>
+  <text x="84" y="524" class="h">The fix — 8 instances</text>
+  <text x="84" y="556" class="small">Per shell: a 180° rotation about the world X axis through the pivot (y = 0, z = that shell's</text>
+  <text x="84" y="576" class="small">own minimum Z). A rotation rather than a Z mirror, so triangle winding and shading normals</text>
+  <text x="84" y="596" class="small">stay valid.</text>
+  <text x="84" y="628" class="t">Why a rotation is safe here</text>
+  <text x="84" y="654" class="small">The front/back pair and the left/right pair are each mirror-symmetric about y = 0, so the</text>
+  <text x="84" y="674" class="small">rotation's incidental y flip maps each shell onto its partner's footprint exactly, and each hip</text>
+  <text x="84" y="694" class="small">end's slope in X is flipped without moving it.</text>
+  <text x="84" y="726" class="t">Deliberately not touched</text>
+  <text x="84" y="752" class="small">The tiles and both ridge bars: they are the surfaces that already agreed with each other.</text>
+  <text x="84" y="774" class="small">The 12 roof ornaments: measured at z 1494–1558 and 1886–1950, i.e. seated on the ridge bars.</text>
+
+  <rect x="760" y="490" width="680" height="300" rx="14" class="good"/>
+  <text x="784" y="524" class="h">Result — verified geometry</text>
+  <text x="784" y="556" class="mono">tier   shells now        tile surface        clearance below   offset above</text>
+  <text x="784" y="580" class="mono">R1     1290 .. 1462      1285.04 .. 1471.89  9.89 cm           4.96 cm</text>
+  <text x="784" y="604" class="mono">R2     1708 .. 1855      1703.14 .. 1864.86  9.86 cm           4.86 cm</text>
+  <text x="784" y="636" class="small">All four shells within a tier report identical values, and both tiers land within</text>
+  <text x="784" y="656" class="small">3 mm of each other — the signature of a parallel slab authored to sit just under</text>
+  <text x="784" y="676" class="small">its tiles, not of a coincidence.</text>
+  <text x="784" y="708" class="t">Span check</text>
+  <text x="784" y="734" class="small">Shell spans 172.0 / 147.0 cm against tile spans 186.85 / 161.72 cm. The</text>
+  <text x="784" y="754" class="small">difference is the tile thickness plus under 1° of pitch — effectively parallel.</text>
+  <text x="784" y="778" class="small">Footprints preserved to within 1 cm on both axes.</text>
+
+  <!-- VALIDATION -->
+  <rect x="60" y="824" width="1380" height="130" rx="14" class="good"/>
+  <text x="84" y="858" class="h">Validation</text>
+  <text x="84" y="888" class="small">• Each shell now lies under its tier's tiled surface with a positive clearance at the top and a small positive offset at the base, and its span matches the tile span within tolerance — asserted for all eight.</text>
+  <text x="84" y="910" class="small">• Exactly the 8 shells changed; the other 39 components' transforms are byte-identical, including the tile component and both ridge bars. 18,822 instances preserved; materials, collision, visibility and shadow flags intact.</text>
+  <text x="84" y="932" class="small">• The tile surface itself is unchanged: lower 1285.04–1471.89 cm, upper 1703.14–1864.86 cm.</text>
+
+  <!-- LIMIT -->
+  <rect x="60" y="986" width="1380" height="122" rx="14" class="warn"/>
+  <text x="84" y="1020" class="h">Method note</text>
+  <text x="84" y="1048" class="small">The shell meshes are not modelled with world-aligned local frames — each shell's local +Z maps to a world horizontal axis (front −Y, back +Y, left −X, right +X) — so an orientation-based slope test is unavailable on them, and vertex readback is blocked because VertexID cannot be constructed from Python. The evidence is therefore the geometric relationship: nesting under the tiles with a uniform clearance, which the previous state failed by 342 cm.</text>
+  <text x="84" y="1080" class="small">No perspective review was possible: the deferred high-res screenshot still writes one stale frame per requested view. This correction is verified numerically. That is also why the user, not the tooling, caught it.</text>
+</svg>

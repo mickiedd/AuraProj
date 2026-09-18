@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#101923"/>
+  <style>
+    .title{font:700 34px Arial;fill:#f3f7fb}.h{font:700 22px Arial;fill:#9fe3ff}.t{font:16px Arial;fill:#d6e2ea}.small{font:14px Arial;fill:#aec0cc}.box{fill:#172735;stroke:#4c7188;stroke-width:2}.good{fill:#163c37;stroke:#54d5ae;stroke-width:2}.warn{fill:#3c3020;stroke:#e8b75d;stroke-width:2}.arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+  <text x="70" y="70" class="title">V5 Reference Tuning — Winding and Intactness Pass</text>
+  <text x="70" y="103" class="small">2026-09-17 • private variants • baseline-preserving Blueprint rebind</text>
+
+  <rect x="70" y="150" width="320" height="270" rx="16" class="box"/>
+  <text x="95" y="188" class="h">1. Baseline + source audit</text>
+  <text x="95" y="225" class="t">Immutable snapshot</text><text x="95" y="249" class="small">47/18,822 + 7/5,103 + 7/5,103</text>
+  <text x="95" y="286" class="t">Wuxianmen finding</text><text x="95" y="310" class="small">6 inward prototypes per package</text><text x="95" y="331" class="small">negative signed volume; ridge outward</text>
+  <text x="95" y="368" class="t">Guidemen finding</text><text x="95" y="392" class="small">open roof sheets are intentional</text>
+
+  <rect x="470" y="150" width="320" height="270" rx="16" class="box"/>
+  <text x="495" y="188" class="h">2. Smallest repair</text>
+  <text x="495" y="230" class="t">Private corrected GLBs</text><text x="495" y="255" class="small">reverse triangle order only when</text><text x="495" y="276" class="small">signed volume &lt; 0</text>
+  <text x="495" y="315" class="t">Preserved</text><text x="495" y="340" class="small">vertices • UV indices • node transforms</text><text x="495" y="361" class="small">mesh names • 5,103 scene nodes</text>
+  <text x="495" y="398" class="warn">zero-roll probe rejected</text>
+
+  <rect x="870" y="150" width="320" height="270" rx="16" class="box"/>
+  <text x="895" y="188" class="h">3. Import + rebind</text>
+  <text x="895" y="230" class="t">Package-local roots</text><text x="895" y="255" class="small">Meshes/ReferenceTuned20260917</text>
+  <text x="895" y="295" class="t">Wuxianmen contract</text><text x="895" y="320" class="small">measured -90° import basis</text>
+  <text x="895" y="360" class="t">Blueprint invariants</text><text x="895" y="385" class="small">component and instance hashes unchanged</text>
+
+  <path d="M390 285 L470 285" class="arrow"/><path d="M790 285 L870 285" class="arrow"/>
+
+  <rect x="70" y="510" width="1120" height="265" rx="16" class="good"/>
+  <text x="95" y="552" class="h">4. Post-bind validation — PASS</text>
+  <text x="95" y="595" class="t">Guidemen</text><text x="260" y="595" class="small">47 HISM • 18,822 instances • 5639.37 × 1800.00 × 2130.00 cm</text>
+  <text x="95" y="635" class="t">Wuxianmen Core</text><text x="260" y="635" class="small">7 HISM • 5,103 instances • 3646.65 × 2429.23 × 1700.17 cm</text>
+  <text x="95" y="675" class="t">Wuxianmen FullPBR</text><text x="260" y="675" class="small">7 HISM • 5,103 instances • 3646.65 × 2429.23 × 1700.17 cm</text>
+  <text x="95" y="718" class="small">materials • collision • double-sided geometry • Nanite fallback request • local dependencies • intentional arches</text>
+  <text x="95" y="746" class="small">transform payload preserved • no map saved • transient actors cleaned</text>
+
+  <rect x="1240" y="150" width="290" height="625" rx="16" class="box"/>
+  <text x="1265" y="188" class="h">5. Visual review</text>
+  <text x="1265" y="230" class="t">24 captures</text><text x="1265" y="255" class="small">8 angles × 3 Blueprints</text>
+  <text x="1265" y="300" class="t">Checked</text><text x="1265" y="325" class="small">hero / front / rear</text><text x="1265" y="347" class="small">both sides / low angle</text><text x="1265" y="369" class="small">top / arch close-up</text>
+  <text x="1265" y="420" class="t">Result</text><text x="1265" y="445" class="small">one assembly each</text><text x="1265" y="467" class="small">upright orientation</text><text x="1265" y="489" class="small">no accidental voids</text><text x="1265" y="511" class="small">arches intentionally open</text>
+  <text x="1265" y="575" class="t">Evidence</text><text x="1265" y="600" class="small">reference-tuning-*.png</text><text x="1265" y="622" class="small">source-audit JSON</text><text x="1265" y="644" class="small">rebind JSON</text><text x="1265" y="666" class="small">validation JSON</text>
+
+  <text x="70" y="870" class="h">Review boundary</text>
+  <text x="70" y="905" class="t">Source architecture is preserved. Cooked-build performance, platform memory, showcase placement, and direct UE render-buffer winding export remain separate checks.</text>
+  <text x="70" y="942" class="small">Implementation packet: implementation-validation-packet-v5-reference-tuning.md</text>
+</svg>

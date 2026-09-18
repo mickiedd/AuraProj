@@ -1,0 +1,342 @@
+; FBX 7.4.0 project file
+; Deterministic Guangzhou V4 Deep AAA additive geometry
+
+FBXHeaderExtension:  
+{
+
+    
+FBXHeaderVersion: 1003
+    
+FBXVersion: 7400
+
+}
+
+
+GlobalSettings:  
+{
+
+    
+Version: 1000
+    
+Properties70:  
+{
+
+        
+P: "UpAxis", "int", "Integer", "",2
+        
+P: "UpAxisSign", "int", "Integer", "",1
+        
+P: "FrontAxis", "int", "Integer", "",1
+        
+P: "FrontAxisSign", "int", "Integer", "",-1
+        
+P: "CoordAxis", "int", "Integer", "",0
+        
+P: "CoordAxisSign", "int", "Integer", "",1
+        
+P: "UnitScaleFactor", "double", "Number", "",1
+        
+P: "OriginalUnitScaleFactor", "double", "Number", "",1
+    
+}
+
+
+}
+
+
+Definitions:  
+{
+
+    
+Version: 100
+    
+Count: 4
+    
+ObjectType: "Model" 
+{
+ 
+Count: 2 
+}
+
+    
+ObjectType: "Geometry" 
+{
+ 
+Count: 1 
+}
+
+    
+ObjectType: "Material" 
+{
+ 
+Count: 1 
+}
+
+
+}
+
+
+Objects:  
+{
+
+    
+Material: 100000, "Material::M_Original", "" 
+{
+
+        
+Version: 102
+        
+ShadingModel: "phong"
+        
+MultiLayer: 0
+        
+Properties70:  
+{
+
+            
+P: "DiffuseColor", "Color", "", "A",0.5,0.5,0.5
+            
+P: "SpecularColor", "Color", "", "A",0.1,0.1,0.1
+            
+P: "Shininess", "double", "Number", "",12
+        
+}
+
+    
+}
+
+    
+Model: 100003, "Model::SM_Intact_N_Beam_2_left_15_40", "Null" 
+{
+
+        
+Version: 232
+        
+Properties70:  
+{
+
+            
+P: "Lcl Translation", "Lcl Translation", "", "A",0,0,0
+        
+}
+
+    
+}
+
+    
+Geometry: 100002, "Geometry::SM_Intact_N_Beam_2_left_15_40_M_Original", "Mesh" 
+{
+
+        
+Vertices: *72 
+{
+
+            
+a: -15.000000596046448,15.999999642372131,-584.9999904632568,-15.000000596046448,15.999999642372131,584.9999904632568,-15.000000596046448,-15.999999642372131,584.9999904632568,-15.000000596046448,-15.999999642372131,-584.9999904632568,15.000000596046448,15.999999642372131,584.9999904632568,15.000000596046448,15.999999642372131,-584.9999904632568,
+                15.000000596046448,-15.999999642372131,-584.9999904632568,15.000000596046448,-15.999999642372131,584.9999904632568,15.000000596046448,15.999999642372131,-584.9999904632568,-15.000000596046448,15.999999642372131,-584.9999904632568,-15.000000596046448,-15.999999642372131,-584.9999904632568,15.000000596046448,-15.999999642372131,-584.9999904632568,
+                -15.000000596046448,15.999999642372131,584.9999904632568,15.000000596046448,15.999999642372131,584.9999904632568,15.000000596046448,-15.999999642372131,584.9999904632568,-15.000000596046448,-15.999999642372131,584.9999904632568,-15.000000596046448,15.999999642372131,-584.9999904632568,15.000000596046448,15.999999642372131,-584.9999904632568,
+                15.000000596046448,15.999999642372131,584.9999904632568,-15.000000596046448,15.999999642372131,584.9999904632568,-15.000000596046448,-15.999999642372131,584.9999904632568,15.000000596046448,-15.999999642372131,584.9999904632568,15.000000596046448,-15.999999642372131,-584.9999904632568,-15.000000596046448,-15.999999642372131,-584.9999904632568
+        
+}
+
+        
+PolygonVertexIndex: *36 
+{
+
+            
+a: 2,1,-1,3,2,-1,6,5,-5,7,6,-5,10,9,-9,11,10,-9,14,13,-13,15,14,-13,18,17,-17,19,18,-17,
+                22,21,-21,23,22,-21
+        
+}
+
+        
+LayerElementNormal: 0 
+{
+
+            
+Version: 101
+            
+Name: ""
+            
+MappingInformationType: "ByPolygonVertex"
+            
+ReferenceInformationType: "Direct"
+            
+Normals: *108 
+{
+
+                
+a: -1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,
+                1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,-0.0,0.0,1.0,-0.0,0.0,1.0,-0.0,0.0,
+                0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,
+                0.0,-0.0,1.0,0.0,-0.0,1.0,0.0,-0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,
+                0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,-0.0,1.0,0.0,-0.0,1.0,0.0,-0.0,1.0,0.0,
+                0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0,0.0,-1.0,0.0
+            
+}
+
+        
+}
+
+        
+LayerElementUV: 0 
+{
+
+            
+Version: 101
+            
+Name: "UVChannel_1"
+            
+MappingInformationType: "ByVertice"
+            
+ReferenceInformationType: "Direct"
+            
+UV: *48 
+{
+
+                
+a: 0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,
+                1.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,
+                0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0
+            
+}
+
+        
+}
+
+        
+LayerElementUV: 1 
+{
+
+            
+Version: 101
+            
+Name: "UVChannel_1"
+            
+MappingInformationType: "ByVertice"
+            
+ReferenceInformationType: "Direct"
+            
+UV: *48 
+{
+
+                
+a: 0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,
+                1.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,
+                0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0
+            
+}
+
+        
+}
+
+        
+LayerElementMaterial: 0 
+{
+
+            
+Version: 101
+            
+Name: ""
+            
+MappingInformationType: "AllSame"
+            
+ReferenceInformationType: "IndexToDirect"
+            
+Materials: *1 
+{
+ 
+a: 0 
+}
+
+        
+}
+
+        
+Layer: 0 
+{
+
+            
+Version: 100
+            
+LayerElement: 
+{
+ 
+Type: "LayerElementNormal" 
+TypedIndex: 0 
+}
+
+            
+LayerElement: 
+{
+ 
+Type: "LayerElementMaterial" 
+TypedIndex: 0 
+}
+
+            
+LayerElement: 
+{
+ 
+Type: "LayerElementUV" 
+TypedIndex: 0 
+}
+
+            
+LayerElement: 
+{
+ 
+Type: "LayerElementUV" 
+TypedIndex: 1 
+}
+
+        
+}
+
+    
+}
+
+    
+Model: 100001, "Model::SM_Intact_N_Beam_2_left_15_40_M_Original", "Mesh" 
+{
+
+        
+Version: 232
+        
+Properties70:  
+{
+
+            
+P: "Lcl Translation", "Lcl Translation", "", "A",0,0,0
+            
+P: "Lcl Rotation", "Lcl Rotation", "", "A",0,0,0
+            
+P: "Lcl Scaling", "Lcl Scaling", "", "A",1,1,1
+        
+}
+
+        
+Shading: T
+        
+Culling: "CullingOff"
+    
+}
+
+
+}
+
+
+Connections:  
+{
+
+    
+C: "OO",100003,0
+    
+C: "OO",100002,100001
+    
+C: "OO",100001,100003
+    
+C: "OO",100000,100001
+
+}
+

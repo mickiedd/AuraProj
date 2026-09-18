@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1120" viewBox="0 0 1500 1120">
+  <rect width="1500" height="1120" fill="#101923"/>
+  <style>
+    .title{font:700 33px Arial;fill:#f3f7fb}.sub{font:15px Arial;fill:#aec0cc}
+    .h{font:700 20px Arial;fill:#9fe3ff}.t{font:15px Arial;fill:#d6e2ea}
+    .small{font:13px Arial;fill:#aec0cc}.mono{font:12px Consolas,monospace;fill:#cfe6f2}
+    .box{fill:#172735;stroke:#4c7188;stroke-width:2}
+    .good{fill:#163c37;stroke:#54d5ae;stroke-width:2}
+    .warn{fill:#3a3320;stroke:#e0c15a;stroke-width:2}
+    .bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}
+    .arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+
+  <text x="60" y="60" class="title">GuangzhouLandmarks — Cross-Building Audit and Tuning</text>
+  <text x="60" y="88" class="sub">2026-09-18 • all seven building Blueprints inspected • 214 Nanite meshes normalised • Guidemen V5 4K detail pass</text>
+  <text x="60" y="110" class="sub">Two component architectures covered: HISM-based (V5, Zhengnanmen HighFidelity) and StaticMeshComponent-based (the three V3 builds)</text>
+
+  <!-- AUDIT -->
+  <rect x="60" y="140" width="450" height="330" rx="14" class="box"/>
+  <text x="84" y="174" class="h">Audit — what was inspected</text>
+  <text x="84" y="204" class="mono">Zhengnanmen_HighFidelity   114 HISM   12,383 inst</text>
+  <text x="84" y="226" class="mono">Xiaobeimen_AAA_V3           51 SMC        51 inst</text>
+  <text x="84" y="248" class="mono">Xiaobeimen_Production_V3    16 SMC        16 inst</text>
+  <text x="84" y="270" class="mono">Zhengnanmen_AAA_V3          25 SMC        25 inst</text>
+  <text x="84" y="292" class="mono">Guidemen_V5_4K              47 HISM   18,822 inst</text>
+  <text x="84" y="314" class="mono">Wuxianmen_V5_4K_Core         7 HISM    5,103 inst</text>
+  <text x="84" y="336" class="mono">Wuxianmen_V5_FullPBR         7 HISM    5,103 inst</text>
+  <text x="84" y="370" class="t">Checks applied to every building</text>
+  <text x="84" y="396" class="small">roof orientation · elongated-instance outliers · role/mesh name</text>
+  <text x="84" y="416" class="small">agreement · Nanite state · custom-data width · materials</text>
+  <text x="84" y="446" class="small">The first pass only understood HISM components, so the three V3</text>
+  <text x="84" y="464" class="small">builds reported zero; the second pass covers both architectures.</text>
+
+  <path d="M520 305 L570 305" class="arrow"/>
+
+  <!-- FINDINGS: none -->
+  <rect x="570" y="140" width="430" height="330" rx="14" class="good"/>
+  <text x="594" y="174" class="h">No Wuxianmen-class geometry defects</text>
+  <text x="594" y="204" class="t">Roof orientation</text>
+  <text x="594" y="230" class="small">Zhengnanmen HighFidelity: centre 374 cm above the perimeter —</text>
+  <text x="594" y="250" class="small">rises to a ridge. Guidemen: verified directly from its tile surface,</text>
+  <text x="594" y="270" class="small">2,002 cm at the centre falling to 1,465 cm at the perimeter.</text>
+  <text x="594" y="298" class="t">Ridge axis</text>
+  <text x="594" y="324" class="small">Guidemen's two main ridges run 31.2 m and 27.2 m along X, matching</text>
+  <text x="594" y="344" class="small">its pavilion width. No mis-axed bar anywhere.</text>
+  <text x="594" y="372" class="t">Two false positives, run down and dismissed</text>
+  <text x="594" y="398" class="small">A 2,230 cm "elongated outlier" on Zhengnanmen is the 22.3 m top</text>
+  <text x="594" y="418" class="small">rail of its balustrade, running along the building's long axis.</text>
+  <text x="594" y="438" class="small">Guidemen's "inverted" verdict came from its 11 large shell</text>
+  <text x="594" y="458" class="small">instances; the direct tile profile shows a correct ridge.</text>
+
+  <!-- FINDINGS: nanite -->
+  <rect x="1020" y="140" width="420" height="330" rx="14" class="bad"/>
+  <text x="1044" y="174" class="h">The real defect: Nanite fallbacks</text>
+  <text x="1044" y="206" class="t">214 meshes across five buildings</text>
+  <text x="1044" y="234" class="small">Guidemen: every one of its 47 meshes, including the 16,248-instance</text>
+  <text x="1044" y="254" class="small">roof tiles, both roof shells and both main ridges.</text>
+  <text x="1044" y="278" class="small">Both Xiaobeimen builds and Zhengnanmen AAA V3: roof tiles, roof</text>
+  <text x="1044" y="298" class="small">shells, ridge ornaments, plaques, doors, railings.</text>
+  <text x="1044" y="322" class="small">Zhengnanmen HighFidelity: 103 meshes — beams, doors, floor cores,</text>
+  <text x="1044" y="342" class="small">arch fills, rails, ridge ends, dressed stone, tiles.</text>
+  <text x="1044" y="374" class="t">Why it matters here</text>
+  <text x="1044" y="400" class="small">The archive records this editor rendering with Nanite DISABLED on</text>
+  <text x="1044" y="420" class="small">an SM5 fallback path. On that path the fallback mesh is what draws.</text>
+  <text x="1044" y="444" class="mono">before:  error 1.0   percent 1.0  → 1% of triangles</text>
+  <text x="1044" y="462" class="small">A 53,238-triangle tiled roof would have fallen back to ~532.</text>
+
+  <path d="M750 486 L750 516" class="arrow"/>
+
+  <!-- FIXES -->
+  <rect x="60" y="530" width="660" height="310" rx="14" class="good"/>
+  <text x="84" y="564" class="h">Fix 1 — Nanite fallback normalised</text>
+  <text x="84" y="596" class="small">Target rule: every Nanite mesh whose fallback is not full-detail, discovered by</text>
+  <text x="84" y="616" class="small">scanning the Blueprints rather than an earlier report. That mattered: the report</text>
+  <text x="84" y="636" class="small">flagged only error &gt; 0 and missed 103 Zhengnanmen meshes that already had</text>
+  <text x="84" y="656" class="small">error 0.0 but percent 1.0 — a partial fix the validation caught.</text>
+  <text x="84" y="688" class="mono">fallback_relative_error      1.0  →  0.0</text>
+  <text x="84" y="710" class="mono">fallback_percent_triangles   1.0  →  100.0</text>
+  <text x="84" y="740" class="small">Applied through StaticMeshEditorSubsystem.set_nanite_settings, then post_edit_change</text>
+  <text x="84" y="760" class="small">and save. Nanite-off collision meshes (UCX_*) were left alone, correctly.</text>
+  <text x="84" y="792" class="t">Result: 111 + 103 = 214 meshes, 0 skipped, 0 still flagged</text>
+  <text x="84" y="820" class="small">Wuxianmen already carried 0.0 / 100.0, so it is now the project-wide standard.</text>
+
+  <rect x="760" y="530" width="680" height="310" rx="14" class="good"/>
+  <text x="784" y="564" class="h">Fix 2 — Guidemen V5 4K detail pass</text>
+  <text x="784" y="596" class="small">Guidemen is the V5 sibling of Wuxianmen and shares its `_ReferenceTuned` material</text>
+  <text x="784" y="616" class="small">family, but never received the revision-2/3 treatment. Its two largest surfaces</text>
+  <text x="784" y="636" class="small">were flat: 2,170 stone blocks and 16,248 roof tiles, both uniform.</text>
+  <text x="784" y="668" class="t">Stone — 15 components, 1,889 instances</text>
+  <text x="784" y="694" class="mono">custom data 0 = UV offset   1 = wall height 0..1   2 = tone seed</text>
+  <text x="784" y="716" class="small">wall-height stain, per-instance tone 0.72..1.22, restrained moss on the base</text>
+  <text x="784" y="744" class="t">Roof tile — 12 components, 16,270 instances</text>
+  <text x="784" y="770" class="small">per-instance tone 0.86..1.16 so the roof is not one flat surface</text>
+  <text x="784" y="802" class="small">Unlike Wuxianmen these materials also sample an AO map, so the rebuild</text>
+  <text x="784" y="822" class="small">replicates that hookup: BaseColor x tint, Normal, MR-G roughness, MR-B metallic, AO-R.</text>
+
+  <!-- VALIDATION -->
+  <rect x="60" y="864" width="1380" height="130" rx="14" class="good"/>
+  <text x="84" y="898" class="h">Validation</text>
+  <text x="84" y="928" class="small">• Nanite sweep over all seven Blueprints: 228 Nanite meshes checked, 0 offenders. Every one reports error 0.0 and percent 100.0.</text>
+  <text x="84" y="950" class="small">• Guidemen: 47 components and 18,822 instances preserved; collision profile, visibility and shadow flags unchanged; every instance transform byte-identical to the pass baseline.</text>
+  <text x="84" y="972" class="small">• New materials bound to 15 stone and 12 tile components; custom-data channels sized 3 and 1; wall-height input spans −13 to 1,095 cm.</text>
+
+  <!-- LIMITS -->
+  <rect x="60" y="1014" width="1380" height="86" rx="14" class="warn"/>
+  <text x="84" y="1048" class="h">Limits</text>
+  <text x="84" y="1076" class="small">No perspective review was possible for this pass either: the deferred high-res screenshot still writes one stale frame per requested view. The Guidemen material values are measured and numerically validated but not visually confirmed. The three V3 builds and Zhengnanmen HighFidelity were audited but not materially retuned — they have had dedicated passes of their own, and their roof orientation is verified correct.</text>
+</svg>

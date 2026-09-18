@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1000" viewBox="0 0 1500 1000">
+  <rect width="1500" height="1000" fill="#101923"/>
+  <style>
+    .title{font:700 31px Arial;fill:#f3f7fb}.sub{font:14px Arial;fill:#aec0cc}
+    .h{font:700 19px Arial;fill:#9fe3ff}.t{font:14px Arial;fill:#d6e2ea}
+    .small{font:12px Arial;fill:#aec0cc}.mono{font:12px Consolas,monospace;fill:#cfe6f2}
+    .good{fill:#163c37;stroke:#54d5ae;stroke-width:2}
+    .warn{fill:#3a3320;stroke:#e0c15a;stroke-width:2}
+    .bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}
+    .box{fill:#172735;stroke:#4c7188;stroke-width:2}
+  </style>
+  <text x="60" y="54" class="title">Guidemen — the source model itself has the inverted roof</text>
+  <text x="60" y="80" class="sub">2026-09-18 • source audit of Guidemen_GuideGate_UE5_100M_Instanced.glb • the defect is in the source, not the import</text>
+
+  <rect x="60" y="108" width="440" height="250" rx="14" class="box"/>
+  <text x="84" y="142" class="h">The source, found and extracted</text>
+  <text x="84" y="172" class="mono">C:\Works\Raw3DModels\V5\</text>
+  <text x="84" y="192" class="mono">  Guidemen_GuideGate_UE5_ModelPlusGenerated4KMaterials.zip</text>
+  <text x="84" y="220" class="small">Model/Guidemen_GuideGate_UE5_100M_Instanced.glb — 74.8 MB</text>
+  <text x="84" y="240" class="small">18,823 scene nodes · 48 geometry definitions · 8 materials</text>
+  <text x="84" y="260" class="small">16,248 roof-tile instances · 8 full PBR material sets + 8 4K sheets</text>
+  <text x="84" y="282" class="small">Y-up, metres: 56.39 W x 20.26 H x 18.00 D</text>
+  <text x="84" y="312" class="t">Extracted to</text>
+  <text x="84" y="336" class="mono">Saved/RawModelImport/V5/GuidemenRebuild/source/</text>
+
+  <rect x="520" y="108" width="460" height="250" rx="14" class="good"/>
+  <text x="544" y="142" class="h">The ridge runs along X — confirmed three ways</text>
+  <text x="544" y="172" class="small">All 12 `G_RidgeBeast` ornaments sit at <tspan font-weight="700">Z = 0.0</tspan>, spread along X</text>
+  <text x="544" y="192" class="small">from −14.7 to +14.7. They sit on the ridge, so that IS the ridge line.</text>
+  <text x="544" y="222" class="mono">R1_MainRidge  extent(X,Y,Z) = [31.2, 0.28, 0.28]  Z = −0.14..0.14</text>
+  <text x="544" y="242" class="mono">R2_MainRidge  extent(X,Y,Z) = [27.2, 0.27, 0.26]  Z = −0.13..0.13</text>
+  <text x="544" y="272" class="small">Both ridge bars run along X at Z ≈ 0. The building is 56 m wide in X and</text>
+  <text x="544" y="292" class="small">18 m deep in Z, so X is where a ridge belongs. <tspan font-weight="700">No mis-axed bar.</tspan></text>
+  <text x="544" y="322" class="small">Shell families agree: Front/Back span 31 m in X (main slopes, sloping in Z),</text>
+  <text x="544" y="340" class="small">Left/Right span 15.5 m in X (hip ends, sloping in X).</text>
+
+  <rect x="1010" y="108" width="430" height="250" rx="14" class="bad"/>
+  <text x="1034" y="142" class="h">The shells are inverted IN THE SOURCE</text>
+  <text x="1034" y="172" class="small">Measured from the source vertices, at the inner edge (near the ridge) and</text>
+  <text x="1034" y="192" class="small">the outer edge:</text>
+  <text x="1034" y="222" class="mono">R1_RoofShellLeft   inner Y=14.708   outer Y=16.269</text>
+  <text x="1034" y="242" class="mono">R1_RoofShellRight  inner Y=14.708   outer Y=16.269</text>
+  <text x="1034" y="262" class="mono">R2_RoofShellLeft   inner Y=18.628   outer Y=19.966</text>
+  <text x="1034" y="282" class="mono">R2_RoofShellRight  inner Y=18.628   outer Y=19.966</text>
+  <text x="1034" y="312" class="small">Every hip shell is <tspan font-weight="700">higher at its outer edge than at the ridge</tspan> — a valley, in</text>
+  <text x="1034" y="332" class="small">the source file. The V5 import reproduced it faithfully.</text>
+
+  <rect x="60" y="386" width="1380" height="210" rx="14" class="warn"/>
+  <text x="84" y="420" class="h">Why this explains everything that went wrong</text>
+  <text x="84" y="450" class="mono">source tiles      span Y 12.92 .. 18.64   ridge bar R1 Y 14.72..15.00   ornaments Y 15.18..15.58   → these agree</text>
+  <text x="84" y="472" class="mono">source shells R1  span Y 14.62 .. 16.34   i.e. 1.63 m ABOVE the tiled surface, and sloping the wrong way</text>
+  <text x="84" y="502" class="small">The tiles, the ridge bars and the ridge ornaments all agree with each other. The eight shells do not. So the source has one coherent roof and a set of</text>
+  <text x="84" y="522" class="small">shells sitting above it, inverted — which is exactly the valley the user has been seeing through every pass, and exactly what my UE-side measurements</text>
+  <text x="84" y="542" class="small">kept contradicting themselves about, because I was measuring a surface that disagrees with the roof it sits on.</text>
+  <text x="84" y="572" class="small">It also means the shell fix already applied (flip + reseat to 12.90..14.62, just under the tiles at 12.92..14.72) puts them exactly where the source's own</text>
+  <text x="84" y="590" class="small">tile span says they belong — matching the tiles to within 2 cm on both tiers.</text>
+
+  <rect x="60" y="620" width="1380" height="180" rx="14" class="box"/>
+  <text x="84" y="654" class="h">Rebuild plan — and the one decision it needs</text>
+  <text x="84" y="684" class="small">1. Source is extracted and audited: <tspan font="12px Consolas,monospace">Saved/RawModelImport/V5/GuidemenRebuild/source/</tspan> — GLB, 8 PBR material sets, 8 4K sheets, build report.</text>
+  <text x="84" y="706" class="small">2. The existing V5 pipeline (<tspan font="12px Consolas,monospace">Scripts/PrepareV5Buildings.py</tspan>) already knows how to import this package and build the 47-component HISM Blueprint.</text>
+  <text x="84" y="728" class="small">3. Rebuild into a NEW task-owned package so the current asset stays recoverable, then re-apply the reference tuning and the shell correction.</text>
+  <text x="84" y="758" class="t">The decision: a clean rebuild from this source reproduces the shell defect.</text>
+  <text x="84" y="780" class="small">So the rebuild must either correct the shells after import (flip + reseat, as already done and verified on the current asset), or the source GLB should be</text>
+  <text x="84" y="798" class="small">corrected upstream and re-exported. Correcting it in the pipeline is reversible and keeps the source untouched; that is the recommendation.</text>
+
+  <rect x="60" y="826" width="1380" height="150" rx="14" class="good"/>
+  <text x="84" y="860" class="h">What is now known for certain</text>
+  <text x="84" y="890" class="small">• The ridge runs along X at Z = 0 — established from three independent parts of the source (ornaments, both ridge bars, shell families). No mis-axed ridge.</text>
+  <text x="84" y="912" class="small">• The roof tiles, ridge bars and ornaments form one coherent, correct roof in the source: tiles top at Y 14.71 / 18.64, ridge bars 14.72–15.00 / 18.65–18.92.</text>
+  <text x="84" y="934" class="small">• The eight roof shells are inverted in the source and sit 1.63 m above the tiled surface. That is the defect, and it is upstream of Unreal.</text>
+  <text x="84" y="956" class="small">• The source's tile span (12.92–14.72 lower, 17.03–18.65 upper) is what the shell correction was matched against, to within 2 cm.</text>
+</svg>

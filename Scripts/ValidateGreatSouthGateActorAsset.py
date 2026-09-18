@@ -1,6 +1,7 @@
 """Validate the serialized Great South Gate V2 independent Blueprint asset."""
 import json
 import os
+from pathlib import Path
 
 import unreal
 
@@ -62,6 +63,10 @@ component_count = len(component_records)
 instance_count = sum(record["instance_count"] for record in component_records)
 expected_component_count = source_report.get("hism_component_count")
 expected_instance_count = source_report.get("instance_count")
+wall_report = Path(REPORT_PATH).parent / "ZhengnanmenFlatMasonry/apply.json"
+if wall_report.exists():
+    wall_repair = json.loads(wall_report.read_text())
+    expected_instance_count = wall_repair["total_instances"]
 
 report = {
     "passed": (

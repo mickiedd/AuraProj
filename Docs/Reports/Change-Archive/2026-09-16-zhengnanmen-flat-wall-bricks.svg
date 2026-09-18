@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1060" viewBox="0 0 1400 1060">
+<rect width="1400" height="1060" fill="#142131"/>
+<g font-family="Segoe UI,Arial" fill="#f0f5fb">
+<text x="40" y="53" font-size="32" font-weight="bold">Zhengnanmen V2 — flat wall masonry</text>
+<text x="40" y="88" font-size="20">BP_GreatSouthGate_Zhengnanmen_V2_ActorAsset · 2026-09-16</text>
+<text x="40" y="142" font-size="25" fill="#ffb4a5">BEFORE: inward faces and uneven placement</text>
+<text x="720" y="142" font-size="25" fill="#a2e6c2">AFTER: flat faces and aligned courses</text>
+<image href="2026-09-16-zhengnanmen-flat-wall-bricks-before.png" x="40" y="162" width="640" height="400"/>
+<image href="2026-09-16-zhengnanmen-flat-wall-bricks-after.png" x="720" y="162" width="640" height="400"/>
+<text x="40" y="602" font-size="19">120,000 / 120,000 source triangles face inward</text>
+<text x="40" y="635" font-size="19">Random height/depth/width makes recessed, uneven blocks</text>
+<text x="720" y="602" font-size="19">Closed 44-triangle stone with six planar major faces</text>
+<text x="720" y="635" font-size="19">Four coplanar wall faces; level courses; 1.2 cm joints</text>
+<rect x="40" y="674" width="420" height="128" rx="12" fill="#20433e"/>
+<rect x="490" y="674" width="420" height="128" rx="12" fill="#20433e"/>
+<rect x="940" y="674" width="420" height="128" rx="12" fill="#20433e"/>
+<text x="58" y="710" font-size="21">1. Author correct prototype</text>
+<text x="58" y="747" font-size="18">Outward winding + small edge bevel</text>
+<text x="58" y="781" font-size="18">Keep existing stone PBR material</text>
+<text x="508" y="710" font-size="21">2. Replace one HISM payload</text>
+<text x="508" y="747" font-size="18">4,150 flat stone blocks on four walls</text>
+<text x="508" y="781" font-size="18">Trim arch edges; remove 4 intrusive cells</text>
+<text x="958" y="710" font-size="21">3. Validate saved Blueprint</text>
+<text x="958" y="747" font-size="18">113 other components preserved</text>
+<text x="958" y="781" font-size="18">114 components / 12,383 total instances</text>
+<text x="40" y="859" font-size="24" font-weight="bold">Validation and boundaries</text>
+<text x="40" y="899" font-size="20">PASS: imported OBJ topology — closed, outward, six planar major faces; no inverted triangles</text>
+<text x="40" y="935" font-size="20">PASS: actual wall transforms — four flat planes, 23 courses per face, no overlapping blocks or arch intrusion</text>
+<text x="40" y="971" font-size="20">PASS: live portable spawn, fresh NullRHI serialized checks, Python compilation, Git whitespace check</text>
+<text x="40" y="1013" font-size="18" fill="#bdcad9">Front/side close-ups and hero inspected. Existing arch lining and historical brick bond are outside this pass.</text>
+</g></svg>

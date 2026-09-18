@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900">
+  <rect width="1500" height="900" fill="#101923"/>
+  <style>
+    .title{font:700 34px Arial;fill:#f3f7fb}.h{font:700 22px Arial;fill:#9fe3ff}.t{font:16px Arial;fill:#d6e2ea}.small{font:14px Arial;fill:#aec0cc}.box{fill:#172735;stroke:#4c7188;stroke-width:2}.bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}.good{fill:#163c37;stroke:#54d5ae;stroke-width:2}.arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+  <text x="60" y="66" class="title">Wuxianmen V5 Core — Roof Tiling Repair</text>
+  <text x="60" y="98" class="small">2026-09-17 • material-boundary repair • authored geometry and instance payload preserved</text>
+
+  <rect x="60" y="150" width="390" height="310" rx="16" class="bad"/>
+  <text x="88" y="190" class="h">Before: full UV range</text>
+  <text x="88" y="235" class="t">Roof_BaseColor_4K.png</text>
+  <text x="88" y="265" class="small">4096 × 4096 container</text>
+  <rect x="90" y="292" width="330" height="110" fill="#555"/>
+  <rect x="90" y="347" width="330" height="55" fill="#050505"/>
+  <text x="105" y="330" class="small">authored gray tile sheet</text>
+  <text x="105" y="382" class="small">black padded lower half</text>
+  <text x="88" y="435" class="t">UV 0..1 sampled the padding</text>
+
+  <path d="M450 305 L540 305" class="arrow"/>
+
+  <rect x="540" y="150" width="420" height="310" rx="16" class="box"/>
+  <text x="568" y="190" class="h">Smallest repair</text>
+  <text x="568" y="235" class="t">M_RoofTile_ReferenceTuned_RoofTilingFix</text>
+  <text x="568" y="278" class="small">TextureCoordinate 0</text>
+  <text x="568" y="306" class="small">U tiling = 1.0</text>
+  <text x="568" y="334" class="small">V tiling = 0.5 → samples V 0..0.5</text>
+  <text x="568" y="380" class="t">One shared UV contract</text>
+  <text x="568" y="408" class="small">base color • normal • roughness</text>
+  <text x="568" y="438" class="small">original material remains recoverable</text>
+
+  <path d="M960 305 L1050 305" class="arrow"/>
+
+  <rect x="1050" y="150" width="390" height="310" rx="16" class="good"/>
+  <text x="1078" y="190" class="h">After: repeated gray tiles</text>
+  <text x="1078" y="235" class="t">Rebound only two roof roles</text>
+  <text x="1078" y="270" class="small">HISM_002 lower_tile • 324 instances</text>
+  <text x="1078" y="296" class="small">HISM_004 ridge • 10 instances</text>
+  <text x="1078" y="345" class="t">Preserved</text>
+  <text x="1078" y="373" class="small">7 components • 5,103 instances</text>
+  <text x="1078" y="399" class="small">all transform hashes • meshes • UVs</text>
+  <text x="1078" y="425" class="small">collision • visibility • shadows</text>
+
+  <rect x="60" y="535" width="1380" height="245" rx="16" class="box"/>
+  <text x="88" y="580" class="h">Validation evidence — PASS</text>
+  <text x="88" y="622" class="t">Live Core validator</text>
+  <text x="340" y="622" class="small">3646.65 × 2429.23 × 1700.17 cm • 7 HISM • 5,103 instances • transient actor cleaned</text>
+  <text x="88" y="660" class="t">Source texture audit</text>
+  <text x="340" y="660" class="small">upper mean 69.642 • lower mean 0.000 • lower non-black fraction 0.000000</text>
+  <text x="88" y="698" class="t">Global V5 validation</text>
+  <text x="340" y="698" class="small">Guidemen, Wuxianmen Core, and Wuxianmen FullPBR passed package-local checks</text>
+  <text x="88" y="736" class="t">Visual evidence</text>
+  <text x="340" y="736" class="small">hero and roof-close transient captures; no map saved</text>
+</svg>

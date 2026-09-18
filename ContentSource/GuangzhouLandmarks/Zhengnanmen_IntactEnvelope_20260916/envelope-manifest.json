@@ -1,0 +1,3040 @@
+{
+  "source_glb": "C:\\Works\\Raw3DModels\\V2\\GreatSouthGate_Zhengnanmen_UE5_Complete_Package\\GreatSouthGate_Zhengnanmen_UE5_HighFidelity.glb",
+  "preserve_original_vertices_uvs": true,
+  "preserve_instance_transforms": true,
+  "entries": [
+    {
+      "component": "HierarchicalInstancedStaticMesh72_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_2_right_19_00.N_Beam_2_right_19_00",
+      "source_role": "Beam_2_right_19.00",
+      "mesh_name": "SM_Intact_N_Beam_2_right_19_00",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_right_19_00.fbx",
+      "sha256": "58548f656fc44727e220649260ee5960a7859ffe9b150f2d92a865f8954632c7",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_right_19_00.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1333800.0145196903,
+      "new_volume_cm3": 1333800.0145196903,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -18.99999976158142,
+          -584.9999904632568
+        ],
+        [
+          15.000000596046448,
+          18.99999976158142,
+          584.9999904632568
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh74_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Door_-1.N_Door_-1",
+      "source_role": "Door_-1",
+      "mesh_name": "SM_Intact_N_Door_Neg1",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Door_Neg1.fbx",
+      "sha256": "83a8a686fc5616f8ef6c36265d73e33ee2a1efe3b7e2ff88accaa5d816fcdc86",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Door_Neg1.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1154400.0173032277,
+      "new_volume_cm3": 1154400.0173032277,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -97.50000238418579,
+          -185.0000023841858,
+          -7.999999821186066
+        ],
+        [
+          97.50000238418579,
+          185.0000023841858,
+          7.999999821186066
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh75_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Door_1.N_Door_1",
+      "source_role": "Door_1",
+      "mesh_name": "SM_Intact_N_Door_1",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Door_1.fbx",
+      "sha256": "983235390ebe6fe9b59ef82075811ef7dbce24171e56d84992ec8fd7a93bb5ec",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Door_1.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1154400.0173032277,
+      "new_volume_cm3": 1154400.0173032277,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -97.50000238418579,
+          -185.0000023841858,
+          -7.999999821186066
+        ],
+        [
+          97.50000238418579,
+          185.0000023841858,
+          7.999999821186066
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh79_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_FloorCore_0.N_FloorCore_0",
+      "source_role": "FloorCore_0",
+      "mesh_name": "SM_Intact_N_FloorCore_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_FloorCore_0.fbx",
+      "sha256": "dbf2fd3e58567e5114ba2871dbcc086e0cb3b032f0dc326b4d0f2cf252d9d2d7",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_FloorCore_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -678810008.7070462,
+      "new_volume_cm3": 678810008.7070462,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1100.0,
+          -127.49999761581421,
+          -605.0000190734863
+        ],
+        [
+          1100.0,
+          127.49999761581421,
+          605.0000190734863
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh80_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_FloorCore_1.N_FloorCore_1",
+      "source_role": "FloorCore_1",
+      "mesh_name": "SM_Intact_N_FloorCore_1",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_FloorCore_1.fbx",
+      "sha256": "26577495b52f760988ebb47373d2cfcd2f47e2294b7a19c54a80c5b418b2a767",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_FloorCore_1.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -612919977.8127673,
+      "new_volume_cm3": 612919977.8127673,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -994.9999809265137,
+          -139.9999976158142,
+          -550.0
+        ],
+        [
+          994.9999809265137,
+          139.9999976158142,
+          550.0
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh81_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_FloorCore_2.N_FloorCore_2",
+      "source_role": "FloorCore_2",
+      "mesh_name": "SM_Intact_N_FloorCore_2",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_FloorCore_2.fbx",
+      "sha256": "0f6a0f0181043fa7ea120cc3cc6c15a2e673ee7a4dbc2940b3029ed798f74a38",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_FloorCore_2.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -593653447.5736634,
+      "new_volume_cm3": 593653447.5736634,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -894.9999809265137,
+          -167.49999523162842,
+          -494.9999809265137
+        ],
+        [
+          894.9999809265137,
+          167.49999523162842,
+          494.9999809265137
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh82_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_InteriorShadow.N_InteriorShadow",
+      "source_role": "InteriorShadow",
+      "mesh_name": "SM_Intact_N_InteriorShadow",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_InteriorShadow.fbx",
+      "sha256": "2ca265e30bc36a4d8f331c2cd036ceb59ba0fb644adb64c2e649526e38646cde",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_InteriorShadow.npz",
+      "reason": "Give visual plane a closed backing and edge faces",
+      "original_uv0_present": true,
+      "old_triangles": 2,
+      "new_triangles": 12,
+      "old_closed": false,
+      "old_volume_cm3": 0.0,
+      "new_volume_cm3": 460650.026416779,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -207.50000476837158,
+          -277.50000953674316,
+          0.0
+        ],
+        [
+          207.50000476837158,
+          277.50000953674316,
+          2.0
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh83_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_FB_0_-1_0_0.N_RailH_FB_0_-1_0_0",
+      "source_role": "RailH_FB_0_-1",
+      "mesh_name": "SM_Intact_N_RailH_FB_0_Neg1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_0_Neg1_0_0.fbx",
+      "sha256": "61c3563f5ea6d5477d4f5dea41f0a4b3d1ead8b6e210408d1114357090889c57",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_0_Neg1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -205200.00434517837,
+      "new_volume_cm3": 205200.00434517837,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1139.9999618530273,
+          -5.000000074505806,
+          -4.500000178813934
+        ],
+        [
+          1139.9999618530273,
+          5.000000074505806,
+          4.500000178813934
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh84_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_FB_0_1_0_0.N_RailH_FB_0_1_0_0",
+      "source_role": "RailH_FB_0_1",
+      "mesh_name": "SM_Intact_N_RailH_FB_0_1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_0_1_0_0.fbx",
+      "sha256": "7a90b45d5d714d22448ee7bfbf7c43a2d1a8097c299d7336f734850281435580",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_0_1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -205200.00434517837,
+      "new_volume_cm3": 205200.00434517837,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1139.9999618530273,
+          -5.000000074505806,
+          -4.500000178813934
+        ],
+        [
+          1139.9999618530273,
+          5.000000074505806,
+          4.500000178813934
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh70_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_2_left_19_00.N_Beam_2_left_19_00",
+      "source_role": "Beam_2_left_19.00",
+      "mesh_name": "SM_Intact_N_Beam_2_left_19_00",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_left_19_00.fbx",
+      "sha256": "ad69cd0a8043871f990fff4956920ba17211036f7f2b958bffce746a7a77d30c",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_left_19_00.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1333800.0145196903,
+      "new_volume_cm3": 1333800.0145196903,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -18.99999976158142,
+          -584.9999904632568
+        ],
+        [
+          15.000000596046448,
+          18.99999976158142,
+          584.9999904632568
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh71_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_2_right_15_40.N_Beam_2_right_15_40",
+      "source_role": "Beam_2_right_15.40",
+      "mesh_name": "SM_Intact_N_Beam_2_right_15_40",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_right_15_40.fbx",
+      "sha256": "343f329c099ef64023ed48fe49999d68126eaf66204d55cce5e6d6b318739177",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_right_15_40.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1123200.0012159336,
+      "new_volume_cm3": 1123200.0012159336,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -15.999999642372131,
+          -584.9999904632568
+        ],
+        [
+          15.000000596046448,
+          15.999999642372131,
+          584.9999904632568
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh62_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_1_left_14_75.N_Beam_1_left_14_75",
+      "source_role": "Beam_1_left_14.75",
+      "mesh_name": "SM_Intact_N_Beam_1_left_14_75",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_left_14_75.fbx",
+      "sha256": "423170ce12b71265f865ae15d6798553c51a5d57cc6bb94e81c41563e0e03801",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_left_14_75.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1459200.061416626,
+      "new_volume_cm3": 1459200.061416626,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -18.99999976158142,
+          -640.0000095367432
+        ],
+        [
+          15.000000596046448,
+          18.99999976158142,
+          640.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh57_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_1_back_11_70.N_Beam_1_back_11_70",
+      "source_role": "Beam_1_back_11.70",
+      "mesh_name": "SM_Intact_N_Beam_1_back_11_70",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_back_11_70.fbx",
+      "sha256": "53740dc4c1e9ec4ad24f7a172be52bedf5c85f6f6f41425dd78a3c42f7836aa8",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_back_11_70.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2083200.109457969,
+      "new_volume_cm3": 2083200.109457969,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1085.0000381469727,
+          -15.999999642372131,
+          -15.000000596046448
+        ],
+        [
+          1085.0000381469727,
+          15.999999642372131,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh58_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_1_back_14_75.N_Beam_1_back_14_75",
+      "source_role": "Beam_1_back_14.75",
+      "mesh_name": "SM_Intact_N_Beam_1_back_14_75",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_back_14_75.fbx",
+      "sha256": "b5f0e02815e4a431844dba78632a9fcbae078ffea6d3090c3f8a4f06f4dc4b25",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_back_14_75.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2473800.15423298,
+      "new_volume_cm3": 2473800.15423298,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1085.0000381469727,
+          -18.99999976158142,
+          -15.000000596046448
+        ],
+        [
+          1085.0000381469727,
+          18.99999976158142,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh59_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_1_front_11_70.N_Beam_1_front_11_70",
+      "source_role": "Beam_1_front_11.70",
+      "mesh_name": "SM_Intact_N_Beam_1_front_11_70",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_front_11_70.fbx",
+      "sha256": "b1be6343e107a4eb8eb8e6fd3273c55f1719632fb5848062451f4b43f153edc1",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_front_11_70.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2083200.109457969,
+      "new_volume_cm3": 2083200.109457969,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1085.0000381469727,
+          -15.999999642372131,
+          -15.000000596046448
+        ],
+        [
+          1085.0000381469727,
+          15.999999642372131,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh60_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_1_front_14_75.N_Beam_1_front_14_75",
+      "source_role": "Beam_1_front_14.75",
+      "mesh_name": "SM_Intact_N_Beam_1_front_14_75",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_front_14_75.fbx",
+      "sha256": "df3cc9865f08259bb920aa93e02d62bd8ae06ef052271b13dd56d481c1e9faf7",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_front_14_75.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2473800.15423298,
+      "new_volume_cm3": 2473800.15423298,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1085.0000381469727,
+          -18.99999976158142,
+          -15.000000596046448
+        ],
+        [
+          1085.0000381469727,
+          18.99999976158142,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh61_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_1_left_11_70.N_Beam_1_left_11_70",
+      "source_role": "Beam_1_left_11.70",
+      "mesh_name": "SM_Intact_N_Beam_1_left_11_70",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_left_11_70.fbx",
+      "sha256": "0e4a0a688b6f90ee185e25893b01c186ed13727a27a00287b2e3144361cda4ec",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_left_11_70.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1228800.0396728509,
+      "new_volume_cm3": 1228800.0396728509,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -15.999999642372131,
+          -640.0000095367432
+        ],
+        [
+          15.000000596046448,
+          15.999999642372131,
+          640.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh63_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_1_right_11_70.N_Beam_1_right_11_70",
+      "source_role": "Beam_1_right_11.70",
+      "mesh_name": "SM_Intact_N_Beam_1_right_11_70",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_right_11_70.fbx",
+      "sha256": "1a3bd66c7aa0857f35d4d5947da0b5ba43b5273bdd37ed3a74db14237e9bf3f2",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_right_11_70.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1228800.0396728509,
+      "new_volume_cm3": 1228800.0396728509,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -15.999999642372131,
+          -640.0000095367432
+        ],
+        [
+          15.000000596046448,
+          15.999999642372131,
+          640.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh69_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_2_left_15_40.N_Beam_2_left_15_40",
+      "source_role": "Beam_2_left_15.40",
+      "mesh_name": "SM_Intact_N_Beam_2_left_15_40",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_left_15_40.fbx",
+      "sha256": "85484e03d53b2a56c7f3b6858d4defd32db0c2a07c7e53d848146f51dfb730c4",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_left_15_40.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1123200.0012159336,
+      "new_volume_cm3": 1123200.0012159336,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -15.999999642372131,
+          -584.9999904632568
+        ],
+        [
+          15.000000596046448,
+          15.999999642372131,
+          584.9999904632568
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh64_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_1_right_14_75.N_Beam_1_right_14_75",
+      "source_role": "Beam_1_right_14.75",
+      "mesh_name": "SM_Intact_N_Beam_1_right_14_75",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_right_14_75.fbx",
+      "sha256": "f7235913604f8a1649c3113a6c5b643a55b69e05fc20c4590886cb9a2bad8ebd",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_1_right_14_75.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1459200.061416626,
+      "new_volume_cm3": 1459200.061416626,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -18.99999976158142,
+          -640.0000095367432
+        ],
+        [
+          15.000000596046448,
+          18.99999976158142,
+          640.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh65_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_2_back_15_40.N_Beam_2_back_15_40",
+      "source_role": "Beam_2_back_15.40",
+      "mesh_name": "SM_Intact_N_Beam_2_back_15_40",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_back_15_40.fbx",
+      "sha256": "c1f8c2d40ef682a2a4dbf1384f6c12ef4280c1c3aa342421b8fdd22069ec5b21",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_back_15_40.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1891200.1061201089,
+      "new_volume_cm3": 1891200.1061201089,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -985.0000381469727,
+          -15.999999642372131,
+          -15.000000596046448
+        ],
+        [
+          985.0000381469727,
+          15.999999642372131,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh66_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_2_back_19_00.N_Beam_2_back_19_00",
+      "source_role": "Beam_2_back_19.00",
+      "mesh_name": "SM_Intact_N_Beam_2_back_19_00",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_back_19_00.fbx",
+      "sha256": "70d5d8741c3d0c98b0da0b67c2c92ace9426cbfc0835024390d07686604fd6de",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_back_19_00.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2245800.148034097,
+      "new_volume_cm3": 2245800.148034097,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -985.0000381469727,
+          -18.99999976158142,
+          -15.000000596046448
+        ],
+        [
+          985.0000381469727,
+          18.99999976158142,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh67_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_2_front_15_40.N_Beam_2_front_15_40",
+      "source_role": "Beam_2_front_15.40",
+      "mesh_name": "SM_Intact_N_Beam_2_front_15_40",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_front_15_40.fbx",
+      "sha256": "55184b9ee9c7010998922860ed06715b47a9d8ad9d0bf9354831e9a5b9b405a3",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_front_15_40.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1891200.1061201089,
+      "new_volume_cm3": 1891200.1061201089,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -985.0000381469727,
+          -15.999999642372131,
+          -15.000000596046448
+        ],
+        [
+          985.0000381469727,
+          15.999999642372131,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh68_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_2_front_19_00.N_Beam_2_front_19_00",
+      "source_role": "Beam_2_front_19.00",
+      "mesh_name": "SM_Intact_N_Beam_2_front_19_00",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_front_19_00.fbx",
+      "sha256": "4b6a385a057cedf21032df696726324f9edfc24d208f4988befdbf409af15044",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_2_front_19_00.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2245800.148034097,
+      "new_volume_cm3": 2245800.148034097,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -985.0000381469727,
+          -18.99999976158142,
+          -15.000000596046448
+        ],
+        [
+          985.0000381469727,
+          18.99999976158142,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh85_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_FB_1_-1_0_0.N_RailH_FB_1_-1_0_0",
+      "source_role": "RailH_FB_1_-1",
+      "mesh_name": "SM_Intact_N_RailH_FB_1_Neg1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_1_Neg1_0_0.fbx",
+      "sha256": "5ee374c2610dd3175cca355d503f6b2b47830e5b2574090a9eee062ea3bd52e3",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_1_Neg1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -186300.01704543878,
+      "new_volume_cm3": 186300.01704543878,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1035.0000381469727,
+          -5.000000074505806,
+          -4.500000178813934
+        ],
+        [
+          1035.0000381469727,
+          5.000000074505806,
+          4.500000178813934
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh107_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_TunnelArch.N_TunnelArch",
+      "source_role": "TunnelArch",
+      "mesh_name": "SM_Intact_N_TunnelArch",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_TunnelArch.fbx",
+      "sha256": "499c1c0944e4627d6605aaa918309bbf63e58e3d2fbf43b56ce3fb2cb962b1e1",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_TunnelArch.npz",
+      "reason": "Close arched soffit radially outward, preserve clear 215cm radius",
+      "original_uv0_present": true,
+      "old_triangles": 3840,
+      "new_triangles": 8096,
+      "old_closed": false,
+      "old_volume_cm3": 114694407.7165765,
+      "new_volume_cm3": 3223105.216515243,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -218.00000953674316,
+          345.0000047683716,
+          -790.0000095367432
+        ],
+        [
+          218.00000953674316,
+          562.9999904632568,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh102_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RoofShell_1.N_RoofShell_1",
+      "source_role": "RoofShell_1",
+      "mesh_name": "SM_Intact_N_RoofShell_1",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RoofShell_1.fbx",
+      "sha256": "802260cd3210e05b3f35db7e856d687ea0e15131da6da4c5fb25b30cfff45e93",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RoofShell_1.npz",
+      "reason": "Close roof underside and all perimeter edges, 3cm thickness",
+      "original_uv0_present": true,
+      "old_triangles": 8736,
+      "new_triangles": 18016,
+      "old_closed": false,
+      "old_volume_cm3": 241920995.6019006,
+      "new_volume_cm3": 11337300.491523728,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1235.0000381469727,
+          1444.9999542236328,
+          -765.0000095367432
+        ],
+        [
+          1235.0000381469727,
+          1621.9999313354492,
+          765.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh103_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RoofShell_2.N_RoofShell_2",
+      "source_role": "RoofShell_2",
+      "mesh_name": "SM_Intact_N_RoofShell_2",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RoofShell_2.fbx",
+      "sha256": "1c6f8b2d5729aa68974aa1f78aebaa02408aa1d03d11aa431501c12a9c564ee8",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RoofShell_2.npz",
+      "reason": "Close roof underside and all perimeter edges, 3cm thickness",
+      "original_uv0_present": true,
+      "old_triangles": 8736,
+      "new_triangles": 18016,
+      "old_closed": false,
+      "old_volume_cm3": 437851005.64031464,
+      "new_volume_cm3": 9670200.19512179,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1135.0000381469727,
+          1868.9999313354492,
+          -709.9999904632568
+        ],
+        [
+          1135.0000381469727,
+          2228.000068664551,
+          709.9999904632568
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh104_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_SignBoardBody.N_SignBoardBody",
+      "source_role": "SignBoardBody",
+      "mesh_name": "SM_Intact_N_SignBoardBody",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_SignBoardBody.fbx",
+      "sha256": "f6cb148770f675c5f68d142f7181df68fc4abd910e22b610150f79209b509f40",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_SignBoardBody.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1072000.002741813,
+      "new_volume_cm3": 1072000.002741813,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -250.0,
+          -67.00000166893005,
+          -7.999999821186066
+        ],
+        [
+          250.0,
+          67.00000166893005,
+          7.999999821186066
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh105_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_SignBoardFace.N_SignBoardFace",
+      "source_role": "SignBoardFace",
+      "mesh_name": "SM_Intact_N_SignBoardFace",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_SignBoardFace.fbx",
+      "sha256": "1929b616f7e0c3bf902686d772fb3736dd01caf17ef4e573ae0044b9171259cc",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_SignBoardFace.npz",
+      "reason": "Give visual plane a closed backing and edge faces",
+      "original_uv0_present": true,
+      "old_triangles": 2,
+      "new_triangles": 12,
+      "old_closed": false,
+      "old_volume_cm3": 0.0,
+      "new_volume_cm3": 15993.600837135318,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -238.0000114440918,
+          -56.00000023841858,
+          0.0
+        ],
+        [
+          238.0000114440918,
+          56.00000023841858,
+          0.3
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh108_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_TunnelSide_-1.N_TunnelSide_-1",
+      "source_role": "TunnelSide_-1",
+      "mesh_name": "SM_Intact_N_TunnelSide_Neg1",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_TunnelSide_Neg1.fbx",
+      "sha256": "7df2cbd448508c113efbedbc39c6235172613894cfadb93b3d51a60ea7d54bfa",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_TunnelSide_Neg1.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -9811800.643944753,
+      "new_volume_cm3": 9811800.643944753,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -9.000000357627869,
+          -172.5000023841858,
+          -790.0000095367432
+        ],
+        [
+          9.000000357627869,
+          172.5000023841858,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh101_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RoofShell_0.N_RoofShell_0",
+      "source_role": "RoofShell_0",
+      "mesh_name": "SM_Intact_N_RoofShell_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RoofShell_0.fbx",
+      "sha256": "06b90c48715202fa08d4360cd2d269b0f40a1de7ba0ae4be7a122d77ca7cd444",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RoofShell_0.npz",
+      "reason": "Close roof underside and all perimeter edges, 3cm thickness",
+      "original_uv0_present": true,
+      "old_triangles": 8736,
+      "new_triangles": 18016,
+      "old_closed": false,
+      "old_volume_cm3": 303323301.39633346,
+      "new_volume_cm3": 13769999.999999957,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1350.0,
+          1061.9999618530273,
+          -850.0
+        ],
+        [
+          1350.0,
+          1244.9999809265137,
+          850.0
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh109_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_TunnelSide_1.N_TunnelSide_1",
+      "source_role": "TunnelSide_1",
+      "mesh_name": "SM_Intact_N_TunnelSide_1",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_TunnelSide_1.fbx",
+      "sha256": "2dcaaca0dcf3cf2b08de866b36941ff62b5814fa212cdcc840d64cac2543a09e",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_TunnelSide_1.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -9811800.643944753,
+      "new_volume_cm3": 9811800.643944753,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -9.000000357627869,
+          -172.5000023841858,
+          -790.0000095367432
+        ],
+        [
+          9.000000357627869,
+          172.5000023841858,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh112_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/Tile_FB_0_-1_0_1.Tile_FB_0_-1_0_1",
+      "source_role": "GEO_RoofTile_Trough_High",
+      "mesh_name": "SM_Intact_Tile_FB_0_Neg1_0_1",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_Tile_FB_0_Neg1_0_1.fbx",
+      "sha256": "3272a9c5758ab5fce5acc50192714864ac4aaf16491d6f63f6bd20ca2d71ef65",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_Tile_FB_0_Neg1_0_1.npz",
+      "reason": "Close tile underside and end faces, 0.6cm thickness",
+      "original_uv0_present": true,
+      "old_triangles": 4608,
+      "new_triangles": 9696,
+      "old_closed": false,
+      "old_volume_cm3": 5398.753902737335,
+      "new_volume_cm3": 562.8609236965743,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -10.713884979486465,
+          -11.099999672174453,
+          -23.000000417232513
+        ],
+        [
+          10.713884979486465,
+          -2.717600017786026,
+          23.000000417232513
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh113_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/Tile_FB_0_-1_0_2.Tile_FB_0_-1_0_2",
+      "source_role": "GEO_RoofTile_Cover_High",
+      "mesh_name": "SM_Intact_Tile_FB_0_Neg1_0_2",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_Tile_FB_0_Neg1_0_2.fbx",
+      "sha256": "96ad6ce3039b2a1726ec72af684d3fa15f02c85d4855ca578889a2b93aa24d70",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_Tile_FB_0_Neg1_0_2.npz",
+      "reason": "Close tile underside and end faces, 0.6cm thickness",
+      "original_uv0_present": true,
+      "old_triangles": 8192,
+      "new_triangles": 17024,
+      "old_closed": false,
+      "old_volume_cm3": -6944.646503841667,
+      "new_volume_cm3": 579.5377324560911,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -11.05675995349884,
+          0.49754884615540507,
+          -23.000000417232513
+        ],
+        [
+          11.05675995349884,
+          10.499999672174454,
+          23.000000417232513
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh100_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Ridge_2.N_Ridge_2",
+      "source_role": "Ridge_2",
+      "mesh_name": "SM_Intact_N_Ridge_2",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Ridge_2.fbx",
+      "sha256": "2ed3a6d6b653acdd6b720c631d85c9a1a44f54b87228e749cafa64f5b47cdee0",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Ridge_2.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -480700.0061154365,
+      "new_volume_cm3": 480700.0061154365,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -475.0,
+          -11.500000208616257,
+          -10.999999940395355
+        ],
+        [
+          475.0,
+          11.500000208616257,
+          10.999999940395355
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh86_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_FB_1_1_0_0.N_RailH_FB_1_1_0_0",
+      "source_role": "RailH_FB_1_1",
+      "mesh_name": "SM_Intact_N_RailH_FB_1_1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_1_1_0_0.fbx",
+      "sha256": "de8c9a19a35b089833b3ae59ca4981ec7111796e599ef1731c4273f3a92fc29a",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_1_1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -186300.01704543878,
+      "new_volume_cm3": 186300.01704543878,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1035.0000381469727,
+          -5.000000074505806,
+          -4.500000178813934
+        ],
+        [
+          1035.0000381469727,
+          5.000000074505806,
+          4.500000178813934
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh92_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_LR_1_1_0_0.N_RailH_LR_1_1_0_0",
+      "source_role": "RailH_LR_1_1",
+      "mesh_name": "SM_Intact_N_RailH_LR_1_1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_1_1_0_0.fbx",
+      "sha256": "f89e18fa3e01e178f8d6741e62cc4b7140f666908f587b747d5dcc570906bc3d",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_1_1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -106200.0075191261,
+      "new_volume_cm3": 106200.0075191261,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -4.500000178813934,
+          -5.000000074505806,
+          -590.0000095367432
+        ],
+        [
+          4.500000178813934,
+          5.000000074505806,
+          590.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh87_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_FB_2_-1_0_0.N_RailH_FB_2_-1_0_0",
+      "source_role": "RailH_FB_2_-1",
+      "mesh_name": "SM_Intact_N_RailH_FB_2_Neg1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_2_Neg1_0_0.fbx",
+      "sha256": "0a12c15bca7f9482abfd0318237c02d225049505e6457c3466309511b1128658",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_2_Neg1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -168300.01606196215,
+      "new_volume_cm3": 168300.01606196215,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -935.0000381469727,
+          -5.000000074505806,
+          -4.500000178813934
+        ],
+        [
+          935.0000381469727,
+          5.000000074505806,
+          4.500000178813934
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh88_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_FB_2_1_0_0.N_RailH_FB_2_1_0_0",
+      "source_role": "RailH_FB_2_1",
+      "mesh_name": "SM_Intact_N_RailH_FB_2_1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_2_1_0_0.fbx",
+      "sha256": "9bcc0ea7b1f930aa1235c4fba2d396727c3b53945c9db5ef4fd820df6fa29820",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_FB_2_1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -168300.01606196215,
+      "new_volume_cm3": 168300.01606196215,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -935.0000381469727,
+          -5.000000074505806,
+          -4.500000178813934
+        ],
+        [
+          935.0000381469727,
+          5.000000074505806,
+          4.500000178813934
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh89_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_LR_0_-1_0_0.N_RailH_LR_0_-1_0_0",
+      "source_role": "RailH_LR_0_-1",
+      "mesh_name": "SM_Intact_N_RailH_LR_0_Neg1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_0_Neg1_0_0.fbx",
+      "sha256": "43ab2be32326e76ee786a7aae8327de1388faf48876b9cc94c140fb9f4c51791",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_0_Neg1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -116100.00291019666,
+      "new_volume_cm3": 116100.00291019666,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -4.500000178813934,
+          -5.000000074505806,
+          -644.9999809265137
+        ],
+        [
+          4.500000178813934,
+          5.000000074505806,
+          644.9999809265137
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh90_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_LR_0_1_0_0.N_RailH_LR_0_1_0_0",
+      "source_role": "RailH_LR_0_1",
+      "mesh_name": "SM_Intact_N_RailH_LR_0_1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_0_1_0_0.fbx",
+      "sha256": "4c6f8a676468df2833fda365f3b94f5bf27ac41051e8eadab143701c598e7a7f",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_0_1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -116100.00291019666,
+      "new_volume_cm3": 116100.00291019666,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -4.500000178813934,
+          -5.000000074505806,
+          -644.9999809265137
+        ],
+        [
+          4.500000178813934,
+          5.000000074505806,
+          644.9999809265137
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh91_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_LR_1_-1_0_0.N_RailH_LR_1_-1_0_0",
+      "source_role": "RailH_LR_1_-1",
+      "mesh_name": "SM_Intact_N_RailH_LR_1_Neg1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_1_Neg1_0_0.fbx",
+      "sha256": "f12af20be487a18955d5e8fd48cbb724d2d76d3e6d0e072b0e2241f8f11fe905",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_1_Neg1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -106200.0075191261,
+      "new_volume_cm3": 106200.0075191261,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -4.500000178813934,
+          -5.000000074505806,
+          -590.0000095367432
+        ],
+        [
+          4.500000178813934,
+          5.000000074505806,
+          590.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh93_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_LR_2_-1_0_0.N_RailH_LR_2_-1_0_0",
+      "source_role": "RailH_LR_2_-1",
+      "mesh_name": "SM_Intact_N_RailH_LR_2_Neg1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_2_Neg1_0_0.fbx",
+      "sha256": "97d0a723e7368c478959e86d8981a3688cb89e69b6d05aa3567e3b8683119c74",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_2_Neg1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -96300.0035449862,
+      "new_volume_cm3": 96300.0035449862,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -4.500000178813934,
+          -5.000000074505806,
+          -534.9999904632568
+        ],
+        [
+          4.500000178813934,
+          5.000000074505806,
+          534.9999904632568
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh99_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Ridge_1.N_Ridge_1",
+      "source_role": "Ridge_1",
+      "mesh_name": "SM_Intact_N_Ridge_1",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Ridge_1.fbx",
+      "sha256": "fb3a1f25bacd3aee37de3d8568553bd3fcfaafac2c5865e2d624645f1c6847b0",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Ridge_1.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -526239.9873924252,
+      "new_volume_cm3": 526239.9873924252,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -519.9999809265137,
+          -11.500000208616257,
+          -10.999999940395355
+        ],
+        [
+          519.9999809265137,
+          11.500000208616257,
+          10.999999940395355
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh94_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_RailH_LR_2_1_0_0.N_RailH_LR_2_1_0_0",
+      "source_role": "RailH_LR_2_1",
+      "mesh_name": "SM_Intact_N_RailH_LR_2_1_0_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_2_1_0_0.fbx",
+      "sha256": "6e80831d9974b9c5fc3ab6dced72f0bc8fe38d8d321e785e654e8d789acc47f4",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_RailH_LR_2_1_0_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -96300.0035449862,
+      "new_volume_cm3": 96300.0035449862,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -4.500000178813934,
+          -5.000000074505806,
+          -534.9999904632568
+        ],
+        [
+          4.500000178813934,
+          5.000000074505806,
+          534.9999904632568
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh98_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Ridge_0.N_Ridge_0",
+      "source_role": "Ridge_0",
+      "mesh_name": "SM_Intact_N_Ridge_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Ridge_0.fbx",
+      "sha256": "790249a8790152d737d032d6eb2af4f82ec4f6bb60eb737afea4876244ac1c5f",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Ridge_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -556600.0070810317,
+      "new_volume_cm3": 556600.0070810317,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -550.0,
+          -11.500000208616257,
+          -10.999999940395355
+        ],
+        [
+          550.0,
+          11.500000208616257,
+          10.999999940395355
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh56_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_0_right_8_15.N_Beam_0_right_8_15",
+      "source_role": "Beam_0_right_8.15",
+      "mesh_name": "SM_Intact_N_Beam_0_right_8_15",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_right_8_15.fbx",
+      "sha256": "494c686a129bf67910f13b9ead8f98414811e6c013a0b8da291987566731c0a7",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_right_8_15.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1334399.9865770324,
+      "new_volume_cm3": 1334399.9865770324,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -15.999999642372131,
+          -694.9999809265137
+        ],
+        [
+          15.000000596046448,
+          15.999999642372131,
+          694.9999809265137
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh19_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_15.N_ArchFill_15",
+      "source_role": "ArchFill_15",
+      "mesh_name": "SM_Intact_N_ArchFill_15",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_15.fbx",
+      "sha256": "f741d145f240afe792705b1685a0a002fcd9215c3ce78baee1073049b3afd1b7",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_15.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -135629.06864690673,
+      "new_volume_cm3": 135629.06864690673,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -3.752424567937851,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          3.752424567937851,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh14_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_10.N_ArchFill_10",
+      "source_role": "ArchFill_10",
+      "mesh_name": "SM_Intact_N_ArchFill_10",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_10.fbx",
+      "sha256": "1c62121e843fe918e7ea218fae6a9f16f4be41697e878fd89340ec64fbd2fa39",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_10.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -520561.1124320729,
+      "new_volume_cm3": 520561.1124320729,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -14.402268826961517,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          14.402268826961517,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh15_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_11.N_ArchFill_11",
+      "source_role": "ArchFill_11",
+      "mesh_name": "SM_Intact_N_ArchFill_11",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_11.fbx",
+      "sha256": "c19b338a8766912fc9a77bd330ea887e4d422ada7187ff3ce0a88f15742cadf9",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_11.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -420317.0291016233,
+      "new_volume_cm3": 420317.0291016233,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -11.628834158182144,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          11.628834158182144,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh16_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_12.N_ArchFill_12",
+      "source_role": "ArchFill_12",
+      "mesh_name": "SM_Intact_N_ArchFill_12",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_12.fbx",
+      "sha256": "62e2e5bfe0f30afa45f5bfb2dd07afedfbae54682df0fa87a9edb35ed12dcd9c",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_12.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -332514.6926505513,
+      "new_volume_cm3": 332514.6926505513,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -9.199623018503189,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          9.199623018503189,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh17_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_13.N_ArchFill_13",
+      "source_role": "ArchFill_13",
+      "mesh_name": "SM_Intact_N_ArchFill_13",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_13.fbx",
+      "sha256": "d80f1e49a0a02afb73547b615ae18af640b938451c0e6ff76ef068712cf6c1f5",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_13.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -256250.98988550625,
+      "new_volume_cm3": 256250.98988550625,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -7.089649140834808,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          7.089649140834808,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh18_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_14.N_ArchFill_14",
+      "source_role": "ArchFill_14",
+      "mesh_name": "SM_Intact_N_ArchFill_14",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_14.fbx",
+      "sha256": "91411997cdb5c599f16c434a912b4029d54b1a98516ac3af71c2371f12917316",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_14.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -190811.36911659164,
+      "new_volume_cm3": 190811.36911659164,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -5.279143154621124,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          5.279143154621124,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh20_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_16.N_ArchFill_16",
+      "source_role": "ArchFill_16",
+      "mesh_name": "SM_Intact_N_ArchFill_16",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_16.fbx",
+      "sha256": "14ce5d9932cdc1feaf1ceab48ff210eb94b714b91cae2be6346e95426845dc53",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_16.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -90256.67904794693,
+      "new_volume_cm3": 90256.67904794693,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -2.497114986181259,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          2.497114986181259,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh13_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_09.N_ArchFill_09",
+      "source_role": "ArchFill_09",
+      "mesh_name": "SM_Intact_N_ArchFill_09",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_09.fbx",
+      "sha256": "630b0a66aa0291134fb70dc20f9c5acccac752853e55f2a5b5f76dacc6e5fadb",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_09.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -634397.6471609807,
+      "new_volume_cm3": 634397.6471609807,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -17.551763355731964,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          17.551763355731964,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh21_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_17.N_ArchFill_17",
+      "source_role": "ArchFill_17",
+      "mesh_name": "SM_Intact_N_ArchFill_17",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_17.fbx",
+      "sha256": "2dc8f0602a274fc2488309227c5482e4f979538dde6d0f9549d1a56288b89bc4",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_17.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -54345.62948847315,
+      "new_volume_cm3": 54345.62948847315,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -1.5035705640912056,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          1.5035705640912056,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh22_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_18.N_ArchFill_18",
+      "source_role": "ArchFill_18",
+      "mesh_name": "SM_Intact_N_ArchFill_18",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_18.fbx",
+      "sha256": "bf36545ef4277f4055d83b3132a92a1e3e79c0dbe0bfd2483d6b05deed83e4e4",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_18.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -54216.57244261246,
+      "new_volume_cm3": 54216.57244261246,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -1.4999999664723873,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          1.4999999664723873,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh23_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_19.N_ArchFill_19",
+      "source_role": "ArchFill_19",
+      "mesh_name": "SM_Intact_N_ArchFill_19",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_19.fbx",
+      "sha256": "1ac1a0e56754ff6a4125329fb155bd3fe8e22885b45c2a57114e6d2ace34240e",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_19.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -54216.57244261246,
+      "new_volume_cm3": 54216.57244261246,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -1.4999999664723873,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          1.4999999664723873,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh24_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_20.N_ArchFill_20",
+      "source_role": "ArchFill_20",
+      "mesh_name": "SM_Intact_N_ArchFill_20",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_20.fbx",
+      "sha256": "30978e1731873cd3d0db7bb214e03729e33b0d9ac82628e7031746c84479c67f",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_20.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -54216.57244261246,
+      "new_volume_cm3": 54216.57244261246,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -1.4999999664723873,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          1.4999999664723873,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh25_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_21.N_ArchFill_21",
+      "source_role": "ArchFill_21",
+      "mesh_name": "SM_Intact_N_ArchFill_21",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_21.fbx",
+      "sha256": "de367180d010db3a7c3657bc7472fb6d9ab837ecf0e118d54ac425ae8727a7fc",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_21.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -54216.57244261246,
+      "new_volume_cm3": 54216.57244261246,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -1.4999999664723873,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          1.4999999664723873,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh12_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_08.N_ArchFill_08",
+      "source_role": "ArchFill_08",
+      "mesh_name": "SM_Intact_N_ArchFill_08",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_08.fbx",
+      "sha256": "f1b60bf4a57bfcfba77ae9407d14ca53ca23d585d3176d5045d033c1c8dc0cc2",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_08.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -763313.0160622912,
+      "new_volume_cm3": 763313.0160622912,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -21.118441224098206,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          21.118441224098206,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh26_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_22.N_ArchFill_22",
+      "source_role": "ArchFill_22",
+      "mesh_name": "SM_Intact_N_ArchFill_22",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_22.fbx",
+      "sha256": "eea79906aa1d3d1f0406f6f389a90b2fa340a03b7afe39807f00a7726cce92a4",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_22.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -54216.57244261246,
+      "new_volume_cm3": 54216.57244261246,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -1.4999999664723873,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          1.4999999664723873,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh4_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_00.N_ArchFill_00",
+      "source_role": "ArchFill_00",
+      "mesh_name": "SM_Intact_N_ArchFill_00",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_00.fbx",
+      "sha256": "961bfa38f4e3e8a5f45ec2dbe8d8fa11c492102a439c948c1901ebdb1fd04d9a",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_00.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -3042693.05093034,
+      "new_volume_cm3": 3042693.05093034,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -84.18163061141968,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          84.18163061141968,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh2_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/Bracket_FB_0_-1_0.Bracket_FB_0_-1_0",
+      "source_role": "GEO_DougongBracket",
+      "mesh_name": "SM_Intact_Bracket_FB_0_Neg1_0",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_Bracket_FB_0_Neg1_0.fbx",
+      "sha256": "8cf4194de2e4eeea70e94dbb7bae0c4b61c38db3686330f1616cfcb45f45351a",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_Bracket_FB_0_Neg1_0.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 60,
+      "new_triangles": 60,
+      "old_closed": true,
+      "old_volume_cm3": -123407.0029199721,
+      "new_volume_cm3": 123407.0029199721,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -42.500001192092896,
+          -11.999999731779099,
+          -33.000001311302185
+        ],
+        [
+          42.500001192092896,
+          46.00000083446503,
+          33.000001311302185
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh5_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_01.N_ArchFill_01",
+      "source_role": "ArchFill_01",
+      "mesh_name": "SM_Intact_N_ArchFill_01",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_01.fbx",
+      "sha256": "f41e03210539c2e6662f66ab431dc766594d38d2cb4bcae078dcd90610792a28",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_01.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2443395.3655278957,
+      "new_volume_cm3": 2443395.3655278957,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -67.60097146034241,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          67.60097146034241,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh11_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_07.N_ArchFill_07",
+      "source_role": "ArchFill_07",
+      "mesh_name": "SM_Intact_N_ArchFill_07",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_07.fbx",
+      "sha256": "0e881df292418632d194d16d698e84ef205cf34514540465c45a1cb2a8168117",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_07.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -909265.9751364678,
+      "new_volume_cm3": 909265.9751364678,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -25.156494975090027,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          25.156494975090027,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh6_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_02.N_ArchFill_02",
+      "source_role": "ArchFill_02",
+      "mesh_name": "SM_Intact_N_ArchFill_02",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_02.fbx",
+      "sha256": "1cbd059cf99fe60d82d808957ff39ef2d29b5ff3b7be71e718efd4333de89e3f",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_02.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2046873.3062588468,
+      "new_volume_cm3": 2046873.3062588468,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -56.63046836853027,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          56.63046836853027,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh7_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_03.N_ArchFill_03",
+      "source_role": "ArchFill_03",
+      "mesh_name": "SM_Intact_N_ArchFill_03",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_03.fbx",
+      "sha256": "b71476680234e80c093c6037569d62fafcab6b35d7c8a78c3c695a088248b648",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_03.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1737718.5077982228,
+      "new_volume_cm3": 1737718.5077982228,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -48.077139258384705,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          48.077139258384705,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh8_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_04.N_ArchFill_04",
+      "source_role": "ArchFill_04",
+      "mesh_name": "SM_Intact_N_ArchFill_04",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_04.fbx",
+      "sha256": "b4b879333264fb67655889a64bb7d6ac6a56d7be5f65d7ffb05b5ec92f98c31b",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_04.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1481978.2659096478,
+      "new_volume_cm3": 1481978.2659096478,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -41.00162088871002,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          41.00162088871002,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh9_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_05.N_ArchFill_05",
+      "source_role": "ArchFill_05",
+      "mesh_name": "SM_Intact_N_ArchFill_05",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_05.fbx",
+      "sha256": "4c06723cc33c44ea6c81418d6bef941d30584d7440734306f3dbdee7dddb220a",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_05.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1263973.4842224908,
+      "new_volume_cm3": 1263973.4842224908,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -34.97012257575989,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          34.97012257575989,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh10_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_06.N_ArchFill_06",
+      "source_role": "ArchFill_06",
+      "mesh_name": "SM_Intact_N_ArchFill_06",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_06.fbx",
+      "sha256": "dbb51b91535a001d3397d3ec319e60af04bdd87448b2558d1ee14f03b3c796fe",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_06.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1074909.4732483064,
+      "new_volume_cm3": 1074909.4732483064,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -29.739323258399963,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          29.739323258399963,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh27_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_23.N_ArchFill_23",
+      "source_role": "ArchFill_23",
+      "mesh_name": "SM_Intact_N_ArchFill_23",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_23.fbx",
+      "sha256": "138e7f2ba9ec3b5a9584fb8d13693d0baa3e22ca29f6fb1e4c23deaf990f3fe0",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_23.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -54216.57244261246,
+      "new_volume_cm3": 54216.57244261246,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -1.4999999664723873,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          1.4999999664723873,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh48_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Base_Upper.N_Base_Upper",
+      "source_role": "Base_Upper",
+      "mesh_name": "SM_Intact_N_Base_Upper",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Base_Upper.fbx",
+      "sha256": "54d47fd728caacfee5d8cc742ec42c3c0430c37c8d73535f9e2455d8850dce0d",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Base_Upper.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -163056015.68031356,
+      "new_volume_cm3": 163056015.68031356,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -215.00000953674316,
+          -120.00000476837158,
+          -790.0000095367432
+        ],
+        [
+          215.00000953674316,
+          120.00000476837158,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh43_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_39.N_ArchFill_39",
+      "source_role": "ArchFill_39",
+      "mesh_name": "SM_Intact_N_ArchFill_39",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_39.fbx",
+      "sha256": "b1f4267561ef2c8875f732b96eb5dc9482ad80ec0053cde18533fc738d3ee8cb",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_39.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2046873.3062588468,
+      "new_volume_cm3": 2046873.3062588468,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -56.63046836853027,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          56.63046836853027,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh44_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_40.N_ArchFill_40",
+      "source_role": "ArchFill_40",
+      "mesh_name": "SM_Intact_N_ArchFill_40",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_40.fbx",
+      "sha256": "9a4367aa0c7117235ab21a5485fd593d8701764f015d18c263cfb0702a8931c0",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_40.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2443395.3655278957,
+      "new_volume_cm3": 2443395.3655278957,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -67.60097146034241,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          67.60097146034241,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh45_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_41.N_ArchFill_41",
+      "source_role": "ArchFill_41",
+      "mesh_name": "SM_Intact_N_ArchFill_41",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_41.fbx",
+      "sha256": "6b3da752d7e1f37d0e667a078da290f001e163ba17b0843c24ab100e2c0ef118",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_41.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -3042693.05093034,
+      "new_volume_cm3": 3042693.05093034,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -84.18163061141968,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          84.18163061141968,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh46_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Base_Left.N_Base_Left",
+      "source_role": "Base_Left",
+      "mesh_name": "SM_Intact_N_Base_Left",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Base_Left.fbx",
+      "sha256": "670391ca4becf74abe65473d542999e976797c1659dc26a43c1ad906e96fdee8",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Base_Left.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1346159968.0328362,
+      "new_volume_cm3": 1346159968.0328362,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -532.4999809265137,
+          -400.0,
+          -790.0000095367432
+        ],
+        [
+          532.4999809265137,
+          400.0,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh47_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Base_Right.N_Base_Right",
+      "source_role": "Base_Right",
+      "mesh_name": "SM_Intact_N_Base_Right",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Base_Right.fbx",
+      "sha256": "41f3ab6658cbc32f898411b977ed9b012f79bd87786f2c3abfbd4b6ccf829278",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Base_Right.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1346159968.0328362,
+      "new_volume_cm3": 1346159968.0328362,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -532.4999809265137,
+          -400.0,
+          -790.0000095367432
+        ],
+        [
+          532.4999809265137,
+          400.0,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh49_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_0_back_10_95.N_Beam_0_back_10_95",
+      "source_role": "Beam_0_back_10.95",
+      "mesh_name": "SM_Intact_N_Beam_0_back_10_95",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_back_10_95.fbx",
+      "sha256": "e4e40c36b79c9ada7f6e1eeb19987ce3b5cfd4edc0d4f53c887aad88afe2f203",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_back_10_95.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2713199.9867916075,
+      "new_volume_cm3": 2713199.9867916075,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1189.9999618530273,
+          -18.99999976158142,
+          -15.000000596046448
+        ],
+        [
+          1189.9999618530273,
+          18.99999976158142,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh42_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_38.N_ArchFill_38",
+      "source_role": "ArchFill_38",
+      "mesh_name": "SM_Intact_N_ArchFill_38",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_38.fbx",
+      "sha256": "b8e810beb98b8c32903c13a101a309547011db87fff9b6323ca20cf01bd47ddc",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_38.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1737718.5077982228,
+      "new_volume_cm3": 1737718.5077982228,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -48.077139258384705,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          48.077139258384705,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh50_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_0_back_8_15.N_Beam_0_back_8_15",
+      "source_role": "Beam_0_back_8.15",
+      "mesh_name": "SM_Intact_N_Beam_0_back_8_15",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_back_8_15.fbx",
+      "sha256": "7369d3bbd70338047b9082a3b2f52ffb7081391fb39566af246d7b2fe495e481",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_back_8_15.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2284799.9664783445,
+      "new_volume_cm3": 2284799.9664783445,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1189.9999618530273,
+          -15.999999642372131,
+          -15.000000596046448
+        ],
+        [
+          1189.9999618530273,
+          15.999999642372131,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh51_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_0_front_10_95.N_Beam_0_front_10_95",
+      "source_role": "Beam_0_front_10.95",
+      "mesh_name": "SM_Intact_N_Beam_0_front_10_95",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_front_10_95.fbx",
+      "sha256": "d7dcc0c35b07ed0994c345e129effb40511b047befa36454cebc5a57d0f6589a",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_front_10_95.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2713199.9867916075,
+      "new_volume_cm3": 2713199.9867916075,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1189.9999618530273,
+          -18.99999976158142,
+          -15.000000596046448
+        ],
+        [
+          1189.9999618530273,
+          18.99999976158142,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh52_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_0_front_8_15.N_Beam_0_front_8_15",
+      "source_role": "Beam_0_front_8.15",
+      "mesh_name": "SM_Intact_N_Beam_0_front_8_15",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_front_8_15.fbx",
+      "sha256": "72591d35be38cd3d5a9e71864dd29d425e357d8d698c9fe19ae10a6ef2f4c79a",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_front_8_15.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -2284799.9664783445,
+      "new_volume_cm3": 2284799.9664783445,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -1189.9999618530273,
+          -15.999999642372131,
+          -15.000000596046448
+        ],
+        [
+          1189.9999618530273,
+          15.999999642372131,
+          15.000000596046448
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh53_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_0_left_10_95.N_Beam_0_left_10_95",
+      "source_role": "Beam_0_left_10.95",
+      "mesh_name": "SM_Intact_N_Beam_0_left_10_95",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_left_10_95.fbx",
+      "sha256": "0da3b872853a7cda3d5e1c1cebc16f85a346aabda6667b85e3490ff520a28a29",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_left_10_95.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1584599.9995946863,
+      "new_volume_cm3": 1584599.9995946863,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -18.99999976158142,
+          -694.9999809265137
+        ],
+        [
+          15.000000596046448,
+          18.99999976158142,
+          694.9999809265137
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh54_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_0_left_8_15.N_Beam_0_left_8_15",
+      "source_role": "Beam_0_left_8.15",
+      "mesh_name": "SM_Intact_N_Beam_0_left_8_15",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_left_8_15.fbx",
+      "sha256": "88ae5b57571126176d57010d7685229abf68d061b8b3de61a7e738e127704daa",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_left_8_15.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1334399.9865770324,
+      "new_volume_cm3": 1334399.9865770324,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -15.999999642372131,
+          -694.9999809265137
+        ],
+        [
+          15.000000596046448,
+          15.999999642372131,
+          694.9999809265137
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh41_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_37.N_ArchFill_37",
+      "source_role": "ArchFill_37",
+      "mesh_name": "SM_Intact_N_ArchFill_37",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_37.fbx",
+      "sha256": "3fd28b1c27778602d1e09d770d74e73c2d33f2f5094a3f8feb53465a4126b80b",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_37.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1481978.2659096478,
+      "new_volume_cm3": 1481978.2659096478,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -41.00162088871002,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          41.00162088871002,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh55_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_Beam_0_right_10_95.N_Beam_0_right_10_95",
+      "source_role": "Beam_0_right_10.95",
+      "mesh_name": "SM_Intact_N_Beam_0_right_10_95",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_right_10_95.fbx",
+      "sha256": "b3900691d97b5ae0d9a8ee36ad63431db19ae3d2073e053007513a0d292cc97c",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_Beam_0_right_10_95.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1584599.9995946863,
+      "new_volume_cm3": 1584599.9995946863,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -15.000000596046448,
+          -18.99999976158142,
+          -694.9999809265137
+        ],
+        [
+          15.000000596046448,
+          18.99999976158142,
+          694.9999809265137
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh33_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_29.N_ArchFill_29",
+      "source_role": "ArchFill_29",
+      "mesh_name": "SM_Intact_N_ArchFill_29",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_29.fbx",
+      "sha256": "622bfe249dd5464a72042b45fcee358361989c2c864df2e637d975d3e9d1b245",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_29.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -332514.6926505513,
+      "new_volume_cm3": 332514.6926505513,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -9.199623018503189,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          9.199623018503189,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh28_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_24.N_ArchFill_24",
+      "source_role": "ArchFill_24",
+      "mesh_name": "SM_Intact_N_ArchFill_24",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_24.fbx",
+      "sha256": "f1a082785ef17e12d931c6c3f3dee70d6ef25bd8404a98d1adb3a79279e10e6a",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_24.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -54345.62948847315,
+      "new_volume_cm3": 54345.62948847315,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -1.5035705640912056,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          1.5035705640912056,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh29_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_25.N_ArchFill_25",
+      "source_role": "ArchFill_25",
+      "mesh_name": "SM_Intact_N_ArchFill_25",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_25.fbx",
+      "sha256": "4d0bb308bb3eac0f78e598b90e2c912300ce936b5da527e9a90f83fbab7031da",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_25.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -90256.67904794693,
+      "new_volume_cm3": 90256.67904794693,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -2.497114986181259,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          2.497114986181259,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh30_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_26.N_ArchFill_26",
+      "source_role": "ArchFill_26",
+      "mesh_name": "SM_Intact_N_ArchFill_26",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_26.fbx",
+      "sha256": "1e743f532827f3a1ee5590ae4a5c2422398a7a488ee496e5730ba4adea78f08d",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_26.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -135629.06864690673,
+      "new_volume_cm3": 135629.06864690673,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -3.752424567937851,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          3.752424567937851,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh31_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_27.N_ArchFill_27",
+      "source_role": "ArchFill_27",
+      "mesh_name": "SM_Intact_N_ArchFill_27",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_27.fbx",
+      "sha256": "051e7a45cd1d8616bff918d7e9b27206292f68a3f8801b7416cdffdc6a80ad3e",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_27.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -190811.36911659164,
+      "new_volume_cm3": 190811.36911659164,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -5.279143154621124,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          5.279143154621124,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh32_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_28.N_ArchFill_28",
+      "source_role": "ArchFill_28",
+      "mesh_name": "SM_Intact_N_ArchFill_28",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_28.fbx",
+      "sha256": "cf1f65f98d65db0ee1280d31ecf3f49caf246f8d4d4acf20685845fad9947f12",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_28.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -256250.98988550625,
+      "new_volume_cm3": 256250.98988550625,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -7.089649140834808,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          7.089649140834808,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh34_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_30.N_ArchFill_30",
+      "source_role": "ArchFill_30",
+      "mesh_name": "SM_Intact_N_ArchFill_30",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_30.fbx",
+      "sha256": "dc096424799786a1a80f88e820a119f145150c0fe5345d773db3ff119a5d2092",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_30.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -420317.0291016233,
+      "new_volume_cm3": 420317.0291016233,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -11.628834158182144,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          11.628834158182144,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh40_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_36.N_ArchFill_36",
+      "source_role": "ArchFill_36",
+      "mesh_name": "SM_Intact_N_ArchFill_36",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_36.fbx",
+      "sha256": "4533e962937b86d89bb747de9a445e23599d74c043f4b15e3f2d11050ffced06",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_36.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1263973.4842224908,
+      "new_volume_cm3": 1263973.4842224908,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -34.97012257575989,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          34.97012257575989,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh35_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_31.N_ArchFill_31",
+      "source_role": "ArchFill_31",
+      "mesh_name": "SM_Intact_N_ArchFill_31",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_31.fbx",
+      "sha256": "a7a68736b4d6823cab9586999770dfb599fd8bd80f73d5d20dee5c6e054536ad",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_31.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -520561.1124320729,
+      "new_volume_cm3": 520561.1124320729,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -14.402268826961517,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          14.402268826961517,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh36_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_32.N_ArchFill_32",
+      "source_role": "ArchFill_32",
+      "mesh_name": "SM_Intact_N_ArchFill_32",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_32.fbx",
+      "sha256": "46b07189fa8686991f02a754dfd8ebcfa85ab321435066adbd3af9b4d2627b82",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_32.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -634397.6471609807,
+      "new_volume_cm3": 634397.6471609807,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -17.551763355731964,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          17.551763355731964,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh37_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_33.N_ArchFill_33",
+      "source_role": "ArchFill_33",
+      "mesh_name": "SM_Intact_N_ArchFill_33",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_33.fbx",
+      "sha256": "c441bb58f0f1a0e2b993c1eb9d2c6ac6120831832f8554527efa24b5d4e2a29d",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_33.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -763313.0160622912,
+      "new_volume_cm3": 763313.0160622912,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -21.118441224098206,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          21.118441224098206,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh38_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_34.N_ArchFill_34",
+      "source_role": "ArchFill_34",
+      "mesh_name": "SM_Intact_N_ArchFill_34",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_34.fbx",
+      "sha256": "5442e9714bdd5872c68326a7e1ef060aad4a0a8314461956fcb4ebf16fb25588",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_34.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -909265.9751364678,
+      "new_volume_cm3": 909265.9751364678,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -25.156494975090027,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          25.156494975090027,
+          790.0000095367432
+        ]
+      ]
+    },
+    {
+      "component": "HierarchicalInstancedStaticMesh39_GEN_VARIABLE",
+      "original_mesh": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/N_ArchFill_35.N_ArchFill_35",
+      "source_role": "ArchFill_35",
+      "mesh_name": "SM_Intact_N_ArchFill_35",
+      "fbx": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_35.fbx",
+      "sha256": "f75826784ab890f79d4c248e03ad847ec22257c5378945b107e3c3015822ccdb",
+      "geometry": "C:\\Git\\AuraProj\\ContentSource\\GuangzhouLandmarks\\Zhengnanmen_IntactEnvelope_20260916\\SM_Intact_N_ArchFill_35.npz",
+      "reason": "Reverse inward-wound closed solid",
+      "original_uv0_present": true,
+      "old_triangles": 12,
+      "new_triangles": 12,
+      "old_closed": true,
+      "old_volume_cm3": -1074909.4732483064,
+      "new_volume_cm3": 1074909.4732483064,
+      "closed": true,
+      "outward": true,
+      "expected_local_bounds": [
+        [
+          -5.719047784805298,
+          -29.739323258399963,
+          -790.0000095367432
+        ],
+        [
+          5.719047784805298,
+          29.739323258399963,
+          790.0000095367432
+        ]
+      ]
+    }
+  ],
+  "inverted_solids": 93,
+  "closed_sheets": 8,
+  "roof_shell_count": 3
+}

@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1180" viewBox="0 0 1500 1180">
+  <rect width="1500" height="1180" fill="#101923"/>
+  <style>
+    .title{font:700 33px Arial;fill:#f3f7fb}.sub{font:15px Arial;fill:#aec0cc}
+    .h{font:700 20px Arial;fill:#9fe3ff}.t{font:15px Arial;fill:#d6e2ea}
+    .small{font:13px Arial;fill:#aec0cc}.mono{font:12px Consolas,monospace;fill:#cfe6f2}
+    .box{fill:#172735;stroke:#4c7188;stroke-width:2}
+    .good{fill:#163c37;stroke:#54d5ae;stroke-width:2}
+    .warn{fill:#3a3320;stroke:#e0c15a;stroke-width:2}
+    .bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}
+    .arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+
+  <text x="60" y="60" class="title">Wuxianmen V5 — Review and Revision-3 Detail Pass</text>
+  <text x="60" y="88" class="sub">2026-09-18 • BP_Wuxianmen_V5_4K_Core and BP_Wuxianmen_V5_FullPBR • materials and per-instance weathering only</text>
+  <text x="60" y="110" class="sub">7 components and 5,103 instance transforms per asset, all preserved • no map saved</text>
+
+  <!-- REVIEW -->
+  <rect x="60" y="140" width="440" height="330" rx="14" class="good"/>
+  <text x="84" y="174" class="h">Review — already fixed in revision 2</text>
+  <text x="84" y="204" class="small">• Roof un-inverted on both tiers (180° about each mid-plane)</text>
+  <text x="84" y="226" class="small">• Wood roof decks re-seated below the tiles</text>
+  <text x="84" y="248" class="small">• Ridge re-bound to main_ridge and re-axed onto X</text>
+  <text x="84" y="270" class="small">• Roof tile UV contract measured from the sheet</text>
+  <text x="84" y="292" class="small">• Stone one-stone-per-block (Core) / magnified (FullPBR)</text>
+  <text x="84" y="314" class="small">• Plaque textured (Core) / tint neutralised (FullPBR)</text>
+  <text x="84" y="348" class="t">Confirmed by this review</text>
+  <text x="84" y="376" class="mono">ridge z 1572 cm, eave 1312 cm → rise +260 cm</text>
+  <text x="84" y="398" class="mono">FullPBR assembly identical to Core, byte for byte</text>
+  <text x="84" y="420" class="small">Both assets re-validated before this pass touched them.</text>
+  <text x="84" y="450" class="small">Pre-existing finding: FullPBR ships pattern-free sheets, so its roof</text>
+  <text x="84" y="468" class="small">borrows the Core package's authored tile sheet (user decision).</text>
+
+  <rect x="530" y="140" width="440" height="330" rx="14" class="warn"/>
+  <text x="554" y="174" class="h">Review — what was still missing</text>
+  <text x="554" y="204" class="small">• Wood material never touched. One slot, UV0 of 0..1 per unit cube,</text>
+  <text x="554" y="224" class="small">  instances from 0.80 m to 22.59 m → the big pieces smear the sheet.</text>
+  <text x="554" y="248" class="small">• Stone weathering shallow: per-instance tone only, no staining and</text>
+  <text x="554" y="268" class="small">  no moss, against a reference that is heavily weathered.</text>
+  <text x="554" y="292" class="small">• Roof was one uniform surface — no weathered patches.</text>
+  <text x="554" y="316" class="small">• Ridge cylinders reused the roof-strip UV contract, which maps</text>
+  <text x="554" y="336" class="small">  arbitrarily on a cylinder.</text>
+  <text x="554" y="368" class="t">Wood instance sizes measured</text>
+  <text x="554" y="394" class="mono">n=451  min 0.80 m  median 1.31 m  max 22.59 m</text>
+  <text x="554" y="416" class="mono">269 instances exceed the 1.3 m reference size</text>
+  <text x="554" y="446" class="small">So a single tiling cannot serve the role: the fix has to know each</text>
+  <text x="554" y="464" class="small">instance's own size.</text>
+
+  <rect x="1000" y="140" width="440" height="330" rx="14" class="box"/>
+  <text x="1024" y="174" class="h">Review — suspicions that did not hold</text>
+  <text x="1024" y="206" class="t">Nanite fallback: already correct</text>
+  <text x="1024" y="232" class="small">The workflow asks for a full-triangle fallback with zero relative error</text>
+  <text x="1024" y="252" class="small">on thin roofs, tiles and caps. Measured on all seven meshes in both</text>
+  <text x="1024" y="272" class="small">variants:</text>
+  <text x="1024" y="296" class="mono">enabled = True   relative_error = 0.0   percent = 100.0</text>
+  <text x="1024" y="320" class="small">Verified and left alone — nothing to change.</text>
+  <text x="1024" y="352" class="t">Ridge ornaments: not buried after all</text>
+  <text x="1024" y="378" class="small">An earlier reading suggested the eight 0.35 m ornaments were buried by</text>
+  <text x="1024" y="398" class="small">the un-inversion. Measuring the corrected roof under each one with a</text>
+  <text x="1024" y="418" class="small">proper sampling window:</text>
+  <text x="1024" y="442" class="mono">4 sit 3 cm above the lower roof (base 12.175 / roof 12.143)</text>
+  <text x="1024" y="462" class="mono">4 sit 26 cm low inside the main roof (base 13.275 / roof 13.537)</text>
+
+  <path d="M750 486 L750 516" class="arrow"/>
+
+  <!-- CHANGES -->
+  <rect x="60" y="530" width="680" height="330" rx="14" class="good"/>
+  <text x="84" y="564" class="h">Revision 3 — stone weathering</text>
+  <text x="84" y="594" class="small">Per-instance custom data now carries three values, so the weathering is</text>
+  <text x="84" y="614" class="small">deterministic and does not depend on where the asset is placed:</text>
+  <text x="84" y="640" class="mono">0 = UV offset   1 = wall height 0..1   2 = tone seed 0..1</text>
+  <text x="84" y="672" class="t">Three layers added</text>
+  <text x="84" y="698" class="small">• Wall-height stain: lerp(0.58 grey, white, saturate(height · 1.6)) — the</text>
+  <text x="84" y="718" class="small">  base of the wall darkens, as the reference shows.</text>
+  <text x="84" y="740" class="small">• Wider per-instance tone: 0.72..1.22 (was 0.85..1.15).</text>
+  <text x="84" y="762" class="small">• Moss: a restrained 0.38 blend toward 0.42/0.50/0.30, confined to the</text>
+  <text x="84" y="782" class="small">  lower band by saturate(1 − height · 2.2).</text>
+  <text x="84" y="812" class="t">Measured inputs</text>
+  <text x="84" y="838" class="mono">wall height 0.0031..0.9476 across 4,213 instances — full range</text>
+
+  <rect x="760" y="530" width="680" height="330" rx="14" class="good"/>
+  <text x="784" y="564" class="h">Revision 3 — wood, tile tone and ridge cap</text>
+  <text x="784" y="596" class="t">Wood gets a tiling from each instance's own size</text>
+  <text x="784" y="622" class="mono">tiling = 1 + custom_data · 16   where custom_data = (size/1.3 − 1)/16</text>
+  <text x="784" y="646" class="small">A 1.3 m column is unchanged; a 22.5 m roof deck tiles 17x instead of</text>
+  <text x="784" y="666" class="small">smearing the sheet across the whole span. Tint warmed from</text>
+  <text x="784" y="686" class="small">0.43/0.27/0.17 to 0.78/0.56/0.40 — the timber read as flat dark maroon.</text>
+  <text x="784" y="712" class="small">FullPBR's wood sheet is pattern-free, so it takes a fixed 0.3 tiling that</text>
+  <text x="784" y="732" class="small">reads as soft grain rather than a per-instance one.</text>
+  <text x="784" y="762" class="t">Roof tile tone variation</text>
+  <text x="784" y="786" class="small">per-instance 0.86..1.16, breaking the uniform roof into weathered patches</text>
+  <text x="784" y="814" class="t">Dedicated ridge cap material</text>
+  <text x="784" y="838" class="mono">U 5.127 along the axis (75 tiles, 0.30 m each)   V 0.4646 around</text>
+
+  <!-- VALIDATION -->
+  <rect x="60" y="884" width="1380" height="126" rx="14" class="good"/>
+  <text x="84" y="918" class="h">Validation</text>
+  <text x="84" y="948" class="small">• Every instance transform in both assets is byte-identical to the revision-3 baseline — this pass changes materials and custom data only, never placement.</text>
+  <text x="84" y="970" class="small">• Component count 7, instance count 5,103, collision profile, visibility and shadow flags unchanged. Materials bound as expected on stone, wood, tile and ridge.</text>
+  <text x="84" y="992" class="small">• Roof still rises to a ridge: 1572 cm at the centre vs 1312 cm at the eaves, rise +260 cm, in both variants.</text>
+
+  <!-- BLOCKER -->
+  <rect x="60" y="1034" width="1380" height="120" rx="14" class="bad"/>
+  <text x="84" y="1068" class="h">Blocker — no new perspective review for this pass</text>
+  <text x="84" y="1098" class="small">The deferred high-res screenshot is still writing one stale frame for every requested view, in both variants. Already ruled out: camera readback, missing transient actors, editor_invalidate_viewports(), a 10 s delay, force_game_view off, an explicit CameraActor argument, and a SceneCapture2D render-target export. The editor window not being in the foreground remains the leading cause; Python cannot toggle that throttle.</text>
+  <text x="84" y="1126" class="small">Consequence: the revision-3 materials are measured and numerically validated but not visually confirmed. The capture set should be re-run with the editor foregrounded, and the plaque reading direction confirmed from a front-on view at the same time.</text>
+</svg>

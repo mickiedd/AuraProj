@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="860" viewBox="0 0 1200 860">
+<defs>
+ <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#24483f" stroke-width="2"/></marker>
+ <marker id="bad" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8" fill="#b03f32"/></marker>
+ <style>text{font-family:Segoe UI,Arial,sans-serif;fill:#18342d}.title{font-size:28px;font-weight:700}.h{font-size:21px;font-weight:700}.body{font-size:18px}.small{font-size:16px}.caption{font-size:15px;fill:#46605a}.panel{fill:#fff;stroke:#b9cac4;stroke-width:1.5}</style>
+</defs>
+<rect width="1200" height="860" fill="#edf3f0"/>
+<text x="36" y="48" class="title">Zhengnanmen V2 — intact from perspective views</text>
+<text x="36" y="79" class="body">Repair surface orientation and shell closure in the existing three-tier actor · 2026-09-16</text>
+<rect x="36" y="106" width="550" height="334" rx="12" class="panel"/>
+<rect x="614" y="106" width="550" height="334" rx="12" class="panel"/>
+<text x="59" y="143" class="h">Before: missing visible faces</text>
+<text x="637" y="143" class="h">After: closed, outward-facing surfaces</text>
+<!-- schematic section, intentionally excludes balcony openings -->
+<path d="M84 219 Q100 231 120 215 L291 171 L455 215 Q480 231 508 214" fill="none" stroke="#388b74" stroke-width="6"/>
+<path d="M110 300 Q133 315 156 291 L293 251 L431 291 Q472 314 505 299" fill="none" stroke="#388b74" stroke-width="6"/>
+<path d="M158 222 V271 H432 V224 M158 307 V352 H432 V307" fill="none" stroke="#aa513c" stroke-width="4" stroke-dasharray="10 7"/>
+<path d="M83 377 H512" stroke="#a8aaa1" stroke-width="28"/>
+<path d="M120 247 H186 M470 247 H405 M115 329 H184 M473 329 H405" stroke="#b03f32" stroke-width="2" marker-end="url(#bad)"/>
+<text x="236" y="242" class="small">see-through core</text>
+<text x="221" y="333" class="small">open roof underside</text>
+<text x="59" y="418" class="small">93 inward solids + 8 open sheets in the source</text>
+<path d="M662 219 Q678 231 698 215 L869 171 L1033 215 Q1058 231 1086 214 L1080 222 Q1057 240 1030 223 L869 181 L701 223 Q680 239 663 226 Z" fill="#388b74" stroke="#245f50" stroke-width="2"/>
+<path d="M688 300 Q711 315 734 291 L871 251 L1009 291 Q1050 314 1083 299 L1081 307 Q1050 322 1006 299 L871 261 L737 300 Q710 324 687 308 Z" fill="#388b74" stroke="#245f50" stroke-width="2"/>
+<path d="M736 227 H1010 V270 H736 Z M736 310 H1010 V352 H736 Z" fill="#a65d43" stroke="#613c30" stroke-width="3"/>
+<path d="M661 377 H1090" stroke="#a8aaa1" stroke-width="28"/>
+<path d="M736 245 H681 M1010 245 H1065 M736 331 H681 M1010 331 H1065" stroke="#24483f" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="800" y="253" style="fill:#fff" class="small">solid timber core</text>
+<text x="794" y="337" style="fill:#fff" class="small">closed underside</text>
+<text x="637" y="418" class="small">101 repaired variants + 2 complete detail fallbacks</text>
+<text x="36" y="481" class="h">Guarded correction flow</text>
+<rect x="36" y="504" width="252" height="122" rx="9" class="panel"/>
+<text x="55" y="532" class="body">Source geometry</text><text x="55" y="559" class="small">Reverse inward triangles</text><text x="55" y="583" class="small">Close roofs, tiles and soffit</text><text x="55" y="607" class="small">Preserve original surface UV0</text>
+<path d="M296 565 H321" stroke="#24483f" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="331" y="504" width="252" height="122" rx="9" class="panel"/>
+<text x="350" y="532" class="body">Native import contract</text><text x="350" y="559" class="small">Match existing local basis</text><text x="350" y="583" class="small">Compensate FBX V flip</text><text x="350" y="607" class="small">Keep full Nanite fallback</text>
+<path d="M591 565 H616" stroke="#24483f" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="626" y="504" width="252" height="122" rx="9" class="panel"/>
+<text x="645" y="532" class="body">Geometry gate</text><text x="645" y="559" class="small">114 closed outward prototypes</text><text x="645" y="583" class="small">3,897 front-face coverage rays</text><text x="645" y="607" class="small">101 imported UV checks pass</text>
+<path d="M886 565 H911" stroke="#24483f" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="921" y="504" width="243" height="122" rx="9" class="panel"/>
+<text x="940" y="532" class="body">Exact V2 ActorAsset</text><text x="940" y="559" class="small">114 HISM components</text><text x="940" y="583" class="small">12,383 transforms preserved</text><text x="940" y="607" class="small">One gate, three roof tiers</text>
+<rect x="36" y="651" width="1128" height="125" rx="12" fill="#dae9df" stroke="#b1c7bb"/>
+<text x="56" y="684" class="h">Validation and visual review</text>
+<text x="56" y="712" class="body">Live portable spawn and fresh NullRHI reload pass; masonry alignment remains valid.</text>
+<text x="56" y="741" class="body">Eight perspectives inspected: hero, rear, left, right, under eaves, roof, arch and floor close-up.</text>
+<text x="36" y="811" class="caption">Reference intent: complete roof tiers, timber enclosure and masonry body. Verandas and gateway remain intentional openings.</text>
+<text x="36" y="837" class="caption">Section drawings are schematic. Archived before/after editor renders accompany the Markdown record.</text>
+</svg>

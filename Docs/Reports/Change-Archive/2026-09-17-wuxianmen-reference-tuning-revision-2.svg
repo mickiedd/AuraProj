@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1060" viewBox="0 0 1500 1060">
+  <rect width="1500" height="1060" fill="#101923"/>
+  <style>
+    .title{font:700 34px Arial;fill:#f3f7fb}.sub{font:15px Arial;fill:#aec0cc}
+    .h{font:700 21px Arial;fill:#9fe3ff}.t{font:16px Arial;fill:#d6e2ea}
+    .small{font:14px Arial;fill:#aec0cc}.mono{font:13px Consolas,monospace;fill:#cfe6f2}
+    .box{fill:#172735;stroke:#4c7188;stroke-width:2}
+    .bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}
+    .good{fill:#163c37;stroke:#54d5ae;stroke-width:2}
+    .arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+    .tile{fill:#8fa6b5}.deck{fill:#a9644a}.ridge{fill:#e0e6ea}
+    .axis{stroke:#54748c;stroke-width:1.5;stroke-dasharray:6 6}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+
+  <text x="60" y="62" class="title">Wuxianmen V5 Core — Reference Tuning Revision 2</text>
+  <text x="60" y="92" class="sub">2026-09-17 • BP_Wuxianmen_V5_4K_Core • roof orientation, ridge axis, roof tile / stone / plaster / plaque materials</text>
+  <text x="60" y="116" class="sub">7 components • 5,103 instances preserved • 328 instance transforms corrected • no map saved</text>
+
+  <!-- BEFORE: side elevation -->
+  <rect x="60" y="150" width="640" height="330" rx="16" class="bad"/>
+  <text x="88" y="188" class="h">Before — measured side elevation (Y horizontal, Z vertical)</text>
+  <text x="88" y="216" class="small">Tiles and both wood roof decks rose from z 12.75 m at y = 0 to z 15.72 m at |y| = 4.5 m.</text>
+  <text x="88" y="238" class="small">The roof dipped at the centre: a valley, not a ridge.</text>
+
+  <line x1="110" y1="452" x2="660" y2="452" class="axis"/>
+  <line x1="385" y1="250" x2="385" y2="452" class="axis"/>
+  <text x="640" y="446" class="small">y</text><text x="392" y="266" class="small">z</text>
+
+  <!-- valley profile -->
+  <path d="M170 300 L385 412 L600 300" fill="none" stroke="#8fa6b5" stroke-width="4"/>
+  <path d="M170 300 L385 412 L600 300 L600 320 L385 432 L170 320 Z" class="deck" opacity="0.75"/>
+  <circle cx="170" cy="300" r="5" fill="#8fa6b5"/><circle cx="385" cy="412" r="5" fill="#8fa6b5"/><circle cx="600" cy="300" r="5" fill="#8fa6b5"/>
+  <text x="196" y="292" class="small">high eave</text>
+  <text x="352" y="440" class="small">low centre</text>
+  <text x="566" y="292" class="small">high eave</text>
+
+  <!-- protruding ridge bars -->
+  <line x1="96" y1="286" x2="674" y2="286" stroke="#e0e6ea" stroke-width="7"/>
+  <line x1="96" y1="352" x2="674" y2="352" stroke="#e0e6ea" stroke-width="7"/>
+  <text x="96" y="272" class="small">main_ridge 0.42 × 22.5 × 0.42 m, long axis Y — 6.9 m past each eave</text>
+  <text x="96" y="372" class="small">lower_ridge 0.42 × 21.0 × 0.42 m — 6.15 m past each eave</text>
+  <text x="96" y="404" class="t">These are the “blades” in every earlier capture.</text>
+  <text x="96" y="430" class="small">The same component was also bound to a roof-tile mesh; main_ridge was unbound.</text>
+
+  <path d="M700 315 L760 315" class="arrow"/>
+
+  <!-- REPAIR -->
+  <rect x="760" y="150" width="680" height="330" rx="16" class="box"/>
+  <text x="788" y="188" class="h">Smallest surface repaired</text>
+  <text x="788" y="222" class="t">1. Un-invert both roof tiers</text>
+  <text x="806" y="248" class="small">180° rotation about the world X axis through each tier mid-plane</text>
+  <text x="806" y="270" class="mono">main pivot z = 1423.5 cm   lower pivot z = 1251.5 cm</text>
+  <text x="806" y="292" class="small">a rotation, not a Z mirror, so triangle winding and normals stay valid</text>
+
+  <text x="788" y="330" class="t">2. Re-seat the wood roof decks below the tiles</text>
+  <text x="806" y="356" class="small">a Z mirror reverses vertical stacking, which lifted the decks above the tiles</text>
+  <text x="806" y="378" class="mono">deck pivot z = 1403.5 / 1236.5 cm → decks 9–42 cm below the tile tops</text>
+
+  <text x="788" y="416" class="t">3. Re-axis and re-seat both ridge bars</text>
+  <text x="806" y="442" class="small">rebound to main_ridge, turned 90° about Z to run along X, sat on the new apex</text>
+  <text x="806" y="464" class="mono">main z = 1572 cm   lower z = 1338 cm</text>
+
+  <!-- AFTER: side elevation -->
+  <rect x="60" y="520" width="640" height="330" rx="16" class="good"/>
+  <text x="88" y="558" class="h">After — ridge, eaves and caps where they belong</text>
+  <line x1="110" y1="822" x2="660" y2="822" class="axis"/>
+  <line x1="385" y1="590" x2="385" y2="822" class="axis"/>
+  <text x="640" y="816" class="small">y</text><text x="392" y="606" class="small">z</text>
+
+  <path d="M170 720 L385 600 L600 720" fill="none" stroke="#8fa6b5" stroke-width="4"/>
+  <path d="M170 740 L385 620 L600 740 L600 760 L385 640 L170 760 Z" class="deck" opacity="0.75"/>
+  <text x="300" y="592" class="small">ridge apex z = 15.72 m at y = 0</text>
+  <text x="150" y="738" class="small">eave z = 12.75 m</text>
+  <text x="556" y="738" class="small">eave z = 12.75 m</text>
+  <rect x="300" y="586" width="170" height="14" rx="7" class="ridge"/>
+  <rect x="318" y="676" width="134" height="12" rx="6" class="ridge" opacity="0.85"/>
+  <text x="96" y="784" class="small">main ridge cap 22.5 m along X • lower ridge cap 21.0 m along X • no protrusion</text>
+  <text x="96" y="812" class="t">Tiles are the visible surface; the decks sit just beneath them.</text>
+  <text x="96" y="838" class="small">Measured live: roof ridge 1572 cm, eave 1312 cm → rise +260 cm (was −260 cm).</text>
+
+  <!-- MATERIALS -->
+  <rect x="760" y="520" width="680" height="330" rx="16" class="box"/>
+  <text x="788" y="558" class="h">Material corrections, all measured from the sheets</text>
+
+  <text x="788" y="592" class="t">Roof tile — the strip is one tile wide, one slope long</text>
+  <text x="806" y="616" class="small">sheet holds 14.63 columns per unit U and 5.24 courses per authored region</text>
+  <text x="806" y="638" class="mono">U tiling 1/14.629 = 0.0684 → one column across the 0.359 m strip</text>
+  <text x="806" y="660" class="mono">V: frac(UV · 2.8) · 0.4431 → 14 courses, 0.362 m pitch, seam on a course line</text>
+
+  <text x="788" y="694" class="t">Stone — one stone per block instead of a minified sheet</text>
+  <text x="806" y="718" class="small">the sheet holds 6.36 stones per unit; tiling 6.36 shrank each stone to 13 mm</text>
+  <text x="806" y="740" class="mono">tiling 1/6.36 = 0.157 + per-instance custom data offset and tone</text>
+  <text x="806" y="762" class="small">4,213 blocks each sample a different stone; tint 0.61/0.58/0.51 → 0.53/0.50/0.44</text>
+
+  <text x="788" y="796" class="t">Plaster and plaque</text>
+  <text x="806" y="820" class="small">plaster tint 0.72/0.66/0.56 → 0.62/0.57/0.49 (the panels were a flat cream band)</text>
+  <text x="806" y="842" class="small">the plaque had no texture at all; a generated 五仙門 board is imported and bound</text>
+
+  <!-- VALIDATION -->
+  <rect x="60" y="884" width="1380" height="146" rx="16" class="good"/>
+  <text x="88" y="920" class="h">Validation</text>
+  <text x="88" y="950" class="small">• Every corrected instance box equals the Z mirror of an original box about that part's pivot — 168 + 156 tiles, 2 + 2 decks, 0 unmatched.</text>
+  <text x="88" y="974" class="small">• The four untouched components keep their exact baseline instance payload; inside the repaired components the 447 non-roof wood parts and 8 ridge ornaments do too.</text>
+  <text x="88" y="998" class="small">• Ridge bars now span X 2250 / 2100 cm and Y 42 cm, seated at z 1572 / 1338 cm. Live spawn: 7 components, 5,103 instances, bounds 3646 × 1813 × 1721 cm, transient actor destroyed.</text>
+  <text x="88" y="1022" class="small">• 12 transient capture views reviewed; no map was saved. /Game/Maps/Login was already dirty beforehand and was left untouched.</text>
+</svg>

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1080" viewBox="0 0 1500 1080">
+  <rect width="1500" height="1080" fill="#101923"/>
+  <style>
+    .title{font:700 34px Arial;fill:#f3f7fb}.sub{font:15px Arial;fill:#aec0cc}
+    .h{font:700 21px Arial;fill:#9fe3ff}.t{font:16px Arial;fill:#d6e2ea}
+    .small{font:14px Arial;fill:#aec0cc}.mono{font:13px Consolas,monospace;fill:#cfe6f2}
+    .box{fill:#172735;stroke:#4c7188;stroke-width:2}
+    .bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}
+    .good{fill:#163c37;stroke:#54d5ae;stroke-width:2}
+    .warn{fill:#3a3320;stroke:#e0c15a;stroke-width:2}
+    .arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+    .bar{fill:#8fa6b5}.bar2{fill:#54d5ae}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+
+  <text x="60" y="62" class="title">Wuxianmen V5 FullPBR — Reference Tuning Revision 2</text>
+  <text x="60" y="92" class="sub">2026-09-17 • BP_Wuxianmen_V5_FullPBR • same geometry correction as Core, plus a material substitution forced by the source textures</text>
+  <text x="60" y="116" class="sub">7 components • 5,103 instances preserved • 328 instance transforms corrected • no map saved</text>
+
+  <!-- shared root cause -->
+  <rect x="60" y="150" width="640" height="300" rx="16" class="bad"/>
+  <text x="88" y="188" class="h">The assembly is identical to Core's</text>
+  <text x="88" y="220" class="small">Recorded transform payloads match the Core baseline for all seven components,</text>
+  <text x="88" y="242" class="small">so the same defects and the same correction pivots apply:</text>
+  <text x="88" y="278" class="mono">main_ridge 0.42 × 22.5 × 0.42 m on Y → 6.9 m past each eave</text>
+  <text x="88" y="302" class="mono">tiles + both decks rise to z 15.72 m at |y| = 4.5 m → a valley</text>
+  <text x="88" y="326" class="mono">HISM_004 bound to a roof-tile mesh; main_ridge unbound</text>
+  <text x="88" y="362" class="t">Correction, unchanged from the Core pass</text>
+  <text x="88" y="390" class="small">180° rotation about the world X axis through each tier mid-plane</text>
+  <text x="88" y="412" class="mono">tile pivots 1423.5 / 1251.5 cm   deck pivots 1403.5 / 1236.5 cm</text>
+  <text x="88" y="434" class="small">ridge re-bound, turned 90° about Z, seated at z 1572 / 1338 cm</text>
+
+  <path d="M700 300 L760 300" class="arrow"/>
+
+  <!-- material situation -->
+  <rect x="760" y="150" width="680" height="300" rx="16" class="warn"/>
+  <text x="788" y="188" class="h">But the source textures are not the same</text>
+  <text x="788" y="222" class="small">The FullPBR archive ships smooth mottle sheets with no architectural joints.</text>
+  <text x="788" y="244" class="small">Measured against the Core sheets, as p99 image gradient:</text>
+  <text x="810" y="284" class="small">stone base colour</text>
+  <rect x="1000" y="272" width="36" height="14" class="bar"/>
+  <text x="1046" y="284" class="mono">0.004  FullPBR</text>
+  <rect x="1000" y="292" width="640" height="14" class="bar2"/>
+  <text x="1056" y="304" class="mono">0.071  Core — 18× stronger joints</text>
+  <text x="810" y="340" class="small">roof tile base colour</text>
+  <rect x="1000" y="328" width="108" height="14" class="bar"/>
+  <text x="1118" y="340" class="mono">0.012  FullPBR</text>
+  <rect x="1000" y="348" width="460" height="14" class="bar2"/>
+  <text x="1056" y="360" class="mono">0.051  Core — 4× stronger courses</text>
+  <text x="788" y="398" class="t">So no UV scale can make these sheets read as ashlar or tiles.</text>
+  <text x="788" y="424" class="small">The roof sheet is flat charcoal noise; the stone sheet is flat mottle. Both are</text>
+  <text x="788" y="444" class="small">byte-identical to the archive's own PNGs — the limitation is in the source.</text>
+
+  <!-- what was done -->
+  <rect x="60" y="500" width="640" height="300" rx="16" class="good"/>
+  <text x="88" y="538" class="h">What was changed</text>
+  <text x="88" y="572" class="t">Roof — borrowed the sibling package's authored sheet</text>
+  <text x="88" y="598" class="small">Per the user's decision, the Core package's authored 4K tile sheet is copied into</text>
+  <text x="88" y="620" class="small">the FullPBR package as a task-owned texture (byte-identical copy; source untouched)</text>
+  <text x="88" y="642" class="small">and drives a new roof material with the same measured UV contract:</text>
+  <text x="88" y="666" class="mono">U tiling 1/14.629 = 0.0684 → one tile column across the 0.359 m strip</text>
+  <text x="88" y="688" class="mono">V: frac(UV · 2.8) · 0.4431 → 14 courses, 0.362 m pitch</text>
+  <text x="88" y="722" class="t">Stone — per-instance variation</text>
+  <text x="88" y="748" class="small">tiling 0.06 magnifies the mottle to ~0.1 m features; a per-instance custom data</text>
+  <text x="88" y="770" class="small">value offsets each block's UV and varies its tone ±20%, so 4,213 identical blocks</text>
+  <text x="88" y="792" class="small">stop reading as one flat surface. Tint 0.61/0.58/0.51 → 0.53/0.50/0.44.</text>
+
+  <rect x="760" y="500" width="680" height="300" rx="16" class="box"/>
+  <text x="788" y="538" class="h">Also changed</text>
+  <text x="788" y="574" class="t">Plaster</text>
+  <text x="788" y="600" class="small">FullPBR ships plaster maps (the Core package did not). Tint brought in line with</text>
+  <text x="788" y="622" class="small">the Core pass: 0.72/0.66/0.56 → 0.62/0.57/0.49.</text>
+  <text x="788" y="658" class="t">Plaque</text>
+  <text x="788" y="684" class="small">FullPBR ships a plaque board texture (Core had none). The material was tinting it</text>
+  <text x="788" y="706" class="small">gold at 0.75/0.59/0.34; neutralised to 0.92/0.90/0.86 so the board reads light like</text>
+  <text x="788" y="728" class="small">the reference. UV orientation left untouched — see the open item below.</text>
+  <text x="788" y="764" class="t">Metal-roughness packing</text>
+  <text x="788" y="790" class="small">FullPBR packs roughness into G and metallic into B, unlike the Core package's</text>
+  <text x="788" y="812" class="small">separate roughness map. The new materials sample the right channels.</text>
+
+  <!-- validation -->
+  <rect x="60" y="830" width="1380" height="120" rx="16" class="good"/>
+  <text x="88" y="866" class="h">Validation</text>
+  <text x="88" y="896" class="small">• Every corrected instance box equals the Z mirror of an original box about that part's pivot — 168 + 156 tiles, 2 + 2 decks, 0 unmatched. The ridge spans X 2250 / 2100 cm, Y 42 cm, seated at z 1572 / 1338 cm.</text>
+  <text x="88" y="920" class="small">• Live spawn: 7 components, 5,103 instances, bounds 3646 × 1813 × 1721 cm; roof ridge 1572 cm vs eave 1312 cm (rise +260 cm; it was −260 cm).</text>
+  <text x="88" y="944" class="small">• Four untouched components match the baseline exactly; inside the repaired ones, 447 wood parts and 8 ridge ornaments are unchanged. No map saved.</text>
+
+  <!-- open item -->
+  <rect x="60" y="974" width="1380" height="86" rx="16" class="warn"/>
+  <text x="88" y="1008" class="h">Open item — the capture harness</text>
+  <text x="88" y="1036" class="small">The deferred high-res screenshot stopped tracking the camera partway through this session: every requested view wrote the same stale frame, for both variants. Verified against camera readback, a forced viewport invalidate, a 10 s delay, force_game_view off, and a SceneCapture2D + render-target path. The editor window being in the background is the likely cause, so a foregrounded editor should restore it. A front-on plaque capture is still wanted to confirm the 五仙門 reading direction.</text>
+</svg>

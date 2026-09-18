@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900">
+  <rect width="1500" height="900" fill="#101923"/>
+  <style>
+    .title{font:700 30px Arial;fill:#f3f7fb}.sub{font:13px Arial;fill:#aec0cc}
+    .h{font:700 18px Arial;fill:#9fe3ff}.t{font:13px Arial;fill:#d6e2ea}
+    .small{font:12px Arial;fill:#aec0cc}.mono{font:11px Consolas,monospace;fill:#cfe6f2}
+    .good{fill:#163c37;stroke:#54d5ae;stroke-width:2}
+    .warn{fill:#3a3320;stroke:#e0c15a;stroke-width:2}
+    .bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}
+    .box{fill:#172735;stroke:#4c7188;stroke-width:2}
+    .arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+  <text x="50" y="48" class="title">Guidemen rebuild — capture harness fixed, and what it revealed</text>
+  <text x="50" y="72" class="sub">2026-09-18 · first visual verification after five passes of geometry-only work</text>
+
+  <rect x="50" y="96" width="470" height="230" rx="12" class="good"/>
+  <text x="72" y="126" class="h">The harness that finally works</text>
+  <text x="72" y="154" class="mono">SceneCapture2D</text>
+  <text x="88" y="172" class="mono">-&gt; persistent TextureRenderTarget2D</text>
+  <text x="88" y="190" class="mono">-&gt; read_render_target(world, rt, True)</text>
+  <text x="88" y="208" class="mono">-&gt; binary PPM written from the editor</text>
+  <text x="88" y="226" class="mono">-&gt; PNG converted outside the editor</text>
+  <text x="72" y="254" class="small">Three things had to be learned:</text>
+  <text x="72" y="274" class="small">· export_render_target writes nothing in this build</text>
+  <text x="72" y="292" class="small">· the editor Python has no numpy and no PIL</text>
+  <text x="72" y="310" class="small">· set_visibility does not affect traces; collision does</text>
+
+  <path d="M520 210 L560 210" class="arrow"/>
+
+  <rect x="560" y="96" width="440" height="230" rx="12" class="bad"/>
+  <text x="582" y="126" class="h">Immediately exposed: two buildings</text>
+  <text x="582" y="156" class="small">Every capture was showing TWO overlapping Guidemen actors — a stale</text>
+  <text x="582" y="174" class="small">BP_Guidemen_V5_4K_C_0 left by an earlier staged setup, plus the current</text>
+  <text x="582" y="192" class="small">one. The level held 16 actors. This contaminated every image and would</text>
+  <text x="582" y="210" class="small">have made any material or geometry diagnosis wrong.</text>
+  <text x="582" y="240" class="t">Cleaned: 16 stray actors removed, level now zero.</text>
+  <text x="582" y="270" class="small">The staged harness leaves actors in the world by design, so a leaked</text>
+  <text x="582" y="288" class="small">setup is silent and poisons every later capture. Always list the level</text>
+  <text x="582" y="306" class="small">actors before trusting an image.</text>
+
+  <rect x="1000" y="96" width="450" height="230" rx="12" class="warn"/>
+  <text x="1022" y="126" class="h">Materials rebuilt — 47 slots</text>
+  <text x="1022" y="156" class="small">Most of the building rendered saturated blue with relief: a normal map</text>
+  <text x="1022" y="174" class="small">read as base colour. Only the two materials rebuilt in the earlier pass</text>
+  <text x="1022" y="192" class="small">(stone, tile) rendered correctly — which was the tell.</text>
+  <text x="1022" y="222" class="mono">BaseColor           -&gt; BaseColor   (sRGB)</text>
+  <text x="1022" y="240" class="mono">Normal              -&gt; Normal      (non-sRGB)</text>
+  <text x="1022" y="258" class="mono">MetallicRoughness.G -&gt; Roughness</text>
+  <text x="1022" y="276" class="mono">MetallicRoughness.B -&gt; Metallic</text>
+  <text x="1022" y="294" class="mono">AO.R                -&gt; Ambient Occlusion</text>
+  <text x="1022" y="318" class="small">Ten *_Rebuild20260918 materials; old graphs kept for rollback.</text>
+
+  <rect x="50" y="346" width="700" height="230" rx="12" class="box"/>
+  <text x="72" y="376" class="h">Checked before blaming the materials</text>
+  <text x="72" y="406" class="mono">M_AgedTimber_BaseColor.jpg   RGB (0.397, 0.249, 0.157)  brown</text>
+  <text x="72" y="424" class="mono">M_GrayClayTile_BaseColor.jpg RGB (0.236, 0.243, 0.232)  grey</text>
+  <text x="72" y="442" class="mono">M_AgedTimber_Normal.jpg      RGB (0.498, 0.498, 0.988)  proper normal map</text>
+  <text x="72" y="472" class="small">Imported UE textures are correct too:</text>
+  <text x="72" y="492" class="mono">BaseColor          TC_DEFAULT    sRGB on    4096x4096</text>
+  <text x="72" y="510" class="mono">Normal             TC_NORMALMAP  sRGB off   4096x4096</text>
+  <text x="72" y="528" class="mono">MetallicRoughness  TC_MASKS      sRGB off   4096x4096</text>
+  <text x="72" y="546" class="mono">AO                 TC_MASKS      sRGB off   4096x4096</text>
+  <text x="72" y="570" class="small">So the source art and the import are both sound.</text>
+
+  <rect x="770" y="346" width="680" height="230" rx="12" class="good"/>
+  <text x="792" y="376" class="h">The roof reads correctly from above</text>
+  <text x="792" y="406" class="small">The top-down view shows a clean hip-roof plan: the ridge along X with the</text>
+  <text x="792" y="424" class="small">four hip lines running diagonally to the corners.</text>
+  <text x="792" y="454" class="t">The X / bowtie pattern is the hip lines, not a valley.</text>
+  <text x="792" y="482" class="small">That is exactly what a 庑殿 roof looks like from directly overhead, and it</text>
+  <text x="792" y="500" class="small">agrees with the measurement that every shell falls monotonically away from</text>
+  <text x="792" y="518" class="small">the ridge.</text>
+  <text x="792" y="548" class="small">Tiles match the source to the centimetre; the source's own shell defect</text>
+  <text x="792" y="566" class="small">remains corrected at 9.89 / 9.86 cm clearance under the tile tops.</text>
+
+  <rect x="50" y="596" width="1400" height="150" rx="12" class="bad"/>
+  <text x="72" y="626" class="h">Still open — the blue timber and doors</text>
+  <text x="72" y="656" class="small">With a single actor and fully rebuilt materials, the timber, columns and gate doors still render saturated blue. Ruled out:</text>
+  <text x="72" y="680" class="mono">material wiring        all ten rebuilt with correct channels          |  source maps      correct albedo and normals</text>
+  <text x="72" y="700" class="mono">imported textures      sRGB, compression and sizes all correct        |  stale actor      level cleaned, defect persists</text>
+  <text x="72" y="724" class="small">And the contradiction worth chasing: with a flat mid-grey material on all 47 slots, the stone, roof and crenellations went grey while the timber</text>
+  <text x="72" y="740" class="small">stayed blue — which points at those meshes rather than their materials, most likely vertex colour or a per-mesh override.</text>
+
+  <rect x="50" y="762" width="1400" height="118" rx="12" class="box"/>
+  <text x="72" y="792" class="h">Where this leaves the rebuild</text>
+  <text x="72" y="820" class="small">Fixed: the capture harness, the level contamination, the ten materials (47 slots rebound, rollback graphs intact). Verified: the assembly is a faithful copy of</text>
+  <text x="72" y="838" class="small">the source (18,820 of 18,822 instances within 1 cm), and the roof reads correctly from above. Open: the blue timber, now cheap to isolate — with the harness</text>
+  <text x="72" y="856" class="small">working, hiding component groups by collision will name the blue geometry outright instead of inferring it.</text>
+</svg>

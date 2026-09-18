@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">V5 three-package independent building import</title>
+  <desc id="desc">Before and after flow for importing Guidemen and two Wuxianmen packages as independent tuned Unreal Blueprints with intactness validation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#1f2937"/></linearGradient>
+    <linearGradient id="blue" x1="0" x2="1"><stop stop-color="#1d4ed8"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient>
+    <linearGradient id="amber" x1="0" x2="1"><stop stop-color="#92400e"/><stop offset="1" stop-color="#d97706"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity="0.28"/></filter>
+    <style>
+      .title{font:700 38px 'Segoe UI',sans-serif;fill:#f8fafc}.sub{font:18px 'Segoe UI',sans-serif;fill:#cbd5e1}
+      .h{font:700 23px 'Segoe UI',sans-serif;fill:#f8fafc}.body{font:17px 'Segoe UI',sans-serif;fill:#e5e7eb}
+      .small{font:15px 'Segoe UI',sans-serif;fill:#cbd5e1}.metric{font:700 22px 'Segoe UI',sans-serif;fill:#fef3c7}
+      .box{stroke:#64748b;stroke-width:2;rx:18;filter:url(#shadow)}.arrow{stroke:#7dd3fc;stroke-width:5;fill:none;marker-end:url(#head)}
+    </style>
+    <marker id="head" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#7dd3fc"/></marker>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <text x="70" y="65" class="title">Raw3DModels V5 → three independent, reference-tuned building Blueprints</text>
+  <text x="70" y="100" class="sub">2026-09-17 · every authored instance preserved · intentional gate arches open · accidental hollows guarded</text>
+
+  <rect x="70" y="145" width="410" height="305" class="box" fill="#3f1d24"/>
+  <text x="100" y="190" class="h">BEFORE · external packages</text>
+  <text x="100" y="235" class="body">1 × Guidemen ZIP</text><text x="100" y="270" class="body">2 × Wuxianmen ZIP variants</text>
+  <text x="100" y="320" class="small">• no Aura assets or placeable wrappers</text>
+  <text x="100" y="350" class="small">• mapped PNG files had invalid CRCs</text>
+  <text x="100" y="380" class="small">• package-specific import axes differed</text>
+  <text x="100" y="410" class="small">• loose scene nodes, materials and textures</text>
+
+  <path d="M500 300 C560 300 570 300 625 300" class="arrow"/>
+  <rect x="625" y="145" width="350" height="305" class="box" fill="#1e3a5f"/>
+  <text x="655" y="190" class="h">NORMALIZE + IMPORT</text>
+  <text x="655" y="235" class="body">Safe ZIP extraction + SHA-256</text>
+  <text x="655" y="270" class="body">CRC-safe texture re-encoding</text>
+  <text x="655" y="305" class="body">Guidemen roll 0°</text>
+  <text x="655" y="340" class="body">Wuxianmen roll −90°</text>
+  <text x="655" y="375" class="body">Nanite + HISM assembly</text>
+  <text x="655" y="410" class="body">Two-sided surfaces + collision</text>
+
+  <path d="M995 300 C1050 300 1060 300 1115 300" class="arrow"/>
+  <rect x="1115" y="145" width="415" height="305" class="box" fill="#173a2a"/>
+  <text x="1145" y="190" class="h">AFTER · placeable Blueprints</text>
+  <text x="1145" y="238" class="metric">Guidemen · 47 HISM / 18,822</text>
+  <text x="1145" y="285" class="metric">Wuxianmen Core · 7 / 5,103</text>
+  <text x="1145" y="332" class="metric">Wuxianmen FullPBR · 7 / 5,103</text>
+  <text x="1145" y="382" class="small">23 tuned material siblings</text>
+  <text x="1145" y="412" class="small">three isolated asset namespaces + preview levels</text>
+
+  <rect x="70" y="505" width="710" height="205" class="box" fill="url(#amber)"/>
+  <text x="105" y="550" class="h">REFERENCE TUNING</text>
+  <text x="105" y="592" class="body">Weathered warm-gray masonry · aged dark timber · charcoal clay tile</text>
+  <text x="105" y="628" class="body">Restrained plaster/iron · historic plaque tones · original materials retained</text>
+  <text x="105" y="670" class="small">Guidemen source-specific reimport replaced the rejected sideways assembly;</text>
+  <text x="105" y="696" class="small">the first mesh set remains as an unused rollback source.</text>
+
+  <rect x="820" y="505" width="710" height="205" class="box" fill="url(#blue)"/>
+  <text x="855" y="550" class="h">INTACTNESS GATES</text>
+  <text x="855" y="592" class="body">✓ all referenced meshes and scene instances accounted for</text>
+  <text x="855" y="628" class="body">✓ nonempty sections + every slot bound + package-local dependencies</text>
+  <text x="855" y="664" class="body">✓ two-sided materials + double-sided complex collision</text>
+  <text x="855" y="700" class="body">✓ intentional arch openings retained; no accidental exterior holes</text>
+
+  <rect x="70" y="765" width="1460" height="165" class="box" fill="#0f172a"/>
+  <text x="105" y="810" class="h">FINAL EVIDENCE</text>
+  <text x="105" y="850" class="body">Structural validator: PASS × 3</text>
+  <text x="525" y="850" class="body">Blueprint spawn/bounds: PASS × 3</text>
+  <text x="1010" y="850" class="body">Visual QA: 4 views × 3 packages</text>
+  <text x="105" y="892" class="small">Guidemen 56.39 × 18.00 × 21.30 m · Wuxianmen variants 36.47 × 24.29 × 17.00 m · Python syntax + diff check pass</text>
+  <text x="70" y="972" class="small">AuraProj visual change archive · source archives unchanged · unrelated Zhengnanmen work preserved</text>
+</svg>
