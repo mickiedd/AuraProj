@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1020" viewBox="0 0 1500 1020">
+  <rect width="1500" height="1020" fill="#101923"/>
+  <style>
+    .title{font:700 30px Arial;fill:#f3f7fb}.sub{font:13px Arial;fill:#aec0cc}
+    .h{font:700 18px Arial;fill:#9fe3ff}.t{font:13px Arial;fill:#d6e2ea}
+    .small{font:12px Arial;fill:#aec0cc}.mono{font:11px Consolas,monospace;fill:#cfe6f2}
+    .good{fill:#163c37;stroke:#54d5ae;stroke-width:2}
+    .warn{fill:#3a3320;stroke:#e0c15a;stroke-width:2}
+    .bad{fill:#3b2225;stroke:#e27b83;stroke-width:2}
+    .box{fill:#172735;stroke:#4c7188;stroke-width:2}
+    .arrow{stroke:#72c9e8;stroke-width:3;fill:none;marker-end:url(#m)}
+  </style>
+  <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#72c9e8"/></marker></defs>
+  <text x="50" y="48" class="title">Editor crashes — cause, fix, and prevention</text>
+  <text x="50" y="72" class="sub">2026-09-18 · two fatal classes found in the logs · one fixed and guarded, one scripted but not yet run</text>
+
+  <rect x="50" y="96" width="700" height="250" rx="12" class="bad"/>
+  <text x="72" y="126" class="h">Crash 1 — out of memory, 2026-09-18 14:34</text>
+  <text x="72" y="156" class="small">Re-importing the Guidemen source with <tspan font="11px Consolas,monospace">bake_meshes = True</tspan>. The log shows the script stack and the numbers:</text>
+  <text x="72" y="182" class="mono">Script Stack: /Script/InterchangeEngine.InterchangeManager.ImportAsset</text>
+  <text x="72" y="200" class="mono">Ran out of memory allocating 1485644460 (1416.8 MiB) bytes</text>
+  <text x="72" y="218" class="mono">Last error msg: The paging file is too small for this operation to complete</text>
+  <text x="72" y="236" class="mono">PeakUsedVirtual 135348469760 (126.05 GiB)   AvailableVirtual 1.15 GiB</text>
+  <text x="72" y="262" class="t">Why: the source is shared-mesh instanced — 18,823 nodes over 48 geometries.</text>
+  <text x="72" y="284" class="small">Baking writes every node out as its own mesh. Preflight measured what that costs:</text>
+  <text x="72" y="308" class="mono">Guidemen_GuideGate_UE5_100M_Instanced   18,823 nodes / 48 geoms  ->  ~148 GB baked</text>
+  <text x="72" y="326" class="mono">GreatSouthGate_Zhengnanmen_UE5_HighPoly  2,449 nodes / 16 geoms  ->  ~2791 GB baked</text>
+
+  <rect x="770" y="96" width="680" height="250" rx="12" class="good"/>
+  <text x="792" y="126" class="h">The fix — two new tools and six guards</text>
+  <text x="792" y="156" class="t">Scripts/ImportPreflight.py</text>
+  <text x="792" y="178" class="small">Audits every GLB in the project from its JSON chunk alone — no geometry decode — and</text>
+  <text x="792" y="196" class="small">returns SAFE / BAKE-FORBIDDEN / LARGE / REFUSE with the projected gigabytes. Also reports</text>
+  <text x="792" y="214" class="small">the machine's commit headroom, because the failure mode is the commit limit.</text>
+  <text x="792" y="238" class="mono">5 GLBs BAKE-FORBIDDEN · 6 LARGE · everything else SAFE</text>
+  <text x="792" y="266" class="t">A hard guard in all six bake-on-import scripts</text>
+  <text x="792" y="288" class="small">Self-contained, inlined before each <tspan font="11px Consolas,monospace">bake_meshes = True</tspan>. It computes exactly what the</text>
+  <text x="792" y="306" class="small">import would materialise and refuses above 24 GB, naming the triangles, the gigabytes and</text>
+  <text x="792" y="324" class="small">the fix. Verified against the real sources:</text>
+  <text x="792" y="336" class="small">  ·</text>
+  <text x="810" y="336" class="mono">Guidemen, bake=True   -> REFUSED</text>
+
+  <rect x="50" y="366" width="700" height="210" rx="12" class="warn"/>
+  <text x="72" y="396" class="h">Crash 2 — Nanite assertion, 2026-09-15 02:37</text>
+  <text x="72" y="426" class="mono">Assertion failed: Nanite::IsSupportedBlendMode(ShadingMaterial)</text>
+  <text x="72" y="444" class="mono">NaniteShading.cpp Line 637  ·  3 fatal hits</text>
+  <text x="72" y="472" class="small">Nanite cannot render a material whose blend mode or shading model it does not support,</text>
+  <text x="72" y="490" class="small">and the engine asserts rather than degrading. Nanite accepts Opaque and Masked, with</text>
+  <text x="72" y="508" class="small">Default Lit or Unlit. Translucent and Additive assert.</text>
+  <text x="72" y="536" class="t">Not yet fixed — the audit is written and waiting</text>
+  <text x="72" y="558" class="small">Scripts/AuditNaniteMaterialCompatibility.py scans every landmark material for a Nanite</text>
+  <text x="72" y="574" class="small">flag with an unsupported blend or shading mode. It needs the editor, which is closed.</text>
+
+  <rect x="770" y="366" width="680" height="210" rx="12" class="box"/>
+  <text x="792" y="396" class="h">Crash 3 — not a crash</text>
+  <text x="792" y="426" class="mono">Ensure condition failed: ParentNode</text>
+  <text x="792" y="444" class="mono">SimpleConstructionScript.cpp Line 960  ·  2026-09-16</text>
+  <text x="792" y="472" class="small">A <tspan font-weight="700">handled ensure</tspan> — logged as an error but the editor survives. It came from</text>
+  <text x="792" y="490" class="mono">SubobjectDataSubsystem.DeleteSubobject</text>
+  <text x="792" y="512" class="small">The crash reader now separates handled ensures from fatal errors, so a benign ensure no</text>
+  <text x="792" y="530" class="small">longer masquerades as a crash.</text>
+  <text x="792" y="558" class="t">Scripts/ReadEditorCrashLog.py</text>
+  <text x="792" y="574" class="small">One step instead of grepping: scans every log, classifies, prints the context and the fix.</text>
+
+  <rect x="50" y="596" width="700" height="180" rx="12" class="box"/>
+  <text x="72" y="626" class="h">Machine headroom — the underlying limit</text>
+  <text x="72" y="656" class="mono">physical RAM        63.77 GB   (46.5 GB available)</text>
+  <text x="72" y="674" class="mono">page file           34.00 GB</text>
+  <text x="72" y="692" class="mono">commit limit        97.77 GB   (72.5 GB available)</text>
+  <text x="72" y="716" class="mono">C: free space       59 GB of 1.9 TB  (97% full)</text>
+  <text x="72" y="744" class="small">The page file cannot grow into 59 GB of free space on a nearly full volume, which is why</text>
+  <text x="72" y="762" class="small">the failure message was about the paging file rather than RAM. A 148 GB bake was never</text>
+
+  <rect x="770" y="596" width="680" height="180" rx="12" class="good"/>
+  <text x="792" y="626" class="h">What to do before the next import</text>
+  <text x="792" y="656" class="small">1. Run <tspan font="11px Consolas,monospace">python Scripts/ImportPreflight.py</tspan> and read the verdict table.</text>
+  <text x="792" y="678" class="small">2. If it says BAKE-FORBIDDEN, keep <tspan font="11px Consolas,monospace">bake_meshes = False</tspan> — the guards now</text>
+  <text x="792" y="696" class="small">enforce this automatically and refuse the import otherwise.</text>
+  <text x="792" y="718" class="small">3. Start from a freshly opened editor with nothing else heavy running.</text>
+  <text x="792" y="740" class="small">4. Free space on C: so the page file can grow if it needs to.</text>
+  <text x="792" y="762" class="small">5. After any crash, <tspan font="11px Consolas,monospace">python Scripts/ReadEditorCrashLog.py</tspan>.</text>
+
+  <rect x="50" y="796" width="1400" height="200" rx="12" class="warn"/>
+  <text x="72" y="826" class="h">Status</text>
+  <text x="72" y="856" class="small">Fixed and verified: the out-of-memory class. The preflight tool runs and produces the risk table; all six bake-on-import scripts carry a guard that compiles and provably refuses the</text>
+  <text x="72" y="874" class="small">Guidemen case (bake=True → refused, bake=False → allowed at 0.01 GB) while permitting legitimate large imports (the Wuxianmen winding variant at 11.01 GB).</text>
+  <text x="72" y="902" class="small">Scripted but not yet run: the Nanite blend-mode audit. The editor is closed. That class is a real, reproduced fatal assertion from 2026-09-15 and remains unfixed until the audit runs.</text>
+  <text x="72" y="930" class="small">Reported, needs your decision: C: is 97% full with 59 GB free, which is why the page file could not expand. That is a system-level fix, not something I should change for you.</text>
+  <text x="72" y="962" class="small">Not addressed: crash-avoidance for the GPU path, and any crash occurring inside a plugin or a third-party tool. Only the two classes present in the logs were handled.</text>
+</svg>
