@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 900" width="1240" height="900" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5b6b7c"/>
+    </marker>
+    <marker id="arrowNew" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b3541e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="900" fill="#fbfbfc"/>
+
+  <!-- Title -->
+  <text x="40" y="46" font-size="23" font-weight="600" fill="#1b2733">Guangzhou landmark showcase level</text>
+  <text x="40" y="70" font-size="13.5" fill="#5b6b7c">2026-09-21 · new level L_GuangzhouLandmarkShowcase · all 9 placeable landmarks gathered into one ring, 2 of them newly wrapped into Blueprints</text>
+  <line x1="40" y1="86" x2="1200" y2="86" stroke="#d8dee6" stroke-width="1.5"/>
+
+  <!-- ================= LEFT: asset flow ================= -->
+  <text x="40" y="118" font-size="14" font-weight="600" fill="#1b2733" letter-spacing="0.4">ASSET FLOW</text>
+
+  <rect x="40" y="132" width="330" height="58" rx="7" fill="#eef3f8" stroke="#b9c7d6" stroke-width="1.4"/>
+  <text x="56" y="155" font-size="12.5" font-weight="600" fill="#1b2733">Content/Assets/Environment/GuangzhouLandmarks</text>
+  <text x="56" y="175" font-size="11.5" fill="#5b6b7c">the landmark library · 708 meshes, 7 Blueprint Actor Assets</text>
+
+  <!-- split -->
+  <path d="M 205 190 L 205 208" stroke="#5b6b7c" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <path d="M 205 208 L 205 208" stroke="#5b6b7c" stroke-width="1.4"/>
+
+  <rect x="40" y="212" width="330" height="76" rx="7" fill="#ffffff" stroke="#b9c7d6" stroke-width="1.4"/>
+  <text x="56" y="234" font-size="12.5" font-weight="600" fill="#1b2733">7 independent Blueprints (unchanged)</text>
+  <text x="56" y="253" font-size="11.5" fill="#5b6b7c">Zhengnanmen HighFidelity · Zhengnanmen AAA V3 · Xiaobeimen AAA V3</text>
+  <text x="56" y="270" font-size="11.5" fill="#5b6b7c">Xiaobeimen Production V3 · Guidemen V5 4K · Wuxianmen Core · FullPBR</text>
+
+  <rect x="40" y="300" width="330" height="96" rx="7" fill="#fdf2e9" stroke="#d9895b" stroke-width="1.6"/>
+  <text x="56" y="322" font-size="12.5" font-weight="600" fill="#8a3d10">2 bare StaticMeshes → wrapped (NEW)</text>
+  <text x="56" y="341" font-size="11.5" fill="#8a3d10">SM_GreatNorthGate → BP_GreatNorthGate</text>
+  <text x="56" y="358" font-size="11.5" fill="#8a3d10">SM_ZhenhaiTower → BP_ZhenhaiTower</text>
+  <text x="56" y="378" font-size="11" fill="#9a6a48">PackedLevelActor + 1 HISM each, 1 instance at identity,</text>
+  <text x="56" y="391" font-size="11" fill="#9a6a48">matching the existing wrappers' convention</text>
+
+  <path d="M 205 398 L 205 416" stroke="#b3541e" stroke-width="1.6" marker-end="url(#arrowNew)"/>
+
+  <rect x="40" y="420" width="330" height="44" rx="7" fill="#eef3f8" stroke="#b9c7d6" stroke-width="1.4"/>
+  <text x="56" y="447" font-size="12.5" font-weight="600" fill="#1b2733">9 placeable landmarks</text>
+
+  <path d="M 205 466 L 205 484" stroke="#5b6b7c" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="488" width="330" height="52" rx="7" fill="#e8f2ea" stroke="#7aa98a" stroke-width="1.6"/>
+  <text x="56" y="510" font-size="12.5" font-weight="600" fill="#255c3a">L_GuangzhouLandmarkShowcase</text>
+  <text x="56" y="529" font-size="11.5" fill="#3d6b50">ring of 106.1–115.9 m radius · ground plane 420 m · 9 text labels</text>
+
+  <!-- Guards -->
+  <text x="40" y="580" font-size="14" font-weight="600" fill="#1b2733" letter-spacing="0.4">GUARDS / BEHAVIOUR CHANGES</text>
+
+  <rect x="40" y="594" width="330" height="122" rx="7" fill="#ffffff" stroke="#d8dee6" stroke-width="1.4"/>
+  <circle cx="58" cy="616" r="9" fill="#c0392b"/>
+  <text x="58" y="620" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="76" y="620" font-size="12" font-weight="600" fill="#1b2733">Rotator argument order</text>
+  <text x="56" y="639" font-size="11" fill="#5b6b7c">unreal.Rotator is (roll, pitch, yaw) — NOT (pitch, yaw, roll).</text>
+  <text x="56" y="655" font-size="11" fill="#5b6b7c">Rotator(0, yaw, 0) sets PITCH: the first build produced a</text>
+  <text x="56" y="671" font-size="11" fill="#5b6b7c">ring of landmarks tipped on their sides. Rotators are now</text>
+  <text x="56" y="687" font-size="11" fill="#5b6b7c">built with keyword arguments, and each placement asserts</text>
+  <text x="56" y="703" font-size="11" fill="#5b6b7c">pitch and roll are 0 after the yaw is applied.</text>
+
+  <rect x="40" y="726" width="330" height="122" rx="7" fill="#ffffff" stroke="#d8dee6" stroke-width="1.4"/>
+  <circle cx="58" cy="748" r="9" fill="#c0392b"/>
+  <text x="58" y="752" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="76" y="752" font-size="12" font-weight="600" fill="#1b2733">Hidden collision must not ground a model</text>
+  <text x="56" y="771" font-size="11" fill="#5b6b7c">Every landmark carries hidden UCX collision volumes that</text>
+  <text x="56" y="787" font-size="11" fill="#5b6b7c">sit exactly 128 cm below the actor origin. Measuring with</text>
+  <text x="56" y="803" font-size="11" fill="#5b6b7c">get_actor_bounds therefore reads every landmark as sunk.</text>
+  <text x="56" y="819" font-size="11" fill="#5b6b7c">Spacing and grounding are computed from the instanced mesh</text>
+  <text x="56" y="835" font-size="11" fill="#5b6b7c">data, with non-rendering components excluded.</text>
+
+  <!-- ================= RIGHT: ring layout ================= -->
+  <text x="640" y="118" font-size="14" font-weight="600" fill="#1b2733" letter-spacing="0.4">RING LAYOUT (top-down, to scale)</text>
+
+  <!-- ground plane: 420 m square, 1 px per 80 cm -->
+  <rect x="638" y="208" width="524" height="524" rx="4" fill="#f2f4f7" stroke="#c6ced8" stroke-width="1.4"/>
+  <text x="1160" y="230" font-size="10.5" fill="#8b97a5" text-anchor="end">ground plane 420 × 420 m</text>
+
+  <!-- ring circle -->
+  <circle cx="900" cy="470" r="133" fill="none" stroke="#b9c7d6" stroke-width="1.2" stroke-dasharray="5 5"/>
+  <circle cx="900" cy="470" r="4" fill="#5b6b7c"/>
+  <text x="900" y="490" font-size="10.5" fill="#8b97a5" text-anchor="middle">plaza centre</text>
+  <text x="900" y="503" font-size="10" fill="#8b97a5" text-anchor="middle">PlayerStart</text>
+
+  <!-- landmarks: numbered markers with a short facing tick -->
+  <!-- 1 Zhengnanmen HighFidelity -->
+  <g><circle cx="1031.2" cy="450.1" r="13" fill="#2f6f9f"/><text x="1031.2" y="454.3" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+     <line x1="1031.2" y1="450.1" x2="1008" y2="456" stroke="#2f6f9f" stroke-width="2"/></g>
+  <!-- 2 Zhengnanmen AAA V3 -->
+  <g><circle cx="999.3" cy="382.0" r="13" fill="#2f6f9f"/><text x="999.3" y="386.2" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+     <line x1="999.3" y1="382.0" x2="978" y2="396" stroke="#2f6f9f" stroke-width="2"/></g>
+  <!-- 3 Xiaobeimen AAA V3 -->
+  <g><circle cx="922.0" cy="326.7" r="13" fill="#4a8a5c"/><text x="922.0" y="330.9" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+     <line x1="922.0" y1="326.7" x2="910" y2="352" stroke="#4a8a5c" stroke-width="2"/></g>
+  <!-- 4 Xiaobeimen Production V3 -->
+  <g><circle cx="816.2" cy="354.6" r="13" fill="#4a8a5c"/><text x="816.2" y="358.8" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+     <line x1="816.2" y1="354.6" x2="838" y2="378" stroke="#4a8a5c" stroke-width="2"/></g>
+  <!-- 5 Guidemen -->
+  <g><circle cx="765.8" cy="453.6" r="13" fill="#8a6d3b"/><text x="765.8" y="457.8" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+     <line x1="765.8" y1="453.6" x2="790" y2="462" stroke="#8a6d3b" stroke-width="2"/></g>
+  <!-- 6 Wuxianmen Core -->
+  <g><circle cx="787.5" cy="550.4" r="13" fill="#7a5c9e"/><text x="787.5" y="554.6" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">6</text>
+     <line x1="787.5" y1="550.4" x2="812" y2="542" stroke="#7a5c9e" stroke-width="2"/></g>
+  <!-- 7 Wuxianmen FullPBR -->
+  <g><circle cx="857.0" cy="601.4" r="13" fill="#7a5c9e"/><text x="857.0" y="605.6" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">7</text>
+     <line x1="857.0" y1="601.4" x2="876" y2="583" stroke="#7a5c9e" stroke-width="2"/></g>
+  <!-- 8 GreatNorthGate (NEW) -->
+  <g><circle cx="945.5" cy="597.9" r="13" fill="#b3541e"/><text x="945.5" y="602.1" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">8</text>
+     <line x1="945.5" y1="597.9" x2="930" y2="574" stroke="#b3541e" stroke-width="2"/></g>
+  <!-- 9 ZhenhaiTower (NEW) -->
+  <g><circle cx="1019.1" cy="537.3" r="13" fill="#b3541e"/><text x="1019.1" y="541.5" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">9</text>
+     <line x1="1019.1" y1="537.3" x2="997" y2="522" stroke="#b3541e" stroke-width="2"/></g>
+
+  <!-- legend -->
+  <rect x="640" y="742" width="524" height="106" rx="7" fill="#ffffff" stroke="#d8dee6" stroke-width="1.4"/>
+  <text x="656" y="762" font-size="11" font-weight="600" fill="#1b2733">1–2 Zhengnanmen (Great South Gate) · 3–4 Xiaobeimen · 5 Guidemen · 6–7 Wuxianmen · 8 GreatNorthGate (Dabeimen) · 9 Zhenhai Tower</text>
+  <text x="656" y="780" font-size="10.5" fill="#5b6b7c">Filled markers are Blueprints that already existed; orange markers 8 and 9 are the two newly wrapped ones.</text>
+  <text x="656" y="797" font-size="10.5" fill="#5b6b7c">Ticks show each landmark's facing: yaw = ring angle − 90°, so local −Y (the front) points back at the plaza centre.</text>
+  <text x="656" y="814" font-size="10.5" fill="#5b6b7c">Radius is derived from the landmarks' own geometry: Σ(2·circumradius + 30 m gap) ÷ 2π = 106.1 m.</text>
+  <text x="656" y="834" font-size="10.5" fill="#5b6b7c">Rendered positions are AABB centres, so radii read 106.1–115.9 m. Angular gaps 32.9°–47.1°, full 360° coverage.</text>
+
+  <!-- ================= VALIDATION BAND ================= -->
+  <line x1="40" y1="862" x2="1200" y2="862" stroke="#d8dee6" stroke-width="1.5"/>
+  <text x="40" y="884" font-size="11.5" fill="#255c3a" font-weight="600">VALIDATION</text>
+  <text x="122" y="884" font-size="11.5" fill="#5b6b7c">reload-from-disk pass: 9/9 landmarks present exactly once · actor-Z drift from manifest ≤ 0.004 cm · 0 XY overlaps · all inside the ground plane · 0 errors, 0 warnings</text>
+</svg>
