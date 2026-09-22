@@ -1,7 +1,7 @@
 """Create or rebuild the Guangzhou landmark showcase level.
 
 Gathers every placeable landmark from /Game/Assets/Environment/GuangzhouLandmarks
-- the seven reference-tuned Blueprints plus BP_GreatNorthGate and
+- the six reference-tuned Blueprints plus BP_GreatNorthGate and
 BP_ZhenhaiTower created by WrapLandmarkMeshBlueprints.py - and arranges them in a
 ring around a central plaza, each turned to face the plaza centre.
 
@@ -141,8 +141,10 @@ LANDMARKS = [
     ("Guidemen_ReferenceRepaired",
      "V5/Guidemen_4K/BP_Guidemen_V5_4K_PreRebuild_20260918",
      "Guidemen (Guide Gate) - V5 4K reference-repaired", 0.0),
-    ("Wuxianmen_V5_4K_Core", "V5/Wuxianmen_4K_Core/BP_Wuxianmen_V5_4K_Core",
-     "Wuxianmen (Five Immortals Gate) - V5 4K Core", 0.0),
+    # Wuxianmen is represented by its FullPBR variant only. The older
+    # BP_Wuxianmen_V5_4K_Core was retired on 2026-09-22 and its whole asset
+    # folder deleted, so a slot for it here would fail to load. The FullPBR
+    # variant carries the 2026-09-22 reference repair (ReferenceRepair20260922/).
     ("Wuxianmen_V5_FullPBR", "V5/Wuxianmen_FullPBR/BP_Wuxianmen_V5_FullPBR",
      "Wuxianmen (Five Immortals Gate) - V5 FullPBR", 0.0),
     ("GreatNorthGate", "GreatNorthGate/BP_GreatNorthGate",
@@ -570,7 +572,7 @@ def landmark_light_recipe(actor_location, radius, height):
                               yaw=math.degrees(math.atan2(dy, dx)), roll=0.0)
 
     # The building is treated as a sphere of its own XY radius centred on the aim
-    # point. radius_xy is at least half the height on all nine landmarks, so that
+    # point. radius_xy is at least half the height on all eight landmarks, so that
     # sphere contains the building; asin gives the half-angle the building
     # subtends from the light, and the margin keeps the eaves and finials off the
     # cone edge.

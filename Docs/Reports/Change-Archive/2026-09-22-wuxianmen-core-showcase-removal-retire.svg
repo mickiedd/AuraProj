@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#eef1f3"/>
+  <text x="60" y="58" font-family="Arial" font-size="29" font-weight="700" fill="#20252a">Wuxianmen V5 4K Core removed from the showcase, asset folder deleted</text>
+  <text x="60" y="92" font-family="Arial" font-size="17" fill="#4b5560">The ring was rebuilt from its builder script, so the eight survivors re-spread to fill the freed arc</text>
+
+  <!-- ===================== BEFORE ===================== -->
+  <rect x="55" y="130" width="515" height="400" rx="16" fill="#d6d8d5" stroke="#8c949b" stroke-width="2"/>
+  <text x="82" y="172" font-family="Arial" font-size="22" font-weight="700" fill="#31363b">Before</text>
+
+  <circle cx="312" cy="340" r="145" fill="none" stroke="#8c949b" stroke-width="2" stroke-dasharray="5 5"/>
+  <line x1="312" y1="340" x2="455.4" y2="318.3" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="312" y1="340" x2="420.5" y2="243.8" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="312" y1="340" x2="336.0" y2="197.0" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="312" y1="340" x2="226.9" y2="222.6" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="312" y1="340" x2="168.1" y2="322.5" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="312" y1="340" x2="194.0" y2="424.3" stroke="#c9a5a5" stroke-width="1"/>
+  <line x1="312" y1="340" x2="266.9" y2="477.8" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="312" y1="340" x2="360.6" y2="476.6" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="312" y1="340" x2="438.2" y2="411.4" stroke="#b9bfc4" stroke-width="1"/>
+
+  <circle cx="455.4" cy="318.3" r="11" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="420.5" cy="243.8" r="11" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="336.0" cy="197.0" r="11" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="226.9" cy="222.6" r="11" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="168.1" cy="322.5" r="11" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="194.0" cy="424.3" r="13" fill="#e8dedd" stroke="#a06a6a" stroke-width="3"/>
+  <circle cx="266.9" cy="477.8" r="11" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="360.6" cy="476.6" r="11" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="438.2" cy="411.4" r="11" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+
+  <text x="118" y="466" font-family="Arial" font-size="13" font-weight="700" fill="#7a2f2f">Wuxianmen</text>
+  <text x="118" y="483" font-family="Arial" font-size="13" font-weight="700" fill="#7a2f2f">V5 4K Core</text>
+  <text x="246" y="497" font-family="Arial" font-size="12" fill="#4b5560">FullPBR</text>
+
+  <text x="312" y="330" font-family="Arial" font-size="15" font-weight="700" fill="#31363b" text-anchor="middle">ring radius 10612.11 cm</text>
+  <text x="312" y="353" font-family="Arial" font-size="14" fill="#4b5560" text-anchor="middle">9 landmarks · 9 lights</text>
+  <text x="312" y="373" font-family="Arial" font-size="14" fill="#4b5560" text-anchor="middle">34 actors</text>
+
+  <!-- ===================== AFTER ===================== -->
+  <rect x="630" y="130" width="515" height="400" rx="16" fill="#d6d8d5" stroke="#4e6f63" stroke-width="3"/>
+  <text x="657" y="172" font-family="Arial" font-size="22" font-weight="700" fill="#27483e">After</text>
+
+  <circle cx="887" cy="340" r="145" fill="none" stroke="#4e6f63" stroke-width="2"/>
+  <line x1="887" y1="340" x2="1030.0" y2="315.9" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="887" y1="340" x2="987.3" y2="235.3" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="887" y1="340" x2="888.3" y2="195.0" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="887" y1="340" x2="775.8" y2="246.9" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="887" y1="340" x2="745.4" y2="371.3" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="887" y1="340" x2="814.0" y2="465.3" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="887" y1="340" x2="916.4" y2="482.0" stroke="#b9bfc4" stroke-width="1"/>
+  <line x1="887" y1="340" x2="1008.9" y2="418.5" stroke="#b9bfc4" stroke-width="1"/>
+
+  <circle cx="769.1" cy="424.3" r="13" fill="none" stroke="#a06a6a" stroke-width="2" stroke-dasharray="4 4"/>
+  <line x1="762.9" y1="418.1" x2="775.3" y2="430.5" stroke="#a06a6a" stroke-width="2"/>
+  <line x1="775.3" y1="418.1" x2="762.9" y2="430.5" stroke="#a06a6a" stroke-width="2"/>
+  <text x="700" y="459" font-family="Arial" font-size="12" fill="#7a2f2f">slot gone</text>
+
+  <circle cx="1030.0" cy="315.9" r="11" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <circle cx="987.3" cy="235.3" r="11" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <circle cx="888.3" cy="195.0" r="11" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <circle cx="775.8" cy="246.9" r="11" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <circle cx="745.4" cy="371.3" r="11" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <circle cx="814.0" cy="465.3" r="11" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <circle cx="916.4" cy="482.0" r="11" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <circle cx="1008.9" cy="418.5" r="11" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+
+  <text x="838" y="491" font-family="Arial" font-size="12" font-weight="700" fill="#27483e">Wuxianmen FullPBR</text>
+
+  <text x="887" y="330" font-family="Arial" font-size="15" font-weight="700" fill="#27483e" text-anchor="middle">ring radius 9541.1 cm</text>
+  <text x="887" y="353" font-family="Arial" font-size="14" fill="#4b5560" text-anchor="middle">8 landmarks · 8 lights</text>
+  <text x="887" y="373" font-family="Arial" font-size="14" fill="#4b5560" text-anchor="middle">31 actors</text>
+
+  <!-- ===================== FOOTER ===================== -->
+  <text x="60" y="562" font-family="Arial" font-size="18" font-weight="700" fill="#20252a">What was verified</text>
+  <text x="60" y="592" font-family="Arial" font-size="16" fill="#3d444b">The ring shrank because the builder derives its radius from the landmarks' own geometry: dropping one entry takes it 10612.11 &#8594; 9541.1 cm</text>
+  <text x="60" y="618" font-family="Arial" font-size="16" fill="#3d444b">Validation reloads the saved map from disk and re-derives each light from the manifest recipe: 31 actors, 8/8 landmarks, 8/8 lights, 0 errors, 0 warnings</text>
+  <text x="60" y="644" font-family="Arial" font-size="16" fill="#3d444b">0 XY overlaps, 0.0 cm placement error, 0.0&#176; aim error, 0 isolation violations; every light still attached to its own building</text>
+  <text x="60" y="670" font-family="Arial" font-size="16" fill="#3d444b">56 assets deleted only after the referencer list came back empty; the whole V5/Wuxianmen_4K_Core folder is gone from disk</text>
+</svg>

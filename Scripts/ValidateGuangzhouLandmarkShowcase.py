@@ -36,7 +36,6 @@ EXPECTED_LABELS = [
     "Landmark_Xiaobeimen_AAA_V3",
     "Landmark_Xiaobeimen_Production_V3",
     "Landmark_Guidemen_ReferenceRepaired",
-    "Landmark_Wuxianmen_V5_4K_Core",
     "Landmark_Wuxianmen_V5_FullPBR",
     "Landmark_GreatNorthGate",
     "Landmark_ZhenhaiTower",
@@ -182,8 +181,8 @@ def main():
     #   Blueprints carry, so its min Z sits about 100 cm below the visible model
     #   on every landmark. It is reported, not asserted on.
     # * rendered_geometry walks the instanced mesh data directly. It agrees with
-    #   the placement pass on the six HISM-based landmarks and disagrees on the
-    #   three V3 gates, whose components are plain StaticMeshComponents - the
+    #   the placement pass on the five HISM-based landmarks and disagrees on
+    #   the three V3 gates, whose components are plain StaticMeshComponents - the
     #   same measurement split this project has hit before on the V3 assets. It
     #   is reported as a diagnostic for that reason.
     #
