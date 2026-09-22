@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Append-only index conflict resolved as a union</title>
+  <desc>Two branches each appended entries to the tail of the visual change archive; because neither side removed or edited a line, the conflict is resolved by keeping both sides in order.</desc>
+  <rect width="1200" height="700" fill="#101820"/>
+  <text x="600" y="58" text-anchor="middle" fill="#f5f1e8" font-family="Segoe UI, sans-serif" font-size="32" font-weight="700">Append-only index conflict &#8594; union resolution</text>
+
+  <g font-family="Segoe UI, sans-serif">
+    <rect x="150" y="95" width="900" height="80" rx="16" fill="#18252c" stroke="#72d2dc" stroke-width="3"/>
+    <text x="600" y="128" text-anchor="middle" fill="#8ee6ed" font-size="22" font-weight="700">Shared merge base &#183; 5c1d481</text>
+    <text x="600" y="157" text-anchor="middle" fill="#f5f1e8" font-size="17">.claude/memory/visual-change-archive.md ends at the 2026-09-21 showcase entry &#183; 372 lines</text>
+
+    <path d="M600 178 V198 H340 V220" fill="none" stroke="#8ee6ed" stroke-width="4" marker-end="url(#aTeal)"/>
+    <path d="M600 178 V198 H860 V220" fill="none" stroke="#8ee6ed" stroke-width="4" marker-end="url(#aTeal)"/>
+
+    <rect x="110" y="225" width="460" height="140" rx="16" fill="#24352d" stroke="#79c58a" stroke-width="3"/>
+    <text x="340" y="258" text-anchor="middle" fill="#a8e6b2" font-size="21" font-weight="700">ours &#183; a4c3973 (local main)</text>
+    <text x="340" y="292" text-anchor="middle" fill="#f5f1e8" font-size="18">+13 entries appended</text>
+    <text x="340" y="320" text-anchor="middle" fill="#f5f1e8" font-size="16">2026-09-21 &#8594; 09-22 landmark work</text>
+    <text x="340" y="348" text-anchor="middle" fill="#a8e6b2" font-size="16">0 lines removed or edited</text>
+
+    <rect x="630" y="225" width="460" height="140" rx="16" fill="#24352d" stroke="#79c58a" stroke-width="3"/>
+    <text x="860" y="258" text-anchor="middle" fill="#a8e6b2" font-size="21" font-weight="700">theirs &#183; ac3200f (origin/main)</text>
+    <text x="860" y="292" text-anchor="middle" fill="#f5f1e8" font-size="18">+3 entries appended</text>
+    <text x="860" y="320" text-anchor="middle" fill="#f5f1e8" font-size="16">test-contract repair &#183; Canton terrain plans</text>
+    <text x="860" y="348" text-anchor="middle" fill="#a8e6b2" font-size="16">0 lines removed or edited</text>
+
+    <path d="M340 365 V395" fill="none" stroke="#e05c5c" stroke-width="4" marker-end="url(#aRed)"/>
+    <path d="M860 365 V395" fill="none" stroke="#e05c5c" stroke-width="4" marker-end="url(#aRed)"/>
+
+    <rect x="110" y="400" width="980" height="72" rx="16" fill="#3a2226" stroke="#e05c5c" stroke-width="3"/>
+    <text x="600" y="430" text-anchor="middle" fill="#f39a9a" font-size="21" font-weight="700">CONFLICT &#8212; both sides appended at the same tail offset</text>
+    <text x="600" y="458" text-anchor="middle" fill="#f5f1e8" font-size="17">both modified: .claude/memory/visual-change-archive.md</text>
+
+    <path d="M600 472 V502" fill="none" stroke="#f4c66d" stroke-width="4" marker-end="url(#aGold)"/>
+
+    <rect x="110" y="507" width="980" height="80" rx="16" fill="#382f22" stroke="#f4c66d" stroke-width="3"/>
+    <text x="600" y="538" text-anchor="middle" fill="#f4c66d" font-size="21" font-weight="700">RESOLVED &#8212; keep both sides, in order (no line is in dispute)</text>
+    <text x="600" y="568" text-anchor="middle" fill="#f5f1e8" font-size="17">ours' 13 entries, then theirs' 3 &#183; 400 lines &#183; 87 entries &#183; pure LF, no binary/LFS assets</text>
+
+    <path d="M600 587 V607" fill="none" stroke="#8ee6ed" stroke-width="4" marker-end="url(#aTeal)"/>
+
+    <rect x="110" y="612" width="980" height="64" rx="16" fill="#18252c" stroke="#72d2dc" stroke-width="2"/>
+    <text x="600" y="650" text-anchor="middle" fill="#f5f1e8" font-size="19">Verified: result is a strict superset of base, ours and theirs &#8212; 0 removals, 16 additions (13 + 3)</text>
+  </g>
+
+  <defs>
+    <marker id="aTeal" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8ee6ed"/></marker>
+    <marker id="aGold" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f4c66d"/></marker>
+    <marker id="aRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#e05c5c"/></marker>
+  </defs>
+</svg>
