@@ -9,11 +9,11 @@
   "sourceRevisionAtFreeze": null,
   "legacyScope": {
     "path": "Docs/Plans/Playable-Candidate-Implementation/playable-candidate-scope.json",
-    "sha256": "ace22525b11b7e1ab3f681c9676da4609dae94f57c777bc4d456846035365b5a"
+    "sha256": "2b32c4894bf9ce5f78c2c2eb949c3769bdd81cdd3fc02d98726163bdf3269bd1"
   },
   "legacyContentManifest": {
     "path": "Content/Config/PlayableCandidateManifest.json",
-    "sha256": "01760b1d8a543d1dfb78cdd15fb62b0ad037dea6e77f29fc63c9dd41ca1a5ff5"
+    "sha256": "6b0e366d640997d1735dd70459d89eefc083d2b7751a0c1fb4df6e1db88e3ace"
   },
   "features": {
     "roles": ["Aura", "BungeeMan"],

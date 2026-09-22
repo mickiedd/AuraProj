@@ -222,7 +222,7 @@ class CandidateContractTests(unittest.TestCase):
         self.assertIn("DuplicateObject<UAuraPlayerSaveGame>", source)
         self.assertIn("DeleteGameInSlot", source)
         character = (ROOT / "Source/Aura/Private/Character/AuraCharacter.cpp").read_text(encoding="utf-8")
-        self.assertLess(character.index("ApplyRoleAtSpawn(AuthorizedRole"), character.index("ApplyPersistentProfile(*PersistentProfile"))
+        self.assertLess(character.index("ApplyPersistentProfile(*PersistentProfile"), character.index("ApplyRoleAtSpawn(AuthorizedRole"))
 
     def test_day32_generation_convergence(self):
         state = CandidateState()

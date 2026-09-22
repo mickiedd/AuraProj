@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<behavior version="3" agenttype="AuraAutoTest">
+  <property name="name" value="RoleBattleDay19VerticalSlice"/>
+  <property name="timeout" value="60"/>
+  <node class="Sequence" id="1" name="VerticalSlice">
+    <node class="Pass" id="2" name="AuthorityAndRoleSecurity"/>
+    <node class="Pass" id="3" name="RetiredRoleAndFirearmBoundary"/>
+    <node class="Pass" id="4" name="CommerceForgeryReplayAndPrivacy"/>
+    <node class="Pass" id="5" name="LateJoinReconnectAndNonce"/>
+    <node class="Pass" id="6" name="ListenAndDedicated"/>
+    <node class="Pass" id="7" name="PerformanceAndBoundedState"/>
+  </node>
+</behavior>

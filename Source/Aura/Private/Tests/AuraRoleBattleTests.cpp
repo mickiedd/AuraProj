@@ -1455,7 +1455,7 @@ bool FAuraDay5ValidVersion2SchemaTest::RunTest(const FString& Parameters)
 	AddInfo(Result.ToLogString());
 	TestTrue(TEXT("Version 2 registry publishes"), Result.bCanPublish);
 	TestEqual(TEXT("Authored version detected"), Result.DetectedVersion, 2);
-	TestEqual(TEXT("Four roles published"), Result.Candidate ? Result.Candidate->RoleInformation.Num() : 0, 4);
+	TestEqual(TEXT("Three roles published after BungeeMan retirement"), Result.Candidate ? Result.Candidate->RoleInformation.Num() : 0, 3);
 	return true;
 }
 
@@ -1464,13 +1464,13 @@ bool FAuraDay5ExplicitFourRoleCatalogTest::RunTest(const FString& Parameters)
 {
 	const FAuraRoleLoadResult Result = AuraRoleBattleDay5TestsPrivate::LoadShipped();
 	const TArray<FName> ExpectedRoles = { FName(TEXT("Aura")), FName(TEXT("Crunch")), FName(TEXT("Civilian")) };
-	TestTrue(TEXT("Four-role candidate publishes"), Result.bCanPublish && Result.Candidate != nullptr);
+	TestTrue(TEXT("Three-role candidate publishes"), Result.bCanPublish && Result.Candidate != nullptr);
 	if (!Result.Candidate)
 	{
 		return false;
 	}
 
-	TestEqual(TEXT("Role catalog contains exactly four stable IDs"), Result.Candidate->RoleInformation.Num(), ExpectedRoles.Num());
+	TestEqual(TEXT("Role catalog contains exactly three stable IDs"), Result.Candidate->RoleInformation.Num(), ExpectedRoles.Num());
 	for (const FName RoleId : ExpectedRoles)
 	{
 		TestTrue(FString::Printf(TEXT("Role catalog contains %s"), *RoleId.ToString()), Result.Candidate->RoleInformation.Contains(RoleId));
@@ -2191,7 +2191,7 @@ bool FAuraDay6LiveRoleSwitchRejectedTest::RunTest(const FString& Parameters)
 	if (!TestNotNull(TEXT("Aura fixture"), Fixture)) return false;
 	TestTrue(TEXT("Initial Aura applies"), Fixture->ApplyRoleAtSpawn(TEXT("Aura")).bSuccess);
 	const int32 SpecsBefore = Fixture->GetTestASC()->GetActivatableAbilities().Num();
-	const FAuraRoleApplicationResult LedgerSwitch = Fixture->ApplyRoleAtSpawn(TEXT("BungeeMan"));
+	const FAuraRoleApplicationResult LedgerSwitch = Fixture->ApplyRoleAtSpawn(TEXT("Crunch"));
 	TestFalse(TEXT("Persistent ledger rejects different player role"), LedgerSwitch.bSuccess);
 	TestEqual(TEXT("Ledger rejection is unsupported live switch"), LedgerSwitch.Error, EAuraRoleApplicationError::UnsupportedLiveSwitch);
 	TestEqual(TEXT("Applied role remains Aura"), Fixture->GetAppliedRoleState().RoleId, FName(TEXT("Aura")));

@@ -70,7 +70,7 @@ try {
         if (-not (Test-Path -LiteralPath $LogPath)) { throw "Automation log was not written: $LogPath" }
         $LogText = Get-Content -Raw -LiteralPath $LogPath
         $ExpectedTestCount = switch ($Day) {
-            '7' { 10 }
+            '7' { 6 }
             '8' { 7 }
             '9' { 9 }
         }

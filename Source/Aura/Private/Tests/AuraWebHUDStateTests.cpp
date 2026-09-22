@@ -53,6 +53,7 @@ bool FAuraWebHUDBattlePopulationSummaryTest::RunTest(const FString& Parameters)
 	return !HasAnyErrors();
 }
 
+#if 0 // Retired BungeeMan firearm presentation retained as historical context.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraWebHUDFirearmPresentationTest,
 	"Aura.UI.WebHUD.FirearmPresentation",
@@ -110,6 +111,27 @@ bool FAuraWebHUDFirearmPresentationTest::RunTest(const FString& Parameters)
 	Check(TEXT("NotApplicable"), false, false, NAME_None);
 	State.bApplicable = false;
 	Check(TEXT("NotApplicable"), false, false);
+	return !HasAnyErrors();
+}
+#endif
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FAuraWebHUDRetiredFirearmBoundaryTest,
+	"Aura.UI.WebHUD.FirearmPresentation",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAuraWebHUDRetiredFirearmBoundaryTest::RunTest(const FString& Parameters)
+{
+	FAuraFirearmState State;
+	State.bApplicable = false;
+	for (const FName RoleId : { FName(TEXT("Aura")), FName(TEXT("Crunch")), FName(TEXT("Civilian")) })
+	{
+		const TSharedRef<FJsonObject> Payload = AAuraHUD::BuildFirearmStatePayload(State, RoleId, true);
+		TestFalse(FString::Printf(TEXT("%s never displays retired firearm UI"), *RoleId.ToString()),
+			Payload->GetBoolField(TEXT("applicable")));
+		TestEqual(TEXT("Retired firearm has no ability tag"), Payload->GetStringField(TEXT("abilityTag")), FString());
+		TestEqual(TEXT("Retired firearm state is not applicable"), Payload->GetStringField(TEXT("state")), FString(TEXT("NotApplicable")));
+	}
 	return !HasAnyErrors();
 }
 

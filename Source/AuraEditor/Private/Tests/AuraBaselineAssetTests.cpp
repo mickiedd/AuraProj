@@ -164,6 +164,7 @@ bool FAuraCrunchLocomotionAnimBlueprintTest::RunTest(const FString& Parameters)
 	return !HasAnyErrors();
 }
 
+#if 0 // Retired BungeeMan/FireGun presentation contract retained as historical context.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraBungeeManGunPresentationAssetTest,
 	"Aura.RoleBattle.BungeeMan.Presentation.LmbMontageGraph",
@@ -243,6 +244,7 @@ bool FAuraBungeeManGunPresentationAssetTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("BungeeMan slot pose output exists"), SlotPose != nullptr);
 	return !HasAnyErrors();
 }
+#endif
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FAuraCivilianLocomotionAnimBlueprintTest,

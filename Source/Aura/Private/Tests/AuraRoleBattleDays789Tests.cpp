@@ -148,16 +148,15 @@ bool FAuraDay7FinalProfileAssertionsTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("Bungee final profile tuple"), Bungee && Bungee->CombatProfile == Tags.Combat_Gun && Bungee->Faction == Tags.Faction_Player && Bungee->ControlType == Tags.Control_Player && Bungee->DeathPolicy == Tags.Death_PlayerRespawn && Bungee->EconomyProfile == Tags.Economy_None && Bungee->InteractionProfile == Tags.Interaction_Combatant);
 	return true;
 }
+#endif
 
 AURA_DAY789_TEST(FAuraDay7CostCooldownAndDamageTypesTest, "Day7.CostCooldownAndDamageTypes")
 bool FAuraDay7CostCooldownAndDamageTypesTest::RunTest(const FString& Parameters)
 {
 	FString FireBolt;
-	FString FireGun;
 	TestTrue(TEXT("FireBolt XML readable"), AuraRoleBattleDays789TestsPrivate::ReadProjectFile(TEXT("Content/AbilityDefinitions/FireBolt.xml"), FireBolt));
-	TestTrue(TEXT("FireGun XML readable"), AuraRoleBattleDays789TestsPrivate::ReadProjectFile(TEXT("Content/AbilityDefinitions/FireGun.xml"), FireGun));
 	TestTrue(TEXT("FireBolt exact cost/cooldown/type"), AuraRoleBattleDays789TestsPrivate::ContainsAll(FireBolt, { TEXT("mana=\"10\""), TEXT("duration=\"5\""), TEXT("type=\"Damage.Fire\"") }));
-	TestTrue(TEXT("FireGun exact cost/cooldown/type"), AuraRoleBattleDays789TestsPrivate::ContainsAll(FireGun, { TEXT("mana=\"0\""), TEXT("duration=\"0.2\""), TEXT("type=\"Damage.Physical\""), TEXT("Event.Montage.FireGun") }));
+	TestFalse(TEXT("Retired FireGun XML stays absent"), FPaths::FileExists(FPaths::ProjectContentDir() / TEXT("AbilityDefinitions/FireGun.xml")));
 	return true;
 }
 
@@ -219,7 +218,6 @@ bool FAuraDay7PackagingConfigContractTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-#endif
 AURA_DAY789_TEST(FAuraDay8CivilianRoleIdentityTest, "Day8.CivilianRoleIdentity")
 bool FAuraDay8CivilianRoleIdentityTest::RunTest(const FString& Parameters)
 {
