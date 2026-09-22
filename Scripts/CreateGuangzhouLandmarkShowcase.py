@@ -126,12 +126,19 @@ LANDMARKS = [
     ("Zhengnanmen_HighFidelity",
      "GreatSouthGate_Zhengnanmen_HighFidelity/BP_GreatSouthGate_Zhengnanmen_V2_ActorAsset",
      "Zhengnanmen (Great South Gate) - HighFidelity", 0.0),
-    ("Zhengnanmen_AAA_V3", "V3/Zhengnanmen_AAA_V3/BP_Zhengnanmen_AAA_V3",
-     "Zhengnanmen (Great South Gate) - AAA V3", 0.0),
+    # The Zhengnanmen_AAA_V3 slot was retired on 2026-09-22 and its whole asset
+    # folder deleted, so a slot for it here would fail to load. Zhengnanmen is
+    # represented by the HighFidelity variant above. That leaves one Zhengnanmen
+    # in the ring rather than two, which is the point of the retirement: the two
+    # variants were near-duplicates of the same gate, exactly as with Xiaobeimen
+    # Production V3 below.
     ("Xiaobeimen_AAA_V3", "V3/Xiaobeimen_AAA_V3/BP_Xiaobeimen_AAA_V3",
      "Xiaobeimen (Small North Gate) - AAA V3", 0.0),
-    ("Xiaobeimen_Production_V3", "V3/Xiaobeimen_Production_V3/BP_Xiaobeimen_Production_V3",
-     "Xiaobeimen (Small North Gate) - Production V3", 0.0),
+    # The Xiaobeimen_Production_V3 slot was retired on 2026-09-22 and its whole
+    # asset folder deleted, so a slot for it here would fail to load. Xiaobeimen
+    # is represented by the AAA V3 variant above. That leaves one Xiaobeimen in
+    # the ring rather than two, which is the point of the retirement: the two
+    # variants were near-duplicates of the same gate.
     # The Guidemen slot points at BP_Guidemen_V5_4K_PreRebuild_20260918. Despite
     # the name, that is the REPAIRED model: the 2026-09-21 window/roof repair and
     # the 2026-09-22 arch/door/plaque follow-up were both applied to it, while

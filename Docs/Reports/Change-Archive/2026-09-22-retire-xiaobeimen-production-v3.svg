@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#eef1f3"/>
+  <text x="60.0" y="52.0" font-family="Arial" font-size="27" font-weight="700" fill="#20252a" text-anchor="start">Xiaobeimen Production V3 removed from the showcase, asset folder deleted</text>
+  <text x="60.0" y="84.0" font-family="Arial" font-size="16" font-weight="400" fill="#4b5560" text-anchor="start">The Blueprint was placed in TWO levels, not one &#8212; both had to be cleared before the asset could go</text>
+  <rect x="55" y="110" width="515" height="330" rx="16" fill="#d9dcd9" stroke="#8c949b" stroke-width="2"/>
+  <text x="82.0" y="146.0" font-family="Arial" font-size="21" font-weight="700" fill="#31363b" text-anchor="start">Before</text>
+  <text x="82.0" y="170.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">8 landmarks &#183; 8 lights &#183; 31 actors</text>
+  <text x="82.0" y="189.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">ring radius 9541.1 cm</text>
+  <rect x="630" y="110" width="515" height="330" rx="16" fill="#d9dcd9" stroke="#4e6f63" stroke-width="3"/>
+  <text x="657.0" y="146.0" font-family="Arial" font-size="21" font-weight="700" fill="#27483e" text-anchor="start">After</text>
+  <text x="657.0" y="170.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">7 landmarks &#183; 7 lights &#183; 28 actors</text>
+  <text x="657.0" y="189.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">ring radius 8198.5 cm</text>
+  <circle cx="312.0" cy="300.0" r="122.0" fill="none" stroke="#8c949b" stroke-width="2" stroke-dasharray="6 6"/>
+  <line x1="312.0" y1="300.0" x2="432.3" y2="279.7" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="312.0" y1="300.0" x2="396.4" y2="211.9" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="312.0" y1="300.0" x2="313.1" y2="178.0" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="312.0" y1="300.0" x2="218.4" y2="221.7" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="312.0" y1="300.0" x2="192.9" y2="326.4" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="312.0" y1="300.0" x2="250.5" y2="405.4" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="312.0" y1="300.0" x2="336.7" y2="419.5" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="312.0" y1="300.0" x2="414.6" y2="366.1" stroke="#c8ced3" stroke-width="1"/>
+  <circle cx="432.3" cy="279.7" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="396.4" cy="211.9" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="313.1" cy="178.0" r="11" fill="#dfe6e1" stroke="#4e6f63" stroke-width="3"/>
+  <circle cx="218.4" cy="221.7" r="11" fill="#efe0df" stroke="#a06a6a" stroke-width="3"/>
+  <circle cx="192.9" cy="326.4" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="250.5" cy="405.4" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="336.7" cy="419.5" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="414.6" cy="366.1" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="887.0" cy="300.0" r="122.0" fill="none" stroke="#4e6f63" stroke-width="2" stroke-dasharray="6 6"/>
+  <line x1="887.0" y1="300.0" x2="1006.7" y2="276.4" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="887.0" y1="300.0" x2="959.1" y2="201.6" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="887.0" y1="300.0" x2="857.2" y2="181.7" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="887.0" y1="300.0" x2="769.1" y2="268.5" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="887.0" y1="300.0" x2="793.6" y2="378.5" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="887.0" y1="300.0" x2="884.6" y2="422.0" stroke="#c8ced3" stroke-width="1"/>
+  <line x1="887.0" y1="300.0" x2="982.9" y2="375.4" stroke="#c8ced3" stroke-width="1"/>
+  <circle cx="1006.7" cy="276.4" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="959.1" cy="201.6" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="857.2" cy="181.7" r="11" fill="#dfe6e1" stroke="#4e6f63" stroke-width="3"/>
+  <circle cx="769.1" cy="268.5" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="793.6" cy="378.5" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="884.6" cy="422.0" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="982.9" cy="375.4" r="10" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <circle cx="793.4" cy="221.7" r="11" fill="none" stroke="#a06a6a" stroke-width="2" stroke-dasharray="4 4"/>
+  <line x1="786.4" y1="214.7" x2="800.4" y2="228.7" stroke="#a06a6a" stroke-width="2"/>
+  <line x1="800.4" y1="214.7" x2="786.4" y2="228.7" stroke="#a06a6a" stroke-width="2"/>
+  <text x="309.1" y="158.0" font-family="Arial" font-size="12" font-weight="700" fill="#27483e" text-anchor="end">AAA V3</text>
+  <text x="309.1" y="171.0" font-family="Arial" font-size="11" font-weight="400" fill="#27483e" text-anchor="end">stays</text>
+  <text x="202.4" y="215.7" font-family="Arial" font-size="12" font-weight="700" fill="#7a2f2f" text-anchor="end">Production V3</text>
+  <text x="202.4" y="229.7" font-family="Arial" font-size="11" font-weight="400" fill="#7a2f2f" text-anchor="end">the duplicate</text>
+  <text x="775.4" y="225.7" font-family="Arial" font-size="12" font-weight="700" fill="#7a2f2f" text-anchor="end">slot gone</text>
+  <text x="312.0" y="304.0" font-family="Arial" font-size="14" font-weight="700" fill="#31363b" text-anchor="middle">9541 cm</text>
+  <text x="887.0" y="304.0" font-family="Arial" font-size="14" font-weight="700" fill="#27483e" text-anchor="middle">8198 cm</text>
+  <text x="312.0" y="424.0" font-family="Arial" font-size="12" font-weight="400" fill="#4b5560" text-anchor="middle">angular gap 36.6&#176;&#8211;52.4&#176;</text>
+  <text x="887.0" y="424.0" font-family="Arial" font-size="12" font-weight="400" fill="#4b5560" text-anchor="middle">angular gap 42.6&#176;&#8211;60.9&#176;</text>
+  <text x="60.0" y="486.0" font-family="Arial" font-size="17" font-weight="700" fill="#20252a" text-anchor="start">Both owning levels, cleared before the asset was deleted</text>
+  <rect x="55" y="502" width="515" height="118" rx="12" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <text x="76.0" y="530.0" font-family="Arial" font-size="15" font-weight="700" fill="#27483e" text-anchor="start">L_GuangzhouLandmarkShowcase</text>
+  <text x="76.0" y="552.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">ring showcase &#183; rebuilt from LANDMARKS</text>
+  <text x="76.0" y="572.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">registry entry dropped + EXPECTED_LABELS entry</text>
+  <text x="76.0" y="592.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">31 &#8594; 28 actors &#183; validator 0 errors / 0 warnings</text>
+  <rect x="630" y="502" width="515" height="118" rx="12" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2"/>
+  <text x="651.0" y="530.0" font-family="Arial" font-size="15" font-weight="700" fill="#27483e" text-anchor="start">Scifi_desert_city/L_showcase_level</text>
+  <text x="651.0" y="552.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">the second owner &#8212; found by the referencer query,</text>
+  <text x="651.0" y="572.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">not by assumption; it is not the ring level</text>
+  <text x="651.0" y="592.0" font-family="Arial" font-size="13" font-weight="400" fill="#4b5560" text-anchor="start">1786 &#8594; 1785 actors &#183; actor removed &#183; map saved</text>
+  <text x="60.0" y="656.0" font-family="Arial" font-size="17" font-weight="700" fill="#20252a" text-anchor="start">Deletion</text>
+  <rect x="55" y="672" width="1090" height="104" rx="12" fill="#efe0df" stroke="#a06a6a" stroke-width="2"/>
+  <text x="76.0" y="700.0" font-family="Arial" font-size="14" font-weight="700" fill="#7a2f2f" text-anchor="start">Safety gate passed: find_package_referencers_for_asset over all 176 assets &#8594; outside referencers {} (empty)</text>
+  <text x="76.0" y="724.0" font-family="Arial" font-size="14" font-weight="400" fill="#4b5560" text-anchor="start">176 assets deleted &#183; preview map then Blueprint, then 174 leaf-first (textures &#8594; materials &#8594; meshes) &#183; 0 refusals</text>
+  <text x="76.0" y="748.0" font-family="Arial" font-size="14" font-weight="400" fill="#4b5560" text-anchor="start">delete_directory wedged the editor (game thread 0% CPU); per-asset delete_asset did not &#8212; that is why the sweep is batched</text>
+  <text x="76.0" y="768.0" font-family="Arial" font-size="14" font-weight="400" fill="#4b5560" text-anchor="start">Blueprint, preview map and folder verified absent &#183; Xiaobeimen_AAA_V3 (324 files) untouched</text>
+</svg>

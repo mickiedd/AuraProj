@@ -32,9 +32,13 @@ PLACEMENT_MANIFEST = Path(
 
 EXPECTED_LABELS = [
     "Landmark_Zhengnanmen_HighFidelity",
-    "Landmark_Zhengnanmen_AAA_V3",
+    # Landmark_Zhengnanmen_AAA_V3 was retired on 2026-09-22 together with its
+    # asset folder - the same treatment Xiaobeimen_Production_V3 got below.
+    # Zhengnanmen is represented by the HighFidelity variant above.
     "Landmark_Xiaobeimen_AAA_V3",
-    "Landmark_Xiaobeimen_Production_V3",
+    # Landmark_Xiaobeimen_Production_V3 was retired on 2026-09-22 together with
+    # its asset folder. The light labels below are derived from this list, so the
+    # two have to move together.
     "Landmark_Guidemen_ReferenceRepaired",
     "Landmark_Wuxianmen_V5_FullPBR",
     "Landmark_GreatNorthGate",

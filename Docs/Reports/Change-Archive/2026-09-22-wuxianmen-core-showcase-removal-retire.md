@@ -72,12 +72,17 @@ validator's geometric checks cover what a capture would show; the interesting qu
 whether the ring still reads as a ring at the smaller radius — is a matter of taste, not of
 correctness.
 
-All 56 deleted files are git-tracked, so `git checkout -- <path>` restores them; the
-deletions are currently unstaged (`D` in `git status`), which is what makes that possible.
-Unlike the Guidemen retirement, no separate `Saved/` backup directory was made — git is the
-only recovery path. Restoring the files alone would not be enough: the builder's
-`LANDMARKS` entry and the validator's `EXPECTED_LABELS` would both need reverting to place
-the gate again.
+All 56 deleted files were git-tracked, so git is the recovery path. Unlike the Guidemen
+retirement, no separate `Saved/` backup directory was made. The deletion was committed as
+`66d25a6d` (its parent, `a09fe291`, still holds the folder), so restore with
+`git checkout a09fe291 -- Content/Assets/Environment/GuangzhouLandmarks/V5/Wuxianmen_4K_Core`.
+The assets are Git-LFS-tracked (`.gitattributes` gives `*.uasset`/`*.umap` `filter=lfs
+-text`), so the commit stores 3-line pointers rather than binaries and recovery depends on the
+LFS object store rather than the commit alone — **checked, not assumed**: all 56 objects are
+present under `.git/lfs/objects/`, and the Blueprint's object is `a0c4542e…` at 1,308,482
+bytes, the exact size of the original. Restoring the files alone would not be enough in any
+case: the builder's `LANDMARKS` entry and the validator's `EXPECTED_LABELS` would both need
+reverting to place the gate again.
 
 **Open follow-up.** 31 further scripts still name the retired path. The historical
 capture, probe, fix and snapshot scripts for the Wuxianmen reference-tuning work
