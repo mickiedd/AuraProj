@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">Canton terrain plan daily-document split</title>
+  <desc id="desc">The master plan indexes twenty independent day plans, each paired with a resource and evidence sheet.</desc>
+  <rect width="1200" height="650" fill="#101820"/>
+  <text x="600" y="70" text-anchor="middle" fill="#f5f1e8" font-family="Segoe UI, sans-serif" font-size="34" font-weight="700">One master contract → 20 executable daily packages</text>
+  <rect x="390" y="115" width="420" height="95" rx="18" fill="#1d3440" stroke="#72d2dc" stroke-width="3"/>
+  <text x="600" y="153" text-anchor="middle" fill="#8ee6ed" font-family="Segoe UI, sans-serif" font-size="23" font-weight="700">Master plan</text>
+  <text x="600" y="183" text-anchor="middle" fill="#f5f1e8" font-family="Segoe UI, sans-serif" font-size="17">scope · milestones · stop/go · evidence contract</text>
+  <path d="M600 210 V275" stroke="#8ee6ed" stroke-width="5" marker-end="url(#arrow)"/>
+  <g font-family="Segoe UI, sans-serif">
+    <rect x="70" y="290" width="310" height="190" rx="18" fill="#24352d" stroke="#79c58a" stroke-width="3"/>
+    <text x="225" y="330" text-anchor="middle" fill="#a8e6b2" font-size="23" font-weight="700">Day 01 … Day 20</text>
+    <text x="98" y="370" fill="#f5f1e8" font-size="17">• Goal and entry gate</text>
+    <text x="98" y="402" fill="#f5f1e8" font-size="17">• Work and deliverables</text>
+    <text x="98" y="434" fill="#f5f1e8" font-size="17">• Stop/go and handoff</text>
+    <path d="M395 385 H470" stroke="#f4c66d" stroke-width="5" marker-end="url(#arrowGold)"/>
+    <rect x="485" y="290" width="310" height="190" rx="18" fill="#3a2d36" stroke="#d68bad" stroke-width="3"/>
+    <text x="640" y="330" text-anchor="middle" fill="#f1adca" font-size="23" font-weight="700">Paired resource sheet</text>
+    <text x="513" y="370" fill="#f5f1e8" font-size="17">• Required inputs</text>
+    <text x="513" y="402" fill="#f5f1e8" font-size="17">• Artifact identifiers</text>
+    <text x="513" y="434" fill="#f5f1e8" font-size="17">• Evidence + sign-off</text>
+    <path d="M810 385 H885" stroke="#f4c66d" stroke-width="5" marker-end="url(#arrowGold)"/>
+    <rect x="900" y="290" width="230" height="190" rx="18" fill="#382f22" stroke="#f4c66d" stroke-width="3"/>
+    <text x="1015" y="330" text-anchor="middle" fill="#f4c66d" font-size="23" font-weight="700">Day status</text>
+    <text x="930" y="375" fill="#f5f1e8" font-size="18">Verified</text>
+    <text x="930" y="410" fill="#f5f1e8" font-size="18">Provisional</text>
+    <text x="930" y="445" fill="#f5f1e8" font-size="18">Blocked</text>
+    <rect x="245" y="535" width="710" height="70" rx="18" fill="#18252c" stroke="#72d2dc" stroke-width="2"/>
+    <text x="600" y="578" text-anchor="middle" fill="#f5f1e8" font-size="20">No downstream day passes without an explicit predecessor decision</text>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8ee6ed"/></marker>
+    <marker id="arrowGold" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f4c66d"/></marker>
+  </defs>
+</svg>

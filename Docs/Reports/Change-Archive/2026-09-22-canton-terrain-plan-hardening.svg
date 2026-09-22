@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Canton terrain plan hardening</title>
+  <desc id="desc">Flow from evidence contracts through GIS and Unreal implementation to automated production acceptance.</desc>
+  <rect width="1200" height="680" fill="#101820"/>
+  <text x="60" y="70" fill="#f5f1e8" font-family="Segoe UI, sans-serif" font-size="34" font-weight="700">Canton 1880–1900 terrain plan: auditable delivery flow</text>
+  <text x="60" y="108" fill="#b9c7c9" font-family="Segoe UI, sans-serif" font-size="18">20 working days · one gate district · historical uncertainty remains explicit</text>
+  <g font-family="Segoe UI, sans-serif">
+    <g transform="translate(60 160)">
+      <rect width="240" height="300" rx="18" fill="#1d3440" stroke="#57b7c2" stroke-width="3"/>
+      <text x="24" y="42" fill="#8ee6ed" font-size="23" font-weight="700">Day 01 contract</text>
+      <text x="24" y="84" fill="#f5f1e8" font-size="17">• UE + plugin preflight</text>
+      <text x="24" y="118" fill="#f5f1e8" font-size="17">• Storage + licence policy</text>
+      <text x="24" y="152" fill="#f5f1e8" font-size="17">• Georef error budget</text>
+      <text x="24" y="186" fill="#f5f1e8" font-size="17">• Performance thresholds</text>
+      <text x="24" y="238" fill="#f4c66d" font-size="16">Guard: define “pass”</text>
+      <text x="24" y="264" fill="#f4c66d" font-size="16">before production work</text>
+    </g>
+    <path d="M315 310 H390" stroke="#8ee6ed" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(405 160)">
+      <rect width="320" height="300" rx="18" fill="#24352d" stroke="#79c58a" stroke-width="3"/>
+      <text x="24" y="42" fill="#a8e6b2" font-size="23" font-weight="700">Days 02–10 evidence</text>
+      <text x="24" y="84" fill="#f5f1e8" font-size="17">• Independent georef checks</text>
+      <text x="24" y="118" fill="#f5f1e8" font-size="17">• Historical confidence split</text>
+      <text x="24" y="152" fill="#f5f1e8" font-size="17">• Gate district selected Day 05</text>
+      <text x="24" y="186" fill="#f5f1e8" font-size="17">• Locked base edit layer Day 09</text>
+      <text x="24" y="238" fill="#f4c66d" font-size="16">Guard: failed tolerance means</text>
+      <text x="24" y="264" fill="#f4c66d" font-size="16">Provisional or Blocked</text>
+    </g>
+    <path d="M740 310 H815" stroke="#8ee6ed" stroke-width="5" marker-end="url(#arrow)"/>
+    <g transform="translate(830 160)">
+      <rect width="310" height="300" rx="18" fill="#3a2d36" stroke="#d68bad" stroke-width="3"/>
+      <text x="24" y="42" fill="#f1adca" font-size="23" font-weight="700">Days 11–20 proof</text>
+      <text x="24" y="84" fill="#f5f1e8" font-size="17">• 2 m grid = broad grading</text>
+      <text x="24" y="118" fill="#f5f1e8" font-size="17">• PCG has safe fallback</text>
+      <text x="24" y="152" fill="#f5f1e8" font-size="17">• Map/collision/nav checks</text>
+      <text x="24" y="186" fill="#f5f1e8" font-size="17">• Development cook + route</text>
+      <text x="24" y="238" fill="#f4c66d" font-size="16">Guard: screenshots support,</text>
+      <text x="24" y="264" fill="#f4c66d" font-size="16">never replace, test evidence</text>
+    </g>
+    <rect x="245" y="520" width="710" height="95" rx="18" fill="#18252c" stroke="#f4c66d" stroke-width="2"/>
+    <text x="600" y="560" fill="#f4c66d" font-size="22" text-anchor="middle" font-weight="700">Day 20 outcome</text>
+    <text x="600" y="592" fill="#f5f1e8" font-size="18" text-anchor="middle">Traversable gate district + reproducible sources + passing checks + explicit uncertainty</text>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8ee6ed"/></marker></defs>
+</svg>
