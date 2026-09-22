@@ -244,14 +244,6 @@ bool AAuraCharacter::LoadProgress()
 		AuraPlayerState->SetSpellPoints(SaveData->SpellPoints);
 	}
 
-	const FAuraRoleApplicationResult Result = ApplyRoleAtSpawn(AuthorizedRole, SaveData);
-	if (!Result.bSuccess)
-	{
-		RejectLogin(Result.Message.IsEmpty()
-			? FString::Printf(TEXT("Role '%s' could not be applied."), *AuthorizedRole.ToString())
-			: Result.Message);
-		return false;
-	}
 	if (PersistentProfile && !PersistentProfile->bFirstTimeLoadIn)
 	{
 		FString PersistenceError;
@@ -268,6 +260,14 @@ bool AAuraCharacter::LoadProgress()
 			return false;
 		}
 		AuraPlayerState->SetTutorialStepCompleted(5, true);
+	}
+	const FAuraRoleApplicationResult Result = ApplyRoleAtSpawn(AuthorizedRole, SaveData);
+	if (!Result.bSuccess)
+	{
+		RejectLogin(Result.Message.IsEmpty()
+			? FString::Printf(TEXT("Role '%s' could not be applied."), *AuthorizedRole.ToString())
+			: Result.Message);
+		return false;
 	}
 	if (AuraGameMode && AuraGameMode->GetPersistenceSubsystemMutable()
 		&& AuraGameMode->GetPersistenceSubsystem()->IsPersistentLoginRequired())

@@ -13,7 +13,7 @@ struct AURA_API FAuraRoleBattleNetworkProbeSnapshot
 	bool bWorldReady = false;
 	bool bPopulationReady = false;
 	bool bEconomyReady = false;
-	bool bFireGunConfigured = false;
+	bool bRetiredFireGunAbsent = false;
 	int32 PlayerControllers = 0;
 	int32 RemoteClients = 0;
 	int32 Civilians = 0;
@@ -25,7 +25,7 @@ struct AURA_API FAuraRoleBattleNetworkProbeSnapshot
 	bool HasRequiredFixture() const
 	{
 		return bAuthorityWorld && bWorldReady && bPopulationReady && bEconomyReady
-			&& bFireGunConfigured && RemoteClients >= 2 && ActiveMerchants >= 1;
+			&& bRetiredFireGunAbsent && RemoteClients >= 2 && ActiveMerchants >= 1;
 	}
 
 	bool MeetsPerformanceFixtureMinimum() const

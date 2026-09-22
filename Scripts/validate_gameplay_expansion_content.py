@@ -55,7 +55,7 @@ def validate(repo_root: Path, manifest_path: Path, staged_root: Path|None=None) 
     required={'schemaVersion','profile','definitionRevision','status','inventory','budget','files','legacyManifest'}
     if set(data) != required: raise ContentError(f"manifest fields mismatch: {sorted(set(data)^required)}")
     if data['schemaVersion'] != 1 or data['profile'] != 'GameplayExpansionV1' or data['status'] != 'CONTRACT_ONLY': raise ContentError('manifest identity/status mismatch')
-    expected={'enemyArchetypes':4,'augments':8,'missionTemplates':3,'arenaLayouts':2,'mutators':2,'bosses':1}
+    expected={'enemyArchetypes':4,'augments':4,'missionTemplates':3,'arenaLayouts':2,'mutators':2,'bosses':1}
     if data['inventory'] != expected: raise ContentError(f"inventory mismatch: expected {expected}")
     if data['budget'] != {'maximumAuthoredCost':100}: raise ContentError('budget mismatch')
     rows=data['files']

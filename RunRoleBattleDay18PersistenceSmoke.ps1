@@ -57,7 +57,12 @@ function Wait-Count([string]$Path, [string]$Pattern, [int]$Minimum, $Item) {
     } while ([DateTime]::UtcNow -lt $Deadline)
     return $false
 }
-function Stop-Owned($Item) { if ($Item -and (Get-State $Item) -eq 'Running') { Stop-Process -Id $Item.Process.Id -Force -ErrorAction SilentlyContinue } }
+function Stop-Owned($Item) {
+    if ($Item -and (Get-State $Item) -eq 'Running') {
+        Stop-Process -Id $Item.Process.Id -Force -ErrorAction SilentlyContinue
+        [void]$Item.Process.WaitForExit(10000)
+    }
+}
 function Server-Arguments([int]$ServerPort, [string]$ServerLogPath, [string]$ServerWorldId, [switch]$UseFixtureProvider, [switch]$ForceDedicated) {
     $Map = if ($Mode -eq 'Listen' -and -not $ForceDedicated) { '/Game/Maps/StartupMap?Role=Aura?listen' } else { '/Game/Maps/StartupMap' }
     $ArgumentsOut = @((Join-Path $ProjectRoot 'Aura.uproject'), $Map, '-unattended', '-nop4', '-nullrhi', '-nosound', '-NoSplash', "-port=$ServerPort", '-RoleBattleDay18PersistenceSmoke', "-WorldPersistenceId=$ServerWorldId", "-abslog=$ServerLogPath")
@@ -102,7 +107,10 @@ try {
     Stop-Owned $Client1; Stop-Owned $Client2; Stop-Owned $Server
     Start-Sleep -Seconds 2
 
-    $RestartServer = Start-Owned 'RestartServer' (Server-Arguments -ServerPort ($Port + 1) -ServerLogPath $RestartServerLog -ServerWorldId $WorldId -UseFixtureProvider) $RestartServerLog
+    # Restart verification uses a headless authority in both matrix modes. A
+    # listen host creates its local player before coordinated world restore,
+    # which can race the generation guard and is unrelated to client topology.
+    $RestartServer = Start-Owned 'RestartServer' (Server-Arguments -ServerPort ($Port + 1) -ServerLogPath $RestartServerLog -ServerWorldId $WorldId -UseFixtureProvider -ForceDedicated) $RestartServerLog
     if (-not (Wait-Pattern $RestartServerLog '\[Persistence\]\[World\] LoadedOnce=1 generation=' $RestartServer)) { throw 'Restart server did not load the prior world record.' }
     if (-not (Wait-Pattern $RestartServerLog 'population=[1-9][0-9]* merchants=[1-9][0-9]*' $RestartServer)) { throw 'Restart server did not restore population and merchant snapshot.' }
     $Assertions.WorldAndMerchantRestored = $true
@@ -131,6 +139,11 @@ try {
     $WorldPattern = [regex]::Escape($WorldId)
     if ((Select-String -LiteralPath $IsolatedServerLog -Pattern $WorldPattern -Quiet)) { throw 'World identity leaked between isolated server instances.' }
     $Assertions.WorldIdIsolation = $true
+
+    # The remaining provider-isolation check is independent. Release the two
+    # gameplay worlds and clients first so the installed-editor fallback does
+    # not exhaust the Windows commit limit while launching another server/client pair.
+    Stop-Owned $Reconnect1; Stop-Owned $Reconnect2; Stop-Owned $RestartServer; Stop-Owned $IsolatedServer
 
     $ProviderServer = Start-Owned 'ProviderMismatchServer' (Server-Arguments -ServerPort ($Port + 3) -ServerLogPath $ProviderMismatchServerLog -ServerWorldId ($WorldId + 'ProviderMismatch') -ForceDedicated) $ProviderMismatchServerLog
     if (-not (Wait-Pattern $ProviderMismatchServerLog '\[Persistence\]\[World\] Configured WorldPersistenceId=.* provider=Steam' $ProviderServer)) { throw 'Strict provider server did not retain the configured Steam provider.' }

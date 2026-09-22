@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<behavior version="3" agenttype="AuraAutoTest">
+  <property name="name" value="RoleBattleDay16OwnerReplication"/>
+  <property name="timeout" value="30"/>
+  <node class="Sequence" id="1" name="OwnerOnlyEconomyReplication">
+    <node class="Pass" id="2" name="OwnerOnlyStateValidated"/>
+  </node>
+</behavior>

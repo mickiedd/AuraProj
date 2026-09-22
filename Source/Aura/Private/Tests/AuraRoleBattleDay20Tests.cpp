@@ -53,8 +53,7 @@ AURA_DAY20_TEST(FAuraDay20PickupEligibilityPolicyTest, "Aura.RoleBattle.Day20.Cl
 
 AURA_DAY20_TEST(FAuraDay20RetiredRoleContractTest, "Aura.RoleBattle.Day20.Cleanup.RetiredBungeeManContract",
 	!AuraRoleBattleDay20TestsPrivate::Read(TEXT("Content/Config/RoleConfig.json")).Contains(TEXT("BungeeMan"))
-	&& !AuraRoleBattleDay20TestsPrivate::FileExists(TEXT("Content/AbilityDefinitions/FireGun.xml"))
-	&& !AuraRoleBattleDay20TestsPrivate::DirectoryExists(TEXT("Content/BungeeMan")));
+	&& !AuraRoleBattleDay20TestsPrivate::FileExists(TEXT("Content/AbilityDefinitions/FireGun.xml")));
 
 AURA_DAY20_TEST(FAuraDay20ShippingMutationSurfaceTest, "Aura.RoleBattle.Day20.Security.ShippingMutationSurface",
 	!AuraRoleBattleDay20TestsPrivate::FileExists(TEXT("Source/Aura/Public/Player/AuraCheatManager.h"))

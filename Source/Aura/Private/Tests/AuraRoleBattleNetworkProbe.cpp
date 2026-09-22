@@ -60,14 +60,14 @@ bool FAuraRoleBattleNetworkProbe::CollectServerSnapshot(const UWorld* World,
 	}
 
 	const FGameplayTag FireGunTag = FGameplayTag::RequestGameplayTag(TEXT("Abilities.Gun.Fire"), false);
-	OutSnapshot.bFireGunConfigured = FireGunTag.IsValid()
-		&& UAuraAbilitySystemLibrary::FindAbilityDefinitionByTag(FireGunTag) != nullptr
-		&& FAuraGameplayConfig::FindProjectile(TEXT("fireGunBullet")) != nullptr;
+	OutSnapshot.bRetiredFireGunAbsent = !FireGunTag.IsValid()
+		|| (UAuraAbilitySystemLibrary::FindAbilityDefinitionByTag(FireGunTag) == nullptr
+			&& FAuraGameplayConfig::FindProjectile(TEXT("fireGunBullet")) == nullptr);
 	if (!OutSnapshot.HasRequiredFixture())
 	{
-		OutError = FString::Printf(TEXT("Day 19 fixture is incomplete: world=%d population=%d economy=%d fireGun=%d remotes=%d merchants=%d."),
+		OutError = FString::Printf(TEXT("Day 19 fixture is incomplete: world=%d population=%d economy=%d retiredFireGunAbsent=%d remotes=%d merchants=%d."),
 			OutSnapshot.bWorldReady ? 1 : 0, OutSnapshot.bPopulationReady ? 1 : 0,
-			OutSnapshot.bEconomyReady ? 1 : 0, OutSnapshot.bFireGunConfigured ? 1 : 0,
+			OutSnapshot.bEconomyReady ? 1 : 0, OutSnapshot.bRetiredFireGunAbsent ? 1 : 0,
 			OutSnapshot.RemoteClients, OutSnapshot.ActiveMerchants);
 	}
 	return true;
@@ -76,11 +76,11 @@ bool FAuraRoleBattleNetworkProbe::CollectServerSnapshot(const UWorld* World,
 void FAuraRoleBattleNetworkProbe::LogServerSnapshot(const FAuraRoleBattleNetworkProbeSnapshot& Snapshot)
 {
 	UE_LOG(LogAura, Display,
-		TEXT("[Day19NetworkProbe][Server] Ready=%d AuthorityWorld=%d WorldReady=%d PopulationReady=%d EconomyReady=%d FireGunConfigured=%d Players=%d RemoteClients=%d Civilians=%d Enemies=%d ActiveMerchants=%d ConfiguredCivilians=%d ConfiguredEnemyRows=%d ReplayCacheLimit=%d SecurityAuthority=1 ReplicationFixture=%d PerformanceFixtureMinimum=%d"),
+		TEXT("[Day19NetworkProbe][Server] Ready=%d AuthorityWorld=%d WorldReady=%d PopulationReady=%d EconomyReady=%d RetiredFireGunAbsent=%d Players=%d RemoteClients=%d Civilians=%d Enemies=%d ActiveMerchants=%d ConfiguredCivilians=%d ConfiguredEnemyRows=%d ReplayCacheLimit=%d SecurityAuthority=1 ReplicationFixture=%d PerformanceFixtureMinimum=%d"),
 		Snapshot.HasRequiredFixture() ? 1 : 0,
 		Snapshot.bAuthorityWorld ? 1 : 0, Snapshot.bWorldReady ? 1 : 0,
 		Snapshot.bPopulationReady ? 1 : 0, Snapshot.bEconomyReady ? 1 : 0,
-		Snapshot.bFireGunConfigured ? 1 : 0, Snapshot.PlayerControllers,
+		Snapshot.bRetiredFireGunAbsent ? 1 : 0, Snapshot.PlayerControllers,
 		Snapshot.RemoteClients, Snapshot.Civilians, Snapshot.Enemies,
 		Snapshot.ActiveMerchants, Snapshot.ConfiguredPopulationSlots,
 		Snapshot.ConfiguredEnemyRows, ReplayCacheLimit,

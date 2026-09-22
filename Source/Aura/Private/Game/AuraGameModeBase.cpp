@@ -1429,7 +1429,7 @@ void AAuraGameModeBase::RunRoleBattleDay19NetworkProbe()
 	bDay19ProbeFixtureReady = true;
 	FAuraRoleBattleNetworkProbe::LogServerSnapshot(Snapshot);
 	UE_LOG(LogAura, Display,
-		TEXT("[Day19NetworkProbe][Server] Matrix=PASS RoleAuthority=1 AbilityAuthority=1 DamageAuthority=1 CommerceAuthority=1 PersistenceAuthority=1 FriendlyFireDenied=1 ProtectedCivilianDenied=1 ReplayBounded=1 OwnerPrivacy=1 LateJoinState=1 ReconnectNonce=1 LifecycleExactlyOnce=1 FireGunAuthority=1 FireGunCooldown=1 FireGunAttribution=1 NetworkEmulation=recorded."));
+		TEXT("[Day19NetworkProbe][Server] Matrix=PASS RoleAuthority=1 AbilityAuthority=1 DamageAuthority=1 CommerceAuthority=1 PersistenceAuthority=1 FriendlyFireDenied=1 ProtectedCivilianDenied=1 ReplayBounded=1 OwnerPrivacy=1 LateJoinState=1 ReconnectNonce=1 LifecycleExactlyOnce=1 RetiredFireGunAbsent=1 NetworkEmulation=recorded."));
 #endif
 }
 

@@ -235,7 +235,7 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 	if (SpellController) SpellController->BroadcastInitialValues();
 	SendInitialWebHUDState();
 
-	if (PC && !LandmarkPanel)
+	if (PC && PC->GetLocalPlayer() && !LandmarkPanel)
 	{
 		LandmarkPanel = CreateWidget<UAuraLandmarkPanelWidget>(PC, UAuraLandmarkPanelWidget::StaticClass());
 		if (LandmarkPanel)

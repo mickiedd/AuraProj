@@ -25,6 +25,12 @@
 !/Content/Config/
 !/Content/BehaviorTrees/
 !/Content/AbilityDefinitions/
+!/Content/AutoTests/
+/Content/AutoTests/*
+!/Content/AutoTests/RoleBattleDay16OwnerReplication.xml
+!/Content/AutoTests/RoleBattleDay17Merchant.xml
+!/Content/AutoTests/RoleBattleDay18Persistence.xml
+!/Content/AutoTests/RoleBattleDay19VerticalSlice.xml
 # Project maps (Login is the GameDefaultMap and must be shared so others can run).
 !/Content/Maps/
 # Assets referenced by RoleConfig.json / C++ code and required to run roles, the car, and levels.
