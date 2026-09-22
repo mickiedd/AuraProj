@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#eef1f3"/>
+  <text x="60" y="58" font-family="Arial" font-size="30" font-weight="700" fill="#20252a">Guidemen arch, door and English plaque follow-up</text>
+  <text x="60" y="92" font-family="Arial" font-size="17" fill="#4b5560">Reference-driven revision applied to the saved Blueprint asset</text>
+  <rect x="55" y="130" width="515" height="370" rx="16" fill="#d6d8d5" stroke="#8c949b" stroke-width="2"/>
+  <text x="82" y="168" font-family="Arial" font-size="22" font-weight="700" fill="#31363b">Before</text>
+  <rect x="112" y="205" width="400" height="205" fill="#929a97"/>
+  <path d="M160 380 L160 300 Q312 145 464 300 L464 380" fill="#111" stroke="#111" stroke-width="14"/>
+  <rect x="190" y="292" width="112" height="150" fill="#3b1e18"/><rect x="306" y="292" width="112" height="150" fill="#3b1e18"/>
+  <rect x="205" y="215" width="210" height="48" fill="#f6f6f0" stroke="#b8b9b4"/>
+  <text x="220" y="244" font-family="Georgia" font-size="15" fill="#817a70">PORTE DE GUID…</text>
+  <text x="82" y="465" font-family="Arial" font-size="16" fill="#3d444b">Thin edge / black void, flat dark timber, clipped plaque text</text>
+  <rect x="630" y="130" width="515" height="370" rx="16" fill="#d6d8d5" stroke="#4e6f63" stroke-width="3"/>
+  <text x="657" y="168" font-family="Arial" font-size="22" font-weight="700" fill="#27483e">After</text>
+  <rect x="687" y="205" width="400" height="205" fill="#929a97"/>
+  <path d="M735 380 L735 300 Q887 145 1039 300 L1039 380" fill="#111" stroke="#d5d1c4" stroke-width="40" stroke-dasharray="20 4"/>
+  <path d="M735 380 L735 300 Q887 145 1039 300 L1039 380" fill="none" stroke="#746e63" stroke-width="2"/>
+  <rect x="765" y="292" width="112" height="150" fill="#633c2b"/><rect x="881" y="292" width="112" height="150" fill="#633c2b"/>
+  <path d="M780 310v120M800 310v120M820 310v120M900 310v120M920 310v120M940 310v120" stroke="#8b5b42" stroke-width="3" opacity=".8"/>
+  <rect x="780" y="215" width="214" height="48" fill="#c9c5b9" stroke="#766e60"/>
+  <text x="796" y="239" font-family="Georgia" font-size="15" fill="#51463b">PORTE DE GUIDE</text><text x="840" y="254" font-family="Georgia" font-size="7" fill="#51463b">VILLE DE CANTON</text>
+  <text x="657" y="465" font-family="Arial" font-size="16" fill="#27483e">Segmented voussoirs, weathered timber grain, full plaque wording</text>
+  <line x1="600" y1="560" x2="600" y2="635" stroke="#77818a" stroke-width="2"/>
+  <text x="60" y="555" font-family="Arial" font-size="18" font-weight="700" fill="#20252a">Saved scope</text>
+  <text x="60" y="584" font-family="Arial" font-size="16" fill="#3d444b">ArchSpandrel mesh revision · door material revision · plaque material + placement</text>
+  <text x="60" y="610" font-family="Arial" font-size="16" fill="#3d444b">17 wedge blocks · 1,232 triangles · 17 inner-radius rays at 279.0 cm</text>
+  <text x="60" y="636" font-family="Arial" font-size="16" fill="#3d444b">47 components / 18,822 instances retained · fresh reload and visual capture passed</text>
+</svg>

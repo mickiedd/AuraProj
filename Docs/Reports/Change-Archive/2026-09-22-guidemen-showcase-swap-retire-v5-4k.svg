@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#eef1f3"/>
+  <text x="60" y="58" font-family="Arial" font-size="30" font-weight="700" fill="#20252a">Guidemen showcase slot repointed, un-repaired Blueprint retired</text>
+  <text x="60" y="92" font-family="Arial" font-size="17" fill="#4b5560">L_GuangzhouLandmarkShowcase rebuilt from its builder script, then the orphaned asset deleted</text>
+
+  <!-- ===================== BEFORE ===================== -->
+  <rect x="55" y="130" width="515" height="380" rx="16" fill="#d6d8d5" stroke="#8c949b" stroke-width="2"/>
+  <text x="82" y="170" font-family="Arial" font-size="22" font-weight="700" fill="#31363b">Before</text>
+
+  <rect x="82" y="192" width="461" height="44" rx="8" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <text x="98" y="220" font-family="Arial" font-size="15" fill="#31363b">L_GuangzhouLandmarkShowcase · places</text>
+  <line x1="312" y1="236" x2="312" y2="266" stroke="#77818a" stroke-width="2"/>
+  <path d="M306 262 L312 272 L318 262 Z" fill="#77818a"/>
+
+  <rect x="82" y="274" width="461" height="76" rx="10" fill="#c9c5b9" stroke="#8c949b" stroke-width="2"/>
+  <text x="98" y="302" font-family="Arial" font-size="17" font-weight="700" fill="#31363b">BP_Guidemen_V5_4K</text>
+  <text x="98" y="326" font-family="Arial" font-size="14" fill="#4b5560">47 components / 18,822 instances — the model the repairs never reached</text>
+
+  <line x1="82" y1="374" x2="543" y2="374" stroke="#b9bfc4" stroke-width="2"/>
+  <text x="82" y="402" font-family="Arial" font-size="15" fill="#4b5560">On disk but not placed here, referenced only by the Guidemen preview level:</text>
+
+  <rect x="82" y="416" width="461" height="82" rx="10" fill="#dfe3e0" stroke="#4e6f63" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="98" y="444" font-family="Arial" font-size="15" font-weight="700" fill="#27483e">BP_Guidemen_V5_4K_PreRebuild_20260918</text>
+  <text x="98" y="466" font-family="Arial" font-size="13" fill="#4b5560">holds the 2026-09-21 window and roof reference repair, plus the</text>
+  <text x="98" y="484" font-family="Arial" font-size="13" fill="#4b5560">2026-09-22 arch, door and plaque follow-up</text>
+
+  <!-- ===================== AFTER ===================== -->
+  <rect x="630" y="130" width="515" height="380" rx="16" fill="#d6d8d5" stroke="#4e6f63" stroke-width="3"/>
+  <text x="657" y="170" font-family="Arial" font-size="22" font-weight="700" fill="#27483e">After</text>
+
+  <rect x="657" y="192" width="461" height="44" rx="8" fill="#c3c8cb" stroke="#8c949b" stroke-width="2"/>
+  <text x="673" y="220" font-family="Arial" font-size="15" fill="#31363b">L_GuangzhouLandmarkShowcase · places</text>
+  <line x1="887" y1="236" x2="887" y2="266" stroke="#77818a" stroke-width="2"/>
+  <path d="M881 262 L887 272 L893 262 Z" fill="#77818a"/>
+
+  <rect x="657" y="274" width="461" height="76" rx="10" fill="#dfe3e0" stroke="#4e6f63" stroke-width="3"/>
+  <text x="673" y="300" font-family="Arial" font-size="15" font-weight="700" fill="#27483e">BP_Guidemen_V5_4K_PreRebuild_20260918</text>
+  <text x="673" y="324" font-family="Arial" font-size="14" fill="#27483e">reference-repaired · 47 components / 18,822 instances retained</text>
+
+  <line x1="657" y1="374" x2="1118" y2="374" stroke="#b9bfc4" stroke-width="2"/>
+  <text x="657" y="402" font-family="Arial" font-size="15" fill="#4b5560">Retired from the project:</text>
+
+  <rect x="657" y="416" width="461" height="82" rx="10" fill="#e8dedd" stroke="#a06a6a" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="673" y="444" font-family="Arial" font-size="16" font-weight="700" fill="#7a2f2f">BP_Guidemen_V5_4K  —  deleted</text>
+  <text x="673" y="466" font-family="Arial" font-size="13" fill="#4b5560">deleted only after its referencer list came back empty</text>
+  <text x="673" y="484" font-family="Consolas, monospace" font-size="12" fill="#4b5560">backup: Saved/GuidemenV5_4K_Retired_20260922/</text>
+
+  <!-- ===================== FOOTER ===================== -->
+  <text x="60" y="552" font-family="Arial" font-size="18" font-weight="700" fill="#20252a">What was verified</text>
+  <text x="60" y="582" font-family="Arial" font-size="16" fill="#3d444b">Pose is unchanged: ring radius 10612.11 cm, Guidemen at [-10534.14, 1284.03, 24.00], yaw 83.05° — identical to before</text>
+  <text x="60" y="608" font-family="Arial" font-size="16" fill="#3d444b">Builder and validator repointed; validation reloads the saved map from disk: 34 actors, 9/9 landmarks, 9/9 lights, 0 errors, 0 warnings</text>
+  <text x="60" y="634" font-family="Arial" font-size="16" fill="#3d444b">Light_Guidemen_ReferenceRepaired attached to its own building: 48.396° cone, 9029.71 cm attenuation, 9.817° clear of the nearest neighbour</text>
+  <text x="60" y="660" font-family="Arial" font-size="16" fill="#3d444b">Saved map holds 0 references to the retired asset and 2 to the repaired one; backup md5 matches the original</text>
+</svg>

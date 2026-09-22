@@ -1,0 +1,209 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 980" width="1240" height="980" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#5b6b7c"/></marker><marker id="dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b3541e"/></marker></defs>
+<rect x="0" y="0" width="1240" height="980" fill="#fbfbfc"/>
+<text x="40" y="44" font-size="23" fill="#1b2733" font-weight="600" text-anchor="start">One independent light per building</text>
+<text x="40" y="68" font-size="13.5" fill="#5b6b7c" font-weight="normal" text-anchor="start">2026-09-22 · L_GuangzhouLandmarkShowcase · a spot light owned by each of the 9 landmarks, added on top of the unchanged global key / fill / sky</text>
+<line x1="40" y1="84" x2="1200" y2="84" stroke="#d8dee6" stroke-width="1.5"/>
+<text x="40" y="116" font-size="14" fill="#1b2733" font-weight="600" text-anchor="start" letter-spacing="0.4">PLAN — BEFORE / AFTER</text>
+<circle cx="180" cy="240" r="78" fill="none" stroke="#b9c7d6" stroke-width="1.2" stroke-dasharray="3 4"/>
+<circle cx="180" cy="240" r="3" fill="#5b6b7c"/>
+<path d="M 76 174.0 L 96 174.0" stroke="#5b6b7c" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M 76 200.4 L 96 200.4" stroke="#5b6b7c" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M 76 226.8 L 96 226.8" stroke="#5b6b7c" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M 76 253.2 L 96 253.2" stroke="#5b6b7c" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M 76 279.6 L 96 279.6" stroke="#5b6b7c" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M 76 306.0 L 96 306.0" stroke="#5b6b7c" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M 257.9440275612074 233.75671820772607 L 256.2966710669155 222.88077150958918" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 242.02557980088204 192.38616324675758 L 234.73029100630617 184.15337748471228" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 198.34604680548972 163.98899706877447 L 187.49804805720112 162.16665704640522" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 138.67646778559117 173.61765531916853 L 129.7700642140686 180.07334857560278" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 103.23865152334646 225.1021686126551 L 101.90761701420725 236.02134198500707" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 113.34576279263413 280.88352556108885 L 119.74240118368127 289.8324370755794" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 150.5267607308832 312.42636375647606 L 160.98183716361626 315.84562928955626" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 200.98522112436763 315.32509870130536 L 211.34778870137148 311.6349505725674" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 245.1967494340295 283.16982584208995 L 250.60956494398644 273.5937395718453" stroke="#7a8794" stroke-width="3.1" stroke-linecap="round"/>
+<text x="180" y="336" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="middle">BEFORE</text>
+<text x="180" y="352" font-size="10.5" fill="#5b6b7c" font-weight="normal" text-anchor="middle">all 9 share one key</text>
+<circle cx="470" cy="240" r="78" fill="none" stroke="#b9c7d6" stroke-width="1.2" stroke-dasharray="3 4"/>
+<circle cx="470" cy="240" r="3" fill="#5b6b7c"/>
+<path d="M 524.6261056212136 231.72590006639186 L 546.0720315449666 221.39768786893416 L 548.1686670831564 235.2398018483811 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="524.6261056212136" cy="231.72590006639186" r="2.1" fill="#b3541e"/>
+<path d="M 547.9440275612075 233.75671820772607 L 546.2966710669156 222.88077150958918" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 511.8518479033645 202.91397275885691 L 523.7354788979549 183.03072488079698 L 533.0203919092332 193.50881585067287 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="511.8518479033645" cy="202.91397275885691" r="2.1" fill="#b3541e"/>
+<path d="M 532.0255798008819 192.38616324675758 L 524.7302910063062 184.15337748471228" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 477.80267072937386 193.55237701715475 L 476.0187755006163 161.91815613426397 L 489.8253193620745 164.23749798091572 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="477.80267072937386" cy="193.55237701715475" r="2.1" fill="#b3541e"/>
+<path d="M 488.3460468054897 163.98899706877447 L 477.49804805720106 162.16665704640522" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 442.4181644707954 201.94754789168206 L 418.5555546361337 180.95367038329834 L 429.8909773635261 172.73733351147297 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="442.4181644707954" cy="201.94754789168206" r="2.1" fill="#b3541e"/>
+<path d="M 428.67646778559117 173.61765531916853 L 419.7700642140686 180.07334857560278" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 425.46622407969926 234.57138461394126 L 391.72611230841557 237.51032017214598 L 393.4201562291382 223.6131904255162 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="425.46622407969926" cy="234.57138461394126" r="2.1" fill="#b3541e"/>
+<path d="M 393.23865152334645 225.1021686126551 L 391.9076170142073 236.02134198500707" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 426.663501479217 270.97671819893696 L 410.6146700551877 291.0527431911918 L 402.4734939211277 279.66321944547644 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="426.663501479217" cy="270.97671819893696" r="2.1" fill="#b3541e"/>
+<path d="M 403.34576279263416 280.88352556108885 L 409.74240118368124 289.8324370755794" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 453.4416281363702 290.6304765631687 L 452.4075294044435 316.3118927713399 L 439.1010684900559 311.9601002746924 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="453.4416281363702" cy="290.6304765631687" r="2.1" fill="#b3541e"/>
+<path d="M 440.5267607308832 312.42636375647606 L 450.9818371636162 315.84562928955626" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 487.2405940634166 288.4145391504771 L 502.7608660982356 311.13174855501217 L 489.57214372750343 315.8283007188606 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="487.2405940634166" cy="288.4145391504771" r="2.1" fill="#b3541e"/>
+<path d="M 490.9852211243676 315.32509870130536 L 501.3477887013714 311.6349505725674" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<path d="M 512.5674542028756 264.06095453052137 L 541.3476761498897 272.2879096259028 L 534.4586382281262 284.47565578803244 z" fill="#b3541e" fill-opacity="0.20" stroke="#b3541e" stroke-width="0.9"/>
+<circle cx="512.5674542028756" cy="264.06095453052137" r="2.1" fill="#b3541e"/>
+<path d="M 535.1967494340295 283.16982584208995 L 540.6095649439865 273.5937395718453" stroke="#8a3d10" stroke-width="3.1" stroke-linecap="round"/>
+<text x="470" y="336" font-size="11" fill="#b3541e" font-weight="600" text-anchor="middle">AFTER</text>
+<text x="470" y="352" font-size="10.5" fill="#5b6b7c" font-weight="normal" text-anchor="middle">9 lights, one per building</text>
+<text x="40" y="372" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="start">Each light stands in front of its own building on the plaza side, is attached to it,</text>
+<text x="40" y="388" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="start">and its cone is sized to that building — narrow enough to clear every neighbour.</text>
+<text x="660" y="116" font-size="14" fill="#1b2733" font-weight="600" text-anchor="start" letter-spacing="0.4">ONE BUILDING'S LIGHT</text>
+<rect x="660" y="130" width="540" height="256" rx="8" fill="#eef3f8" stroke="#b9c7d6" stroke-width="1.4"/>
+<line x1="690" y1="330" x2="1180" y2="330" stroke="#5b6b7c" stroke-width="1.6"/>
+<rect x="1030" y="252" width="120" height="78" fill="#f3e4d6" stroke="#8a3d10" stroke-width="1.4"/>
+<text x="1090.0" y="346" font-size="11" fill="#8a3d10" font-weight="normal" text-anchor="middle">its building</text>
+<circle cx="830" cy="176" r="5" fill="#b3541e"/>
+<text x="830" y="164" font-size="11" fill="#b3541e" font-weight="600" text-anchor="middle">its own spot light</text>
+<path d="M 830 176 L 1150 252" stroke="#d9895b" stroke-width="1.1" stroke-dasharray="4 3"/>
+<path d="M 830 176 L 1150 330" stroke="#d9895b" stroke-width="1.1" stroke-dasharray="4 3"/>
+<path d="M 830 176 L 1030 294.9" stroke="#b3541e" stroke-width="1.6" marker-end="url(#dim)"/>
+<text x="690" y="196.0" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">cone = subtended angle + 10°</text>
+<text x="690" y="211.5" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">inner cone = 0.45 × outer</text>
+<text x="690" y="227.0" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">aim at 0.45 × building height</text>
+<text x="690" y="242.5" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">attenuation = 1.15 × (distance + radius)</text>
+<text x="690" y="258.0" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">intensity = 3.0 lux at the building, in candelas</text>
+<text x="690" y="273.5" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">5200 K · source radius 60 cm · shadows on</text>
+<text x="690" y="289.0" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">every figure is a ratio of the building's own</text>
+<text x="690" y="304.5" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">measured size, so a swapped-in variant stays correctly lit.</text>
+<path d="M 1172 176 L 1172 330" stroke="#b3541e" stroke-width="1.1" marker-end="url(#dim)"/>
+<path d="M 1172 330 L 1172 176" stroke="#b3541e" stroke-width="1.1" marker-end="url(#dim)"/>
+<text x="1166" y="168" font-size="11" fill="#b3541e" font-weight="normal" text-anchor="end">h × 1.35</text>
+<path d="M 830 356 L 1030 356" stroke="#b3541e" stroke-width="1.1" marker-end="url(#dim)"/>
+<text x="930.0" y="372" font-size="11" fill="#b3541e" font-weight="normal" text-anchor="middle">facade clearance 1500 cm</text>
+<text x="40" y="424" font-size="14" fill="#1b2733" font-weight="600" text-anchor="start" letter-spacing="0.4">WHAT EACH BUILDING GOT</text>
+<rect x="40" y="434" width="1160" height="276" rx="8" fill="#ffffff" stroke="#b9c7d6" stroke-width="1.4"/>
+<text x="56" y="456" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="start">Building</text>
+<text x="372" y="456" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="end">radius r</text>
+<text x="452" y="456" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="end">height h</text>
+<text x="540" y="456" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="end">light dist d</text>
+<text x="626" y="456" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="end">outer cone</text>
+<text x="718" y="456" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="end">attenuation</text>
+<text x="800" y="456" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="end">intensity</text>
+<text x="940" y="456" font-size="11" fill="#5b6b7c" font-weight="600" text-anchor="end">clear of neighbour</text>
+<line x1="52" y1="464" x2="1188" y2="464" stroke="#d8dee6" stroke-width="1"/>
+<text x="56" y="484" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">Zhengnanmen HighFidelity</text>
+<text x="372" y="484" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">1595 cm</text>
+<text x="452" y="484" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2302 cm</text>
+<text x="540" y="484" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">3725 cm</text>
+<text x="626" y="484" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">35.4°</text>
+<text x="718" y="484" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">6118 cm</text>
+<text x="800" y="484" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">4163 cd</text>
+<text x="940" y="484" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">18.0°</text>
+<text x="56" y="509.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">Zhengnanmen AAA V3</text>
+<text x="372" y="509.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">1504 cm</text>
+<text x="452" y="509.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2250 cm</text>
+<text x="540" y="509.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">3623 cm</text>
+<text x="626" y="509.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">34.5°</text>
+<text x="718" y="509.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">5896 cm</text>
+<text x="800" y="509.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">3938 cd</text>
+<text x="940" y="509.0" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">18.9°</text>
+<text x="56" y="534.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">Xiaobeimen AAA V3</text>
+<text x="372" y="534.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2704 cm</text>
+<text x="452" y="534.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2253 cm</text>
+<text x="540" y="534.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">4668 cm</text>
+<text x="626" y="534.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">45.4°</text>
+<text x="718" y="534.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">8478 cm</text>
+<text x="800" y="534.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">6536 cd</text>
+<text x="940" y="534.0" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">11.2°</text>
+<text x="56" y="559.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">Xiaobeimen Production V3</text>
+<text x="372" y="559.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2718 cm</text>
+<text x="452" y="559.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2215 cm</text>
+<text x="540" y="559.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">4665 cm</text>
+<text x="626" y="559.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">45.6°</text>
+<text x="718" y="559.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">8491 cm</text>
+<text x="800" y="559.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">6530 cd</text>
+<text x="940" y="559.0" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">10.8°</text>
+<text x="56" y="584.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">Guidemen V5 4K</text>
+<text x="372" y="584.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">3008 cm</text>
+<text x="452" y="584.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">1974 cm</text>
+<text x="540" y="584.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">4846 cm</text>
+<text x="626" y="584.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">48.4°</text>
+<text x="718" y="584.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">9032 cm</text>
+<text x="800" y="584.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">7044 cd</text>
+<text x="940" y="584.0" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">9.8°</text>
+<text x="56" y="609.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">Wuxianmen V5 4K Core</text>
+<text x="372" y="609.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">1865 cm</text>
+<text x="452" y="609.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">1594 cm</text>
+<text x="540" y="609.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">3658 cm</text>
+<text x="626" y="609.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">40.6°</text>
+<text x="718" y="609.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">6351 cm</text>
+<text x="800" y="609.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">4014 cd</text>
+<text x="940" y="609.0" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">17.0°</text>
+<text x="56" y="634.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">Wuxianmen V5 FullPBR</text>
+<text x="372" y="634.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">1865 cm</text>
+<text x="452" y="634.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">1721 cm</text>
+<text x="540" y="634.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">3704 cm</text>
+<text x="626" y="634.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">40.2°</text>
+<text x="718" y="634.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">6404 cm</text>
+<text x="800" y="634.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">4116 cd</text>
+<text x="940" y="634.0" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">17.1°</text>
+<text x="56" y="659.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">GreatNorthGate (Dabeimen)</text>
+<text x="372" y="659.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2120 cm</text>
+<text x="452" y="659.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2476 cm</text>
+<text x="540" y="659.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">4251 cm</text>
+<text x="626" y="659.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">39.9°</text>
+<text x="718" y="659.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">7327 cm</text>
+<text x="800" y="659.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">5421 cd</text>
+<text x="940" y="659.0" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">14.0°</text>
+<text x="56" y="684.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="start">Zhenhai Tower</text>
+<text x="372" y="684.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2460 cm</text>
+<text x="452" y="684.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">2085 cm</text>
+<text x="540" y="684.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">4382 cm</text>
+<text x="626" y="684.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">44.1°</text>
+<text x="718" y="684.0" font-size="11.5" fill="#5b6b7c" font-weight="normal" text-anchor="end">7867 cm</text>
+<text x="800" y="684.0" font-size="11.5" fill="#1b2733" font-weight="normal" text-anchor="end">5760 cd</text>
+<text x="940" y="684.0" font-size="11.5" fill="#2f6f4f" font-weight="600" text-anchor="end">13.3°</text>
+<text x="56" y="702" font-size="11" fill="#5b6b7c" font-weight="normal" text-anchor="start">"clear of neighbour" = angle to the nearest other building, minus that building's angular span, minus this cone. Worst case 9.81°.</text>
+<rect x="40" y="728" width="380" height="238" rx="8" fill="#eaf5ef" stroke="#8fbfa5" stroke-width="1.5"/>
+<text x="56" y="754" font-size="12.5" fill="#2f6f4f" font-weight="600" text-anchor="start" letter-spacing="0.3">GUARDS — asserted by the builder</text>
+<circle cx="60" cy="772" r="2.2" fill="one light per landmark, attached to that landmark"/>
+<text x="70" y="776" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">one light per landmark, attached to that landmark</text>
+<circle cx="60" cy="796" r="2.2" fill="cone wider than the angle the building subtends"/>
+<text x="70" y="800" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">cone wider than the angle the building subtends</text>
+<circle cx="60" cy="820" r="2.2" fill="attenuation reaching past the building's far side"/>
+<text x="70" y="824" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">attenuation reaching past the building's far side</text>
+<circle cx="60" cy="844" r="2.2" fill="shadows on; intensity and cone read back off the component"/>
+<text x="70" y="848" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">shadows on; intensity and cone read back off the component</text>
+<circle cx="60" cy="868" r="2.2" fill="no other landmark inside any cone"/>
+<text x="70" y="872" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">no other landmark inside any cone</text>
+<circle cx="60" cy="892" r="2.2" fill="level saved only after every guard passes"/>
+<text x="70" y="896" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">level saved only after every guard passes</text>
+<rect x="430" y="728" width="380" height="238" rx="8" fill="#eef3f8" stroke="#b9c7d6" stroke-width="1.5"/>
+<text x="446" y="754" font-size="12.5" fill="#1b2733" font-weight="600" text-anchor="start" letter-spacing="0.3">VALIDATION — independent re-derivation</text>
+<circle cx="450" cy="772" r="2.2" fill="level reloaded from disk, nothing judged in memory"/>
+<text x="460" y="776" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">level reloaded from disk, nothing judged in memory</text>
+<circle cx="450" cy="796" r="2.2" fill="0 errors, 0 warnings; 34 actors, 9 lights, 0 leaked"/>
+<text x="460" y="800" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">0 errors, 0 warnings; 34 actors, 9 lights, 0 leaked</text>
+<circle cx="450" cy="820" r="2.2" fill="each light re-derived from the manifest's own recipe:"/>
+<text x="460" y="824" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">each light re-derived from the manifest's own recipe:</text>
+<circle cx="450" cy="844" r="2.2" fill="placement error 0.0 cm, aim error 0.0°"/>
+<text x="460" y="848" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">placement error 0.0 cm, aim error 0.0°</text>
+<circle cx="450" cy="868" r="2.2" fill="settings match the re-derived recipe to 1e-4 relative"/>
+<text x="460" y="872" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">settings match the re-derived recipe to 1e-4 relative</text>
+<circle cx="450" cy="892" r="2.2" fill="isolation: 0 violations, worst margin 9.81°"/>
+<text x="460" y="896" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">isolation: 0 violations, worst margin 9.81°</text>
+<rect x="820" y="728" width="380" height="238" rx="8" fill="#fdf2e9" stroke="#d9895b" stroke-width="1.5"/>
+<text x="836" y="754" font-size="12.5" fill="#8a3d10" font-weight="600" text-anchor="start" letter-spacing="0.3">MEASURED EFFECT</text>
+<circle cx="840" cy="772" r="2.2" fill="A/B: every light's intensity zeroed, then restored"/>
+<text x="850" y="776" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">A/B: every light's intensity zeroed, then restored</text>
+<circle cx="840" cy="796" r="2.2" fill="level never saved; all 9 intensities verified back on disk"/>
+<text x="850" y="800" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">level never saved; all 9 intensities verified back on disk</text>
+<circle cx="840" cy="820" r="2.2" fill="Guidemen view mean 0.638 → 0.712 (+0.074)"/>
+<text x="850" y="824" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">Guidemen view mean 0.638 → 0.712 (+0.074)</text>
+<circle cx="840" cy="844" r="2.2" fill="its clipping 62.1% → 66.0%; plaza +0.017, hero +0.002"/>
+<text x="850" y="848" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">its clipping 62.1% → 66.0%; plaza +0.017, hero +0.002</text>
+<circle cx="840" cy="868" r="2.2" fill="the light visibly lights its own facade"/>
+<text x="850" y="872" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">the light visibly lights its own facade</text>
+<circle cx="840" cy="892" r="2.2" fill="absolute brightness is NOT trustworthy — see the record"/>
+<text x="850" y="896" font-size="11" fill="#1b2733" font-weight="normal" text-anchor="start">absolute brightness is NOT trustworthy — see the record</text>
+</svg>

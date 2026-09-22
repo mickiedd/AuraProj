@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 672" width="1240" height="672" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b3541e"/>
+    </marker>
+    <pattern id="hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="7" height="7" fill="#fdf2e9"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#d9895b" stroke-width="2.2"/>
+    </pattern>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="672" fill="#fbfbfc"/>
+
+  <text x="40" y="44" font-size="23" font-weight="600" fill="#1b2733">Showcase ground extent — 420 m to 8000 m</text>
+  <text x="40" y="68" font-size="13" fill="#5b6b7c">2026-09-22 · L_GuangzhouLandmarkShowcase · the ring no longer sits on a floating slab, and an eye-level camera no longer looks past the ground into the sky atmosphere below the horizon</text>
+  <line x1="40" y1="84" x2="1200" y2="84" stroke="#d8dee6" stroke-width="1.5"/>
+
+  <text x="40" y="118" font-size="14" font-weight="600" fill="#1b2733" letter-spacing="0.4">WHAT THE EYE-LEVEL FRAME CONTAINS</text>
+
+  <!-- ============ BEFORE ============ -->
+  <rect x="40" y="132" width="560" height="352" rx="8" fill="#ffffff" stroke="#b9c7d6" stroke-width="1.4"/>
+  <text x="56" y="154" font-size="12.5" font-weight="600" fill="#1b2733">BEFORE — 420 m plane, half extent 210 m</text>
+  <rect x="60" y="166" width="520" height="292" fill="#1b2634"/>
+  <rect x="60" y="286" width="520" height="22" fill="#6b4a2a" opacity="0.55"/>
+  <rect x="60" y="317" width="520" height="141" fill="#1d4a6b"/>
+  <rect x="60" y="308" width="520" height="9" fill="url(#hatch)" stroke="#b3541e" stroke-width="1"/>
+  <rect x="250" y="206" width="140" height="102" fill="#0a0f14" stroke="#2a3644" stroke-width="1"/>
+  <text x="320" y="198" font-size="10.5" fill="#7d8b9a" text-anchor="middle">building</text>
+  <text x="72" y="190" font-size="10.5" fill="#7d8b9a">sky</text>
+  <text x="72" y="396" font-size="10.5" fill="#a8cbe4">ground</text>
+  <text x="570" y="302" font-size="10.5" fill="#8a3d10" text-anchor="end">no geometry — 27 px of the frame</text>
+  <text x="570" y="332" font-size="10.5" fill="#8a3d10" text-anchor="end">is sky atmosphere below the horizon</text>
+
+  <!-- ============ AFTER ============ -->
+  <rect x="640" y="132" width="560" height="352" rx="8" fill="#ffffff" stroke="#b9c7d6" stroke-width="1.4"/>
+  <text x="656" y="154" font-size="12.5" font-weight="600" fill="#1b2733">AFTER — 8000 m plane, half extent 4000 m</text>
+  <rect x="660" y="166" width="520" height="292" fill="#1d4a6b"/>
+  <rect x="660" y="166" width="520" height="120" fill="#1b2634"/>
+  <rect x="660" y="286" width="520" height="22" fill="#6b4a2a" opacity="0.55"/>
+  <rect x="660" y="308" width="520" height="1" fill="#b3541e"/>
+  <rect x="850" y="206" width="140" height="102" fill="#0a0f14" stroke="#2a3644" stroke-width="1"/>
+  <text x="920" y="198" font-size="10.5" fill="#7d8b9a" text-anchor="middle">building</text>
+  <text x="672" y="190" font-size="10.5" fill="#7d8b9a">sky</text>
+  <text x="672" y="396" font-size="10.5" fill="#a8cbe4">ground — reaches the horizon</text>
+  <text x="1170" y="302" font-size="10.5" fill="#8a3d10" text-anchor="end">band is 1 px — the plane edge</text>
+  <text x="1170" y="318" font-size="10.5" fill="#8a3d10" text-anchor="end">is 0.06 deg below the horizon</text>
+
+  <text x="40" y="508" font-size="11.5" fill="#5b6b7c">Both strips are the same camera: the Guidemen eye-level view, 400 cm high, 50 m from the plaza centre.</text>
+  <text x="40" y="526" font-size="11.5" fill="#5b6b7c">The band height is atan(camera height / half extent), and at 900 px over a 36 deg vertical FOV that is 25 px per degree.</text>
+
+  <rect x="40" y="544" width="1160" height="112" rx="8" fill="#eaf5ef" stroke="#8fbfa5" stroke-width="1.4"/>
+  <text x="56" y="566" font-size="12.5" font-weight="600" fill="#2f6f4f">HOW IT WAS FOUND, AND HOW IT IS CHECKED</text>
+  <text x="56" y="586" font-size="11" fill="#1b2733">Found by ray trace, not by eye: row 510 of that frame hits no geometry at all, while rows 560 / 700 / 860 hit Showcase_Ground at 90 / 28 / 15 m.</text>
+  <text x="56" y="603" font-size="11" fill="#1b2733">(Scripts/ProbeShowcaseFrameGeometry.py) The ground and the atmosphere band are both blue, so the plane's edge was invisible and the blue merely read as continuous.</text>
+  <text x="56" y="620" font-size="11" fill="#1b2733">The hero view was the visible symptom — the ring sat on a slab with black void beyond it. Now the plane fills the hero frame and its edge falls outside it.</text>
+  <text x="56" y="637" font-size="11" fill="#1b2733">Rebuilt and re-validated: 0 errors, 0 warnings, 34 actors, 9 landmark lights, isolation unchanged, ground bounds ±400000 cm. One quad, so the size costs nothing.</text>
+</svg>

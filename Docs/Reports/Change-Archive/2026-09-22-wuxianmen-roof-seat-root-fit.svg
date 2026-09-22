@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="680" viewBox="0 0 1180 680">
+  <rect width="1180" height="680" fill="#101820"/>
+  <text x="55" y="55" fill="#f4efe3" font-family="Arial, sans-serif" font-size="28" font-weight="700">Wuxianmen finial root seating</text>
+  <text x="55" y="86" fill="#b9c7c9" font-family="Arial, sans-serif" font-size="16">Second close-angle correction against the supplied roof-corner views</text>
+  <g transform="translate(55 125)">
+    <rect width="500" height="330" rx="12" fill="#202b35" stroke="#d66b5d" stroke-width="2"/>
+    <text x="22" y="38" fill="#f4efe3" font-family="Arial, sans-serif" font-size="21" font-weight="700">Earlier root</text>
+    <path d="M105 232 L250 120 L400 232" fill="#704f42" stroke="#c7d1c4" stroke-width="8"/>
+    <path d="M250 122 L250 92" stroke="#b6c2b8" stroke-width="10"/>
+    <path d="M400 232 L435 205 L444 177" fill="none" stroke="#b6c2b8" stroke-width="10"/>
+    <circle cx="400" cy="232" r="8" fill="#d66b5d"/>
+    <text x="22" y="302" fill="#ffb4a9" font-family="Arial, sans-serif" font-size="15">first segment began inside the fascia and could read detached</text>
+  </g>
+  <g transform="translate(625 125)">
+    <rect width="500" height="330" rx="12" fill="#202b35" stroke="#7fc9a6" stroke-width="2"/>
+    <text x="22" y="38" fill="#f4efe3" font-family="Arial, sans-serif" font-size="21" font-weight="700">Final root</text>
+    <path d="M105 232 L250 120 L400 232" fill="#704f42" stroke="#c7d1c4" stroke-width="8"/>
+    <path d="M250 122 L250 92" stroke="#b6c2b8" stroke-width="10"/>
+    <path d="M400 232 L427 207 L442 177" fill="none" stroke="#b6c2b8" stroke-width="12"/>
+    <circle cx="400" cy="232" r="10" fill="#7fc9a6"/>
+    <path d="M400 232 L408 218" stroke="#7fc9a6" stroke-width="5"/>
+    <text x="22" y="302" fill="#a9e3c3" font-family="Arial, sans-serif" font-size="15">root is on the fascia plane with visible overlap margin</text>
+  </g>
+  <g transform="translate(55 500)">
+    <rect width="1070" height="120" rx="12" fill="#18242c" stroke="#476574" stroke-width="2"/>
+    <text x="22" y="33" fill="#f4efe3" font-family="Arial, sans-serif" font-size="18" font-weight="700">Evidence</text>
+    <text x="22" y="63" fill="#c9d7d8" font-family="Arial, sans-serif" font-size="15">Eight root points meet the tile vertices and sit within 6.09 cm of the fascia; both ridge caps remain at Z 1188 / 1692 cm.</text>
+    <text x="22" y="91" fill="#c9d7d8" font-family="Arial, sans-serif" font-size="15">Live runtime, fresh reload, explicit save and close-angle corner captures passed; no map was saved.</text>
+  </g>
+</svg>

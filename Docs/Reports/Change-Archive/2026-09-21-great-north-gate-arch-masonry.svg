@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="860" viewBox="0 0 1440 860">
+<defs>
+ <pattern id="stone" width="80" height="42" patternUnits="userSpaceOnUse"><rect width="80" height="42" fill="#9d9b8d"/><path d="M0 0H80M0 21H80M0 42H80M40 0V21M0 21V42M80 21V42" stroke="#575e5d" stroke-width="2"/></pattern>
+ <pattern id="void" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="#3a252e"/><path d="M0 0V12" stroke="#eb7780" stroke-width="3"/></pattern>
+ <style>text{font-family:Segoe UI,Arial,sans-serif;fill:#e8eeed}.title{font-size:32px;font-weight:700}.sub{font-size:19px;fill:#b6c6c6}.head{font-size:24px;font-weight:600}.small{font-size:18px}.note{font-size:17px;fill:#bfd0d0}.bad{fill:#ff9398}.good{fill:#87dfb8}</style>
+</defs>
+<rect width="1440" height="860" fill="#101e29"/>
+<text x="54" y="62" class="title">Great North Gate · solid arch masonry</text>
+<text x="54" y="100" class="sub">BP_GreatNorthGate • reference tuning • 21 September 2026</text>
+<rect x="38" y="133" width="657" height="479" rx="16" fill="#192b37"/>
+<rect x="745" y="133" width="657" height="479" rx="16" fill="#192b37"/>
+<text x="66" y="175" class="head bad">BEFORE · rectangular cutout</text>
+<text x="773" y="175" class="head good">AFTER · fitted masonry and vault</text>
+<path d="M90 530V245H640V530H457V340H273V530Z" fill="url(#stone)" stroke="#c6cbbf" stroke-width="2"/>
+<path d="M273 438V340H457V438A92 92 0 0 0 273 438Z" fill="url(#void)"/>
+<path d="M268 530V438A97 97 0 0 1 462 438V530" fill="none" stroke="#bbb7a1" stroke-width="21"/>
+<path d="M275 471H457M275 493H457M275 515H457M280 449H452" stroke="#d8bf9a" stroke-width="3"/>
+<rect x="353" y="285" width="25" height="77" fill="#b0ad99" stroke="#eee2c8"/>
+<path d="M304 350L223 209M428 350L512 209" stroke="#ff9398" fill="none" stroke-width="2"/>
+<text x="94" y="225" class="small bad">Open shoulders</text>
+<text x="66" y="565" class="small">Stone strips cross the doorway; ribs leave gaps.</text>
+<text x="66" y="591" class="note">Simplified fallback also deforms thin details.</text>
+<path d="M797 530V245H1347V530H1164V438A92 92 0 0 0 980 438V530Z" fill="url(#stone)" stroke="#c6cbbf" stroke-width="2"/>
+<path d="M975 530V438A97 97 0 0 1 1169 438V530" fill="none" stroke="#c4bd9f" stroke-width="21"/>
+<g stroke="#596164" stroke-width="2">
+ <path d="M976 423L956 420M983 402L964 393M995 382L979 369M1011 366L997 350M1030 353L1022 334M1051 346L1047 325M1072 341V320M1094 344L1098 323M1115 352L1123 332M1133 365L1148 348M1149 382L1166 369M1160 402L1179 393M1168 422L1189 419"/>
+</g>
+<rect x="1058" y="272" width="28" height="44" fill="#b0ad99" stroke="#e4dfc8"/>
+<path d="M996 488H1148" stroke="#87dfb8" stroke-width="2"/>
+<path d="M1005 481L996 488L1005 495M1139 481L1148 488L1139 495" stroke="#87dfb8" fill="none" stroke-width="2"/>
+<text x="1019" y="517" class="small good">6.70 m clear</text>
+<text x="773" y="565" class="small">Closed shoulders, continuous soffit, 48 arch stones.</text>
+<text x="773" y="591" class="note">Plaque clears crown; wall UVs and roof tones corrected.</text>
+<rect x="38" y="640" width="1364" height="166" rx="16" fill="#213942"/>
+<text x="65" y="679" class="head">Verification and preservation</text>
+<text x="65" y="714" class="small">Closed outward masonry · imported geometry and clearance rays · front / rear / side / roof / tunnel views</text>
+<text x="65" y="746" class="small">One mesh instance · unchanged placement and collision · full triangle fallback · roof ornaments attached</text>
+<text x="65" y="778" class="note">Exact commands, pass/fail results, captures and review limitations are in the matching Markdown record and packet.</text>
+<text x="54" y="839" class="note">Schematic, not to scale. Existing roof/timber vertices and the original shared assets are preserved.</text>
+</svg>

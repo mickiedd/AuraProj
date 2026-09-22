@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <rect width="1200" height="720" fill="#101820"/>
+  <text x="60" y="58" fill="#f4efe3" font-family="Arial, sans-serif" font-size="28" font-weight="700">Wuxianmen roof-root fit</text>
+  <text x="60" y="90" fill="#b9c7c9" font-family="Arial, sans-serif" font-size="16">Saved Blueprint revision · ridge seating and corner finial attachment</text>
+  <g transform="translate(60 130)">
+    <rect width="500" height="330" rx="12" fill="#202b35" stroke="#d66b5d" stroke-width="2"/>
+    <text x="24" y="38" fill="#f4efe3" font-family="Arial, sans-serif" font-size="22" font-weight="700">Before close view</text>
+    <path d="M95 220 L245 120 L405 220" fill="#7e8b83" stroke="#b7c2b5" stroke-width="8"/>
+    <path d="M105 201 L245 102 L395 201" fill="none" stroke="#c7d1c4" stroke-width="12"/>
+    <path d="M125 270 L245 185 L375 270" fill="none" stroke="#9a5b43" stroke-width="8"/>
+    <path d="M105 96 L395 96" stroke="#b6c2b8" stroke-width="14"/>
+    <path d="M105 82 L395 82" stroke="#b6c2b8" stroke-width="4" stroke-dasharray="8 8"/>
+    <path d="M98 228 L72 206" stroke="#b6c2b8" stroke-width="7"/>
+    <path d="M392 228 L421 205" stroke="#b6c2b8" stroke-width="7"/>
+    <text x="24" y="304" fill="#ffb4a9" font-family="Arial, sans-serif" font-size="16">ridge cap reads above crest; finial starts inside the fascia</text>
+  </g>
+  <g transform="translate(640 130)">
+    <rect width="500" height="330" rx="12" fill="#202b35" stroke="#7fc9a6" stroke-width="2"/>
+    <text x="24" y="38" fill="#f4efe3" font-family="Arial, sans-serif" font-size="22" font-weight="700">After saved fit</text>
+    <path d="M95 220 L245 120 L405 220" fill="#7e8b83" stroke="#b7c2b5" stroke-width="8"/>
+    <path d="M105 201 L245 102 L395 201" fill="none" stroke="#c7d1c4" stroke-width="12"/>
+    <path d="M125 270 L245 185 L375 270" fill="none" stroke="#9a5b43" stroke-width="8"/>
+    <path d="M105 105 L395 105" stroke="#b6c2b8" stroke-width="14"/>
+    <path d="M105 105 L395 105" stroke="#e3ebdf" stroke-width="3"/>
+    <path d="M98 220 L76 205 L69 185" fill="none" stroke="#b6c2b8" stroke-width="7"/>
+    <path d="M392 220 L414 205 L421 185" fill="none" stroke="#b6c2b8" stroke-width="7"/>
+    <circle cx="105" cy="201" r="8" fill="#7fc9a6"/><circle cx="395" cy="201" r="8" fill="#7fc9a6"/>
+    <text x="24" y="304" fill="#a9e3c3" font-family="Arial, sans-serif" font-size="16">ridge lowered 20 cm; finial roots intersect the fascia</text>
+  </g>
+  <g transform="translate(60 510)">
+    <rect width="1080" height="150" rx="12" fill="#18242c" stroke="#476574" stroke-width="2"/>
+    <text x="24" y="34" fill="#f4efe3" font-family="Arial, sans-serif" font-size="19" font-weight="700">Guard and evidence</text>
+    <text x="24" y="66" fill="#c9d7d8" font-family="Arial, sans-serif" font-size="16">Private gable mesh · 8 finial roots within 7.22 cm of fascia and tile vertices · ridge centers Z 1188 / 1692 cm</text>
+    <text x="24" y="94" fill="#c9d7d8" font-family="Arial, sans-serif" font-size="16">Fresh serialized reload PASS · live runtime binding PASS · geometry fit PASS · explicit local save PASS</text>
+    <text x="24" y="122" fill="#c9d7d8" font-family="Arial, sans-serif" font-size="16">Reference-style NE, end and front captures reviewed after the Blueprint respawn</text>
+  </g>
+</svg>

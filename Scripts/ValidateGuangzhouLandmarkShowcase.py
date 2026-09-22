@@ -10,6 +10,10 @@ checks the properties that matter for a showcase level:
   * every landmark fits inside the ground plane
   * the ring really is a ring: each landmark's AABB centre sits near the
     expected radius, and the landmarks are spread around the full circle
+  * every landmark has exactly one independent light of its own, owned by that
+    landmark, standing in front of it on the plaza side and aimed at it, with a
+    cone that covers the building, an attenuation radius that reaches across it,
+    and a cone that does not take in any other landmark
   * the ground plane, lighting, and a player start exist
 
 Read-only. Writes its manifest to Saved/RawModelImport/.
@@ -31,7 +35,7 @@ EXPECTED_LABELS = [
     "Landmark_Zhengnanmen_AAA_V3",
     "Landmark_Xiaobeimen_AAA_V3",
     "Landmark_Xiaobeimen_Production_V3",
-    "Landmark_Guidemen_V5_4K",
+    "Landmark_Guidemen_ReferenceRepaired",
     "Landmark_Wuxianmen_V5_4K_Core",
     "Landmark_Wuxianmen_V5_FullPBR",
     "Landmark_GreatNorthGate",
@@ -40,10 +44,14 @@ EXPECTED_LABELS = [
 
 GROUND_TAG = "Showcase_Ground"
 LANDMARK_TAG = "GuangzhouLandmarkShowcase"
+LIGHT_TAG = "GuangzhouLandmarkLight"
 GROUND_TOP_Z = 0.0
 GROUNDING_TOLERANCE_CM = 1.0
 OVERLAP_TOLERANCE_CM = 1.0
 MIN_SPREAD_DEGREES = 300.0
+LIGHT_LOCATION_TOLERANCE_CM = 1.0
+LIGHT_ANGLE_TOLERANCE_DEG = 0.05
+LIGHT_VALUE_TOLERANCE = 0.001     # relative, on intensity / cone / attenuation
 
 
 def rendered_geometry(actor):
@@ -280,6 +288,204 @@ def main():
         report["angular_spread_deg"] = round(
             sum(1 for gap in gaps if gap > 0) / len(gaps) * 100.0, 1)
 
+    # ---- one independent light per building ----------------------------------
+    # Each saved light is compared against a recipe RE-DERIVED here from the
+    # placement manifest's own constants plus the landmark's recorded geometry,
+    # rather than against the numbers the builder wrote down about its lights.
+    # That makes this an independent check of the geometry, not a restatement.
+    recipe = {}
+    if PLACEMENT_MANIFEST.exists():
+        recipe = json.loads(PLACEMENT_MANIFEST.read_text(encoding="utf-8")).get(
+            "landmark_light_recipe", {})
+    if not recipe:
+        report["errors"].append("placement manifest records no landmark_light_recipe")
+
+    expected_light_labels = ["Light_" + label[len("Landmark_"):]
+                             for label in EXPECTED_LABELS]
+    lights = [actor for actor in actors
+              if LIGHT_TAG in [str(tag) for tag in actor.tags]]
+    light_labels = sorted(actor.get_actor_label() for actor in lights)
+    report["landmark_light_count"] = len(lights)
+    if light_labels != sorted(expected_light_labels):
+        report["errors"].append(
+            "landmark lights: expected {}, found {}".format(
+                sorted(expected_light_labels), light_labels))
+
+    def relative_error(actual, expected):
+        if expected == 0.0:
+            return abs(actual - expected)
+        return abs(actual - expected) / abs(expected)
+
+    light_records = []
+    light_axes = {}
+    for label in EXPECTED_LABELS:
+        key = label[len("Landmark_"):]
+        light_label = "Light_" + key
+        light_matches = by_label.get(light_label, [])
+        landmark_matches = by_label.get(label, [])
+        stored = manifest.get(label)
+        if len(light_matches) != 1 or len(landmark_matches) != 1:
+            report["errors"].append(
+                "{}: expected exactly 1 light and 1 landmark, found {} and {}".format(
+                    light_label, len(light_matches), len(landmark_matches)))
+            continue
+        if stored is None:
+            report["warnings"].append(
+                "{}: no placement manifest entry, light not verified".format(light_label))
+            continue
+
+        light, landmark = light_matches[0], landmark_matches[0]
+        record = {"label": light_label, "landmark": label}
+
+        parent = light.get_attach_parent_actor()
+        record["attached_to"] = parent.get_actor_label() if parent else None
+        if record["attached_to"] != label:
+            report["errors"].append(
+                "{}: owned by {}, not its own building".format(
+                    light_label, record["attached_to"]))
+
+        radius = stored["geometry_radius_xy"]
+        height = stored["height_cm"]
+        origin = landmark.get_actor_location()
+        x, y = float(origin.x), float(origin.y)
+        planar = math.hypot(x, y)
+        front = (-x / planar, -y / planar)
+        clearance = radius + recipe["facade_clearance_cm"]
+        expected_location = (
+            x + front[0] * clearance, y + front[1] * clearance,
+            GROUND_TOP_Z + height * recipe["height_factor_of_building"])
+        expected_aim = (
+            x, y, GROUND_TOP_Z + height * recipe["aim_height_factor_of_building"])
+        dx = expected_aim[0] - expected_location[0]
+        dy = expected_aim[1] - expected_location[1]
+        dz = expected_aim[2] - expected_location[2]
+        distance = math.sqrt(dx * dx + dy * dy + dz * dz)
+        half_angle = math.degrees(math.asin(min(1.0, radius / distance)))
+        outer_cone = min(recipe["max_cone_deg"],
+                         half_angle + recipe["cone_margin_deg"])
+        inner_cone = outer_cone * recipe["inner_cone_fraction"]
+        attenuation = (distance + radius) * recipe["attenuation_margin"]
+        intensity = recipe["accent_lux_at_building"] * (distance / 100.0) ** 2
+
+        actual = light.get_actor_location()
+        location_error = math.dist((float(actual.x), float(actual.y), float(actual.z)),
+                                   expected_location)
+        record["location_error_cm"] = round(location_error, 3)
+        record["distance_cm"] = round(distance, 2)
+        record["building_radius_cm"] = round(radius, 2)
+        record["half_angle_deg"] = round(half_angle, 3)
+        if location_error > LIGHT_LOCATION_TOLERANCE_CM:
+            report["errors"].append(
+                "{}: stands {:.3f} cm from where the recipe puts it".format(
+                    light_label, location_error))
+
+        # The light stands in front of its building, so it is nearer the plaza
+        # centre than the building it lights.
+        light_radius = math.hypot(float(actual.x), float(actual.y))
+        record["light_radius_cm"] = round(light_radius, 2)
+        record["landmark_radius_cm"] = round(planar, 2)
+        if light_radius >= planar:
+            report["errors"].append(
+                "{}: is not in front of its building ({:.1f} vs {:.1f} cm from the "
+                "centre)".format(light_label, light_radius, planar))
+
+        component = light.get_component_by_class(unreal.SpotLightComponent)
+        if component is None:
+            report["errors"].append("{}: no SpotLightComponent".format(light_label))
+            light_records.append(record)
+            continue
+
+        values = {
+            "intensity": (float(component.get_editor_property("intensity")), intensity),
+            "outer_cone_angle": (
+                float(component.get_editor_property("outer_cone_angle")), outer_cone),
+            "inner_cone_angle": (
+                float(component.get_editor_property("inner_cone_angle")), inner_cone),
+            "attenuation_radius": (
+                float(component.get_editor_property("attenuation_radius")), attenuation),
+        }
+        record["actual"] = {name: round(pair[0], 4) for name, pair in values.items()}
+        record["expected"] = {name: round(pair[1], 4) for name, pair in values.items()}
+        for name, (actual_value, expected_value) in values.items():
+            if relative_error(actual_value, expected_value) > LIGHT_VALUE_TOLERANCE:
+                report["errors"].append(
+                    "{}: {} is {:.4f}, recipe says {:.4f}".format(
+                        light_label, name, actual_value, expected_value))
+        if not bool(component.get_editor_property("cast_shadows")):
+            report["errors"].append("{}: shadows are off".format(light_label))
+        record["cast_shadows"] = bool(component.get_editor_property("cast_shadows"))
+
+        # Cone wide enough for the building, attenuation long enough to reach
+        # across it.
+        if outer_cone <= half_angle:
+            report["errors"].append(
+                "{}: cone {:.2f} deg is narrower than the {:.2f} deg the building "
+                "subtends".format(light_label, outer_cone, half_angle))
+        if attenuation <= distance + radius:
+            report["errors"].append(
+                "{}: attenuation {:.0f} cm does not reach the far side of the "
+                "building ({:.0f} cm)".format(light_label, attenuation, distance + radius))
+
+        # Aim: the light's forward axis must pass through its building's aim point.
+        rotation = light.get_actor_rotation()
+        pitch = math.radians(float(rotation.pitch))
+        yaw = math.radians(float(rotation.yaw))
+        axis = (math.cos(pitch) * math.cos(yaw), math.cos(pitch) * math.sin(yaw),
+                math.sin(pitch))
+        axis_length = 1.0
+        to_aim = (expected_aim[0] - float(actual.x), expected_aim[1] - float(actual.y),
+                  expected_aim[2] - float(actual.z))
+        aim_length = math.sqrt(sum(component_value * component_value
+                                   for component_value in to_aim))
+        cosine = sum(a * b for a, b in zip(axis, to_aim)) / (axis_length * aim_length)
+        aim_error = math.degrees(math.acos(max(-1.0, min(1.0, cosine))))
+        record["aim_error_deg"] = round(aim_error, 4)
+        if aim_error > LIGHT_ANGLE_TOLERANCE_DEG:
+            report["errors"].append(
+                "{}: aims {:.4f} deg off its building".format(light_label, aim_error))
+        light_axes[light_label] = {
+            "axis": axis,
+            "origin": (float(actual.x), float(actual.y), float(actual.z)),
+            "outer_cone_deg": outer_cone, "aim": expected_aim,
+            "radius_cm": radius}
+
+        light_records.append(record)
+    report["landmark_lights"] = light_records
+
+    # ---- each light lights only its own building -----------------------------
+    # Independence is the point of a per-building light. The test is against the
+    # neighbouring building's whole BODY, not its centre: a gate 70 deg off the
+    # axis still subtends roughly 20 deg from this light, so only
+    # angle - neighbour_span - cone tells you whether it is actually lit.
+    isolation = []
+    margins = []
+    for light_label, light in light_axes.items():
+        nearest = None
+        for other_label, other in light_axes.items():
+            if other_label == light_label:
+                continue
+            to_other = tuple(b - a for a, b in zip(light["origin"], other["aim"]))
+            length = math.sqrt(sum(value * value for value in to_other))
+            cosine = sum(a * b for a, b in zip(light["axis"], to_other)) / length
+            angle = math.degrees(math.acos(max(-1.0, min(1.0, cosine))))
+            span = math.degrees(math.asin(min(1.0, other["radius_cm"] / length)))
+            margin = angle - span - light["outer_cone_deg"]
+            if nearest is None or margin < nearest["margin_deg"]:
+                nearest = {"neighbour": other_label, "angle_deg": round(angle, 3),
+                           "neighbour_span_deg": round(span, 3),
+                           "margin_deg": round(margin, 3)}
+        margins.append({"light": light_label, "nearest_neighbour_margin_deg":
+                        nearest["margin_deg"], "neighbour": nearest["neighbour"]})
+        if nearest["margin_deg"] <= 0.0:
+            isolation.append({"light": light_label, "reaches": nearest["neighbour"],
+                              "angle_deg": nearest["angle_deg"],
+                              "margin_deg": nearest["margin_deg"]})
+    if isolation:
+        report["errors"].append(
+            "{} light(s) take in another landmark".format(len(isolation)))
+    report["light_isolation"] = isolation
+    report["light_isolation_margins"] = margins
+
     # ---- supporting actors ---------------------------------------------------
     def count_where(predicate):
         return sum(1 for actor in actors if predicate(actor))
@@ -288,6 +494,10 @@ def main():
         "directional_lights": count_where(
             lambda a: "DirectionalLight" in a.get_class().get_name()),
         "sky_lights": count_where(lambda a: "SkyLight" in a.get_class().get_name()),
+        "spot_lights": count_where(
+            lambda a: "SpotLight" in a.get_class().get_name()),
+        "landmark_lights": count_where(
+            lambda a: LIGHT_TAG in [str(tag) for tag in a.tags]),
         "sky_atmosphere": count_where(lambda a: "SkyAtmosphere" in a.get_class().get_name()),
         "height_fog": count_where(
             lambda a: "ExponentialHeightFog" in a.get_class().get_name()),
@@ -299,6 +509,10 @@ def main():
     for key in ("directional_lights", "sky_lights", "player_starts"):
         if report["supporting"][key] < 1:
             report["errors"].append("missing {}".format(key))
+    if report["supporting"]["landmark_lights"] != len(EXPECTED_LABELS):
+        report["errors"].append(
+            "expected {} landmark lights, found {}".format(
+                len(EXPECTED_LABELS), report["supporting"]["landmark_lights"]))
 
     report["landmarks"] = [{key: value for key, value in entry.items()
                             if key not in ("_actor",)} for entry in landmarks]
@@ -314,6 +528,9 @@ def main():
           "gaps", report.get("angular_gap_min_deg"), report.get("angular_gap_max_deg"))
     print("SHOWCASE_VALIDATION_OVERLAPS", json.dumps(report["overlaps"]))
     print("SHOWCASE_VALIDATION_SUPPORTING", json.dumps(report["supporting"]))
+    print("SHOWCASE_VALIDATION_LIGHTS", json.dumps(report.get("landmark_lights"), indent=2))
+    print("SHOWCASE_VALIDATION_LIGHT_ISOLATION", json.dumps(report.get("light_isolation")))
+    print("SHOWCASE_VALIDATION_LIGHT_MARGINS", json.dumps(report.get("light_isolation_margins")))
     print("SHOWCASE_VALIDATION_MANIFEST", str(MANIFEST))
 
 

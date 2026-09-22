@@ -124,13 +124,25 @@ def main():
             "capture_source", unreal.SceneCaptureSource.SCS_FINAL_COLOR_LDR)
     except Exception:
         pass
-    for attribute, value in (("capture_every_frame", False),
-                             ("b_always_persist_rendering_state", True),
-                             ("b_capture_on_construction", False)):
-        try:
-            component.set_editor_property(attribute, value)
-        except Exception:
-            pass
+    # This used to set three more flags here, inside try/except:
+    #
+    #   capture_every_frame = False
+    #   b_always_persist_rendering_state = True
+    #   b_capture_on_construction = False
+    #
+    # The last two DO NOT EXIST on this build's SceneCaptureComponent2D (the real
+    # name is `always_persist_rendering_state`, with no `b_`), so the try/except
+    # silently swallowed the failure and the script reported a configuration it
+    # had never applied. `capture_every_frame = False` did take, and it breaks
+    # exposure control: with it set, pinning the exposure to EV100 3.0 and 7.0
+    # produced means differing by 5e-5, while with default flags the same two
+    # exposures separate by a factor of sixty
+    # (Scripts/ProbeShowcaseCapturePersistenceFlag.py). That is why this script's
+    # captures came out washed out and irreproducible while the standalone
+    # exposure bracket - which never set these flags - did not.
+    #
+    # The flags are gone. The capture now uses its defaults, which is the
+    # configuration in which the level's own exposure pin actually applies.
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     results = []
