@@ -1,0 +1,225 @@
+{
+  "textures": {
+    "foliage_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/foliage_BaseColor.foliage_BaseColor",
+    "foliage_Normal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/foliage_Normal.foliage_Normal",
+    "foliage_ORM": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/foliage_ORM.foliage_ORM",
+    "iron_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/iron_BaseColor.iron_BaseColor",
+    "iron_Normal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/iron_Normal.iron_Normal",
+    "iron_ORM": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/iron_ORM.iron_ORM",
+    "limestone_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/limestone_BaseColor.limestone_BaseColor",
+    "limestone_Normal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/limestone_Normal.limestone_Normal",
+    "limestone_ORM": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/limestone_ORM.limestone_ORM",
+    "plaque_inscription_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/plaque_inscription_BaseColor.plaque_inscription_BaseColor",
+    "plaster_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/plaster_BaseColor.plaster_BaseColor",
+    "plaster_Normal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/plaster_Normal.plaster_Normal",
+    "plaster_ORM": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/plaster_ORM.plaster_ORM",
+    "roof_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/roof_BaseColor.roof_BaseColor",
+    "roof_Normal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/roof_Normal.roof_Normal",
+    "roof_ORM": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/roof_ORM.roof_ORM",
+    "stone_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/stone_BaseColor.stone_BaseColor",
+    "stone_Normal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/stone_Normal.stone_Normal",
+    "stone_ORM": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/stone_ORM.stone_ORM",
+    "water_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/water_BaseColor.water_BaseColor",
+    "water_Normal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/water_Normal.water_Normal",
+    "water_ORM": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/water_ORM.water_ORM",
+    "wood_BaseColor": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/wood_BaseColor.wood_BaseColor",
+    "wood_Normal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/wood_Normal.wood_Normal",
+    "wood_ORM": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Textures/wood_ORM.wood_ORM"
+  },
+  "materials": {
+    "M_stone": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_stone.M_stone",
+    "M_limestone": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_limestone.M_limestone",
+    "M_roof": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_roof.M_roof",
+    "M_wood": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_wood.M_wood",
+    "M_iron": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_iron.M_iron",
+    "M_water": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_water.M_water",
+    "M_foliage": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_foliage.M_foliage",
+    "M_inscription_decal": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_inscription_decal.M_inscription_decal"
+  },
+  "meshes": [
+    {
+      "part": "stone",
+      "mesh": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Meshes/WM_stone.WM_stone",
+      "material": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_stone.M_stone",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        -89.99999999437944
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "nanite": true,
+      "collision": true
+    },
+    {
+      "part": "limestone",
+      "mesh": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Meshes/WM_limestone.WM_limestone",
+      "material": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_limestone.M_limestone",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        -89.99999999437944
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "nanite": true,
+      "collision": true
+    },
+    {
+      "part": "roof",
+      "mesh": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Meshes/WM_roof.WM_roof",
+      "material": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_roof.M_roof",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        -89.99999999437944
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "nanite": true,
+      "collision": false
+    },
+    {
+      "part": "wood",
+      "mesh": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Meshes/WM_wood.WM_wood",
+      "material": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_wood.M_wood",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        -89.99999999437944
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "nanite": true,
+      "collision": true
+    },
+    {
+      "part": "iron",
+      "mesh": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Meshes/WM_iron.WM_iron",
+      "material": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_iron.M_iron",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        -89.99999999437944
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "nanite": true,
+      "collision": true
+    },
+    {
+      "part": "water",
+      "mesh": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Meshes/WM_water.WM_water",
+      "material": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_water.M_water",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        -89.99999999437944
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "nanite": false,
+      "collision": false
+    },
+    {
+      "part": "foliage",
+      "mesh": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Meshes/WM_foliage.WM_foliage",
+      "material": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_foliage.M_foliage",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        -89.99999999437944
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "nanite": false,
+      "collision": false
+    },
+    {
+      "part": "plaque_inscription",
+      "mesh": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Meshes/WM_plaque_inscription.WM_plaque_inscription",
+      "material": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/Materials/M_inscription_decal.M_inscription_decal",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        -89.99999999437944
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "nanite": false,
+      "collision": false
+    }
+  ],
+  "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/BP_Wenmingmen",
+  "bounds_cm": [
+    6500.0,
+    2805.190948486328,
+    2199.0346679687505
+  ],
+  "component_count": 8,
+  "validated": true
+}

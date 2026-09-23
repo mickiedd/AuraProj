@@ -1,0 +1,163 @@
+{
+  "asset": "Wenmingmen / 文明门",
+  "status": "interpretive 3D reconstruction from supplied concept art (NOT archival survey or historically validated geometry)",
+  "units": "meters",
+  "source_up_axis": "Z",
+  "output_format": "glTF 2.0 binary GLB, textures embedded; 1 GLB with per-material meshes",
+  "approx_footprint_m": [
+    65,
+    35
+  ],
+  "overall_height_m": 18.2,
+  "requested_triangles": 100000000,
+  "actual_triangles": 160096,
+  "mesh_summary": {
+    "stone": {
+      "vertices": 87552,
+      "triangles": 43776
+    },
+    "limestone": {
+      "vertices": 6192,
+      "triangles": 3096
+    },
+    "roof": {
+      "vertices": 134468,
+      "triangles": 101224
+    },
+    "wood": {
+      "vertices": 19896,
+      "triangles": 9948
+    },
+    "iron": {
+      "vertices": 1392,
+      "triangles": 696
+    },
+    "water": {
+      "vertices": 24,
+      "triangles": 12
+    },
+    "foliage": {
+      "vertices": 2688,
+      "triangles": 1344
+    }
+  },
+  "texture_sets": {
+    "stone": {
+      "resolution": [
+        4096,
+        4096
+      ],
+      "basecolor": "stone_BaseColor.jpg",
+      "normal": "stone_Normal.png",
+      "orm": "stone_ORM.png"
+    },
+    "limestone": {
+      "resolution": [
+        2048,
+        2048
+      ],
+      "basecolor": "limestone_BaseColor.jpg",
+      "normal": "limestone_Normal.png",
+      "orm": "limestone_ORM.png"
+    },
+    "roof": {
+      "resolution": [
+        4096,
+        4096
+      ],
+      "basecolor": "roof_BaseColor.jpg",
+      "normal": "roof_Normal.png",
+      "orm": "roof_ORM.png"
+    },
+    "wood": {
+      "resolution": [
+        4096,
+        4096
+      ],
+      "basecolor": "wood_BaseColor.jpg",
+      "normal": "wood_Normal.png",
+      "orm": "wood_ORM.png"
+    },
+    "plaster": {
+      "resolution": [
+        2048,
+        2048
+      ],
+      "basecolor": "plaster_BaseColor.jpg",
+      "normal": "plaster_Normal.png",
+      "orm": "plaster_ORM.png"
+    },
+    "iron": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "basecolor": "iron_BaseColor.jpg",
+      "normal": "iron_Normal.png",
+      "orm": "iron_ORM.png"
+    },
+    "water": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "basecolor": "water_BaseColor.jpg",
+      "normal": "water_Normal.png",
+      "orm": "water_ORM.png"
+    },
+    "foliage": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "basecolor": "foliage_BaseColor.jpg",
+      "normal": "foliage_Normal.png",
+      "orm": "foliage_ORM.png"
+    }
+  },
+  "notes": [
+    "Roof tile shapes, dougong bracket silhouettes, masonry courses, crenellations, true open gate passage, side wall and canal bridge are modeled.",
+    "The source concept sheet contains imaginative elements; geometry is not a measured historical reconstruction.",
+    "Chinese inscription is not legibly modeled: add verified text using a separate plaque mesh / decal inside Unreal.",
+    "Collision, Nanite conversion, lightmap UVs, authored LODs and Unreal material instances must be configured in UE; GLB is an interchange asset, not a .uasset.",
+    "Texture tiles are procedural and do not contain scanned historical building surfaces."
+  ],
+  "high_detail_file": "Wenmingmen_HighDetail.glb",
+  "high_detail_triangles": 2381538,
+  "high_detail_mesh_summary": {
+    "WM_stone": {
+      "triangles": 700416,
+      "vertices": 547200
+    },
+    "WM_limestone": {
+      "triangles": 49536,
+      "vertices": 38700
+    },
+    "WM_roof": {
+      "triangles": 1619584,
+      "vertices": 1095350
+    },
+    "WM_wood": {
+      "triangles": 9948,
+      "vertices": 19896
+    },
+    "WM_iron": {
+      "triangles": 696,
+      "vertices": 1392
+    },
+    "WM_water": {
+      "triangles": 12,
+      "vertices": 24
+    },
+    "WM_foliage": {
+      "triangles": 1344,
+      "vertices": 2688
+    },
+    "WM_plaque_inscription": {
+      "triangles": 2,
+      "vertices": 4
+    }
+  },
+  "inscription_note": "文明門 is added as a textured overlay, not modeled engraved character geometry. Verify source lettering against archival material.",
+  "high_detail_note": "Two rounds of stone / clay roof triangle subdivision with millimeter-scale procedural microrelief; does not equal a 100-million-triangle sculpt or photogrammetry."
+}

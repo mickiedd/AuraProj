@@ -1,0 +1,161 @@
+{
+  "archive_name": "Wenmingmen_UE5_Asset_Package.zip",
+  "archive_sha256": "5c5e1dc9333023a6b36cea6034b4561399802d1ed320d13719a28fc55b885ff7",
+  "staged_files": [
+    {
+      "path": "README_UE5.md",
+      "bytes": 5060,
+      "sha256": "7254861f3d4213a7d2425ec176e9dbe5d388ecb73b93cbceb9d150cadbe05ae5"
+    },
+    {
+      "path": "Wenmingmen_HighDetail.glb",
+      "bytes": 129189692,
+      "sha256": "5d2e778086e5983c5cf1b97dd5e51bae4ffa2540a860fe30eae3353b129e7e5d"
+    },
+    {
+      "path": "reference_concept.png",
+      "bytes": 3920404,
+      "sha256": "eb335ff5ca55d8b9ce849736fb47ccaa666647803032b336f5133f40f8ed2bdb"
+    },
+    {
+      "path": "asset_manifest.json",
+      "bytes": 4241,
+      "sha256": "7aa16165aee560dd343ad9131952921b46edca633a873156483d3961b328ee8a"
+    },
+    {
+      "path": "textures/iron_BaseColor.jpg",
+      "bytes": 169583,
+      "sha256": "6f03c31f56974f81672721b952f598b7b0e66cff5002a24bd0294b72cae94f1e"
+    },
+    {
+      "path": "textures/iron_ORM.png",
+      "bytes": 482152,
+      "sha256": "2be0ea8c02d9a97f9e3996d8b730c2589552ace2453e36d37fac8bdf3a484920"
+    },
+    {
+      "path": "textures/foliage_ORM.png",
+      "bytes": 474852,
+      "sha256": "b8a504f3e3a6dddc1a819f2216aa862bbfad521ebda514deaab269c0947aecad"
+    },
+    {
+      "path": "textures/stone_BaseColor.jpg",
+      "bytes": 4311515,
+      "sha256": "4a1ad83a487b67ae14e49c5ca610b078cfb2139a41d0afecb4b11394c54e1ccc"
+    },
+    {
+      "path": "textures/wood_BaseColor.jpg",
+      "bytes": 2515110,
+      "sha256": "f3d7fedba5f399bb53ced968aef6245f2f02ceb1e04ed3a0778e3a17b69c4b7f"
+    },
+    {
+      "path": "textures/plaque_inscription_BaseColor.png",
+      "bytes": 38438,
+      "sha256": "e2f85e6dd54b041c9696e50a189a4d7d32fe3d9c6c2c4a19effa008f480cd238"
+    },
+    {
+      "path": "textures/water_Normal.png",
+      "bytes": 805329,
+      "sha256": "7fa6a44e223aefaac2a42d2b63936fb29ce5fb766ca9778cdc31d4a094f8727c"
+    },
+    {
+      "path": "textures/water_BaseColor.jpg",
+      "bytes": 85516,
+      "sha256": "338a8173a8b994bbfbdb32b1987c98df0022182ea805f36c3085ea4813a532f0"
+    },
+    {
+      "path": "textures/roof_BaseColor.jpg",
+      "bytes": 2854080,
+      "sha256": "0e36f72ceb8d52802344b98ae4105a83d5f99afeca940289f5bc07628b965339"
+    },
+    {
+      "path": "textures/wood_ORM.png",
+      "bytes": 4577571,
+      "sha256": "e5c91e894e2bcfb38dc7cad27451fbe1643c113242c49a64c2bf93be54be308d"
+    },
+    {
+      "path": "textures/plaster_ORM.png",
+      "bytes": 1547966,
+      "sha256": "dfd45662124180785de27c9d1c196108189dbb25f0c10563692e842f4502f6e7"
+    },
+    {
+      "path": "textures/plaster_Normal.png",
+      "bytes": 3194602,
+      "sha256": "2e8d3926850889ec99ca6c9d60d9a5faac9400ddc3a4596ce4a972cd200e712d"
+    },
+    {
+      "path": "textures/limestone_ORM.png",
+      "bytes": 1549210,
+      "sha256": "1d681ba1a211f619639d4519eaad146e7d22710931b9c466f7d3cdf91fdde8fb"
+    },
+    {
+      "path": "textures/roof_Normal.png",
+      "bytes": 13145947,
+      "sha256": "90728b808697a5a3afb8e0cfce43a46ec1c9eaf6ddff995b67b65c681a8bdfb2"
+    },
+    {
+      "path": "textures/foliage_Normal.png",
+      "bytes": 984258,
+      "sha256": "989390a5b330b58743c7d6853421f0316ad3f8605cc03d18d1de25e56d26000d"
+    },
+    {
+      "path": "textures/foliage_BaseColor.jpg",
+      "bytes": 221102,
+      "sha256": "a54f92634a4ed7f25bebd9ac98151775b152ca766f2cbe873f319510ac0ae0ad"
+    },
+    {
+      "path": "textures/iron_Normal.png",
+      "bytes": 980348,
+      "sha256": "39c48ac4495011baf1bdd1bb624daecfb221548424094caaa56a87c0e8265549"
+    },
+    {
+      "path": "textures/stone_Normal.png",
+      "bytes": 15112124,
+      "sha256": "7690cfb1157c78fe33e5cb4b2d4da844665c40465c267b66376d9c86f45bde4d"
+    },
+    {
+      "path": "textures/roof_ORM.png",
+      "bytes": 4572364,
+      "sha256": "e1a8c91d74b362d2bcc389e4b7c4a5b8d3f6b9e3e4e4d8b7247c19599a68cfae"
+    },
+    {
+      "path": "textures/plaster_BaseColor.jpg",
+      "bytes": 787536,
+      "sha256": "c33cb6cf248c285a2e877b29a14f66ea2cae9282605735f4ae309657669648cd"
+    },
+    {
+      "path": "textures/limestone_Normal.png",
+      "bytes": 3350528,
+      "sha256": "4b702b0b3a7f45e9417148ee2c329900626c5e6626ced1f5a6b03eca7123bf3f"
+    },
+    {
+      "path": "textures/water_ORM.png",
+      "bytes": 480639,
+      "sha256": "c52227003f8dd3e90ff9c9b9b6fbd65cc79642452f4cf145667ab652069eec41"
+    },
+    {
+      "path": "textures/stone_ORM.png",
+      "bytes": 4570601,
+      "sha256": "5c010ef1cc36cef93388e235aeb0994ab01b90289b3355f115cf28da9e9d7d28"
+    },
+    {
+      "path": "textures/limestone_BaseColor.jpg",
+      "bytes": 965726,
+      "sha256": "39cc39e87eaee790fd8845f81cb4c84dd2cf4b630ca5c24d8e79d73826cc4544"
+    },
+    {
+      "path": "textures/wood_Normal.png",
+      "bytes": 9734496,
+      "sha256": "4b378b62053e36cafdeb2f33a60a4f50e9b16e725564756fa9ebc754d638f2c9"
+    },
+    {
+      "path": "source/build_wenmingmen.py",
+      "bytes": 19656,
+      "sha256": "d4278679e711efc5e100ff9052cc1c33025a65386da36299ab147eb87d81dd61"
+    },
+    {
+      "path": "source/create_high_detail.py",
+      "bytes": 4237,
+      "sha256": "e838603bfa09aa7cf59ee570090e334870302abda9111b6e10d12b8e51b7049c"
+    }
+  ]
+}
