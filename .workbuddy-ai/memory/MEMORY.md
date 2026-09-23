@@ -111,3 +111,25 @@ is a strict superset of base, ours and theirs. Same for `Docs/Reports/Change-Arc
 
 `*.uasset` / `*.umap` use **Git LFS**; `post-commit` / `post-merge` hooks can be cut off by a shell
 timeout *after* the commit succeeded — verify by inspecting the commit, not the exit status.
+
+**A dirty `git status` on `*.uasset` / `*.umap` is usually a false positive — do not "discard" it.**
+The committed blobs are **raw binaries** while `.gitattributes` declares `*.uasset filter=lfs`, so
+the clean filter turns the working file into a ~130 B pointer that can never match the committed
+binary. 2026-09-23: all 117 reported-modified files had `git hash-object --no-filters <file>` equal
+to their index blob hash — byte-identical to HEAD, zero real changes. Tells: `git lfs status` shows
+both sides equal (`Git: <oid> -> File: <oid>`), and `git diff --stat` shows `Bin <big> -> ~130
+bytes`. **`git restore .` will not clean it** (the mismatch returns immediately). The fix is
+`git add --renormalize` on the affected paths + commit, which converts the stored blobs to proper
+LFS pointers. Verify the LFS objects exist in `.git/lfs/objects` **before** committing. Done
+2026-09-23 for the 117 files (`b2d258b`, still unpushed); if it recurs for new assets, same fix.
+
+## Build
+
+`EngineAssociation` is a **GUID**, so `resolve_engine_root` looks for `UE_{GUID}` and fails, and
+`/Users/Shared/Epic Games/UE_5.5` has no `Mac/Build.sh`. Always pass the override:
+
+```sh
+cd /Volumes/M2/Works/AuraProj && UE_ENGINE_ROOT="/Volumes/M2/Engine/UE_5.5" ./BuildEditor.command
+```
+
+UE 5.5.4 at `/Volumes/M2/Engine/UE_5.5`; incremental editor build ≈ 80 s (18 actions).
