@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title description">
+  <title id="title">Aura HUD PNG buffer fix</title>
+  <desc id="description">The guarded texture-to-data-URI flow, the UE 5.5 array type mismatch that stopped compilation, and the corrected PNG and Base64 buffer path with a successful AuraEditor build.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .title { fill: #f8fafc; font-size: 30px; font-weight: 700; }
+      .subtitle { fill: #cbd5e1; font-size: 16px; }
+      .head { fill: #f8fafc; font-size: 17px; font-weight: 700; }
+      .body { fill: #dbe4f0; font-size: 14px; }
+      .small { fill: #aab8ca; font-size: 13px; }
+      .mono { fill: #e2e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+    </style>
+  </defs>
+  <rect width="1200" height="760" rx="22" fill="#0b1220"/>
+  <text x="48" y="57" class="title">Aura HUD icon → PNG data URI</text>
+  <text x="48" y="88" class="subtitle">UE 5.5-compatible output storage and Base64 encoding</text>
+
+  <g>
+    <rect x="40" y="135" width="250" height="202" rx="16" fill="#142238" stroke="#36506f"/>
+    <text x="60" y="169" class="head">1 · Texture + guards</text>
+    <text x="60" y="202" class="body">Check icon, platform data,</text>
+    <text x="60" y="224" class="body">first mip, dimensions, and</text>
+    <text x="60" y="246" class="body">bulk-data byte count.</text>
+    <text x="60" y="286" class="small">Invalid input caches an empty URI.</text>
+
+    <path d="M294 237H326" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="330" y="135" width="250" height="202" rx="16" fill="#142238" stroke="#36506f"/>
+    <text x="350" y="169" class="head">2 · Read mip pixels</text>
+    <text x="350" y="202" class="body">Lock bulk data, copy pixels</text>
+    <text x="350" y="224" class="body">into <tspan class="mono">TArray&lt;FColor&gt;</tspan>,</text>
+    <text x="350" y="246" class="body">then unlock the mip.</text>
+    <text x="350" y="286" class="small">Null pixel pointer returns empty.</text>
+
+    <path d="M584 237H616" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="620" y="135" width="250" height="202" rx="16" fill="#12352f" stroke="#34d399" stroke-width="1.5"/>
+    <text x="640" y="169" class="head">3 · Compress PNG</text>
+    <text x="640" y="207" class="mono">PNGCompressImageArray(</text>
+    <text x="640" y="229" class="mono">  width, height, pixels,</text>
+    <text x="640" y="251" class="mono">  TArray64&lt;uint8&gt;)</text>
+    <text x="640" y="292" fill="#6ee7b7" font-size="13">Destination matches UE 5.5 API.</text>
+
+    <path d="M874 237H906" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <rect x="910" y="135" width="250" height="202" rx="16" fill="#142238" stroke="#36506f"/>
+    <text x="930" y="169" class="head">4 · Encode + cache</text>
+    <text x="930" y="202" class="body">For nonempty, bounded bytes,</text>
+    <text x="930" y="224" class="body">encode data pointer + length,</text>
+    <text x="930" y="246" class="body">then build the PNG data URI.</text>
+    <text x="930" y="286" class="small">Cache and return the resulting URI.</text>
+  </g>
+
+  <rect x="40" y="375" width="530" height="142" rx="16" fill="#351c27" stroke="#fb7185"/>
+  <text x="64" y="410" fill="#fda4af" font-size="16" font-weight="700">Before · compile stopped</text>
+  <text x="64" y="444" class="body">The compressor requires <tspan class="mono">TArray64&lt;uint8&gt;&amp;</tspan>,</text>
+  <text x="64" y="468" class="body">but received <tspan class="mono">TArray&lt;uint8&gt;</tspan>.</text>
+  <text x="64" y="495" class="small">The Base64 array overload also cannot take TArray64.</text>
+
+  <rect x="590" y="375" width="570" height="142" rx="16" fill="#12352f" stroke="#34d399"/>
+  <text x="614" y="410" fill="#6ee7b7" font-size="16" font-weight="700">After · API types align</text>
+  <text x="614" y="444" class="body">Use <tspan class="mono">TArray64&lt;uint8&gt;</tspan> for PNG output; pass its</text>
+  <text x="614" y="468" class="body">data pointer and checked length to Base64.</text>
+  <text x="614" y="495" class="small">The size bound keeps the encoded value within FString capacity.</text>
+
+  <rect x="40" y="552" width="1120" height="154" rx="16" fill="#111c2d" stroke="#42536b"/>
+  <text x="64" y="590" class="head">Validation</text>
+  <text x="64" y="625" class="body">AuraEditor · Mac Development · PASS</text>
+  <text x="64" y="652" class="small">8 build actions completed, including AuraHUD compilation and editor module linking.</text>
+  <text x="64" y="678" class="small">UnrealBuildTool also reported a circular module reference warning: AuraAbilityGraph ↔ Aura.</text>
+</svg>

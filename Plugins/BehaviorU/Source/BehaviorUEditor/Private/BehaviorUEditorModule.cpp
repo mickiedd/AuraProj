@@ -601,7 +601,7 @@ void FBehaviorUEditorModule::ScanAndReimportChangedBehaviorTrees()
 		}
 
 		const FDateTime CurrentTimestamp = IFileManager::Get().GetTimeStamp(*NormalizedSourcePath);
-		const FString AssetPathKey = AssetData.ObjectPath.ToString();
+		const FString AssetPathKey = AssetData.GetObjectPathString();
 		FDateTime* CachedTimestamp = SourceXmlTimestampByAssetPath.Find(AssetPathKey);
 
 		if (!CachedTimestamp)

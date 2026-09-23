@@ -2,7 +2,7 @@
 
 This directory stores the visual completion record for project jobs.
 
-Latest: [2026-09-04 Gameplay Expansion submission readiness](2026-09-04-gameplay-submission-readiness.md) - [illustration](2026-09-04-gameplay-submission-readiness.svg)
+Latest: [2026-09-23 macOS editor GUID engine resolution](2026-09-23-macos-editor-guid-engine-resolution.md) - [illustration](2026-09-23-macos-editor-guid-engine-resolution.svg)
 
 For each implementation or fix job, add:
 
@@ -15,6 +15,8 @@ The date-only `daily-change-reference.svg` files are source maps for the grouped
 
 ## Indexed job records
 
+- [2026-09-23 - macOS editor GUID engine resolution](2026-09-23-macos-editor-guid-engine-resolution.md)
+- [2026-09-23 - Aura HUD PNG buffer fix](2026-09-23-aura-hud-png-buffer.md)
 - [2026-09-04 - Gameplay Expansion submission readiness](2026-09-04-gameplay-submission-readiness.md)
 - [2026-09-04 - Gameplay Expansion Days 52–60 contract foundations](2026-09-04-gameplay-expansion-days52-60-contract-foundations.md)
 - [2026-09-04 - Gameplay Expansion Day 51 cooperative recovery contract foundation](2026-09-04-gameplay-expansion-day51-recovery-contract.md)

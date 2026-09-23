@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="700" viewBox="0 0 1120 700" role="img" aria-labelledby="title desc">
+  <title id="title">macOS editor task engine resolution fix</title>
+  <desc id="desc">The editor task previously treated the project's GUID EngineAssociation as a folder version, then continued with an empty engine path. It now falls back to the project's supported Unreal Engine 5.5 install, validates the resolved paths, builds AuraEditor, and launches the project.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
+      .bad { fill: #fff1f2; stroke: #fda4af; stroke-width: 2; }
+      .good { fill: #ecfdf5; stroke: #86efac; stroke-width: 2; }
+      .step { fill: #ffffff; stroke: #64748b; stroke-width: 2; }
+      .ink { fill: #172033; font: 600 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .body { fill: #334155; font: 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .small { fill: #475569; font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .head { fill: #0f172a; font: 700 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .label { fill: #475569; font: 700 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 1px; }
+      .red { fill: #be123c; }
+      .green { fill: #047857; }
+      .arrow { stroke: #64748b; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b" />
+    </marker>
+  </defs>
+  <rect class="bg" width="1120" height="700" />
+  <text class="head" x="52" y="58">Build &amp; Run Editor (Mac)</text>
+  <text class="body" x="52" y="89">Engine discovery now handles Aura.uproject's GUID association and stops cleanly on unresolved paths.</text>
+
+  <rect class="bad" x="52" y="126" width="485" height="258" rx="18" />
+  <text class="label red" x="78" y="162">BEFORE · FAILURE</text>
+  <rect class="step" x="78" y="184" width="433" height="61" rx="12" />
+  <text class="ink" x="96" y="211">EngineAssociation = {GUID}</text>
+  <text class="small" x="96" y="233">Resolver searched for UE_{GUID}; no folder matched.</text>
+  <path class="arrow" d="M294 247 L294 267" />
+  <rect class="step" x="78" y="272" width="433" height="84" rx="12" />
+  <text class="ink" x="96" y="300">Engine root became empty</text>
+  <text class="small" x="96" y="324">Build continued with /Engine paths, then failed.</text>
+  <text class="small red" x="96" y="345">Task stopped before opening the editor.</text>
+
+  <rect class="good" x="583" y="126" width="485" height="258" rx="18" />
+  <text class="label green" x="609" y="162">AFTER · RECOVERED</text>
+  <rect class="step" x="609" y="184" width="433" height="61" rx="12" />
+  <text class="ink" x="627" y="211">GUID → project fallback UE 5.5</text>
+  <text class="small" x="627" y="233">UE_ENGINE_VERSION can select another version.</text>
+  <path class="arrow" d="M826 247 L826 267" />
+  <rect class="step" x="609" y="272" width="433" height="84" rx="12" />
+  <text class="ink" x="627" y="300">Validate engine and build paths</text>
+  <text class="small" x="627" y="324">Failure exits at the failed lookup.</text>
+  <text class="small green" x="627" y="345">AuraEditor builds, then the project launches.</text>
+
+  <path class="arrow" d="M560 414 L560 448" />
+  <rect class="panel" x="180" y="458" width="760" height="112" rx="18" />
+  <text class="label" x="208" y="492">VALIDATION</text>
+  <text class="ink" x="208" y="524">zsh syntax check passed · build target up to date · task exited 0</text>
+  <text class="body" x="208" y="550">RunEditor.command opened UnrealEditor.app with Aura.uproject.</text>
+
+  <text class="small" x="52" y="635">The normal override remains available: UE_ENGINE_ROOT or UE_EDITOR_APP.</text>
+  <text class="small" x="52" y="660">Editor log reached “Running engine for game: Aura”; separate menu and locale errors did not block startup.</text>
+</svg>

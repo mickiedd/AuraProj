@@ -31,7 +31,7 @@ FGameplayTag UAuraDamageGameplayAbility::GetDamageAbilityTag() const
 	}
 
 	const FGameplayTag AbilitiesRoot = FGameplayTag::RequestGameplayTag(FName(TEXT("Abilities")), false);
-	for (const FGameplayTag& Tag : AbilityTags)
+	for (const FGameplayTag& Tag : GetAssetTags())
 	{
 		if (Tag.IsValid() && (!AbilitiesRoot.IsValid() || Tag.MatchesTag(AbilitiesRoot)))
 		{

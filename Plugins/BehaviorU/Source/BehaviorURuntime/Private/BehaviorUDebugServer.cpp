@@ -348,7 +348,7 @@ void FBehaviorUDebugServer::HandleHandshake(FClientConn* Conn)
 
 	if (!RawHttp.Contains(TEXT("\r\n\r\n")))
 	{
-		Conn->RecvBuf.Pop(false); // 移除临时 '\0'，等待更多数据
+		Conn->RecvBuf.Pop(EAllowShrinking::No); // 移除临时 '\0'，等待更多数据
 		return;
 	}
 

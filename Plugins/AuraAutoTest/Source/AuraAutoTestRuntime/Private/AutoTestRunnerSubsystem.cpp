@@ -401,7 +401,7 @@ bool UAutoTestRunnerSubsystem::StartNextTest()
 	}
 
 	CurrentInfo = PendingQueue[0];
-	PendingQueue.RemoveAt(0, 1, false);
+	PendingQueue.RemoveAt(0, 1, EAllowShrinking::No);
 
 	// Fresh per-test context.
 	CurrentContext = MakeUnique<FAutoTestRunContext>();

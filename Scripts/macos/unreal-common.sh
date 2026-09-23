@@ -40,7 +40,15 @@ function get_engine_association() {
 
 function candidate_engine_roots() {
   local association="$1"
+  local engine_version="${UE_ENGINE_VERSION:-${association}}"
   local volume_engine_root
+
+  # AuraProj targets UE 5.5. Epic's project selector can store a GUID in
+  # EngineAssociation instead of a version, so use the documented project
+  # version for mounted-engine discovery unless the caller overrides it.
+  if [[ "${association}" != *.* ]]; then
+    engine_version="${UE_ENGINE_VERSION:-5.5}"
+  fi
 
   if [[ -n "${UE_ENGINE_ROOT:-}" ]]; then
     printf '%s\n' "${UE_ENGINE_ROOT}"
@@ -51,20 +59,25 @@ function candidate_engine_roots() {
   fi
 
   printf '%s\n' \
-    "/Users/Shared/Epic Games/UE_${association}" \
-    "/Users/Shared/EpicGames/UE_${association}" \
-    "/Users/Shared/UnrealEngine/UE_${association}" \
-    "/Applications/UE_${association}"
+    "/Users/Shared/Epic Games/UE_${engine_version}" \
+    "/Users/Shared/EpicGames/UE_${engine_version}" \
+    "/Users/Shared/UnrealEngine/UE_${engine_version}" \
+    "/Applications/UE_${engine_version}"
 
-  for volume_engine_root in /Volumes/*/Engine/UE_${association}(N); do
+  for volume_engine_root in /Volumes/*/Engine/UE_${engine_version}(N); do
     printf '%s\n' "${volume_engine_root}"
   done
 }
 
 function resolve_engine_root() {
   local association="$1"
+  local engine_version="${UE_ENGINE_VERSION:-${association}}"
   local candidate
   local install_ini="${HOME}/Library/Application Support/Epic/UnrealEngine/Install.ini"
+
+  if [[ "${association}" != *.* ]]; then
+    engine_version="${UE_ENGINE_VERSION:-5.5}"
+  fi
 
   while IFS= read -r candidate; do
     candidate="$(trim "${candidate}")"
@@ -84,7 +97,7 @@ function resolve_engine_root() {
     fi
   fi
 
-  die "Unable to locate Unreal Engine ${association}. Set UE_ENGINE_ROOT or UE_EDITOR_APP before running this script."
+  die "Unable to locate Unreal Engine ${association} (project fallback: ${engine_version}). Set UE_ENGINE_ROOT or UE_EDITOR_APP, or set UE_ENGINE_VERSION for a GUID association."
 }
 
 function unreal_editor_app() {

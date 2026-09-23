@@ -1307,9 +1307,13 @@ FString AAuraHUD::BuildAbilityIconDataUri(const UTexture2D* Icon)
 	Pixels.SetNumUninitialized(Width * Height);
 	FMemory::Memcpy(Pixels.GetData(), RawPixels, ExpectedBytes);
 	Mip.BulkData.Unlock();
-	TArray<uint8> PngBytes;
-	FImageUtils::CompressImageArray(Width, Height, Pixels, PngBytes);
-	if (PngBytes.Num() > 0) DataUri = FString::Printf(TEXT("data:image/png;base64,%s"), *FBase64::Encode(PngBytes));
+	TArray64<uint8> PngBytes;
+	FImageUtils::PNGCompressImageArray(Width, Height, Pixels, PngBytes);
+	if (PngBytes.Num() > 0 && PngBytes.Num() <= static_cast<int64>(MAX_int32) / 2)
+	{
+		const FString EncodedPng = FBase64::Encode(PngBytes.GetData(), static_cast<uint32>(PngBytes.Num()));
+		DataUri = FString::Printf(TEXT("data:image/png;base64,%s"), *EncodedPng);
+	}
 	AbilityIconDataUriCache.Add(CacheKey, DataUri);
 	return DataUri;
 }

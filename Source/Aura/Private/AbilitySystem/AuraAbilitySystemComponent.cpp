@@ -42,7 +42,7 @@ namespace
 		const UGameplayAbility* DefaultAbility = AbilityClass ? AbilityClass.GetDefaultObject() : nullptr;
 		if (!DefaultAbility) return FGameplayTag();
 		const FGameplayTag AbilitiesRoot = FGameplayTag::RequestGameplayTag(FName("Abilities"));
-		for (const FGameplayTag& Tag : DefaultAbility->AbilityTags)
+		for (const FGameplayTag& Tag : DefaultAbility->GetAssetTags())
 		{
 			if (Tag.MatchesTag(AbilitiesRoot)) return Tag;
 		}
@@ -855,7 +855,7 @@ FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayA
 		*GetNameSafe(AbilitySpec.Ability), AbilitySpec.GetDynamicSpecSourceTags().Num());
 	if (AbilitySpec.Ability)
 	{
-		for (FGameplayTag Tag : AbilitySpec.Ability.Get()->AbilityTags)
+		for (FGameplayTag Tag : AbilitySpec.Ability.Get()->GetAssetTags())
 		{
 			if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities"))))
 			{
