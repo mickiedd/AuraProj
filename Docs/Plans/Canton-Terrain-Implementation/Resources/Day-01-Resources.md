@@ -44,3 +44,11 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 ## 2026-09-24 execution note
 
 Status: **Blocked**. Projected and vertical origins and budget approval missing; PCG cook not proven. Day 02 source research proceeds as a non-metric exception. Read-only source/tool inspection and the validator are recorded in `QA/Canton_Days_01_05_Execution.md`. Historical outputs remain gated.
+
+## 2026-09-24 continuation (supersedes the status above)
+
+**Provisional.** EPSG:32649 working XY origin E729400/N2557300 is derived from the coarse wall and 200 m buffer, and remains unapproved. Terrain zero remains unset. Numeric budgets are explicit but unapproved. Ordinary foliage instances are selected for the prototype; PCG cook is not claimed. Sources and derived artifacts are checksummed in the registers. Historical production remains gated by the Day 03 and Day 05 evidence failures.
+
+## 2026-09-24 asset inventory continuation
+
+`Data/Gate_Asset_Inventory.csv` now records the three current gate Blueprints used for scope and prototype planning, with package blob IDs, documented dimensions, the local −Y facing convention and rendered-mesh grounding requirements. Wenmingmen's canal-bed minimum is distinguished from its plaza grade. These asset measurements are excluded from georeference and vertical datum evidence. Day 01 remains **Provisional** because the working XY location and numeric contract have not passed historical review.

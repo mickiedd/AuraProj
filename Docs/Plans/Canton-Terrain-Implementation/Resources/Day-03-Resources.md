@@ -44,3 +44,11 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 ## 2026-09-24 execution note
 
 Status: **Blocked**. No surveyed persistent controls or independent holdouts; no georeferenced TIFF. Read-only source/tool inspection and the validator are recorded in `QA/Canton_Days_01_05_Execution.md`. Historical outputs remain gated.
+
+## 2026-09-24 continuation (supersedes the status above)
+
+**Provisional work completed; acceptance blocked.** `Scripts/build_canton_provisional_georef.py` generated `GIS/Provisional/Canton_Historic_Georef_PROVISIONAL.tif`, `QA/Map_GCP_Residuals.csv` and `Data/Map_Transform_Provisional.json` from five candidate controls and three independent holdouts. Holdout RMSE **93.24 m**, worst **132.155 m**; required ≥8, ≤15 m and ≤30 m. The TIFF is tagged as failed and isolated; accepted `GIS/Canton_Historic_Georef.tif` is absent. Need surveyed controls and a new fit.
+
+## 2026-09-24 measured-control handoff
+
+`QA/Control_Survey_Handoff.md` records the exact source packet needed for a new fit: persistent surveyed points, eight independent checks distributed across four quadrants, four local gate-district checks, datum/CRS/uncertainty, and reserved holdout residuals. The present checks cover NW, SW and SE only; removing the largest residual still leaves **65.64 m** RMSE. No Day 03 acceptance claim is made.

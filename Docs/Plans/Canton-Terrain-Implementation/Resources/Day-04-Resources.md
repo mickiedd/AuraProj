@@ -44,3 +44,7 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 ## 2026-09-24 execution note
 
 Status: **Blocked**. No accepted georeference; no geometry or envelope measurement. Read-only source/tool inspection and the validator are recorded in `QA/Canton_Days_01_05_Execution.md`. Historical outputs remain gated.
+
+## 2026-09-24 continuation (supersedes the status above)
+
+**Provisional work completed; acceptance blocked.** `Scripts/build_canton_provisional_layers.py` builds six isolated GeoJSON layers: two wall lines, four gate points, two main roads, two waterways, one landform and eight landmark markers. Inputs are preserved as map-pixel traces in `Data/Map_Pixel_Traces_Provisional.json`; the inspected overlay is `QA/Canton_Provisional_Trace_Overlay.jpg`. `Data/Extent_Provisional.json` and `QA/Extent_Check.md` show a 4032 m square fits the coarse wall with ≥200 m margin on every side. Root accepted GIS layers remain absent because the map transform fails Day 03.

@@ -1,0 +1,246 @@
+{
+  "type": "FeatureCollection",
+  "name": "Landmarks",
+  "metadata": {
+    "status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+    "map_source_id": "MAP-001",
+    "coordinates": "RFC 7946 WGS84 lon/lat",
+    "working_metric_crs": "EPSG:32649",
+    "source_pixel_trace": "Data/Map_Pixel_Traces_Provisional.json",
+    "transform": "Data/Map_Transform_Provisional.json"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.26031718359961,
+          23.1404057388239
+        ]
+      },
+      "properties": {
+        "id": "GCP-01",
+        "name": "Zhenhai Tower",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "map icon centre",
+        "source_pixel_coordinates": [
+          3747.0,
+          235.0
+        ],
+        "location_source_id": "OSM-001",
+        "metric_crs": "EPSG:32649",
+        "metric_coordinates_m": [
+          731442.3,
+          2560857.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.2546798742743,
+          23.13091472312848
+        ]
+      },
+      "properties": {
+        "id": "GCP-02",
+        "name": "Flower Pagoda",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "map icon centre",
+        "source_pixel_coordinates": [
+          3135.0,
+          1325.0
+        ],
+        "location_source_id": "OSM-001",
+        "metric_crs": "EPSG:32649",
+        "metric_coordinates_m": [
+          730881.1,
+          2559797.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.25347407307083,
+          23.126074502445704
+        ]
+      },
+      "properties": {
+        "id": "GCP-03",
+        "name": "Guangta minaret",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "map icon centre",
+        "source_pixel_coordinates": [
+          3002.0,
+          1882.0
+        ],
+        "location_source_id": "OSM-001",
+        "metric_crs": "EPSG:32649",
+        "metric_coordinates_m": [
+          730765.9,
+          2559259.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.25474671890885,
+          23.1171793406281
+        ]
+      },
+      "properties": {
+        "id": "GCP-04",
+        "name": "Sacred Heart Cathedral",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "map icon centre",
+        "source_pixel_coordinates": [
+          3132.0,
+          2908.0
+        ],
+        "location_source_id": "OSM-001",
+        "metric_crs": "EPSG:32649",
+        "metric_coordinates_m": [
+          730911.5,
+          2558276.0
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.24128435022206,
+          23.11847909500406
+        ]
+      },
+      "properties": {
+        "id": "GCP-05",
+        "name": "Hualin Temple",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "map icon centre",
+        "source_pixel_coordinates": [
+          1688.0,
+          2749.0
+        ],
+        "location_source_id": "OSM-001",
+        "metric_crs": "EPSG:32649",
+        "metric_coordinates_m": [
+          729530.1,
+          2558398.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.25080872679571,
+          23.131542674526315
+        ]
+      },
+      "properties": {
+        "id": "GCP-06",
+        "name": "Guangxiao Temple",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "map icon centre",
+        "source_pixel_coordinates": [
+          2720.0,
+          1250.0
+        ],
+        "location_source_id": "OSM-001",
+        "metric_crs": "EPSG:32649",
+        "metric_coordinates_m": [
+          730483.5,
+          2559860.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.25346748045025,
+          23.106820048476845
+        ]
+      },
+      "properties": {
+        "id": "GCP-07",
+        "name": "Haizhuang Temple",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "map icon centre",
+        "source_pixel_coordinates": [
+          2987.0,
+          4101.0
+        ],
+        "location_source_id": "OSM-001",
+        "metric_crs": "EPSG:32649",
+        "metric_coordinates_m": [
+          730798.1,
+          2557126.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.26301725268054,
+          23.124369042846286
+        ]
+      },
+      "properties": {
+        "id": "GCP-08",
+        "name": "Dafo Temple",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "map icon centre",
+        "source_pixel_coordinates": [
+          4025.0,
+          2085.0
+        ],
+        "location_source_id": "OSM-001",
+        "metric_crs": "EPSG:32649",
+        "metric_coordinates_m": [
+          731746.4,
+          2559085.5
+        ]
+      }
+    }
+  ]
+}

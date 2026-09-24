@@ -1,0 +1,20 @@
+{
+  "status": "PROVISIONAL_COARSE_VISUAL_TRACE",
+  "map_source_id": "MAP-001",
+  "source_image_size_px": [7017, 4384],
+  "reference_preview_size_px": [1800, 1125],
+  "coordinate_note": "Vertices were read by eye from a full-map 1800 px preview of the 7017 px source. Pixel coordinates are preview pixels; the builder scales to the source before applying the provisional affine transform. Boundaries are indicative, not surveyed.",
+  "features": [
+    {"layer": "Wall", "id": "WALL-OUTER-01", "geometry": "LineString", "name": "Indicative outer walled-city circuit", "confidence": "D", "preview_pixels": [[650,270],[690,255],[722,235],[750,190],[775,150],[825,123],[875,103],[930,70],[970,60],[1020,70],[1090,110],[1148,130],[1200,177],[1240,215],[1280,290],[1317,370],[1315,435],[1300,508],[1290,580],[1230,592],[1160,609],[1090,640],[1035,675],[960,717],[875,760],[820,785],[730,806],[655,827],[610,842],[602,790],[604,720],[607,650],[617,575],[630,500],[645,435],[650,365],[650,270]]},
+    {"layer": "Wall", "id": "WALL-INNER-01", "geometry": "LineString", "name": "Indicative Old City south wall", "confidence": "D", "preview_pixels": [[609,715],[700,702],[780,685],[875,657],[950,630],[1045,589],[1140,550],[1220,527],[1300,510]]},
+    {"layer": "Gates", "id": "GATE-WEST-01", "geometry": "Point", "name": "West gate shown beside English School", "confidence": "D", "preview_pixels": [649,435]},
+    {"layer": "Gates", "id": "GATE-EAST-01", "geometry": "Point", "name": "East gate shown beside Examination Hall", "confidence": "D", "preview_pixels": [1314,389]},
+    {"layer": "Gates", "id": "GATE-NORTH-01", "geometry": "Point", "name": "North-east gate shown near Kun Yam Hill", "confidence": "D", "preview_pixels": [1143,125]},
+    {"layer": "Gates", "id": "GATE-SOUTH-01", "geometry": "Point", "name": "South-wall gate near Cathedral", "confidence": "D", "preview_pixels": [885,653]},
+    {"layer": "Roads_Main", "id": "ROAD-01", "geometry": "LineString", "name": "Indicative Old City east-west road", "confidence": "D", "preview_pixels": [[650,430],[760,425],[880,425],[1010,420],[1150,398],[1310,390]]},
+    {"layer": "Roads_Main", "id": "ROAD-02", "geometry": "LineString", "name": "Indicative central north-south road", "confidence": "D", "preview_pixels": [[890,165],[885,320],[885,430],[882,550],[885,655],[880,750]]},
+    {"layer": "Waterways", "id": "WATER-01", "geometry": "LineString", "name": "Indicative Pearl River center route", "confidence": "D", "preview_pixels": [[20,1050],[180,1048],[350,1030],[520,970],[650,930],[790,880],[950,820],[1130,790],[1300,805],[1510,855],[1770,865]]},
+    {"layer": "Waterways", "id": "WATER-02", "geometry": "LineString", "name": "Indicative west wall moat", "confidence": "D", "preview_pixels": [[615,270],[600,380],[590,500],[575,630],[590,750],[620,865]]},
+    {"layer": "Landforms", "id": "LANDFORM-01", "geometry": "Polygon", "name": "Kun Yam Hill indicative extent", "confidence": "D", "preview_pixels": [[870,97],[920,70],[970,49],[1018,55],[1070,76],[1085,95],[1055,115],[1000,130],[930,133],[875,119],[870,97]]}
+  ]
+}

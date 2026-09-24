@@ -1,0 +1,34 @@
+{
+  "status": "PROVISIONAL_GEOMETRIC_FIT_ONLY",
+  "wall_bounds_epsg32649_m": [
+    730165.7,
+    2557901.7,
+    732791.4,
+    2560859.3
+  ],
+  "required_with_200m_buffer_epsg32649_m": [
+    729965.7,
+    2557701.7,
+    732991.4,
+    2561059.3
+  ],
+  "proposed_origin_epsg32649_m": [
+    729400,
+    2557300
+  ],
+  "landscape_extent_m": 4032,
+  "landscape_bounds_epsg32649_m": [
+    729400,
+    2557300,
+    733432,
+    2561332
+  ],
+  "clearance_from_wall_m": [
+    765.7,
+    601.7,
+    640.6,
+    472.7
+  ],
+  "fits_with_200m_buffer": true,
+  "historically_accepted": false
+}

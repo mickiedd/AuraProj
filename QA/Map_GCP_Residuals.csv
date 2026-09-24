@@ -1,1 +1,9 @@
-point_id,role_control_or_holdout,source_id,pixel_x,pixel_y,easting_m,northing_m,predicted_easting_m,predicted_northing_m,residual_e_m,residual_n_m,residual_m,landmark_persistence_evidence,status,rejection_reason
+point_id,role_control_or_holdout,source_id,location_source_id,pixel_x,pixel_y,easting_m,northing_m,predicted_easting_m,predicted_northing_m,residual_e_m,residual_n_m,residual_m,landmark_persistence_evidence,status,rejection_reason
+GCP-01,control,MAP-001,OSM-001,3747,235,731437.668,2560879.295,731442.257,2560857.467,4.589,-21.827,22.305,surviving tower; site centroid is not a survey mark,candidate_not_surveyed,tower icon centre
+GCP-02,control,MAP-001,OSM-001,3135,1325,730886.375,2559800.71,730881.087,2559797.285,-5.288,-3.425,6.3,surviving pagoda,candidate_not_surveyed,pagoda icon centre
+GCP-03,control,MAP-001,OSM-001,3002,1882,730770.009,2559194.774,730765.854,2559259.266,-4.155,64.492,64.626,surviving tower; 1934 upper repair,candidate_not_surveyed,minaret icon centre
+GCP-04,control,MAP-001,OSM-001,3132,2908,730908.921,2558300.174,730911.458,2558276.044,2.537,-24.13,24.263,surviving cathedral; centroid/footprint uncertainty,candidate_not_surveyed,church building icon centre
+GCP-05,control,MAP-001,OSM-001,1688,2749,729527.739,2558413.858,729530.057,2558398.748,2.317,-15.109,15.286,temple compound altered; centre not fixed survey mark,candidate_not_surveyed,500 Genii compound centroid
+GCP-06,holdout,MAP-001,OSM-001,2720,1250,730522.215,2559902.822,730483.462,2559860.709,-38.754,-42.113,57.231,surviving temple compound; centroid uncertainty,candidate_not_surveyed,temple compound centre
+GCP-07,holdout,MAP-001,OSM-001,2987,4101,730836.038,2557253.214,730798.126,2557126.613,-37.911,-126.601,132.155,surviving temple compound; island shoreline changed,candidate_not_surveyed,Honam Temple compound centre
+GCP-08,holdout,MAP-001,OSM-001,4025,2085,731707.484,2559147.362,731746.403,2559085.508,38.919,-61.854,73.079,temple site survives but map label identification tentative,candidate_not_surveyed,Temple of Buddha icon; identity to verify

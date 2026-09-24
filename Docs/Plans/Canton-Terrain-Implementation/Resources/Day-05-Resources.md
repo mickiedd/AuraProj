@@ -44,3 +44,11 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 ## 2026-09-24 execution note
 
 Status: **Blocked**. No accepted bare-earth/surveyed source, datum-backed height, or district coordinate. Modern GLO-30 is DSM only. Read-only source/tool inspection and the validator are recorded in `QA/Canton_Days_01_05_Execution.md`. Historical outputs remain gated.
+
+## 2026-09-24 continuation (supersedes the status above)
+
+**Modern source and one stratigraphic candidate acquired; historical Z blocked.** `ELEV-002/003` are 720 × 520 GEDTM30 v1.1 bare-earth estimate and uncertainty crops (EGM2008 / EPSG:3855, CC BY 4.0); source URLs and SHAs are registered. The official 177-page Guangta/Chashu excavation report (`ARCH-003`) gave relative depths only. A 2021 primary stratigraphy paper (`ARCH-004`) reports a Qing layer at 5.92–6.22 m sea-level elevation, recorded as `QING-STRATUM-001` with blank terrain height and an unreconciled datum. A south-wall 200 × 200 m working district and east-gate fallback are in `Docs/Vertical_Datum_Register.md`, both D confidence and awaiting local surveyed checks and usable historical Z.
+
+## 2026-09-24 datum follow-up
+
+`DATUM-001` is the official Guangzhou-to-1985 National Height Datum relation, **H₁₉₈₅ = H_Guangzhou − 4.256 m**. It cannot yet be applied to `ARCH-004`: the paper does not identify which height system its “sea-level elevation” values use. `Docs/Vertical_Datum_Register.md` records this conditional conversion and the separate EGM2008 model datum. No historical terrain Z was promoted.

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Canton terrain Days 01–05 audit closeout</title>
+  <desc id="desc">The uncommitted provisional terrain evidence was checkpointed, Day 02 source acquisition verified, and Days 03–05 retained behind measured-control and historical-height gates.</desc>
+  <style>
+    text{font-family:Arial,Helvetica,sans-serif;fill:#1b2838} .title{font-size:31px;font-weight:700} .sub{font-size:17px;fill:#45576c} .head{font-size:22px;font-weight:700} .body{font-size:17px} .small{font-size:15px} .white{fill:#fff} .amber{fill:#8a5400} .red{fill:#912a2a} .green{fill:#145c45}
+  </style>
+  <rect width="1200" height="760" fill="#f6f9fc"/>
+  <text class="title" x="46" y="59">Canton terrain · Days 01–05 audit closeout</text>
+  <text class="sub" x="47" y="89">2026-09-24 · source selection is verified; metric reconstruction remains gated</text>
+  <rect x="45" y="117" width="510" height="170" rx="14" fill="#fff" stroke="#c9d4df" stroke-width="2"/>
+  <text class="head" x="68" y="151">At audit</text>
+  <text class="body" x="68" y="185">45 terrain files pending on main</text>
+  <text class="body" x="68" y="218">Day 02 source status provisional</text>
+  <text class="body" x="68" y="251">Five acceptance gates open</text>
+  <path d="M570 201h56m-17-13 17 13-17 13" fill="none" stroke="#56758f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="645" y="117" width="510" height="170" rx="14" fill="#e6f3ed" stroke="#80b49b" stroke-width="2"/>
+  <text class="head" x="668" y="151">After follow-up</text>
+  <text class="body" x="668" y="185">Checkpoint e087572 on codex branch</text>
+  <text class="body" x="668" y="218">Day 02 acquisition verified with exceptions</text>
+  <text class="body" x="668" y="251">Four acceptance gates remain open</text>
+  <text class="head" x="47" y="337">Evidence flow and guards</text>
+  <rect x="45" y="362" width="338" height="172" rx="13" fill="#e6f3ed" stroke="#80b49b" stroke-width="2"/>
+  <text class="head green" x="67" y="399">Day 02 · source</text>
+  <text class="body" x="67" y="432">1880 BL scan, ID and SHA</text>
+  <text class="body" x="67" y="462">Scale graphic inspected</text>
+  <text class="small amber" x="67" y="497">Survey date / numeric scale unknown</text>
+  <path d="M385 447h32m-12-10 12 10-12 10" fill="none" stroke="#56758f" stroke-width="3"/>
+  <rect x="419" y="362" width="338" height="172" rx="13" fill="#fff3e4" stroke="#d9a666" stroke-width="2"/>
+  <text class="head amber" x="441" y="399">Day 03 · control gate</text>
+  <text class="body" x="441" y="432">3 holdouts; NE missing</text>
+  <text class="body" x="441" y="462">RMSE 93.24 m; worst 132.16 m</text>
+  <text class="small red" x="441" y="497">Need surveyed points and pass ≤15/30 m</text>
+  <path d="M759 447h32m-12-10 12 10-12 10" fill="none" stroke="#56758f" stroke-width="3"/>
+  <rect x="793" y="362" width="362" height="172" rx="13" fill="#fff3e4" stroke="#d9a666" stroke-width="2"/>
+  <text class="head amber" x="815" y="399">Days 04–05 · output gate</text>
+  <text class="body" x="815" y="432">GIS stays in Provisional/</text>
+  <text class="body" x="815" y="462">Modern DEM is context only</text>
+  <text class="small red" x="815" y="497">Need accepted fit and period ground Z</text>
+  <rect x="45" y="567" width="1110" height="146" rx="13" fill="#eaf0f7" stroke="#bdccdc" stroke-width="2"/>
+  <text class="head" x="68" y="603">Validation and next input</text>
+  <text class="body" x="68" y="637">Manifest SHA checks · script syntax · whitespace · SVG render</text>
+  <text class="body" x="68" y="670">Measured control packet + named benchmark/datum required before accepted GIS or terrain Z</text>
+  <text class="small" x="46" y="742">Inventory pass does not mean historical acceptance. Day 01 contract approval is still provisional.</text>
+</svg>
