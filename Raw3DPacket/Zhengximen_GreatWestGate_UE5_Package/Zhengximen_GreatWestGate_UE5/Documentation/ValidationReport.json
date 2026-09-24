@@ -1,0 +1,59 @@
+{
+  "lod0_bounds_m": [
+    [
+      -26.600000381469727,
+      -5.400000095367432,
+      -0.36000001430511475
+    ],
+    [
+      26.600000381469727,
+      5.400000095367432,
+      16.536827087402344
+    ]
+  ],
+  "lod0_extents_m": [
+    53.20000076293945,
+    10.800000190734863,
+    16.89682710170746
+  ],
+  "texture_png_count": 48,
+  "texture_resolution_failures": [],
+  "fbx_structural_checks": {
+    "SM_Zhengximen_LOD0.fbx": {
+      "size_bytes": 22541325,
+      "brace_balance": 0,
+      "has_uv0": true,
+      "has_uv1": true,
+      "has_ucx": true
+    },
+    "SM_Zhengximen_LOD1.fbx": {
+      "size_bytes": 10087036,
+      "brace_balance": 0,
+      "has_uv0": true,
+      "has_uv1": true,
+      "has_ucx": false
+    },
+    "SM_Zhengximen_LOD2.fbx": {
+      "size_bytes": 5037782,
+      "brace_balance": 0,
+      "has_uv0": true,
+      "has_uv1": true,
+      "has_ucx": false
+    },
+    "SM_Zhengximen_LOD3.fbx": {
+      "size_bytes": 927102,
+      "brace_balance": 0,
+      "has_uv0": true,
+      "has_uv1": true,
+      "has_ucx": false
+    },
+    "SM_Zhengximen_LOD4.fbx": {
+      "size_bytes": 57297,
+      "brace_balance": 0,
+      "has_uv0": true,
+      "has_uv1": true,
+      "has_ucx": false
+    }
+  },
+  "note": "Structural checks are file-level only; final validation should be performed in the target UE5 version because FBX import behavior can vary by engine release."
+}

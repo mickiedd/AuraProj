@@ -4,8 +4,9 @@
 
 `Content/Assets/Environment/GuangzhouLandmarks/`. **Live list: `LANDMARKS` in
 `Scripts/CreateGuangzhouLandmarkShowcase.py`; per-gate geometry in
-`Saved/RawModelImport/guangzhou-landmark-showcase.json`.** Seven today: Zhengnanmen (HighFidelity +
-AAA V3), Xiaobeimen AAA V3, Guidemen, Wuxianmen FullPBR, GreatNorthGate, ZhenhaiTower.
+`Saved/RawModelImport/guangzhou-landmark-showcase.json`.** Seven today: Zhengnanmen HighFidelity,
+Xiaobeimen AAA V3, Guidemen ReferenceRepaired, Wuxianmen V5 FullPBR, GreatNorthGate, ZhenhaiTower,
+Wenmingmen** (added 2026-09-24; Zhengximen/GreatWestGate queued as the 8th).
 
 Retired 2026-09-22, whole folders deleted: `V3/Xiaobeimen_Production_V3/BP_Xiaobeimen_Production_V3`
 (176 assets, incl. its own preview map), `V5/Wuxianmen_4K_Core/BP_Wuxianmen_V5_4K_Core` (56), and
@@ -14,6 +15,44 @@ it carries the 2026-09-21 window/roof and 2026-09-22 arch/door/plaque repairs, s
 **not** mean stale. Deliberately unwrapped (a third Xiaobeimen otherwise):
 `Xiaobeimen/SM_Xiaobeimen`, `SM_Xiaobeimen_GeometryFixed`. ~30 older scripts still name retired
 paths and will fail if run.
+
+## Placing a landmark in the showcase ring
+
+Never hand-place — the level is generated. Register in the builder, rebuild, validate, archive:
+
+1. Add a `LANDMARKS` entry `(key, relative asset path, display name, facing_offset)` and the matching
+   `Landmark_<key>` to `EXPECTED_LABELS` (per-landmark light labels derive from that list, so the two
+   move together). Rebuild, then validate in a **fresh** process → expect 0 errors / 0 warnings.
+2. **Facing must be measured, not assumed.** The documented convention is front on local **-Y** for
+   the imported gates, but **Wenmingmen is +Y** and needed `facing_offset 180.0` — it was placed with
+   0.0 on an assumption and stood back to front for a day. Determine it in the actor's own frame, and
+   use `Light_<key>` as the plaza marker (the builder puts that light on the plaza side, so its local
+   Y sign says which side faces the plaza). On a model with a canal/bridge, the
+   **door-is-on-the-canal-side relationship is rotation-invariant**, so a front render showing door
+   and canal together fixes the side whatever the preview axes do. `Scripts/ProbeWenmingmenPlacement.py`
+   is the template probe.
+3. **Changing only a facing offset moves nothing else** — the radius depends on geometry, so only that
+   landmark's yaw changes. Adding a landmark instead re-spaces the whole ring (derived radius).
+4. The validator now asserts facing via `FACADE_LOCAL_AXIS`. Keep that table current: it checked
+   grounding/spacing/overlap/lights/labels for a day without ever checking orientation.
+
+## Environment
+
+- **The macOS boot volume filling up breaks every shell command**, not just writes: the agent sandbox
+  cannot create its SBPL temp file under `/var/folders/.../T` and dies with `os error 28, No space
+  left on device` before the command runs. `Edit`/`Write` also fail on the *boot* volume (their backup
+  write needs space) while still succeeding on `/Volumes/M2`. **Workaround: pass
+  `dangerouslyDisableSandbox` on the Bash call** — that path runs without the sandbox and works.
+  Recurred 2026-09-24 and 2026-09-25; it destabilises the shared editor too (Unreal writes DDC/temp
+  constantly). `/tmp` lives on the full volume — stage large packages under `/Volumes/M2`.
+- **UE Python remote execution is not reliable here.** A running editor can hold the socket and never
+  answer discovery, so `Scripts/remote_run.py` reports "no remote editor node discovered" from a
+  sandboxed *and* an unsandboxed shell. The reliable route is an isolated Python commandlet:
+  `"/Volumes/M2/Engine/UE_5.5/Engine/Binaries/Mac/UnrealEditor-Cmd" <abs>/Aura.uproject
+  -run=pythonscript -script=<abs script> -unattended -nopause -nosplash -nullrhi -stdout`.
+  Python `print()` markers do **not** reliably reach the captured stdout — read the JSON report the
+  script writes instead. When the editor is unreachable, its in-memory level copy stays **stale**
+  after a rebuild: say so, and tell the user to reload rather than save over it.
 
 ## Conventions
 
@@ -58,7 +97,9 @@ per source mesh, source transforms as instance transforms, root a `LevelInstance
 3. `HierarchicalInstancedStaticMeshComponent` derives from `StaticMeshComponent` — querying both
    double-counts every HISM.
 4. `relative_transform` is unreliable on the V3 Blueprints (swaps local Z and Y ranges); use
-   `relative_location` — those components carry translation only.
+   `relative_location` — those components carry translation only. **`relative_location` is not a
+   general answer though**: Wenmingmen's components all sit at relative_location 0 with a -90°
+   rotation (trap 14), and `get_editor_property("relative_transform")` *raises* on them.
 5. `HitResult` fields are protected: read `hit.to_tuple()` (4 = location, 8 = PhysicalMaterial,
    9 = hit_actor, 10 = hit_component). `line_trace_single` returns **None** on a miss.
 6. `export_render_target` writes nothing: use `SceneCapture2D` → persistent `TextureRenderTarget2D`
@@ -86,6 +127,21 @@ per source mesh, source transforms as instance transforms, root a `LevelInstance
 13. `find_package_referencers_for_asset(..., load_assets_to_confirm=False)` gates deletion but its
     edge list is partly **inverted** — treat it as candidate discovery (it is what revealed the
     second showcase level) and confirm by loading the level and counting actors.
+14. **A plain `StaticMeshComponent` with a component rotation breaks the obvious bounds read.** The
+    Wenmingmen Blueprint is six `SMC_<part>` components (not HISM), all at relative_location 0 with a
+    **-90° component rotation** from a Z-up GLB import. So `relative_location + mesh bounds Z` is
+    wrong by a whole axis — it reported a local Z floor of **-2351 cm** where the truth is **-332.5**,
+    a 20 m error that reads exactly like a sunken building. Correct route: transform the mesh bounds
+    corners through each component's **`get_world_transform()`**, which folds in rotation, scale and
+    translation; it reproduced the Blueprint bounds (6500 x 2806.90 x 2199.01 cm) exactly, which is
+    how the method was confirmed. `unreal.PrimitiveComponent.bounds` is **not exposed** to Python.
+    `ValidateGuangzhouLandmarkShowcase.py`'s `rendered_geometry` diagnostic shares this bug (it
+    reports `rendered_min_z` ~-2019 for Wenmingmen) — it is reported, never asserted on. **So: trust
+    the Blueprint bounds as the arbiter, and if a measurement disagrees with them, fix the
+    measurement.**
+15. Facing is invisible to every geometric check. A landmark can be grounded, spaced, overlap-free,
+    correctly lit and correctly labelled and still stand back to front (Wenmingmen did, for a day).
+    Assert it explicitly — see "Placing a landmark in the showcase ring".
 
 ## Shared editor
 

@@ -1,0 +1,80 @@
+{
+  "asset": "Zhengximen / Great West Gate / 正西门",
+  "target": "Unreal Engine 5 Nanite + Lumen",
+  "source_type": "Procedural reconstruction from user-supplied reference board",
+  "scale": {
+    "units": "meters in GLB; centimeters in FBX",
+    "central_wall_width_m": 25.0,
+    "overall_width_with_wings_m": 53.0,
+    "main_depth_m": 10.0,
+    "roof_top_height_m": 16.4,
+    "gate_opening_width_m": 4.5,
+    "gate_arch_top_m": 5.65
+  },
+  "lod_stats": {
+    "HighPoly": {
+      "vertices": 256202,
+      "triangles": 421432
+    },
+    "LOD0": {
+      "vertices": 133578,
+      "triangles": 206252
+    },
+    "LOD1": {
+      "vertices": 57282,
+      "triangles": 92532
+    },
+    "LOD2": {
+      "vertices": 33466,
+      "triangles": 46152
+    },
+    "LOD3": {
+      "vertices": 6330,
+      "triangles": 8748
+    },
+    "LOD4": {
+      "vertices": 408,
+      "triangles": 484
+    }
+  },
+  "materials": [
+    "GrayBrick",
+    "StoneFoundation",
+    "AgedWood",
+    "DarkTimber",
+    "ClayRoofTile",
+    "LimePlaster",
+    "BlackIron",
+    "GatePlaque"
+  ],
+  "textures": {
+    "count": 48,
+    "resolution": "4096x4096",
+    "formats": [
+      "PNG"
+    ],
+    "maps_per_material": [
+      "BaseColor",
+      "Normal",
+      "Roughness",
+      "Metallic",
+      "AO",
+      "Height"
+    ],
+    "normal_convention": "DirectX (Y-) / Unreal"
+  },
+  "uvs": {
+    "UV0": "authored tiled material UVs",
+    "UV1": "global non-overlapping per-triangle lightmap atlas in FBX files"
+  },
+  "collision": "LOD0 FBX embeds five UCX convex box proxies; separate SM_Zhengximen_Collision.glb also supplied.",
+  "sockets": [
+    "SOCKET_GateCenter",
+    "SOCKET_PlayerEntry",
+    "SOCKET_LeftWall",
+    "SOCKET_RightWall",
+    "SOCKET_RoofTop"
+  ],
+  "accuracy_note": "The board has no explicit metrical survey dimensions. Absolute scale is a proportionally reconstructed estimate; visible architecture is modeled to the supplied board, not claimed as heritage-survey data.",
+  "uasset_note": "Actual .uasset binaries are engine-version-specific and must be created inside the target UE5 project. This package is .uasset-ready: source FBX/GLB, textures, material specs, folder layout, and UE Python import scripts are included."
+}

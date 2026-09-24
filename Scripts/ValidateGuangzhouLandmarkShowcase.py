@@ -50,6 +50,9 @@ EXPECTED_LABELS = [
     # Wenmingmen joined the ring on 2026-09-24. The per-landmark light labels are
     # derived from this list, so the landmark and its light move together.
     "Landmark_Wenmingmen",
+    # Zhengximen joined the ring on 2026-09-24. The per-landmark light labels are
+    # derived from this list, so the landmark and its light move together.
+    "Landmark_Zhengximen",
 ]
 
 GROUND_TAG = "Showcase_Ground"
@@ -59,6 +62,36 @@ GROUND_TOP_Z = 0.0
 GROUNDING_TOLERANCE_CM = 1.0
 OVERLAP_TOLERANCE_CM = 1.0
 MIN_SPREAD_DEGREES = 300.0
+FACING_TOLERANCE_DEG = 1.0
+
+# Which local axis each landmark's FACADE faces, in the model's own frame.
+#
+# This exists because nothing else here checks facing: a landmark can be
+# correctly grounded, correctly spaced, correctly lit and still be turned
+# back to front, and every other assertion in this file would pass. That is
+# exactly what happened to Wenmingmen - it was placed with facing_offset 0 on
+# the assumption that it follows the other gates' local -Y front convention,
+# and it does not.
+#
+# The axes are recorded per model, from inspecting the model rather than from
+# assuming they are all alike. For Wenmingmen the facade side is the side
+# carrying the timber door, the couplets, the climbing vines and the canal with
+# its bridge, all measured on local +Y. If a future landmark is added, work out
+# which way it faces and add it here; a missing entry is reported as a warning,
+# not silently skipped.
+FACADE_LOCAL_AXIS = {
+    "Zhengnanmen_HighFidelity": (0.0, -1.0),
+    "Xiaobeimen_AAA_V3": (0.0, -1.0),
+    "Guidemen_ReferenceRepaired": (0.0, -1.0),
+    "Wuxianmen_V5_FullPBR": (0.0, -1.0),
+    "GreatNorthGate": (0.0, -1.0),
+    "ZhenhaiTower": (0.0, -1.0),
+    "Wenmingmen": (0.0, 1.0),
+    # Zhengximen: measured on the imported model, not assumed. The gate plaque
+    # (門額) sits at local Y -3.06..-2.92 and the iron door fittings at
+    # Y -0.61..-0.39, so the facade faces local -Y like the other gates.
+    "Zhengximen": (0.0, -1.0),
+}
 LIGHT_LOCATION_TOLERANCE_CM = 1.0
 LIGHT_ANGLE_TOLERANCE_DEG = 0.05
 LIGHT_VALUE_TOLERANCE = 0.001     # relative, on intensity / cone / attenuation
@@ -297,6 +330,41 @@ def main():
             report["errors"].append("two landmarks sit at the same ring angle")
         report["angular_spread_deg"] = round(
             sum(1 for gap in gaps if gap > 0) / len(gaps) * 100.0, 1)
+
+    # ---- facing: every facade must face the plaza ---------------------------
+    # The landmark is placed at radius*cos/sin(theta) and turned so that the
+    # model's facade axis points at the origin, which is where the viewer and
+    # the building's own accent light stand. Rotating the recorded facade axis
+    # by the actor's saved yaw and taking its angle to the inward direction
+    # catches a landmark that is grounded, spaced and lit correctly but turned
+    # back to front - a failure every other check in this file would pass.
+    facing = []
+    for label in EXPECTED_LABELS:
+        matches = by_label.get(label, [])
+        if len(matches) != 1:
+            continue
+        actor = matches[0]
+        local = FACADE_LOCAL_AXIS.get(label[len("Landmark_"):])
+        if local is None:
+            report["warnings"].append(
+                "{}: no facade axis recorded, facing not verified".format(label))
+            continue
+        yaw = math.radians(float(actor.get_actor_rotation().yaw))
+        # Rotate the model-local facade axis into world space by the saved yaw.
+        facade_x = local[0] * math.cos(yaw) - local[1] * math.sin(yaw)
+        facade_y = local[0] * math.sin(yaw) + local[1] * math.cos(yaw)
+        origin = actor.get_actor_location()
+        planar = math.hypot(float(origin.x), float(origin.y))
+        inward = (-float(origin.x) / planar, -float(origin.y) / planar)
+        cosine = facade_x * inward[0] + facade_y * inward[1]
+        angle = math.degrees(math.acos(max(-1.0, min(1.0, cosine))))
+        facing.append({"label": label, "facade_local_axis": list(local),
+                       "facade_off_plaza_deg": round(angle, 3)})
+        if angle > FACING_TOLERANCE_DEG:
+            report["errors"].append(
+                "{}: facade faces {:.2f} deg away from the plaza centre - the "
+                "landmark is turned the wrong way".format(label, angle))
+    report["facing"] = facing
 
     # ---- one independent light per building ----------------------------------
     # Each saved light is compared against a recipe RE-DERIVED here from the
@@ -537,6 +605,7 @@ def main():
           report.get("ring_radius_max_cm"),
           "gaps", report.get("angular_gap_min_deg"), report.get("angular_gap_max_deg"))
     print("SHOWCASE_VALIDATION_OVERLAPS", json.dumps(report["overlaps"]))
+    print("SHOWCASE_VALIDATION_FACING", json.dumps(report.get("facing")))
     print("SHOWCASE_VALIDATION_SUPPORTING", json.dumps(report["supporting"]))
     print("SHOWCASE_VALIDATION_LIGHTS", json.dumps(report.get("landmark_lights"), indent=2))
     print("SHOWCASE_VALIDATION_LIGHT_ISOLATION", json.dumps(report.get("light_isolation")))

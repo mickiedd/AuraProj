@@ -163,11 +163,41 @@ LANDMARKS = [
     ("ZhenhaiTower", "ZhenhaiTower/BP_ZhenhaiTower",
      "Zhenhai Tower", 0.0),
     # Wenmingmen joined the ring on 2026-09-24, after the four-side timber
-    # walling was made continuous and the climbing vines were given roots. It
-    # follows the same local -Y front convention as the other gates (the door
-    # and plaque sit on -Y), so it needs no facing offset.
+    # walling was made continuous and the climbing vines were given roots.
+    #
+    # FACING 180, unlike every other gate here. It does NOT follow the local -Y
+    # front convention: its facade - the closed timber door, the couplets and the
+    # climbing vines - sits on local +Y, and so do its canal and its bridge. That
+    # was measured on the placed actor rather than assumed; re-run
+    # Scripts/ProbeWenmingmenPlacement.py to see all four readings, which are:
+    #
+    #   * SMC_water, the canal the bridge crosses, spans local Y 710..1810, and
+    #     the Blender front render shows the door on the canal side of the model -
+    #     a relationship no rotation can change. So the door is on +Y.
+    #   * SMC_iron, the door's ironwork, is a thin plate at local Y ~200.
+    #   * SMC_foliage, the vines, is a band at local Y ~200 on that same face.
+    #   * SMC_stone / SMC_limestone, the paved platform, START at local Y ~-230
+    #     (the -Y facade plane) and run out to +1867 / +2351, so the apron the
+    #     gate is approached over lies in +Y only.
+    #
+    # The plaza side is local -Y - the per-building light is built on the plaza
+    # side and measures local Y -5248 - so with facing_offset 0 the gate stood
+    # with its back to the plaza and its own accent light on the rear wall.
+    # 180 turns the door, couplets and vines toward the plaza.
     ("Wenmingmen", "Wenmingmen/BP_Wenmingmen",
-     "Wenmingmen (Wenming Gate)", 0.0),
+     "Wenmingmen (Wenming Gate)", 180.0),
+    # Zhengximen joined the ring on 2026-09-24, imported from the
+    # Zhengximen_GreatWestGate_UE5 art package.
+    #
+    # FACING 0, i.e. it DOES follow the majority local -Y front convention, and
+    # that was measured on the source rather than assumed. In the package's own
+    # modular GLBs, split by material group, the gate plaque (門額) occupies local
+    # Y -3.06..-2.92 and the iron door fittings occupy Y -0.61..-0.39. Both sit on
+    # -Y, so the facade is -Y and no offset is needed.
+    #
+    # Adding it re-derives the ring radius, so every existing landmark moves.
+    ("Zhengximen", "Zhengximen/BP_Zhengximen",
+     "Zhengximen (Great West Gate)", 0.0),
 ]
 
 

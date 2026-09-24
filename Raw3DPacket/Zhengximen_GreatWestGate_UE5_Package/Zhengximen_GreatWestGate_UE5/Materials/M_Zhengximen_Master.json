@@ -1,0 +1,23 @@
+{
+  "name": "M_Zhengximen_Master",
+  "workflow": "Metallic/Roughness PBR",
+  "blend_mode": "Opaque",
+  "two_sided": false,
+  "texture_parameters": [
+    "BaseColorTex",
+    "NormalTex",
+    "RoughnessTex",
+    "MetallicTex",
+    "AOTex",
+    "HeightTex"
+  ],
+  "scalar_parameters": {
+    "UVScale": 1.0,
+    "NormalStrength": 1.0,
+    "HeightStrength": 0.02
+  },
+  "notes": [
+    "Normal maps are DirectX/Y- for Unreal Engine.",
+    "Height maps may be used for BumpOffset/POM or project-specific Nanite displacement."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "MI_BlackIron",
+  "master": "M_Zhengximen_Master",
+  "textures": {
+    "BaseColor": "../Textures/T_BlackIron_BaseColor.png",
+    "Normal": "../Textures/T_BlackIron_Normal.png",
+    "Roughness": "../Textures/T_BlackIron_Roughness.png",
+    "Metallic": "../Textures/T_BlackIron_Metallic.png",
+    "AmbientOcclusion": "../Textures/T_BlackIron_AO.png",
+    "Height": "../Textures/T_BlackIron_Height.png"
+  },
+  "uv_scale_m": 1.0,
+  "normal_format": "DirectX (Y-)",
+  "texture_resolution": [
+    4096,
+    4096
+  ]
+}
