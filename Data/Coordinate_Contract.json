@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "status": "provisional_origin_unset",
+  "study_period": [1880, 1900],
+  "horizontal_crs": "EPSG:32649",
+  "horizontal_units": "m",
+  "axis_contract": {"ue_x": "easting", "ue_y": "northing", "ue_z": "up", "ue_units": "cm"},
+  "origin_easting_m": null,
+  "origin_northing_m": null,
+  "terrain_zero_elevation_m": null,
+  "terrain_zero_vertical_datum": null,
+  "forward_when_origin_approved": "ue_x_cm = 100 * (easting_m - origin_easting_m); ue_y_cm = 100 * (northing_m - origin_northing_m)",
+  "inverse_when_origin_approved": "easting_m = origin_easting_m + ue_x_cm / 100; northing_m = origin_northing_m + ue_y_cm / 100",
+  "proposed_landscape": {"vertices_per_axis": 2017, "spacing_m": 2, "extent_m": 4032, "approved": false}
+}

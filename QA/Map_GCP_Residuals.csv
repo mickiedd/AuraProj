@@ -1,0 +1,1 @@
+point_id,role_control_or_holdout,source_id,pixel_x,pixel_y,easting_m,northing_m,predicted_easting_m,predicted_northing_m,residual_e_m,residual_n_m,residual_m,landmark_persistence_evidence,status,rejection_reason

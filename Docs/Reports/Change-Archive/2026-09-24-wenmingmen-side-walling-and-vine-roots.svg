@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 660" width="1000" height="660" font-family="Helvetica, Arial, sans-serif">
+  <rect width="1000" height="660" fill="#f7f8fa"/>
+  <text x="32" y="44" font-size="22" font-weight="700" fill="#1f2933">Wenmingmen — continuous four-side timber walling and rooted vines</text>
+  <text x="32" y="68" font-size="13" fill="#52606d">build_wenmingmen.py · rebuilt source GLB · in-place UE 5.5 reimport + fresh validation</text>
+
+  <!-- BEFORE -->
+  <g>
+    <rect x="32" y="92" width="440" height="250" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="118" font-size="15" font-weight="700" fill="#9b1c1c">BEFORE — four sides not continuous</text>
+
+    <!-- front wall band with panel gaps -->
+    <rect x="60" y="140" width="384" height="34" fill="#3d2b20"/>
+    <g fill="#c9d3dc">
+      <rect x="121" y="140" width="9" height="34"/>
+      <rect x="185" y="140" width="9" height="34"/>
+      <rect x="249" y="140" width="9" height="34"/>
+      <rect x="313" y="140" width="9" height="34"/>
+      <rect x="377" y="140" width="9" height="34"/>
+    </g>
+    <text x="60" y="192" font-size="11.5" fill="#9b1c1c">5 through-slots between the six infill panels</text>
+
+    <!-- open band above railing -->
+    <rect x="60" y="204" width="384" height="42" fill="#c9d3dc"/>
+    <text x="60" y="232" font-size="11.5" fill="#9b1c1c">open band above the railing — background visible straight through</text>
+
+    <!-- railing -->
+    <g stroke="#3d2b20" stroke-width="3" fill="none">
+      <line x1="60" y1="262" x2="444" y2="262"/>
+      <line x1="60" y1="278" x2="444" y2="278"/>
+    </g>
+    <g stroke="#3d2b20" stroke-width="2">
+      <line x1="76" y1="262" x2="76" y2="278"/><line x1="108" y1="262" x2="108" y2="278"/>
+      <line x1="140" y1="262" x2="140" y2="278"/><line x1="172" y1="262" x2="172" y2="278"/>
+      <line x1="204" y1="262" x2="204" y2="278"/><line x1="236" y1="262" x2="236" y2="278"/>
+      <line x1="268" y1="262" x2="268" y2="278"/><line x1="300" y1="262" x2="300" y2="278"/>
+      <line x1="332" y1="262" x2="332" y2="278"/><line x1="364" y1="262" x2="364" y2="278"/>
+      <line x1="396" y1="262" x2="396" y2="278"/><line x1="428" y1="262" x2="428" y2="278"/>
+    </g>
+
+    <!-- floating vine -->
+    <rect x="60" y="296" width="384" height="30" fill="#e4e7eb"/>
+    <path d="M150 306 q6 8 0 16 q-6 8 0 16" stroke="#2f5d34" stroke-width="2" fill="none"/>
+    <path d="M150 306 v-22" stroke="#2f5d34" stroke-width="2" fill="none" stroke-dasharray="4 3"/>
+    <text x="166" y="316" font-size="11" fill="#9b1c1c">vine starts 1.65 m up the face — no root, floats</text>
+  </g>
+
+  <!-- AFTER -->
+  <g>
+    <rect x="528" y="92" width="440" height="250" rx="8" fill="#ffffff" stroke="#1f7a4d"/>
+    <text x="544" y="118" font-size="15" font-weight="700" fill="#0b6b3a">AFTER — continuous, no hollows</text>
+
+    <!-- continuous wall -->
+    <rect x="556" y="140" width="384" height="34" fill="#3d2b20"/>
+    <rect x="556" y="174" width="384" height="72" fill="#3d2b20"/>
+    <g stroke="#5c4433" stroke-width="2">
+      <line x1="556" y1="174" x2="940" y2="174"/>
+      <line x1="620" y1="174" x2="620" y2="246"/><line x1="684" y1="174" x2="684" y2="246"/>
+      <line x1="748" y1="174" x2="748" y2="246"/><line x1="812" y1="174" x2="812" y2="246"/>
+      <line x1="876" y1="174" x2="876" y2="246"/>
+    </g>
+    <text x="556" y="266" font-size="11.5" fill="#0b6b3a">one solid wall per side, deck → clerestory sill; sash/lattice stays proud</text>
+
+    <!-- railing retained -->
+    <g stroke="#3d2b20" stroke-width="3" fill="none">
+      <line x1="556" y1="278" x2="940" y2="278"/>
+      <line x1="556" y1="292" x2="940" y2="292"/>
+    </g>
+    <g stroke="#3d2b20" stroke-width="2">
+      <line x1="572" y1="278" x2="572" y2="292"/><line x1="604" y1="278" x2="604" y2="292"/>
+      <line x1="636" y1="278" x2="636" y2="292"/><line x1="668" y1="278" x2="668" y2="292"/>
+      <line x1="700" y1="278" x2="700" y2="292"/><line x1="732" y1="278" x2="732" y2="292"/>
+      <line x1="764" y1="278" x2="764" y2="292"/><line x1="796" y1="278" x2="796" y2="292"/>
+      <line x1="828" y1="278" x2="828" y2="292"/><line x1="860" y1="278" x2="860" y2="292"/>
+      <line x1="892" y1="278" x2="892" y2="292"/><line x1="924" y1="278" x2="924" y2="292"/>
+    </g>
+
+    <!-- rooted vine -->
+    <rect x="556" y="306" width="384" height="30" fill="#e4e7eb"/>
+    <path d="M646 306 q6 8 0 16 q-6 8 0 16" stroke="#2f5d34" stroke-width="2" fill="none"/>
+    <path d="M646 306 v-24" stroke="#2f5d34" stroke-width="3" fill="none"/>
+    <g stroke="#2f5d34" stroke-width="2">
+      <line x1="646" y1="306" x2="628" y2="310"/><line x1="646" y1="306" x2="636" y2="313"/>
+      <line x1="646" y1="306" x2="656" y2="313"/><line x1="646" y1="306" x2="664" y2="310"/>
+    </g>
+    <text x="672" y="326" font-size="11" fill="#0b6b3a">root cluster at ground: basal stem + lateral roots</text>
+  </g>
+
+  <!-- PIPELINE -->
+  <g>
+    <text x="32" y="392" font-size="15" font-weight="700" fill="#1f2933">Flow</text>
+    <g font-size="11.5" fill="#1f2933">
+      <rect x="32" y="408" width="176" height="60" rx="6" fill="#ffffff" stroke="#cbd2d9"/>
+      <text x="44" y="432" font-weight="700">1 · Generator</text>
+      <text x="44" y="450" fill="#52606d">build_wenmingmen.py</text>
+      <text x="44" y="464" fill="#52606d">--reuse-textures</text>
+
+      <rect x="232" y="408" width="176" height="60" rx="6" fill="#ffffff" stroke="#cbd2d9"/>
+      <text x="244" y="432" font-weight="700">2 · High detail</text>
+      <text x="244" y="450" fill="#52606d">create_high_detail.py</text>
+      <text x="244" y="464" fill="#52606d">2,141,158 tris</text>
+
+      <rect x="432" y="408" width="176" height="60" rx="6" fill="#ffffff" stroke="#cbd2d9"/>
+      <text x="444" y="432" font-weight="700">3 · Blender verify</text>
+      <text x="444" y="450" fill="#52606d">4 side views + base</text>
+      <text x="444" y="464" fill="#52606d">before/after compare</text>
+
+      <rect x="632" y="408" width="176" height="60" rx="6" fill="#ffffff" stroke="#cbd2d9"/>
+      <text x="644" y="432" font-weight="700">4 · UE reimport</text>
+      <text x="644" y="450" fill="#52606d">UpdateWenmingmen.py</text>
+      <text x="644" y="464" fill="#52606d">commandlet, exit 0</text>
+
+      <rect x="832" y="408" width="136" height="60" rx="6" fill="#ffffff" stroke="#1f7a4d"/>
+      <text x="844" y="432" font-weight="700">5 · Validate</text>
+      <text x="844" y="450" fill="#52606d">fresh process</text>
+      <text x="844" y="464" fill="#52606d">8 components</text>
+    </g>
+    <g stroke="#9aa5b1" stroke-width="2" fill="none" marker-end="url(#a)">
+      <line x1="208" y1="438" x2="228" y2="438"/>
+      <line x1="408" y1="438" x2="428" y2="438"/>
+      <line x1="608" y1="438" x2="628" y2="438"/>
+      <line x1="808" y1="438" x2="828" y2="438"/>
+    </g>
+    <defs>
+      <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/>
+      </marker>
+    </defs>
+  </g>
+
+  <!-- CHECKS -->
+  <g>
+    <rect x="32" y="500" width="936" height="128" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="526" font-size="14" font-weight="700" fill="#1f2933">Verification</text>
+    <g font-size="12" fill="#1f2933">
+      <text x="48" y="552">Source · Blender close views of all four sides show no through-slots; base view shows the vine rooted at the wall foot.</text>
+      <text x="48" y="574">Native · UpdateWenmingmen.py exit 0 in an isolated UE 5.5 Python commandlet; validated = true; meshes reimported: wood, iron, water, foliage, plaque_inscription.</text>
+      <text x="48" y="596">Native · fresh ValidateWenmingmen.py commandlet exited clean (no traceback / assertion), 8-component Blueprint contract intact.</text>
+      <text x="48" y="618" fill="#9b1c1c">Pending · native GUI viewport capture — remote execution is unreachable and a Python commandlet has no editor world / RHI, so the capture needs the editor open.</text>
+    </g>
+  </g>
+</svg>

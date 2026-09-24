@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="760" viewBox="0 0 1300 760" role="img" aria-labelledby="title desc">
+  <title id="title">Wenmingmen pavilion window closure</title>
+  <desc id="desc">The upper pavilion changed from an open timber grid with sky visible through its bays to an enclosed timber room with recessed paired shutter panels, sash rails, and side bay infill. Lower balcony rails remain open. Blender and native Unreal validation passed.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #233246; }
+      .title { font-size: 30px; font-weight: 700; }
+      .sub { font-size: 16px; fill: #5c6c80; }
+      .head { font-size: 21px; font-weight: 700; }
+      .label { font-size: 15px; font-weight: 700; }
+      .body { font-size: 14px; }
+      .small { font-size: 12px; fill: #526277; }
+      .card { fill: #fff; stroke: #cbd5df; stroke-width: 2; }
+      .beam { fill: #4a2f22; stroke: #2e211a; stroke-width: 1; }
+      .oldhole { fill: #cbd2d5; stroke: #6d7a82; stroke-width: 2; }
+      .newpanel { fill: #6c4631; stroke: #2f2019; stroke-width: 2; }
+      .newplank { stroke: #a47a5a; stroke-width: 2; }
+      .arrow { fill: none; stroke: #62738a; stroke-width: 3; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#62738a" stroke-width="2"/></marker>
+  </defs>
+  <rect width="1300" height="760" fill="#f4f7fb"/>
+  <text x="48" y="54" class="title">Wenmingmen: intact upper pavilion windows</text>
+  <text x="48" y="82" class="sub">24 Sep 2026 · reference-driven window closure · native Blueprint refreshed</text>
+
+  <rect x="48" y="116" width="560" height="344" rx="18" class="card"/>
+  <rect x="48" y="116" width="560" height="12" rx="6" fill="#bb8469"/>
+  <text x="72" y="158" class="head">Before · exposed grid</text>
+  <text x="72" y="182" class="small">The timber frame had no infill behind the lattice.</text>
+  <rect x="118" y="238" width="420" height="116" class="oldhole"/>
+  <rect x="118" y="238" width="420" height="15" class="beam"/>
+  <rect x="118" y="339" width="420" height="15" class="beam"/>
+  <path d="M142 238 V354 M210 238 V354 M278 238 V354 M346 238 V354 M414 238 V354 M482 238 V354" class="beam" fill="none" stroke-width="11"/>
+  <path d="M118 280 H538 M118 318 H538" stroke="#664938" stroke-width="7"/>
+  <path d="M72 390 H555" stroke="#9d775b" stroke-width="8"/>
+  <text x="72" y="414" class="body">Sky/background read through the room, especially from three-quarter views.</text>
+
+  <path d="M630 282 H681" class="arrow"/>
+
+  <rect x="692" y="116" width="560" height="344" rx="18" class="card"/>
+  <rect x="692" y="116" width="560" height="12" rx="6" fill="#4f9b78"/>
+  <text x="716" y="158" class="head">After · enclosed timber windows</text>
+  <text x="716" y="182" class="small">Recessed paired shutters sit behind the proud lattice.</text>
+  <rect x="762" y="238" width="420" height="116" class="newpanel"/>
+  <path d="M762 238 H1182 M762 354 H1182" stroke="#2e211a" stroke-width="10"/>
+  <path d="M832 238 V354 M902 238 V354 M972 238 V354 M1042 238 V354 M1112 238 V354" class="newplank"/>
+  <path d="M762 278 H1182 M762 318 H1182" stroke="#9b6f4f" stroke-width="6"/>
+  <path d="M972 238 V354" stroke="#c2936a" stroke-width="5"/>
+  <path d="M786 222 V366 M1158 222 V366" stroke="#2e211a" stroke-width="11"/>
+  <path d="M716 390 H1230" stroke="#9d775b" stroke-width="8"/>
+  <text x="716" y="414" class="body">Shutters, sash rails, side infill, and the open lower balcony match the reference rhythm.</text>
+
+  <text x="48" y="512" class="head">Source → native asset flow</text>
+  <rect x="48" y="540" width="260" height="104" rx="14" class="card"/>
+  <text x="68" y="574" class="label">Reference board</text>
+  <text x="68" y="600" class="body">Enclosed timber window language</text>
+  <text x="68" y="622" class="body">with open lower balcony rails</text>
+  <path d="M314 592 H340" class="arrow"/>
+  <rect x="350" y="540" width="260" height="104" rx="14" class="card"/>
+  <text x="370" y="574" class="label">Procedural source</text>
+  <text x="370" y="600" class="body">12 shutter panels + side bays</text>
+  <text x="370" y="622" class="body">380,154 base triangles</text>
+  <path d="M616 592 H642" class="arrow"/>
+  <rect x="652" y="540" width="260" height="104" rx="14" class="card"/>
+  <text x="672" y="574" class="label">High-detail GLB</text>
+  <text x="672" y="600" class="body">2,140,150 triangles</text>
+  <text x="672" y="622" class="body">reused generated PBR maps</text>
+  <path d="M918 592 H944" class="arrow"/>
+  <rect x="954" y="540" width="298" height="104" rx="14" class="card"/>
+  <text x="974" y="574" class="label">BP_Wenmingmen</text>
+  <text x="974" y="600" class="body">UE 5.5 update + fresh reload</text>
+  <text x="974" y="622" class="body">8 components · bounds passed</text>
+
+  <rect x="48" y="680" width="1204" height="44" rx="12" fill="#e9f2ee" stroke="#b8d5c5" stroke-width="2"/>
+  <text x="68" y="708" class="label">Validated: Blender front / three-quarter / close views · Update commandlet exit 0 · Fresh Blueprint validation exit 0</text>
+</svg>

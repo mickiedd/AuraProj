@@ -217,9 +217,67 @@
   "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/BP_Wenmingmen",
   "bounds_cm": [
     6500.0,
-    2805.190948486328,
-    2199.0346679687505
+    2806.903167724609,
+    2199.0075683593755
   ],
   "component_count": 8,
-  "validated": true
+  "validated": true,
+  "update": {
+    "glb_sha256": "56b442d19d758f5b810df2e2ae37520f71717bbe3de45e8cd33d8e428fd4f567",
+    "texture_sha256": {
+      "foliage_BaseColor": "a54f92634a4ed7f25bebd9ac98151775b152ca766f2cbe873f319510ac0ae0ad",
+      "foliage_Normal": "989390a5b330b58743c7d6853421f0316ad3f8605cc03d18d1de25e56d26000d",
+      "foliage_ORM": "b8a504f3e3a6dddc1a819f2216aa862bbfad521ebda514deaab269c0947aecad",
+      "iron_BaseColor": "6f03c31f56974f81672721b952f598b7b0e66cff5002a24bd0294b72cae94f1e",
+      "iron_Normal": "39c48ac4495011baf1bdd1bb624daecfb221548424094caaa56a87c0e8265549",
+      "iron_ORM": "2be0ea8c02d9a97f9e3996d8b730c2589552ace2453e36d37fac8bdf3a484920",
+      "limestone_BaseColor": "ab0da3d1d21d5e34a667257f7127d66b770f9c6e534156ddcef7a327fb7e4299",
+      "limestone_Normal": "86f774d39d5fd3bdf5fa639b6c0733d30e001103d97fe97877d16d6dda045e0d",
+      "limestone_ORM": "dde175f8e023f51ffde709d301e6e67a87367a23395723884d4ec67f197955cb",
+      "plaque_inscription_BaseColor": "a8f559eded822500c188a2de6477a4bcdf93f5657ad5a7b6c2f4356ec5841bf1",
+      "plaster_BaseColor": "c33cb6cf248c285a2e877b29a14f66ea2cae9282605735f4ae309657669648cd",
+      "plaster_Normal": "2e8d3926850889ec99ca6c9d60d9a5faac9400ddc3a4596ce4a972cd200e712d",
+      "plaster_ORM": "dfd45662124180785de27c9d1c196108189dbb25f0c10563692e842f4502f6e7",
+      "roof_BaseColor": "0604129847c6e72c239a97c4c7172bb92bbfb8d91b180b6bb2387d5bed65410e",
+      "roof_Normal": "7e1a9305c199d873bda2ec6404c64c1b6ea0fbca3053b6f58e096677fc22ff82",
+      "roof_ORM": "ba7a3b3b5bda97e2cd78154f5a845d89b60be3eca581cc8b5ab9cc496b21859f",
+      "stone_BaseColor": "1164942c87a9adb728b8e28e350a70657dcc9c536c54223452ad5ee64bf89052",
+      "stone_Normal": "f391713d3d1b1f290434279e8e2e8b2766aad19240012a650f86d8ee1be2745a",
+      "stone_ORM": "f4a957abf3fb22e68bd04ed114b7536c614c92204ee050352da11a83cd321a3a",
+      "water_BaseColor": "338a8173a8b994bbfbdb32b1987c98df0022182ea805f36c3085ea4813a532f0",
+      "water_Normal": "7fa6a44e223aefaac2a42d2b63936fb29ce5fb766ca9778cdc31d4a094f8727c",
+      "water_ORM": "c52227003f8dd3e90ff9c9b9b6fbd65cc79642452f4cf145667ab652069eec41",
+      "wood_BaseColor": "3db659546e18f87295c22b1d844395727912fba6518006210642e87b1e47c1b7",
+      "wood_Normal": "1de3e0a54736d8a6cef7d7605004ea4f4904162b24186c737fd34232638398a4",
+      "wood_ORM": "2158552f556329eb51125300b46b42497830806112cc34d806a4046d0619948d"
+    },
+    "mesh_geometry_sha256": {
+      "stone": "965bed1e2ce2bd3c72981b90906e04fa517c6fd9ba2f38a393a614df6741ba14",
+      "limestone": "32f40384fd04ef332bd29665dd6d949752672d625e51e70044f04a1f3ffb2fad",
+      "roof": "de9eee5e90aa7de9ff2caf04e3f0c9df23da3b7f91fb7b7dc2676b9ea42748c3",
+      "wood": "f41aed514ed12b6b7d320bd39aee3fbe37aa6439dd167f1551d5258d6aef42ce",
+      "iron": "9df3f356a0f95547ef967997657a828678e9ee3609ed723cf8c27b0b03b9e5cd",
+      "water": "8e0eab25d45b6a3dabda993c87e3f8bc05ef69027223db5290e1a90b9fc548e1",
+      "foliage": "c5c7ffa2cde067208fec551f0403c422dc68dd127929b6d21bec35b57edcd847",
+      "plaque_inscription": "fcb53fe06d23e24bae8862ca3065d95047fb955dbb3f02be4003ce4f576d70ad"
+    },
+    "source_triangles": {
+      "stone": 595104,
+      "limestone": 288064,
+      "roof": 1242688,
+      "wood": 12696,
+      "iron": 528,
+      "water": 12,
+      "foliage": 2056,
+      "plaque_inscription": 10
+    },
+    "mesh_reimported": [
+      "wood",
+      "iron",
+      "water",
+      "foliage",
+      "plaque_inscription"
+    ],
+    "textures_reimported": []
+  }
 }

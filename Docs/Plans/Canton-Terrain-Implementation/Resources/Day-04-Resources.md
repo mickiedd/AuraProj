@@ -29,14 +29,18 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 
 | Field | Value |
 |---|---|
-| Date / operator | |
-| Git revision | |
-| Engine / tools | |
-| Input revision(s) | |
-| Automated checks | |
-| Manual checks | |
-| Output identifiers | |
-| Status | Not started |
-| Reviewer | |
-| Open issues / next owner | |
+| Date / operator | 2026-09-24 / Codex |
+| Git revision | c840ce2a22993c33491a5d0fa1c74add125cf3ce |
+| Engine / tools | UE 5.5.4 (CL 40574608); Python 3.9.6; validator stdlib |
+| Input revision(s) | MAP-001 scan SHA-256 ebab90db8e25cd87fea7ac4e5e6d3d2e45e4659fb35bff6b509aba6f62406bd7 |
+| Automated checks | python3 Scripts/validate_canton_terrain_days_01_05.py — exit 0; inventory consistent, historical gates still blocked |
+| Manual checks | Source documents and project manifest reviewed; no historical geometry/height approved |
+| Output identifiers | GIS attribution work area and extent gate record prepared |
+| Status | Blocked |
+| Reviewer | Pending |
+| Open issues / next owner | No accepted georeference; no geometry or envelope measurement. |
 
+
+## 2026-09-24 execution note
+
+Status: **Blocked**. No accepted georeference; no geometry or envelope measurement. Read-only source/tool inspection and the validator are recorded in `QA/Canton_Days_01_05_Execution.md`. Historical outputs remain gated.

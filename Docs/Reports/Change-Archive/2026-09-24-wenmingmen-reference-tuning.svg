@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900" role="img" aria-labelledby="title desc">
+  <title id="title">Wenmingmen reference tuning: source asset before and after</title>
+  <desc id="desc">The old model had a short floating rectangular door, painted wall joints, a flatter roof and one weak bridge span. The new model has an arch-fitting timber door, coursed pale gate stone and darker curtain brick, darker radial voussoirs, generated stone, limestone, roof and wood materials, overlapping curved roof tiles, and two raised bridge arches. Source renders, native Unreal reimport, fresh serialized Blueprint validation, and Metal SM5 fallback repair passed; the native capture was reviewed.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #233246; }
+      .title { font-size: 31px; font-weight: 700; }
+      .sub { font-size: 16px; fill: #5c6c80; }
+      .head { font-size: 21px; font-weight: 700; }
+      .label { font-size: 16px; font-weight: 700; }
+      .body { font-size: 15px; }
+      .small { font-size: 13px; fill: #526277; }
+      .card { fill: #fff; stroke: #cbd5df; stroke-width: 2; }
+      .arrow { fill: none; stroke: #62738a; stroke-width: 3; marker-end: url(#arrowhead); }
+      .brick { stroke: #6d777e; stroke-width: 1; opacity: .70; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#62738a" stroke-width="2"/></marker>
+    <pattern id="oldGrid" width="26" height="17" patternUnits="userSpaceOnUse"><path d="M0 0 H26 M0 0 V17 M13 8 V17" fill="none" stroke="#909596" stroke-width="1.4" opacity=".65"/></pattern>
+    <pattern id="newStone" width="58" height="25" patternUnits="userSpaceOnUse"><path d="M0 0 H58 M0 25 H58 M0 0 V25 M30 12 V25" fill="none" stroke="#8b918e" stroke-width="1" opacity=".58"/></pattern>
+    <pattern id="newBrick" width="32" height="16" patternUnits="userSpaceOnUse"><path d="M0 0 H32 M0 16 H32 M0 0 V16 M16 8 V16" fill="none" stroke="#59646b" stroke-width="1" opacity=".55"/></pattern>
+  </defs>
+  <rect width="1500" height="900" fill="#f4f7fb"/>
+  <text x="54" y="60" class="title">Wenmingmen: reference-guided geometry and materials</text>
+  <text x="54" y="89" class="sub">24 Sep 2026 · source GLB and native Blueprint updated · Metal raster fallback repaired · fresh reload passed</text>
+
+  <rect x="54" y="126" width="656" height="430" rx="18" class="card"/>
+  <rect x="54" y="126" width="656" height="12" rx="6" fill="#bb8469"/>
+  <text x="78" y="176" class="head">Before · earlier imported source</text>
+  <text x="78" y="204" class="small">Stylized blockout · 2,381,538 high-detail triangles</text>
+  <!-- Old silhouette: roof and flat wall. -->
+  <path d="M192 275 L224 253 H539 L572 275 L564 289 H200 Z" fill="#555a5d" stroke="#414a50" stroke-width="3"/>
+  <path d="M221 287 H544 V321 H221 Z" fill="#5c4b42"/>
+  <path d="M214 327 H551 V346 H214 Z" fill="#4c423d"/>
+  <path d="M169 346 H595 V462 H169 Z" fill="#b5b6b1"/>
+  <path d="M169 346 H595 V462 H169 Z" fill="url(#oldGrid)"/>
+  <path d="M95 375 H169 V462 H95 Z M595 375 H669 V462 H595 Z" fill="#929a9b"/>
+  <path d="M95 375 H169 V462 H95 Z M595 375 H669 V462 H595 Z" fill="url(#oldGrid)"/>
+  <path d="M328 462 V411 A54 54 0 0 1 436 411 V462" fill="#eeeae2" stroke="#e2ded4" stroke-width="10"/>
+  <path d="M344 462 V424 H380 V462 Z M384 462 V424 H420 V462 Z" fill="#49382f"/>
+  <path d="M231 499 H533" fill="none" stroke="#c3bcb0" stroke-width="16"/>
+  <text x="78" y="526" class="body">Short door leaves leave the arch crown empty; painted joints repeat on each face.</text>
+
+  <path d="M717 337 H771" class="arrow"/>
+
+  <rect x="790" y="126" width="656" height="430" rx="18" class="card"/>
+  <rect x="790" y="126" width="656" height="12" rx="6" fill="#4f9b78"/>
+  <text x="814" y="176" class="head">After · final source and Blueprint</text>
+  <text x="814" y="204" class="small">Rebuilt model · 2,138,566 high-detail triangles</text>
+  <!-- New silhouette: swept roof, masonry, arch-fitting door, two bridge arches. -->
+  <path d="M922 286 Q944 282 955 255 Q977 271 1000 258 H1250 Q1273 271 1295 255 Q1306 282 1328 286 Q1308 308 1285 294 H965 Q942 308 922 286 Z" fill="#46535c" stroke="#39474f" stroke-width="3"/>
+  <path d="M956 286 H1292 M970 280 H1278 M983 274 H1265" fill="none" stroke="#819097" stroke-width="2"/>
+  <path d="M961 304 H1289 V324 H961 Z" fill="#5a4438"/>
+  <path d="M954 330 H1296 V347 H954 Z" fill="#4d3a32"/>
+  <path d="M907 347 H1338 V462 H907 Z" fill="#c3c0b8"/>
+  <path d="M907 347 H1338 V462 H907 Z" fill="url(#newStone)"/>
+  <path d="M830 377 H907 V462 H830 Z M1338 377 H1415 V462 H1338 Z" fill="#67757b"/>
+  <path d="M830 377 H907 V462 H830 Z M1338 377 H1415 V462 H1338 Z" fill="url(#newBrick)"/>
+  <path d="M1068 462 V412 A55 55 0 0 1 1178 412 V462" fill="#aaaba3" stroke="#a9a59b" stroke-width="10"/>
+  <path d="M1075 462 V412 A48 48 0 0 1 1171 412 V462 Z" fill="#4c382e" stroke="#302b2a" stroke-width="2"/>
+  <path d="M1123 462 V365 M1091 460 V415 M1155 460 V415" fill="none" stroke="#98735a" stroke-width="3"/>
+  <path d="M971 498 Q1006 468 1041 498 M1047 498 Q1082 461 1117 498" fill="none" stroke="#a9a69c" stroke-width="10"/>
+  <path d="M964 502 H1124" fill="none" stroke="#c6c1b7" stroke-width="10"/>
+  <text x="814" y="526" class="body">Door fills the arch; physical courses, swept tile eaves and two bridge openings read as built forms.</text>
+
+  <text x="54" y="605" class="head">What changed in the source-to-Blueprint flow</text>
+  <rect x="54" y="631" width="327" height="117" rx="14" class="card"/>
+  <rect x="54" y="631" width="327" height="9" rx="5" fill="#7d8bab"/>
+  <text x="74" y="669" class="label">Reference + editable source</text>
+  <text x="74" y="698" class="body">Door, ashlar/brick, radial arch,</text>
+  <text x="74" y="721" class="body">roof hips and raised bridge rebuilt</text>
+  <path d="M386 690 H404" class="arrow"/>
+  <rect x="412" y="631" width="327" height="117" rx="14" class="card"/>
+  <rect x="412" y="631" width="327" height="9" rx="5" fill="#8a7b69"/>
+  <text x="432" y="669" class="label">Four generated 2K PBR sets</text>
+  <text x="432" y="698" class="body">Gray stone · pale limestone</text>
+  <text x="432" y="721" class="body">Clay roof · aged timber</text>
+  <path d="M744 690 H762" class="arrow"/>
+  <rect x="770" y="631" width="327" height="117" rx="14" class="card"/>
+  <rect x="770" y="631" width="327" height="9" rx="5" fill="#4f9b78"/>
+  <text x="790" y="669" class="label">High-detail GLB + native update</text>
+  <text x="790" y="698" class="body">8 mesh nodes · embedded maps</text>
+  <text x="790" y="721" class="body">Front/rear inscription overlays</text>
+  <path d="M1102 690 H1120" class="arrow"/>
+  <rect x="1128" y="631" width="318" height="117" rx="14" class="card"/>
+  <rect x="1128" y="631" width="318" height="9" rx="5" fill="#d3a057"/>
+  <text x="1148" y="669" class="label">Native BP_Wenmingmen</text>
+  <text x="1148" y="698" class="body">8 meshes · 25 textures reimported</text>
+  <text x="1148" y="721" class="body">Fresh reload + spawn passed</text>
+
+  <rect x="54" y="783" width="1392" height="76" rx="14" fill="#e9f2ee" stroke="#b8d5c5" stroke-width="2"/>
+  <text x="76" y="814" class="label">Source validation completed</text>
+  <text x="76" y="838" class="body">12 installed 2048² maps checked; GLB count recorded; front, three-quarter, gate and roof Blender renders reviewed.</text>
+  <text x="1025" y="814" class="label">Native status: passed</text>
+  <text x="1025" y="838" class="small">Native capture reviewed; fallback repaired.</text>
+</svg>

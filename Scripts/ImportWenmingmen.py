@@ -165,6 +165,13 @@ def import_meshes(materials, data):
         mesh.set_material(0, materials[expected])
         nanite = mesh.get_editor_property("nanite_settings")
         nanite.set_editor_property("enabled", part in NANITE)
+        if part in NANITE:
+            # This project is also reviewed on Metal SM5, where Nanite renders
+            # its fallback. The default AUTO/1.0-relative-error fallback loses
+            # masonry and roof triangles, exposing black holes in the wall.
+            nanite.set_editor_property("fallback_target", unreal.NaniteFallbackTarget.PERCENT_TRIANGLES)
+            nanite.set_editor_property("fallback_percent_triangles", 1.0)
+            nanite.set_editor_property("fallback_relative_error", 0.0)
         mesh.set_editor_property("nanite_settings", nanite)
         if part in STRUCTURAL:
             body = mesh.get_editor_property("body_setup")
@@ -236,7 +243,7 @@ def create_blueprint(records, data):
     return blueprint
 
 
-def validate(blueprint, data):
+def validate(blueprint, data, completion_marker="WENMINGMEN_IMPORT_COMPLETE"):
     assert isinstance(blueprint, unreal.Blueprint) and blueprint.generated_class()
     assert len(data["textures"]) == 25 and len(data["materials"]) == 8 and len(data["meshes"]) == 8
     for name, asset_path in data["textures"].items():
@@ -252,6 +259,11 @@ def validate(blueprint, data):
         assert isinstance(mesh, unreal.StaticMesh) and mesh.get_num_sections(0) > 0, row["mesh"]
         assert path(mesh.get_material(0)) == row["material"], row["part"]
         assert bool(mesh.get_editor_property("nanite_settings").get_editor_property("enabled")) == row["nanite"], row["part"]
+        if row["nanite"]:
+            nanite = mesh.get_editor_property("nanite_settings")
+            assert nanite.get_editor_property("fallback_target") == unreal.NaniteFallbackTarget.PERCENT_TRIANGLES, row["part"]
+            assert float(nanite.get_editor_property("fallback_percent_triangles")) == 1.0, row["part"]
+            assert float(nanite.get_editor_property("fallback_relative_error")) == 0.0, row["part"]
         if row["collision"]:
             body = mesh.get_editor_property("body_setup")
             assert body.get_editor_property("collision_trace_flag") == unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE, row["part"]
@@ -289,7 +301,7 @@ def validate(blueprint, data):
     data["component_count"] = len(components)
     data["validated"] = True
     save_report(data)
-    print("WENMINGMEN_IMPORT_COMPLETE", json.dumps({
+    print(completion_marker, json.dumps({
         "blueprint": data["blueprint"], "components": len(components), "bounds_cm": data["bounds_cm"]
     }))
 

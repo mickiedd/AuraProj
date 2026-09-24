@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000" height="700" font-family="Helvetica, Arial, sans-serif">
+  <rect width="1000" height="700" fill="#f7f8fa"/>
+  <text x="32" y="44" font-size="22" font-weight="700" fill="#1f2933">Wenmingmen placed in the Guangzhou landmark showcase</text>
+  <text x="32" y="68" font-size="13" fill="#52606d">L_GuangzhouLandmarkShowcase · ring rebuilt from Scripts/CreateGuangzhouLandmarkShowcase.py</text>
+
+  <!-- BEFORE ring -->
+  <g>
+    <rect x="32" y="92" width="440" height="330" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="118" font-size="15" font-weight="700" fill="#52606d">BEFORE — six landmarks</text>
+    <circle cx="252" cy="272" r="110" fill="none" stroke="#cbd2d9" stroke-dasharray="5 4"/>
+    <circle cx="252" cy="272" r="14" fill="none" stroke="#cbd2d9"/>
+    <g fill="#9aa5b1">
+      <circle cx="360.2" cy="252.4" r="13"/><circle cx="311.6" cy="179.4" r="13"/>
+      <circle cx="208.7" cy="170.8" r="13"/><circle cx="146.4" cy="241.3" r="13"/>
+      <circle cx="155.5" cy="324.6" r="13"/><circle cx="228.1" cy="379.4" r="13"/>
+    </g>
+    <text x="48" y="404" font-size="12" fill="#52606d">Ring radius at the 8000 cm floor; Wenmingmen is not in the ring at all.</text>
+  </g>
+
+  <!-- AFTER ring -->
+  <g>
+    <rect x="528" y="92" width="440" height="330" rx="8" fill="#ffffff" stroke="#1f7a4d"/>
+    <text x="544" y="118" font-size="15" font-weight="700" fill="#0b6b3a">AFTER — seven landmarks</text>
+    <circle cx="748" cy="272" r="130" fill="none" stroke="#cbd2d9" stroke-dasharray="5 4"/>
+    <circle cx="748" cy="272" r="16" fill="none" stroke="#cbd2d9"/>
+    <g fill="#9aa5b1">
+      <circle cx="875.9" cy="248.9" r="14"/><circle cx="818.5" cy="162.6" r="14"/>
+      <circle cx="696.8" cy="152.4" r="14"/><circle cx="623.2" cy="235.7" r="14"/>
+      <circle cx="634.0" cy="334.2" r="14"/><circle cx="719.8" cy="399.0" r="14"/>
+    </g>
+    <circle cx="842.6" cy="361.1" r="16" fill="#0b6b3a"/>
+    <text x="862" y="366" font-size="12.5" font-weight="700" fill="#0b6b3a">Wenmingmen</text>
+    <text x="544" y="404" font-size="12" fill="#0b6b3a">Radius 8912.75 cm — grown past the floor, so every gate re-spaced.</text>
+  </g>
+
+  <!-- ring arithmetic -->
+  <g>
+    <rect x="32" y="440" width="936" height="86" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="466" font-size="14" font-weight="700" fill="#1f2933">Ring arithmetic (derived, not chosen)</text>
+    <text x="48" y="490" font-size="12" fill="#1f2933">radius = max(8000, sum over landmarks of (2 x radius_xy + 3000 cm gap) / 2&#960;)</text>
+    <text x="48" y="510" font-size="12" fill="#52606d">Wenmingmen contributes 2 x 3748.14 + 3000 = 10496.28 cm of arc, so the radius leaves the 8000 cm floor and every ring angle changes.</text>
+  </g>
+
+  <!-- flow -->
+  <g>
+    <text x="32" y="560" font-size="14" font-weight="700" fill="#1f2933">Flow</text>
+    <g font-size="11.5" fill="#1f2933">
+      <rect x="32" y="574" width="212" height="52" rx="6" fill="#ffffff" stroke="#cbd2d9"/>
+      <text x="44" y="596" font-weight="700">1 · Register</text>
+      <text x="44" y="614" fill="#52606d">LANDMARKS += Wenmingmen</text>
+
+      <rect x="268" y="574" width="212" height="52" rx="6" fill="#ffffff" stroke="#cbd2d9"/>
+      <text x="280" y="596" font-weight="700">2 · Rebuild ring</text>
+      <text x="280" y="614" fill="#52606d">25 actors cleared, 7 rebuilt</text>
+
+      <rect x="504" y="574" width="212" height="52" rx="6" fill="#ffffff" stroke="#cbd2d9"/>
+      <text x="516" y="596" font-weight="700">3 · Save map</text>
+      <text x="516" y="614" fill="#52606d">L_GuangzhouLandmarkShowcase</text>
+
+      <rect x="740" y="574" width="228" height="52" rx="6" fill="#ffffff" stroke="#1f7a4d"/>
+      <text x="752" y="596" font-weight="700">4 · Validate (fresh)</text>
+      <text x="752" y="614" fill="#52606d">0 errors, 0 overlaps</text>
+    </g>
+  </g>
+
+  <text x="32" y="660" font-size="11.5" fill="#1f2933">Verified: 7 landmarks / 7 lights / 7 labels, no light-isolation violation, tightest cone margin 8.818&#176; (Wenmingmen vs ZhenhaiTower).</text>
+  <text x="32" y="680" font-size="11.5" fill="#9b1c1c">Caveat: Wenmingmen grounds on its own lowest geometry, the canal bed, so it sits 332.5 cm above the plaza with its water plane just above grade.</text>
+</svg>

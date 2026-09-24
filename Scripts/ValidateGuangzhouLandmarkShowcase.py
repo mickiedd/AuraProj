@@ -26,9 +26,13 @@ from pathlib import Path
 import unreal
 
 LEVEL_PATH = "/Game/Assets/Environment/GuangzhouLandmarks/L_GuangzhouLandmarkShowcase"
-MANIFEST = Path("C:/Git/AuraProj/Saved/RawModelImport/guangzhou-landmark-showcase-validation.json")
-PLACEMENT_MANIFEST = Path(
-    "C:/Git/AuraProj/Saved/RawModelImport/guangzhou-landmark-showcase.json")
+# Project-relative rather than the old absolute "C:/Git/AuraProj/..." path: on
+# this machine the Windows path made the report land in a literal "C:" directory
+# inside the engine's Binaries/Mac folder instead of the project.
+MANIFEST = (Path(__file__).resolve().parents[1]
+            / "Saved/RawModelImport/guangzhou-landmark-showcase-validation.json")
+PLACEMENT_MANIFEST = (Path(__file__).resolve().parents[1]
+                      / "Saved/RawModelImport/guangzhou-landmark-showcase.json")
 
 EXPECTED_LABELS = [
     "Landmark_Zhengnanmen_HighFidelity",
@@ -43,6 +47,9 @@ EXPECTED_LABELS = [
     "Landmark_Wuxianmen_V5_FullPBR",
     "Landmark_GreatNorthGate",
     "Landmark_ZhenhaiTower",
+    # Wenmingmen joined the ring on 2026-09-24. The per-landmark light labels are
+    # derived from this list, so the landmark and its light move together.
+    "Landmark_Wenmingmen",
 ]
 
 GROUND_TAG = "Showcase_Ground"

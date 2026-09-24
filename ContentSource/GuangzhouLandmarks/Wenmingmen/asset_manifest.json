@@ -10,42 +10,42 @@
   ],
   "overall_height_m": 18.2,
   "requested_triangles": 100000000,
-  "actual_triangles": 160096,
+  "actual_triangles": 381162,
   "mesh_summary": {
     "stone": {
-      "vertices": 87552,
-      "triangles": 43776
+      "vertices": 74388,
+      "triangles": 37194
     },
     "limestone": {
-      "vertices": 6192,
-      "triangles": 3096
+      "vertices": 36072,
+      "triangles": 18004
     },
     "roof": {
-      "vertices": 134468,
-      "triangles": 101224
+      "vertices": 398500,
+      "triangles": 310672
     },
     "wood": {
-      "vertices": 19896,
-      "triangles": 9948
+      "vertices": 25308,
+      "triangles": 12696
     },
     "iron": {
-      "vertices": 1392,
-      "triangles": 696
+      "vertices": 1056,
+      "triangles": 528
     },
     "water": {
       "vertices": 24,
       "triangles": 12
     },
     "foliage": {
-      "vertices": 2688,
-      "triangles": 1344
+      "vertices": 2696,
+      "triangles": 2056
     }
   },
   "texture_sets": {
     "stone": {
       "resolution": [
-        4096,
-        4096
+        2048,
+        2048
       ],
       "basecolor": "stone_BaseColor.jpg",
       "normal": "stone_Normal.png",
@@ -62,8 +62,8 @@
     },
     "roof": {
       "resolution": [
-        4096,
-        4096
+        2048,
+        2048
       ],
       "basecolor": "roof_BaseColor.jpg",
       "normal": "roof_Normal.png",
@@ -71,8 +71,8 @@
     },
     "wood": {
       "resolution": [
-        4096,
-        4096
+        2048,
+        2048
       ],
       "basecolor": "wood_BaseColor.jpg",
       "normal": "wood_Normal.png",
@@ -116,48 +116,48 @@
     }
   },
   "notes": [
-    "Roof tile shapes, dougong bracket silhouettes, masonry courses, crenellations, true open gate passage, side wall and canal bridge are modeled.",
-    "The source concept sheet contains imaginative elements; geometry is not a measured historical reconstruction.",
-    "Chinese inscription is not legibly modeled: add verified text using a separate plaque mesh / decal inside Unreal.",
-    "Collision, Nanite conversion, lightmap UVs, authored LODs and Unreal material instances must be configured in UE; GLB is an interchange asset, not a .uasset.",
-    "Texture tiles are procedural and do not contain scanned historical building surfaces."
+    "Modeled features include coursed pale gate ashlar, darker relieved side-wall brick, radial arch voussoirs, crenellations, a recessed double timber door fitted to the arch, hipped roofs with overlapping clay pans and caps, climbing vines, and a two-arch raised bridge.",
+    "Four reference-guided generated PBR sets for stone, limestone, roof clay, and aged wood are embedded in the GLB. These are generated interpretations, not historical scans.",
+    "The supplied concept board is artistic reference. Dimensions and architectural details are not verified by a measured historical survey.",
+    "The main plaque and side couplets are added by create_high_detail.py as textured overlays. Verify the wording against archival evidence before historical presentation.",
+    "Native UE 5.5 reimport and fresh Blueprint reload are validated separately; Metal SM5 uses an explicit full-resolution Nanite fallback."
   ],
   "high_detail_file": "Wenmingmen_HighDetail.glb",
-  "high_detail_triangles": 2381538,
+  "high_detail_triangles": 2141158,
   "high_detail_mesh_summary": {
     "WM_stone": {
-      "triangles": 700416,
-      "vertices": 547200
+      "triangles": 595104,
+      "vertices": 464925
     },
     "WM_limestone": {
-      "triangles": 49536,
-      "vertices": 38700
+      "triangles": 288064,
+      "vertices": 225210
     },
     "WM_roof": {
-      "triangles": 1619584,
-      "vertices": 1095350
+      "triangles": 1242688,
+      "vertices": 1063758
     },
     "WM_wood": {
-      "triangles": 9948,
-      "vertices": 19896
+      "triangles": 12696,
+      "vertices": 25308
     },
     "WM_iron": {
-      "triangles": 696,
-      "vertices": 1392
+      "triangles": 528,
+      "vertices": 1056
     },
     "WM_water": {
       "triangles": 12,
       "vertices": 24
     },
     "WM_foliage": {
-      "triangles": 1344,
-      "vertices": 2688
+      "triangles": 2056,
+      "vertices": 2696
     },
     "WM_plaque_inscription": {
-      "triangles": 2,
-      "vertices": 4
+      "triangles": 10,
+      "vertices": 20
     }
   },
-  "inscription_note": "文明門 is added as a textured overlay, not modeled engraved character geometry. Verify source lettering against archival material.",
-  "high_detail_note": "Two rounds of stone / clay roof triangle subdivision with millimeter-scale procedural microrelief; does not equal a 100-million-triangle sculpt or photogrammetry."
+  "inscription_note": "The main plaque reads 文明門 right-to-left (visible 門明文). The two five-character side couplets are interpretive, based on the concept sheet rather than verified archival lettering. All characters are textured overlays, not engraved geometry.",
+  "high_detail_note": "Selective masonry subdivision and lower roof subdivision retain modeled overlapping pan/cap tile detail with restrained millimeter-scale relief. This is an interpretive GLB, not photogrammetry; the native UE 5.5 Blueprint is reimported and freshly reloaded after source changes, with Metal SM5 fallback settings preserved."
 }

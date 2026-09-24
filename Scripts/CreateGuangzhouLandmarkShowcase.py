@@ -1,9 +1,9 @@
 """Create or rebuild the Guangzhou landmark showcase level.
 
 Gathers every placeable landmark from /Game/Assets/Environment/GuangzhouLandmarks
-- the six reference-tuned Blueprints plus BP_GreatNorthGate and
-BP_ZhenhaiTower created by WrapLandmarkMeshBlueprints.py - and arranges them in a
-ring around a central plaza, each turned to face the plaza centre.
+- the reference-tuned Blueprints plus BP_GreatNorthGate, BP_ZhenhaiTower (created by
+WrapLandmarkMeshBlueprints.py) and BP_Wenmingmen - and arranges them in a ring
+around a central plaza, each turned to face the plaza centre.
 
 TWO TRAPS THIS SCRIPT EXISTS TO AVOID, both found the hard way:
 
@@ -47,7 +47,11 @@ import unreal
 
 ROOT = "/Game/Assets/Environment/GuangzhouLandmarks"
 LEVEL_PATH = ROOT + "/L_GuangzhouLandmarkShowcase"
-MANIFEST = Path("C:/Git/AuraProj/Saved/RawModelImport/guangzhou-landmark-showcase.json")
+# Project-relative rather than the old absolute "C:/Git/AuraProj/..." path: the
+# project now lives on /Volumes/M2, and the Windows path made Path.mkdir create a
+# literal "C:" directory (or fail) instead of writing the placement manifest.
+MANIFEST = (Path(__file__).resolve().parents[1]
+            / "Saved/RawModelImport/guangzhou-landmark-showcase.json")
 
 GROUND_MESH = "/Engine/BasicShapes/Plane"
 # The project's preview grounds (M_V5PreviewGround, WorldGridMaterial) all render
@@ -158,6 +162,12 @@ LANDMARKS = [
      "GreatNorthGate (Dabeimen)", 0.0),
     ("ZhenhaiTower", "ZhenhaiTower/BP_ZhenhaiTower",
      "Zhenhai Tower", 0.0),
+    # Wenmingmen joined the ring on 2026-09-24, after the four-side timber
+    # walling was made continuous and the climbing vines were given roots. It
+    # follows the same local -Y front convention as the other gates (the door
+    # and plaque sit on -Y), so it needs no facing offset.
+    ("Wenmingmen", "Wenmingmen/BP_Wenmingmen",
+     "Wenmingmen (Wenming Gate)", 0.0),
 ]
 
 

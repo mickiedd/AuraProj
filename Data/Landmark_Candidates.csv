@@ -1,0 +1,5 @@
+candidate_id,name,kind,source_id,source_pointer,pixel_x,pixel_y,projected_easting_m,projected_northing_m,observation_date,confidence,status,notes
+LM-001,Five Story Pagoda / Zhenhai Tower,persistent landmark candidate,MAP-001,Commons annotated image: 5 Story Pagoda,,,,,1880 or 1890,D,unlocated,"Annotation is a region, not surveyed point"
+LM-002,West wall gate label,map gate candidate,MAP-001,"MAP-001 left-middle wall, near the prominent English Gate label",,,,,1880 or 1890,D,image-only,Image-only location; identity and surveyed position unverified
+LM-003,East wall gate label,map gate candidate,MAP-001,"MAP-001 right-middle wall, beside Examin. Hall",,,,,1880 or 1890,D,image-only,Image-only location; identity and surveyed position unverified
+LM-004,North wall gate label,map gate candidate,MAP-001,MAP-001 wall north of Viceroy and below Five Story Pagoda,,,,,1880 or 1890,D,image-only,Image-only location; identity and surveyed position unverified
