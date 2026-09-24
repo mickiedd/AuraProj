@@ -44,3 +44,7 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 ## 2026-09-24 execution note
 
 Status: **Provisional**. 1880/1890 edition discrepancy and scale unresolved. Day 03 may prepare schemas only; no metric transform. Read-only source/tool inspection and the validator are recorded in `QA/Canton_Days_01_05_Execution.md`. Historical outputs remain gated.
+
+## 2026-09-24 continuation (supersedes the status above)
+
+**Provisional.** The British Library identifies `MAP-001` as page 41 of the 1880 second edition of *The Canton Guide* (BL `001954731`), resolving the Commons filename conflict. The map's actual survey date and scale remain unverified. Eight icon-to-OSM landmark matches are registered as candidate controls in `Data/Map_Control_Candidates.csv`; none is a surveyed mark. Source SHA and holding-library link are in `Data/Source_Register.csv`.

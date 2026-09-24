@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="650" viewBox="0 0 1180 650" role="img" aria-labelledby="title desc">
+  <title id="title">Canton terrain days 01–05 evidence foundation</title>
+  <desc id="desc">Before there were daily plans only. After, a checked historic scan and provenance contracts support source research, while missing controls and elevations explicitly block georeferencing, digitization and historical heights.</desc>
+  <style>
+    text{font-family:Arial,Helvetica,sans-serif;fill:#182333} .title{font-size:27px;font-weight:700} .sub{font-size:15px} .head{font-size:17px;font-weight:700} .body{font-size:14px} .tiny{font-size:12px} .ok{fill:#13654c} .warn{fill:#92520a} .block{fill:#a22b35}
+  </style>
+  <rect width="1180" height="650" fill="#f7f9fc"/>
+  <text x="45" y="51" class="title">Canton terrain · days 01–05 evidence foundation</text>
+  <text x="45" y="77" class="sub">1880–1900 study period · 2026-09-24 · no invented historical coordinates or heights</text>
+  <rect x="45" y="110" width="259" height="160" rx="13" fill="#e9edf3" stroke="#a9b4c5"/>
+  <text x="66" y="143" class="head">Before: plans only</text>
+  <text x="66" y="175" class="body">No registered map scan</text>
+  <text x="66" y="198" class="body">No coordinate/height contract</text>
+  <text x="66" y="221" class="body">No machine checked source gate</text>
+  <path d="M310 190 H348" stroke="#586b82" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="352" y="110" width="332" height="160" rx="13" fill="#e4f5ee" stroke="#78b99f"/>
+  <text x="373" y="143" class="head">Day 01–02: source foundation</text>
+  <text x="373" y="175" class="body">UE 5.5.4 + EPSG:32649 working frame</text>
+  <text x="373" y="198" class="body">6 provenance rows; 7017 × 4384 map</text>
+  <text x="373" y="221" class="body">Four image-only landmark candidates</text>
+  <text x="373" y="246" class="tiny ok">Scan checksum and source links retained</text>
+  <path d="M690 190 H728" stroke="#586b82" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="732" y="110" width="401" height="160" rx="13" fill="#fff0dc" stroke="#dab575"/>
+  <text x="753" y="143" class="head">Guard: evidence before coordinates</text>
+  <text x="753" y="175" class="body">Map date/edition and scale unresolved</text>
+  <text x="753" y="198" class="body">No persistent surveyed controls/holdouts</text>
+  <text x="753" y="221" class="body">No approved local origin or vertical zero</text>
+  <text x="753" y="246" class="tiny warn">Source research can proceed; metric tracing cannot</text>
+  <rect x="45" y="310" width="339" height="173" rx="13" fill="#fff4f4" stroke="#d2a1a5"/>
+  <text x="66" y="344" class="head">Day 03 · georeference</text>
+  <text x="66" y="376" class="body">Residual CSV schema, distortion notes</text>
+  <text x="66" y="402" class="body block">BLOCKED · 0 independent check points</text>
+  <text x="66" y="428" class="body">No georeferenced TIFF asserted</text>
+  <rect x="421" y="310" width="339" height="173" rx="13" fill="#fff4f4" stroke="#d2a1a5"/>
+  <text x="442" y="344" class="head">Day 04 · city geometry</text>
+  <text x="442" y="376" class="body">GIS work area, extent check</text>
+  <text x="442" y="402" class="body block">BLOCKED · no accepted map transform</text>
+  <text x="442" y="428" class="body">No false wall/gate GeoJSON exported</text>
+  <rect x="797" y="310" width="336" height="173" rx="13" fill="#fff4f4" stroke="#d2a1a5"/>
+  <text x="818" y="344" class="head">Day 05 · elevation</text>
+  <text x="818" y="376" class="body">Datum register, constraint schema</text>
+  <text x="818" y="402" class="body block">BLOCKED · 0 datum-backed heights</text>
+  <text x="818" y="428" class="body">Modern GLO-30 is DSM, not bare earth</text>
+  <path d="M384 395 H416 M760 395 H792" stroke="#a22b35" stroke-width="2" stroke-dasharray="5 5"/>
+  <rect x="45" y="520" width="1088" height="93" rx="13" fill="#e7eef9" stroke="#9bb2d2"/>
+  <text x="66" y="552" class="head">Validation retained</text>
+  <text x="66" y="579" class="body">SHA-256 scan check · source/landmark IDs · Python syntax · git diff whitespace · evidence gate report</text>
+  <text x="66" y="600" class="tiny">Inventory consistent: 6 sources, 4 image candidates, 0 GCPs, 0 height constraints. Historical gates remain open.</text>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#586b82"/></marker></defs>
+</svg>

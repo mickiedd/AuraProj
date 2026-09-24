@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+  <title id="title">Canton terrain days 01–05: from missing inputs to isolated provisional evidence</title>
+  <desc id="desc">An 1880 British Library map, modern landmark candidates, and a modern bare-earth terrain model now yield reviewable outputs. Independent map checks fail and historical height remains unavailable, so accepted GIS and terrain production stay blocked.</desc>
+  <rect width="1280" height="760" fill="#f5f7fb"/>
+  <text x="44" y="61" font-family="Arial, sans-serif" font-size="29" font-weight="700" fill="#14263b">Canton terrain · Days 01–05 evidence progression</text>
+  <text x="44" y="93" font-family="Arial, sans-serif" font-size="16" fill="#40566d">2026-09-24 · EPSG:32649 working frame · historical acceptance still gated</text>
+  <rect x="44" y="125" width="332" height="204" rx="14" fill="#e9edf3" stroke="#9caebe" stroke-width="2"/>
+  <text x="64" y="160" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#14263b">Before this continuation</text>
+  <text x="64" y="198" font-family="Arial, sans-serif" font-size="16" fill="#24384c">• Map edition disputed: 1880 / 1890</text>
+  <text x="64" y="228" font-family="Arial, sans-serif" font-size="16" fill="#24384c">• No map-to-ground transform</text>
+  <text x="64" y="258" font-family="Arial, sans-serif" font-size="16" fill="#24384c">• No wall or gate vectors</text>
+  <text x="64" y="288" font-family="Arial, sans-serif" font-size="16" fill="#24384c">• No bare-earth source or extent test</text>
+  <path d="M390 226 H445" stroke="#40566d" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="458" y="125" width="778" height="204" rx="14" fill="#e4f2fa" stroke="#4b91b7" stroke-width="2"/>
+  <text x="478" y="160" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#14263b">After: source-linked working outputs</text>
+  <text x="478" y="196" font-family="Arial, sans-serif" font-size="16" fill="#24384c">British Library: 1880 publication · 8 map/OSM candidates · 5 fit + 3 holdouts</text>
+  <text x="478" y="226" font-family="Arial, sans-serif" font-size="16" fill="#24384c">Provisional GeoTIFF + wall, gate, road, water, landform and landmark layers</text>
+  <text x="478" y="256" font-family="Arial, sans-serif" font-size="16" fill="#24384c">4032 m envelope fits coarse wall with ≥ 472.7 m clearance on each side</text>
+  <text x="478" y="286" font-family="Arial, sans-serif" font-size="16" fill="#24384c">GEDTM30 modern bare-earth + uncertainty; EGM2008 vertical metadata</text>
+  <path d="M845 341 V381" stroke="#40566d" stroke-width="4" marker-end="url(#arrow)"/>
+  <rect x="44" y="394" width="565" height="220" rx="14" fill="#fff2df" stroke="#d99a35" stroke-width="2"/>
+  <text x="64" y="431" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#6f3e00">Map acceptance check: FAIL</text>
+  <text x="64" y="471" font-family="Arial, sans-serif" font-size="17" fill="#332b20">3 independent checks; target ≥ 8 surveyed checks</text>
+  <text x="64" y="505" font-family="Arial, sans-serif" font-size="17" fill="#332b20">RMSE 93.24 m &gt; 15 m · worst 132.155 m &gt; 30 m</text>
+  <text x="64" y="539" font-family="Arial, sans-serif" font-size="17" fill="#332b20">OSM centroids are not surveyed historical controls</text>
+  <text x="64" y="577" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#6f3e00">Keep all derived map layers in GIS/Provisional/</text>
+  <rect x="631" y="394" width="605" height="220" rx="14" fill="#fff2df" stroke="#d99a35" stroke-width="2"/>
+  <text x="651" y="431" font-family="Arial, sans-serif" font-size="21" font-weight="700" fill="#6f3e00">Historical elevation check: BLOCKED</text>
+  <text x="651" y="471" font-family="Arial, sans-serif" font-size="17" fill="#332b20">GEDTM30 models 2006–2015-era ground, not 1880 ground</text>
+  <text x="651" y="505" font-family="Arial, sans-serif" font-size="17" fill="#332b20">Excavation depths are relative to present ground</text>
+  <text x="651" y="539" font-family="Arial, sans-serif" font-size="17" fill="#332b20">Qing L3 range 5.92–6.22 m; datum realization unknown</text>
+  <text x="651" y="577" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#6f3e00">Record as non-terrain candidate; no usable ground Z</text>
+  <rect x="44" y="640" width="1192" height="78" rx="12" fill="#173951"/>
+  <text x="65" y="672" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">Validation and handoff</text>
+  <text x="65" y="698" font-family="Arial, sans-serif" font-size="15" fill="#e7f5fd">Rebuild scripts + checksum manifest + fail-closed inventory validator; accepted root GIS and UE terrain import stay closed.</text>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#40566d"/></marker></defs>
+</svg>

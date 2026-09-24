@@ -1,15 +1,16 @@
 {
   "version": 1,
-  "status": "provisional_origin_unset",
+  "status": "provisional_working_horizontal_origin_not_approved",
   "study_period": [1880, 1900],
   "horizontal_crs": "EPSG:32649",
   "horizontal_units": "m",
   "axis_contract": {"ue_x": "easting", "ue_y": "northing", "ue_z": "up", "ue_units": "cm"},
-  "origin_easting_m": null,
-  "origin_northing_m": null,
+  "origin_easting_m": 729400,
+  "origin_northing_m": 2557300,
   "terrain_zero_elevation_m": null,
   "terrain_zero_vertical_datum": null,
-  "forward_when_origin_approved": "ue_x_cm = 100 * (easting_m - origin_easting_m); ue_y_cm = 100 * (northing_m - origin_northing_m)",
-  "inverse_when_origin_approved": "easting_m = origin_easting_m + ue_x_cm / 100; northing_m = origin_northing_m + ue_y_cm / 100",
+  "origin_basis": "lower-left corner of a 4032 m working square around the provisional wall plus 200 m buffer; redo after accepted georeference",
+  "forward_at_working_origin": "ue_x_cm = 100 * (easting_m - origin_easting_m); ue_y_cm = 100 * (northing_m - origin_northing_m)",
+  "inverse_at_working_origin": "easting_m = origin_easting_m + ue_x_cm / 100; northing_m = origin_northing_m + ue_y_cm / 100",
   "proposed_landscape": {"vertices_per_axis": 2017, "spacing_m": 2, "extent_m": 4032, "approved": false}
 }

@@ -1,0 +1,162 @@
+{
+  "type": "FeatureCollection",
+  "name": "Roads_Main",
+  "metadata": {
+    "status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+    "map_source_id": "MAP-001",
+    "coordinates": "RFC 7946 WGS84 lon/lat",
+    "working_metric_crs": "EPSG:32649",
+    "source_pixel_trace": "Data/Map_Pixel_Traces_Provisional.json",
+    "transform": "Data/Map_Transform_Provisional.json"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            113.24910057040196,
+            23.127839067239435
+          ],
+          [
+            113.25309468804757,
+            23.12803173815987
+          ],
+          [
+            113.25745317835528,
+            23.128057378578912
+          ],
+          [
+            113.26217370853482,
+            23.12825407939164
+          ],
+          [
+            113.26725353392203,
+            23.129027549190067
+          ],
+          [
+            113.27306302138675,
+            23.129331677768064
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ROAD-01",
+        "name": "Indicative Old City east-west road",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          [
+            650,
+            430
+          ],
+          [
+            760,
+            425
+          ],
+          [
+            880,
+            425
+          ],
+          [
+            1010,
+            420
+          ],
+          [
+            1150,
+            398
+          ],
+          [
+            1310,
+            390
+          ]
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          730314.8,
+          2559447.8,
+          732767.0,
+          2559651.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            113.25775595988998,
+            23.1368506433448
+          ],
+          [
+            113.25761036907615,
+            23.131608711131793
+          ],
+          [
+            113.25763594461202,
+            23.127889383950397
+          ],
+          [
+            113.25755489566568,
+            23.123831294732195
+          ],
+          [
+            113.25768828327962,
+            23.120281664561226
+          ],
+          [
+            113.25752880320495,
+            23.117068447667066
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ROAD-02",
+        "name": "Indicative central north-south road",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          [
+            890,
+            165
+          ],
+          [
+            885,
+            320
+          ],
+          [
+            885,
+            430
+          ],
+          [
+            882,
+            550
+          ],
+          [
+            885,
+            655
+          ],
+          [
+            880,
+            750
+          ]
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          731180.1,
+          2558268.2,
+          731207.5,
+          2560459.6
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "type": "FeatureCollection",
+  "name": "Gates",
+  "metadata": {
+    "status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+    "map_source_id": "MAP-001",
+    "coordinates": "RFC 7946 WGS84 lon/lat",
+    "working_metric_crs": "EPSG:32649",
+    "source_pixel_trace": "Data/Map_Pixel_Traces_Provisional.json",
+    "transform": "Data/Map_Transform_Provisional.json"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.24906542306591,
+          23.12766979099046
+        ]
+      },
+      "properties": {
+        "id": "GATE-WEST-01",
+        "name": "West gate shown beside English School",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          649,
+          435
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          730311.5,
+          2559429.0,
+          730311.5,
+          2559429.0
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.2732080757759,
+          23.129366327634365
+        ]
+      },
+      "properties": {
+        "id": "GATE-EAST-01",
+        "name": "East gate shown beside Examination Hall",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          1314,
+          389
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          732781.8,
+          2559655.3,
+          732781.8,
+          2559655.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.26693647809522,
+          23.138256715734386
+        ]
+      },
+      "properties": {
+        "id": "GATE-NORTH-01",
+        "name": "North-east gate shown near Kun Yam Hill",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          1143,
+          125
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          732124.0,
+          2560630.0,
+          732124.0,
+          2560630.0
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.25768781789867,
+          23.12034928876138
+        ]
+      },
+      "properties": {
+        "id": "GATE-SOUTH-01",
+        "name": "South-wall gate near Cathedral",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          885,
+          653
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          731207.3,
+          2558631.8,
+          731207.3,
+          2558631.8
+        ]
+      }
+    }
+  ]
+}
