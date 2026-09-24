@@ -12,6 +12,9 @@ FILES = [
     "QA/PCG_Preflight.md", "Sources/HistoricMaps/README.md",
     "Sources/HistoricMaps/Canton_Vrooman_BritishLibrary_001954731.jpg",
     "Data/Historic_Map_Selection.md", "Data/Landmark_Candidates.csv",
+    "Data/Gate_Asset_Inventory.csv", "QA/Map_Scale_Inspection.md",
+    "QA/Canton_Map_ScaleBar_Crop.jpg",
+    "QA/Control_Survey_Handoff.md", "QA/Canton_Days_01_05_Audit_Disposition.md",
     "Data/Map_Control_Candidates.csv", "Data/Map_Transform_Provisional.json",
     "QA/Map_GCP_Residuals.csv", "Docs/Map_Distortion_Notes.md",
     "GIS/Provisional/Canton_Historic_Georef_PROVISIONAL.tif",
@@ -43,9 +46,22 @@ def source_for(path):
         return "MAP-001", "no known copyright restrictions / public domain mark"
     if path == "Data/Elevation_Constraints.csv":
         return "ARCH-004", "published paper transcribed as blocked candidate; original PDF link only"
+    if path == "Data/Gate_Asset_Inventory.csv":
+        return "repository UE gate packages and cited audit records", "project-authored asset observations"
     if path.startswith("GIS/") or "Map_" in path or "Extent_" in path:
         return "MAP-001;OSM-001", "derived from public-domain map and ODbL candidate coordinates"
     return "repository plans and registered sources", "project-authored; sources cited"
+
+
+def status_for(path):
+    if path in (
+        "Sources/HistoricMaps/Canton_Vrooman_BritishLibrary_001954731.jpg",
+        "Data/Historic_Map_Selection.md",
+        "QA/Map_Scale_Inspection.md",
+        "QA/Canton_Map_ScaleBar_Crop.jpg",
+    ):
+        return "Verified source acquisition"
+    return "Provisional"
 
 
 def main():
@@ -58,8 +74,8 @@ def main():
         rows.append({"artifact_id": f"TERRAIN-{index:03d}", "owner": "AuraProj terrain",
                      "path": relative, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                      "source_inputs": source, "generator_tool_version": "Codex / Python 3.9.6; rasterio 1.4.3 for rasters",
-                     "license_status": license_status, "status": "Provisional",
-                     "notes": "Review-only; historical acceptance remains blocked"})
+                     "license_status": license_status, "status": status_for(relative),
+                     "notes": "Source status is separate from historical metric acceptance"})
     output = ROOT / "Data/Artifact_Manifest.csv"
     with output.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(rows[0]), lineterminator="\n")

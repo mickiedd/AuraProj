@@ -48,3 +48,7 @@ Status: **Provisional**. 1880/1890 edition discrepancy and scale unresolved. Day
 ## 2026-09-24 continuation (supersedes the status above)
 
 **Provisional.** The British Library identifies `MAP-001` as page 41 of the 1880 second edition of *The Canton Guide* (BL `001954731`), resolving the Commons filename conflict. The map's actual survey date and scale remain unverified. Eight icon-to-OSM landmark matches are registered as candidate controls in `Data/Map_Control_Candidates.csv`; none is a surveyed mark. Source SHA and holding-library link are in `Data/Source_Register.csv`.
+
+## 2026-09-24 source-selection closeout
+
+**Verified for Day 02 source acquisition only.** The plan's done condition is a traceable map with gaps and date mismatches logged. `MAP-001` meets it: holding-library ID, publication date, original-resolution scan, source URL, rights statement and SHA are recorded. `QA/Map_Scale_Inspection.md` shows the printed scale bar has no legible units; actual survey date and numeric scale remain explicit exceptions. The wall, gates and landmarks have source-linked provisional pixel traces. This decision does **not** approve metric georeferencing; Day 03 remains blocked by independent residuals and unsurveyed candidate controls.

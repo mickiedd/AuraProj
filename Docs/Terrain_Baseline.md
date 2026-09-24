@@ -7,7 +7,7 @@
 - GIS horizontal frame: WGS 84 / UTM zone 49N, EPSG:32649, metres. Guangzhou is within the CRS's 108°–114° E area of use ([EPSG definition](https://epsg.io/32649)). This is a working projection, not evidence that the old map has been georeferenced.
 - Local UE axes: X east, Y north, Z up; 100 UE centimetres = 1 GIS metre. A **working, unapproved** XY origin is E729400/N2557300, calculated from the coarse wall plus 200 m buffer. Terrain-zero elevation remains unset. See `Data/Coordinate_Contract.json` and `QA/Extent_Check.md`.
 - Proposed Landscape only: 2017² vertices at 2 m spacing, about 4032 m square; 63 quads/section, 2 × 2 sections/component, 16 × 16 components. Size and placement must be rechecked against the measured wall and buffer before import. Z scale 50 is conditional on an audited ±128 m encoding.
-- Prefix prospective terrain packages `Canton_`; keep source IDs in GIS feature properties. Gate mesh size or pivot is asset geometry, never a surveyed ground height. `ContentSource/GuangzhouLandmarks/Wenmingmen/unreal-import-manifest.json` currently reports a 6500 × 2806.9 × 2199.0 cm imported bounding box; it is not a coordinate control.
+- Prefix prospective terrain packages `Canton_`; keep source IDs in GIS feature properties. Gate mesh size or pivot is asset geometry, never a surveyed ground height. `Data/Gate_Asset_Inventory.csv` records current Zhengnanmen, Great North Gate and Wenmingmen Blueprint envelopes with source-package IDs, facing convention and grounding caveats. None is a coordinate or elevation control.
 
 ## Reproducibility and storage
 

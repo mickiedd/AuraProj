@@ -8,6 +8,8 @@ The [Guangta excavation report](https://wglj.gz.gov.cn/attachment/7/7994/7994473
 
 The [Jiefang Middle Road stratigraphy paper](https://doi.org/10.13284/j.cnki.rddl.003304) (`ARCH-004`, p. 68) reports the Qing L3 layer at **5.92–6.22 m sea-level elevation**, at a site located at 23°07′11.45″N, 113°15′47.48″E. The datum realization is **not named**; the given coordinate is site-level rather than a point on the section; the stratigraphic band is not an 1880 ground surface. `QING-STRATUM-001` in `Data/Elevation_Constraints.csv` retains the published range with blank `height_m`, D terrain confidence and `candidate_stratum_not_terrain` status. Do not transform this range to EGM2008 or interpolate it into a heightmap until the datum and surface interpretation are established.
 
+The [Guangzhou planning bureau's official datum notice](https://ghzyj.gz.gov.cn/xwzx/tzgg/content/post_10598961.html) (`DATUM-001`) states that Guangzhou changed to the 1985 National Height Datum for new surveying on 2026-01-01 and publishes the relation **H₁₉₈₅ = H_Guangzhou − 4.256 m**. This is a conditional conversion for a height *known* to use the Guangzhou system. The 2021 paper says only “sea-level elevation,” so neither its 5.92–6.22 m band nor its +8.1069 m site altitude can be assigned to either side of that formula. The GEDTM30 crop uses EGM2008; no supported local 1985-to-EGM2008 conversion has been acquired.
+
 ## Prototype district candidates
 
 | Rank | Candidate | Provisional 200 × 200 m EPSG:32649 square | Asset readiness | Evidence / decision |
@@ -16,3 +18,14 @@ The [Jiefang Middle Road stratigraphy paper](https://doi.org/10.13284/j.cnki.rdd
 | 2 | Unnamed east gate by Examination Hall (`GATE-EAST-01`) | E732681.8–732881.8; N2559555.3–2559755.3 | Existing gate assets need identity review | D; no local holdout pass; fallback only |
 
 The primary ranks first for available asset work and legibility on the map; its historical gate identity is unproven. Both squares are **working candidates**, not accepted districts. Require local surveyed checks, gate identity and absolute period height evidence before terrain or gate placement is accepted. Review modern earthworks and fill for every candidate source.
+
+### Selection scorecard
+
+The ranking is a **prototype-readiness** decision, not a historical-location confidence score. Each category scores 0 (absent), 1 (partial) or 2 (ready): map legibility, usable gate asset, local georeference checks, dated ground-height evidence, and verified gate identity. The latter three are mandatory for an accepted placement regardless of total.
+
+| District | Map legibility | Gate asset | Local checks | Period ground Z | Gate identity | Total / 10 |
+|---|---:|---:|---:|---:|---:|---:|
+| South wall | 1 | 2 | 0 | 0 | 0 | 3 |
+| East gate fallback | 1 | 1 | 0 | 0 | 0 | 2 |
+
+The south asset is available for a visual stand-in, while the east candidate still needs an asset-to-gate identity review. Neither candidate clears a historical placement gate.

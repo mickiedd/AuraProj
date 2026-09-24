@@ -22,6 +22,7 @@ def read_csv(relative):
 def main():
     errors = []
     blockers = []
+    limitations = []
     contract = json.loads((ROOT / "Data/Coordinate_Contract.json").read_text(encoding="utf-8"))
     if contract.get("horizontal_crs") != "EPSG:32649":
         errors.append("Unexpected horizontal CRS")
@@ -53,7 +54,7 @@ def main():
                 errors.append("Missing source file: " + row["local_path"])
             elif hashlib.sha256(path.read_bytes()).hexdigest() != row["sha256"]:
                 errors.append("Source checksum mismatch: " + row["source_id"])
-    if not {"MAP-001", "OSM-001", "ELEV-002", "ELEV-003", "ARCH-003", "ARCH-004"}.issubset(ids):
+    if not {"MAP-001", "OSM-001", "ELEV-002", "ELEV-003", "ARCH-003", "ARCH-004", "DATUM-001"}.issubset(ids):
         errors.append("Required map, control, DTM, uncertainty or archaeology source not registered")
     map_row = next((row for row in sources if row["source_id"] == "MAP-001"), {})
     if not map_row.get("observation_date", "").startswith("1880 publication"):
@@ -69,18 +70,61 @@ def main():
             errors.append("Missing artifact: " + row["path"])
         elif hashlib.sha256(path.read_bytes()).hexdigest() != row["sha256"]:
             errors.append("Artifact checksum mismatch: " + row["path"])
+    verified_source_paths = {
+        "Sources/HistoricMaps/Canton_Vrooman_BritishLibrary_001954731.jpg",
+        "Data/Historic_Map_Selection.md", "QA/Map_Scale_Inspection.md",
+        "QA/Canton_Map_ScaleBar_Crop.jpg",
+    }
+    if {row["path"] for row in artifacts if row["status"] == "Verified source acquisition"} != verified_source_paths:
+        errors.append("Day 02 artifact acquisition statuses disagree with source-selection decision")
 
     _, landmarks = read_csv("Data/Landmark_Candidates.csv")
     if any(row["source_id"] not in ids for row in landmarks):
         errors.append("Landmark with unregistered source")
     if not (ROOT / "Sources/HistoricMaps/Canton_Vrooman_BritishLibrary_001954731.jpg").is_file():
         errors.append("Historic map candidate missing")
-    blockers.append("Day 02: publication is 1880, but original survey date and map scale are unverified")
+    if not (ROOT / "QA/Map_Scale_Inspection.md").is_file() or not (ROOT / "QA/Canton_Map_ScaleBar_Crop.jpg").is_file():
+        errors.append("Day 02 map scale inspection evidence missing")
+    limitations.append("Day 02 source selection verified; map survey date and numeric scale remain unknown")
+
+    _, gate_assets = read_csv("Data/Gate_Asset_Inventory.csv")
+    if len(gate_assets) != 3:
+        errors.append("Expected three current gate asset envelopes")
+    for row in gate_assets:
+        package = ROOT / row["repository_path"]
+        if (not package.is_file() or row["historical_control_status"] != "not_survey_control"
+                or row["front_axis"] != "-Y" or not row["git_blob_id"]):
+            errors.append("Gate asset inventory missing package or provenance: " + row["asset_id"])
+        else:
+            # Gate .uasset files are Git LFS tracked. The Git blob is the
+            # canonical pointer, whose OID must match the checked-out bytes.
+            package_bytes = package.read_bytes()
+            pointer = ("version https://git-lfs.github.com/spec/v1\n"
+                       "oid sha256:" + hashlib.sha256(package_bytes).hexdigest() + "\n"
+                       "size " + str(len(package_bytes)) + "\n").encode("ascii")
+            actual_blob = hashlib.sha1(b"blob " + str(len(pointer)).encode("ascii") + b"\0" + pointer).hexdigest()
+            if actual_blob != row["git_blob_id"]:
+                errors.append("Gate package LFS pointer mismatch: " + row["asset_id"])
+        if any(float(row[key]) <= 0 for key in ("width_cm", "depth_cm", "height_cm")):
+            errors.append("Gate asset has nonpositive envelope: " + row["asset_id"])
 
     _, gcps = read_csv("QA/Map_GCP_Residuals.csv")
     transform = json.loads((ROOT / "Data/Map_Transform_Provisional.json").read_text(encoding="utf-8"))
     checks = [float(row["residual_m"]) for row in gcps if row["role_control_or_holdout"] == "holdout"]
     controls = [row for row in gcps if row["role_control_or_holdout"] == "control"]
+    traces = json.loads((ROOT / "Data/Map_Pixel_Traces_Provisional.json").read_text(encoding="utf-8"))
+    outer = next(feature for feature in traces["features"] if feature["id"] == "WALL-OUTER-01")
+    scale_x = traces["source_image_size_px"][0] / traces["reference_preview_size_px"][0]
+    scale_y = traces["source_image_size_px"][1] / traces["reference_preview_size_px"][1]
+    wall_x = [point[0] * scale_x for point in outer["preview_pixels"]]
+    wall_y = [point[1] * scale_y for point in outer["preview_pixels"]]
+    wall_center_x = (min(wall_x) + max(wall_x)) / 2
+    wall_center_y = (min(wall_y) + max(wall_y)) / 2
+    holdout_quadrants = []
+    for row in gcps:
+        if row["role_control_or_holdout"] == "holdout":
+            holdout_quadrants.append(("N" if float(row["pixel_y"]) < wall_center_y else "S") +
+                                     ("W" if float(row["pixel_x"]) < wall_center_x else "E"))
     if len(controls) != 5 or len(checks) != 3:
         errors.append("Expected five fit controls and three independent checks")
     if any(row.get("status") != "candidate_not_surveyed" for row in gcps):
@@ -94,6 +138,8 @@ def main():
     if not (ROOT / "GIS/Provisional/Canton_Historic_Georef_PROVISIONAL.tif").is_file():
         errors.append("Provisional georeferenced raster missing")
     blockers.append("Day 03: 3 unsurveyed holdouts; 93.24 m RMSE and 132.155 m worst exceed budget")
+    if set(holdout_quadrants) != {"NW", "NE", "SW", "SE"}:
+        limitations.append("Day 03 holdouts lack full four-quadrant coverage: " + ", ".join(holdout_quadrants))
     if any((ROOT / name).exists() for name in ("GIS/Wall.geojson", "GIS/Gates.geojson", "GIS/Roads_Main.geojson", "GIS/Waterways.geojson")):
         errors.append("Accepted GIS geometry exists before the accepted georeference gate")
     expected_counts = {"Wall": 2, "Gates": 4, "Roads_Main": 2, "Waterways": 2, "Landforms": 1, "Landmarks": 8}
@@ -149,10 +195,13 @@ def main():
 
     print(json.dumps({"inventory_consistent": not errors, "source_count": len(sources),
                       "artifact_count": len(artifacts),
-                      "landmark_candidate_count": len(landmarks), "gcp_count": len(gcps),
+                      "landmark_candidate_count": len(landmarks), "gate_asset_count": len(gate_assets),
+                      "gcp_count": len(gcps), "holdout_quadrants": holdout_quadrants,
                       "provisional_layer_feature_counts": expected_counts,
                       "elevation_constraint_count": len(heights), "errors": errors,
-                      "blocked_gates": blockers}, indent=2))
+                      "day_status": {"01": "Provisional", "02": "Verified source selection",
+                                     "03": "Blocked", "04": "Blocked", "05": "Blocked"},
+                      "blocked_gates": blockers, "source_limitations": limitations}, indent=2))
     return 1 if errors else 0
 
 

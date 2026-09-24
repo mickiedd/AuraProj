@@ -36,3 +36,19 @@ OpenGeoHub GEDTM30 v1.1 modern modeled bare-earth and uncertainty COG crops were
 | Visual archive | `rsvg-convert -o Saved/TerrainTools/canton-terrain-change-archive-preview.png Docs/Reports/Change-Archive/2026-09-24-canton-terrain-provisional-georef-and-elevation.svg`; visual inspection | 0 | Rendered SVG readable; before/after outputs, both gates and validation visible |
 
 The only warnings from the affine rebuild were rasterio's expected `NotGeoreferencedWarning` for the original JPEG. Historical acceptance remains blocked by surveyed map controls and datum-backed late-Qing ground levels; the modern DTM is context only. The five resource sheets contain the superseding status records.
+
+## Audit closeout and evidence follow-up — 2026-09-24
+
+The external read-only handoff report was reviewed in `QA/Canton_Days_01_05_Audit_Disposition.md`. Its 45 pending terrain files were preserved on local branch `codex/canton-terrain-days-01-05` in checkpoint commit `e087572`. The report's comment that elevation crops were ignored was corrected: both TIFFs are committed artifacts. No remote push or accepted terrain claim is implied.
+
+Day 01 now has three existing UE gate Blueprint envelopes, package blob IDs and grounding conventions in `Data/Gate_Asset_Inventory.csv`; they are explicitly excluded from survey control. Day 02 source acquisition is **Verified** by its stated done-when rule. Inspection of the original map scale graphic found no legible units or representative fraction, and the underlying survey date remains unknown. Those limits stay registered, so Day 02 completion does not validate Day 03 metric geometry.
+
+The independent Day 03 checks occupy NW, SW and SE around the wall trace; NE is missing. The two smaller residuals alone yield **65.64 m RMSE**, so dropping the 132.155 m SW check cannot meet the 15 m budget. `QA/Control_Survey_Handoff.md` specifies replacement surveyed points and dated ground-height evidence. `DATUM-001` records the official **H₁₉₈₅ = H_Guangzhou − 4.256 m** relation; the Qing stratigraphy source names neither datum, and GEDTM30's EGM2008 datum still needs a supported bridge. Day 03, accepted Day 04 and historical Day 05 remain **Blocked**.
+
+| Check | Command / action | Result |
+|---|---|---|
+| Map scale crop | Original JPEG pixels X 5000–6100, Y 3700–4300; manual image inspection | Four-part graphic bar present; numeric scale/units unreadable |
+| Gate asset identity | `git cat-file -e` for each recorded package blob; validator reconstructs LFS pointer from checked-out package bytes | Three package identities present at checkpoint; pointer and bytes agree |
+| Manifest / integrity | `python3 Scripts/refresh_canton_terrain_manifest.py`; `python3 Scripts/validate_canton_terrain_days_01_05.py` | Exit 0; 46 hashes, 12 sources, 3 gate assets, 0 integrity errors; statuses 01 Provisional, 02 Verified source selection, 03–05 Blocked |
+| Syntax / whitespace | `python3 -m py_compile` on four terrain scripts; `git diff --check` | Exit 0 / exit 0 |
+| Visual archive | `rsvg-convert` to a 1200 × 760 PNG, then manual visual inspection | Exit 0; all before/after labels, guards and validation text legible |
