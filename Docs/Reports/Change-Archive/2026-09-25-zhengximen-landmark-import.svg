@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 980" width="1000" height="980" font-family="Helvetica, Arial, sans-serif">
+  <rect width="1000" height="980" fill="#f7f8fa"/>
+  <text x="32" y="42" font-size="22" font-weight="700" fill="#1f2933">Zhengximen / Great West Gate imported as a landmark Blueprint</text>
+  <text x="32" y="66" font-size="13" fill="#52606d">Zhengximen_GreatWestGate_UE5 package &#8594; /Game/Assets/Environment/GuangzhouLandmarks/Zhengximen &#183; BP_Zhengximen &#183; ring radius 8912.75 &#8594; 10254.19 cm</text>
+
+  <!-- ============ 1. SOURCE PACKAGE ============ -->
+  <g>
+    <rect x="32" y="88" width="440" height="212" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="114" font-size="15" font-weight="700" fill="#1f2933">1 &#183; Source package (244 MB, 93 files)</text>
+    <text x="48" y="136" font-size="11.5" fill="#52606d">Supplied as a self-contained UE5 art package, extracted to Raw3DPacket/</text>
+    <g font-size="11.5" fill="#1f2933">
+      <text x="60" y="162">Meshes/Modular/</text>
+      <text x="212" y="162" fill="#52606d">7 GLBs, LOD0 split by material group</text>
+      <text x="60" y="184">Meshes/SM_Zhengximen_LOD0.fbx</text>
+      <text x="212" y="184" fill="#52606d">UV0 + UV1 lightmap + UCX collision</text>
+      <text x="60" y="206">Textures/</text>
+      <text x="212" y="206" fill="#52606d">48 maps, 8 materials &#215; 6, all 4096&#178;</text>
+      <text x="60" y="228">Materials/MI_*.json</text>
+      <text x="212" y="228" fill="#52606d">8 material-instance binding specs</text>
+    </g>
+    <line x1="60" y1="244" x2="444" y2="244" stroke="#e4e7eb"/>
+    <text x="60" y="266" font-size="11" fill="#9b1c1c" font-weight="700">The FBX does not import here.</text>
+    <text x="60" y="284" font-size="11" fill="#52606d">Interchange logs "start importing source" and never the matching "completed"</text>
+  </g>
+
+  <!-- ============ 2. WHAT LANDED ============ -->
+  <g>
+    <rect x="528" y="88" width="440" height="212" rx="8" fill="#ffffff" stroke="#1f7a4d"/>
+    <text x="544" y="114" font-size="15" font-weight="700" fill="#0b6b3a">2 &#183; What landed in the project</text>
+    <text x="544" y="136" font-size="11.5" fill="#52606d">One mesh per material group, so material binding is by construction</text>
+    <g font-size="11.5" fill="#1f2933">
+      <text x="556" y="162">7 &#215; SM_Zhengximen_&lt;Material&gt;</text>
+      <text x="756" y="162" fill="#52606d">roll &#8722;90&#176;, scale 1.0</text>
+      <text x="556" y="184">48 &#215; T_&lt;Material&gt;_&lt;Map&gt;</text>
+      <text x="756" y="184" fill="#52606d">sRGB only on BaseColor</text>
+      <text x="556" y="206">M_Zhengximen_Master + 8 MI_*</text>
+      <text x="756" y="206" fill="#52606d">LimePlaster unused, kept</text>
+      <text x="556" y="228">BP_Zhengximen</text>
+      <text x="756" y="228" fill="#52606d">PackedLevelActor, 7 HISMs</text>
+    </g>
+    <line x1="556" y1="244" x2="940" y2="244" stroke="#e4e7ea"/>
+    <text x="556" y="266" font-size="11" fill="#0b6b3a" font-weight="700">206,252 triangles &#8212; the declared LOD0 exactly</text>
+    <text x="556" y="284" font-size="11" fill="#52606d">Footprint 5320 &#215; 1080 &#215; 1689.68 cm, matching the package's 53.2 &#215; 10.8 &#215; 16.9 m</text>
+  </g>
+
+  <!-- ============ 3. TWO FINDINGS ============ -->
+  <g>
+    <rect x="32" y="316" width="936" height="228" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="342" font-size="14" font-weight="700" fill="#1f2933">The two findings that decided the route</text>
+
+    <rect x="48" y="356" width="448" height="172" rx="6" fill="#fdf6f6" stroke="#f0b4b4"/>
+    <text x="64" y="380" font-size="12.5" font-weight="700" fill="#9b1c1c">The documented import path does not work</text>
+    <text x="64" y="402" font-size="11.5" fill="#1f2933">SM_Zhengximen_LOD0.fbx was probed twice &#8212; once through</text>
+    <text x="64" y="419" font-size="11.5" fill="#1f2933">legacy AssetImportTask + FbxImportUI, once through</text>
+    <text x="64" y="436" font-size="11.5" fill="#1f2933">InterchangeManager.import_asset. Both times Interchange</text>
+    <text x="64" y="453" font-size="11.5" fill="#1f2933">starts the source and never completes it: no asset, no</text>
+    <text x="64" y="470" font-size="11.5" fill="#1f2933">error. That costs the UCX collision and the UV1 atlas,</text>
+    <text x="64" y="487" font-size="11.5" fill="#1f2933">so collision is rebuilt as COMPLEX_AS_SIMPLE instead.</text>
+    <text x="64" y="510" font-size="11" fill="#52606d">Saved/RawModelImport/zhengximen-probe-stdout.log</text>
+
+    <rect x="512" y="356" width="440" height="172" rx="6" fill="#fdf6f6" stroke="#f0b4b4"/>
+    <text x="528" y="380" font-size="12.5" font-weight="700" fill="#9b1c1c">Roll 0 silently lays the gate on its side</text>
+    <text x="528" y="402" font-size="11.5" fill="#1f2933">The GLBs are trimesh output with Z-up positions, but glTF</text>
+    <text x="528" y="419" font-size="11.5" fill="#1f2933">is Y-up, so Interchange tips them over. At roll 0 every</text>
+    <text x="528" y="436" font-size="11.5" fill="#1f2933">group comes back with Y and Z transposed &#8212; AgedWood</text>
+    <text x="528" y="453" font-size="11.5" fill="#1f2933">18.86 &#215; 8.64 &#215; 14.70 m arrives as 18.86 &#215; 14.70 &#215; 8.64.</text>
+    <text x="528" y="470" font-size="11.5" fill="#1f2933">A "tallest axis is Z" test cannot catch it: the brick wall</text>
+    <text x="528" y="487" font-size="11.5" fill="#1f2933">is genuinely deeper than tall. Each group is judged</text>
+    <text x="528" y="504" font-size="11.5" fill="#1f2933">against its own POSITION accessors instead.</text>
+    <text x="528" y="522" font-size="11" fill="#52606d">Resolved roll &#8722;90&#176;, uniform scale 1.0</text>
+  </g>
+
+  <!-- ============ 4. VALIDATION ============ -->
+  <g>
+    <rect x="32" y="560" width="600" height="186" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="586" font-size="14" font-weight="700" fill="#1f2933">4 &#183; Fresh-process validation &#8212; 0 errors / 0 warnings</text>
+    <g font-size="11.5" fill="#1f2933">
+      <text x="60" y="612" font-weight="700">7/7 meshes</text>
+      <text x="180" y="612">each with 1 slot bound to its own MI_*</text>
+      <text x="60" y="634" font-weight="700">48/48 textures</text>
+      <text x="180" y="634">correct sRGB and compression per map kind</text>
+      <text x="60" y="656" font-weight="700">8 MI_*</text>
+      <text x="180" y="656">parented to the master, 5 textures bound each</text>
+      <text x="60" y="678" font-weight="700">Nanite</text>
+      <text x="180" y="678">fallback PERCENT_TRIANGLES 1.0, relative error 0.0</text>
+      <text x="60" y="700" font-weight="700">Collision</text>
+      <text x="180" y="700">COMPLEX_AS_SIMPLE on the 5 structural groups</text>
+      <text x="60" y="722" font-weight="700">Blueprint</text>
+      <text x="180" y="722">7 HISMs on a LevelInstanceComponent, spawns to 5320 &#215; 1080 &#215; 1689.68</text>
+    </g>
+  </g>
+
+  <!-- ============ 5. RING ============ -->
+  <g>
+    <rect x="648" y="560" width="320" height="186" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="664" y="586" font-size="14" font-weight="700" fill="#1f2933">5 &#183; Showcase ring</text>
+    <text x="664" y="610" font-size="11.5" fill="#1f2933">7 &#8594; 8 landmarks; radius re-derived</text>
+    <text x="664" y="632" font-size="11.5" fill="#1f2933">8912.75 &#8594; 10254.19 cm, so every</text>
+    <text x="664" y="650" font-size="11.5" fill="#1f2933">existing gate moved. Arithmetic, not</text>
+    <text x="664" y="668" font-size="11.5" fill="#1f2933">a regression.</text>
+    <text x="664" y="694" font-size="11.5" fill="#0b6b3a">Zhengximen yaw 238.071&#176;, height</text>
+    <text x="664" y="712" font-size="11.5" fill="#0b6b3a">1689.7 cm &#8212; the Blueprint bounds.</text>
+    <text x="664" y="734" font-size="11.5" fill="#0b6b3a">Facade local &#8722;Y, 0.000&#176; off the plaza.</text>
+  </g>
+
+  <!-- ============ FACING EVIDENCE ============ -->
+  <g>
+    <rect x="32" y="762" width="936" height="90" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="788" font-size="13" font-weight="700" fill="#1f2933">Facing was measured, not assumed</text>
+    <text x="48" y="810" font-size="11.5" fill="#1f2933">The plaque and the door sit on &#8722;Y in the source, so no facing offset is needed &#8212; unlike Wenmingmen, which needed 180&#176;.</text>
+    <g font-size="11.5">
+      <text x="60" y="834" font-weight="700" fill="#1f2933">SM_Zhengximen_GatePlaque.glb</text>
+      <text x="300" y="834" fill="#52606d">local Y &#8722;3.055 .. &#8722;2.915 m &#8594; the plaque is on &#8722;Y</text>
+      <text x="640" y="834" font-weight="700" fill="#1f2933">BlackIron.glb</text>
+      <text x="740" y="834" fill="#52606d">local Y &#8722;0.614 .. &#8722;0.387 m &#8594; the door is on &#8722;Y</text>
+    </g>
+  </g>
+
+  <!-- ============ PENDING ============ -->
+  <g>
+    <rect x="32" y="866" width="936" height="86" rx="8" fill="#fffbeb" stroke="#e0b252"/>
+    <text x="48" y="892" font-size="13" font-weight="700" fill="#8a5a00">Still open &#8212; native visual capture</text>
+    <text x="48" y="914" font-size="11.5" fill="#1f2933">Everything above is structural. A render needs an open editor with a live RHI, and UE Python remote execution cannot discover the running editor on</text>
+    <text x="48" y="932" font-size="11.5" fill="#1f2933">this machine (multicast on 239.0.0.1:6766 gets no answer; adb holds 127.0.0.1:6766). Run Scripts/CaptureZhengximenNativeBlueprint.py with the editor open.</text>
+  </g>
+</svg>

@@ -1,20 +1,19 @@
-"""Wrap the imported Zhengximen mesh into a landmark Blueprint.
+"""Wrap the imported Zhengximen meshes into a landmark Blueprint.
 
 Follows the convention established by CreateGreatSouthGateActorAsset.py and
 WrapLandmarkMeshBlueprints.py: the wrapper is a PackedLevelActor Blueprint
 holding one HierarchicalInstancedStaticMeshComponent per source mesh, with the
-source transform recorded as an instance transform. The imported Zhengximen is a
-single combined mesh at identity, so it gets one HISM carrying one instance.
+source transform recorded as an instance transform.
 
-The modular GLBs shipped alongside (Meshes/Modular/SM_Zhengximen_<Material>.glb)
-are deliberately NOT used: the combined LOD0 FBX is the authored import path and
-is the only variant carrying the UCX collision proxies and the UV1 lightmap
-atlas. Splitting the gate into seven material-group meshes would lose the
-collision the arch opening needs.
+The imported gate is seven meshes - one per material group - each authored in the
+building's own space at identity, so each gets one HISM carrying one instance at
+identity. Seven components rather than one is what lets the roof tiles, the brick
+wall, the timber pavilion and the iron door keep their own materials.
 
 NOTE: unreal.BlueprintEditorLibrary.compile_blueprint returns None in this build
 (void, not bool) - asserting on its return value fails even on success. The
-wrapper is verified by spawning it and comparing bounds to the source mesh.
+wrapper is verified by spawning it and comparing bounds to the union of the
+source meshes.
 
 Idempotent: an existing wrapper is reused, saved and re-verified, never rebuilt.
 """
@@ -25,9 +24,12 @@ from pathlib import Path
 import unreal
 
 ROOT = "/Game/Assets/Environment/GuangzhouLandmarks/Zhengximen"
+MESH_ROOT = ROOT + "/Meshes"
 BLUEPRINT_PATH = ROOT + "/BP_Zhengximen"
-MESH_PATH = ROOT + "/Meshes/SM_Zhengximen"
 LABEL = "Zhengximen"
+
+MATERIAL_GROUPS = ["GrayBrick", "StoneFoundation", "AgedWood", "DarkTimber",
+                   "ClayRoofTile", "BlackIron", "GatePlaque"]
 
 PROJECT = Path(
     unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())).resolve()
@@ -55,11 +57,26 @@ def material_slots(mesh):
     return slots
 
 
-def mesh_size(mesh):
-    bounds = mesh.get_bounds()
-    return (float(bounds.box_extent.x) * 2.0,
-            float(bounds.box_extent.y) * 2.0,
-            float(bounds.box_extent.z) * 2.0)
+def union_size(meshes):
+    """Union footprint of the parts, from their absolute bounds.
+
+    Deliberately NOT the largest per-axis extent. Each part has its own origin, so
+    the brick wall (870 cm tall) and the roof tiles (571 cm tall, sitting about
+    10.8 m up) both under-report the building: the largest per-axis extent gives
+    1470 cm of height where the gate is really 1689.7 cm. The parts share one
+    coordinate space, so the union of their absolute bounds is the footprint.
+    """
+    low = [float("inf")] * 3
+    high = [float("-inf")] * 3
+    for mesh in meshes:
+        bounds = mesh.get_bounds()
+        origin, extent = bounds.origin, bounds.box_extent
+        for axis, (centre, half) in enumerate(((origin.x, extent.x),
+                                               (origin.y, extent.y),
+                                               (origin.z, extent.z))):
+            low[axis] = min(low[axis], float(centre) - float(half))
+            high[axis] = max(high[axis], float(centre) + float(half))
+    return tuple(high[axis] - low[axis] for axis in range(3))
 
 
 def find_root_handle(blueprint, subsystem, library):
@@ -70,7 +87,7 @@ def find_root_handle(blueprint, subsystem, library):
     return None
 
 
-def subobject_summary(blueprint):
+def subobjects(blueprint):
     subsystem = unreal.get_engine_subsystem(unreal.SubobjectDataSubsystem)
     library = unreal.SubobjectDataBlueprintFunctionLibrary
     rows = []
@@ -85,8 +102,17 @@ def subobject_summary(blueprint):
     return rows
 
 
+def subobject_summary(blueprint):
+    return subobjects(blueprint)
+
+
+def hism_count(blueprint):
+    return sum(1 for row in subobjects(blueprint)
+               if "InstancedStaticMesh" in row["class"])
+
+
 def verify(blueprint_path, expected_size, label):
-    """Spawn the wrapper and confirm it reproduces the source mesh footprint."""
+    """Spawn the wrapper and confirm it reproduces the source footprint."""
     blueprint = unreal.EditorAssetLibrary.load_asset(blueprint_path)
     assert blueprint, blueprint_path
     actor_subsystem = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
@@ -115,19 +141,29 @@ def verify(blueprint_path, expected_size, label):
 
 
 def wrap():
-    mesh = unreal.EditorAssetLibrary.load_asset(MESH_PATH)
-    assert isinstance(mesh, unreal.StaticMesh), MESH_PATH
-    expected_size = mesh_size(mesh)
+    meshes = []
+    for group in MATERIAL_GROUPS:
+        mesh = unreal.EditorAssetLibrary.load_asset(
+            "{}/SM_Zhengximen_{}".format(MESH_ROOT, group))
+        assert isinstance(mesh, unreal.StaticMesh), group
+        meshes.append((group, mesh))
+    expected_size = union_size([mesh for _, mesh in meshes])
 
     existing = unreal.EditorAssetLibrary.load_asset(BLUEPRINT_PATH)
+    if existing and hism_count(existing) != len(MATERIAL_GROUPS):
+        # A wrapper left behind by a run that failed partway - the asset is created
+        # and saved before its components are added - must not be reused: it looks
+        # like a wrapper while carrying none of the gate.
+        unreal.EditorAssetLibrary.delete_asset(BLUEPRINT_PATH)
+        existing = None
     if existing:
-        # A wrapper can exist in memory without ever having been written to disk.
-        # Always save on the reuse path too, or it vanishes on editor restart.
+        # A wrapper can also exist in memory without ever having been written to
+        # disk. Always save on the reuse path too, or it vanishes on restart.
         assert unreal.EditorAssetLibrary.save_asset(BLUEPRINT_PATH,
                                                     only_if_is_dirty=False), \
             "could not save existing wrapper " + BLUEPRINT_PATH
         entry = {"label": LABEL, "blueprint": BLUEPRINT_PATH,
-                 "status": "existing_reused", "source_mesh": MESH_PATH}
+                 "status": "existing_reused"}
     else:
         blueprint = unreal.BlueprintEditorLibrary.create_blueprint_asset_with_parent(
             BLUEPRINT_PATH, unreal.PackedLevelActor)
@@ -139,29 +175,32 @@ def wrap():
         root_handle = find_root_handle(blueprint, subsystem, library)
         assert root_handle, "no root component on " + BLUEPRINT_PATH
 
-        params = unreal.AddNewSubobjectParams()
-        params.set_editor_property("parent_handle", root_handle)
-        params.set_editor_property(
-            "new_class", unreal.HierarchicalInstancedStaticMeshComponent)
-        params.set_editor_property("blueprint_context", blueprint)
-        params.set_editor_property("conform_transform_to_parent", False)
-        handle, fail_reason = subsystem.add_new_subobject(params)
-        assert library.is_handle_valid(handle), text(fail_reason)
+        for group, mesh in meshes:
+            params = unreal.AddNewSubobjectParams()
+            params.set_editor_property("parent_handle", root_handle)
+            params.set_editor_property(
+                "new_class", unreal.HierarchicalInstancedStaticMeshComponent)
+            params.set_editor_property("blueprint_context", blueprint)
+            params.set_editor_property("conform_transform_to_parent", False)
+            handle, fail_reason = subsystem.add_new_subobject(params)
+            assert library.is_handle_valid(handle), text(fail_reason)
+            subsystem.rename_subobject(handle, unreal.Text("HISM_" + group))
 
-        data = subsystem.k2_find_subobject_data_from_handle(handle)
-        template = library.get_object(data)
-        assert template, MESH_PATH
-        template.set_static_mesh(mesh)
-        # The mesh already carries its material assignment, but the component's
-        # slots are set explicitly so the wrapper does not depend on the mesh's
-        # default materials staying put.
-        for index, material_path in enumerate(material_slots(mesh)):
-            if material_path:
-                material = unreal.EditorAssetLibrary.load_asset(material_path)
-                if material:
-                    template.set_material(index, material)
-        # Single mesh at identity: one instance, no transform.
-        template.add_instances([unreal.Transform()], False, True, False)
+            data = subsystem.k2_find_subobject_data_from_handle(handle)
+            template = library.get_object(data)
+            assert template, group
+            template.set_static_mesh(mesh)
+            # The mesh already carries its material assignment, but the component's
+            # slots are set explicitly so the wrapper does not depend on the mesh's
+            # default materials staying put.
+            for index, material_path in enumerate(material_slots(mesh)):
+                if material_path:
+                    material = unreal.EditorAssetLibrary.load_asset(material_path)
+                    if material:
+                        template.set_material(index, material)
+            # Each part is authored in the building's own space: one instance at
+            # identity, no transform.
+            template.add_instances([unreal.Transform()], False, True, False)
 
         # compile_blueprint is void in this build; verify by spawning instead.
         unreal.BlueprintEditorLibrary.compile_blueprint(blueprint)
@@ -169,17 +208,16 @@ def wrap():
                                                     only_if_is_dirty=False), \
             BLUEPRINT_PATH
         entry = {"label": LABEL, "blueprint": BLUEPRINT_PATH, "status": "created",
-                 "parent_class": "/Script/Engine.PackedLevelActor",
-                 "source_mesh": MESH_PATH}
+                 "parent_class": "/Script/Engine.PackedLevelActor"}
 
-    entry["source_mesh_size_cm"] = [round(value, 2) for value in expected_size]
-    entry["material_slots"] = material_slots(mesh)
+    entry["meshes"] = {group: mesh.get_path_name() for group, mesh in meshes}
+    entry["source_union_size_cm"] = [round(value, 2) for value in expected_size]
     entry["subobjects"] = subobject_summary(
         unreal.EditorAssetLibrary.load_asset(BLUEPRINT_PATH))
     entry["hism_component_count"] = sum(
         1 for row in entry["subobjects"] if "InstancedStaticMesh" in row["class"])
     entry.update(verify(BLUEPRINT_PATH, expected_size, LABEL))
-    assert entry["hism_component_count"] == 1, entry["subobjects"]
+    assert entry["hism_component_count"] == len(MATERIAL_GROUPS), entry["subobjects"]
 
     # Confirm the asset is genuinely on disk, not just in the editor's memory.
     on_disk = PROJECT / ("Content" + BLUEPRINT_PATH.split("/Game", 1)[1] + ".uasset")
@@ -194,8 +232,8 @@ def main():
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps({"wrappers": [entry], "passed": True}, indent=2),
                         encoding="utf-8")
-    print("ZHENGXIMEN_BLUEPRINT_COMPLETE " + json.dumps(
-        {k: v for k, v in entry.items() if k not in ("material_slots", "subobjects")}))
+    unreal.log("ZHENGXIMEN_BLUEPRINT_COMPLETE " + json.dumps(
+        {k: v for k, v in entry.items() if k != "subobjects"}))
 
 
 if __name__ == "__main__":
