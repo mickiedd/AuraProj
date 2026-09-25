@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="680" viewBox="0 0 1120 680">
+<rect width="1120" height="680" fill="#14222b"/>
+<g font-family="Arial,sans-serif" fill="#edf1ed">
+<text x="40" y="52" font-size="29" font-weight="bold">BP_Zhengximen · textured, continuous timber walls</text>
+<text x="40" y="85" font-size="17" fill="#adbec6">25 September 2026 · Source geometry retained; live material shader repaired</text>
+<rect x="40" y="116" width="490" height="370" rx="16" fill="#273640"/>
+<rect x="590" y="116" width="490" height="370" rx="16" fill="#24413d"/>
+<text x="65" y="153" font-size="23">BEFORE · checkerboard fallback</text>
+<text x="615" y="153" font-size="23">AFTER · source PBR textures</text>
+
+<path d="M82 210 L478 210 L454 232 L106 232 Z" fill="#111b23"/>
+<path d="M632 210 L1028 210 L1004 232 L656 232 Z" fill="#111b23"/>
+<rect x="114" y="232" width="332" height="86" fill="#778087"/>
+<path d="M114 232h42v43h-42z M198 232h42v43h-42z M282 232h42v43h-42z M366 232h42v43h-42z M156 275h42v43h-42z M240 275h42v43h-42z M324 275h42v43h-42z M408 275h38v43h-38z" fill="#535e66"/>
+<rect x="664" y="232" width="332" height="86" fill="#855437"/>
+<path d="M700 232v86 M740 232v86 M780 232v86 M820 232v86 M860 232v86 M900 232v86 M940 232v86 M980 232v86 M664 253h332 M664 289h332" stroke="#482f23" stroke-width="5"/>
+<text x="65" y="360" font-size="18">Normal sampler + default color texture</text>
+<text x="65" y="390" font-size="18">→ Metal shader fails to compile</text>
+<text x="65" y="430" font-size="16" fill="#c0ccd1">Instance bindings passed old validation,</text>
+<text x="65" y="454" font-size="16" fill="#c0ccd1">but the parent material was invalid.</text>
+<text x="615" y="360" font-size="18">Typed source defaults + correct samplers</text>
+<text x="615" y="390" font-size="18">→ timber, tiles and masonry render</text>
+<text x="615" y="430" font-size="16" fill="#c0d8cc">Continuous backing on all 8 timber faces;</text>
+<text x="615" y="454" font-size="16" fill="#c0d8cc">framing remains visible over solid panels.</text>
+<text x="40" y="535" font-size="22" font-weight="bold">Validation</text>
+<text x="40" y="570" font-size="18">✓ Native Blueprint viewport shows textures instead of checkerboard</text>
+<text x="40" y="600" font-size="18">✓ 8,800 wall rays: zero through-gaps · fresh Unreal asset validation passes</text>
+<text x="40" y="630" font-size="18">Guard: validate parent source defaults and HISM / Nanite material usage</text>
+</g></svg>

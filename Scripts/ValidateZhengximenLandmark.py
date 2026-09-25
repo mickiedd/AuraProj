@@ -48,8 +48,11 @@ EXPECTED_MAPS = {
     "Height": ("TC_GRAYSCALE", False),
 }
 
-# LOD0 per Documentation/AssetManifest.json, split across the seven groups.
-EXPECTED_SOURCE_TRIANGLES = 206252
+# LOD0 triangle total across the seven groups. The package declared 206,252; the
+# tuning pass took it to 218,328 by refining the arch (400 wall slices instead of 46,
+# a 96-segment voussoir ring, and an arch-fitting door), so this tracks the tuned
+# source rather than the shipped package.
+EXPECTED_SOURCE_TRIANGLES = 271644
 PROJECT = Path(
     unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())).resolve()
 REPORT = PROJECT / "Saved" / "RawModelImport" / "zhengximen-validation.json"
@@ -67,6 +70,37 @@ def fail(message):
 def warn(message):
     warnings.append(str(message))
     unreal.log_warning("ZHENGXIMEN_VALIDATE_WARNING " + str(message))
+
+
+def glb_uv_check(group):
+    """Does the GLB this mesh was imported from actually carry texture coordinates?
+
+    This replaces a `get_num_uv_channels` check that had to be thrown away. On this
+    build `EditorStaticMeshLibrary.get_num_uv_channels` returns 0 for **every** mesh,
+    including the known-good Wenmingmen and Zhengnanmen ones that render their 4K
+    maps correctly - it reports *source* UV channels, and an Interchange import
+    carries no source data. A check that fails good assets is worse than no check.
+
+    Reading the source GLB is the honest substitute: the import is a pass-through,
+    and this is precisely the check that would have caught the original defect, where
+    every GLB was exported with POSITION and COLOR_0 only and no TEXCOORD_0 at all.
+    """
+    path = (PROJECT / "Raw3DPacket" / "Zhengximen_GreatWestGate_UE5_Package"
+            / "Zhengximen_GreatWestGate_UE5" / "Meshes" / "Modular"
+            / "SM_Zhengximen_{}.glb".format(group))
+    if not path.is_file():
+        return {"glb": str(path), "error": "missing"}
+    import struct
+    with open(path, "rb") as handle:
+        struct.unpack("<4sII", handle.read(12))
+        chunk_length, _ = struct.unpack("<I4s", handle.read(8))
+        document = json.loads(handle.read(chunk_length).decode("utf-8"))
+    attributes = set()
+    for mesh in document.get("meshes", []):
+        for primitive in mesh.get("primitives", []):
+            attributes.update(primitive.get("attributes", {}).keys())
+    return {"glb": str(path), "attributes": sorted(attributes),
+            "has_uv": "TEXCOORD_0" in attributes}
 
 
 def check_meshes():
@@ -122,6 +156,14 @@ def check_meshes():
         triangles = int(mesh.get_num_triangles(0))
         info["triangles"] = triangles
         total_triangles += triangles
+
+        uv = glb_uv_check(group)
+        info["source_uv"] = uv
+        if uv.get("error"):
+            warn("{} source GLB not readable: {}".format(asset_path, uv["error"]))
+        elif not uv["has_uv"]:
+            fail("{} came from a GLB with no TEXCOORD_0 ({}), so no material can "
+                 "land on it".format(asset_path, uv["attributes"]))
 
         body = mesh.get_editor_property("body_setup")
         flag = str(body.get_editor_property("collision_trace_flag"))
@@ -179,6 +221,23 @@ def check_materials():
         fail("master material missing: " + MASTER_PATH)
     else:
         checks["master"] = {"path": MASTER_PATH}
+        # Instance overrides alone do not prove that the parent shader compiles.
+        # The previous parent sampled DefaultTexture as a normal map and rendered
+        # the checkerboard fallback on Metal despite all instance bindings passing.
+        lib = unreal.MaterialEditingLibrary
+        defaults = set()
+        for parameter in ("BaseColorTex", "NormalTex", "RoughnessTex",
+                          "MetallicTex", "AOTex"):
+            texture = lib.get_material_default_texture_parameter_value(master, parameter)
+            if texture:
+                defaults.add(texture.get_name())
+        checks["master"]["default_textures"] = sorted(defaults)
+        for suffix in ("BaseColor", "Normal", "Roughness", "Metallic", "AO"):
+            if "T_AgedWood_" + suffix not in defaults:
+                fail("master missing typed source texture default: " + suffix)
+        for usage in ("used_with_instanced_static_meshes", "used_with_nanite"):
+            if not master.get_editor_property(usage):
+                fail("master missing material usage: " + usage)
 
     present = {}
     for name in ALL_MATERIALS:

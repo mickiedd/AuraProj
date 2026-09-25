@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="720" viewBox="0 0 1160 720">
+<rect width="1160" height="720" fill="#172329"/>
+<g font-family="Arial,sans-serif" fill="#f0f0e9">
+<text x="42" y="53" font-size="30" font-weight="bold">Zhengximen · wall detail and plaque</text>
+<text x="42" y="85" font-size="17" fill="#aebec0">Reference-led masonry relief · traditional inscription · saved Blueprint</text>
+<rect x="42" y="120" width="500" height="370" rx="17" fill="#26343a"/>
+<rect x="618" y="120" width="500" height="370" rx="17" fill="#28403d"/>
+<text x="67" y="158" font-size="22" font-weight="bold">BEFORE</text>
+<text x="643" y="158" font-size="22" font-weight="bold">AFTER</text>
+<rect x="68" y="188" width="448" height="235" fill="#8b8e8b"/>
+<g stroke="#b3b5b0" stroke-width="2" opacity=".65"><path d="M68 213h448M68 238h448M68 263h448M68 288h448M68 313h448M68 338h448M68 363h448M68 388h448"/><path d="M162 188v25M315 213v25M416 238v25M205 263v25M352 288v25M111 313v25M269 338v25M455 363v25"/></g>
+<text x="68" y="451" font-size="17">UVs restart on every horizontal wall slice</text>
+<text x="68" y="475" font-size="17">Shallow overlay · flat, pale face</text>
+<rect x="644" y="188" width="448" height="235" fill="#34312d"/>
+<g fill="#a7a9a3" stroke="#5e615c" stroke-width="3">
+<path d="M647 190h104v28H647zM757 190h104v28H757zM867 190h104v28H867zM977 190h112v28H977z"/>
+<path d="M647 224h54v28h-54zM707 224h104v28H707zM817 224h104v28H817zM927 224h104v28H927zM1037 224h52v28h-52z"/>
+<path d="M647 258h104v28H647zM757 258h104v28H757zM867 258h104v28H867zM977 258h112v28H977z"/>
+<path d="M647 292h54v28h-54zM707 292h104v28H707zM817 292h104v28H817zM927 292h104v28H927zM1037 292h52v28h-52z"/>
+<path d="M647 326h104v28H647zM757 326h104v28H757zM867 326h104v28H867zM977 326h112v28H977z"/>
+<path d="M647 360h54v28h-54zM707 360h104v28H707zM817 360h104v28H817zM927 360h104v28H927zM1037 360h52v28h-52z"/>
+<path d="M647 394h104v27H647zM757 394h104v27H757zM867 394h104v27H867zM977 394h112v27H977z"/>
+</g>
+<text x="644" y="451" font-size="17">World-aligned UVs · weathered PBR maps</text>
+<text x="644" y="475" font-size="17">Staggered faces project 5–6 cm from backing</text>
+<path d="M542 301h66" stroke="#d4bd82" stroke-width="5" marker-end="url(#arrow)"/>
+<rect x="42" y="520" width="1076" height="75" rx="11" fill="#36413e"/>
+<text x="68" y="548" font-size="19">PLAQUE</text>
+<text x="200" y="549" font-size="19" fill="#d4c7a4">正西门</text>
+<path d="M370 542h74" stroke="#d4bd82" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="470" y="553" font-size="39" font-family="Songti SC,Songti,Noto Serif CJK SC,serif" fill="#efe2ba">正西門</text>
+<text x="803" y="549" font-size="17">single centred UV panel</text>
+<text x="42" y="632" font-size="20" font-weight="bold">Validation</text>
+<text x="42" y="663" font-size="17">✓ Live viewport: brick courses and 正西門 visible    ✓ UE validator: 0 errors / 0 warnings</text>
+<text x="42" y="689" font-size="17">✓ 8,800 timber-wall rays, 135 gateway rays, 450 door-seam rays: 0 open</text>
+</g><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0l8 4-8 4z" fill="#d4bd82"/></marker></defs></svg>

@@ -81,6 +81,15 @@ exactly the part being lost. Read this when a trap bites.
     deprecated but still work. `unreal.FbxImportUI` option names (`combine_meshes`,
     `generate_lightmap_u_vs`, `auto_generate_collision`) are the documented spellings,
     but never assume they took — verify the resulting mesh.
+21. **`EditorStaticMeshLibrary.get_num_uv_channels` always returns 0 — it is not a UV
+    test.** It reports *source* UV channels, and an Interchange import carries no source
+    data, so it returns 0 for every mesh including the known-good Wenmingmen and
+    Zhengnanmen ones that render their 4K maps correctly. `StaticMesh.get_num_vertices`
+    does not exist either (there is no `get_num_vertices` on the class at all). To prove
+    a mesh can be textured, read the **source file's** vertex attributes — for a glTF,
+    `TEXCOORD_0` in the primitive's `attributes`. That is what
+    `ValidateZhengximenLandmark.py` now does. **A check that fails good assets is worse
+    than no check** — probe an API against a known-good asset before trusting it.
 
 ## Git
 

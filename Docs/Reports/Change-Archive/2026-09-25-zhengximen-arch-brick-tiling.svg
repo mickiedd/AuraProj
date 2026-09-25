@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="640" viewBox="0 0 1120 640" role="img" aria-labelledby="title desc">
+  <title id="title">Zhengximen arch brick tiling before and after</title>
+  <desc id="desc">Before: narrow repeated rib cylinders and texture stretched on arch wedges. After: even curved voussoirs, staggered barrel-vault bricks, and a continuous backing. Source ray checks and Unreal validation passed.</desc>
+  <defs>
+    <style>
+      text{font-family:Arial,Helvetica,sans-serif;fill:#263238} .heading{font-size:25px;font-weight:700} .sub{font-size:16px} .label{font-size:18px;font-weight:700} .note{font-size:14px} .pass{fill:#176743;font-weight:700} .card{fill:#fff;stroke:#d3dcd9;stroke-width:2} .stone{fill:#b9bbb4;stroke:#65716e;stroke-width:2} .mortar{fill:none;stroke:#66716f;stroke-width:5} .thin{stroke:#64716f;stroke-width:2}
+    </style>
+    <pattern id="oldribs" width="13" height="13" patternUnits="userSpaceOnUse"><path d="M 0 0 L 13 13" stroke="#405057" stroke-width="3"/></pattern>
+    <pattern id="brick" width="53" height="32" patternUnits="userSpaceOnUse"><rect width="53" height="32" fill="#aeb3ac"/><path d="M0 31H53 M26 0V31" stroke="#65716e" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="1120" height="640" fill="#f4f7f4"/>
+  <text x="42" y="49" class="heading">BP_Zhengximen · gateway arch brick tiling</text>
+  <text x="42" y="76" class="sub">Curved stone geometry and mortar joints, shown from the portal and into the tunnel</text>
+  <rect class="card" x="35" y="108" width="510" height="382" rx="12"/>
+  <rect class="card" x="575" y="108" width="510" height="382" rx="12"/>
+  <text x="60" y="143" class="label">Before · radial strips and stretched UVs</text>
+  <text x="600" y="143" class="label">After · coursed stone vault</text>
+  <!-- Before: repeated narrow ribs around the semicircle. -->
+  <path d="M105 405 A185 185 0 0 1 475 405 L433 405 A143 143 0 0 0 147 405 Z" fill="#bfc3bd" stroke="#687572" stroke-width="2"/>
+  <path d="M105 405 A185 185 0 0 1 475 405 L433 405 A143 143 0 0 0 147 405 Z" fill="url(#oldribs)" opacity=".75"/>
+  <path d="M147 405 A143 143 0 0 1 433 405" fill="none" stroke="#2e383b" stroke-width="10" stroke-dasharray="5 4"/>
+  <path d="M164 406 V355 M414 406 V355" class="thin"/>
+  <text x="67" y="449" class="note">Axial cylinders made dense ribs and striped highlights.</text>
+  <text x="67" y="471" class="note">One full texture per wedge repeated its dark grid.</text>
+  <!-- After: discrete voussoirs with common curved inner and outer radii. -->
+  <path d="M645 405 A185 185 0 0 1 1015 405 L973 405 A143 143 0 0 0 687 405 Z" class="stone"/>
+  <path d="M645 405 A185 185 0 0 1 1015 405 L973 405 A143 143 0 0 0 687 405 Z" fill="url(#brick)" opacity=".22"/>
+  <path d="M645 405 L687 405 M651 358 L692 369 M669 311 L707 331 M695 270 L726 299 M729 239 L751 274 M771 219 L783 261 M830 220 L830 262 M889 219 L877 261 M931 239 L909 274 M965 270 L934 299 M991 311 L953 331 M1009 358 L968 369 M1015 405 L973 405" class="mortar"/>
+  <path d="M687 405 A143 143 0 0 1 973 405" fill="none" stroke="#435250" stroke-width="3"/>
+  <text x="607" y="449" class="note">36 even voussoirs per portal · 8 mm radial mortar joints.</text>
+  <text x="607" y="471" class="note">612 curved, staggered vault bricks over continuous backing.</text>
+  <rect x="35" y="512" width="1050" height="103" rx="12" fill="#e6eee9" stroke="#c8d7cf"/>
+  <text x="57" y="541" class="label">Validation</text>
+  <text x="57" y="568" class="note">Source geometry: 72 portal voussoirs · 612 vault bricks · 0 rib cylinders · all 9 GLBs have TEXCOORD_0.</text>
+  <text x="57" y="591" class="note">0/8,800 wall rays, 0/135 gateway rays, 0/450 door-seam rays pass through. UE 5.5: 0 errors, 0 warnings.</text>
+</svg>

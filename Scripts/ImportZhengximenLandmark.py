@@ -94,9 +94,9 @@ MASTER_NAME = "M_Zhengximen_Master"
 MASTER_PARAMS = [
     ("BaseColorTex", "MP_BASE_COLOR", "RGB", None),
     ("NormalTex", "MP_NORMAL", "RGB", "SAMPLERTYPE_NORMAL"),
-    ("RoughnessTex", "MP_ROUGHNESS", "R", None),
-    ("MetallicTex", "MP_METALLIC", "R", None),
-    ("AOTex", "MP_AMBIENT_OCCLUSION", "R", None),
+    ("RoughnessTex", "MP_ROUGHNESS", "R", "SAMPLERTYPE_MASKS"),
+    ("MetallicTex", "MP_METALLIC", "R", "SAMPLERTYPE_MASKS"),
+    ("AOTex", "MP_AMBIENT_OCCLUSION", "R", "SAMPLERTYPE_LINEAR_GRAYSCALE"),
 ]
 HEIGHT_PARAM = "HeightTex"  # documented by the package; left unconnected on purpose
 
@@ -280,8 +280,12 @@ def import_group(material):
     expected = glb_expected_size_cm(source)
     attempts = []
 
-    for roll, scale in IMPORT_CANDIDATES:
-        if EAL.does_asset_exist(asset_path):
+    for attempt_index, (roll, scale) in enumerate(IMPORT_CANDIDATES):
+        # Reimport straight over the existing asset on the first attempt.
+        # delete_asset is a force-delete, and the Blueprint's HISMs reference these
+        # meshes - clearing them on a reimport risks nulling those references. Only a
+        # retry, after a first attempt produced something wrong, clears the asset.
+        if attempt_index and EAL.does_asset_exist(asset_path):
             EAL.delete_asset(asset_path)
         try:
             interchange_import(source, asset_name, roll, scale, build_nanite=True)
@@ -341,33 +345,53 @@ def import_meshes():
 def build_master():
     master_path = MAT_DEST + "/" + MASTER_NAME
     master = EAL.load_asset(master_path)
-    if master:
-        return master
     tools = unreal.AssetToolsHelpers.get_asset_tools()
-    master = tools.create_asset(MASTER_NAME, MAT_DEST, unreal.Material,
-                                unreal.MaterialFactoryNew())
+    if not master:
+        master = tools.create_asset(MASTER_NAME, MAT_DEST, unreal.Material,
+                                    unreal.MaterialFactoryNew())
     assert master, master_path
+    # Rebuild existing graphs too: a valid instance cannot repair an invalid
+    # parent default texture/sampler pair on Metal.
+    MEL.delete_all_material_expressions(master)
+    master.set_editor_property("used_with_instanced_static_meshes", True)
+    master.set_editor_property("used_with_nanite", True)
+    defaults = dict(zip([row[0] for row in MASTER_PARAMS],
+                        ["BaseColor", "Normal", "Roughness", "Metallic", "AO"]))
+    typed_nodes = []
     for index, (name, prop, output, sampler) in enumerate(MASTER_PARAMS):
         expression = MEL.create_material_expression(
             master, unreal.MaterialExpressionTextureSampleParameter2D,
             -600, -240 + 160 * index)
-        expression.set_editor_property("parameter_name", name)
+        texture = EAL.load_asset(TEX_DEST + "/T_AgedWood_" + defaults[name])
+        assert texture, name
+        expression.set_editor_property("texture", texture)
         if sampler:
             try:
                 expression.set_editor_property(
                     "sampler_type", getattr(unreal.MaterialSamplerType, sampler))
             except Exception as exc:  # noqa: BLE001
                 problem("{} sampler type: {}".format(name, exc))
+        expression.set_editor_property("texture", texture)
+        expression.set_editor_property("parameter_name", name)
+        typed_nodes.append((expression, texture, sampler))
         MEL.connect_material_property(
             expression, output, getattr(unreal.MaterialProperty, prop))
     try:
         height = MEL.create_material_expression(
             master, unreal.MaterialExpressionTextureSampleParameter2D, -600, 560)
         height.set_editor_property("parameter_name", HEIGHT_PARAM)
+        height.set_editor_property("texture", EAL.load_asset(TEX_DEST + "/T_AgedWood_Height"))
+        height.set_editor_property("sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_LINEAR_GRAYSCALE)
     except Exception as exc:  # noqa: BLE001
         problem("HeightTex parameter: " + str(exc))
+    # Finalize after all nodes have unique parameter names. Editor property
+    # changes can synchronize defaults while new parameters are still unnamed.
+    for node, texture, sampler in typed_nodes:
+        node.set_editor_property("texture", texture)
+        if sampler:
+            node.set_editor_property("sampler_type", getattr(unreal.MaterialSamplerType, sampler))
     MEL.recompile_material(master)
-    EAL.save_loaded_asset(master)
+    EAL.save_loaded_asset(master, only_if_is_dirty=False)
     note("master_created", path=master_path)
     return master
 

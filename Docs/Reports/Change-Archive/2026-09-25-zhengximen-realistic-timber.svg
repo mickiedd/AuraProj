@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="700" viewBox="0 0 1160 700">
+<rect width="1160" height="700" fill="#1a2527"/>
+<g font-family="Arial,sans-serif" fill="#f2eee8">
+<text x="42" y="54" font-size="30" font-weight="bold">BP_Zhengximen · realistic timber texture</text>
+<text x="42" y="87" font-size="17" fill="#b9c5c3">Aged infill boards, dark structural wood, and lengthwise grain</text>
+<rect x="42" y="124" width="500" height="365" rx="16" fill="#2b383a"/>
+<rect x="618" y="124" width="500" height="365" rx="16" fill="#293d39"/>
+<text x="68" y="160" font-size="22" font-weight="bold">BEFORE</text>
+<text x="644" y="160" font-size="22" font-weight="bold">AFTER</text>
+<rect x="71" y="194" width="440" height="199" fill="#754b33"/>
+<g stroke="#4f3326" stroke-width="8" opacity=".85"><path d="M71 230h440M71 269h440M71 309h440M71 350h440"/></g>
+<g stroke="#271b16" stroke-width="6"><path d="M164 194v199M273 194v199M386 194v199"/></g>
+<text x="71" y="432" font-size="17">Short-repeat sine bands · uniform brown</text>
+<text x="71" y="459" font-size="17">Grain across vertical battens and doors</text>
+<rect x="647" y="194" width="440" height="199" fill="#54392c"/>
+<g fill="none" stroke-linecap="round"><path d="M647 215c70 -14 121 12 198 -5s166 11 242 -5M647 240c84 9 150 -9 220 6s142 -11 220 -4M647 266c79 -14 145 14 224 1s143 14 216 -6M647 290c70 13 145 -8 224 8s145 -12 216 3M647 320c76 -12 145 10 210 -2s149 8 230 -7M647 346c80 11 145 -11 222 7s145 -11 218 -2M647 372c66 -7 147 10 221 -4s155 12 219 -3" stroke="#b18259" stroke-width="4" opacity=".55"/>
+<path d="M647 226c89 11 149 -15 220 6s143 -10 220 4M647 279c71 10 161 -7 236 6s138 -17 204 -6M647 338c73 9 152 -11 227 6s155 -12 213 3" stroke="#2d241f" stroke-width="3" opacity=".8"/></g>
+<ellipse cx="794" cy="269" rx="35" ry="10" fill="none" stroke="#2d241f" stroke-width="5"/>
+<ellipse cx="968" cy="337" rx="27" ry="9" fill="none" stroke="#2d241f" stroke-width="4"/>
+<g stroke="#33251f" stroke-width="7"><path d="M742 194v199M1036 194v199"/></g>
+<text x="647" y="432" font-size="17">Warped fibers · knots · weathered color</text>
+<text x="647" y="459" font-size="17">Matched normal, roughness, AO and longer UV scale</text>
+<path d="M542 296h65" stroke="#d2bc8a" stroke-width="5" marker-end="url(#arrow)"/>
+<rect x="42" y="522" width="1076" height="69" rx="12" fill="#34433f"/>
+<text x="67" y="550" font-size="18">AgedWood backing: 3.2 m repeat · DarkTimber beams: lengthwise grain</text>
+<text x="67" y="577" font-size="18">Vertical lattice and arched door leaves: UVs rotated along the timber</text>
+<text x="42" y="633" font-size="20" font-weight="bold">Validation</text>
+<text x="42" y="664" font-size="17">✓ Native Blueprint review   ✓ Fresh UE validation: 0 errors / 0 warnings</text>
+<text x="42" y="690" font-size="17">✓ 8,800 wall rays, 135 gateway rays, 450 seam rays: 0 openings · footprint unchanged</text>
+</g><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0l8 4-8 4z" fill="#d2bc8a"/></marker></defs></svg>
