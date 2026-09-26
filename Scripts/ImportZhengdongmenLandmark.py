@@ -73,8 +73,9 @@ EAL = unreal.EditorAssetLibrary
 MEL = unreal.MaterialEditingLibrary
 
 # Every material group that has geometry. Unlike Zhengximen there is no
-# texture-only group: all seven have meshes.
-MESH_GROUPS = ["Stone", "Wood", "RoofTile", "Plaster", "Iron", "DoorWood", "Sign"]
+# texture-only group: all eight have meshes. Ridge is authored here rather than
+# taken from the supplied package — the ridges used to share RoofTile.
+MESH_GROUPS = ["Stone", "Wood", "RoofTile", "Ridge", "Plaster", "Iron", "DoorWood", "Sign"]
 
 # Collision on what a player can actually walk into or through. The gate has a
 # real walk-through arch (see the package README), so the stone base carries it.

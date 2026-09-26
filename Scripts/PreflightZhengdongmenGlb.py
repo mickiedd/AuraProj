@@ -16,7 +16,7 @@ from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[1]
 PACKAGE = PROJECT / 'Raw3DPacket/Zhengdongmen/prepared'
-GROUPS = ['Stone', 'Wood', 'RoofTile', 'Plaster', 'Iron', 'DoorWood', 'Sign']
+GROUPS = ['Stone', 'Wood', 'RoofTile', 'Ridge', 'Plaster', 'Iron', 'DoorWood', 'Sign']
 
 
 def read_glb(path: Path):

@@ -10,7 +10,7 @@ unreal.EditorPythonScripting.set_keep_python_script_alive(True)
 preloaded=unreal.EditorAssetLibrary.load_asset('/Game/Assets/Environment/GuangzhouLandmarks/Zhengdongmen/BP_Zhengdongmen')
 master=unreal.EditorAssetLibrary.load_asset('/Game/Assets/Environment/GuangzhouLandmarks/Zhengdongmen/Materials/M_ZDM_Master')
 unreal.MaterialEditingLibrary.recompile_material(master)
-for group in ('Stone','Wood','RoofTile','Plaster','Iron','DoorWood','Sign'):
+for group in ('Stone','Wood','RoofTile','Ridge','Plaster','Iron','DoorWood','Sign'):
     for suffix in ('BaseColor','Normal','Roughness','Metallic','AO'):
         tex=unreal.EditorAssetLibrary.load_asset('/Game/Assets/Environment/GuangzhouLandmarks/Zhengdongmen/Textures/T_ZDM_'+group+'_'+suffix)
         tex.set_force_mip_levels_to_be_resident(120.0)

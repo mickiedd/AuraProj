@@ -28,10 +28,15 @@ PROJECT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = PROJECT / 'Raw3DPacket/Zhengdongmen/prepared/Textures'
 
 WIDTH, HEIGHT = 1024, 512          # u along the ridge, v around the cap section
-BASE_RGB = (86, 86, 82)
+# Close to the tile field's own value, a touch darker: a ridge is the same clay as the
+# roof, and reading as a pale smooth tube beside a weathered field is what makes it
+# look like CG rather than like ridge tiles.
+BASE_RGB = (76, 76, 72)
 JOINTS_PER_REPEAT = 4
-JOINT_DEPTH = 0.30                 # height units removed at a joint
-ROUGH_BASE, ROUGH_JOINT = 0.60, 0.80
+JOINT_DEPTH = 0.20                 # height units removed at a joint
+JOINT_DARKEN = 22.0                # albedo units removed at a joint
+ROUGH_BASE, ROUGH_JOINT = 0.62, 0.80
+MICRO_BUMP = 0.0075                # fine surface relief, in height units
 
 # Section layout, matching Builder.ridge_beam for a cap of radius r.
 R = 0.5
@@ -62,36 +67,42 @@ def vertical_shading() -> np.ndarray:
     return (washed * 10.0 - dirt * 16.0).astype(np.float32)[:, None]
 
 
+def noise_field(rng, blur, height=HEIGHT, width=WIDTH) -> np.ndarray:
+    """Unit-standard-deviation value noise, so each caller can scale it in real units."""
+    raw = rng.normal(0.0, 40.0, (height, width))
+    image = Image.fromarray(np.clip(raw + 128.0, 0, 255).astype(np.uint8), 'L')
+    out = np.asarray(image.filter(ImageFilter.GaussianBlur(blur)), dtype=np.float32) - 128.0
+    return out / max(float(out.std()), 1e-6)
+
+
 def main(out: Path = DEFAULT_OUT) -> dict:
     out.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(1965)
     joint = joint_mask()
     shade = vertical_shading()
+    # Streaks run ALONG the ridge, so the coarse pass is blurred further in u than in v
+    # (PIL's blur radius is (x, y)); the other way round the weathering bands cross the
+    # cap and read as ribs. The fine pass keeps the surface off flat colour and doubles
+    # as the micro-relief.
+    streaks = noise_field(rng, (7.0, 1.6)) * 3.4
+    fine = noise_field(rng, 1.1)
+    stain = noise_field(rng, 22.0) * 6.0
 
     # --- BaseColor ---------------------------------------------------------
-    # Streaks run along the ridge, so the noise is stretched in u.
-    noise = rng.normal(0.0, 5.0, (HEIGHT, WIDTH))
-    noise = np.asarray(Image.fromarray(((noise + 40) * 3).astype(np.uint8), 'L')
-                       .filter(ImageFilter.GaussianBlur((1.6, 7.0))), dtype=np.float32)
-    noise = (noise - noise.mean()) * 0.9
-    stain = np.asarray(Image.fromarray(
-        (rng.normal(0.0, 1.0, (HEIGHT, WIDTH)) * 40 + 128).astype(np.uint8), 'L')
-        .filter(ImageFilter.GaussianBlur(22)), dtype=np.float32)
-    stain = (stain - stain.mean()) * 0.25
-
     base = np.zeros((HEIGHT, WIDTH, 3), dtype=np.float32)
     for axis, channel in enumerate(BASE_RGB):
         base[:, :, axis] = channel
     # shade is (H,1) and the noises are (H,W), so this broadcasts across the section.
-    base += (shade + noise + stain)[:, :, None]
-    base -= (joint * 34.0)[:, :, None]
+    base += (shade + streaks + fine * 3.5 + stain)[:, :, None]
+    base -= (joint * JOINT_DARKEN)[:, :, None]
     Image.fromarray(base.clip(0, 255).astype(np.uint8), 'RGB').save(
         out / 'T_ZDM_Ridge_BaseColor.png')
 
     # --- Height / Normal ---------------------------------------------------
+    # Only the joints and the micro-relief: the mesh already models the cap's crown.
     height = np.full((HEIGHT, WIDTH), 0.55, dtype=np.float32)
     height -= joint * JOINT_DEPTH
-    height += (noise * 0.0022).astype(np.float32)
+    height += (streaks * 0.0012 + fine * MICRO_BUMP).astype(np.float32)
     Image.fromarray((height * 255).astype(np.uint8), 'L').save(
         out / 'T_ZDM_Ridge_Height.png')
 
@@ -104,7 +115,7 @@ def main(out: Path = DEFAULT_OUT) -> dict:
 
     # --- Roughness / Metallic / AO ----------------------------------------
     rough = ROUGH_BASE + joint * (ROUGH_JOINT - ROUGH_BASE)
-    rough += (noise * 0.0016).astype(np.float32)
+    rough += (fine * 0.025 + streaks * 0.004).astype(np.float32)
     Image.fromarray((rough * 255).clip(0, 255).astype(np.uint8), 'L').convert('RGB').save(
         out / 'T_ZDM_Ridge_Roughness.png')
 

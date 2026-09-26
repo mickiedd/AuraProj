@@ -154,6 +154,8 @@ def stage_textures():
     tex_dest.mkdir(parents=True, exist_ok=True)
     written = []
     for group in GROUPS:
+        if group in GENERATED:
+            continue
         for kind, (pattern, resize) in CHANNELS.items():
             source = TEX_SOURCE / pattern.format(g=group)
             if not source.exists():
@@ -166,6 +168,16 @@ def stage_textures():
                 image.save(target, "PNG", optimize=True)
             written.append({"group": group, "kind": kind, "file": target.name,
                             "source": source.name,
+                            "size": list(Image.open(target).size),
+                            "bytes": target.stat().st_size})
+    # The groups with no artwork in the supplied package are authored here, so a
+    # rebuild never silently falls back to someone else's maps.
+    for group, script in GENERATED.items():
+        runpy.run_path(str(PROJECT / script))["main"](tex_dest)
+        for kind in CHANNELS:
+            target = tex_dest / "T_ZDM_{}_{}.png".format(group, kind)
+            written.append({"group": group, "kind": kind, "file": target.name,
+                            "source": script, "authored": True,
                             "size": list(Image.open(target).size),
                             "bytes": target.stat().st_size})
     # The shipped plaque letterboxes three simplified characters into a square

@@ -13,11 +13,13 @@ import runpy
 from pathlib import Path
 import unreal
 
-# RoofTile carries the rebuilt continuous tile courses; Sign carries the
-# re-authored plaque board. The other five parts are unchanged.
-GROUPS = ('RoofTile', 'Sign')
-# Every map of the Sign group was regenerated at the board's own aspect ratio.
-REFRESH_TEXTURE_GROUPS = ('Sign',)
+# RoofTile carries the rebuilt continuous tile courses; Ridge carries the roof
+# ridges, which now have their own material; Sign carries the re-authored plaque.
+GROUPS = ('RoofTile', 'Ridge', 'Sign')
+# Sign's maps were regenerated at the board's own aspect ratio, and Ridge's are new
+# assets with no counterpart in the supplied package. `import_textures` only imports a
+# texture that does not exist yet, so both need the explicit refresh path.
+REFRESH_TEXTURE_GROUPS = ('Sign', 'Ridge')
 TEXTURE_KINDS = ('BaseColor', 'Normal', 'Roughness', 'Metallic', 'AO', 'Height')
 
 project = Path(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()))

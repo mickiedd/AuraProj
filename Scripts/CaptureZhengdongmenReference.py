@@ -13,7 +13,7 @@ import unreal
 ROOT = "/Game/Assets/Environment/GuangzhouLandmarks/Zhengdongmen"
 BLUEPRINT_PATH = ROOT + "/BP_Zhengdongmen"
 MESH_ROOT = ROOT + "/Meshes"
-MATERIAL_GROUPS = ["Stone", "Wood", "RoofTile", "Plaster", "Iron", "DoorWood", "Sign"]
+MATERIAL_GROUPS = ["Stone", "Wood", "RoofTile", "Ridge", "Plaster", "Iron", "DoorWood", "Sign"]
 
 PROJECT = Path(
     unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())).resolve()

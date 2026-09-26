@@ -31,7 +31,7 @@ MESH_ROOT = ROOT + "/Meshes"
 BLUEPRINT_PATH = ROOT + "/BP_Zhengdongmen"
 LABEL = "Zhengdongmen"
 
-MESH_GROUPS = ["Stone", "Wood", "RoofTile", "Plaster", "Iron", "DoorWood", "Sign"]
+MESH_GROUPS = ["Stone", "Wood", "RoofTile", "Ridge", "Plaster", "Iron", "DoorWood", "Sign"]
 
 PROJECT = Path(
     unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())).resolve()

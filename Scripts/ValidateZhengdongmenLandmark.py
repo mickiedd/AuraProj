@@ -42,7 +42,7 @@ MASTER_PATH = ROOT + "/Materials/M_ZDM_Master"
 BLUEPRINT_PATH = ROOT + "/BP_Zhengdongmen"
 TEX_DEST = ROOT + "/Textures"
 
-MESH_GROUPS = ["Stone", "Wood", "RoofTile", "Plaster", "Iron", "DoorWood", "Sign"]
+MESH_GROUPS = ["Stone", "Wood", "RoofTile", "Ridge", "Plaster", "Iron", "DoorWood", "Sign"]
 STRUCTURAL = {"Stone", "Wood", "DoorWood", "Iron"}
 
 # kind -> (expected compression enum name, expected srgb)

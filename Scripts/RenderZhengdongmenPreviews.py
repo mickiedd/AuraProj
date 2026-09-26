@@ -22,9 +22,12 @@ VIEWS = {
     # Straight onto each roof pitch, where course continuity is actually legible.
     "roof-lower": ((0,-15,19),(0,4.0,12.8),16),
     "roof-upper": ((0,-12,25),(0,2.6,18.2),13),
+    # The hip ridge and its upturned eave corner, where the ridge material reads.
+    "ridge-corner": ((21,-15,16),(12.4,-6.0,12.5),8.5),
 }
 
-DETAIL_VIEWS = ("gate-detail", "arch-front", "pavilion-detail", "roof-lower", "roof-upper")
+DETAIL_VIEWS = ("gate-detail", "arch-front", "pavilion-detail", "roof-lower", "roof-upper",
+                "ridge-corner")
 
 
 def arguments() -> argparse.Namespace:
