@@ -53,6 +53,10 @@ EXPECTED_LABELS = [
     # Zhengximen joined the ring on 2026-09-24. The per-landmark light labels are
     # derived from this list, so the landmark and its light move together.
     "Landmark_Zhengximen",
+    # Zhengdongmen (the Great East Gate) joined the ring on 2026-09-25. The
+    # per-landmark light labels are derived from this list, so the landmark and
+    # its light move together.
+    "Landmark_Zhengdongmen",
 ]
 
 GROUND_TAG = "Showcase_Ground"
@@ -91,6 +95,15 @@ FACADE_LOCAL_AXIS = {
     # (門額) sits at local Y -3.06..-2.92 and the iron door fittings at
     # Y -0.61..-0.39, so the facade faces local -Y like the other gates.
     "Zhengximen": (0.0, -1.0),
+    # Zhengdongmen: measured on the imported model, not assumed, and it is the
+    # second landmark to break the -Y convention - for the opposite reason to
+    # Wenmingmen. Its SOURCE model has the facade on -Y (the package's own
+    # generator authors the 正东门 signboard at Y -5.97..-5.89 and its README says
+    # "front = -Y"), but the import negates Y: the door studs move from source
+    # Y +204..+211.5 to imported -211.5..-204, the plaque from source
+    # Y -598.2..-589 to imported +589..+598.2, and the stone base centre from
+    # -4.5 to +4.5. So the facade arrives on local +Y and needs facing_offset 180.
+    "Zhengdongmen": (0.0, 1.0),
 }
 LIGHT_LOCATION_TOLERANCE_CM = 1.0
 LIGHT_ANGLE_TOLERANCE_DEG = 0.05

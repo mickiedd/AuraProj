@@ -1,0 +1,530 @@
+{
+  "source_mesh_glb": "Raw3DPacket/Zhengdongmen/Zhengdongmen_UE5_Compact_8K/Meshes/Zhengdongmen_LOD0.glb",
+  "source_textures": "Raw3DPacket/Zhengdongmen/Zhengdongmen_UE5_Compact_8K/Textures",
+  "groups": [
+    "Stone",
+    "Wood",
+    "RoofTile",
+    "Plaster",
+    "Iron",
+    "DoorWood",
+    "Sign"
+  ],
+  "meshes": [
+    {
+      "group": "Stone",
+      "file": "SM_ZDM_Stone.glb",
+      "source_mesh": "SM_ZDM_LOD0_Stone",
+      "triangles": 17808,
+      "bytes": 4555212
+    },
+    {
+      "group": "Wood",
+      "file": "SM_ZDM_Wood.glb",
+      "source_mesh": "SM_ZDM_LOD0_Wood",
+      "triangles": 7872,
+      "bytes": 4555212
+    },
+    {
+      "group": "RoofTile",
+      "file": "SM_ZDM_RoofTile.glb",
+      "source_mesh": "SM_ZDM_LOD0_RoofTile",
+      "triangles": 23860,
+      "bytes": 4555220
+    },
+    {
+      "group": "Plaster",
+      "file": "SM_ZDM_Plaster.glb",
+      "source_mesh": "SM_ZDM_LOD0_Plaster",
+      "triangles": 24,
+      "bytes": 4555220
+    },
+    {
+      "group": "Iron",
+      "file": "SM_ZDM_Iron.glb",
+      "source_mesh": "SM_ZDM_LOD0_Iron",
+      "triangles": 384,
+      "bytes": 4555216
+    },
+    {
+      "group": "DoorWood",
+      "file": "SM_ZDM_DoorWood.glb",
+      "source_mesh": "SM_ZDM_LOD0_DoorWood",
+      "triangles": 480,
+      "bytes": 4555224
+    },
+    {
+      "group": "Sign",
+      "file": "SM_ZDM_Sign.glb",
+      "source_mesh": "SM_ZDM_LOD0_Sign",
+      "triangles": 14,
+      "bytes": 4555216
+    }
+  ],
+  "textures": [
+    {
+      "group": "Stone",
+      "kind": "BaseColor",
+      "file": "T_ZDM_Stone_BaseColor.png",
+      "source": "T_ZDM_Stone_BaseColor_8K.jpg",
+      "size": [
+        4096,
+        4096
+      ],
+      "bytes": 25691963
+    },
+    {
+      "group": "Stone",
+      "kind": "Normal",
+      "file": "T_ZDM_Stone_Normal.png",
+      "source": "T_ZDM_Stone_Normal_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 2153879
+    },
+    {
+      "group": "Stone",
+      "kind": "Roughness",
+      "file": "T_ZDM_Stone_Roughness.png",
+      "source": "T_ZDM_Stone_Roughness_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 670646
+    },
+    {
+      "group": "Stone",
+      "kind": "Metallic",
+      "file": "T_ZDM_Stone_Metallic.png",
+      "source": "T_ZDM_Stone_Metallic_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 3129
+    },
+    {
+      "group": "Stone",
+      "kind": "AO",
+      "file": "T_ZDM_Stone_AO.png",
+      "source": "T_ZDM_Stone_AO_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1157417
+    },
+    {
+      "group": "Stone",
+      "kind": "Height",
+      "file": "T_ZDM_Stone_Height.png",
+      "source": "T_ZDM_Stone_Height_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 2065761
+    },
+    {
+      "group": "Wood",
+      "kind": "BaseColor",
+      "file": "T_ZDM_Wood_BaseColor.png",
+      "source": "T_ZDM_Wood_BaseColor_8K.jpg",
+      "size": [
+        4096,
+        4096
+      ],
+      "bytes": 19745066
+    },
+    {
+      "group": "Wood",
+      "kind": "Normal",
+      "file": "T_ZDM_Wood_Normal.png",
+      "source": "T_ZDM_Wood_Normal_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1559731
+    },
+    {
+      "group": "Wood",
+      "kind": "Roughness",
+      "file": "T_ZDM_Wood_Roughness.png",
+      "source": "T_ZDM_Wood_Roughness_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 484562
+    },
+    {
+      "group": "Wood",
+      "kind": "Metallic",
+      "file": "T_ZDM_Wood_Metallic.png",
+      "source": "T_ZDM_Wood_Metallic_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 3129
+    },
+    {
+      "group": "Wood",
+      "kind": "AO",
+      "file": "T_ZDM_Wood_AO.png",
+      "source": "T_ZDM_Wood_AO_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 910963
+    },
+    {
+      "group": "Wood",
+      "kind": "Height",
+      "file": "T_ZDM_Wood_Height.png",
+      "source": "T_ZDM_Wood_Height_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1408172
+    },
+    {
+      "group": "RoofTile",
+      "kind": "BaseColor",
+      "file": "T_ZDM_RoofTile_BaseColor.png",
+      "source": "T_ZDM_RoofTile_BaseColor_8K.jpg",
+      "size": [
+        4096,
+        4096
+      ],
+      "bytes": 19877019
+    },
+    {
+      "group": "RoofTile",
+      "kind": "Normal",
+      "file": "T_ZDM_RoofTile_Normal.png",
+      "source": "T_ZDM_RoofTile_Normal_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1742041
+    },
+    {
+      "group": "RoofTile",
+      "kind": "Roughness",
+      "file": "T_ZDM_RoofTile_Roughness.png",
+      "source": "T_ZDM_RoofTile_Roughness_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 518252
+    },
+    {
+      "group": "RoofTile",
+      "kind": "Metallic",
+      "file": "T_ZDM_RoofTile_Metallic.png",
+      "source": "T_ZDM_RoofTile_Metallic_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 3129
+    },
+    {
+      "group": "RoofTile",
+      "kind": "AO",
+      "file": "T_ZDM_RoofTile_AO.png",
+      "source": "T_ZDM_RoofTile_AO_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 918066
+    },
+    {
+      "group": "RoofTile",
+      "kind": "Height",
+      "file": "T_ZDM_RoofTile_Height.png",
+      "source": "T_ZDM_RoofTile_Height_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1461792
+    },
+    {
+      "group": "Plaster",
+      "kind": "BaseColor",
+      "file": "T_ZDM_Plaster_BaseColor.png",
+      "source": "T_ZDM_Plaster_BaseColor_8K.jpg",
+      "size": [
+        4096,
+        4096
+      ],
+      "bytes": 25532782
+    },
+    {
+      "group": "Plaster",
+      "kind": "Normal",
+      "file": "T_ZDM_Plaster_Normal.png",
+      "source": "T_ZDM_Plaster_Normal_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1937577
+    },
+    {
+      "group": "Plaster",
+      "kind": "Roughness",
+      "file": "T_ZDM_Plaster_Roughness.png",
+      "source": "T_ZDM_Plaster_Roughness_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 657031
+    },
+    {
+      "group": "Plaster",
+      "kind": "Metallic",
+      "file": "T_ZDM_Plaster_Metallic.png",
+      "source": "T_ZDM_Plaster_Metallic_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 3129
+    },
+    {
+      "group": "Plaster",
+      "kind": "AO",
+      "file": "T_ZDM_Plaster_AO.png",
+      "source": "T_ZDM_Plaster_AO_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1239660
+    },
+    {
+      "group": "Plaster",
+      "kind": "Height",
+      "file": "T_ZDM_Plaster_Height.png",
+      "source": "T_ZDM_Plaster_Height_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 2004533
+    },
+    {
+      "group": "Iron",
+      "kind": "BaseColor",
+      "file": "T_ZDM_Iron_BaseColor.png",
+      "source": "T_ZDM_Iron_BaseColor_8K.jpg",
+      "size": [
+        4096,
+        4096
+      ],
+      "bytes": 25556585
+    },
+    {
+      "group": "Iron",
+      "kind": "Normal",
+      "file": "T_ZDM_Iron_Normal.png",
+      "source": "T_ZDM_Iron_Normal_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1956382
+    },
+    {
+      "group": "Iron",
+      "kind": "Roughness",
+      "file": "T_ZDM_Iron_Roughness.png",
+      "source": "T_ZDM_Iron_Roughness_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 810729
+    },
+    {
+      "group": "Iron",
+      "kind": "Metallic",
+      "file": "T_ZDM_Iron_Metallic.png",
+      "source": "T_ZDM_Iron_Metallic_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1219687
+    },
+    {
+      "group": "Iron",
+      "kind": "AO",
+      "file": "T_ZDM_Iron_AO.png",
+      "source": "T_ZDM_Iron_AO_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1104683
+    },
+    {
+      "group": "Iron",
+      "kind": "Height",
+      "file": "T_ZDM_Iron_Height.png",
+      "source": "T_ZDM_Iron_Height_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 2042233
+    },
+    {
+      "group": "DoorWood",
+      "kind": "BaseColor",
+      "file": "T_ZDM_DoorWood_BaseColor.png",
+      "source": "T_ZDM_DoorWood_BaseColor_8K.jpg",
+      "size": [
+        4096,
+        4096
+      ],
+      "bytes": 20918146
+    },
+    {
+      "group": "DoorWood",
+      "kind": "Normal",
+      "file": "T_ZDM_DoorWood_Normal.png",
+      "source": "T_ZDM_DoorWood_Normal_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1797370
+    },
+    {
+      "group": "DoorWood",
+      "kind": "Roughness",
+      "file": "T_ZDM_DoorWood_Roughness.png",
+      "source": "T_ZDM_DoorWood_Roughness_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 530200
+    },
+    {
+      "group": "DoorWood",
+      "kind": "Metallic",
+      "file": "T_ZDM_DoorWood_Metallic.png",
+      "source": "T_ZDM_DoorWood_Metallic_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 3129
+    },
+    {
+      "group": "DoorWood",
+      "kind": "AO",
+      "file": "T_ZDM_DoorWood_AO.png",
+      "source": "T_ZDM_DoorWood_AO_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 944099
+    },
+    {
+      "group": "DoorWood",
+      "kind": "Height",
+      "file": "T_ZDM_DoorWood_Height.png",
+      "source": "T_ZDM_DoorWood_Height_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1520777
+    },
+    {
+      "group": "Sign",
+      "kind": "BaseColor",
+      "file": "T_ZDM_Sign_BaseColor.png",
+      "source": "T_ZDM_Sign_BaseColor_8K.jpg",
+      "size": [
+        4096,
+        4096
+      ],
+      "bytes": 228338
+    },
+    {
+      "group": "Sign",
+      "kind": "Normal",
+      "file": "T_ZDM_Sign_Normal.png",
+      "source": "T_ZDM_Sign_Normal_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 13676
+    },
+    {
+      "group": "Sign",
+      "kind": "Roughness",
+      "file": "T_ZDM_Sign_Roughness.png",
+      "source": "T_ZDM_Sign_Roughness_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 4546
+    },
+    {
+      "group": "Sign",
+      "kind": "Metallic",
+      "file": "T_ZDM_Sign_Metallic.png",
+      "source": "T_ZDM_Sign_Metallic_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 3129
+    },
+    {
+      "group": "Sign",
+      "kind": "AO",
+      "file": "T_ZDM_Sign_AO.png",
+      "source": "T_ZDM_Sign_AO_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 56370
+    },
+    {
+      "group": "Sign",
+      "kind": "Height",
+      "file": "T_ZDM_Sign_Height.png",
+      "source": "T_ZDM_Sign_Height_1K.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 10753
+    }
+  ],
+  "total_source_triangles": 50442,
+  "basecolor_note": "staged at 4096; the shipped 8192 is a ~1254px upscale"
+}

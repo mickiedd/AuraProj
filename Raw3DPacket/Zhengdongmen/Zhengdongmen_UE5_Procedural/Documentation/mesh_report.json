@@ -1,0 +1,383 @@
+{
+  "LOD0": {
+    "glb": "Zhengdongmen_LOD0.glb",
+    "materials": {
+      "Stone": {
+        "triangles": 17808,
+        "vertices": 35616
+      },
+      "Wood": {
+        "triangles": 7872,
+        "vertices": 15744
+      },
+      "RoofTile": {
+        "triangles": 23860,
+        "vertices": 47720
+      },
+      "Plaster": {
+        "triangles": 24,
+        "vertices": 48
+      },
+      "Iron": {
+        "triangles": 384,
+        "vertices": 768
+      },
+      "DoorWood": {
+        "triangles": 480,
+        "vertices": 960
+      },
+      "Sign": {
+        "triangles": 14,
+        "vertices": 28
+      }
+    },
+    "triangles": 50442,
+    "parts": {
+      "Foundation_and_wall": 24,
+      "Arch_spandrel": 12,
+      "Arch_piers": 48,
+      "Arch_voussoirs": 528,
+      "Tunnel_stone_rib": 1584,
+      "Foundation_plinth": 12,
+      "Battlement_base": 24,
+      "Masonry_relief": 14508,
+      "Crenellations": 1056,
+      "Lower_floor_frame": 12,
+      "Lower_infill": 12,
+      "Lower_columns": 240,
+      "Lower_window_mullions": 480,
+      "Lower_eave_beam": 24,
+      "Lower_balcony_rail": 24,
+      "Lower_balusters": 1560,
+      "Lower_side_columns": 120,
+      "Lower_window_dark_recesses": 216,
+      "Lower_window_lattice": 648,
+      "Lower_hip_roof": 8,
+      "Curved_tile_courses": 9072,
+      "Eave_fascia": 48,
+      "Upturned_eave_corners": 48,
+      "Upper_floor_frame": 12,
+      "Upper_infill": 12,
+      "Upper_columns": 264,
+      "Upper_window_mullions": 528,
+      "Upper_balcony_rail": 24,
+      "Upper_eave_beam": 24,
+      "Upper_balusters": 1248,
+      "Upper_side_columns": 120,
+      "Upper_window_dark_recesses": 240,
+      "Upper_window_lattice": 720,
+      "Upper_hip_roof": 8,
+      "Upper_individual_roof_tiles": 14664,
+      "Upper_roof_ridge": 12,
+      "Upper_eave_fascia": 24,
+      "Upper_upturned_corners": 48,
+      "Layered_dougong_brackets": 1656,
+      "Recessed_timber_gate_leaves": 24,
+      "Door_crossbars": 96,
+      "Door_iron_studs": 360,
+      "Door_hardware": 24,
+      "Signboard_Zhengdongmen": 12,
+      "Plaque_full_uv": 2,
+      "Tunnel_roadway": 12
+    }
+  },
+  "LOD1": {
+    "glb": "Zhengdongmen_LOD1.glb",
+    "materials": {
+      "Stone": {
+        "triangles": 5552,
+        "vertices": 11104
+      },
+      "Wood": {
+        "triangles": 3936,
+        "vertices": 7872
+      },
+      "RoofTile": {
+        "triangles": 6364,
+        "vertices": 12728
+      },
+      "Plaster": {
+        "triangles": 24,
+        "vertices": 48
+      },
+      "Iron": {
+        "triangles": 384,
+        "vertices": 768
+      },
+      "DoorWood": {
+        "triangles": 264,
+        "vertices": 528
+      },
+      "Sign": {
+        "triangles": 14,
+        "vertices": 28
+      }
+    },
+    "triangles": 16538,
+    "parts": {
+      "Foundation_and_wall": 24,
+      "Arch_spandrel": 12,
+      "Arch_piers": 48,
+      "Arch_voussoirs": 264,
+      "Tunnel_stone_rib": 992,
+      "Foundation_plinth": 12,
+      "Battlement_base": 24,
+      "Masonry_relief": 3612,
+      "Crenellations": 552,
+      "Lower_floor_frame": 12,
+      "Lower_infill": 12,
+      "Lower_columns": 120,
+      "Lower_window_mullions": 240,
+      "Lower_eave_beam": 24,
+      "Lower_balcony_rail": 24,
+      "Lower_balusters": 792,
+      "Lower_side_columns": 72,
+      "Lower_window_dark_recesses": 120,
+      "Lower_window_lattice": 360,
+      "Lower_hip_roof": 8,
+      "Curved_tile_courses": 2304,
+      "Eave_fascia": 48,
+      "Upturned_eave_corners": 48,
+      "Upper_floor_frame": 12,
+      "Upper_infill": 12,
+      "Upper_columns": 144,
+      "Upper_window_mullions": 288,
+      "Upper_balcony_rail": 24,
+      "Upper_eave_beam": 24,
+      "Upper_balusters": 624,
+      "Upper_side_columns": 72,
+      "Upper_window_dark_recesses": 120,
+      "Upper_window_lattice": 360,
+      "Upper_hip_roof": 8,
+      "Upper_individual_roof_tiles": 3936,
+      "Upper_roof_ridge": 12,
+      "Upper_eave_fascia": 24,
+      "Upper_upturned_corners": 48,
+      "Layered_dougong_brackets": 576,
+      "Recessed_timber_gate_leaves": 24,
+      "Door_crossbars": 96,
+      "Door_iron_studs": 360,
+      "Door_hardware": 24,
+      "Signboard_Zhengdongmen": 12,
+      "Plaque_full_uv": 2,
+      "Tunnel_roadway": 12
+    }
+  },
+  "LOD2": {
+    "glb": "Zhengdongmen_LOD2.glb",
+    "materials": {
+      "Stone": {
+        "triangles": 2196,
+        "vertices": 4392
+      },
+      "Wood": {
+        "triangles": 1104,
+        "vertices": 2208
+      },
+      "RoofTile": {
+        "triangles": 2020,
+        "vertices": 4040
+      },
+      "Plaster": {
+        "triangles": 24,
+        "vertices": 48
+      },
+      "Iron": {
+        "triangles": 24,
+        "vertices": 48
+      },
+      "DoorWood": {
+        "triangles": 168,
+        "vertices": 336
+      },
+      "Sign": {
+        "triangles": 14,
+        "vertices": 28
+      }
+    },
+    "triangles": 5550,
+    "parts": {
+      "Foundation_and_wall": 24,
+      "Arch_spandrel": 12,
+      "Arch_piers": 48,
+      "Arch_voussoirs": 132,
+      "Tunnel_stone_rib": 672,
+      "Foundation_plinth": 12,
+      "Battlement_base": 24,
+      "Masonry_relief": 972,
+      "Crenellations": 288,
+      "Lower_floor_frame": 12,
+      "Lower_infill": 12,
+      "Lower_columns": 72,
+      "Lower_window_mullions": 144,
+      "Lower_eave_beam": 24,
+      "Lower_balcony_rail": 24,
+      "Lower_side_columns": 48,
+      "Lower_window_dark_recesses": 72,
+      "Lower_hip_roof": 8,
+      "Curved_tile_courses": 768,
+      "Eave_fascia": 48,
+      "Upturned_eave_corners": 48,
+      "Upper_floor_frame": 12,
+      "Upper_infill": 12,
+      "Upper_columns": 72,
+      "Upper_window_mullions": 144,
+      "Upper_balcony_rail": 24,
+      "Upper_eave_beam": 24,
+      "Upper_side_columns": 48,
+      "Upper_window_dark_recesses": 72,
+      "Upper_hip_roof": 8,
+      "Upper_individual_roof_tiles": 1128,
+      "Upper_roof_ridge": 12,
+      "Upper_eave_fascia": 24,
+      "Upper_upturned_corners": 48,
+      "Layered_dougong_brackets": 288,
+      "Recessed_timber_gate_leaves": 24,
+      "Door_crossbars": 96,
+      "Door_hardware": 24,
+      "Signboard_Zhengdongmen": 12,
+      "Plaque_full_uv": 2,
+      "Tunnel_roadway": 12
+    }
+  },
+  "LOD3": {
+    "glb": "Zhengdongmen_LOD3.glb",
+    "materials": {
+      "Stone": {
+        "triangles": 392,
+        "vertices": 784
+      },
+      "Wood": {
+        "triangles": 432,
+        "vertices": 864
+      },
+      "RoofTile": {
+        "triangles": 124,
+        "vertices": 248
+      },
+      "Plaster": {
+        "triangles": 24,
+        "vertices": 48
+      },
+      "Iron": {
+        "triangles": 24,
+        "vertices": 48
+      },
+      "DoorWood": {
+        "triangles": 120,
+        "vertices": 240
+      },
+      "Sign": {
+        "triangles": 14,
+        "vertices": 28
+      }
+    },
+    "triangles": 1130,
+    "parts": {
+      "Foundation_and_wall": 24,
+      "Arch_spandrel": 12,
+      "Arch_piers": 48,
+      "Arch_voussoirs": 116,
+      "Foundation_plinth": 12,
+      "Battlement_base": 24,
+      "Crenellations": 144,
+      "Lower_floor_frame": 12,
+      "Lower_infill": 12,
+      "Lower_columns": 48,
+      "Lower_eave_beam": 24,
+      "Lower_balcony_rail": 24,
+      "Lower_side_columns": 24,
+      "Lower_window_dark_recesses": 48,
+      "Lower_hip_roof": 8,
+      "Eave_fascia": 48,
+      "Upturned_eave_corners": 48,
+      "Upper_floor_frame": 12,
+      "Upper_infill": 12,
+      "Upper_columns": 48,
+      "Upper_balcony_rail": 24,
+      "Upper_eave_beam": 24,
+      "Upper_side_columns": 24,
+      "Upper_window_dark_recesses": 48,
+      "Upper_hip_roof": 8,
+      "Upper_roof_ridge": 12,
+      "Upper_eave_fascia": 24,
+      "Upper_upturned_corners": 48,
+      "Recessed_timber_gate_leaves": 24,
+      "Door_crossbars": 96,
+      "Door_hardware": 24,
+      "Signboard_Zhengdongmen": 12,
+      "Plaque_full_uv": 2,
+      "Tunnel_roadway": 12
+    }
+  },
+  "LOD4": {
+    "glb": "Zhengdongmen_LOD4.glb",
+    "materials": {
+      "Stone": {
+        "triangles": 320,
+        "vertices": 640
+      },
+      "Wood": {
+        "triangles": 384,
+        "vertices": 768
+      },
+      "RoofTile": {
+        "triangles": 124,
+        "vertices": 248
+      },
+      "Plaster": {
+        "triangles": 24,
+        "vertices": 48
+      },
+      "Iron": {
+        "triangles": 24,
+        "vertices": 48
+      },
+      "DoorWood": {
+        "triangles": 72,
+        "vertices": 144
+      },
+      "Sign": {
+        "triangles": 14,
+        "vertices": 28
+      }
+    },
+    "triangles": 962,
+    "parts": {
+      "Foundation_and_wall": 24,
+      "Arch_spandrel": 12,
+      "Arch_piers": 48,
+      "Arch_voussoirs": 116,
+      "Foundation_plinth": 12,
+      "Battlement_base": 24,
+      "Crenellations": 72,
+      "Lower_floor_frame": 12,
+      "Lower_infill": 12,
+      "Lower_columns": 24,
+      "Lower_eave_beam": 24,
+      "Lower_balcony_rail": 24,
+      "Lower_side_columns": 24,
+      "Lower_window_dark_recesses": 24,
+      "Lower_hip_roof": 8,
+      "Eave_fascia": 48,
+      "Upturned_eave_corners": 48,
+      "Upper_floor_frame": 12,
+      "Upper_infill": 12,
+      "Upper_columns": 24,
+      "Upper_balcony_rail": 24,
+      "Upper_eave_beam": 24,
+      "Upper_side_columns": 24,
+      "Upper_window_dark_recesses": 24,
+      "Upper_hip_roof": 8,
+      "Upper_roof_ridge": 12,
+      "Upper_eave_fascia": 24,
+      "Upper_upturned_corners": 48,
+      "Recessed_timber_gate_leaves": 24,
+      "Door_crossbars": 96,
+      "Door_hardware": 24,
+      "Signboard_Zhengdongmen": 12,
+      "Plaque_full_uv": 2,
+      "Tunnel_roadway": 12
+    }
+  }
+}

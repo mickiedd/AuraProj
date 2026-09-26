@@ -1,0 +1,24 @@
+{
+  "source_asset": "Guangzhou Great East Gate / 正东门 (Zhengdongmen/Dadongmen)",
+  "asset_type": "unreal_import_recipe_not_uasset",
+  "units_in_glb": "meters",
+  "ue_centimeter_scale": 100.0,
+  "mesh_source": "Meshes/Zhengdongmen_LOD0.glb",
+  "lod_alternatives": ["Meshes/Zhengdongmen_LOD1.glb", "Meshes/Zhengdongmen_LOD2.glb", "Meshes/Zhengdongmen_LOD3.glb", "Meshes/Zhengdongmen_LOD4.glb"],
+  "collision_reference": "Collision/Zhengdongmen_simple_collision.glb",
+  "material_names": ["Stone", "Wood", "RoofTile", "Plaster", "Iron", "DoorWood", "Sign"],
+  "material_instance_parent": "Create a local parent material with Texture2D parameters BC, N, R, M, AO, H and scalar tiling/height controls; this archive does not contain compiled Unreal materials or instances.",
+  "material_texture_filenames": "Textures/T_ZDM_{material}_{channel}_4K.png",
+  "channels": {
+    "BaseColor": {"unreal_pin":"Base Color","srgb":true},
+    "Normal": {"unreal_pin":"Normal","srgb":false,"compression":"Normalmap"},
+    "Roughness": {"unreal_pin":"Roughness","srgb":false,"compression":"Masks"},
+    "Metallic": {"unreal_pin":"Metallic","srgb":false,"compression":"Masks"},
+    "AO": {"unreal_pin":"Ambient Occlusion","srgb":false,"compression":"Masks"},
+    "Height": {"unreal_pin":"user-defined parallax/displacement","srgb":false,"compression":"Masks"}
+  },
+  "recommended_transform": "Verify up axis after glTF import; model width 28 m = 2800 UE cm. Pivot approximately at gate floor centre, front approach along -Y in source frame.",
+  "nanite": "Enable on imported LOD0 only after inspecting the mesh; alternative lower LOD scene files are not installed automatically as Unreal LOD assets.",
+  "lightmap_uvs": "Not generated in source; UV0 repeats on modular materials. If baking is needed, generate and audit nonoverlapping UV1 in Blender/UE.",
+  "sockets": "No UE native sockets are included. Add sockets to a static mesh in Unreal Editor if gameplay requires them."
+}

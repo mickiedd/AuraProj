@@ -1,0 +1,19 @@
+{
+  "encoding_passed": true,
+  "historically_accepted": false,
+  "ue_import_verified": false,
+  "dimensions": [
+    2017,
+    2017
+  ],
+  "bit_depth": 16,
+  "code_range": [
+    32045,
+    50137
+  ],
+  "clipped_samples": 0,
+  "max_quantization_error_m": 0.001953125,
+  "allowed_error_m": 0.001953125,
+  "analytic_frame_checks": 5,
+  "surveyed_landmark_checks": 0
+}

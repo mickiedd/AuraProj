@@ -34,6 +34,8 @@ public class AuraEditor : ModuleRules
 			"SlateCore",
 			"ToolMenus",
 			"LevelEditor",
+			"Landscape",
+			"Foliage",
 			"NavigationSystem",
 			"UnrealEd"
 		});

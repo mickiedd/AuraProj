@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1130" viewBox="0 0 1440 1130">
+<defs>
+  <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#f7f5ef"/><stop offset="1" stop-color="#e8e5dc"/></linearGradient>
+  <linearGradient id="tile" x2="0" y2="1"><stop stop-color="#9aa0a0"/><stop offset="1" stop-color="#5d6465"/></linearGradient>
+  <linearGradient id="rib" x2="0" y2="1"><stop stop-color="#c3c7c4"/><stop offset="1" stop-color="#6c7373"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#1d2931" flood-opacity=".14"/></filter>
+  <pattern id="gap" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+    <rect width="9" height="9" fill="#f2cfc6"/>
+    <line x1="0" y1="0" x2="0" y2="9" stroke="#c14a33" stroke-width="4"/>
+  </pattern>
+  <clipPath id="slopeBefore"><path d="M216 330 H452 L530 590 H138Z"/></clipPath>
+  <clipPath id="slopeAfter"><path d="M884 330 H1120 L1198 590 H806Z"/></clipPath>
+</defs>
+<rect width="1440" height="1130" fill="url(#bg)"/>
+<text x="64" y="70" font-family="Arial,sans-serif" font-size="17" font-weight="700" letter-spacing="3" fill="#9a5c32">AURA PROJECT · GUANGZHOU LANDMARKS</text>
+<text x="64" y="124" font-family="Arial,sans-serif" font-size="40" font-weight="700" fill="#17252d">Zhengdongmen · continuous roof courses &amp; plaque</text>
+<text x="64" y="159" font-family="Arial,sans-serif" font-size="19" fill="#52616a">Tile courses now run unbroken from ridge to eave on all eight slopes, and the plaque reads 正東門 in the traditional forms.</text>
+
+<!-- ============================ BEFORE ============================ -->
+<rect x="64" y="196" width="540" height="470" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="94" y="240" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#a64e40">BEFORE · STAGGERED RECTANGLES PER ROW</text>
+<g clip-path="url(#slopeBefore)">
+  <path d="M216 330 H452 L530 590 H138Z" fill="url(#gap)"/>
+</g>
+<g clip-path="url(#slopeBefore)" fill="url(#tile)" stroke="#39434a" stroke-width=".7">
+  <rect x="216" y="330" width="236" height="32.5"/>
+  <rect x="206.25" y="362.5" width="255.5" height="32.5"/>
+  <rect x="196.5" y="395" width="275" height="32.5"/>
+  <rect x="186.75" y="427.5" width="294.5" height="32.5"/>
+  <rect x="177" y="460" width="314" height="32.5"/>
+  <rect x="167.25" y="492.5" width="333.5" height="32.5"/>
+  <rect x="157.5" y="525" width="353" height="32.5"/>
+  <rect x="147.75" y="557.5" width="372.5" height="32.5"/>
+</g>
+<g stroke="#2f383e" stroke-width="1" opacity=".75">
+  <path d="M229 330v32 M255 330v32 M281 330v32 M307 330v32 M333 330v32 M359 330v32 M385 330v32 M411 330v32 M437 330v32"/>
+  <path d="M219.5 362.5v32 M245.5 362.5v32 M271.5 362.5v32 M297.5 362.5v32 M323.5 362.5v32 M349.5 362.5v32 M375.5 362.5v32 M401.5 362.5v32 M427.5 362.5v32 M453.5 362.5v32"/>
+  <path d="M209.5 395v32 M235.5 395v32 M261.5 395v32 M287.5 395v32 M313.5 395v32 M339.5 395v32 M365.5 395v32 M391.5 395v32 M417.5 395v32 M443.5 395v32 M469.5 395v32"/>
+  <path d="M200 427.5v32 M226 427.5v32 M252 427.5v32 M278 427.5v32 M304 427.5v32 M330 427.5v32 M356 427.5v32 M382 427.5v32 M408 427.5v32 M434 427.5v32 M460 427.5v32"/>
+  <path d="M190 460v32 M216 460v32 M242 460v32 M268 460v32 M294 460v32 M320 460v32 M346 460v32 M372 460v32 M398 460v32 M424 460v32 M450 460v32 M476 460v32"/>
+  <path d="M180.5 492.5v32 M206.5 492.5v32 M232.5 492.5v32 M258.5 492.5v32 M284.5 492.5v32 M310.5 492.5v32 M336.5 492.5v32 M362.5 492.5v32 M388.5 492.5v32 M414.5 492.5v32 M440.5 492.5v32 M466.5 492.5v32 M492.5 492.5v32"/>
+  <path d="M171 525v32 M197 525v32 M223 525v32 M249 525v32 M275 525v32 M301 525v32 M327 525v32 M353 525v32 M379 525v32 M405 525v32 M431 525v32 M457 525v32 M483 525v32 M509 525v32"/>
+  <path d="M161 557.5v32 M187 557.5v32 M213 557.5v32 M239 557.5v32 M265 557.5v32 M291 557.5v32 M317 557.5v32 M343 557.5v32 M369 557.5v32 M395 557.5v32 M421 557.5v32 M447 557.5v32 M473 557.5v32 M499 557.5v32"/>
+</g>
+<path d="M216 330 H452 L530 590 H138Z" fill="none" stroke="#26343c" stroke-width="2.4"/>
+<text x="120" y="352" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#b0413a">hip</text>
+<text x="512" y="352" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#b0413a">hip</text>
+<text x="94" y="632" font-family="Arial,sans-serif" font-size="16" fill="#617078">Each row is a rectangle sized to its <tspan font-weight="700" fill="#26343c">narrowest</tspan> edge, and the odd rows are</text>
+<text x="94" y="656" font-family="Arial,sans-serif" font-size="16" fill="#617078">offset half a tile, so courses never line up down the slope.</text>
+
+<!-- ============================ AFTER ============================ -->
+<rect x="628" y="196" width="748" height="470" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="658" y="240" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#397253">AFTER · CONTINUOUS RUNS, CLIPPED TO THE SLOPE</text>
+<g clip-path="url(#slopeAfter)">
+  <rect x="800" y="326" width="404" height="268" fill="#4b5354"/>
+  <g>
+    <rect x="808" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="829" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="850" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="871" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="892" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="913" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="934" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="955" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="976" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="997" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="1018" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="1039" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="1060" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="1081" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="1102" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="1123" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="1144" y="330" width="19" height="260" fill="url(#tile)"/>
+    <rect x="1165" y="330" width="19" height="260" fill="url(#tile)"/>
+  </g>
+  <g fill="url(#rib)">
+    <rect x="815" y="330" width="5" height="260"/>
+    <rect x="836" y="330" width="5" height="260"/>
+    <rect x="857" y="330" width="5" height="260"/>
+    <rect x="878" y="330" width="5" height="260"/>
+    <rect x="899" y="330" width="5" height="260"/>
+    <rect x="920" y="330" width="5" height="260"/>
+    <rect x="941" y="330" width="5" height="260"/>
+    <rect x="962" y="330" width="5" height="260"/>
+    <rect x="983" y="330" width="5" height="260"/>
+    <rect x="1004" y="330" width="5" height="260"/>
+    <rect x="1025" y="330" width="5" height="260"/>
+    <rect x="1046" y="330" width="5" height="260"/>
+    <rect x="1067" y="330" width="5" height="260"/>
+    <rect x="1088" y="330" width="5" height="260"/>
+    <rect x="1109" y="330" width="5" height="260"/>
+    <rect x="1130" y="330" width="5" height="260"/>
+    <rect x="1151" y="330" width="5" height="260"/>
+    <rect x="1172" y="330" width="5" height="260"/>
+  </g>
+  <g stroke="#e6e9e4" stroke-width="1" opacity=".5">
+    <path d="M808 383h19 M829 383h19 M850 383h19 M871 383h19 M892 383h19 M913 383h19 M934 383h19 M955 383h19 M976 383h19 M997 383h19 M1018 383h19 M1039 383h19 M1060 383h19 M1081 383h19 M1102 383h19 M1123 383h19 M1144 383h19 M1165 383h19"/>
+    <path d="M808 436h19 M829 436h19 M850 436h19 M871 436h19 M892 436h19 M913 436h19 M934 436h19 M955 436h19 M976 436h19 M997 436h19 M1018 436h19 M1039 436h19 M1060 436h19 M1081 436h19 M1102 436h19 M1123 436h19 M1144 436h19 M1165 436h19"/>
+    <path d="M808 489h19 M829 489h19 M850 489h19 M871 489h19 M892 489h19 M913 489h19 M934 489h19 M955 489h19 M976 489h19 M997 489h19 M1018 489h19 M1039 489h19 M1060 489h19 M1081 489h19 M1102 489h19 M1123 489h19 M1144 489h19 M1165 489h19"/>
+    <path d="M808 542h19 M829 542h19 M850 542h19 M871 542h19 M892 542h19 M913 542h19 M934 542h19 M955 542h19 M976 542h19 M997 542h19 M1018 542h19 M1039 542h19 M1060 542h19 M1081 542h19 M1102 542h19 M1123 542h19 M1144 542h19 M1165 542h19"/>
+  </g>
+</g>
+<path d="M884 330 H1120 L1198 590 H806Z" fill="none" stroke="#26343c" stroke-width="2.4"/>
+<path d="M884 330 L806 590" stroke="#b8703a" stroke-width="4.5"/>
+<path d="M1120 330 L1198 590" stroke="#b8703a" stroke-width="4.5"/>
+<text x="742" y="352" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#a06a34">hip ridge</text>
+<text x="1176" y="474" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#a06a34">hip ridge</text>
+<text x="658" y="632" font-family="Arial,sans-serif" font-size="16" fill="#617078">One run per pitch, ridge to eave, with a split wherever the hip starts to trim it,</text>
+<text x="658" y="656" font-family="Arial,sans-serif" font-size="16" fill="#617078">so every course edge lies on the straight hip line and nothing is left bare.</text>
+
+<!-- ============================ PLAQUE ============================ -->
+<rect x="64" y="700" width="620" height="336" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="94" y="744" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#9a5c32">PLAQUE · TEXT AND PROPORTION</text>
+<rect x="94" y="772" width="290" height="66" rx="4" fill="#3a2018" stroke="#b08b4a" stroke-width="2"/>
+<rect x="103" y="781" width="272" height="48" rx="2" fill="none" stroke="#c9a35c" stroke-width="2"/>
+<text x="239" y="821" font-family="Songti TC,Songti SC,serif" font-size="34" font-weight="700" text-anchor="middle" fill="#d9b45f" textLength="212" lengthAdjust="spacingAndGlyphs">正东门</text>
+<text x="94" y="862" font-family="Arial,sans-serif" font-size="14" fill="#8a5145">BEFORE · simplified glyphs, square canvas stretched 4.34:1</text>
+<rect x="94" y="884" width="290" height="66" rx="4" fill="#3a2018" stroke="#b08b4a" stroke-width="2"/>
+<rect x="103" y="893" width="272" height="48" rx="2" fill="none" stroke="#c9a35c" stroke-width="2"/>
+<text x="239" y="933" font-family="Songti TC,Songti SC,serif" font-size="34" font-weight="700" text-anchor="middle" fill="#d9b45f">正東門</text>
+<text x="94" y="974" font-family="Arial,sans-serif" font-size="14" fill="#507259">AFTER · traditional glyphs, Songti TC Bold, 2048 × 512 at the board's own aspect</text>
+<text x="94" y="1008" font-family="Arial,sans-serif" font-size="15" fill="#617078">All six Sign maps are regenerated together — a BaseColor swapped without its</text>
+<text x="94" y="1030" font-family="Arial,sans-serif" font-size="15" fill="#617078">Height / Normal / Roughness / Metallic / AO partners would smear the old relief.</text>
+
+<!-- ============================ NUMBERS ============================ -->
+<rect x="708" y="700" width="668" height="336" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="738" y="744" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#9a5c32">MEASURED COVERAGE PER SLOPE</text>
+<text x="738" y="782" font-family="Arial,sans-serif" font-size="17" fill="#617078">Widest strip of slope left uncovered by any course:</text>
+<rect x="738" y="800" width="608" height="42" rx="8" fill="#fbeee9"/>
+<text x="754" y="828" font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#b0413a">before · 0.420 m</text>
+<text x="1000" y="828" font-family="Arial,sans-serif" font-size="16" fill="#8a5145">wider than the 0.34 m hip ridge that would hide it — FAILED</text>
+<rect x="738" y="850" width="608" height="42" rx="8" fill="#eef5ef"/>
+<text x="754" y="878" font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#397253">after · 0.0122–0.0131 m</text>
+<text x="1000" y="878" font-family="Arial,sans-serif" font-size="16" fill="#507259">the run-entry margin, and covered by the hip ridge</text>
+<text x="738" y="924" font-family="Arial,sans-serif" font-size="16" fill="#617078">tiles <tspan font-weight="700" fill="#26343c">2,998 → 3,448</tspan> · per tile <tspan font-weight="700" fill="#26343c">36 v / 68 t → 44 v / 84 t</tspan> · runs trimmed at a hip <tspan font-weight="700" fill="#26343c">300</tspan></text>
+<text x="738" y="952" font-family="Arial,sans-serif" font-size="16" fill="#617078">roof tiles <tspan font-weight="700" fill="#26343c">203,864 → 289,632</tspan> triangles · gate <tspan font-weight="700" fill="#26343c">251,386 → 337,154</tspan></text>
+<text x="738" y="980" font-family="Arial,sans-serif" font-size="16" fill="#617078">profile · rib <tspan font-weight="700" fill="#26343c">0.066 m</tspan> over <tspan font-weight="700" fill="#26343c">46%</tspan> of the pitch, pan <tspan font-weight="700" fill="#26343c">0.020 m</tspan>, shell <tspan font-weight="700" fill="#26343c">0.030 m</tspan></text>
+<text x="738" y="1008" font-family="Arial,sans-serif" font-size="16" fill="#617078">envelope <tspan font-weight="700" fill="#26343c">2870 × 1639 × 1933.12 cm</tspan> — the hip ridge is seated on the hip line,</text>
+<text x="738" y="1030" font-family="Arial,sans-serif" font-size="16" fill="#617078">not lifted, so the building keeps the package's declared 1933 cm height.</text>
+
+<text x="64" y="1084" font-family="Arial,sans-serif" font-size="14" fill="#66737a">Generator: ContentSource/GuangzhouLandmarks/Zhengdongmen/source/build_zhengdongmen.py · Checks: Scripts/ValidateZhengdongmenRoofTiling.py · Plaque: Scripts/MakeZhengdongmenPlaque.py</text>
+<text x="64" y="1108" font-family="Arial,sans-serif" font-size="14" fill="#8a949a">The reference board is interpretive guidance, not a measured survey; the coverage figures above are measured, the tile drawings are schematic.</text>
+</svg>

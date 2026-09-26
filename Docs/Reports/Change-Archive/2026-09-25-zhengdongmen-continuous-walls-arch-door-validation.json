@@ -1,0 +1,95 @@
+{
+  "before": {
+    "lower_1_-1": {
+      "samples": 3367,
+      "holes": 1864
+    },
+    "lower_1_1": {
+      "samples": 3367,
+      "holes": 1864
+    },
+    "lower_0_-1": {
+      "samples": 3367,
+      "holes": 1753
+    },
+    "lower_0_1": {
+      "samples": 3367,
+      "holes": 1753
+    },
+    "upper_1_-1": {
+      "samples": 3367,
+      "holes": 550
+    },
+    "upper_1_1": {
+      "samples": 3367,
+      "holes": 550
+    },
+    "upper_0_-1": {
+      "samples": 3367,
+      "holes": 820
+    },
+    "upper_0_1": {
+      "samples": 3367,
+      "holes": 820
+    },
+    "spandrels": {
+      "samples": 2227,
+      "holes": 879
+    },
+    "door_fit": {
+      "samples": 4728,
+      "holes": 2492
+    },
+    "passage": {
+      "samples": 1681,
+      "blocked": 28
+    }
+  },
+  "after": {
+    "lower_1_-1": {
+      "samples": 3367,
+      "holes": 0
+    },
+    "lower_1_1": {
+      "samples": 3367,
+      "holes": 0
+    },
+    "lower_0_-1": {
+      "samples": 3367,
+      "holes": 0
+    },
+    "lower_0_1": {
+      "samples": 3367,
+      "holes": 0
+    },
+    "upper_1_-1": {
+      "samples": 3367,
+      "holes": 0
+    },
+    "upper_1_1": {
+      "samples": 3367,
+      "holes": 0
+    },
+    "upper_0_-1": {
+      "samples": 3367,
+      "holes": 0
+    },
+    "upper_0_1": {
+      "samples": 3367,
+      "holes": 0
+    },
+    "spandrels": {
+      "samples": 2227,
+      "holes": 0
+    },
+    "door_fit": {
+      "samples": 4728,
+      "holes": 0
+    },
+    "passage": {
+      "samples": 1681,
+      "blocked": 0
+    }
+  },
+  "passed": true
+}

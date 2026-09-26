@@ -90,6 +90,57 @@ exactly the part being lost. Read this when a trap bites.
     `TEXCOORD_0` in the primitive's `attributes`. That is what
     `ValidateZhengximenLandmark.py` now does. **A check that fails good assets is worse
     than no check** — probe an API against a known-good asset before trusting it.
+22. **The size-based import test cannot see a MIRROR, so it can pass a gate that is back to
+    front.** A mirror preserves every extent: `(x, -y, z)` and `(x, y, z)` give identical
+    X/Y/Z sizes, so judging an import candidate against the GLB's own POSITION bounds
+    (trap 17) matches to 2% while the model stands back to front. **Only a signed,
+    asymmetric feature distinguishes a mirror from a rotation.** Zhengdongmen 2026-09-25:
+    the import composes to `(x, -y, z)`, so its source facade on -Y arrived on **+Y** —
+    proven by the plaque (source Y -598.2..-589 → imported +589..+598.2), the door studs
+    (+204..+211.5 → -211.5..-204) and the stone base centre (-4.5 → +4.5), all agreeing.
+    Everything else in that model is symmetric about XZ, which is exactly why a bounding
+    box is blind to it. `ImportZhengximenLandmark.py` shares this blind spot.
+23. **For a Z-up GLB only ONE roll gives the right up-axis, so its Y sign is not yours to
+    choose.** Deriving the composition for Zhengdongmen: roll 0 → `(x, -z, -y)`, roll -90 →
+    `(x, -y, z)`, roll +90 → `(x, y, -z)`, roll 180 → `(x, z, y)`. Three of the four put
+    the building's **height on Y**, so roll -90 is forced and the Y negation comes with it.
+    Do not go looking for a roll that fixes the facing — fix `facing_offset` instead.
+24. **A model's facade can be on the opposite side to what its own package documents.**
+    Zhengdongmen's README says `front = -Y` and its generator source proves the source data
+    does; the import still delivered it on +Y. Read the documentation to know what to
+    *expect*, then measure the imported asset to know what you *got* — and write the
+    expectation into a validator so the disagreement is loud. The first
+    `ValidateZhengdongmenLandmark.py` run failed on exactly this, and the validator was
+    right.
+25. **A report field is a claim too.** `ImportZhengdongmenLandmark.py` computed
+    `union_size_cm` as the max per-axis extent, reporting a height of 1663 cm against the
+    true 1933 cm — the same trap the Zhengximen record already documented, reintroduced.
+    Union the parts' **absolute** bounds, never the largest extent per axis.
+
+26. **A GUI editor launched from this shell stalls at plugin mounting unless it gets
+    `-unattended`.** `Aura.log` stopped dead right after `SourceControl: Revision control is
+    disabled` and sat there for **ten minutes** with no further output and no growth — it
+    looked exactly like a slow project load. The identical command line plus **`-unattended`**
+    loaded, captured all seven views and exited in **under a minute**. Nothing was wrong with
+    the project; the first launch was waiting on a modal. `-unattended` does not disable Slate
+    post-tick callbacks, so the capture script's tick still fires. Launch native captures as:
+    `UnrealEditor <project>.uproject -ExecCmds="py <abs>/Scripts/RunZhengdongmenNativeReview.py"
+    -stdout -nosplash -unattended -NoSound -AbsLog=<abs>/courses-native.log`.
+
+27. **An open GUI editor blocks the next job, so a review process must quit itself.** The
+    2026-09-25 native-review process never exited; its leftover editor held the project for the
+    whole of the next session and blocked the isolated reimport commandlet that the roof-course
+    rebuild needed. `RunZhengdongmenNativeReview.py` now calls
+    `unreal.SystemLibrary.quit_editor()` in its `finally`. Do not treat a running editor as a
+    neutral end state — check `pgrep -f UnrealEditor` before starting any commandlet work.
+
+28. **A texture that already exists is never re-imported, so a re-authored image silently
+    keeps its old pixels.** `import_textures()` imports only when the asset is missing, and
+    re-tunes compression/sRGB on the ones it finds — so a regenerated BaseColor with **new
+    dimensions** (the Zhengdongmen plaque moved from a 4096² square to 2048 × 512) would never
+    reach the engine. Use the `refresh_textures(names)` entry point, which reimports with
+    `replace_existing=True` and then re-applies `MAP_KINDS`. Verify from the report's recorded
+    `size`, not from the fact that the run passed.
 
 ## Git
 

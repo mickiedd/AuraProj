@@ -1,0 +1,130 @@
+{
+  "type": "FeatureCollection",
+  "name": "Landforms",
+  "metadata": {
+    "status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+    "map_source_id": "MAP-001",
+    "coordinates": "RFC 7946 WGS84 lon/lat",
+    "working_metric_crs": "EPSG:32649",
+    "source_pixel_trace": "Data/Map_Pixel_Traces_Provisional.json",
+    "transform": "Data/Map_Transform_Provisional.json"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              113.2570136895612,
+              23.13914560251277
+            ],
+            [
+              113.25882361064997,
+              23.140069167810864
+            ],
+            [
+              113.26063494429226,
+              23.14078983844056
+            ],
+            [
+              113.26237988611796,
+              23.140597140922015
+            ],
+            [
+              113.26427357601399,
+              23.13989809128945
+            ],
+            [
+              113.26482281178168,
+              23.139258834438763
+            ],
+            [
+              113.26373771924055,
+              23.138576255467832
+            ],
+            [
+              113.26174339903895,
+              23.138057431322714
+            ],
+            [
+              113.25920146034944,
+              23.13794113726819
+            ],
+            [
+              113.25720042132876,
+              23.13840280272124
+            ],
+            [
+              113.2570136895612,
+              23.13914560251277
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "LANDFORM-01",
+        "name": "Kun Yam Hill indicative extent",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          [
+            870,
+            97
+          ],
+          [
+            920,
+            70
+          ],
+          [
+            970,
+            49
+          ],
+          [
+            1018,
+            55
+          ],
+          [
+            1070,
+            76
+          ],
+          [
+            1085,
+            95
+          ],
+          [
+            1055,
+            115
+          ],
+          [
+            1000,
+            130
+          ],
+          [
+            930,
+            133
+          ],
+          [
+            875,
+            119
+          ],
+          [
+            870,
+            97
+          ]
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          731106.0,
+          2560582.7,
+          731905.7,
+          2560900.5
+        ]
+      }
+    }
+  ]
+}

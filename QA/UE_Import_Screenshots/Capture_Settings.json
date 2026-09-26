@@ -1,0 +1,44 @@
+[
+  {
+    "view": "overview",
+    "camera_cm": [
+      -70000,
+      -160000,
+      340000
+    ],
+    "target_cm": [
+      201600,
+      201600,
+      1000
+    ],
+    "path": "QA/UE_Import_Screenshots/overview.png"
+  },
+  {
+    "view": "north-hills",
+    "camera_cm": [
+      100000,
+      190000,
+      100000
+    ],
+    "target_cm": [
+      200000,
+      330000,
+      2500
+    ],
+    "path": "QA/UE_Import_Screenshots/north-hills.png"
+  },
+  {
+    "view": "south-gate",
+    "camera_cm": [
+      150000,
+      85000,
+      18000
+    ],
+    "target_cm": [
+      180730,
+      133180,
+      1500
+    ],
+    "path": "QA/UE_Import_Screenshots/south-gate.png"
+  }
+]

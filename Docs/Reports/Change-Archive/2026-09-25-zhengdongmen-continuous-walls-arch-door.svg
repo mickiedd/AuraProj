@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="960" viewBox="0 0 1400 960">
+<rect width="1400" height="960" fill="#101923"/>
+<style>text{font-family:Arial,sans-serif;fill:#ecf1f5}.title{font-size:34px;font-weight:700}.h{font-size:25px;font-weight:700}.p{font-size:20px}.small{font-size:17px}.muted{fill:#acbdcc}.good{fill:#7be0b4}.bad{fill:#ffab99}</style>
+<text x="48" y="59" class="title">BP_Zhengdongmen · continuous enclosure + fitted arch</text>
+<text x="48" y="94" class="p muted">25 September 2026 · Geometry repair guided by the supplied Great East Gate reference</text>
+<rect x="38" y="124" width="648" height="570" rx="18" fill="#1e2b38"/><rect x="714" y="124" width="648" height="570" rx="18" fill="#1e2b38"/>
+<text x="66" y="168" class="h bad">BEFORE · disconnected pieces</text><text x="742" y="168" class="h good">AFTER · closed shell, retained framing</text>
+<text x="66" y="207" class="p">Timber storeys</text><text x="742" y="207" class="p">All four sides on both storeys</text>
+<g fill="#785339" stroke="#b58d62" stroke-width="3"><rect x="85" y="234" width="74" height="115"/><rect x="178" y="234" width="74" height="115"/><rect x="271" y="234" width="74" height="115"/><rect x="364" y="234" width="74" height="115"/><rect x="457" y="234" width="74" height="115"/></g>
+<g fill="#ffab99"><path d="M166 215l-7 12h14z"/><path d="M259 215l-7 12h14z"/><path d="M352 215l-7 12h14z"/></g>
+<rect x="762" y="225" width="500" height="124" fill="#785339" stroke="#b58d62" stroke-width="3"/>
+<g stroke="#d2ad80" stroke-width="8"><path d="M782 225v124m94-124v124m94-124v124m94-124v124m94-124v124m84-124v124M762 254h500M762 324h500"/></g>
+<text x="85" y="382" class="small muted">Separated panels / incomplete end walls</text><text x="762" y="382" class="small muted">Overlapping corners + roof-following top edges</text>
+<text x="66" y="429" class="p">Arch + rectangular door leaves</text><text x="742" y="429" class="p">Filled spandrels + curved door pair</text>
+<g transform="translate(150 451)"><path d="M0 180V0h350v180h-72V96a103 103 0 0 0-206 0v84z" fill="#87928f"/>
+<path d="M73 94V0h206v94a103 103 0 0 0-206 0" fill="#ffab99"/>
+<path d="M73 94a103 103 0 0 1 206 0h-17a86 86 0 0 0-172 0z" fill="#bbc2b5"/>
+<rect x="93" y="113" width="61" height="67" fill="#93613d"/><rect x="196" y="113" width="61" height="67" fill="#93613d"/>
+</g>
+<g transform="translate(826 451)"><path d="M0 180V0h350v180z" fill="#87928f"/>
+<path d="M89 180V96a86 86 0 0 1 172 0v84z" fill="#93613d" stroke="#6c4a31" stroke-width="3"/>
+<path d="M73 96a103 103 0 0 1 206 0h-17a86 86 0 0 0-172 0z" fill="#bbc2b5"/>
+<path d="M175 10v170M90 130h170M90 165h170" stroke="#402f25" stroke-width="4"/>
+</g>
+<text x="66" y="668" class="small muted">Sky wedges above ring; gaps above and between doors</text><text x="742" y="668" class="small muted">Shared circular profile; hidden 2 cm door/frame overlap</text>
+<rect x="38" y="718" width="1324" height="185" rx="18" fill="#203a36"/>
+<text x="64" y="756" class="h good">Validation · repaired geometry + saved Unreal assets</text>
+<text x="64" y="794" class="p">Timber: 9,974 → 0 gaps / 26,936 rays</text><text x="716" y="794" class="p">Spandrels: 879 → 0 gaps / 2,227 rays</text>
+<text x="64" y="831" class="p">Door fit: 2,492 → 0 gaps / 4,728 rays</text><text x="716" y="831" class="p">Passage before door: 0 blocked / 1,681 rays</text>
+<text x="64" y="874" class="small">Fresh Unreal reload: landmark + showcase pass · 7 material groups · full Nanite fallback · 71,162 triangles</text>
+<text x="48" y="937" class="small muted">Schematic, not a surveyed elevation. Actual source comparisons and native Unreal renders are linked in the archive record.</text>
+</svg>

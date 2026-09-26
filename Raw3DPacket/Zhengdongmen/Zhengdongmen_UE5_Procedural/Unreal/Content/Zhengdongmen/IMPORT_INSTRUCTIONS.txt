@@ -1,0 +1,2 @@
+No .uasset files are included; an Unreal Editor installation is required to create them.
+See ../../../../Documentation/README.md to import source GLBs and external 4K materials.

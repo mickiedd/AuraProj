@@ -1,0 +1,577 @@
+{
+  "status": "Provisional failed georeference; visual markers only",
+  "layers": {
+    "Wall": {
+      "type": "FeatureCollection",
+      "name": "Wall",
+      "metadata": {
+        "status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "map_source_id": "MAP-001",
+        "coordinates": "RFC 7946 WGS84 lon/lat",
+        "working_metric_crs": "EPSG:32649",
+        "source_pixel_trace": "Data/Map_Pixel_Traces_Provisional.json",
+        "transform": "Data/Map_Transform_Provisional.json"
+      },
+      "features": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                730301.7219957539,
+                2560046.945602264
+              ],
+              [
+                730449.3078268962,
+                2560106.364998754
+              ],
+              [
+                730566.7219768635,
+                2560183.858131342
+              ],
+              [
+                730667.2094629556,
+                2560354.6439252812
+              ],
+              [
+                730756.9450423877,
+                2560506.4625445246
+              ],
+              [
+                730940.7523627769,
+                2560611.6305810153
+              ],
+              [
+                731125.1323837454,
+                2560690.5857040333
+              ],
+              [
+                731327.0504487598,
+                2560818.6280605234
+              ],
+              [
+                731475.0453517437,
+                2560859.3239473915
+              ],
+              [
+                731661.8798037621,
+                2560825.9380126745
+              ],
+              [
+                731925.5752101656,
+                2560681.835454035
+              ],
+              [
+                732142.9904152019,
+                2560611.652273598
+              ],
+              [
+                732340.2926511851,
+                2560439.8748110565
+              ],
+              [
+                732492.2146438514,
+                2560300.8250055485
+              ],
+              [
+                732647.1637681484,
+                2560023.2212288342
+              ],
+              [
+                732791.3609857842,
+                2559726.650277425
+              ],
+              [
+                732789.238267395,
+                2559483.0822089524
+              ],
+              [
+                732739.405823786,
+                2559208.5006431057
+              ],
+              [
+                732708.0931966419,
+                2558938.069887636
+              ],
+              [
+                732485.8553990595,
+                2558888.2601631084
+              ],
+              [
+                732226.823411652,
+                2558818.914712052
+              ],
+              [
+                731968.9368254017,
+                2558697.1434340514
+              ],
+              [
+                731767.1823891265,
+                2558561.6116737127
+              ],
+              [
+                731491.5941300954,
+                2558398.2425660915
+              ],
+              [
+                731178.8844237663,
+                2558230.3165396396
+              ],
+              [
+                730976.311843805,
+                2558132.231798546
+              ],
+              [
+                730643.2005905373,
+                2558046.2831059797
+              ],
+              [
+                730365.8942297698,
+                2557961.5527387722
+              ],
+              [
+                730199.7067677937,
+                2557901.7272338294
+              ],
+              [
+                730165.6898113048,
+                2558095.801960379
+              ],
+              [
+                730167.4034578522,
+                2558358.0935384748
+              ],
+              [
+                730172.8374305665,
+                2558620.4663382615
+              ],
+              [
+                730203.9046146062,
+                2558902.1311995033
+              ],
+              [
+                730246.1327771449,
+                2559184.039725818
+              ],
+              [
+                730296.6197357015,
+                2559428.663676269
+              ],
+              [
+                730309.4943607496,
+                2559691.1989194364
+              ],
+              [
+                730301.7219957539,
+                2560046.945602264
+              ]
+            ]
+          },
+          "properties": {
+            "id": "WALL-OUTER-01",
+            "name": "Indicative outer walled-city circuit",
+            "source_id": "MAP-001",
+            "source_date": "1880",
+            "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+            "historical_confidence": "D",
+            "digitization": "coarse visual trace",
+            "preview_pixel_coordinates": [
+              [
+                650,
+                270
+              ],
+              [
+                690,
+                255
+              ],
+              [
+                722,
+                235
+              ],
+              [
+                750,
+                190
+              ],
+              [
+                775,
+                150
+              ],
+              [
+                825,
+                123
+              ],
+              [
+                875,
+                103
+              ],
+              [
+                930,
+                70
+              ],
+              [
+                970,
+                60
+              ],
+              [
+                1020,
+                70
+              ],
+              [
+                1090,
+                110
+              ],
+              [
+                1148,
+                130
+              ],
+              [
+                1200,
+                177
+              ],
+              [
+                1240,
+                215
+              ],
+              [
+                1280,
+                290
+              ],
+              [
+                1317,
+                370
+              ],
+              [
+                1315,
+                435
+              ],
+              [
+                1300,
+                508
+              ],
+              [
+                1290,
+                580
+              ],
+              [
+                1230,
+                592
+              ],
+              [
+                1160,
+                609
+              ],
+              [
+                1090,
+                640
+              ],
+              [
+                1035,
+                675
+              ],
+              [
+                960,
+                717
+              ],
+              [
+                875,
+                760
+              ],
+              [
+                820,
+                785
+              ],
+              [
+                730,
+                806
+              ],
+              [
+                655,
+                827
+              ],
+              [
+                610,
+                842
+              ],
+              [
+                602,
+                790
+              ],
+              [
+                604,
+                720
+              ],
+              [
+                607,
+                650
+              ],
+              [
+                617,
+                575
+              ],
+              [
+                630,
+                500
+              ],
+              [
+                645,
+                435
+              ],
+              [
+                650,
+                365
+              ],
+              [
+                650,
+                270
+              ]
+            ],
+            "metric_crs": "EPSG:32649",
+            "metric_bounds_m": [
+              730165.7,
+              2557901.7,
+              732791.4,
+              2560859.3
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                730185.5960168443,
+                2558377.2231565495
+              ],
+              [
+                730523.0821112274,
+                2558433.295455409
+              ],
+              [
+                730819.3173603016,
+                2558503.4531233725
+              ],
+              [
+                731170.4575438238,
+                2558616.020837862
+              ],
+              [
+                731447.2730183811,
+                2558723.219416617
+              ],
+              [
+                731797.349615114,
+                2558884.4682561257
+              ],
+              [
+                732147.5898405842,
+                2559038.2276917854
+              ],
+              [
+                732443.3342034484,
+                2559130.8535712943
+              ],
+              [
+                732739.5694525221,
+                2559201.011239257
+              ]
+            ]
+          },
+          "properties": {
+            "id": "WALL-INNER-01",
+            "name": "Indicative Old City south wall",
+            "source_id": "MAP-001",
+            "source_date": "1880",
+            "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+            "historical_confidence": "D",
+            "digitization": "coarse visual trace",
+            "preview_pixel_coordinates": [
+              [
+                609,
+                715
+              ],
+              [
+                700,
+                702
+              ],
+              [
+                780,
+                685
+              ],
+              [
+                875,
+                657
+              ],
+              [
+                950,
+                630
+              ],
+              [
+                1045,
+                589
+              ],
+              [
+                1140,
+                550
+              ],
+              [
+                1220,
+                527
+              ],
+              [
+                1300,
+                510
+              ]
+            ],
+            "metric_crs": "EPSG:32649",
+            "metric_bounds_m": [
+              730185.6,
+              2558377.2,
+              732739.6,
+              2559201.0
+            ]
+          }
+        }
+      ]
+    },
+    "Gates": {
+      "type": "FeatureCollection",
+      "name": "Gates",
+      "metadata": {
+        "status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "map_source_id": "MAP-001",
+        "coordinates": "RFC 7946 WGS84 lon/lat",
+        "working_metric_crs": "EPSG:32649",
+        "source_pixel_trace": "Data/Map_Pixel_Traces_Provisional.json",
+        "transform": "Data/Map_Transform_Provisional.json"
+      },
+      "features": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              730311.5010403676,
+              2559428.9885630314
+            ]
+          },
+          "properties": {
+            "id": "GATE-WEST-01",
+            "name": "West gate shown beside English School",
+            "source_id": "MAP-001",
+            "source_date": "1880",
+            "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+            "historical_confidence": "D",
+            "digitization": "coarse visual trace",
+            "preview_pixel_coordinates": [
+              649,
+              435
+            ],
+            "metric_crs": "EPSG:32649",
+            "metric_bounds_m": [
+              730311.5,
+              2559429.0,
+              730311.5,
+              2559429.0
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              732781.7544802855,
+              2559655.257275788
+            ]
+          },
+          "properties": {
+            "id": "GATE-EAST-01",
+            "name": "East gate shown beside Examination Hall",
+            "source_id": "MAP-001",
+            "source_date": "1880",
+            "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+            "historical_confidence": "D",
+            "digitization": "coarse visual trace",
+            "preview_pixel_coordinates": [
+              1314,
+              389
+            ],
+            "metric_crs": "EPSG:32649",
+            "metric_bounds_m": [
+              732781.8,
+              2559655.3,
+              732781.8,
+              2559655.3
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              732123.9797125269,
+              2560629.9696747675
+            ]
+          },
+          "properties": {
+            "id": "GATE-NORTH-01",
+            "name": "North-east gate shown near Kun Yam Hill",
+            "source_id": "MAP-001",
+            "source_date": "1880",
+            "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+            "historical_confidence": "D",
+            "digitization": "coarse visual trace",
+            "preview_pixel_coordinates": [
+              1143,
+              125
+            ],
+            "metric_crs": "EPSG:32649",
+            "metric_bounds_m": [
+              732124.0,
+              2560630.0,
+              732124.0,
+              2560630.0
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              731207.3335480157,
+              2558631.811862466
+            ]
+          },
+          "properties": {
+            "id": "GATE-SOUTH-01",
+            "name": "South-wall gate near Cathedral",
+            "source_id": "MAP-001",
+            "source_date": "1880",
+            "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+            "historical_confidence": "D",
+            "digitization": "coarse visual trace",
+            "preview_pixel_coordinates": [
+              885,
+              653
+            ],
+            "metric_crs": "EPSG:32649",
+            "metric_bounds_m": [
+              731207.3,
+              2558631.8,
+              731207.3,
+              2558631.8
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "source_sha256": {
+    "GIS/Provisional/Wall.geojson": "a114139440b3ec10d0211598d996c5cde46a6ddbefe4836c6914c16b51d0d83a",
+    "GIS/Provisional/Gates.geojson": "b40fdc3e982344586d4ab4c557d1638b6691b13565feb7f6e8d12388712f0984"
+  }
+}

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#101827"/>
+  <g font-family="Arial, sans-serif" fill="#edf4ff">
+    <text x="48" y="54" font-size="28" font-weight="700">Canton M01 · historical-blocker handoff</text>
+    <text x="48" y="84" font-size="17" fill="#adbed5">2026-09-26 · Reproducible evidence packet for a second research/GIS agent</text>
+
+    <rect x="48" y="116" width="326" height="170" rx="12" fill="#26364d"/>
+    <text x="70" y="150" font-size="21" font-weight="700">Current evidence</text>
+    <text x="70" y="186" font-size="16">Historic map + failed affine</text>
+    <text x="70" y="216" font-size="16">3 unsurveyed holdouts</text>
+    <text x="70" y="246" font-size="16">Modern DTM + blocked Qing layer</text>
+
+    <path d="M390 201 H454" stroke="#61c9bd" stroke-width="4" marker-end="url(#arrow)"/>
+
+    <rect x="470" y="116" width="326" height="170" rx="12" fill="#16464b"/>
+    <text x="492" y="150" font-size="21" font-weight="700">Exported packet</text>
+    <text x="492" y="186" font-size="16">Plans, source data and scripts</text>
+    <text x="492" y="216" font-size="16">Return schemas + agent task</text>
+    <text x="492" y="246" font-size="16">Per-file SHA-256 validation</text>
+
+    <path d="M812 201 H876" stroke="#61c9bd" stroke-width="4" marker-end="url(#arrow)"/>
+
+    <rect x="892" y="116" width="260" height="170" rx="12" fill="#26364d"/>
+    <text x="914" y="150" font-size="21" font-weight="700">Return target</text>
+    <text x="914" y="186" font-size="16">Surveyed controls</text>
+    <text x="914" y="216" font-size="16">Datum-backed ground Z</text>
+    <text x="914" y="246" font-size="16">Versioned decision report</text>
+
+    <rect x="48" y="322" width="1104" height="124" rx="12" fill="#543c28"/>
+    <text x="70" y="358" font-size="21" font-weight="700">Evidence guard</text>
+    <text x="70" y="391" font-size="17">Keep the failed transform immutable. Do not promote OSM centroids, relative depths, cultural layers,</text>
+    <text x="70" y="420" font-size="17">or unnamed “sea-level” heights to surveyed historical controls.</text>
+
+    <rect x="48" y="482" width="526" height="214" rx="12" fill="#24334a"/>
+    <text x="70" y="518" font-size="21" font-weight="700">Horizontal acceptance</text>
+    <text x="70" y="554" font-size="17">≥5 controls + ≥8 independent checks</text>
+    <text x="70" y="585" font-size="17">≥2 checks in every quadrant</text>
+    <text x="70" y="616" font-size="17">City RMSE ≤15 m · worst ≤30 m</text>
+    <text x="70" y="647" font-size="17">District RMSE ≤2 m · worst ≤4 m</text>
+    <text x="70" y="678" font-size="15" fill="#adbed5">Baseline: 93.24 m RMSE · 132.155 m worst</text>
+
+    <rect x="598" y="482" width="554" height="214" rx="12" fill="#24334a"/>
+    <text x="620" y="518" font-size="21" font-weight="700">Vertical acceptance</text>
+    <text x="620" y="554" font-size="17">Dated 1880–1900 walking/ground surface</text>
+    <text x="620" y="585" font-size="17">Exact section point + named benchmark</text>
+    <text x="620" y="616" font-size="17">Explicit datum and uncertainty</text>
+    <text x="620" y="647" font-size="17">Documented conversion to comparison datum</text>
+    <text x="620" y="678" font-size="15" fill="#adbed5">Baseline: one non-terrain Qing stratum candidate</text>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#61c9bd"/>
+    </marker>
+  </defs>
+</svg>

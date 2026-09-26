@@ -1,0 +1,40 @@
+{
+  "inventory_consistent": true,
+  "source_count": 12,
+  "artifact_count": 46,
+  "landmark_candidate_count": 4,
+  "gate_asset_count": 3,
+  "gcp_count": 8,
+  "holdout_quadrants": [
+    "NW",
+    "SW",
+    "SE"
+  ],
+  "provisional_layer_feature_counts": {
+    "Wall": 2,
+    "Gates": 4,
+    "Roads_Main": 2,
+    "Waterways": 2,
+    "Landforms": 1,
+    "Landmarks": 8
+  },
+  "elevation_constraint_count": 1,
+  "errors": [],
+  "day_status": {
+    "01": "Provisional",
+    "02": "Verified source selection",
+    "03": "Blocked",
+    "04": "Blocked",
+    "05": "Blocked"
+  },
+  "blocked_gates": [
+    "Day 01: working XY origin and numeric budgets need review; terrain Z unresolved (ordinary-foliage fallback selected)",
+    "Day 03: 3 unsurveyed holdouts; 93.24 m RMSE and 132.155 m worst exceed budget",
+    "Day 04: coarse layers and extent fit exist only under failed transform; no accepted GIS",
+    "Day 05: modern bare-earth acquired and one Qing stratum range registered; datum-backed 1880 ground Z remains unavailable"
+  ],
+  "source_limitations": [
+    "Day 02 source selection verified; map survey date and numeric scale remain unknown",
+    "Day 03 holdouts lack full four-quadrant coverage: NW, SW, SE"
+  ]
+}

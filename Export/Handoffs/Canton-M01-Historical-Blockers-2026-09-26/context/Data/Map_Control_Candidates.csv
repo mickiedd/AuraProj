@@ -1,0 +1,9 @@
+point_id,landmark,role,map_source_id,location_source_id,pixel_x,pixel_y,pixel_uncertainty_px,longitude_deg,latitude_deg,location_reference,persistence_note,status,notes
+GCP-01,Zhenhai Tower,control,MAP-001,OSM-001,3747,235,8,113.2602757,23.1406034,https://www.openstreetmap.org/way/146688561,surviving tower; site centroid is not a survey mark,candidate,tower icon centre
+GCP-02,Flower Pagoda,control,MAP-001,OSM-001,3135,1325,8,113.254732,23.1309449,https://www.openstreetmap.org/way/146674383,surviving pagoda,candidate,pagoda icon centre
+GCP-03,Guangta minaret,control,MAP-001,OSM-001,3002,1882,8,113.2535049,23.1254918,https://www.openstreetmap.org/way/582730183,surviving tower; 1934 upper repair,candidate,minaret icon centre
+GCP-04,Sacred Heart Cathedral,control,MAP-001,OSM-001,3132,2908,15,113.2547256,23.1173975,https://www.openstreetmap.org/way/542890833,surviving cathedral; centroid/footprint uncertainty,candidate,church building icon centre
+GCP-05,Hualin Temple,control,MAP-001,OSM-001,1688,2749,25,113.241264,23.1186158,https://www.openstreetmap.org/way/431484001,temple compound altered; centre not fixed survey mark,candidate,500 Genii compound centroid
+GCP-06,Guangxiao Temple,holdout,MAP-001,OSM-001,2720,1250,20,113.2511933,23.1319174,https://www.openstreetmap.org/way/361874090,surviving temple compound; centroid uncertainty,candidate,temple compound centre
+GCP-07,Haizhuang Temple,holdout,MAP-001,OSM-001,2987,4101,25,113.2538565,23.1079575,https://www.openstreetmap.org/way/363853167,surviving temple compound; island shoreline changed,candidate,Honam Temple compound centre
+GCP-08,Dafo Temple,holdout,MAP-001,OSM-001,4025,2085,25,113.2626468,23.1249328,https://www.openstreetmap.org/way/299671419,temple site survives but map label identification tentative,candidate,Temple of Buddha icon; identity to verify

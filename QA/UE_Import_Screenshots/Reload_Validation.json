@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "historically_accepted": false,
+  "landscape_components": 256,
+  "collision_components": 256,
+  "landscape_actors_including_proxies": 17,
+  "height_and_collision_checks": 7,
+  "max_collision_error_cm": 0.015687942504882812,
+  "errors": []
+}

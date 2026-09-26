@@ -1,0 +1,1 @@
+Import Meshes/ and Textures/ into the project using the UE5 editor; this folder is an organizational guide, not precompiled .uasset files. Material slot mapping: Documentation/MATERIAL_ASSIGNMENTS.json

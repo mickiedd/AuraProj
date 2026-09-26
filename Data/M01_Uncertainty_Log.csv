@@ -1,0 +1,5 @@
+id,area,days,status,issue,evidence,resolution_owner
+M01-001,entire working envelope,01;03;04,Blocked,Origin unapproved; failed independent map accuracy,Data/Coordinate_Contract.json;QA/Map_GCP_Residuals.csv,survey/GIS reviewer
+M01-002,entire working envelope,05;06;07,Blocked,No datum-backed late-Qing walking-surface heights,Data/Elevation_Constraints.csv;QA/Control_Survey_Handoff.md,historical survey owner
+M01-003,E729400–733432 N2557300–2561332 EPSG:32649,06;07;08,Provisional,All cells D; modern contamination unassessed; 2 m grid does not add source detail,GIS/Provisional/Terrain_Confidence_PROVISIONAL.tif;QA/Provisional/Modern_Change_Mask.tif,terrain/GIS owner
+M01-004,entire proposed UE map,09;10,Provisional technical validation passed,Import scale/orientation/layer/collision and reload pass; historic geography remains unverified,QA/UE_Import_Screenshots/Automation_Validation.json;Data/Canton_Prototype_Contract.json,UE terrain owner

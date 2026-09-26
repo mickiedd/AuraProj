@@ -1,0 +1,84 @@
+{
+  "asset": "Guangzhou Great East Gate (正东门 / 大东门)",
+  "rebuild": "2026-09-24 compact pass of original procedural model",
+  "mesh_lods": [
+    "Meshes/Zhengdongmen_LOD0.glb",
+    "Meshes/Zhengdongmen_LOD1.glb",
+    "Meshes/Zhengdongmen_LOD2.glb",
+    "Meshes/Zhengdongmen_LOD3.glb",
+    "Meshes/Zhengdongmen_LOD4.glb"
+  ],
+  "embedded_glb_textures": "New artwork bound to all seven material slots in all five GLB LODs; embedded images 384x384 to limit download size; full 8K colors supplied externally",
+  "units": "source glTF in meters, UE in centimeters; verify scale and axes after import",
+  "texture_dimensions": {
+    "BaseColor": [
+      8192,
+      8192
+    ],
+    "Normal_and_scalar_maps": [
+      1024,
+      1024
+    ]
+  },
+  "texture_caveat": "8K JPEG colors are upscaled from source generated illustrations about 1254px square; PBR maps are approximate 1K procedural estimates derived from new color illustrations, not independently scanned or baked; compact quality tradeoff",
+  "unreal_status": "No native uasset, FBX, UE material instances or verified secondary lightmap UVs, and not Unreal-import-tested. LOD1–4 are alternate separate GLBs.",
+  "material_assignments": {
+    "Stone": {
+      "BaseColor": "Textures/T_ZDM_Stone_BaseColor_8K.jpg",
+      "Normal": "Textures/T_ZDM_Stone_Normal_1K.png",
+      "Roughness": "Textures/T_ZDM_Stone_Roughness_1K.png",
+      "Metallic": "Textures/T_ZDM_Stone_Metallic_1K.png",
+      "AO": "Textures/T_ZDM_Stone_AO_1K.png",
+      "Height": "Textures/T_ZDM_Stone_Height_1K.png"
+    },
+    "Wood": {
+      "BaseColor": "Textures/T_ZDM_Wood_BaseColor_8K.jpg",
+      "Normal": "Textures/T_ZDM_Wood_Normal_1K.png",
+      "Roughness": "Textures/T_ZDM_Wood_Roughness_1K.png",
+      "Metallic": "Textures/T_ZDM_Wood_Metallic_1K.png",
+      "AO": "Textures/T_ZDM_Wood_AO_1K.png",
+      "Height": "Textures/T_ZDM_Wood_Height_1K.png"
+    },
+    "RoofTile": {
+      "BaseColor": "Textures/T_ZDM_RoofTile_BaseColor_8K.jpg",
+      "Normal": "Textures/T_ZDM_RoofTile_Normal_1K.png",
+      "Roughness": "Textures/T_ZDM_RoofTile_Roughness_1K.png",
+      "Metallic": "Textures/T_ZDM_RoofTile_Metallic_1K.png",
+      "AO": "Textures/T_ZDM_RoofTile_AO_1K.png",
+      "Height": "Textures/T_ZDM_RoofTile_Height_1K.png"
+    },
+    "Plaster": {
+      "BaseColor": "Textures/T_ZDM_Plaster_BaseColor_8K.jpg",
+      "Normal": "Textures/T_ZDM_Plaster_Normal_1K.png",
+      "Roughness": "Textures/T_ZDM_Plaster_Roughness_1K.png",
+      "Metallic": "Textures/T_ZDM_Plaster_Metallic_1K.png",
+      "AO": "Textures/T_ZDM_Plaster_AO_1K.png",
+      "Height": "Textures/T_ZDM_Plaster_Height_1K.png"
+    },
+    "Iron": {
+      "BaseColor": "Textures/T_ZDM_Iron_BaseColor_8K.jpg",
+      "Normal": "Textures/T_ZDM_Iron_Normal_1K.png",
+      "Roughness": "Textures/T_ZDM_Iron_Roughness_1K.png",
+      "Metallic": "Textures/T_ZDM_Iron_Metallic_1K.png",
+      "AO": "Textures/T_ZDM_Iron_AO_1K.png",
+      "Height": "Textures/T_ZDM_Iron_Height_1K.png"
+    },
+    "DoorWood": {
+      "BaseColor": "Textures/T_ZDM_DoorWood_BaseColor_8K.jpg",
+      "Normal": "Textures/T_ZDM_DoorWood_Normal_1K.png",
+      "Roughness": "Textures/T_ZDM_DoorWood_Roughness_1K.png",
+      "Metallic": "Textures/T_ZDM_DoorWood_Metallic_1K.png",
+      "AO": "Textures/T_ZDM_DoorWood_AO_1K.png",
+      "Height": "Textures/T_ZDM_DoorWood_Height_1K.png"
+    },
+    "Sign": {
+      "BaseColor": "Textures/T_ZDM_Sign_BaseColor_8K.jpg",
+      "Normal": "Textures/T_ZDM_Sign_Normal_1K.png",
+      "Roughness": "Textures/T_ZDM_Sign_Roughness_1K.png",
+      "Metallic": "Textures/T_ZDM_Sign_Metallic_1K.png",
+      "AO": "Textures/T_ZDM_Sign_AO_1K.png",
+      "Height": "Textures/T_ZDM_Sign_Height_1K.png"
+    }
+  },
+  "notes": "DoorWood combines timber and hardware in illustration; metalness is approximate and separate hardware meshes or masks are needed for physically accurate shading. Source image art is not photogrammetry."
+}

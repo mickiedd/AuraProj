@@ -1,0 +1,202 @@
+{
+  "type": "FeatureCollection",
+  "name": "Waterways",
+  "metadata": {
+    "status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+    "map_source_id": "MAP-001",
+    "coordinates": "RFC 7946 WGS84 lon/lat",
+    "working_metric_crs": "EPSG:32649",
+    "source_pixel_trace": "Data/Map_Pixel_Traces_Provisional.json",
+    "transform": "Data/Map_Transform_Provisional.json"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            113.2263675202618,
+            23.106738028488234
+          ],
+          [
+            113.23217752483535,
+            23.1068408723483
+          ],
+          [
+            113.23834686757313,
+            23.107486682013523
+          ],
+          [
+            113.24450632543345,
+            23.10955236567034
+          ],
+          [
+            113.24921799591233,
+            23.110932937540404
+          ],
+          [
+            113.25429057946286,
+            23.112653625384493
+          ],
+          [
+            113.26008729694234,
+            23.11471651885971
+          ],
+          [
+            113.2666174411317,
+            23.11576905361116
+          ],
+          [
+            113.27279479384757,
+            23.11529767850489
+          ],
+          [
+            113.28043269828099,
+            23.113650987741927
+          ],
+          [
+            113.28987718051937,
+            23.11336671469475
+          ]
+        ]
+      },
+      "properties": {
+        "id": "WATER-01",
+        "name": "Indicative Pearl River center route",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          [
+            20,
+            1050
+          ],
+          [
+            180,
+            1048
+          ],
+          [
+            350,
+            1030
+          ],
+          [
+            520,
+            970
+          ],
+          [
+            650,
+            930
+          ],
+          [
+            790,
+            880
+          ],
+          [
+            950,
+            820
+          ],
+          [
+            1130,
+            790
+          ],
+          [
+            1300,
+            805
+          ],
+          [
+            1510,
+            855
+          ],
+          [
+            1770,
+            865
+          ]
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          728021.7,
+          2557074.9,
+          734517.2,
+          2558138.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            113.24779174900937,
+            23.133241492271218
+          ],
+          [
+            113.24727277240474,
+            23.129518914727722
+          ],
+          [
+            113.24693778807621,
+            23.125459287155955
+          ],
+          [
+            113.2464235944119,
+            23.121060453177257
+          ],
+          [
+            113.24699662855733,
+            23.117006214088544
+          ],
+          [
+            113.24811321543476,
+            23.11312427078244
+          ]
+        ]
+      },
+      "properties": {
+        "id": "WATER-02",
+        "name": "Indicative west wall moat",
+        "source_id": "MAP-001",
+        "source_date": "1880",
+        "georef_status": "PROVISIONAL_FAILS_DAY_03_ACCEPTANCE",
+        "historical_confidence": "D",
+        "digitization": "coarse visual trace",
+        "preview_pixel_coordinates": [
+          [
+            615,
+            270
+          ],
+          [
+            600,
+            380
+          ],
+          [
+            590,
+            500
+          ],
+          [
+            575,
+            630
+          ],
+          [
+            590,
+            750
+          ],
+          [
+            620,
+            865
+          ]
+        ],
+        "metric_crs": "EPSG:32649",
+        "metric_bounds_m": [
+          730052.2,
+          2557816.4,
+          730238.8,
+          2560044.1
+        ]
+      }
+    }
+  ]
+}

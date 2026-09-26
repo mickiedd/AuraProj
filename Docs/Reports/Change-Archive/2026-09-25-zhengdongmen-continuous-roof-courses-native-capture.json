@@ -1,0 +1,42 @@
+{
+  "views": [
+    {
+      "view": "front",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-courses-final-front.png",
+      "bytes": 2263488
+    },
+    {
+      "view": "three-quarter",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-courses-final-three-quarter.png",
+      "bytes": 1404413
+    },
+    {
+      "view": "arch",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-courses-final-arch.png",
+      "bytes": 2899549
+    },
+    {
+      "view": "timber",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-courses-final-timber.png",
+      "bytes": 2153780
+    },
+    {
+      "view": "rear",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-courses-final-rear.png",
+      "bytes": 1122887
+    },
+    {
+      "view": "plaque",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-courses-final-plaque.png",
+      "bytes": 2041910
+    },
+    {
+      "view": "roof",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-courses-final-roof.png",
+      "bytes": 2614679
+    }
+  ],
+  "cleanup_before": 0,
+  "cleanup_after": 0,
+  "stage": "courses-final"
+}

@@ -1,0 +1,44 @@
+{
+  "status": "Provisional engineering contract; historical acceptance excluded",
+  "decision_basis": "2026-09-26 user requested blocker resolution and completion; master plan permits isolated prototype",
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "raw_height_path": "Export/Provisional/Canton_Modern_Context_SouthFirst.r16",
+  "raw_sha256": "ab89d3510e6ef6dfe34a69eb3df5b219d6fe953a9dd4de3d0095f6f150a55765",
+  "png_sha256": "c26b97d7db5c5d84662a3ad7221d479c5c81a5d43a8c7f7529a871ed9d02c4d9",
+  "source_metadata_sha256": "c64d159a4837703c32445812dc401fcc415aeeb2c0470b71434c718922a737e9",
+  "origin_easting_m": 729400,
+  "origin_northing_m": 2557300,
+  "horizontal_crs": "EPSG:32649",
+  "terrain_zero_elevation_m": 0,
+  "vertical_datum": "EPSG:3855 EGM2008; modern-context only",
+  "historical_terrain_zero_m": null,
+  "historically_accepted": false,
+  "vertices": 2017,
+  "quads_per_section": 63,
+  "sections_per_component": 2,
+  "components_per_axis": 16,
+  "actor_location_cm": [
+    0,
+    0,
+    0
+  ],
+  "actor_scale": [
+    200,
+    200,
+    50
+  ],
+  "source_png_row_zero": "north",
+  "r16_row_zero": "south",
+  "flip_y_applied_in_preparation": true,
+  "native_import_additional_flip_y": false,
+  "grid_size_components": 4,
+  "region_size_components": 16,
+  "edit_layer": "Base_Imported",
+  "base_locked": true,
+  "validation_budget": {
+    "encoded_height_error_codes": 0,
+    "collision_height_error_cm": 2,
+    "analytic_xy_error_cm": 1e-06
+  },
+  "historical_gates": "Original Coordinate_Contract and acceptance budget remain unchanged and unresolved"
+}

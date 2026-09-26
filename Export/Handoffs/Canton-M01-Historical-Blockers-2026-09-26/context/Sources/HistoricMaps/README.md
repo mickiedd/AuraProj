@@ -1,0 +1,3 @@
+# Historic map originals
+
+`Canton_Vrooman_BritishLibrary_001954731.jpg` is an unchanged 7017 × 4384 pixel research copy from [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Canton1890.jpg), downloaded 2026-09-24. SHA-256: `ebab90db8e25cd87fea7ac4e5e6d3d2e45e4659fb35bff6b509aba6f62406bd7`. Commons marks it public domain. The [British Library image record](https://www.flickr.com/photos/britishlibrary/11135383854/) identifies page 41 of the 1880 second edition of *The Canton Guide*; actual map survey date and scale remain unknown. Register row: `MAP-001`. Coarse tracing is confined to `GIS/Provisional/` because independent Day 03 checks fail; do not use it as accepted projected geometry.

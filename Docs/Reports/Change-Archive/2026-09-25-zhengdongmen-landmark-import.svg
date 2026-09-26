@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" font-family="Helvetica, Arial, sans-serif">
+  <rect width="1000" height="1000" fill="#f7f8fa"/>
+  <text x="32" y="42" font-size="22" font-weight="700" fill="#1f2933">Zhengdongmen / Great East Gate (大东门 · 正东门) imported as a landmark Blueprint</text>
+  <text x="32" y="66" font-size="13" fill="#52606d">Two Zhengdongmen_Great_East_Gate packages &#8594; /Game/Assets/Environment/GuangzhouLandmarks/Zhengdongmen &#183; BP_Zhengdongmen &#183; the 9th landmark</text>
+
+  <!-- ============ 1. TWO PACKAGES, ONE GEOMETRY ============ -->
+  <g>
+    <rect x="32" y="88" width="440" height="196" rx="8" fill="#ffffff" stroke="#cbd2d9"/>
+    <text x="48" y="114" font-size="15" font-weight="700" fill="#1f2933">1 &#183; Two packages, one geometry</text>
+    <text x="48" y="136" font-size="11.5" fill="#52606d">Both zips ship the SAME mesh; they differ only in texture artwork.</text>
+    <g font-size="11.5" fill="#1f2933">
+      <text x="60" y="162">Procedural_UE5_Package</text>
+      <text x="272" y="162" fill="#52606d">all 6 channels at 4096, older art</text>
+      <text x="60" y="184">Compact_8K_Materials</text>
+      <text x="272" y="184" fill="#52606d">BaseColor 8192, other 5 at 1024</text>
+    </g>
+    <line x1="60" y1="200" x2="444" y2="200" stroke="#e4e7eb"/>
+    <text x="60" y="222" font-size="11" fill="#0b6b3a" font-weight="700">Identical: 7 meshes, 50,442 triangles, same POSITION bounds</text>
+    <text x="60" y="242" font-size="11" fill="#52606d">Verified by reading both GLBs' accessors, not by trusting the READMEs.</text>
+    <text x="60" y="266" font-size="11" fill="#52606d">So the choice is purely which artwork to bind.</text>
+  </g>
+
+  <!-- ============ 2. TEXTURE CHOICE ============ -->
+  <g>
+    <rect x="528" y="88" width="440" height="196" rx="8" fill="#ffffff" stroke="#1f7a4d"/>
+    <text x="544" y="114" font-size="15" font-weight="700" fill="#0b6b3a">2 &#183; Compact artwork, staged at 4K</text>
+    <text x="544" y="136" font-size="11.5" fill="#52606d">Chosen on evidence: real masonry, tile profiles, grain, weathered limewash.</text>
+    <g font-size="11.5" fill="#1f2933">
+      <text x="556" y="162">BaseColor</text>
+      <text x="700" y="162" fill="#52606d">8192 &#8594; 4096</text>
+      <text x="556" y="184">Normal / Rough / Metal / AO / Height</text>
+      <text x="556" y="206" fill="#52606d">42 textures total: 7 &#215; 4096 + 35 &#215; 1024</text>
+    </g>
+    <line x1="556" y1="222" x2="940" y2="222" stroke="#e4e7ea"/>
+    <text x="556" y="244" font-size="11" fill="#9b1c1c" font-weight="700">The 8K is an upscale, not detail.</text>
+    <text x="556" y="262" font-size="11" fill="#52606d">An 8K&#8594;4K&#8594;8K round trip reproduces it to 0.49&#8211;0.62 of 255</text>
+    <text x="556" y="276" font-size="11" fill="#52606d">(JPEG noise); the art is ~1254 px. 4K already oversamples 3.3&#215;.</text>
+  </g>
+
+  <!-- ============ 3. THE ORIENTATION FINDING ============ -->
+  <g>
+    <rect x="32" y="300" width="936" height="330" rx="8" fill="#ffffff" stroke="#9b1c1c"/>
+    <text x="48" y="326" font-size="15" font-weight="700" fill="#9b1c1c">3 &#183; The finding: the import NEGATES Y, so the facade lands on +Y</text>
+    <text x="48" y="348" font-size="11.5" fill="#52606d">The source model puts its facade on local &#8722;Y (its own generator authors the plaque at Y &#8722;5.98 and its README says "front = &#8722;Y"). The import flips it.</text>
+
+    <!-- before/after diagram -->
+    <g>
+      <text x="60" y="378" font-size="12" font-weight="700" fill="#1f2933">Source GLB frame</text>
+      <text x="60" y="396" font-size="10.5" fill="#52606d">plaque on &#8722;Y = the front</text>
+      <!-- source plan view -->
+      <rect x="66" y="408" width="300" height="120" rx="4" fill="#f5f7fa" stroke="#cbd2d9"/>
+      <line x1="216" y1="414" x2="216" y2="522" stroke="#cbd2d9" stroke-dasharray="3 3"/>
+      <line x1="72" y1="468" x2="360" y2="468" stroke="#cbd2d9" stroke-dasharray="3 3"/>
+      <text x="222" y="440" font-size="10" fill="#7b8794">+Y</text>
+      <text x="222" y="502" font-size="10" fill="#7b8794">&#8722;Y</text>
+      <rect x="150" y="420" width="130" height="96" rx="3" fill="#e8eef6" stroke="#52606d"/>
+      <text x="182" y="474" font-size="10" fill="#52606d">gate</text>
+      <circle cx="216" cy="500" r="4" fill="#9b1c1c"/>
+      <text x="226" y="504" font-size="10.5" font-weight="700" fill="#9b1c1c">門額 plaque</text>
+      <text x="66" y="546" font-size="10.5" fill="#52606d">Iron door studs sit at Y +204..+211.5 (inside the passage).</text>
+    </g>
+
+    <g>
+      <text x="420" y="378" font-size="12" font-weight="700" fill="#1f2933">Imported UE frame</text>
+      <text x="420" y="396" font-size="10.5" fill="#52606d">plaque on +Y = the front</text>
+      <rect x="426" y="408" width="300" height="120" rx="4" fill="#fdf6f6" stroke="#f0b4b4"/>
+      <line x1="576" y1="414" x2="576" y2="522" stroke="#f0b4b4" stroke-dasharray="3 3"/>
+      <line x1="432" y1="468" x2="720" y2="468" stroke="#f0b4b4" stroke-dasharray="3 3"/>
+      <text x="582" y="440" font-size="10" fill="#7b8794">+Y</text>
+      <text x="582" y="502" font-size="10" fill="#7b8794">&#8722;Y</text>
+      <rect x="510" y="420" width="130" height="96" rx="3" fill="#f7dede" stroke="#9b1c1c"/>
+      <text x="542" y="474" font-size="10" fill="#9b1c1c">gate</text>
+      <circle cx="576" cy="436" r="4" fill="#9b1c1c"/>
+      <text x="586" y="440" font-size="10.5" font-weight="700" fill="#9b1c1c">門額 plaque</text>
+      <text x="426" y="546" font-size="10.5" fill="#52606d">Studs move to Y &#8722;211.5..&#8722;204; stone centre &#8722;4.5 &#8594; +4.5.</text>
+    </g>
+
+    <!-- measurement table -->
+    <rect x="744" y="366" width="208" height="162" rx="6" fill="#f5f7fa" stroke="#cbd2d9"/>
+    <text x="758" y="388" font-size="11" font-weight="700" fill="#1f2933">Three readings, all agree</text>
+    <g font-size="10.5" fill="#1f2933">
+      <text x="758" y="412">Iron studs</text>
+      <text x="758" y="428" fill="#52606d">+211.5 &#8594; &#8722;211.5</text>
+      <text x="758" y="452">Sign plaque</text>
+      <text x="758" y="468" fill="#52606d">&#8722;598.2 &#8594; +589.0</text>
+      <text x="758" y="492">Stone centre</text>
+      <text x="758" y="508" fill="#52606d">&#8722;4.5 &#8594; +4.5</text>
+    </g>
+    <text x="758" y="526" font-size="10" fill="#9b1c1c">measured, not assumed</text>
+
+    <!-- why not another roll -->
+    <rect x="48" y="558" width="904" height="60" rx="6" fill="#fdf6f6" stroke="#f0b4b4"/>
+    <text x="64" y="577" font-size="11.5" font-weight="700" fill="#9b1c1c">Why no other import roll can fix it &#8212; and why a size check never would</text>
+    <text x="64" y="595" font-size="10.5" fill="#1f2933">Interchange converts the Z-up data then rolls: roll &#8722;90 gives (x, &#8722;y, z). Rolls 0, +90 and 180 all put the HEIGHT on Y instead of Z, so they are not options.</text>
+    <text x="64" y="610" font-size="10.5" fill="#1f2933">A mirror preserves every extent, so (x, &#8722;y, z) and (x, y, z) have identical X/Y/Z sizes &#8212; a size check reports a perfect match while the gate stands back to front.</text>
+  </g>
+
+  <!-- ============ 4. THE FIX ============ -->
+  <g>
+    <rect x="32" y="646" width="440" height="150" rx="8" fill="#ffffff" stroke="#1f7a4d"/>
+    <text x="48" y="672" font-size="15" font-weight="700" fill="#0b6b3a">4 &#183; The fix: facing_offset 180</text>
+    <text x="48" y="694" font-size="11.5" fill="#52606d">Same treatment Wenmingmen needed, for the opposite reason: there the</text>
+    <text x="48" y="710" font-size="11.5" fill="#52606d">model itself faced +Y; here the model faced &#8722;Y and the import flipped it.</text>
+    <line x1="60" y1="724" x2="444" y2="724" stroke="#e4e7ea"/>
+    <text x="60" y="744" font-size="11" fill="#1f2933">CreateGuangzhouLandmarkShowcase.py</text>
+    <text x="60" y="760" font-size="11" fill="#52606d">0.0 &#8594; 180.0, with the three readings in the comment</text>
+    <text x="60" y="780" font-size="11" fill="#1f2933">ValidateGuangzhouLandmarkShowcase.py</text>
+    <text x="60" y="794" font-size="11" fill="#52606d">FACADE_LOCAL_AXIS["Zhengdongmen"] = (0.0, +1.0)</text>
+  </g>
+
+  <!-- ============ 5. VALIDATION ============ -->
+  <g>
+    <rect x="528" y="646" width="440" height="150" rx="8" fill="#ffffff" stroke="#1f7a4d"/>
+    <text x="544" y="672" font-size="15" font-weight="700" fill="#0b6b3a">5 &#183; Validation &#8212; 0 errors / 0 warnings</text>
+    <g font-size="11.5" fill="#1f2933">
+      <text x="556" y="696">Import</text>
+      <text x="720" y="696" fill="#52606d">7/7 groups, roll &#8722;90, scale 1.0, 42 textures</text>
+      <text x="556" y="718">Footprint</text>
+      <text x="720" y="718" fill="#52606d">2870 &#215; 1639 &#215; 1933 cm &#8212; the source exactly</text>
+      <text x="556" y="740">Triangles</text>
+      <text x="720" y="740" fill="#52606d">50,442 &#8212; the declared LOD0 exactly</text>
+      <text x="556" y="762">Blueprint</text>
+      <text x="720" y="762" fill="#52606d">PackedLevelActor, 7 HISMs, LevelInstance root</text>
+      <text x="556" y="784">Ring</text>
+      <text x="720" y="784" fill="#52606d">9 landmarks / 9 lights, 0 overlaps, gaps 31.8&#176;&#8211;48.5&#176;</text>
+    </g>
+  </g>
+
+  <!-- ============ 6. STILL OPEN ============ -->
+  <g>
+    <rect x="32" y="812" width="936" height="76" rx="8" fill="#fffbf0" stroke="#e6c27a"/>
+    <text x="48" y="838" font-size="13" font-weight="700" fill="#8a6100">Still open</text>
+    <text x="48" y="860" font-size="11.5" fill="#1f2933">Native visual capture is PENDING. Everything above is structural and does NOT prove the gate LOOKS right &#8212; rendering needs an editor with a live RHI.</text>
+    <text x="48" y="878" font-size="11.5" fill="#1f2933">The package's README states its dimensions are proportional art-reconstruction estimates, so comparison against the reference board is a visual judgement, not a measurement.</text>
+  </g>
+
+  <text x="32" y="910" font-size="10.5" fill="#7b8794">Both packages ship a procedural blockout, not a photogrammetric survey: roof tiles are simplified strokes rather than interlocking curved profiles,</text>
+  <text x="32" y="926" font-size="10.5" fill="#7b8794">and no UV1 lightmap channel is provided &#8212; the project lights with Lumen, so the atlas is not on the critical path.</text>
+  <text x="32" y="948" font-size="10.5" fill="#7b8794">Scripts: PrepareZhengdongmenPackage.py &#183; ImportZhengdongmenLandmark.py &#183; CreateZhengdongmenLandmarkBlueprint.py &#183; ValidateZhengdongmenLandmark.py</text>
+  <text x="32" y="964" font-size="10.5" fill="#7b8794">Reports: Saved/RawModelImport/Zhengdongmen-{import,blueprint,validation}.json &#183; guangzhou-landmark-showcase-validation.json</text>
+</svg>

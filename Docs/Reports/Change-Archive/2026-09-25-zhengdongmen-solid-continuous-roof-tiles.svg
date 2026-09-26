@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1040" viewBox="0 0 1440 1040">
+<defs>
+  <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#f7f5ef"/><stop offset="1" stop-color="#e8e5dc"/></linearGradient>
+  <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#7c8281"/><stop offset="1" stop-color="#343b3d"/></linearGradient>
+  <linearGradient id="tile" x2="0" y2="1"><stop stop-color="#8f9188"/><stop offset="1" stop-color="#34383a"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#1d2931" flood-opacity=".14"/></filter>
+</defs>
+<rect width="1440" height="1040" fill="url(#bg)"/>
+<text x="64" y="74" font-family="Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="3" fill="#9a5c32">AURA PROJECT · GUANGZHOU LANDMARKS</text>
+<text x="64" y="132" font-family="Arial,sans-serif" font-size="42" font-weight="700" fill="#17252d">Zhengdongmen · continuous solid roof tiles</text>
+<text x="64" y="169" font-family="Arial,sans-serif" font-size="20" fill="#52616a">The roof changed from a broken, sheet-like surface to overlapping 3D tile shells.</text>
+<rect x="64" y="212" width="540" height="442" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<rect x="628" y="212" width="748" height="442" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="96" y="258" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2" fill="#a64e40">BEFORE · SURFACE / GAPS</text>
+<text x="660" y="258" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2" fill="#397253">AFTER · 8 SLOPES COVERED</text>
+<!-- before schematic roof panel, with missing areas and abrupt stripes -->
+<path d="M119 390 L320 312 L550 390 L550 416 L320 338 L119 416Z" fill="#3f464a"/>
+<path d="M119 390 L320 312 L320 338 L119 416Z" fill="#596166"/>
+<path d="M320 312 L550 390 L550 416 L320 338Z" fill="#42494c"/>
+<g stroke="#d5c9ac" stroke-width="5" opacity=".9">
+  <path d="M157 385 L157 401 M202 368 L202 394 M247 351 L247 377 M292 334 L292 360"/>
+  <path d="M352 350 L352 375 M397 365 L397 391 M442 380 L442 406 M487 395 L487 421"/>
+</g>
+<path d="M119 416 L320 338 L550 416 L550 460 L320 385 L119 460Z" fill="#272e31" opacity=".75"/>
+<text x="102" y="499" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#26343c">Disconnected courses leave bare roof patches.</text>
+<text x="102" y="531" font-family="Arial,sans-serif" font-size="16" fill="#617078">Bare side hips broke the tile field.</text>
+<path d="M102 573 H550" stroke="#e6ded1" stroke-width="2"/>
+<text x="102" y="610" font-family="Arial,sans-serif" font-size="15" fill="#8a5145">Issue shown schematically from the supplied viewport image.</text>
+<!-- after continuous field of individually profiled tiles across roof -->
+<path d="M692 393 L974 302 L1318 392 L1318 418 L974 330 L692 420Z" fill="#20292d"/>
+<path d="M692 393 L974 302 L974 330 L692 420Z" fill="#515a5c"/>
+<path d="M974 302 L1318 392 L1318 418 L974 330Z" fill="#3b4346"/>
+<!-- repeated staggered curved tile channels, front and side planes -->
+<g fill="url(#tile)" stroke="#a9a28e" stroke-width="1.3">
+  <path d="M715 391 l28 -9 34 12 -28 10Z M777 372 l28 -9 34 12 -28 10Z M839 352 l28 -9 34 12 -28 10Z M901 332 l28 -9 34 12 -28 10Z M963 313 l11 -4 v27 l-11 -6Z"/>
+  <path d="M745 408 l28 -9 34 12 -28 10Z M807 389 l28 -9 34 12 -28 10Z M869 369 l28 -9 34 12 -28 10Z M931 349 l28 -9 15 5 v28 l-15 -5Z"/>
+  <path d="M775 425 l28 -9 34 12 -28 10Z M837 406 l28 -9 34 12 -28 10Z M899 386 l28 -9 34 12 -28 10Z M961 366 l13 -4 v28 l-13 -5Z"/>
+  <path d="M1001 309 l31 8 4 28 -31 -8Z M1046 321 l31 8 4 28 -31 -8Z M1091 333 l31 8 4 28 -31 -8Z M1136 345 l31 8 4 28 -31 -8Z M1181 357 l31 8 4 28 -31 -8Z M1226 369 l31 8 4 28 -31 -8Z"/>
+  <path d="M984 338 l31 8 4 28 -31 -8Z M1029 350 l31 8 4 28 -31 -8Z M1074 362 l31 8 4 28 -31 -8Z M1119 374 l31 8 4 28 -31 -8Z M1164 386 l31 8 4 28 -31 -8Z M1209 398 l31 8 4 17 -31 -8Z"/>
+</g>
+<text x="682" y="499" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#26343c">Staggered, curved tiles overlap across each hip.</text>
+<text x="682" y="531" font-family="Arial,sans-serif" font-size="16" fill="#617078">Course and width pitches leave no exposed strips on the eight roof planes.</text>
+<path d="M682 573 H1320" stroke="#e6ded1" stroke-width="2"/>
+<text x="682" y="610" font-family="Arial,sans-serif" font-size="15" fill="#507259">The adjacent native Unreal capture shows the saved Blueprint.</text>
+<!-- topology detail -->
+<rect x="64" y="684" width="1312" height="282" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="96" y="731" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2" fill="#9a5c32">ONE TILE · CLOSED, CURVED SHELL</text>
+<!-- section illustration -->
+<path d="M116 830 Q260 764 402 830 L402 850 Q260 785 116 850Z" fill="#5c6363" stroke="#27343a" stroke-width="3"/>
+<path d="M116 830 Q260 764 402 830" fill="none" stroke="#c6b895" stroke-width="4"/>
+<path d="M116 850 Q260 785 402 850" fill="none" stroke="#8f563a" stroke-width="2"/>
+<g stroke="#b1aa98" stroke-width="1.5"><path d="M140 820v20 M164 811v20 M188 802v20 M212 794v20 M236 789v20 M260 787v20 M284 789v20 M308 794v20 M332 802v20 M356 811v20 M380 820v20"/></g>
+<path d="M422 830h42 M422 850h42 M454 830v20" fill="none" stroke="#b35638" stroke-width="2"/>
+<text x="114" y="895" font-family="Arial,sans-serif" font-size="14" fill="#59666d">4 cm shell</text>
+<text x="510" y="790" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#26343c">36 shared vertices · 68 triangles per tile</text>
+<text x="510" y="827" font-family="Arial,sans-serif" font-size="17" fill="#617078">9 cross-curve samples; shared vertices also form the underside and side rails.</text>
+<text x="510" y="860" font-family="Arial,sans-serif" font-size="17" fill="#617078">2,998 closed shells · 203,864 tile triangles · one combined roof mesh.</text>
+<text x="510" y="911" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#397253">Manifold edge check passed · Unreal import and saved-Blueprint validation passed.</text>
+<text x="64" y="1010" font-family="Arial,sans-serif" font-size="14" fill="#66737a">Source: ContentSource/GuangzhouLandmarks/Zhengdongmen/source/build_zhengdongmen.py · Asset: SM_ZDM_RoofTile</text>
+</svg>

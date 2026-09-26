@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+<rect width="1200" height="800" fill="#101827"/>
+<g font-family="Arial, sans-serif" fill="#e8eff8">
+<text x="48" y="52" font-size="28" font-weight="bold">Canton · Days 01–10 implementation review</text>
+<text x="48" y="84" font-size="17" fill="#a9bad0">2026-09-26 • Modern-context prototype advanced • M01 acceptance remains BLOCKED</text>
+<rect x="48" y="110" width="525" height="174" rx="12" fill="#233045"/>
+<text x="70" y="145" font-size="21" font-weight="bold">BEFORE · Source packet only</text>
+<text x="70" y="181" font-size="17">12 sources; failed map transform; modern DTM</text>
+<text x="70" y="211" font-size="17">Historical terrain zero unresolved</text>
+<text x="70" y="241" font-size="17">Days 06–10 had no execution records</text>
+<rect x="601" y="110" width="550" height="174" rx="12" fill="#173c44"/>
+<text x="625" y="145" font-size="21" font-weight="bold">AFTER · Isolated prototype and audit</text>
+<text x="625" y="181" font-size="17">Modern DTM → float32 grid → R16 PNG</text>
+<text x="625" y="211" font-size="17">All pixels D confidence + contamination risk</text>
+<text x="625" y="241" font-size="17">Metadata, rejection tests and M01 review</text>
+<rect x="48" y="305" width="1103" height="95" rx="12" fill="#503828"/>
+<text x="70" y="338" font-size="20" font-weight="bold">GUARD · No promotion to historical or UE acceptance</text>
+<text x="70" y="369" font-size="17">No surveyed Z, no historical corrections, no accepted map. Day 09 import/configuration remains untested.</text>
+<text x="70" y="443" font-size="19" font-weight="bold">Modern DTM centre-column profile · north → south · E731416</text>
+<text x="70" y="470" font-size="15" fill="#a9bad0">EGM2008 metres; baseline 0 m; vertical scale 2 px/m. Context only; not an 1880 ground profile.</text>
+<path d="M70 595 H1050" stroke="#718198"/>
+<polyline points="70.0,536.9 85.6,566.7 101.1,579.6 116.7,532.0 132.2,519.0 147.8,505.4 163.3,495.4 178.9,497.8 194.4,503.1 210.0,549.0 225.6,539.5 241.1,511.1 256.7,543.4 272.2,554.2 287.8,571.0 303.3,568.8 318.9,579.6 334.4,584.2 350.0,578.1 365.6,568.1 381.1,566.9 396.7,549.0 412.2,546.6 427.8,557.6 443.3,557.9 458.9,560.1 474.4,556.7 490.0,559.4 505.6,576.8 521.1,573.8 536.7,578.1 552.2,562.9 567.8,556.8 583.3,563.2 598.9,567.7 614.4,560.3 630.0,555.6 645.6,557.8 661.1,553.0 676.7,572.7 692.2,576.9 707.8,571.5 723.3,571.3 738.9,567.2 754.4,560.8 770.0,553.7 785.6,574.7 801.1,582.6 816.7,586.7 832.2,582.2 847.8,579.3 863.3,593.1 878.9,594.7 894.4,592.7 910.0,581.9 925.6,572.2 941.1,582.5 956.7,585.0 972.2,582.6 987.8,583.2 1003.3,584.8 1018.9,575.1 1034.4,565.6 1050.0,572.3" fill="none" stroke="#57d1c2" stroke-width="3"/>
+<text x="70" y="620" font-size="15">North: N2561332</text><text x="820" y="620" font-size="15">Southward samples ≈4 km</text>
+<rect x="48" y="650" width="1103" height="108" rx="12" fill="#233045"/>
+<text x="70" y="683" font-size="20" font-weight="bold">VALIDATION · Passed tooling checks; historical gate not passed</text>
+<text x="70" y="713" font-size="17">2017² · 16-bit grayscale · 0 clips · ≤1.953 mm error · 5 analytic frame checks</text>
+<text x="70" y="739" font-size="17">Source hashes consistent · 4 metadata rejection cases · 0 surveyed landmark checks · UE checks not run</text>
+</g></svg>

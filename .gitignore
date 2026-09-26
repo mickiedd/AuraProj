@@ -81,3 +81,13 @@ Desktop.ini
 /Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/*.pdb
 /Plugins/AuraAbilityGraph/AuraAbilityGraphLauncher/*WebView2Loader.dll
 __pycache__/
+
+# Isolated Canton terrain and its World Partition actor packages.
+!/Content/Canton/
+/Content/Canton/*
+!/Content/Canton/Provisional/
+!/Content/__ExternalActors__/
+/Content/__ExternalActors__/*
+!/Content/__ExternalActors__/Canton/
+/Content/__ExternalActors__/Canton/*
+!/Content/__ExternalActors__/Canton/Provisional/

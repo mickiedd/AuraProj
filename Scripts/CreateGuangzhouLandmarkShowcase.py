@@ -198,6 +198,40 @@ LANDMARKS = [
     # Adding it re-derives the ring radius, so every existing landmark moves.
     ("Zhengximen", "Zhengximen/BP_Zhengximen",
      "Zhengximen (Great West Gate)", 0.0),
+    # Zhengdongmen joined the ring on 2026-09-25, imported from the
+    # Zhengdongmen_Great_East_Gate art packages. The Great East Gate is written
+    # 大东门 and 正东门; the plaque on the model reads 正东门.
+    #
+    # FACING 180, like Wenmingmen and unlike the other seven. The source model
+    # puts its facade on local -Y - the generator shipped with the package
+    # (Scripts/build_gate.py) authors the signboard (門額, reading 正东门) at
+    # Y -5.97..-5.89 with its full-UV front face at Y -5.982, and the README says
+    # "front = -Y" - but the IMPORT negates Y, so the facade arrives on local +Y.
+    #
+    # That was measured on the imported meshes, not assumed. Three parts agree:
+    #   * Iron (door studs)   source Y +204..+211.5  -> imported -211.5..-204
+    #   * Sign (the plaque)   source Y -598.2..-589  -> imported +589..+598.2
+    #   * Stone (base centre) source Y centre -4.5   -> imported centre +4.5
+    #
+    # Why it cannot be fixed by choosing a different import roll: the GLBs are
+    # trimesh output with Z-up POSITION values in a Y-up container, so Interchange
+    # converts and then rolls. The composition is (x, y, z) -> (x, -y, z) at roll
+    # -90; roll 0, +90 and 180 all put the building's HEIGHT on Y instead of Z, so
+    # they are not options. The Y negation is therefore structural to this
+    # pipeline, and 180 turns the facade - and its own accent light - back toward
+    # the plaza.
+    #
+    # The mirror is otherwise immaterial: every part except the plaque, the door
+    # and a 9 cm asymmetry in the stone base is symmetric about XZ. It does not
+    # mirror the plaque text - the quad's in-plane axes are X and Z, both of which
+    # the import preserves, so 正东门 still reads correctly from the new front.
+    #
+    # Scripts/ValidateZhengdongmenLandmark.py re-measures this and fails if the
+    # plaque leaves +Y.
+    #
+    # Adding it re-derives the ring radius, so every existing landmark moves.
+    ("Zhengdongmen", "Zhengdongmen/BP_Zhengdongmen",
+     "Zhengdongmen (Great East Gate)", 180.0),
 ]
 
 

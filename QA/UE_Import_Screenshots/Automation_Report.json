@@ -1,0 +1,43 @@
+﻿{
+	"devices": [
+		{
+			"deviceName": "AngeladeMac-mini.local",
+			"instance": "80FBCB9E6F4074FD45A0E4B6CF7A4505",
+			"instanceName": "AngeladeMac-mini.local-19661",
+			"platform": "MacEditor",
+			"oSVersion": "macOS 26.6.2 25G83",
+			"model": "Default",
+			"gPU": "Apple M4",
+			"cPUModel": "Apple M4",
+			"rAMInGB": 16,
+			"renderMode": "SM5",
+			"rHI": "Metal",
+			"appInstanceLog": ""
+		}
+	],
+	"reportCreatedOn": "2026.09.25-17.38.22",
+	"succeeded": 1,
+	"succeededWithWarnings": 0,
+	"failed": 0,
+	"notRun": 0,
+	"inProcess": 0,
+	"totalDuration": 20.54986572265625,
+	"comparisonExported": false,
+	"comparisonExportDirectory": "",
+	"tests": [
+		{
+			"testDisplayName": "MapConfiguration",
+			"fullTestPath": "Aura.Canton.Provisional.MapConfiguration",
+			"state": "Success",
+			"deviceInstance": [
+				"80FBCB9E6F4074FD45A0E4B6CF7A4505"
+			],
+			"duration": 20.54986572265625,
+			"dateTime": "2026.09.25-17.38.02",
+			"entries": [],
+			"warnings": 0,
+			"errors": 0,
+			"artifacts": []
+		}
+	]
+}
