@@ -1,0 +1,186 @@
+{
+  "map": "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+  "attempt": "district-side endpoint 123100 cm, about 2 m north of declared gate face",
+  "start_xy_cm": [
+    180000,
+    125000
+  ],
+  "end_xy_cm": [
+    180000,
+    123100
+  ],
+  "floor_support_pass": true,
+  "nav_path_valid": true,
+  "nav_detour_ratio": 2.904714746910966,
+  "nav_points_cm": [
+    [
+      180000.0,
+      125000.0,
+      881.594304776601
+    ],
+    [
+      180405.0,
+      123614.0,
+      810.0
+    ],
+    [
+      180481.0,
+      123500.0,
+      810.0
+    ],
+    [
+      181925.0,
+      123443.0,
+      850.0
+    ],
+    [
+      182058.0,
+      123310.0,
+      890.0
+    ],
+    [
+      182039.0,
+      123234.0,
+      850.0
+    ],
+    [
+      181792.0,
+      122985.65882352942,
+      829.1764705882352
+    ],
+    [
+      181431.0,
+      122854.0,
+      810.0
+    ],
+    [
+      180842.0,
+      122854.0,
+      780.0
+    ],
+    [
+      180443.0,
+      122911.0,
+      770.0
+    ],
+    [
+      180000.0,
+      123100.0,
+      779.3631100082713
+    ]
+  ],
+  "nav_corner_floor_samples": [
+    {
+      "xy_cm": [
+        180000.0,
+        125000.0
+      ],
+      "nav_z_cm": 881.594304776601,
+      "floor_z_cm": 871.7446519069881,
+      "floor_actor": "District_Main_Stone_125100",
+      "nav_minus_floor_cm": 9.849652869612896
+    },
+    {
+      "xy_cm": [
+        180405.0,
+        123614.0
+      ],
+      "nav_z_cm": 810.0,
+      "floor_z_cm": 804.2612262657814,
+      "floor_actor": "District_Main_EarthShoulder_1_123700",
+      "nav_minus_floor_cm": 5.738773734218626
+    },
+    {
+      "xy_cm": [
+        180481.0,
+        123500.0
+      ],
+      "nav_z_cm": 810.0,
+      "floor_z_cm": 800.690358194243,
+      "floor_actor": "District_Main_EarthShoulder_1_123500",
+      "nav_minus_floor_cm": 9.309641805756996
+    },
+    {
+      "xy_cm": [
+        181925.0,
+        123443.0
+      ],
+      "nav_z_cm": 850.0,
+      "floor_z_cm": 842.5468471046006,
+      "floor_actor": "LandscapeStreamingProxy_1_1_0",
+      "nav_minus_floor_cm": 7.453152895399398
+    },
+    {
+      "xy_cm": [
+        182058.0,
+        123310.0
+      ],
+      "nav_z_cm": 890.0,
+      "floor_z_cm": 889.5624434373367,
+      "floor_actor": "Wenmingmen_PROVISIONAL_Scale_Interface_Only",
+      "nav_minus_floor_cm": 0.43755656266330334
+    },
+    {
+      "xy_cm": [
+        182039.0,
+        123234.0
+      ],
+      "nav_z_cm": 850.0,
+      "floor_z_cm": 839.4426775768673,
+      "floor_actor": "LandscapeStreamingProxy_1_1_0",
+      "nav_minus_floor_cm": 10.557322423132746
+    },
+    {
+      "xy_cm": [
+        181792.0,
+        122985.65882352942
+      ],
+      "nav_z_cm": 829.1764705882352,
+      "floor_z_cm": 820.1458535851973,
+      "floor_actor": "LandscapeStreamingProxy_1_1_0",
+      "nav_minus_floor_cm": 9.030617003037946
+    },
+    {
+      "xy_cm": [
+        181431.0,
+        122854.0
+      ],
+      "nav_z_cm": 810.0,
+      "floor_z_cm": 798.6732490272374,
+      "floor_actor": "LandscapeStreamingProxy_1_1_0",
+      "nav_minus_floor_cm": 11.326750972762625
+    },
+    {
+      "xy_cm": [
+        180842.0,
+        122854.0
+      ],
+      "nav_z_cm": 780.0,
+      "floor_z_cm": 772.5315785458151,
+      "floor_actor": "LandscapeStreamingProxy_1_1_0",
+      "nav_minus_floor_cm": 7.468421454184863
+    },
+    {
+      "xy_cm": [
+        180443.0,
+        122911.0
+      ],
+      "nav_z_cm": 770.0,
+      "floor_z_cm": 766.1952308733396,
+      "floor_actor": "District_Main_EarthShoulder_1_122900",
+      "nav_minus_floor_cm": 3.8047691266604033
+    },
+    {
+      "xy_cm": [
+        180000.0,
+        123100.0
+      ],
+      "nav_z_cm": 779.3631100082713,
+      "floor_z_cm": 765.8927319826055,
+      "floor_actor": "District_Main_Stone_123100",
+      "nav_minus_floor_cm": 13.47037802566581
+    }
+  ],
+  "route_check_pass": false,
+  "interpretation": "Failed: gate collision/nav footprint forces an exterior detour. No threshold passage or pawn clearance claim."
+}

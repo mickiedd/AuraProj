@@ -1,0 +1,19 @@
+{
+  "mode": "seam",
+  "command": [
+    "/Volumes/M2/Engine/UE_5.5/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+    "/Volumes/M2/Works/AuraProj/Aura.uproject",
+    "-EnablePlugins=PythonScriptPlugin,EditorScriptingUtilities",
+    "-ExecutePythonScript=/Volumes/M2/Works/AuraProj/Scripts/ProbeCantonDistrictSeams.py",
+    "-unattended",
+    "-nosplash",
+    "-NoSound",
+    "-abslog=/Volumes/M2/Works/AuraProj/Saved/Logs/CantonDistrictRunner_seam.log"
+  ],
+  "raw_exit_code": 1,
+  "normalized_exit_code": 0,
+  "normalized": true,
+  "evidence": "QA/Canton_District/Seam_Probe.json",
+  "log": "Saved/Logs/CantonDistrictRunner_seam.log",
+  "problems": []
+}

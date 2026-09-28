@@ -1,0 +1,47 @@
+{
+  "views": [
+    {
+      "view": "front",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-final-front.png",
+      "bytes": 2257627
+    },
+    {
+      "view": "three-quarter",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-final-three-quarter.png",
+      "bytes": 1397859
+    },
+    {
+      "view": "arch",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-final-arch.png",
+      "bytes": 2899549
+    },
+    {
+      "view": "timber",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-final-timber.png",
+      "bytes": 2138927
+    },
+    {
+      "view": "rear",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-final-rear.png",
+      "bytes": 1118391
+    },
+    {
+      "view": "plaque",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-final-plaque.png",
+      "bytes": 2041910
+    },
+    {
+      "view": "roof",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-final-roof.png",
+      "bytes": 2614679
+    },
+    {
+      "view": "ridge",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-final-ridge.png",
+      "bytes": 2615395
+    }
+  ],
+  "cleanup_before": 0,
+  "cleanup_after": 0,
+  "stage": "ridge-final"
+}

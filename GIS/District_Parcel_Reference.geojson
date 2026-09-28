@@ -1,0 +1,151 @@
+{
+  "type": "FeatureCollection",
+  "name": "Canton_Diagnostic_Parcel_References",
+  "description": "Non-rendered engineering plots; no claim of a traced late-Qing parcel boundary.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-PARCEL-01",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -90,
+              -75
+            ],
+            [
+              -12,
+              -75
+            ],
+            [
+              -12,
+              5
+            ],
+            [
+              -90,
+              5
+            ],
+            [
+              -90,
+              -75
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-PARCEL-02",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12,
+              -75
+            ],
+            [
+              90,
+              -75
+            ],
+            [
+              90,
+              5
+            ],
+            [
+              12,
+              5
+            ],
+            [
+              12,
+              -75
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-PARCEL-03",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -90,
+              35
+            ],
+            [
+              -12,
+              35
+            ],
+            [
+              -12,
+              90
+            ],
+            [
+              -90,
+              90
+            ],
+            [
+              -90,
+              35
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-PARCEL-04",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              12,
+              35
+            ],
+            [
+              90,
+              35
+            ],
+            [
+              90,
+              90
+            ],
+            [
+              12,
+              90
+            ],
+            [
+              12,
+              35
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

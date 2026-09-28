@@ -142,6 +142,92 @@ exactly the part being lost. Read this when a trap bites.
     `replace_existing=True` and then re-applies `MAP_KINDS`. Verify from the report's recorded
     `size`, not from the fact that the run passed.
 
+29. **A new material group has no material instance, and nothing tells you.** The instance
+    builder (`build_instances`) lives in the import script's `main()`, which the *apply* path
+    does not call — it only reimports meshes and rebinds components. So adding a group gives a
+    mesh with a slot pointing at `MI_<Group>` that does not exist, and the only trace is a
+    single `LoadAsset failed` line in the log. Call the import's **idempotent
+    `build_instances(master)`** from the apply path; it creates the missing instance and
+    re-binds every group's textures at the same time.
+
+30. **A swept beam's end caps need their own UVs, or the mesh imports with degenerate
+    tangents.** A cap's plane is perpendicular to the beam axis, so the default world-XZ
+    projection gives every one of its vertices the same `u` — Interchange then logs
+    *"degenerate tangent bases which will result in incorrect shading"* and *"nearly zero
+    bi-normals"*, and those faces shade wrong. Give each cap a planar UV in the section's own
+    plane. (Zhengdongmen's ridge beams: 2 warnings → 0.)
+
+31. **Migrate a Blueprint in place when a level references its class.** A wrapper creator that
+    keys on the component count (`if hism_count(existing) != len(MESH_GROUPS): delete_asset`)
+    will **force-delete and recreate** the asset whenever a part is added — and the showcase
+    level holds a reference to that Blueprint's generated class. Add the missing component to
+    the existing asset instead. Related: `delete_asset` is a force-delete everywhere, so it is
+    never the right first move on an asset that something else points at.
+
+32. **A replacement feature should fill the same bounding box as the one it replaces.** Swapping
+    Zhengdongmen's square ridge beams for half-round caps kept the envelope *exactly* — a
+    semicircle of radius `width/2` on a `width/2` base occupies the same box as the square — and
+    the check that proved it was comparing the new part's recorded size against the old part's:
+    **2697.36 × 1408.97 × 722.15 cm, identical**. Designing a silhouette change that way avoids
+    dragging the declared dimensions, the union assertion and the ring placement along with it.
+
+33. **Put the "is an editor running?" check in the script, not in your head.** An apply
+    commandlet that ran while a GUI editor held the project still produced correct disk assets —
+    but the editor kept stale copies of the meshes and the Blueprint, and could have saved them
+    back over the fix. Detect it with `subprocess.run(['pgrep', '-f', r'UnrealEditor\.app'])`.
+    **The `.app` is load-bearing**: the commandlet's own path is `UnrealEditor-Cmd`, which also
+    contains "UnrealEditor", so a bare pattern matches the commandlet itself and the guard always
+    fires. A `subprocess.run` call works fine inside UE's Python. Note the sandbox here refuses
+    to *spawn* a process named `.../UnrealEditor.app/...`, so the firing path has to be reasoned
+    from observed command lines rather than reproduced.
+
+34. **A 庑殿 hip roof's ridge is a line, not a flat top — and only a view down the roof shows it.**
+    Zhengdongmen's upper slopes started at `y = ±0.5`, leaving a 1.0 m flat band of bare substrate
+    at the top that the 0.30 m ridge cap could only partly cover: **0.35 m exposed each side**.
+    Straight-on and three-quarter views cannot see this at all — it needs a camera above and off
+    one end, aimed along the ridge. **Every fix so far was verified from a view that could not
+    have shown the next defect**, so when a user reports something from an angle you have never
+    rendered, add that angle to the preview renderer *and* the native capture before diagnosing.
+    Fixing it also makes the east/west faces true triangles (`half_width_at(0)` → 0), which drops
+    their uncovered-strip metric to zero.
+
+35. **A V3 asset may have no source at all — read the geometry out of the engine.** Xiaobeimen
+    AAA V3 is a Blueprint of 104 subobjects with binary meshes. `StaticMeshDescription` is
+    **per-element**: `get_vertex_position(VertexID)`, `get_triangle_vertex_instances`,
+    `get_vertex_instance_uv`, `get_vertex_count`, `get_triangle_count`. There is **no**
+    `get_vertex_positions`, and `VertexID` exposes **no id accessor** in this build, so dump
+    positions and per-triangle UVs and skip indices — that is enough for every measurement these
+    jobs need (an arch's intrados, a part's box, a UV scale). `AssetTools.export_assets` takes
+    **two** arguments (an array of asset *paths* and a destination) and produced **FBX**, not OBJ;
+    `unreal.TextureExporterPNG` exists but `export_asset_tasks` does not. Also: the V3 components
+    carry a **-90 roll** and their mesh-local space is `(actor_x, actor_z, -actor_y)`.
+
+36. **Interchange's roll→axis mapping must be measured per source, not reasoned from the last one.**
+    A GLB authored for this pipeline landed 100× too large *and* on the wrong axes: glTF positions
+    are **metres**, so a file carrying centimetres needs `import_offset_uniform_scale = 0.01`; and
+    at **roll 0** Interchange maps the file's `(X, Y, Z)` to mesh-local `(X, Z, Y)`, which is why
+    the Xiaobeimen door source is authored as `(actor_x, -actor_y, actor_z)`. Deriving it from the
+    Zhengdongmen convention `(x, -y, z)` gave the wrong answer twice. **Have the import script try
+    the four rolls and keep the one whose box matches a known target**, so a future re-authoring
+    reports where it went instead of silently fitting. Compare against the **mesh-local** box, not
+    the actor box — the -90 roll means they differ.
+
+37. **A material with no parameters still has a graph you can edit from Python.**
+    `get_material_expressions` does **not** exist, but `get_material_property_input_node(material,
+    MaterialProperty.MP_BASE_COLOR)` does, so the graph can be walked from its outputs;
+    `create_material_expression`, `connect_material_expressions` and `recompile_material` all work.
+    Xiaobeimen's `M_StoneWall` turned out to be five `TextureSample` nodes wired straight to their
+    properties with **no TexCoord node**, so one added `TexCoord -> Multiply` feeds all five.
+    **Adding nodes is not idempotent and the graph cannot be enumerated to check** — write the fact
+    into the script's own report file and skip the step on a re-run, or the scale squares.
+
+38. **Do not chain a commandlet and a GUI editor in one shell command.** A `fix; capture` chain
+    silently skipped the fix: the report stayed stale and the "after" capture came out
+    **byte-identical** to the "before". Run them as separate calls and check the report's mtime
+    before believing a run happened. Related: a commandlet without `-stdout` sends its Python
+    output to the editor log, not to your redirect, so the log looks empty for reasons that have
+    nothing to do with the failure.
+
 ## Git
 
 `.claude/memory/visual-change-archive.md` is **append-only** — one line per job, never
@@ -181,3 +267,23 @@ cd /Volumes/M2/Works/AuraProj && UE_ENGINE_ROOT="/Volumes/M2/Engine/UE_5.5" ./Bu
 ```
 
 UE 5.5.4 at `/Volumes/M2/Engine/UE_5.5`; incremental editor build ≈ 80 s (18 actions).
+
+39. **A jaggies report is about the coarsest arc, which is usually not the one you authored.**
+    Xiaobeimen's door arc was already at 1 cm chords; a 1 cm chord on a 265 cm radius deviates from
+    the true arc by **0.0005 cm**, a thousandth of a pixel — so refining it could not have changed
+    anything. The stepping was the **shading of the wall's arch cut**, `Wall_ArchSpandrel`, at ~4°
+    / 18 cm chords. Measure **every** curve before refining one, and do the arithmetic:
+    `sagitta = R(1 − cos(Δθ/2))`. A chord that looks big can be sub-pixel; a chord that looks
+    small can be the whole problem.
+
+40. **An unwelded mesh can be reconstructed from a dump that has no indices.** If
+    `vertex_count == 3 × triangle_count`, the mesh is fully unwelded and triangle *t* uses
+    positions `3t..3t+2` — so positions plus per-triangle UVs are enough to recover the topology.
+    That is what let `Wall_ArchSpandrel` be rebuilt from its own geometry rather than guessed at,
+    and it means skipping the `VertexID` accessors costs nothing.
+
+41. **Rebuild a swept panel by sampling the curve by ANGLE, and let the geometry decide the split.**
+    Xiaobeimen's spandrel is `{(x, z) : |x| <= 260, z_arc(x) <= z <= top}` — and that region is
+    empty where the arc rises above the top, which is exactly what makes it *two* panels. Sampling
+    by angle and dropping the points above the top produces the split for free, with no
+    special-casing.

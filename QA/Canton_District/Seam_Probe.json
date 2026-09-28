@@ -1,0 +1,9 @@
+{
+  "measurement": "adjacent principal slab top-corner vertical step",
+  "source": "fresh UE world; native ValidateDistrictWorld",
+  "map": "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+  "road_joint_comparisons": 198,
+  "max_road_joint_step_cm": 1.3301353949094619,
+  "historically_accepted": false,
+  "scope": "technical road-joint geometry, not final visible paving art"
+}

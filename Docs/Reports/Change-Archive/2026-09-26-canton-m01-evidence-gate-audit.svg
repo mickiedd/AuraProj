@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="850" viewBox="0 0 1500 850" role="img" aria-labelledby="title desc">
+  <title id="title">Canton M01 first ten days evidence gate audit</title>
+  <desc id="desc">The existing technical prototype passes while city XY, gate XY, historical height and owner approval remain blocked or pending. A named gate candidate is now selected without assigning historical metric bounds.</desc>
+  <defs>
+    <style>
+      .bg{fill:#081824}.panel{fill:#102638;stroke:#39596c;stroke-width:2}.good{fill:#123d36;stroke:#4ade80;stroke-width:2}.bad{fill:#3d2731;stroke:#fb7185;stroke-width:2}.wait{fill:#3a321e;stroke:#fbbf24;stroke-width:2}
+      .title{font:700 39px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#f8fafc}.head{font:700 23px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#f8fafc}.body{font:500 18px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#d6e5ed}.small{font:500 16px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#c4d5de}.label{font:700 17px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#81d6f7}.mono{font:600 16px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#f8fafc}
+    </style>
+  </defs>
+  <rect class="bg" width="1500" height="850"/>
+  <text x="70" y="64" class="title">Canton M01 • first ten days audited</text>
+  <text x="70" y="100" class="body">Technical work is reviewable; historical evidence gates still need primary records</text>
+
+  <rect class="panel" x="60" y="140" width="345" height="525" rx="20"/>
+  <text x="88" y="181" class="head">Before this audit</text>
+  <text x="88" y="220" class="body">One combined “M01 blocked”</text>
+  <text x="88" y="251" class="body">decision obscured the cause.</text>
+  <rect class="wait" x="88" y="291" width="290" height="132" rx="14"/>
+  <text x="108" y="329" class="label">District choice</text>
+  <text x="108" y="364" class="small">Unnamed south-wall square</text>
+  <text x="108" y="392" class="small">inherited failed map fit</text>
+  <rect class="panel" x="88" y="459" width="290" height="166" rx="14"/>
+  <text x="108" y="497" class="label">Known technical proof</text>
+  <text x="108" y="531" class="small">Saved UE map and reload</text>
+  <text x="108" y="559" class="small">256 terrain/collision cells</text>
+  <text x="108" y="587" class="small">7 height checks</text>
+
+  <rect class="panel" x="435" y="140" width="1005" height="525" rx="20"/>
+  <text x="465" y="181" class="head">After this audit • independent decisions</text>
+
+  <rect class="good" x="465" y="211" width="460" height="155" rx="14"/>
+  <text x="489" y="251" class="label">Technical_UE • PASS</text>
+  <text x="489" y="286" class="body">Provisional modern-context scope</text>
+  <text x="489" y="316" class="small">472 native artifacts checked; UE automation</text>
+  <text x="489" y="343" class="small">and 4 focused Python tests pass</text>
+
+  <rect class="bad" x="950" y="211" width="460" height="155" rx="14"/>
+  <text x="974" y="251" class="label">Historical_XY_City • BLOCKED</text>
+  <text x="974" y="286" class="body">H1 needs measured city controls</text>
+  <text x="974" y="316" class="small">3 unsurveyed holdouts; 93.24 m RMSE</text>
+  <text x="974" y="343" class="small">budget: ≥8; ≤15 m RMSE; ≤30 m worst</text>
+
+  <rect class="bad" x="465" y="391" width="460" height="155" rx="14"/>
+  <text x="489" y="431" class="label">Historical_XY_GateLocal • BLOCKED</text>
+  <text x="489" y="466" class="body">H2 needs independent local survey</text>
+  <text x="489" y="496" class="small">Wenmingmen primary; Zhengdongmen fallback</text>
+  <text x="489" y="523" class="small">no accepted metric bounds or 4 checks</text>
+
+  <rect class="bad" x="950" y="391" width="460" height="155" rx="14"/>
+  <text x="974" y="431" class="label">Historical_Z • BLOCKED</text>
+  <text x="974" y="466" class="body">No dated 1880–1900 ground surface</text>
+  <text x="974" y="496" class="small">exact point + benchmark + reconciled datum</text>
+  <text x="974" y="523" class="small">required before terrain interpolation</text>
+
+  <rect class="wait" x="465" y="573" width="945" height="66" rx="14"/>
+  <text x="489" y="614" class="mono">owner_approval = pending</text>
+  <text x="790" y="614" class="body">Historical M01 cannot be Verified yet</text>
+
+  <rect class="panel" x="60" y="702" width="1380" height="105" rx="18"/>
+  <text x="89" y="741" class="label">Validation and guard</text>
+  <text x="89" y="775" class="body">Source integrity • heightmap encoding • GIS↔UE conversion • native artifact hashes all pass. Failed affine and legacy UTM squares stay diagnostic.</text>
+</svg>

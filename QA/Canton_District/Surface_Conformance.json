@@ -1,0 +1,9 @@
+{
+  "conformed_meshes": 476,
+  "saved_actor_packages": 476,
+  "removed_unsupported_large_parcel_pads": 16,
+  "removed_additional_parcel_pads": 0,
+  "height_interpolation": "bilinear_from_locked_modern_R16",
+  "rotation": "local_raster_gradient",
+  "historical_terrain_claim": false
+}

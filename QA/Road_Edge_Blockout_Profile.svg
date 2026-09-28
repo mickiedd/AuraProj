@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1150" height="520" viewBox="0 0 1150 520" role="img" aria-labelledby="title desc">
+  <title id="title">Provisional principal road slab and earth shoulder profile</title>
+  <desc id="desc">Design-derived section showing road cube bottom seven centimetres over the raster ground, road top nineteen centimetres over ground, and earth shoulder top eight centimetres over ground. The edge step is eleven centimetres.</desc>
+  <rect width="1150" height="520" fill="#f7f7f5"/>
+  <text x="55" y="60" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#1c3743">Principal road edge · engineering blockout</text>
+  <text x="55" y="92" font-family="Arial,sans-serif" font-size="16" fill="#56646a">Source-derived cross-section, not a UE viewport capture or historical paving design</text>
+  <path d="M80 348 H1070" stroke="#596c58" stroke-width="6"/>
+  <text x="85" y="380" font-family="Arial,sans-serif" font-size="17" fill="#42583d">R16 terrain = z_at</text>
+  <rect x="210" y="196" width="565" height="96" fill="#858079" stroke="#343a38" stroke-width="3"/>
+  <text x="343" y="244" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="white">6 m principal cube slab</text>
+  <rect x="786" y="284" width="240" height="40" fill="#795c43" stroke="#4c3528" stroke-width="3"/>
+  <text x="827" y="309" font-family="Arial,sans-serif" font-size="17" fill="white">earth shoulder</text>
+  <path d="M175 196 H195 M175 292 H195 M175 348 H195 M185 196 V348" stroke="#246f8b" stroke-width="2"/>
+  <text x="53" y="194" font-family="Arial,sans-serif" font-size="16" fill="#165771">top +19 cm</text>
+  <text x="53" y="289" font-family="Arial,sans-serif" font-size="16" fill="#165771">base +7 cm</text>
+  <path d="M1045 196 H1070 M1045 284 H1070 M1057 196 V284" stroke="#b15a2a" stroke-width="3"/>
+  <text x="849" y="181" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#9b4521">11 cm exposed step</text>
+  <text x="811" y="344" font-family="Arial,sans-serif" font-size="16" fill="#604631">shoulder top +8 cm</text>
+  <text x="380" y="330" font-family="Arial,sans-serif" font-size="17" fill="#9b4521">7 cm underside gap</text>
+  <rect x="56" y="426" width="1038" height="64" rx="10" fill="#e9eeee" stroke="#bed0d2"/>
+  <text x="78" y="454" font-family="Arial,sans-serif" font-size="16" fill="#2d4b55">Decision: retain only as a visible technical blockout; final road edge needs a grounded kerb/skirt</text>
+  <text x="78" y="478" font-family="Arial,sans-serif" font-size="16" fill="#2d4b55">or approved transition. The longitudinal height check cannot validate this cross-section.</text>
+</svg>

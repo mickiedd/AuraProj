@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">Canton Days 11–20 provisional district implementation</title>
+  <desc id="desc">The original modern-context Landscape remains isolated. A separate 200 by 200 metre engineering district adds road, gutter, surface, vegetation, wetness and gate-interface tests. Historical city XY, gate-local XY and vertical datum remain blocked. Native validation checks slab height, edge and collision; navigation and map checks pass.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L11 6 L1 11 Z" fill="#69d8e9"/></marker>
+    <style>
+      .bg{fill:#0c1426}.panel{fill:#18263e;stroke:#4b6687;stroke-width:2}.new{fill:#143744;stroke:#57c4c5;stroke-width:2}.warn{fill:#4a2938;stroke:#edac91;stroke-width:2}.test{fill:#233b32;stroke:#84d5a8;stroke-width:2}
+      .title{font:700 36px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#f6f1e8}.subtitle{font:19px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#bdcce0}
+      .head{font:700 22px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#f6f1e8}.body{font:18px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#e3ebf4}.small{font:16px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#c8d7e4}.flag{font:700 16px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#ffccb7}
+      .flow{fill:none;stroke:#69d8e9;stroke-width:4;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1400" height="900"/>
+  <text x="48" y="61" class="title">Canton terrain · Days 11–20</text>
+  <text x="48" y="94" class="subtitle">A separable engineering district on provisional modern terrain · 2026-09-27</text>
+
+  <rect x="48" y="133" width="370" height="506" rx="19" class="panel"/>
+  <text x="76" y="175" class="head">Before · M01 technical base</text>
+  <text x="76" y="214" class="body">2017 × 2017 R16 Landscape</text>
+  <text x="76" y="244" class="body">2 m samples · World Partition</text>
+  <text x="76" y="274" class="body">Modern EGM2008 context</text>
+  <line x1="76" y1="296" x2="389" y2="296" stroke="#4b6687"/>
+  <text x="76" y="334" class="head">No district integration</text>
+  <text x="76" y="372" class="body">No road or gate route</text>
+  <text x="76" y="402" class="body">No material paint targets</text>
+  <text x="76" y="432" class="body">No localized growth / wetness</text>
+  <line x1="76" y1="459" x2="389" y2="459" stroke="#4b6687"/>
+  <text x="76" y="498" class="flag">H1 city XY: blocked</text>
+  <text x="76" y="529" class="flag">H2 gate-local XY: blocked</text>
+  <text x="76" y="560" class="flag">Historical walking Z: blocked</text>
+  <text x="76" y="591" class="small">M01 map and source evidence retained</text>
+
+  <path class="flow" d="M423 383 H468"/>
+  <rect x="485" y="133" width="867" height="506" rx="19" class="new"/>
+  <text x="516" y="175" class="head">After · isolated /Game/Canton/DistrictPrototype/ map</text>
+  <text x="516" y="207" class="small">Diagnostic 200 × 200 m sample; Wenmingmen Blueprint is a scale/interface stand-in</text>
+
+  <rect x="516" y="231" width="396" height="166" rx="14" class="panel"/>
+  <text x="537" y="263" class="head">M02 · roads and drainage</text>
+  <text x="537" y="294" class="body">100 slab stations · 76 lane pieces</text>
+  <text x="537" y="323" class="body">48 gutter pieces · 3 flow reaches</text>
+  <text x="537" y="352" class="small">Locked base; 3 independent edit layers</text>
+  <text x="537" y="377" class="small">Parcel boundaries remain GIS references</text>
+
+  <rect x="931" y="231" width="390" height="166" rx="14" class="panel"/>
+  <text x="952" y="263" class="head">M03 · surface system</text>
+  <text x="952" y="294" class="body">6 Landscape paint targets</text>
+  <text x="952" y="323" class="body">Neutral material atlas · 4 views</text>
+  <text x="952" y="352" class="small">Bilinear grading and pitched slabs</text>
+  <text x="952" y="377" class="small">Final historical slab art still open</text>
+
+  <rect x="516" y="416" width="396" height="173" rx="14" class="panel"/>
+  <text x="537" y="448" class="head">M04 · local detail</text>
+  <text x="537" y="479" class="body">38 sparse growth proxies</text>
+  <text x="537" y="508" class="body">14 toggled damp patches</text>
+  <text x="537" y="537" class="small">Paving / crossing exclusion rules</text>
+  <text x="537" y="562" class="small">Dry and after-rain fixed-camera QA</text>
+
+  <rect x="931" y="416" width="390" height="173" rx="14" class="panel"/>
+  <text x="952" y="448" class="head">M05 · route integration</text>
+  <text x="952" y="479" class="body">1 gate · PlayerStart · Nav bounds</text>
+  <text x="952" y="508" class="body">145.01 m complete nav path</text>
+  <text x="952" y="537" class="small">WP map check: 0 errors, 0 warnings</text>
+  <text x="952" y="562" class="small">2-map cook passed; performance gate blocked</text>
+
+  <rect x="48" y="665" width="1304" height="111" rx="16" class="test"/>
+  <text x="76" y="702" class="head">Validation guard · technical pass does not promote historical evidence</text>
+  <text x="76" y="736" class="body">100/100 road collision hits · center Z error 0 cm · worst long-edge error 0.024 cm (&lt;2 cm)</text>
+  <text x="76" y="762" class="small">Fresh UE reload, map check, 145 m nav route, source/heightmap/contract tests; see M05 handoff for cook/performance limits.</text>
+
+  <rect x="48" y="797" width="1304" height="73" rx="14" class="warn"/>
+  <text x="76" y="828" class="head">Historical promotion is fail-closed</text>
+  <text x="76" y="855" class="small">Surveyed city controls + gate-local checks + dated benchmarked walking surface + owner approval are still required.</text>
+</svg>

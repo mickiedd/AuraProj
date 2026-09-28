@@ -4,7 +4,7 @@ Use this sheet while executing [Day 11](../Day-11-urban-road-and-parcel-layout-p
 
 ## Required inputs
 
-- [ ] Selected 200 x 200 m district bounds
+- [ ] Named district and 200 x 200 m bounds labeled diagnostic, provisional, or H2-accepted
 - [ ] Accepted wall/gate/road overlays
 - [ ] Road-surface evidence and classification schema
 - [ ] Prior-day accepted artifacts or a recorded exception
@@ -18,7 +18,7 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 
 ## Evidence checklist
 
-- [ ] Retained district bounds, road classifications, evidence links, and uncertain assignments
+- [ ] Retained named district, bounds status, road classifications, evidence links, and uncertain assignments
 - [ ] Exact commands and arguments recorded
 - [ ] Exit codes and log paths recorded
 - [ ] Manual/visual checks identify fixed viewpoints, scale, and relevant settings
@@ -39,4 +39,3 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 | Status | Not started |
 | Reviewer | |
 | Open issues / next owner | |
-

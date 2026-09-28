@@ -31,3 +31,9 @@ Do not begin a downstream day merely because the previous calendar day ended. It
 ## Execution status — 2026-09-26
 
 Days 01–10: the isolated modern-context prototype is implemented through native UE import and M01 technical review. Encoding, row orientation, 256 terrain/collision components, locked base and fresh-map automation pass. Day 02 source selection remains Verified. **Historical M01 is still Blocked** by surveyed controls and period ground-height/datum evidence; the technical result is **Provisional**. See [M01 review](../../../Review/M01_Terrain_Review.md). Days 11–20 are not part of this execution.
+
+## Optimized blocker model — 2026-09-26
+
+The plan now reports four independent axes: `Technical_UE`, `Historical_XY_City (H1)`, `Historical_XY_GateLocal (H2)`, and `Historical_Z`. H1 retains the city-scale control/holdout budget. H2 uses a separate local survey, conservation or archaeological network for the chosen named gate district. Failed-transform-derived UTM boxes remain diagnostic until H2 passes.
+
+Days 06–20 may continue on an explicitly provisional path when their work remains separable from verified historical geometry and elevation. See the [working acceptance budget](../../Terrain_Acceptance_Budget.md), [control/survey handoff](../../../QA/Control_Survey_Handoff.md), [authoritative source leads](../../../Data/Authoritative_Source_Leads_2026-09-26.csv), and [primary-source request](../../../QA/Primary_Source_Request_M01.md).

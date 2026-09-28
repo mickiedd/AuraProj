@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1020" viewBox="0 0 1440 1020">
+<defs>
+  <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#f7f5ef"/><stop offset="1" stop-color="#e8e5dc"/></linearGradient>
+  <linearGradient id="slope" x2="0" y2="1"><stop stop-color="#9aa0a0"/><stop offset="1" stop-color="#6a7172"/></linearGradient>
+  <linearGradient id="cap" x2="0" y2="1"><stop stop-color="#7e827e"/><stop offset="1" stop-color="#3f4444"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#1d2931" flood-opacity=".14"/></filter>
+  <pattern id="bare" width="10" height="10" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+    <rect width="10" height="10" fill="#f2cfc6"/>
+    <line x1="0" y1="0" x2="0" y2="10" stroke="#c14a33" stroke-width="4"/>
+  </pattern>
+</defs>
+<rect width="1440" height="1020" fill="url(#bg)"/>
+<text x="64" y="70" font-family="Arial,sans-serif" font-size="17" font-weight="700" letter-spacing="3" fill="#9a5c32">AURA PROJECT · GUANGZHOU LANDMARKS</text>
+<text x="64" y="124" font-family="Arial,sans-serif" font-size="40" font-weight="700" fill="#17252d">Zhengdongmen · the top roof slopes now meet at the ridge</text>
+<text x="64" y="159" font-family="Arial,sans-serif" font-size="19" fill="#52616a">Looking down the upper roof showed a bare band of substrate on each side of the ridge cap — the "hollows".</text>
+
+<!-- ============================ BEFORE ============================ -->
+<rect x="64" y="196" width="620" height="380" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="94" y="240" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#a64e40">BEFORE · SLOPES STOPPED 0.5 m SHORT OF THE RIDGE</text>
+<!-- plan view down the roof: tile field | bare | cap | bare | tile field -->
+<rect x="140" y="300" width="470" height="212" fill="url(#slope)"/>
+<rect x="311" y="300" width="45" height="212" fill="url(#bare)"/>
+<rect x="394" y="300" width="45" height="212" fill="url(#bare)"/>
+<g stroke="#cfd3cd" stroke-width="1" opacity=".45">
+  <path d="M152 300v212 M176 300v212 M200 300v212 M224 300v212 M248 300v212 M272 300v212 M296 300v212"/>
+  <path d="M451 300v212 M475 300v212 M499 300v212 M523 300v212 M547 300v212 M571 300v212 M595 300v212"/>
+</g>
+<rect x="356" y="292" width="38" height="228" rx="9" fill="url(#cap)" stroke="#252d30" stroke-width="2"/>
+<path d="M311 272 h45 M394 272 h45" stroke="#9a5c32" stroke-width="1.4"/>
+<text x="333" y="266" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#9a5c32">0.35 m</text>
+<text x="416" y="266" font-family="Arial,sans-serif" font-size="13" text-anchor="middle" fill="#9a5c32">0.35 m</text>
+<!-- legend -->
+<rect x="150" y="536" width="22" height="14" rx="4" fill="url(#cap)" stroke="#252d30" stroke-width="1.2"/>
+<text x="180" y="548" font-family="Arial,sans-serif" font-size="14" fill="#617078">ridge cap, 0.30 m</text>
+<rect x="320" y="536" width="22" height="14" fill="url(#bare)"/>
+<text x="350" y="548" font-family="Arial,sans-serif" font-size="14" fill="#617078">bare substrate, 0.35 m each side</text>
+<text x="94" y="584" font-family="Arial,sans-serif" font-size="16" fill="#617078">The slopes started at y = ±0.5 m, leaving a 1.0 m flat top.</text>
+
+<!-- ============================ AFTER ============================ -->
+<rect x="716" y="196" width="660" height="380" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="746" y="240" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#397253">AFTER · SLOPES MEET AT THE RIDGE</text>
+<rect x="800" y="300" width="490" height="212" fill="url(#slope)"/>
+<g stroke="#cfd3cd" stroke-width="1" opacity=".45">
+  <path d="M812 300v212 M836 300v212 M860 300v212 M884 300v212 M908 300v212 M932 300v212 M956 300v212 M980 300v212 M1004 300v212"/>
+  <path d="M1064 300v212 M1088 300v212 M1112 300v212 M1136 300v212 M1160 300v212 M1184 300v212 M1208 300v212 M1232 300v212 M1256 300v212 M1280 300v212"/>
+</g>
+<rect x="1026" y="292" width="38" height="228" rx="9" fill="url(#cap)" stroke="#252d30" stroke-width="2"/>
+<rect x="820" y="536" width="22" height="14" rx="4" fill="url(#cap)" stroke="#252d30" stroke-width="1.2"/>
+<text x="850" y="548" font-family="Arial,sans-serif" font-size="14" fill="#617078">ridge cap over the seam</text>
+<text x="1020" y="548" font-family="Arial,sans-serif" font-size="14" fill="#397253">tiles reach it on both sides</text>
+<text x="746" y="584" font-family="Arial,sans-serif" font-size="16" fill="#617078">They now meet at y = 0, and the east/west faces become triangles.</text>
+
+<!-- ============================ NUMBERS ============================ -->
+<rect x="64" y="604" width="1312" height="330" rx="18" fill="#fffdfa" filter="url(#shadow)"/>
+<text x="94" y="648" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2" fill="#9a5c32">MEASURED</text>
+
+<text x="94" y="692" font-family="Arial,sans-serif" font-size="16" fill="#617078">Upper roof north/south slope length</text>
+<text x="94" y="720" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#26343c">5.25 m → 5.72 m</text>
+<text x="94" y="748" font-family="Arial,sans-serif" font-size="15" fill="#617078">courses per slope 16 → 17 · tiles 3,448 → 3,528</text>
+<text x="94" y="790" font-family="Arial,sans-serif" font-size="16" fill="#617078">Roof tile mesh</text>
+<text x="94" y="818" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#26343c">289,648 → 296,030 tris</text>
+<text x="94" y="846" font-family="Arial,sans-serif" font-size="15" fill="#617078">gate 337,630 → 344,012 · Ridge unchanged at 680</text>
+<text x="94" y="888" font-family="Arial,sans-serif" font-size="16" fill="#617078">Blender previews and native captures</text>
+<text x="94" y="914" font-family="Arial,sans-serif" font-size="15" fill="#617078">a new `roof-ridge` view in both, at the angle that showed it</text>
+
+<text x="700" y="692" font-family="Arial,sans-serif" font-size="16" fill="#617078">Widest strip of a slope left uncovered by any course</text>
+<text x="700" y="720" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#26343c">upper east/west 0.0124 m → 0.0000 m</text>
+<text x="700" y="748" font-family="Arial,sans-serif" font-size="15" fill="#617078">all eight slopes still within the 0.34 m hip cap</text>
+<text x="700" y="790" font-family="Arial,sans-serif" font-size="16" fill="#617078">Envelope</text>
+<text x="700" y="818" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#26343c">2870 × 1639 × 1933.24 cm</text>
+<text x="700" y="846" font-family="Arial,sans-serif" font-size="15" fill="#617078">+0.12 cm — the hip caps shifted a hair; the ridge cap still sets the height</text>
+<text x="700" y="888" font-family="Arial,sans-serif" font-size="16" fill="#617078">Landmark validation, fresh process</text>
+<text x="700" y="914" font-family="Arial,sans-serif" font-size="15" fill="#397253">0 errors / 0 warnings · 8/8 parts matching source exactly</text>
+
+<text x="64" y="972" font-family="Arial,sans-serif" font-size="14" fill="#66737a">Generator: ContentSource/GuangzhouLandmarks/Zhengdongmen/source/build_zhengdongmen.py · new `roof-ridge` view in both the preview renderer and the native capture</text>
+<text x="64" y="996" font-family="Arial,sans-serif" font-size="14" fill="#8a949a">A 庑殿 hip roof's ridge is a line, not a flat top: the slopes must meet at it, and the east/west faces become triangles rising to the ridge ends.</text>
+</svg>

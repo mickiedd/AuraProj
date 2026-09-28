@@ -1,0 +1,31 @@
+{
+  "map": "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+  "mode": "UE 5.5.4 editor SceneCapture2D proxy; NOT Development or packaged acceptance",
+  "target_hardware": "Apple M4 Mac mini 16 GiB unified memory",
+  "render_target": [
+    1920,
+    1080
+  ],
+  "scalability": "High (sg.*Quality=2)",
+  "route_cm": [
+    [
+      180000,
+      123500
+    ],
+    [
+      180000,
+      138000
+    ]
+  ],
+  "warmup_seconds": 60,
+  "capture_seconds": 180,
+  "sample_count": 20431,
+  "p50_ms": 8.754748851060867,
+  "p95_ms": 9.723667055368423,
+  "p99_ms": 10.48320382833481,
+  "max_ms": 22.561248391866684,
+  "mean_ms": 8.810274849782681,
+  "process_peak_rss_bytes": 3434790912,
+  "acceptance_gate_evaluated": false,
+  "reason": "Editor capture and viewport overhead differ from a Development or packaged fixed route"
+}

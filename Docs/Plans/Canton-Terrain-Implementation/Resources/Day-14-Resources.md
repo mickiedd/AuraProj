@@ -18,7 +18,7 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 
 ## Evidence checklist
 
-- [ ] Retained walk route, collision/navigation results, map-check output, warnings/waivers, and corrected seams
+- [ ] Retained walk route, collision/navigation results, map-check output, warnings/waivers, corrected seams, and separate H2 historical-alignment status
 - [ ] Exact commands and arguments recorded
 - [ ] Exit codes and log paths recorded
 - [ ] Manual/visual checks identify fixed viewpoints, scale, and relevant settings
@@ -39,4 +39,3 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 | Status | Not started |
 | Reviewer | |
 | Open issues / next owner | |
-

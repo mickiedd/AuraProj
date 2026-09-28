@@ -1,0 +1,22 @@
+{
+  "engine": "UE 5.5.4 CL 40574608",
+  "configuration": "Mac Development cook",
+  "targetplatform": "Mac",
+  "maps": [
+    "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+    "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL"
+  ],
+  "command": "UnrealEditor Aura.uproject -run=cook -targetplatform=Mac -map=/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL -map=/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL -unattended -nop4 -nosplash -NoSound -abslog=Saved/Logs/CantonDistrictCookFinal.log",
+  "temporary_config_override": "Four pre-existing DirectoriesToAlwaysCook entries excluded for this targeted check; Config/DefaultGame.ini restored byte-for-byte",
+  "exit_code": 0,
+  "packages_cooked": 994,
+  "packages_remaining": 0,
+  "done_marker": true,
+  "cooked_umaps": [
+    "Saved/Cooked/Mac/Aura/Content/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL.umap",
+    "Saved/Cooked/Mac/Aura/Content/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL.umap"
+  ],
+  "error_lines": [],
+  "log": "Saved/Logs/CantonDistrictCookFinal.log",
+  "passed": true
+}

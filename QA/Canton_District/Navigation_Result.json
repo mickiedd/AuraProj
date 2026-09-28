@@ -1,0 +1,18 @@
+{
+  "map": "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+  "start_cm": [
+    180000.0,
+    123500.0,
+    859.140625
+  ],
+  "end_cm": [
+    180000.0,
+    138000.0,
+    1020.46875
+  ],
+  "path_valid": true,
+  "path_partial": false,
+  "point_count": 2,
+  "path_length_cm": 14501.059186498273,
+  "historical_alignment_claim": false
+}

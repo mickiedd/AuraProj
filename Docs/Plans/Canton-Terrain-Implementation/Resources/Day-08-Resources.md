@@ -6,7 +6,7 @@ Use this sheet while executing [Day 08](../Day-08-resample-encode-and-audit-heig
 
 - [ ] Accepted float32 elevation and confidence rasters
 - [ ] 2017 x 2017 encoding contract
-- [ ] GIS-to-UE coordinate round-trip fixtures
+- [ ] H1 GIS-to-UE corner round-trip fixtures; accepted H2 fixtures or an explicit diagnostic-only label
 - [ ] Prior-day accepted artifacts or a recorded exception
 - [ ] Cleanly identified repository revision and unrelated working-tree changes preserved
 
@@ -18,7 +18,7 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 
 ## Evidence checklist
 
-- [ ] Retained bit depth, dimensions, minimum/maximum codes, clipping test, quantization error, and coordinate round trip
+- [ ] Retained bit depth, dimensions, minimum/maximum codes, clipping test, quantization error, H1 round trips, and separately labeled H2/diagnostic gate checks
 - [ ] Exact commands and arguments recorded
 - [ ] Exit codes and log paths recorded
 - [ ] Manual/visual checks identify fixed viewpoints, scale, and relevant settings

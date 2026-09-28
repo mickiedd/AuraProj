@@ -15,10 +15,19 @@
 #include "Misc/FileHelper.h"
 #include "Serialization/JsonSerializer.h"
 #include "WorldPartition/WorldPartition.h"
+#include "Engine/StaticMeshActor.h"
+#include "LandscapeLayerInfoObject.h"
 
 namespace CantonTerrain
 {
     constexpr int32 VertexCount = 2017;
+    bool IsPrototypeWorld(const UWorld* World)
+    {
+        if (!World || !World->GetWorldPartition()) return false;
+        const FString Name = World->GetPackage()->GetName();
+        return Name.StartsWith(TEXT("/Game/Canton/Provisional/")) ||
+            Name.StartsWith(TEXT("/Game/Canton/DistrictPrototype/"));
+    }
     bool ReadHeights(const FString& Path, TArray<uint16>& Heights)
     {
         TArray<uint8> Bytes;
@@ -39,9 +48,18 @@ UWorld* UCantonTerrainLibrary::CreateProvisionalWorld()
     return World;
 }
 
+UWorld* UCantonTerrainLibrary::CreateDistrictWorld()
+{
+    const FString Path=TEXT("/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL");
+    if (FPackageName::DoesPackageExist(Path)) return nullptr;
+    UWorld* World=GEditor->NewMap(true);
+    if (!World || !UEditorLoadingAndSavingUtils::SaveMap(World,Path)) return nullptr;
+    return World;
+}
+
 bool UCantonTerrainLibrary::LoadProvisionalRegion(UWorld* World)
 {
-    if (!World || !World->GetWorldPartition() || !World->GetPackage()->GetName().StartsWith(TEXT("/Game/Canton/Provisional/"))) return false;
+    if (!CantonTerrain::IsPrototypeWorld(World)) return false;
     World->GetWorldPartition()->LoadLastLoadedRegions({FBox(FVector(-1000,-1000,-20000),FVector(404200,404200,20000))});
     return true;
 }
@@ -49,7 +67,7 @@ bool UCantonTerrainLibrary::LoadProvisionalRegion(UWorld* World)
 bool UCantonTerrainLibrary::ImportProvisionalTerrain(UWorld* World, const FString& RawHeightPath)
 {
     using namespace CantonTerrain;
-    if (!World || !World->GetWorldPartition() || !World->GetPackage()->GetName().StartsWith(TEXT("/Game/Canton/Provisional/"))) return false;
+    if (!IsPrototypeWorld(World)) return false;
     for (TActorIterator<ALandscapeProxy> It(World); It; ++It) return false; // Never overwrite a Landscape.
     TArray<uint16> Heights;
     if (!ReadHeights(RawHeightPath, Heights)) return false;
@@ -75,6 +93,180 @@ bool UCantonTerrainLibrary::ImportProvisionalTerrain(UWorld* World, const FStrin
     Landscape->ForceLayersFullUpdate();
     Landscape->MarkPackageDirty();
     return true;
+}
+
+bool UCantonTerrainLibrary::AddDistrictEditLayers(UWorld* World)
+{
+    if (!CantonTerrain::IsPrototypeWorld(World) ||
+        !World->GetPackage()->GetName().StartsWith(TEXT("/Game/Canton/DistrictPrototype/"))) return false;
+    ALandscape* Landscape = nullptr;
+    for (TActorIterator<ALandscape> It(World); It; ++It)
+    {
+        if (Landscape) return false;
+        Landscape = *It;
+    }
+    if (!Landscape || !Landscape->GetLayerConst(TEXT("Base_Imported")) ||
+        !Landscape->GetLayerConst(TEXT("Base_Imported"))->bLocked) return false;
+    for (const FName Name : {FName(TEXT("Urban_Grading")), FName(TEXT("Road_Corridors")), FName(TEXT("Drainage"))})
+    {
+        if (Landscape->GetLayerConst(Name)) return false;
+        if (Landscape->CreateLayer(Name) == INDEX_NONE) return false;
+    }
+    Landscape->ForceLayersFullUpdate();
+    Landscape->MarkPackageDirty();
+    return true;
+}
+
+bool UCantonTerrainLibrary::ConfigureDistrictLandscapeMaterial(UWorld* World, UMaterialInterface* Material)
+{
+    if (!CantonTerrain::IsPrototypeWorld(World) || !Material ||
+        !World->GetPackage()->GetName().StartsWith(TEXT("/Game/Canton/DistrictPrototype/"))) return false;
+    ALandscape* Landscape=nullptr;
+    for (TActorIterator<ALandscape> It(World); It; ++It) Landscape=*It;
+    if (!Landscape || Landscape->GetLayerCount()!=4) return false;
+    for (TActorIterator<ALandscapeProxy> It(World); It; ++It)
+    {
+        It->LandscapeMaterial=Material;
+        It->MarkPackageDirty();
+    }
+    const TArray<FName> Names={TEXT("Soil"),TEXT("Earth"),TEXT("Pebble"),TEXT("Grass"),TEXT("Damp"),TEXT("Stone")};
+    for (const FName Name : Names)
+    {
+        if (Landscape->HasTargetLayer(Name)) return false;
+        ULandscapeLayerInfoObject* Info=Landscape->CreateLayerInfo(*Name.ToString());
+        if (!Info) return false;
+        Landscape->AddTargetLayer(Name,FLandscapeTargetLayerSettings(Info));
+    }
+    Landscape->GetLandscapeInfo()->UpdateLayerInfoMap();
+    Landscape->ForceLayersFullUpdate();
+    Landscape->MarkPackageDirty();
+    return true;
+}
+
+FString UCantonTerrainLibrary::ValidateDistrictWorld(UWorld* World, const FString& RawHeightPath)
+{
+    TArray<FString> Errors;
+    auto Require = [&Errors](bool Good, const TCHAR* Message) { if (!Good) Errors.Add(Message); };
+    Require(CantonTerrain::IsPrototypeWorld(World) && World->GetPackage()->GetName().StartsWith(TEXT("/Game/Canton/DistrictPrototype/")), TEXT("District WP map missing"));
+    TArray<uint16> Heights;
+    Require(CantonTerrain::ReadHeights(RawHeightPath, Heights), TEXT("Reference R16 invalid"));
+    ALandscape* Landscape = nullptr;
+    int32 MainSlabs=0, MixedSlabs=0, Gutters=0, Weeds=0, Damp=0, Gate=0, ParcelPads=0;
+    TMap<int32,AActor*> MainRoadByStationY;
+    int32 CollisionChecks=0;
+    double MaxRoadCenterErrorCm=0;
+    double MaxRoadLongEdgeErrorCm=0;
+    double MaxRoadJointStepCm=0;
+    int32 RoadJointComparisons=0;
+    FString FirstRoadHeightSample;
+    if (World)
+    {
+        for (TActorIterator<ALandscape> It(World); It; ++It) Landscape=*It;
+        Require(Landscape != nullptr, TEXT("Landscape missing"));
+        if (Landscape)
+        {
+            const FLandscapeLayer* Base=Landscape->GetLayerConst(TEXT("Base_Imported"));
+            Require(Base && Base->bLocked, TEXT("Locked imported base missing"));
+            for (const TCHAR* Name : {TEXT("Urban_Grading"), TEXT("Road_Corridors"), TEXT("Drainage")})
+                Require(Landscape->GetLayerConst(FName(Name)) != nullptr, TEXT("District edit layer missing"));
+            Require(Landscape->GetLayerCount()==4, TEXT("Unexpected district edit-layer count"));
+            Require(Landscape->LandscapeMaterial && Landscape->LandscapeMaterial->GetPathName().Contains(TEXT("M_Canton_Landscape_PROVISIONAL")), TEXT("District paint material missing"));
+            for (const TCHAR* Name : {TEXT("Soil"),TEXT("Earth"),TEXT("Pebble"),TEXT("Grass"),TEXT("Damp"),TEXT("Stone")})
+                Require(Landscape->HasTargetLayer(FName(Name)), TEXT("District paint target layer missing"));
+        }
+        for (TActorIterator<AActor> It(World); It; ++It)
+        {
+            AActor* Actor=*It;
+            const FString Label=Actor->GetActorLabel();
+            if (Label.StartsWith(TEXT("District_Main_Stone_")))
+            {
+                ++MainSlabs;
+                MainRoadByStationY.Add(FMath::RoundToInt(Actor->GetActorLocation().Y),Actor);
+                if (Heights.Num()==CantonTerrain::VertexCount*CantonTerrain::VertexCount)
+                {
+                    const FVector P=Actor->GetActorLocation();
+                    const double FX=FMath::Clamp(P.X/200.0,0.0,2016.0);
+                    const double FY=FMath::Clamp(P.Y/200.0,0.0,2016.0);
+                    const int32 X=FMath::FloorToInt(FX), Y=FMath::FloorToInt(FY);
+                    const int32 X1=FMath::Min(X+1,2016), Y1=FMath::Min(Y+1,2016);
+                    const double U=FX-X, V=FY-Y;
+                    auto Z=[&Heights](int32 CX,int32 CY){return (double(Heights[CY*2017+CX])-32768)*50/128;};
+                    const double Expected=(1-U)*(1-V)*Z(X,Y)+U*(1-V)*Z(X1,Y)+
+                        (1-U)*V*Z(X,Y1)+U*V*Z(X1,Y1)+13;
+                    const double Error=FMath::Abs(P.Z-Expected);
+                    MaxRoadCenterErrorCm=FMath::Max(MaxRoadCenterErrorCm,Error);
+                    for (const double Side : {-100.0,100.0})
+                    {
+                        const double EdgeFY=FMath::Clamp((P.Y+Side)/200.0,0.0,2016.0);
+                        const int32 EY=FMath::FloorToInt(EdgeFY), EY1=FMath::Min(EY+1,2016);
+                        const double EV=EdgeFY-EY;
+                        const double Ground=(1-U)*(1-EV)*Z(X,EY)+U*(1-EV)*Z(X1,EY)+
+                            (1-U)*EV*Z(X,EY1)+U*EV*Z(X1,EY1)+13;
+                        const double EdgeZ=P.Z+Actor->GetActorRotation().RotateVector(FVector(0,Side,0)).Z;
+                        MaxRoadLongEdgeErrorCm=FMath::Max(MaxRoadLongEdgeErrorCm,FMath::Abs(EdgeZ-Ground));
+                    }
+                    if (FirstRoadHeightSample.IsEmpty())
+                        FirstRoadHeightSample=FString::Printf(TEXT("%s actual=%.3f expected=%.3f x=%.3f y=%.3f"),*Label,P.Z,Expected,P.X,P.Y);
+                    Require(FMath::Abs(P.Z-Expected)<1.0, TEXT("Stone slab does not follow reference raster"));
+                    FHitResult Hit;
+                    const bool HitSurface=World->LineTraceSingleByChannel(Hit,P+FVector(0,0,100),P-FVector(0,0,100),ECC_Visibility);
+                    Require(HitSurface, TEXT("Stone road collision trace missed"));
+                    ++CollisionChecks;
+                }
+            }
+            else if (Label.StartsWith(TEXT("District_MixedLane_"))) ++MixedSlabs;
+            else if (Label.StartsWith(TEXT("District_CoveredGutter_"))) ++Gutters;
+            else if (Label.StartsWith(TEXT("District_Weed_"))) ++Weeds;
+            else if (Label.StartsWith(TEXT("District_LocalDamp_"))) ++Damp;
+            else if (Label.StartsWith(TEXT("District_Parcel_"))) ++ParcelPads;
+            else if (Label.StartsWith(TEXT("Wenmingmen_PROVISIONAL_"))) ++Gate;
+        }
+    }
+    // Compare the two top-edge corners on every pair of adjacent 2 m road
+    // slabs. The older longitudinal-edge check compares each slab to the R16,
+    // but cannot detect a visible step across a slab-to-slab joint.
+    for (const auto& Pair : MainRoadByStationY)
+    {
+        AActor* const* Next=MainRoadByStationY.Find(Pair.Key+200);
+        if (!Next) continue;
+        for (const double LocalX : {-50.0,50.0})
+        {
+            const FVector ThisTop=Pair.Value->GetActorTransform().TransformPosition(FVector(LocalX,50,50));
+            const FVector NextTop=(*Next)->GetActorTransform().TransformPosition(FVector(LocalX,-50,50));
+            MaxRoadJointStepCm=FMath::Max(MaxRoadJointStepCm,FMath::Abs(ThisTop.Z-NextTop.Z));
+            ++RoadJointComparisons;
+        }
+    }
+    Require(MainSlabs==100, TEXT("Expected 100 main-road slabs"));
+    Require(RoadJointComparisons==198, TEXT("Main-road joint sample incomplete"));
+    Require(MaxRoadLongEdgeErrorCm<2.0, TEXT("Main-road slab long edges do not follow terrain within 2 cm"));
+    Require(MixedSlabs==76, TEXT("Expected 76 mixed-lane slabs"));
+    Require(Gutters==48, TEXT("Expected 48 covered gutters"));
+    Require(Weeds==38 && Damp==14, TEXT("Expected 38 growth proxies and 14 wet cards"));
+    Require(Gate==1, TEXT("Expected one scale-only gate integration asset"));
+    Require(ParcelPads==0, TEXT("Unsupported broad parcel pads remain"));
+    TSharedRef<FJsonObject> Result=MakeShared<FJsonObject>();
+    Result->SetBoolField(TEXT("passed"),Errors.IsEmpty());
+    Result->SetBoolField(TEXT("historically_accepted"),false);
+    Result->SetNumberField(TEXT("main_slabs"),MainSlabs);
+    Result->SetNumberField(TEXT("mixed_slabs"),MixedSlabs);
+    Result->SetNumberField(TEXT("gutters"),Gutters);
+    Result->SetNumberField(TEXT("weed_instances"),Weeds);
+    Result->SetNumberField(TEXT("wet_patches"),Damp);
+    Result->SetNumberField(TEXT("gate_assets"),Gate);
+    Result->SetNumberField(TEXT("broad_parcel_pads"),ParcelPads);
+    Result->SetNumberField(TEXT("road_collision_checks"),CollisionChecks);
+    Result->SetNumberField(TEXT("max_road_center_error_cm"),MaxRoadCenterErrorCm);
+    Result->SetNumberField(TEXT("max_road_long_edge_error_cm"),MaxRoadLongEdgeErrorCm);
+    Result->SetNumberField(TEXT("max_road_joint_step_cm"),MaxRoadJointStepCm);
+    Result->SetNumberField(TEXT("road_joint_comparisons"),RoadJointComparisons);
+    Result->SetStringField(TEXT("first_road_height_sample"),FirstRoadHeightSample);
+    TArray<TSharedPtr<FJsonValue>> ErrorValues;
+    for (const FString& Error : Errors) ErrorValues.Add(MakeShared<FJsonValueString>(Error));
+    Result->SetArrayField(TEXT("errors"),ErrorValues);
+    FString Json;
+    FJsonSerializer::Serialize(Result,TJsonWriterFactory<>::Create(&Json));
+    return Json;
 }
 
 FString UCantonTerrainLibrary::ValidateProvisionalTerrain(UWorld* World, const FString& RawHeightPath)

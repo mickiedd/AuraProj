@@ -16,14 +16,15 @@ Complete the Day 03 scope below as an independently reviewable increment. Preser
 
 **Work**
 - Choose a projected metric CRS suitable for Guangzhou; archive its EPSG code and coordinate transform to a local UE origin.
-- Add distributed ground control points from demonstrably persistent landmarks; reserve spatially distributed points as independent checks and avoid forcing the archive map onto modern realigned streets.
-- Test affine/polynomial transformations as appropriate; record per-point residuals, holdout-check residuals, distortion zones and rejected points with reasons. Do not select a higher-order transform merely because it reduces fitted-point error.
-**Deliverables:** `GIS/Canton_Historic_Georef.tif`; `QA/Map_GCP_Residuals.csv`; `Docs/Map_Distortion_Notes.md`.
-**Done when:** Georeferenced raster opens at the documented coordinate origin and independent checks meet the Day 01 RMSE/maximum-error/spatial-coverage budget. Otherwise classify affected areas Provisional or Blocked rather than passing the transform.
+- Build **H1 (city historical frame)** from demonstrably persistent, precisely defined control points. Reserve spatially distributed points as independent checks and avoid forcing an archive map onto modern realigned streets. Use MAP-001 as a historical comparison layer unless its own metric quality is independently demonstrated.
+- Prefer a survey-capable geometry backbone (including a clearly tagged near-period source if necessary) and compare it against in-period maps to detect temporal change. Test affine/polynomial/local transformations as appropriate; record per-point residuals, holdout residuals, distortion zones and rejected points with reasons. Do not select a higher-order transform merely because it reduces fitted-point error.
+- H1 keeps the city acceptance budget: ≥5 fit controls, ≥8 independent holdouts with at least two in each quadrant and perimeter/interior coverage, RMSE ≤15 m, and worst residual ≤30 m. The stricter gate-district budget belongs to H2.
+**Deliverables:** `GIS/Canton_Historic_Georef_H1.tif`; `QA/Map_GCP_Residuals_H1.csv`; `Docs/Map_Distortion_Notes.md`; `Data/H1_Source_Comparison.csv`.
+**Done when:** H1 opens at the documented coordinate origin and independent city checks meet the Day 01 city RMSE/maximum-error/spatial-coverage budget. Otherwise classify affected areas Provisional or Blocked rather than passing the transform.
 
 ## Required evidence
 
-Retain fitted and independent residuals, transform parameters, rejected-point reasons, and distortion map. Screenshots support the record but do not replace machine-readable metadata or automated checks.
+Retain the metric-backbone rationale, MAP-001 comparison result, fitted and independent H1 residuals, transform parameters, rejected-point reasons, and distortion map. Screenshots support the record but do not replace machine-readable metadata or automated checks.
 
 ## Stop/go rule
 
@@ -32,4 +33,3 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 ## Handoff
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds [Day 04 plan](Day-04-digitize-the-walled-city-plan.md).
-

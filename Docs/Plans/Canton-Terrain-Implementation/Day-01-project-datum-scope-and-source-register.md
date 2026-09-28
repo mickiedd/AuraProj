@@ -22,11 +22,11 @@ Complete the Day 01 scope below as an independently reviewable increment. Preser
 - Declare georeference acceptance thresholds: independent check-point count and distribution, RMSE, maximum residual and a stricter gate-district tolerance tied to the narrowest geometry being aligned. Declare target hardware, build configuration, resolution/scalability, fixed performance route and frame-time/memory/streaming thresholds.
 - Collect existing city-gate mesh dimensions and pivot conventions as *asset data*, not as surveyed historical ground elevations.
 **Deliverables:** `Docs/Terrain_Baseline.md`; `Data/Source_Register.csv`; `Data/Coordinate_Contract.json`; `Data/Artifact_Manifest.csv`; `Docs/Terrain_Acceptance_Budget.md`; `QA/PCG_Preflight.md`.
-**Done when:** Scope, coordinate and acceptance contracts are approved; the exact UE/plugin path is proven; storage/licence rules are recorded; all candidate sources carry provenance and separate evidence-quality fields.
+**Done when:** Scope and coordinate conventions are versioned; the working acceptance budget is versioned with an explicit `owner_approval` state; the exact UE/plugin path is proven; storage/licence rules are recorded; all candidate sources carry provenance and separate evidence-quality fields. Historical gates cannot be `Verified` while `owner_approval` is pending.
 
 ## Required evidence
 
-Retain engine identity, plugin smoke/cook output, storage decision, and approved numeric budgets. Screenshots support the record but do not replace machine-readable metadata or automated checks.
+Retain engine identity, plugin smoke/cook output, storage decision, working-budget version, `owner_approval` state, and numeric budgets. Screenshots support the record but do not replace machine-readable metadata or automated checks.
 
 ## Stop/go rule
 
@@ -35,4 +35,3 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 ## Handoff
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds [Day 02 plan](Day-02-historical-wall-and-landmark-source-acquisition.md).
-

@@ -1,0 +1,15 @@
+{
+  "material": "/Game/Canton/DistrictPrototype/Terrain/M_Canton_Landscape_PROVISIONAL",
+  "paintable_layers": [
+    "Soil",
+    "Earth",
+    "Pebble",
+    "Grass",
+    "Damp",
+    "Stone"
+  ],
+  "default_unpainted_color": "Soil",
+  "roughness": 0.92,
+  "textures": "none; source-neutral swatches",
+  "historical_color_claim": false
+}

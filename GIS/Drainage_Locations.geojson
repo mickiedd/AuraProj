@@ -1,0 +1,90 @@
+{
+  "type": "FeatureCollection",
+  "name": "Canton_Diagnostic_Drainage",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-DRAIN-01A",
+        "surface_class": "covered_gutter",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "source_date": null,
+        "reason": "Unverified engineering flow test; placement is not a historical canal",
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm",
+        "flow_to": "ENG-OUTLET-SOUTH",
+        "high_y_local_m": -22,
+        "low_y_local_m": -90
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            6.5,
+            -22
+          ],
+          [
+            6.5,
+            -90
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-DRAIN-01B",
+        "surface_class": "covered_gutter",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "source_date": null,
+        "reason": "Unverified engineering flow test; placement is not a historical canal",
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm",
+        "flow_to": "ENG-OUTLET-CENTRAL",
+        "high_y_local_m": -22,
+        "low_y_local_m": 34
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            6.5,
+            -22
+          ],
+          [
+            6.5,
+            34
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-DRAIN-01C",
+        "surface_class": "covered_gutter",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "source_date": null,
+        "reason": "Unverified engineering flow test; placement is not a historical canal",
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm",
+        "flow_to": "ENG-OUTLET-CENTRAL",
+        "high_y_local_m": 98,
+        "low_y_local_m": 34
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            6.5,
+            98
+          ],
+          [
+            6.5,
+            34
+          ]
+        ]
+      }
+    }
+  ]
+}

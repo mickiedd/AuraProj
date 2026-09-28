@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="670" viewBox="0 0 1200 670" role="img" aria-labelledby="title desc">
+  <title id="title">Canton M05 review hardening</title>
+  <desc id="desc">Before, one navigation path and broad technical wording. After, seven routes expose a gate detour; M04 and runtime remain incomplete; guarded runner, evidence index and repository freeze make the handoff auditable.</desc>
+  <rect width="1200" height="670" fill="#f5f7f8"/>
+  <text x="52" y="62" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#142b39">Canton M05 · review hardening</text>
+  <text x="52" y="92" font-family="Arial,sans-serif" font-size="17" fill="#51636d">2026-09-28 · isolated 200 × 200 m D-confidence engineering district</text>
+  <rect x="52" y="125" width="405" height="330" rx="16" fill="#fff" stroke="#cbd6dc" stroke-width="2"/>
+  <text x="77" y="167" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#28414c">Before review</text>
+  <text x="77" y="209" font-family="Arial,sans-serif" font-size="17" fill="#3e5560">One 145 m principal-road nav query</text>
+  <text x="77" y="249" font-family="Arial,sans-serif" font-size="17" fill="#3e5560">100/100 road floor traces</text>
+  <text x="77" y="289" font-family="Arial,sans-serif" font-size="17" fill="#3e5560">M04 proxies described as a pass</text>
+  <text x="77" y="329" font-family="Arial,sans-serif" font-size="17" fill="#3e5560">Day 20 checks grouped together</text>
+  <text x="77" y="369" font-family="Arial,sans-serif" font-size="17" fill="#3e5560">Uncommitted handoff without exact freeze</text>
+  <text x="77" y="409" font-family="Arial,sans-serif" font-size="17" fill="#3e5560">Bare UE scripted quit returned exit 1</text>
+  <path d="M474 290 H542" stroke="#16768d" stroke-width="5" marker-end="url(#arrow)"/>
+  <defs><marker id="arrow" markerWidth="13" markerHeight="13" refX="10" refY="6.5" orient="auto"><path d="M0 0 L13 6.5 L0 13 Z" fill="#16768d"/></marker></defs>
+  <rect x="560" y="125" width="588" height="330" rx="16" fill="#eaf5f4" stroke="#8db9b1" stroke-width="2"/>
+  <text x="585" y="167" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#165249">After evidence audit</text>
+  <text x="585" y="209" font-family="Arial,sans-serif" font-size="17" fill="#264a49">7 floor-supported routes · 6 direct nav passes</text>
+  <rect x="580" y="226" width="546" height="47" rx="9" fill="#fff1e9" stroke="#e1a173"/>
+  <text x="595" y="256" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#9a3e1d">Gate threshold: 2.583× detour · FAIL</text>
+  <text x="585" y="306" font-family="Arial,sans-serif" font-size="17" fill="#264a49">Pawn traversal: not run · M04: incomplete</text>
+  <text x="585" y="346" font-family="Arial,sans-serif" font-size="17" fill="#264a49">Runtime WP / Nanite / Lumen / metrics: open</text>
+  <text x="585" y="386" font-family="Arial,sans-serif" font-size="17" fill="#264a49">Evidence index + dirty-worktree freeze</text>
+  <text x="585" y="426" font-family="Arial,sans-serif" font-size="17" fill="#264a49">Guarded runner: clean review pass, route fail</text>
+  <rect x="52" y="485" width="1096" height="137" rx="15" fill="#183746"/>
+  <text x="77" y="524" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#fff">Validation and decision</text>
+  <text x="77" y="557" font-family="Arial,sans-serif" font-size="16" fill="#d8e9ec">Runner failure tests + live UE native review pass; traversal runner fails on the real gate route.</text>
+  <text x="77" y="586" font-family="Arial,sans-serif" font-size="16" fill="#d8e9ec">Targeted two-map cook 994/994 under temporary config exclusion. H1/H2/Z and owner gate remain blocked.</text>
+</svg>

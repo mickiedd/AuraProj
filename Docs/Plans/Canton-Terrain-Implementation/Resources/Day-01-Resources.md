@@ -18,7 +18,7 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 
 ## Evidence checklist
 
-- [ ] Retained engine identity, plugin smoke/cook output, storage decision, and approved numeric budgets
+- [ ] Retained engine identity, plugin smoke/cook output, storage decision, working-budget version, `owner_approval` state, and numeric budgets
 - [ ] Exact commands and arguments recorded
 - [ ] Exit codes and log paths recorded
 - [ ] Manual/visual checks identify fixed viewpoints, scale, and relevant settings
@@ -58,3 +58,7 @@ Status: **Blocked**. Projected and vertical origins and budget approval missing;
 The separately scoped modern-context prototype now has a saved WP Landscape, locked Base_Imported layer, diagnostic material, source-aligned coarse markers and passing native height/collision, fresh-reload and automation checks. Historical gates remain unchanged. The original execution record above describes the earlier state; this continuation supersedes its technical import status.
 
 See [current M01 decision](../../../../Review/M01_Terrain_Review.md), [exact commands](../../../../QA/Canton_Days_01_10_Execution.md), [native artifact hashes](../../../../Data/M01_Native_Artifacts.csv) and [source follow-up](../../../../QA/Canton_Blocker_Research_2026_09_26.md). The prototype contract is an engineering decision for isolated testing, not surveyed coordinate or historical datum approval.
+
+## Plan optimization — 2026-09-26
+
+Use the current `working_budget_version = 2026-09-28-h1-h2-district-v2` and record `owner_approval = pending|approved`. This revision adds provisional district navigation/grade screens; it does not alter H1/H2/Z thresholds. Pending approval permits provisional technical work but blocks historical `Verified` decisions.

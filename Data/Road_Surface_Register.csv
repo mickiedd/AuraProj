@@ -1,0 +1,6 @@
+road_id,surface_class,source_id,source_date,confidence,status
+ENG-ROAD-01,principal_stone_slab,,,D,engineering_only
+ENG-ROAD-02,mixed_pebble_earth_lane,,,D,engineering_only
+ENG-DRAIN-01A,covered_gutter,,,D,engineering_only
+ENG-DRAIN-01B,covered_gutter,,,D,engineering_only
+ENG-DRAIN-01C,covered_gutter,,,D,engineering_only

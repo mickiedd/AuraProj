@@ -1,0 +1,411 @@
+{
+  "scope": "Independent audit of the M05 Canton provisional district delivery",
+  "reviewer": "test/QA pass; read-only; no Unreal process opened",
+  "handoff_sha256": "0a16232c7f9db89817d6ea174a6342ee7f6f82400747c60ef67770e5d1ee6e5d",
+  "manifest_sha256": "dcb88bef9b23f8b681d1da6b42461dcb8ca67f8e76489e29fccb96d3d63cc695",
+  "checks": {
+    "manifest": {
+      "entries": 605,
+      "missing": [],
+      "mismatched": [],
+      "append_only_drift": [
+        ".claude/memory/visual-change-archive.md"
+      ]
+    },
+    "manifest_coverage": {
+      "cooked_folders": [
+        "Content/Canton/Provisional",
+        "Content/Canton/DistrictPrototype"
+      ],
+      "uncovered": [
+        "Content/Canton/Provisional"
+      ]
+    },
+    "freeze": {
+      "base_commit": "14041340a781dc8bbb417c6f36a9dd922b56a023",
+      "head": "14041340a781dc8bbb417c6f36a9dd922b56a023",
+      "dirty_entries": 219,
+      "problems": []
+    },
+    "duplicate_evidence": [
+      "53f3ce189d84a4256b56dbaf9293df66bc69640ba195fbeb7c3766ea3549f807"
+    ],
+    "handoff_links": {
+      "links": 62,
+      "broken": []
+    },
+    "view_duplication": [
+      {
+        "view": "after_rain_ground",
+        "identical": true,
+        "m05_bytes": 814040,
+        "qa_bytes": 814040
+      },
+      {
+        "view": "courtyard_edge",
+        "identical": true,
+        "m05_bytes": 831007,
+        "qa_bytes": 831007
+      },
+      {
+        "view": "district_overview",
+        "identical": true,
+        "m05_bytes": 866118,
+        "qa_bytes": 866118
+      },
+      {
+        "view": "dry_ground",
+        "identical": true,
+        "m05_bytes": 809975,
+        "qa_bytes": 809975
+      },
+      {
+        "view": "gate_approach",
+        "identical": false,
+        "m05_bytes": 904950,
+        "qa_bytes": 904976
+      },
+      {
+        "view": "main_street",
+        "identical": true,
+        "m05_bytes": 849541,
+        "qa_bytes": 849541
+      },
+      {
+        "view": "mixed_lane",
+        "identical": true,
+        "m05_bytes": 842190,
+        "qa_bytes": 842190
+      }
+    ],
+    "traversal": {
+      "routes": 7,
+      "passed": 6,
+      "problems": []
+    },
+    "r16_cross_check": [
+      {
+        "route": "principal_gate_side_to_interior",
+        "r16_z_start_cm": 769.14,
+        "nav_z_start_cm": 788.3,
+        "nav_minus_r16_start_cm": 19.16,
+        "r16_z_end_cm": 930.47,
+        "nav_z_end_cm": 963.56,
+        "nav_minus_r16_end_cm": 33.1,
+        "max_floor_vs_r16_error_cm": 19.047
+      },
+      {
+        "route": "mixed_lane_west_to_junction",
+        "r16_z_start_cm": 808.79,
+        "nav_z_start_cm": 827.8,
+        "nav_minus_r16_start_cm": 19.01,
+        "r16_z_end_cm": 815.62,
+        "nav_z_end_cm": 850.26,
+        "nav_minus_r16_end_cm": 34.64,
+        "max_floor_vs_r16_error_cm": 19.006
+      },
+      {
+        "route": "mixed_lane_junction_to_east",
+        "r16_z_start_cm": 815.62,
+        "nav_z_start_cm": 850.26,
+        "nav_minus_r16_start_cm": 34.64,
+        "r16_z_end_cm": 995.31,
+        "nav_z_end_cm": 1014.09,
+        "nav_minus_r16_end_cm": 18.77,
+        "max_floor_vs_r16_error_cm": 19.006
+      },
+      {
+        "route": "principal_to_mixed_intersection",
+        "r16_z_start_cm": 870.7,
+        "nav_z_start_cm": 901.5,
+        "nav_minus_r16_start_cm": 30.79,
+        "r16_z_end_cm": 1032.42,
+        "nav_z_end_cm": 1059.51,
+        "nav_minus_r16_end_cm": 27.09,
+        "max_floor_vs_r16_error_cm": 19.015
+      },
+      {
+        "route": "gate_threshold_approach",
+        "r16_z_start_cm": 723.24,
+        "nav_z_start_cm": 752.63,
+        "nav_minus_r16_start_cm": 29.39,
+        "r16_z_end_cm": 769.14,
+        "nav_z_end_cm": 788.3,
+        "nav_minus_r16_end_cm": 19.16,
+        "max_floor_vs_r16_error_cm": 19.019
+      },
+      {
+        "route": "covered_gutter_crossing",
+        "r16_z_start_cm": 783.2,
+        "nav_z_start_cm": 811.81,
+        "nav_minus_r16_start_cm": 28.61,
+        "r16_z_end_cm": 806.84,
+        "nav_z_end_cm": 817.99,
+        "nav_minus_r16_end_cm": 11.16,
+        "max_floor_vs_r16_error_cm": 19.006
+      },
+      {
+        "route": "mixed_lane_to_courtyard_reference",
+        "r16_z_start_cm": 1035.94,
+        "nav_z_start_cm": 1054.32,
+        "nav_minus_r16_start_cm": 18.38,
+        "r16_z_end_cm": 1011.33,
+        "nav_z_end_cm": 1023.98,
+        "nav_minus_r16_end_cm": 12.65,
+        "max_floor_vs_r16_error_cm": 14.004
+      }
+    ],
+    "nav_vs_road": [
+      {
+        "route": "principal_gate_side_to_interior",
+        "surface": "principal",
+        "nav_minus_r16_cm": 19.16,
+        "expected_build_up_cm": 19.0,
+        "nav_minus_road_top_cm": 0.16
+      },
+      {
+        "route": "mixed_lane_west_to_junction",
+        "surface": "mixed",
+        "nav_minus_r16_cm": 19.01,
+        "expected_build_up_cm": 14.0,
+        "nav_minus_road_top_cm": 5.01
+      },
+      {
+        "route": "mixed_lane_junction_to_east",
+        "surface": "mixed",
+        "nav_minus_r16_cm": 34.64,
+        "expected_build_up_cm": 14.0,
+        "nav_minus_road_top_cm": 20.64
+      },
+      {
+        "route": "principal_to_mixed_intersection",
+        "surface": "intersection",
+        "nav_minus_r16_cm": 30.79,
+        "expected_build_up_cm": 19.0,
+        "nav_minus_road_top_cm": 11.79
+      },
+      {
+        "route": "gate_threshold_approach",
+        "surface": "gate",
+        "nav_minus_r16_cm": 29.39,
+        "expected_build_up_cm": 19.0,
+        "nav_minus_road_top_cm": 10.39
+      },
+      {
+        "route": "covered_gutter_crossing",
+        "surface": "gutter",
+        "nav_minus_r16_cm": 28.61,
+        "expected_build_up_cm": 19.0,
+        "nav_minus_road_top_cm": 9.61
+      },
+      {
+        "route": "mixed_lane_to_courtyard_reference",
+        "surface": "reference_only",
+        "nav_minus_r16_cm": 18.38,
+        "expected_build_up_cm": 14.0,
+        "nav_minus_road_top_cm": 4.38
+      }
+    ],
+    "build_result_consistency": [
+      "instance_counts.pebble=96 but the map has 76 mixed-lane slabs",
+      "instance_counts.plot=16 but the map has 0 parcel pads"
+    ],
+    "declared_thresholds": [
+      {
+        "gate": "navigation detour ratio <= 1.5",
+        "asserted_in": [
+          "Scripts/ReviewCantonDistrictTraversal.py",
+          "Scripts/run_canton_district_check.py",
+          "Scripts/test_canton_district_contract.py"
+        ]
+      },
+      {
+        "gate": "road step grade < 8% (and the 12% removal trigger)",
+        "asserted_in": [
+          "Scripts/test_canton_district_contract.py",
+          "QA/Canton_District/Slope_Refinement.json"
+        ]
+      }
+    ],
+    "validator_tolerances": [
+      "mixed-lane slab count: MixedSlabs>=70 && MixedSlabs<=80",
+      "covered gutter count: Gutters>=45",
+      "detail instance counts: Weeds>0 && Damp>0"
+    ],
+    "slab_float": {
+      "road_bottom_offset_cm": 7,
+      "road_top_offset_cm": 19,
+      "shoulder_top_offset_cm": 8
+    },
+    "day14_waiver": {
+      "warnings": 2,
+      "waived": false
+    },
+    "gate_conflict": {
+      "footprint_x_m": 65.0,
+      "detour_apex_cm": 3293.0,
+      "half_width_plus_agent_cm": 3285.0,
+      "closed_door": true,
+      "endpoints_inside_gate": [
+        "start"
+      ]
+    },
+    "nanite_availability": {
+      "nanite_unavailable_on_host": true
+    },
+    "drainage": [],
+    "capture_pair": {
+      "changed_pixels_gt8": 38915,
+      "problems": []
+    },
+    "scope_language": []
+  },
+  "findings": [
+    {
+      "id": "AUD-FREEZE-002",
+      "severity": "MAJOR",
+      "title": "The freeze hashes the append-only change-archive index",
+      "detail": "The manifest includes .claude/memory/visual-change-archive.md, which AGENTS.md requires every completed job to append to. The freeze therefore invalidates itself the moment the next job records itself \u2014 this audit did exactly that, and it is the only row that moved.",
+      "evidence": [
+        "Data/M02_M05_District_Artifacts.csv",
+        "Scripts/refresh_canton_district_freeze.py"
+      ],
+      "requested_action": "Drop the append-only index from the manifest and freeze its length or its tail commit instead, so a compliant archive entry cannot break the freeze."
+    },
+    {
+      "id": "AUD-COVERAGE-001",
+      "severity": "MAJOR",
+      "title": "Cooked levels are not covered by the frozen district manifest",
+      "detail": "The cook result and the handoff both cover these levels, but no package under them is hashed, so the second level cannot be reproduced or verified from the freeze: Content/Canton/Provisional",
+      "evidence": [
+        "Data/M02_M05_District_Artifacts.csv",
+        "QA/Canton_District/Cook_Result.json"
+      ],
+      "requested_action": "Extend the manifest to every cooked level, or scope the cook to the district and stop citing the other level as delivered."
+    },
+    {
+      "id": "AUD-EVIDENCE-001",
+      "severity": "MAJOR",
+      "title": "Distinct evidence files are byte-identical: PreNav_Validation.json, Reload_Validation.json, Seam_Probe.json",
+      "detail": "The handoff presents these as separate evidence items, but one artifact cannot be two independent checks. sha256 53f3ce189d84a425",
+      "evidence": [
+        "QA/Canton_District/PreNav_Validation.json",
+        "QA/Canton_District/Reload_Validation.json",
+        "QA/Canton_District/Seam_Probe.json"
+      ],
+      "requested_action": "Give each claimed probe its own measurement, or cite one artifact once and drop the duplicate claim."
+    },
+    {
+      "id": "AUD-VIEW-001",
+      "severity": "MAJOR",
+      "title": "Two different images share the view name 'gate_approach'",
+      "detail": "Review/M05_QA_Screenshots/gate_approach.png (904950 B) and QA/Canton_District/gate_approach.png (904976 B) differ, and the handoff links the older copy while the capture settings record the newer run.",
+      "evidence": [
+        "Review/M05_QA_Screenshots/gate_approach.png",
+        "QA/Canton_District/gate_approach.png"
+      ],
+      "requested_action": "Decide which capture is authoritative, replace the stale copy and re-freeze."
+    },
+    {
+      "id": "AUD-NAVROAD-001",
+      "severity": "MAJOR",
+      "title": "Navigation surface does not sit on the authored road top",
+      "detail": "The road top is a constant build-up above the R16 ({'principal': 19, 'mixed': 14, 'intersection': 19, 'gate': 19, 'gutter': 19, 'reference_only': 14} cm by surface), but the nav mesh is 18.4..34.6 cm above the same R16 \u2014 a 16.3 cm spread and up to 20.6 cm off the designed road surface. Nothing in the package relates the two, so floor-support PASS cannot tell a road from terrain, shoulder or a slab edge. Some of this is Recast cell-height quantisation; the rest is unmeasured.",
+      "evidence": [
+        "QA/Canton_District/Traversal_Route_Matrix.json",
+        "Scripts/BuildCantonDistrictPrototype.py"
+      ],
+      "requested_action": "Add a nav-to-road check, or record the quantisation budget that explains the spread, before Day 14 is closed."
+    },
+    {
+      "id": "AUD-BUILD-001",
+      "severity": "MAJOR",
+      "title": "Frozen Build_Result.json describes a superseded build",
+      "detail": "instance_counts.pebble=96 but the map has 76 mixed-lane slabs; instance_counts.plot=16 but the map has 0 parcel pads. The manifest hashes this file as evidence, so the package presents two different district compositions.",
+      "evidence": [
+        "QA/Canton_District/Build_Result.json",
+        "QA/Canton_District/Reload_Validation.json",
+        "Scripts/BuildCantonDistrictPrototype.py"
+      ],
+      "requested_action": "Regenerate Build_Result from the current script or label it explicitly as the initial-build snapshot."
+    },
+    {
+      "id": "AUD-THRESHOLD-001",
+      "severity": "MAJOR",
+      "title": "Numeric gates are asserted in code but declared nowhere",
+      "detail": "The acceptance budget and the 20-day plan contain no numeric navigation or road-grade gate, yet the code fails a day on them and 20 mixed-lane pieces were deleted to satisfy one: navigation detour ratio <= 1.5; road step grade < 8% (and the 12% removal trigger)",
+      "evidence": [
+        "Scripts/ReviewCantonDistrictTraversal.py",
+        "Scripts/run_canton_district_check.py",
+        "Scripts/test_canton_district_contract.py",
+        "Scripts/test_canton_district_contract.py",
+        "QA/Canton_District/Slope_Refinement.json",
+        "Docs/Terrain_Acceptance_Budget.md",
+        "QA/Canton_District/Slope_Refinement.json"
+      ],
+      "requested_action": "Declare both gates in the versioned budget with owner approval, or drop them from the pass/fail logic and report the numbers as diagnostics."
+    },
+    {
+      "id": "AUD-VALIDATOR-001",
+      "severity": "MINOR",
+      "title": "District validator uses open-ended count bounds",
+      "detail": "mixed-lane slab count: MixedSlabs>=70 && MixedSlabs<=80; covered gutter count: Gutters>=45; detail instance counts: Weeds>0 && Damp>0. current values are 76 mixed-lane, 48 gutters, 38 weeds, 14 damp. A regression that removes mixed-lane pieces or gutters still reports passed:true.",
+      "evidence": [
+        "Source/AuraEditor/Private/Terrain/CantonTerrainLibrary.cpp"
+      ],
+      "requested_action": "Assert exact counts or a +/-2 tolerance so the check can fail."
+    },
+    {
+      "id": "AUD-SLAB-001",
+      "severity": "MINOR",
+      "title": "Road slabs float above the terrain and step down to the shoulder",
+      "detail": "The principal slab spans z_at+7 (underside) to z_at+19 (top), so it leaves a 7 cm gap over the terrain, and the shoulder top is z_at+8 \u2014 a 11 cm step at the road edge. The long-edge check compares top edges to terrain and cannot see either.",
+      "evidence": [
+        "Scripts/BuildCantonDistrictPrototype.py",
+        "Source/AuraEditor/Private/Terrain/CantonTerrainLibrary.cpp"
+      ],
+      "requested_action": "Either close the underside with a kerb/skirt mesh or record the lip as an accepted blockout property with a view that shows it."
+    },
+    {
+      "id": "AUD-WAIVE-001",
+      "severity": "MINOR",
+      "title": "Navigation-export warnings are neither fixed nor explicitly waived",
+      "detail": "Day 14 requires every relevant map warning to be fixed or explicitly waived; these are carried as an open issue instead:  'StaticMeshComponent /Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL.L_Canton_District_PROVISIONAL:PersistentLevel.BP_Wenmingmen_C_UAID_D011E5857A088D0503_2023162441.SMC_limestone'. |  See 'StaticMeshComponent /Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL.L_Canton_District_PROVISIONAL:PersistentLevel.BP_Wenmingmen_C_UAID_D011E5857A088D0503_2023162441.SMC_stone'.",
+      "evidence": [
+        "Data/Open_Issues.csv",
+        "Saved/Logs/CantonDistrictRunner_traversal.log"
+      ],
+      "requested_action": "Add an explicit waiver line with an owner and a follow-up, or fix the collision export."
+    },
+    {
+      "id": "AUD-GATE-001",
+      "severity": "MAJOR",
+      "title": "Gate route fails because the road runs through a 65 m closed gate",
+      "detail": "the detour apex 3293 cm east of the road centre matches the gate's outer face (half-width 3250 + agent radius 35 = 3285 cm); the gate package models a closed double timber door, so the corridor is architecturally blocked, not a collision bug; route endpoint(s) inside the gate footprint: start. The road corridor is 6 m wide and the gate footprint is 65 \u00d7 28 m placed at (180000, 121500) with complex collision on structural meshes, so no direct route exists while the doors are shut.",
+      "evidence": [
+        "QA/Canton_District/Traversal_Route_Matrix.json",
+        "ContentSource/GuangzhouLandmarks/Wenmingmen/asset_manifest.json",
+        "ContentSource/GuangzhouLandmarks/Wenmingmen/README_UE5.md"
+      ],
+      "requested_action": "Decide the intent: move the gate off the corridor, open a passage, end the route at the threshold instead of beyond it, or waive directness with an owner note. Do not keep re-running the same unsatisfiable query."
+    },
+    {
+      "id": "AUD-NANITE-001",
+      "severity": "MINOR",
+      "title": "Nanite subcheck is unavailable on this host, not merely not run",
+      "detail": "The gate package records that on Metal SM5 Nanite is unavailable and each mesh falls back to raster, while the handoff lists 'Nanite compatibility NOT RUN' and the acceptance budget names this same Mac as the proposed target hardware.",
+      "evidence": [
+        "Review/M05_Final_Handoff.md",
+        "ContentSource/GuangzhouLandmarks/Wenmingmen/README_UE5.md",
+        "Docs/Terrain_Acceptance_Budget.md"
+      ],
+      "requested_action": "State that the host cannot evaluate the Nanite gate, and either change the target hardware or declare the gate inapplicable with owner approval."
+    }
+  ],
+  "counts": {
+    "BLOCKER": 0,
+    "MAJOR": 8,
+    "MINOR": 4,
+    "INFO": 0
+  }
+}

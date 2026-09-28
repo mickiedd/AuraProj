@@ -17,13 +17,13 @@ Complete the Day 11 scope below as an independently reviewable increment. Preser
 **Work**
 - Import road centre lines and city-wall geometry as non-rendered reference overlays.
 - Classify roads: principal stone-slab streets, smaller mixed-earth/pebble lanes, gate approaches and special courtyard areas; link classifications to photo/source evidence.
-- Lay out a 200 × 200 m representative district with one gate interface and adjoining street/plots.
+- Lay out a 200 × 200 m representative district with one gate interface and adjoining street/plots. If H2 is still blocked, keep it as an explicitly provisional implementation district identified by named historical feature/source context, not accepted historic UTM bounds.
 **Deliverables:** `GIS/Road_Classifications.geojson`; `Data/Road_Surface_Register.csv`; `Maps/District_Test_Bounds.json`.
 **Done when:** All prototype roads have source/date and surface-class labels; uncertain assignments are tagged.
 
 ## Required evidence
 
-Retain district bounds, road classifications, evidence links, and uncertain assignments. Screenshots support the record but do not replace machine-readable metadata or automated checks.
+Retain the named district identity, bounds status (`diagnostic`, `provisional`, or H2-accepted), road classifications, evidence links, and uncertain assignments. Screenshots support the record but do not replace machine-readable metadata or automated checks.
 
 ## Stop/go rule
 
@@ -32,4 +32,3 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 ## Handoff
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds [Day 12 plan](Day-12-street-gradients-and-built-area-grading.md).
-

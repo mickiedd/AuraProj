@@ -1,0 +1,82 @@
+{
+  "type": "FeatureCollection",
+  "name": "Canton_District_Diagnostic_Roads",
+  "description": "Engineering corridors only; not a surveyed or traced late-Qing street plan.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-ROAD-01",
+        "surface_class": "principal_stone_slab",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "source_date": null,
+        "reason": "Tests 6 m gate-to-interior traversal and paving cadence",
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0,
+            -100
+          ],
+          [
+            0,
+            100
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-ROAD-02",
+        "surface_class": "mixed_pebble_earth_lane",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "source_date": null,
+        "reason": "Tests 3.2 m junction and earth transition",
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -60,
+            20
+          ],
+          [
+            100,
+            20
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ENG-DRAIN-01",
+        "surface_class": "covered_gutter",
+        "historical_status": "D_PROVISIONAL_ENGINEERING_LAYOUT",
+        "historical_source": null,
+        "source_date": null,
+        "reason": "Tests side-drain clearance; no historical drain is claimed",
+        "coordinate_frame": "local_diagnostic_metres_about_180000_130000_cm"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            6.5,
+            -90
+          ],
+          [
+            6.5,
+            100
+          ]
+        ]
+      }
+    }
+  ]
+}

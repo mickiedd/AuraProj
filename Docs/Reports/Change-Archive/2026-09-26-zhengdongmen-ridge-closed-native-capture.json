@@ -1,0 +1,52 @@
+{
+  "views": [
+    {
+      "view": "front",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-front.png",
+      "bytes": 2252746
+    },
+    {
+      "view": "three-quarter",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-three-quarter.png",
+      "bytes": 1395964
+    },
+    {
+      "view": "arch",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-arch.png",
+      "bytes": 2899554
+    },
+    {
+      "view": "timber",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-timber.png",
+      "bytes": 2133225
+    },
+    {
+      "view": "rear",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-rear.png",
+      "bytes": 1115760
+    },
+    {
+      "view": "plaque",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-plaque.png",
+      "bytes": 2041995
+    },
+    {
+      "view": "roof",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-roof.png",
+      "bytes": 2603184
+    },
+    {
+      "view": "ridge",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-ridge.png",
+      "bytes": 2615414
+    },
+    {
+      "view": "roof-ridge",
+      "path": "/Volumes/M2/Works/AuraProj/Saved/Reports/Zhengdongmen/native-ridge-closed-roof-ridge.png",
+      "bytes": 1763694
+    }
+  ],
+  "cleanup_before": 0,
+  "cleanup_after": 0,
+  "stage": "ridge-closed"
+}

@@ -1,0 +1,102 @@
+[
+  {
+    "view": "district_overview",
+    "camera_cm": [
+      151000,
+      102000,
+      17000
+    ],
+    "target_cm": [
+      180000,
+      130000,
+      900
+    ],
+    "path": "QA/Canton_District/district_overview.png"
+  },
+  {
+    "view": "gate_approach",
+    "camera_cm": [
+      180000,
+      109000,
+      3200
+    ],
+    "target_cm": [
+      180000,
+      121500,
+      1500
+    ],
+    "path": "QA/Canton_District/gate_approach.png"
+  },
+  {
+    "view": "main_street",
+    "camera_cm": [
+      178000,
+      123000,
+      1550
+    ],
+    "target_cm": [
+      180000,
+      134000,
+      900
+    ],
+    "path": "QA/Canton_District/main_street.png"
+  },
+  {
+    "view": "mixed_lane",
+    "camera_cm": [
+      190000,
+      132000,
+      2200
+    ],
+    "target_cm": [
+      180000,
+      132000,
+      900
+    ],
+    "path": "QA/Canton_District/mixed_lane.png"
+  },
+  {
+    "view": "courtyard_edge",
+    "camera_cm": [
+      189000,
+      138000,
+      2400
+    ],
+    "target_cm": [
+      185000,
+      136000,
+      1000
+    ],
+    "path": "QA/Canton_District/courtyard_edge.png"
+  },
+  {
+    "view": "dry_ground",
+    "camera_cm": [
+      181200,
+      127650,
+      1300
+    ],
+    "target_cm": [
+      180900,
+      127900,
+      870
+    ],
+    "path": "QA/Canton_District/dry_ground.png",
+    "damp_actors_hidden": true
+  },
+  {
+    "view": "after_rain_ground",
+    "camera_cm": [
+      181200,
+      127650,
+      1300
+    ],
+    "target_cm": [
+      180900,
+      127900,
+      870
+    ],
+    "path": "QA/Canton_District/after_rain_ground.png",
+    "damp_actors_hidden": false
+  }
+]

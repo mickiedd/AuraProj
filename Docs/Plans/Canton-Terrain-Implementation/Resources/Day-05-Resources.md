@@ -6,19 +6,19 @@ Use this sheet while executing [Day 05](../Day-05-acquire-elevation-and-archaeol
 
 - [ ] Bare-earth DEM/contours and archaeological references
 - [ ] Evidence-quality schema from Day 01
-- [ ] Primary/fallback gate-district scorecard
+- [ ] Named primary/fallback district scorecard and H2 local-control source request
 - [ ] Prior-day accepted artifacts or a recorded exception
 - [ ] Cleanly identified repository revision and unrelated working-tree changes preserved
 
 ## Expected artifacts
 
-`Sources/Elevation/`; `Data/Elevation_Constraints.csv`; `Docs/Vertical_Datum_Register.md`.
+`Sources/Elevation/`; `Data/Elevation_Constraints.csv`; `Docs/Vertical_Datum_Register.md`; `Data/Gate_District_Candidates.csv`; `Data/H2_Local_Control_Request.md`.
 
 For every file or asset above, record owner, repository/artifact path, SHA-256 or UE package identifier, source inputs, generator/tool version, licence status, and whether it is **Verified**, **Provisional**, or **Blocked**.
 
 ## Evidence checklist
 
-- [ ] Retained vertical-datum records, contamination notes, evidence-quality fields, and district-selection score
+- [ ] Retained vertical-datum records, contamination notes, evidence-quality fields, named district-selection score, H2 source request, and bounds status
 - [ ] Exact commands and arguments recorded
 - [ ] Exit codes and log paths recorded
 - [ ] Manual/visual checks identify fixed viewpoints, scale, and relevant settings
@@ -58,3 +58,11 @@ Status: **Blocked**. No accepted bare-earth/surveyed source, datum-backed height
 The separately scoped modern-context prototype now has a saved WP Landscape, locked Base_Imported layer, diagnostic material, source-aligned coarse markers and passing native height/collision, fresh-reload and automation checks. Historical gates remain unchanged. The original execution record above describes the earlier state; this continuation supersedes its technical import status.
 
 See [current M01 decision](../../../../Review/M01_Terrain_Review.md), [exact commands](../../../../QA/Canton_Days_01_10_Execution.md), [native artifact hashes](../../../../Data/M01_Native_Artifacts.csv) and [source follow-up](../../../../QA/Canton_Blocker_Research_2026_09_26.md). The prototype contract is an engineering decision for isolated testing, not surveyed coordinate or historical datum approval.
+
+## Plan optimization — 2026-09-26
+
+The recorded south-wall and east-gate squares are diagnostic-only legacy outputs. Select the district by named historical feature and source coverage; derive accepted 200 × 200 m bounds only after H2 passes.
+
+## Named-candidate continuation — 2026-09-26
+
+`Data/Gate_District_Candidates.csv` now ranks Wenmingmen primary and Zhengdongmen fallback using the municipal historical-gate account and existing Blueprint availability. Both lack metric bounds and H2 local controls. The earlier unnamed south-wall/east-gate boxes remain diagnostic records of the technical smoke test. Day 05's candidate-identification step is complete; historical Z and H2 acceptance remain blocked.

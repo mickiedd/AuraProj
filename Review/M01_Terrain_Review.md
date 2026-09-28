@@ -51,3 +51,21 @@ Every raster cell remains confidence D with unassessed modern contamination. Day
 Obtain the specific controls and dated heights in [Control Survey Handoff](../QA/Control_Survey_Handoff.md), then create a new versioned transform, historical terrain and acceptance review. Existing failed evidence and archived reports remain immutable. Do not place production roads from these markers. Days 11–20 were not executed in this first-ten-day continuation; later prototype work can proceed only with an explicit provisional scope.
 
 [Native artifact snapshot](../Data/M01_Native_Artifacts.csv) includes the map **and external actor packages**, scripts, settings and evidence. It is a provisional freeze, not an accepted historical base. [Archived visual summary](../Docs/Reports/Change-Archive/2026-09-26-canton-native-terrain-validation.svg).
+
+## Four-axis completion audit — 2026-09-26
+
+The revised plan's gates were checked against the actual first-ten-day artifacts. The technical prototype has a reproducible pass for its provisional scope. Historical M01 remains blocked, so Days 01–10 cannot be reported as historically complete.
+
+| Axis | Decision | Evidence and next required input |
+|---|---|---|
+| `Technical_UE` | **Pass, provisional scope** | Native saved map, fresh reload, one UE automation test with zero failures/warnings, 256 Landscape and collision components, seven exact height checks, and encoding/coordinate tests. The original map package and source hashes are frozen in the native manifest. |
+| `Historical_XY_City (H1)` | **Blocked** | Five OSM centroid fit candidates and three unsurveyed independent checks are below the ≥8 distributed holdout contract. Their 93.24 m RMSE and 132.155 m worst residual fail the 15 m / 30 m budget. A new survey-capable backbone and measured fit/holdout points are required. [H1 source comparison](../Data/H1_Source_Comparison.csv). |
+| `Historical_XY_GateLocal (H2)` | **Blocked** | Wenmingmen is the primary named candidate and Zhengdongmen is fallback based on an [official approximate location account](https://www.gz.gov.cn/zlgz/whgz/content/post_8929405.html) and project asset availability. Neither has an independent local control network or accepted metric bounds. The current unnamed squares remain diagnostic. [Candidate register](../Data/Gate_District_Candidates.csv). |
+| `Historical_Z` | **Blocked** | No dated 1880–1900 walking surface tied to an exact point, named benchmark and reconciled datum. `QING-STRATUM-001` remains a non-terrain candidate. |
+| Day 01 `owner_approval` | **Pending** | The working budget is versioned; historical `Verified` remains prohibited until owner approval is recorded. |
+
+Day 01's technical conventions and working budget, Day 02 source selection, Day 05 named-candidate selection, and Days 06–10 provisional engineering outputs are reviewable. Day 03 H1, Day 04 accepted GIS, Day 05 H2/Z, and the historical Day 10 exit remain open on missing primary evidence. No accepted H1 raster, root historical GIS layers, H2 bounds or historical heightmap was published.
+
+Current run: `python3 Scripts/test_canton_source_manifest.py` passed with 56 registered artifacts and zero integrity errors; the heightmap and native import contracts each passed two tests; `python3 Scripts/test_canton_m01_readiness.py` checked 472 native artifacts and reported the four gate states above. [Measured-evidence request](../QA/Control_Survey_Handoff.md) identifies what an external survey/archive owner must return.
+
+The final public-source pass confirmed that the [Guangzhou Municipal Archives describes the 1907 map as surveyed](https://www.gzdaj.gov.cn/gzjs/zdjm/content/post_138362.html), but the surfaced page does not provide the original scan, control grid or point uncertainty needed for H1. The [municipal historic-gate account](https://www.gz.gov.cn/zlgz/whgz/content/post_8929405.html) supports named candidate selection but gives approximate street locations rather than H2 control coordinates. The [archaeological notice](https://wglj.gz.gov.cn/xxgk/bmwj/ywxx/wwl/content/post_10742941.html) describes multi-period layers; the available report still lacks the required datum-backed late-Qing walking surface. These leads remain requests, not accepted measurements.

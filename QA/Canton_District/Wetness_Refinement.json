@@ -1,0 +1,15 @@
+{
+  "wet_patches": 14,
+  "saved_actor_packages": 14,
+  "card_thickness_cm": 1,
+  "card_bottom_offset_cm": 0.5,
+  "cast_shadow": false,
+  "collision": false,
+  "linear_base_color": [
+    0.035,
+    0.033,
+    0.03
+  ],
+  "roughness": 0.82,
+  "historical_wetness_claim": false
+}

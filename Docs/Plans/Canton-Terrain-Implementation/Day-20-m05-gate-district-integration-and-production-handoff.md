@@ -20,11 +20,11 @@ Complete the Day 20 scope below as an independently reviewable increment. Preser
 - Run the focused Python contracts, UE automation/map check and a Development cook containing `L_Canton_WalledCity`; record exact commands, engine identity and output logs.
 - Publish terrain data, source confidence, screenshots, known deviations, open blocker list and next-stage citywide replication rules.
 **Deliverables:** `Review/M05_Final_Handoff.md`; `Review/M05_QA_Screenshots/`; `Data/Open_Issues.csv`; `Docs/Citywide_Terrain_Replication.md`.
-**Done when:** A test gate connects cleanly to a traversable 200 × 200 m district; source/heightmap/map-load/collision/navigation/cook checks pass; the fixed performance route meets its predeclared thresholds or is explicitly blocked; all full-city areas not yet built or validated remain explicitly out of scope.
+**Done when:** A test gate connects cleanly to a traversable 200 × 200 m district; source/heightmap/map-load/collision/navigation/cook checks pass; the fixed performance route meets its predeclared thresholds or is explicitly blocked; and the handoff reports `Technical_UE`, H1, H2 and Historical_Z separately. A technically complete district may remain historically Provisional/Blocked; all full-city areas not yet built or validated remain explicitly out of scope.
 
 ## Required evidence
 
-Retain engine/build identity, all commands and exit codes, cook log, fixed-route metrics, deviations, and open blockers. Screenshots support the record but do not replace machine-readable metadata or automated checks.
+Retain engine/build identity, all commands and exit codes, cook log, fixed-route metrics, four-axis status, deviations, and open blockers. Screenshots support the record but do not replace machine-readable metadata or automated checks.
 
 ## Stop/go rule
 
@@ -33,4 +33,3 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 ## Handoff
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds production handoff and the explicitly out-of-scope citywide expansion.
-

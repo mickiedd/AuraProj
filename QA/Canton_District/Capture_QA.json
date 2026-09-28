@@ -1,0 +1,13 @@
+{
+  "matched_camera": true,
+  "matched_target": true,
+  "image_size": [
+    1440,
+    1000
+  ],
+  "changed_pixels_gt8": 38915,
+  "changed_fraction_gt8": 0.027024305555555555,
+  "dry_visible": false,
+  "damp_visible": true,
+  "visual_decision": "localized dark blockout is legible; final wetness art remains open"
+}

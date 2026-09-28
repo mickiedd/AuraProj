@@ -6,7 +6,7 @@ Use this sheet while executing [Day 10](../Day-10-m01-source-and-terrain-accepta
 
 - [ ] Frozen M01 candidate artifacts
 - [ ] Focused Python and UE automation commands
-- [ ] Review decision and uncertainty-log templates
+- [ ] Four-axis review decision, Day 01 approval state, and uncertainty-log templates
 - [ ] Prior-day accepted artifacts or a recorded exception
 - [ ] Cleanly identified repository revision and unrelated working-tree changes preserved
 
@@ -18,7 +18,7 @@ For every file or asset above, record owner, repository/artifact path, SHA-256 o
 
 ## Evidence checklist
 
-- [ ] Retained exact test commands, exit codes, logs, screenshots, decision status, and unresolved uncertainty
+- [ ] Retained exact test commands, exit codes, logs, screenshots, `Technical_UE`/`Historical_XY_City`/`Historical_XY_GateLocal`/`Historical_Z` decisions, Day 01 approval state, and unresolved uncertainty
 - [ ] Exact commands and arguments recorded
 - [ ] Exit codes and log paths recorded
 - [ ] Manual/visual checks identify fixed viewpoints, scale, and relevant settings
@@ -54,3 +54,7 @@ Output paths and SHA-256 are inventoried in [M01 provisional artifacts](../../..
 The separately scoped modern-context prototype now has a saved WP Landscape, locked Base_Imported layer, diagnostic material, source-aligned coarse markers and passing native height/collision, fresh-reload and automation checks. Historical gates remain unchanged. The original execution record above describes the earlier state; this continuation supersedes its technical import status.
 
 See [current M01 decision](../../../../Review/M01_Terrain_Review.md), [exact commands](../../../../QA/Canton_Days_01_10_Execution.md), [native artifact hashes](../../../../Data/M01_Native_Artifacts.csv) and [source follow-up](../../../../QA/Canton_Blocker_Research_2026_09_26.md). The prototype contract is an engineering decision for isolated testing, not surveyed coordinate or historical datum approval.
+
+## Four-axis continuation — 2026-09-26
+
+The updated [M01 review](../../../../Review/M01_Terrain_Review.md) records `Technical_UE = Pass` for provisional scope, `Historical_XY_City = Blocked`, `Historical_XY_GateLocal = Blocked`, `Historical_Z = Blocked`, and `owner_approval = pending`. The first-ten-day technical work is ready for review; the historical M01 exit is not met. `Scripts/test_canton_m01_readiness.py` checks these states against the current source tables and native artifact snapshot.

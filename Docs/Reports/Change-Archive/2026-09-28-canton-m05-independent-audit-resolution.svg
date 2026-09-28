@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="700" viewBox="0 0 1220 700" role="img" aria-labelledby="title desc">
+  <title id="title">Canton M05 independent audit resolution</title>
+  <desc id="desc">Four before and after flows: manifest integrity, closed gate route intent, distinct seam and navigation measurements, and precise unresolved acceptance status.</desc>
+  <rect width="1220" height="700" fill="#f5f7f8"/>
+  <text x="52" y="55" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#183441">Canton M05 · independent audit resolution</text>
+  <text x="52" y="84" font-family="Arial,sans-serif" font-size="16" fill="#50636e">2026-09-28 · technical evidence corrected; historical and runtime gates still open</text>
+  <text x="54" y="133" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#415661">Before</text>
+  <text x="624" y="133" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#165a5a">After</text>
+  <path d="M590 154 V600" stroke="#9fb3b9" stroke-width="2" stroke-dasharray="7 7"/>
+  <g font-family="Arial,sans-serif" font-size="17">
+    <rect x="50" y="155" width="520" height="96" rx="12" fill="#fff" stroke="#d1dade"/>
+    <text x="70" y="185" font-weight="700" fill="#263e49">Freeze drift</text>
+    <text x="70" y="216" fill="#475e68">Append-only index hashed; second cooked map absent</text>
+    <rect x="610" y="155" width="560" height="96" rx="12" fill="#eaf5f2" stroke="#8bbcb3"/>
+    <text x="630" y="185" font-weight="700" fill="#1b5a50">Two-level package freeze</text>
+    <text x="630" y="216" fill="#315b56">Both maps + actors hashed; index snapshot outside manifest</text>
+    <rect x="50" y="270" width="520" height="96" rx="12" fill="#fff" stroke="#d1dade"/>
+    <text x="70" y="300" font-weight="700" fill="#263e49">Unsatisfiable gate route</text>
+    <text x="70" y="331" fill="#475e68">Through-route began inside a closed 65 m gate</text>
+    <rect x="610" y="270" width="560" height="96" rx="12" fill="#eaf5f2" stroke="#8bbcb3"/>
+    <text x="630" y="300" font-weight="700" fill="#1b5a50">Staging route + obstruction diagnostic</text>
+    <text x="630" y="331" fill="#315b56">7/7 open routes; 2.583× closed-door detour retained</text>
+    <rect x="50" y="385" width="520" height="96" rx="12" fill="#fff" stroke="#d1dade"/>
+    <text x="70" y="415" font-weight="700" fill="#263e49">Ambiguous geometry evidence</text>
+    <text x="70" y="446" fill="#475e68">Three identical JSON files; road-edge lip unseen</text>
+    <rect x="610" y="385" width="560" height="96" rx="12" fill="#eaf5f2" stroke="#8bbcb3"/>
+    <text x="630" y="415" font-weight="700" fill="#1b5a50">Distinct measurements</text>
+    <text x="630" y="446" fill="#315b56">198 joints, max 1.33 cm; nav–floor up to 15.63 cm</text>
+    <rect x="50" y="500" width="520" height="96" rx="12" fill="#fff" stroke="#d1dade"/>
+    <text x="70" y="530" font-weight="700" fill="#263e49">Broad acceptance wording</text>
+    <text x="70" y="561" fill="#475e68">Undeclared screens; Nanite listed as pending</text>
+    <rect x="610" y="500" width="560" height="96" rx="12" fill="#eaf5f2" stroke="#8bbcb3"/>
+    <text x="630" y="530" font-weight="700" fill="#1b5a50">Explicit limits</text>
+    <text x="630" y="561" fill="#315b56">Working screens; Metal SM5 Nanite unavailable</text>
+  </g>
+  <rect x="50" y="619" width="1120" height="55" rx="10" fill="#193946"/>
+  <text x="68" y="653" font-family="Arial,sans-serif" font-size="16" fill="#f3fbfc">Validated: native build/reload and seam probe pass; threshold access, pawn, warnings, M04 and runtime remain open.</text>
+</svg>

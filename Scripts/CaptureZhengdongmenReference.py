@@ -33,6 +33,11 @@ VIEWS = [
     # slope, where course continuity is the thing being verified.
     ("plaque", (0,1090,1112), (0,590,1112), 40),
     ("roof", (0,1500,1950), (0,0,1290), 46),
+    # The hip ridge and its upturned eave corner, where the ridge material reads.
+    ("ridge", (1900,1450,1500), (1230,600,1260), 40),
+    # Down the ridge from one end — the angle that shows whether the two slopes actually
+    # meet at the ridge or leave a bare band under the ridge cap.
+    ("roof-ridge", (1700,0,2700), (0,0,1840), 46),
 ]
 
 

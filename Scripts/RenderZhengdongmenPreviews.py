@@ -24,10 +24,13 @@ VIEWS = {
     "roof-upper": ((0,-12,25),(0,2.6,18.2),13),
     # The hip ridge and its upturned eave corner, where the ridge material reads.
     "ridge-corner": ((21,-15,16),(12.4,-6.0,12.5),8.5),
+    # Down the ridge from one end, the view that shows whether the slopes actually
+    # meet at the ridge or leave a bare band under the ridge cap.
+    "roof-ridge": ((17,0,27),(0,0,18.4),24),
 }
 
 DETAIL_VIEWS = ("gate-detail", "arch-front", "pavilion-detail", "roof-lower", "roof-upper",
-                "ridge-corner")
+                "ridge-corner", "roof-ridge")
 
 
 def arguments() -> argparse.Namespace:

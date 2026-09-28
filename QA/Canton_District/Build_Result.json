@@ -1,0 +1,32 @@
+{
+  "map": "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+  "historically_accepted": false,
+  "evidence_stage": "INITIAL_PRE_REFINEMENT_SNAPSHOT",
+  "superseded_for_current_counts_by": "QA/Canton_District/Reload_Validation.json",
+  "diagnostic_center_cm": [
+    180000,
+    130000
+  ],
+  "district_size_m": [
+    200,
+    200
+  ],
+  "instance_counts": {
+    "stone": 100,
+    "earth": 200,
+    "pebble": 96,
+    "soil": 0,
+    "grass": 38,
+    "damp": 14,
+    "drain": 48,
+    "plot": 16
+  },
+  "gate_asset": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/BP_Wenmingmen",
+  "edit_layers": [
+    "Base_Imported",
+    "Urban_Grading",
+    "Road_Corridors",
+    "Drainage"
+  ],
+  "edit_layers_are_unmodified": true
+}

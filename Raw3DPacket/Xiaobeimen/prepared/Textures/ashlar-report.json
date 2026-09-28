@@ -1,0 +1,22 @@
+{
+  "size": [
+    4096,
+    4096
+  ],
+  "world_cm": 320.0,
+  "maps": 5,
+  "courses": 11,
+  "blocks_across": 6,
+  "course_height_cm": 29.1,
+  "mean_block_width_cm": 53.3,
+  "block_width_range_cm": [
+    32.6,
+    83.0
+  ],
+  "block_height_range_cm": [
+    24.8,
+    32.1
+  ],
+  "joint_cm": 2.0,
+  "out": "/Volumes/M2/Works/AuraProj/Raw3DPacket/Xiaobeimen/prepared/Textures"
+}

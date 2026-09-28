@@ -10,18 +10,27 @@ The [Jiefang Middle Road stratigraphy paper](https://doi.org/10.13284/j.cnki.rdd
 
 The [Guangzhou planning bureau's official datum notice](https://ghzyj.gz.gov.cn/xwzx/tzgg/content/post_10598961.html) (`DATUM-001`) states that Guangzhou changed to the 1985 National Height Datum for new surveying on 2026-01-01 and publishes the relation **H₁₉₈₅ = H_Guangzhou − 4.256 m**. This is a conditional conversion for a height *known* to use the Guangzhou system. The 2021 paper says only “sea-level elevation,” so neither its 5.92–6.22 m band nor its +8.1069 m site altitude can be assigned to either side of that formula. The GEDTM30 crop uses EGM2008; no supported local 1985-to-EGM2008 conversion has been acquired.
 
-## Prototype district candidates
+## Named gate-district candidates — 2026-09-26
+
+| Rank | Candidate | Source coverage | Asset readiness | Metric bounds / H2 |
+|---|---|---|---|---|
+| 1 | 文明门 (Wenmingmen) | [Municipal historical-gate account](https://www.gz.gov.cn/zlgz/whgz/content/post_8929405.html) places the former gate opposite the Workers Cultural Palace on Wenming Road | Existing `BP_Wenmingmen` | No bounds; H2 blocked |
+| 2 | 正东门 (Zhengdongmen / 大东门) | Same municipal account places it near the Zhongshan Road–Yuexiu Road intersection | Existing `BP_Zhengdongmen` | No bounds; H2 blocked |
+
+These names and approximate descriptions satisfy candidate identification only. No local survey network, exact gate point, 200 × 200 m historical bounds or late-Qing ground Z is accepted. The primary/fallback ranking is for evidence pursuit and prototype planning; it does not relocate the current technical map's south-wall marker.
+
+## Legacy diagnostic squares
 
 | Rank | Candidate | Provisional 200 × 200 m EPSG:32649 square | Asset readiness | Evidence / decision |
 |---|---|---|---|---|
-| 1 | Unnamed south-wall gate near cathedral (`GATE-SOUTH-01`) | E731107.3–731307.3; N2558531.8–2558731.8 | South-gate asset usable as a stand-in | D; no local holdout pass; working prototype only |
-| 2 | Unnamed east gate by Examination Hall (`GATE-EAST-01`) | E732681.8–732881.8; N2559555.3–2559755.3 | Existing gate assets need identity review | D; no local holdout pass; fallback only |
+| 1 | Unnamed south-wall gate near cathedral (`GATE-SOUTH-01`) | E731107.3–731307.3; N2558531.8–2558731.8 | South-gate asset usable as a stand-in | D; `PROVISIONAL_DIAGNOSTIC_ONLY`; no H2 pass |
+| 2 | Unnamed east gate by Examination Hall (`GATE-EAST-01`) | E732681.8–732881.8; N2559555.3–2559755.3 | Existing gate assets need identity review | D; `PROVISIONAL_DIAGNOSTIC_ONLY`; no H2 pass |
 
-The primary ranks first for available asset work and legibility on the map; its historical gate identity is unproven. Both squares are **working candidates**, not accepted districts. Require local surveyed checks, gate identity and absolute period height evidence before terrain or gate placement is accepted. Review modern earthworks and fill for every candidate source.
+The legacy south-wall square ranked first for the original smoke test because of asset work and map legibility; its historical gate identity is unproven. Both squares are **diagnostic working locations**, not accepted districts or survey limits. Derive final metric bounds for the newly named candidate only after H2 passes. Require local surveyed checks, gate identity and absolute period height evidence before terrain or gate placement is accepted. Review modern earthworks and fill for every candidate source.
 
 ### Selection scorecard
 
-The ranking is a **prototype-readiness** decision, not a historical-location confidence score. Each category scores 0 (absent), 1 (partial) or 2 (ready): map legibility, usable gate asset, local georeference checks, dated ground-height evidence, and verified gate identity. The latter three are mandatory for an accepted placement regardless of total.
+The legacy ranking was a **prototype-readiness** decision, not a historical-location confidence score. Each category scores 0 (absent), 1 (partial) or 2 (ready): map legibility, usable gate asset, local georeference checks, dated ground-height evidence, and verified gate identity. The latter three are mandatory for an accepted placement regardless of total.
 
 | District | Map legibility | Gate asset | Local checks | Period ground Z | Gate identity | Total / 10 |
 |---|---:|---:|---:|---:|---:|---:|

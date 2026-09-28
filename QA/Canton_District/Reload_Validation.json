@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "historically_accepted": false,
+  "main_slabs": 100,
+  "mixed_slabs": 76,
+  "gutters": 48,
+  "weed_instances": 38,
+  "wet_patches": 14,
+  "gate_assets": 1,
+  "broad_parcel_pads": 0,
+  "road_collision_checks": 100,
+  "max_road_center_error_cm": 0,
+  "max_road_long_edge_error_cm": 0.023640505681441937,
+  "max_road_joint_step_cm": 1.3301353949094619,
+  "road_joint_comparisons": 198,
+  "first_road_height_sample": "District_Main_Stone_121900 actual=724.719 expected=724.719 x=180000.000 y=121900.000",
+  "errors": []
+}

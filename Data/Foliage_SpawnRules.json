@@ -1,0 +1,12 @@
+{
+  "mode": "ordinary_static_mesh_instances_PCG_preflight_unavailable",
+  "historical_status": "D_PROVISIONAL",
+  "placement": "deterministic_sparse_road_edge",
+  "grass_count_target": 40,
+  "exclusions_cm": {
+    "main_road_from_center_x": 800,
+    "mixed_lane_from_y_132000": 300,
+    "gate_opening": "no growth within paved corridor"
+  },
+  "collision": false
+}

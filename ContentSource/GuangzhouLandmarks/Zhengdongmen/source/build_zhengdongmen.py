@@ -95,7 +95,11 @@ class Builder:
                       [(0.0,per[i]/total),(L/s,per[i]/total),(L/s,v1),(0.0,v1)],part)
         for ring in rings:
             for i in range(1,n-1):
-                self.poly(m,[ring[0],ring[i],ring[i+1]],part=part)
+                # End caps get a planar UV in the section's own plane. Leaving them on
+                # the default world-XZ projection makes every vertex share a u, and the
+                # engine reports the mesh as having degenerate tangent bases.
+                self.poly(m,[ring[0],ring[i],ring[i+1]],
+                          [(section[k][0]/s,section[k][1]/s) for k in (0,i,i+1)],part=part)
     # Cross-slope profile of one roof course, in metres. `q` runs -1..1 across a
     # single tile pitch: a barrel rib (筒瓦) centred at q=0 with the pans (板瓦) it
     # caps falling away to the pitch edges. Modelled as a corrugation rather than a
@@ -455,17 +459,22 @@ def build(level):
             for z in (z0,z0+(z1-z0)*.78,z1):
                 bx('Wood',face-.06,face+.06,-hy,hy,z-.035,z+.035,part='End_window_rails')
     # Upper hip roof with complete four-face, continuous down-slope tile courses.
+    # The two north/south slopes must MEET at the ridge (y=0), not stop short of it.
+    # They used to start at y=+-0.5, which left a 1.0 m flat band of bare substrate along
+    # the top that the 0.30 m ridge cap could only partly cover — the "hollow" seen when
+    # looking down the roof. Meeting at the ridge also makes the east/west slopes true
+    # triangles rising to the ridge ends, which is what a 庑殿 hip roof is.
     for sig in [-1,1]:
-        b.poly('RoofTile',[(-8.45,sig*.5,18.94+drop),(8.45,sig*.5,18.94+drop),
+        b.poly('RoofTile',[(-8.45,0,18.94+drop),(8.45,0,18.94+drop),
                            (10.9,sig*5.42,17.10+drop),(-10.9,sig*5.42,17.10+drop)],part='Upper_hip_roof')
-        b.poly('RoofTile',[(sig*8.45,-.5,18.94+drop),(sig*10.90,-5.42,17.10+drop),
-                           (sig*10.90,5.42,17.10+drop),(sig*8.45,.5,18.94+drop)],part='Upper_hip_roof')
+        b.poly('RoofTile',[(sig*8.45,0,18.94+drop),(sig*10.90,-5.42,17.10+drop),
+                           (sig*10.90,5.42,17.10+drop)],part='Upper_hip_roof')
         if level<=2:
-            def ns_surface(x,t):return x,sig*(.5+4.92*t),18.94-1.84*t
+            def ns_surface(x,t):return x,sig*5.42*t,18.94-1.84*t
             tiled_roof_slope(b,f'upper_ns_{sig}',lambda t:8.45+2.45*t,
-                .42,math.hypot(4.92,1.84),.35,ns_surface,'upper roof north/south')
+                .42,math.hypot(5.42,1.84),.35,ns_surface,'upper roof north/south')
             def ew_surface(y,t):return sig*(8.45+2.45*t),y,18.94-1.84*t
-            tiled_roof_slope(b,f'upper_ew_{sig}',lambda t:.5+4.92*t,
+            tiled_roof_slope(b,f'upper_ew_{sig}',lambda t:5.42*t,
                 .42,math.hypot(2.45,1.84),.35,ew_surface,'upper roof east/west')
     b.ridge_beam('Ridge',(-8.53,0,18.95),(8.53,0,18.95),.30,'Upper_roof_ridge')
     for y in [-5.43,5.43]:b.beam('Wood',(-10.9,y,17.03),(10.9,y,17.03),.20,'Upper_eave_fascia')
@@ -480,7 +489,7 @@ def build(level):
     # out together, which is also how the reference reads.
     for xin,yin,xout,yout,zinner,zouter,name in [
         (9.8,4.2,13.02,6.56,13.45,12.04,'Lower'),
-        (8.45,.5,10.9,5.42,18.94,17.10,'Upper')]:
+        (8.45,0.0,10.9,5.42,18.94,17.10,'Upper')]:
         for sx in (-1,1):
             for sy in (-1,1):
                 b.ridge_beam('Ridge',(sx*xin,sy*yin,zinner),

@@ -1,0 +1,806 @@
+{
+  "map": "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+  "scope": "fresh-editor navigation plus vertical floor support",
+  "historically_accepted": false,
+  "pawn_traversal_performed": false,
+  "world_partition_runtime_streaming_tested": false,
+  "route_count": 7,
+  "route_check_pass_count": 7,
+  "all_route_checks_pass": true,
+  "working_directness_screen_ratio": 1.5,
+  "screen_status": "provisional engineering diagnostic; owner approval pending",
+  "closed_gate_transit_diagnostic": {
+    "route": "closed_gate_transit_diagnostic",
+    "surface": "closed_gate",
+    "endpoint_role": null,
+    "start_xy_cm": [
+      180000,
+      120500
+    ],
+    "end_xy_cm": [
+      180000,
+      123500
+    ],
+    "floor_trace_hits": 16,
+    "floor_trace_count": 16,
+    "floor_support_pass": true,
+    "max_floor_vs_r16_error_cm": 19.019157607187367,
+    "floor_actor_labels": [
+      "District_Main_Stone_120500",
+      "District_Main_Stone_120700",
+      "District_Main_Stone_120900",
+      "District_Main_Stone_121100",
+      "District_Main_Stone_121300",
+      "District_Main_Stone_121500",
+      "District_Main_Stone_121700",
+      "District_Main_Stone_121900",
+      "District_Main_Stone_122100",
+      "District_Main_Stone_122300",
+      "District_Main_Stone_122500",
+      "District_Main_Stone_122700",
+      "District_Main_Stone_122900",
+      "District_Main_Stone_123100",
+      "District_Main_Stone_123300",
+      "District_Main_Stone_123500"
+    ],
+    "nav_path_valid": true,
+    "nav_path_partial": false,
+    "nav_point_count": 9,
+    "nav_points_cm": [
+      [
+        180000.0,
+        120500.0,
+        752.6315789473684
+      ],
+      [
+        180804.0,
+        121524.0,
+        750.0
+      ],
+      [
+        183274.0,
+        122113.0,
+        840.0
+      ],
+      [
+        183293.0,
+        122227.0,
+        840.0
+      ],
+      [
+        183274.0,
+        122265.0,
+        850.0
+      ],
+      [
+        182780.0,
+        122512.0,
+        860.0
+      ],
+      [
+        182058.0,
+        123310.0,
+        890.0
+      ],
+      [
+        181925.0,
+        123443.0,
+        850.0
+      ],
+      [
+        180000.0,
+        123500.0,
+        788.3007518796992
+      ]
+    ],
+    "nav_corner_floor_samples": [
+      {
+        "xy_cm": [
+          180000.0,
+          120500.0
+        ],
+        "nav_z_cm": 752.6315789473684,
+        "floor_z_cm": 742.2456518190847,
+        "floor_actor": "District_Main_Stone_120500",
+        "nav_minus_floor_cm": 10.385927128283697
+      },
+      {
+        "xy_cm": [
+          180804.0,
+          121524.0
+        ],
+        "nav_z_cm": 750.0,
+        "floor_z_cm": 739.5791027695125,
+        "floor_actor": "LandscapeStreamingProxy_1_1_0",
+        "nav_minus_floor_cm": 10.420897230487526
+      },
+      {
+        "xy_cm": [
+          183274.0,
+          122113.0
+        ],
+        "nav_z_cm": 840.0,
+        "floor_z_cm": 830.7499504081788,
+        "floor_actor": "LandscapeStreamingProxy_1_1_0",
+        "nav_minus_floor_cm": 9.250049591821153
+      },
+      {
+        "xy_cm": [
+          183293.0,
+          122227.0
+        ],
+        "nav_z_cm": 840.0,
+        "floor_z_cm": 838.1584687571526,
+        "floor_actor": "LandscapeStreamingProxy_1_1_0",
+        "nav_minus_floor_cm": 1.8415312428473953
+      },
+      {
+        "xy_cm": [
+          183274.0,
+          122265.0
+        ],
+        "nav_z_cm": 850.0,
+        "floor_z_cm": 840.4226825360494,
+        "floor_actor": "LandscapeStreamingProxy_1_1_0",
+        "nav_minus_floor_cm": 9.577317463950635
+      },
+      {
+        "xy_cm": [
+          182780.0,
+          122512.0
+        ],
+        "nav_z_cm": 860.0,
+        "floor_z_cm": 849.5970092317083,
+        "floor_actor": "LandscapeStreamingProxy_1_1_0",
+        "nav_minus_floor_cm": 10.402990768291716
+      },
+      {
+        "xy_cm": [
+          182058.0,
+          123310.0
+        ],
+        "nav_z_cm": 890.0,
+        "floor_z_cm": 889.5624434373367,
+        "floor_actor": "Wenmingmen_PROVISIONAL_Scale_Interface_Only",
+        "nav_minus_floor_cm": 0.43755656266330334
+      },
+      {
+        "xy_cm": [
+          181925.0,
+          123443.0
+        ],
+        "nav_z_cm": 850.0,
+        "floor_z_cm": 842.5468471046006,
+        "floor_actor": "LandscapeStreamingProxy_1_1_0",
+        "nav_minus_floor_cm": 7.453152895399398
+      },
+      {
+        "xy_cm": [
+          180000.0,
+          123500.0
+        ],
+        "nav_z_cm": 788.3007518796992,
+        "floor_z_cm": 788.1597826071874,
+        "floor_actor": "District_Main_Stone_123500",
+        "nav_minus_floor_cm": 0.14096927251182478
+      }
+    ],
+    "max_abs_nav_minus_floor_cm": 10.420897230487526,
+    "nav_corner_on_authored_road_count": 2,
+    "nav_path_length_cm": 7750.081296477221,
+    "nav_detour_ratio": 2.5833604321590737,
+    "pawn_traversal": "NOT_RUN",
+    "route_check_pass": false,
+    "historical_route_claim": false,
+    "interpretation": "Known blocked through-gate query: south endpoint is inside the footprint and the timber doors are closed. Detour is expected, not a passage target."
+  },
+  "routes": [
+    {
+      "route": "principal_gate_side_to_interior",
+      "surface": "principal",
+      "endpoint_role": null,
+      "start_xy_cm": [
+        180000,
+        123500
+      ],
+      "end_xy_cm": [
+        180000,
+        138000
+      ],
+      "floor_trace_hits": 74,
+      "floor_trace_count": 74,
+      "floor_support_pass": true,
+      "max_floor_vs_r16_error_cm": 19.047123884425787,
+      "floor_actor_labels": [
+        "District_Main_Stone_123500",
+        "District_Main_Stone_123700",
+        "District_Main_Stone_123900",
+        "District_Main_Stone_124100",
+        "District_Main_Stone_124300",
+        "District_Main_Stone_124500",
+        "District_Main_Stone_124700",
+        "District_Main_Stone_124900",
+        "District_Main_Stone_125100",
+        "District_Main_Stone_125300",
+        "District_Main_Stone_125500",
+        "District_Main_Stone_125700",
+        "District_Main_Stone_125900",
+        "District_Main_Stone_126100",
+        "District_Main_Stone_126300",
+        "District_Main_Stone_126500",
+        "District_Main_Stone_126700",
+        "District_Main_Stone_126900",
+        "District_Main_Stone_127100",
+        "District_Main_Stone_127300",
+        "District_Main_Stone_127500",
+        "District_Main_Stone_127700",
+        "District_Main_Stone_127900",
+        "District_Main_Stone_128100",
+        "District_Main_Stone_128300",
+        "District_Main_Stone_128500",
+        "District_Main_Stone_128700",
+        "District_Main_Stone_128900",
+        "District_Main_Stone_129100",
+        "District_Main_Stone_129300",
+        "District_Main_Stone_129500",
+        "District_Main_Stone_129700",
+        "District_Main_Stone_129900",
+        "District_Main_Stone_130100",
+        "District_Main_Stone_130300",
+        "District_Main_Stone_130500",
+        "District_Main_Stone_130700",
+        "District_Main_Stone_130900",
+        "District_Main_Stone_131100",
+        "District_Main_Stone_131300",
+        "District_Main_Stone_131500",
+        "District_Main_Stone_131700",
+        "District_Main_Stone_131900",
+        "District_Main_Stone_132100",
+        "District_Main_Stone_132300",
+        "District_Main_Stone_132500",
+        "District_Main_Stone_132700",
+        "District_Main_Stone_132900",
+        "District_Main_Stone_133100",
+        "District_Main_Stone_133300",
+        "District_Main_Stone_133500",
+        "District_Main_Stone_133700",
+        "District_Main_Stone_133900",
+        "District_Main_Stone_134100",
+        "District_Main_Stone_134300",
+        "District_Main_Stone_134500",
+        "District_Main_Stone_134700",
+        "District_Main_Stone_134900",
+        "District_Main_Stone_135100",
+        "District_Main_Stone_135300",
+        "District_Main_Stone_135500",
+        "District_Main_Stone_135700",
+        "District_Main_Stone_135900",
+        "District_Main_Stone_136100",
+        "District_Main_Stone_136300",
+        "District_Main_Stone_136500",
+        "District_Main_Stone_136700",
+        "District_Main_Stone_136900",
+        "District_Main_Stone_137100",
+        "District_Main_Stone_137300",
+        "District_Main_Stone_137500",
+        "District_Main_Stone_137700",
+        "District_Main_Stone_137900",
+        "District_Main_Stone_138100"
+      ],
+      "nav_path_valid": true,
+      "nav_path_partial": false,
+      "nav_point_count": 2,
+      "nav_points_cm": [
+        [
+          180000.0,
+          123500.0,
+          788.3007518796992
+        ],
+        [
+          180000.0,
+          138000.0,
+          963.5649248471422
+        ]
+      ],
+      "nav_corner_floor_samples": [
+        {
+          "xy_cm": [
+            180000.0,
+            123500.0
+          ],
+          "nav_z_cm": 788.3007518796992,
+          "floor_z_cm": 788.1597826071874,
+          "floor_actor": "District_Main_Stone_123500",
+          "nav_minus_floor_cm": 0.14096927251182478
+        },
+        {
+          "xy_cm": [
+            180000.0,
+            138000.0
+          ],
+          "nav_z_cm": 963.5649248471422,
+          "floor_z_cm": 949.4713500088537,
+          "floor_actor": "District_Main_Stone_138100",
+          "nav_minus_floor_cm": 14.093574838288419
+        }
+      ],
+      "max_abs_nav_minus_floor_cm": 14.093574838288419,
+      "nav_corner_on_authored_road_count": 2,
+      "nav_path_length_cm": 14501.059186498273,
+      "nav_detour_ratio": 1.0000730473447084,
+      "pawn_traversal": "NOT_RUN",
+      "route_check_pass": true,
+      "historical_route_claim": false
+    },
+    {
+      "route": "mixed_lane_west_to_junction",
+      "surface": "mixed",
+      "endpoint_role": null,
+      "start_xy_cm": [
+        174500,
+        132000
+      ],
+      "end_xy_cm": [
+        180000,
+        132000
+      ],
+      "floor_trace_hits": 29,
+      "floor_trace_count": 29,
+      "floor_support_pass": true,
+      "max_floor_vs_r16_error_cm": 19.0063404258957,
+      "floor_actor_labels": [
+        "District_Main_EarthShoulder_-1_131900",
+        "District_Main_Stone_131900",
+        "District_MixedLane_174500",
+        "District_MixedLane_174700",
+        "District_MixedLane_174900",
+        "District_MixedLane_175100",
+        "District_MixedLane_175300",
+        "District_MixedLane_175500",
+        "District_MixedLane_175700",
+        "District_MixedLane_175900",
+        "District_MixedLane_176100",
+        "District_MixedLane_176300",
+        "District_MixedLane_176500",
+        "District_MixedLane_176700",
+        "District_MixedLane_176900",
+        "District_MixedLane_177100",
+        "District_MixedLane_177300",
+        "District_MixedLane_177500",
+        "District_MixedLane_177700",
+        "District_MixedLane_177900",
+        "District_MixedLane_178100",
+        "District_MixedLane_178300",
+        "District_MixedLane_178500",
+        "District_MixedLane_178700",
+        "District_MixedLane_178900",
+        "District_MixedLane_179100",
+        "District_MixedLane_179300",
+        "District_MixedLane_179500"
+      ],
+      "nav_path_valid": true,
+      "nav_path_partial": false,
+      "nav_point_count": 2,
+      "nav_points_cm": [
+        [
+          174500.0,
+          132000.0,
+          827.8040444324151
+        ],
+        [
+          180000.0,
+          132000.0,
+          850.2605983267068
+        ]
+      ],
+      "nav_corner_floor_samples": [
+        {
+          "xy_cm": [
+            174500.0,
+            132000.0
+          ],
+          "nav_z_cm": 827.8040444324151,
+          "floor_z_cm": 822.7959321323186,
+          "floor_actor": "District_MixedLane_174500",
+          "nav_minus_floor_cm": 5.0081123000965135
+        },
+        {
+          "xy_cm": [
+            180000.0,
+            132000.0
+          ],
+          "nav_z_cm": 850.2605983267068,
+          "floor_z_cm": 834.6313404258957,
+          "floor_actor": "District_Main_Stone_131900",
+          "nav_minus_floor_cm": 15.629257900811126
+        }
+      ],
+      "max_abs_nav_minus_floor_cm": 15.629257900811126,
+      "nav_corner_on_authored_road_count": 2,
+      "nav_path_length_cm": 5500.045844973732,
+      "nav_detour_ratio": 1.0000083354497693,
+      "pawn_traversal": "NOT_RUN",
+      "route_check_pass": true,
+      "historical_route_claim": false
+    },
+    {
+      "route": "mixed_lane_junction_to_east",
+      "surface": "mixed",
+      "endpoint_role": null,
+      "start_xy_cm": [
+        180000,
+        132000
+      ],
+      "end_xy_cm": [
+        189000,
+        132000
+      ],
+      "floor_trace_hits": 46,
+      "floor_trace_count": 46,
+      "floor_support_pass": true,
+      "max_floor_vs_r16_error_cm": 19.0063404258957,
+      "floor_actor_labels": [
+        "District_Main_Stone_131900",
+        "District_MixedLane_180500",
+        "District_MixedLane_180700",
+        "District_MixedLane_180900",
+        "District_MixedLane_181100",
+        "District_MixedLane_181300",
+        "District_MixedLane_181500",
+        "District_MixedLane_181700",
+        "District_MixedLane_181900",
+        "District_MixedLane_182100",
+        "District_MixedLane_182300",
+        "District_MixedLane_182500",
+        "District_MixedLane_182700",
+        "District_MixedLane_182900",
+        "District_MixedLane_183100",
+        "District_MixedLane_183300",
+        "District_MixedLane_183500",
+        "District_MixedLane_183700",
+        "District_MixedLane_183900",
+        "District_MixedLane_184100",
+        "District_MixedLane_184300",
+        "District_MixedLane_184500",
+        "District_MixedLane_184700",
+        "District_MixedLane_184900",
+        "District_MixedLane_185100",
+        "District_MixedLane_185300",
+        "District_MixedLane_185500",
+        "District_MixedLane_185700",
+        "District_MixedLane_185900",
+        "District_MixedLane_186100",
+        "District_MixedLane_186300",
+        "District_MixedLane_186500",
+        "District_MixedLane_186700",
+        "District_MixedLane_186900",
+        "District_MixedLane_187100",
+        "District_MixedLane_187300",
+        "District_MixedLane_187500",
+        "District_MixedLane_187700",
+        "District_MixedLane_187900",
+        "District_MixedLane_188100",
+        "District_MixedLane_188300",
+        "District_MixedLane_188500",
+        "District_MixedLane_188700",
+        "District_MixedLane_188900"
+      ],
+      "nav_path_valid": true,
+      "nav_path_partial": false,
+      "nav_point_count": 2,
+      "nav_points_cm": [
+        [
+          180000.0,
+          132000.0,
+          850.2605983267068
+        ],
+        [
+          189000.0,
+          132000.0,
+          1014.0851759587478
+        ]
+      ],
+      "nav_corner_floor_samples": [
+        {
+          "xy_cm": [
+            180000.0,
+            132000.0
+          ],
+          "nav_z_cm": 850.2605983267068,
+          "floor_z_cm": 834.6313404258957,
+          "floor_actor": "District_Main_Stone_131900",
+          "nav_minus_floor_cm": 15.629257900811126
+        },
+        {
+          "xy_cm": [
+            189000.0,
+            132000.0
+          ],
+          "nav_z_cm": 1014.0851759587478,
+          "floor_z_cm": 1009.3180274968258,
+          "floor_actor": "District_MixedLane_188900",
+          "nav_minus_floor_cm": 4.76714846192192
+        }
+      ],
+      "max_abs_nav_minus_floor_cm": 15.629257900811126,
+      "nav_corner_on_authored_road_count": 2,
+      "nav_path_length_cm": 9001.49090385789,
+      "nav_detour_ratio": 1.00016565598421,
+      "pawn_traversal": "NOT_RUN",
+      "route_check_pass": true,
+      "historical_route_claim": false
+    },
+    {
+      "route": "principal_to_mixed_intersection",
+      "surface": "intersection",
+      "endpoint_role": null,
+      "start_xy_cm": [
+        180000,
+        130500
+      ],
+      "end_xy_cm": [
+        184000,
+        132000
+      ],
+      "floor_trace_hits": 23,
+      "floor_trace_count": 23,
+      "floor_support_pass": true,
+      "max_floor_vs_r16_error_cm": 19.01519693350872,
+      "floor_actor_labels": [
+        "District_Main_EarthShoulder_1_130700",
+        "District_Main_Stone_130500",
+        "District_MixedLane_183700",
+        "District_MixedLane_183900",
+        "District_MixedLane_184100",
+        "LandscapeStreamingProxy_1_1_0"
+      ],
+      "nav_path_valid": true,
+      "nav_path_partial": false,
+      "nav_point_count": 2,
+      "nav_points_cm": [
+        [
+          180000.0,
+          130500.0,
+          901.497975708502
+        ],
+        [
+          184000.0,
+          132000.0,
+          1059.5104410829158
+        ]
+      ],
+      "nav_corner_floor_samples": [
+        {
+          "xy_cm": [
+            180000.0,
+            130500.0
+          ],
+          "nav_z_cm": 901.497975708502,
+          "floor_z_cm": 889.7183219335087,
+          "floor_actor": "District_Main_Stone_130500",
+          "nav_minus_floor_cm": 11.779653774993335
+        },
+        {
+          "xy_cm": [
+            184000.0,
+            132000.0
+          ],
+          "nav_z_cm": 1059.5104410829158,
+          "floor_z_cm": 1046.4262082787257,
+          "floor_actor": "District_MixedLane_184100",
+          "nav_minus_floor_cm": 13.084232804190151
+        }
+      ],
+      "max_abs_nav_minus_floor_cm": 13.084232804190151,
+      "nav_corner_on_authored_road_count": 2,
+      "nav_path_length_cm": 4274.923150094479,
+      "nav_detour_ratio": 1.000683819324708,
+      "pawn_traversal": "NOT_RUN",
+      "route_check_pass": true,
+      "historical_route_claim": false
+    },
+    {
+      "route": "gate_threshold_approach",
+      "surface": "gate_staging",
+      "endpoint_role": "north staging point, approximately 6 m from closed gate face",
+      "start_xy_cm": [
+        180000,
+        125000
+      ],
+      "end_xy_cm": [
+        180000,
+        123500
+      ],
+      "floor_trace_hits": 9,
+      "floor_trace_count": 9,
+      "floor_support_pass": true,
+      "max_floor_vs_r16_error_cm": 19.019157607187367,
+      "floor_actor_labels": [
+        "District_Main_Stone_123500",
+        "District_Main_Stone_123700",
+        "District_Main_Stone_123900",
+        "District_Main_Stone_124100",
+        "District_Main_Stone_124300",
+        "District_Main_Stone_124500",
+        "District_Main_Stone_124700",
+        "District_Main_Stone_124900",
+        "District_Main_Stone_125100"
+      ],
+      "nav_path_valid": true,
+      "nav_path_partial": false,
+      "nav_point_count": 2,
+      "nav_points_cm": [
+        [
+          180000.0,
+          125000.0,
+          881.594304776601
+        ],
+        [
+          180000.0,
+          123500.0,
+          788.3007518796992
+        ]
+      ],
+      "nav_corner_floor_samples": [
+        {
+          "xy_cm": [
+            180000.0,
+            125000.0
+          ],
+          "nav_z_cm": 881.594304776601,
+          "floor_z_cm": 871.7446519069881,
+          "floor_actor": "District_Main_Stone_125100",
+          "nav_minus_floor_cm": 9.849652869612896
+        },
+        {
+          "xy_cm": [
+            180000.0,
+            123500.0
+          ],
+          "nav_z_cm": 788.3007518796992,
+          "floor_z_cm": 788.1597826071874,
+          "floor_actor": "District_Main_Stone_123500",
+          "nav_minus_floor_cm": 0.14096927251182478
+        }
+      ],
+      "max_abs_nav_minus_floor_cm": 9.849652869612896,
+      "nav_corner_on_authored_road_count": 2,
+      "nav_path_length_cm": 1502.8984287077178,
+      "nav_detour_ratio": 1.0019322858051452,
+      "pawn_traversal": "NOT_RUN",
+      "route_check_pass": true,
+      "historical_route_claim": false
+    },
+    {
+      "route": "covered_gutter_crossing",
+      "surface": "gutter",
+      "endpoint_role": null,
+      "start_xy_cm": [
+        180000,
+        134000
+      ],
+      "end_xy_cm": [
+        180900,
+        134000
+      ],
+      "floor_trace_hits": 6,
+      "floor_trace_count": 6,
+      "floor_support_pass": true,
+      "max_floor_vs_r16_error_cm": 19.005609850716382,
+      "floor_actor_labels": [
+        "District_Main_EarthShoulder_1_134100",
+        "District_Main_Stone_134100",
+        "LandscapeStreamingProxy_1_1_0"
+      ],
+      "nav_path_valid": true,
+      "nav_path_partial": false,
+      "nav_point_count": 2,
+      "nav_points_cm": [
+        [
+          180000.0,
+          134000.0,
+          811.8092981372884
+        ],
+        [
+          180900.0,
+          134000.0,
+          817.9937968102311
+        ]
+      ],
+      "nav_corner_floor_samples": [
+        {
+          "xy_cm": [
+            180000.0,
+            134000.0
+          ],
+          "nav_z_cm": 811.8092981372884,
+          "floor_z_cm": 802.2087348507164,
+          "floor_actor": "District_Main_Stone_134100",
+          "nav_minus_floor_cm": 9.600563286571969
+        },
+        {
+          "xy_cm": [
+            180900.0,
+            134000.0
+          ],
+          "nav_z_cm": 817.9937968102311,
+          "floor_z_cm": 806.8256644827192,
+          "floor_actor": "LandscapeStreamingProxy_1_1_0",
+          "nav_minus_floor_cm": 11.168132327511898
+        }
+      ],
+      "max_abs_nav_minus_floor_cm": 11.168132327511898,
+      "nav_corner_on_authored_road_count": 1,
+      "nav_path_length_cm": 900.0212486512946,
+      "nav_detour_ratio": 1.0000236096125497,
+      "pawn_traversal": "NOT_RUN",
+      "route_check_pass": true,
+      "historical_route_claim": false
+    },
+    {
+      "route": "mixed_lane_to_courtyard_reference",
+      "surface": "reference_only",
+      "endpoint_role": null,
+      "start_xy_cm": [
+        188000,
+        132000
+      ],
+      "end_xy_cm": [
+        188000,
+        136000
+      ],
+      "floor_trace_hits": 21,
+      "floor_trace_count": 21,
+      "floor_support_pass": true,
+      "max_floor_vs_r16_error_cm": 14.003783481662367,
+      "floor_actor_labels": [
+        "District_MixedLane_187900",
+        "LandscapeStreamingProxy_1_1_0"
+      ],
+      "nav_path_valid": true,
+      "nav_path_partial": false,
+      "nav_point_count": 2,
+      "nav_points_cm": [
+        [
+          188000.0,
+          132000.0,
+          1054.3212722719238
+        ],
+        [
+          188000.0,
+          136000.0,
+          1023.9829635968781
+        ]
+      ],
+      "nav_corner_floor_samples": [
+        {
+          "xy_cm": [
+            188000.0,
+            132000.0
+          ],
+          "nav_z_cm": 1054.3212722719238,
+          "floor_z_cm": 1049.9412834816624,
+          "floor_actor": "District_MixedLane_187900",
+          "nav_minus_floor_cm": 4.37998879026145
+        },
+        {
+          "xy_cm": [
+            188000.0,
+            136000.0
+          ],
+          "nav_z_cm": 1023.9829635968781,
+          "floor_z_cm": 1011.3048311493859,
+          "floor_actor": "LandscapeStreamingProxy_1_1_0",
+          "nav_minus_floor_cm": 12.678132447492203
+        }
+      ],
+      "max_abs_nav_minus_floor_cm": 12.678132447492203,
+      "nav_corner_on_authored_road_count": 1,
+      "nav_path_length_cm": 4000.1150499670957,
+      "nav_detour_ratio": 1.0000287624917739,
+      "pawn_traversal": "NOT_RUN",
+      "route_check_pass": true,
+      "historical_route_claim": false
+    }
+  ]
+}

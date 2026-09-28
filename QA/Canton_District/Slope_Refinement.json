@@ -1,0 +1,5 @@
+{
+  "removed_west_end_lane_slabs": 20,
+  "reason": "modern raster diagnostic grade exceeded 12%; engineering route shortened; no historical inference",
+  "remaining_lane_x_min_cm": 174000
+}

@@ -1,0 +1,136 @@
+{
+  "steps": [
+    "plaque_raised_2",
+    "door_reimported",
+    "wall_textures_refreshed"
+  ],
+  "problems": [],
+  "plaque": [
+    {
+      "component": "Plaque_Face__M_Plaque_GEN_VARIABLE",
+      "from_z": 312.0,
+      "to_z": 312.0,
+      "changed": false
+    },
+    {
+      "component": "Plaque_Body__M_StoneWall_GEN_VARIABLE",
+      "from_z": 312.0,
+      "to_z": 312.0,
+      "changed": false
+    }
+  ],
+  "door": [
+    {
+      "mesh": "Wooden_Doors__M_AgedWood",
+      "roll": 0.0,
+      "actor_box": [
+        [
+          -264.0,
+          0.0,
+          -445.0
+        ],
+        [
+          264.0,
+          635.0,
+          -430.0
+        ]
+      ],
+      "expected": {
+        "x": [
+          -264.0,
+          264.0
+        ],
+        "y": [
+          0.0,
+          635.0
+        ],
+        "z": [
+          -445.0,
+          -430.0
+        ]
+      },
+      "matches": true
+    },
+    {
+      "mesh": "Door_Metal__M_Metal",
+      "roll": 0.0,
+      "actor_box": [
+        [
+          -249.3,
+          46.6,
+          -448.4
+        ],
+        [
+          249.3,
+          585.5,
+          -445.0
+        ]
+      ],
+      "expected": {
+        "x": [
+          -249.3,
+          249.3
+        ],
+        "y": [
+          46.6,
+          585.5
+        ],
+        "z": [
+          -448.4,
+          -445.0
+        ]
+      },
+      "matches": true
+    }
+  ],
+  "wall_uv": {
+    "scale": 0.25,
+    "linked": [
+      "MP_BASE_COLOR",
+      "MP_NORMAL",
+      "MP_ROUGHNESS",
+      "MP_METALLIC",
+      "MP_AMBIENT_OCCLUSION"
+    ],
+    "texture_world_cm": 320.0,
+    "skipped": "already applied"
+  },
+  "wall_textures": [
+    {
+      "kind": "BaseColor",
+      "size": [
+        4096,
+        4096
+      ]
+    },
+    {
+      "kind": "Normal",
+      "size": [
+        4096,
+        4096
+      ]
+    },
+    {
+      "kind": "Roughness",
+      "size": [
+        4096,
+        4096
+      ]
+    },
+    {
+      "kind": "Metallic",
+      "size": [
+        4096,
+        4096
+      ]
+    },
+    {
+      "kind": "AO",
+      "size": [
+        4096,
+        4096
+      ]
+    }
+  ],
+  "passed": true
+}

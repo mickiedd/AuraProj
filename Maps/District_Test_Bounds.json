@@ -1,0 +1,22 @@
+{
+  "name": "Wenmingmen named gate-interface study on an unrelated diagnostic terrain sample",
+  "map": "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+  "historically_accepted": false,
+  "H2_status": "BLOCKED_NO_SURVEYED_LOCAL_FRAME",
+  "historical_metric_bounds": null,
+  "diagnostic_center_ue_cm": [
+    180000,
+    130000
+  ],
+  "diagnostic_size_m": [
+    200,
+    200
+  ],
+  "diagnostic_modern_raster_epsg32649_bounds_m": [
+    731100.0,
+    2558500.0,
+    731300.0,
+    2558700.0
+  ],
+  "warning": "The diagnostic bounds do not locate the historical Wenmingmen district."
+}
