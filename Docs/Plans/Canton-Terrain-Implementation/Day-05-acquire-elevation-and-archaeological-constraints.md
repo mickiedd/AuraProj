@@ -14,12 +14,16 @@ Complete the Day 05 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** Modern EGM2008 DTM exists; usable historical walking-surface Z and independent H2 controls do not.
+
+**Remaining focus:** Obtain the Wenmingmen local network and dated benchmark-linked surface; keep Zhengdongmen as source-driven fallback. Do not infer metric bounds from asset readiness or use cultural-layer ranges as terrain points. Owners: survey/conservation and archaeology owners; CANTON-H2-001, CANTON-HZ-001.
+
 **Work**
 - Locate the best available bare-earth DEM or surveyed contours and inspect age, spatial resolution, vertical datum, accuracy and evidence of modern earthworks.
 - Collect source-backed archaeological site levels, historic contours, hill/terrace constraints, historic water references and gate-approach slope observations.
 - Create a point/line elevation schema with measured value, range, vertical datum, reference, observation date, measurement reliability, temporal relevance, modern-change risk, reconstruction method and historical confidence A–D; do not fill missing values.
-- Select the **named gate/district candidate** now based on source coverage, gate-asset readiness and the availability of local survey/conservation/archaeological geometry. Record a ranked fallback. Do not freeze final 200 × 200 m UTM bounds from a failed city transform.
-- Start **H2 (gate-district local frame)**: identify the independent local source network that can provide ≥4 checks with exact point definitions, horizontal datum and stated precision. Derive final metric district bounds only after H2 meets RMSE ≤2 m and worst residual ≤4 m, or the stricter half-feature-width rule.
+- Select the **named gate/district candidate** now based on source coverage, gate-asset readiness and the availability of local survey/conservation/archaeological geometry. Record a ranked fallback. Do **not** freeze the final 200 × 200 m UTM bounds from a failed city transform.
+- Start **H2 (gate-district local frame)**: identify the local source that can provide ≥4 independent checks with the required point definition, horizontal datum and precision. Derive final metric district bounds only after H2 is accepted.
 **Deliverables:** `Sources/Elevation/`; `Data/Elevation_Constraints.csv`; `Docs/Vertical_Datum_Register.md`; `Data/Gate_District_Candidates.csv`; `Data/H2_Local_Control_Request.md`.
 **Done when:** Every height value has units, origin and source; modern accuracy is not conflated with historical confidence; DEM coverage/uncertainty is documented; primary/fallback named districts are selected; and H2's evidence source is identified or explicitly blocked.
 

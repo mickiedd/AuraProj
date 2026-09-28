@@ -14,6 +14,10 @@ Complete the Day 19 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** 14 grounded dark cards provide a dry/wet toggle only; debris and final wetness are missing.
+
+**Remaining focus:** Author localized debris and drainage-consistent damp/puddle materials; capture matched dry/rain views and runtime draw calls/instances. Preserve access and exclusions. M04 remains incomplete until final art is reviewed or the owner explicitly changes scope. Owner: environment artist; CANTON-M04-001.
+
 **Work**
 - Distribute local leaf litter, grit, small stone debris, puddles and dampness through PCG or ordinary decals/instances according to the Day 01 decision, rather than noisy full-map height edits.
 - Test dry and after-rain scenarios; validate the wet ground placement against drainage and material boundaries.

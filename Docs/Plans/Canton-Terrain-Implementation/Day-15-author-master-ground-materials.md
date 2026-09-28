@@ -14,6 +14,10 @@ Complete the Day 15 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** Six compiled paint targets and neutral swatches exist.
+
+**Remaining focus:** Reuse the material graph and layer-info assets; author licensed physical soil/earth/pebble/grass/damp/stone instances with scale, normals and roughness. Review at walking height; compiled swatches alone do not close M03. Owner: environment artist; CANTON-M03-001.
+
 **Work**
 - Build a Landscape material with restrained layer count: natural soil, compacted earth, mixed pebble/earth, grass/weed soil, damp earth and optional exposed stone.
 - Prepare physically based material instances with adjustable tint/roughness; treat monochrome photos as shape/placement evidence, not reliable colour sampling.

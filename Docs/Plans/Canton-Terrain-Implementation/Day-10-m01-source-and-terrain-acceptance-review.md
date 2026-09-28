@@ -14,6 +14,10 @@ Complete the Day 10 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** M01 technical provisional review is delivered; H1/H2/Z remain blocked and approval pending.
+
+**Remaining focus:** Update the four-axis decision only with new evidence. Freeze candidate-specific source/raster/native hashes and retain the failed baseline. No complete historical M01 claim from a successful native import. Owners: technical reviewer / historical reviewer.
+
 **Work**
 - Overlay traced walls and gates against imported terrain and independently check major control-point elevations. Run H1 city checks and, for the selected named gate district, H2 local checks separately.
 - Mark historical-evidence gaps directly on the GIS confidence map and UE map; report `Technical_UE`, `Historical_XY_City`, `Historical_XY_GateLocal`, and `Historical_Z` separately as Verified / Provisional / Blocked.

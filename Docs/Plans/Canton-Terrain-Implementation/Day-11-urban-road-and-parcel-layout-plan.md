@@ -14,10 +14,14 @@ Complete the Day 11 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** A separate 200 × 200 m engineering district and D-confidence road classifications exist.
+
+**Remaining focus:** Reuse layout scaffolding; replace road/parcel geometry with H2-aligned sources when available. Document the removed 16 parcel pads and open-ground courtyard reference; do not count either as built historical blocks. Owner: GIS/environment owner; CANTON-M02-001.
+
 **Work**
 - Import road centre lines and city-wall geometry as non-rendered reference overlays.
 - Classify roads: principal stone-slab streets, smaller mixed-earth/pebble lanes, gate approaches and special courtyard areas; link classifications to photo/source evidence.
-- Lay out a 200 × 200 m representative district with one gate interface and adjoining street/plots. If H2 is still blocked, keep it as an explicitly provisional implementation district identified by named historical feature/source context, not accepted historic UTM bounds.
+- Lay out a 200 × 200 m representative district with one gate interface and adjoining street/plots. If H2 is still blocked, this is an explicitly provisional implementation district identified by name/source context, not accepted historic UTM bounds.
 **Deliverables:** `GIS/Road_Classifications.geojson`; `Data/Road_Surface_Register.csv`; `Maps/District_Test_Bounds.json`.
 **Done when:** All prototype roads have source/date and surface-class labels; uncertain assignments are tagged.
 

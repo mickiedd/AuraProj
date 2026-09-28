@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="890" viewBox="0 0 1200 890">
+<rect width="1200" height="890" fill="#0c1726"/>
+<style>text{font-family:Arial,sans-serif;fill:#eaf0f8}.title{font-size:29px;font-weight:bold}.head{font-size:21px;font-weight:bold}.body{font-size:17px}.small{font-size:15px;fill:#b8c9dd}</style>
+<text x="40" y="51" class="title">Canton terrain • revise the plan around the implementation</text>
+<text x="40" y="82" class="small">2026-09-29 | Original Day 01–20 IDs retained | One 200 × 200 m district, not a completed city</text>
+<rect x="40" y="112" width="545" height="198" rx="12" fill="#263449"/>
+<text x="62" y="145" class="head">BEFORE: creation-first daily instructions</text>
+<text x="62" y="177" class="body">Terrain import, district layout and paint setup</text>
+<text x="62" y="204" class="body">were still scheduled as new work.</text>
+<text x="62" y="231" class="body">Generic deliverable paths obscured saved maps.</text>
+<text x="62" y="258" class="body">Provisional handoff could be read as completion.</text>
+<text x="62" y="285" class="body">External source delays had no honest finish date.</text>
+<rect x="610" y="112" width="550" height="198" rx="12" fill="#154443"/>
+<text x="632" y="145" class="head">AFTER: baseline + remaining work for every day</text>
+<text x="632" y="177" class="body">Reuse saved WP maps and validated R16 pipeline.</text>
+<text x="632" y="204" class="body">Keep historical XY/Z blocked and explicit.</text>
+<text x="632" y="231" class="body">Close threshold, pawn, art and runtime gaps.</text>
+<text x="632" y="258" class="body">Synchronize master and all 20 daily plans.</text>
+<text x="632" y="285" class="body">Re-estimate effort; no automatic 20-day promise.</text>
+<rect x="40" y="338" width="1120" height="135" rx="12" fill="#24344d"/>
+<text x="62" y="371" class="head">Continuation order on the existing district</text>
+<text x="62" y="403" class="body">1  Owner / target / clearance decisions     →     2  Closed-gate threshold + pawn + collision</text>
+<text x="62" y="430" class="body">3  Final paving / transitions / foliage / debris     →     4  Development runtime + WP capture</text>
+<text x="62" y="457" class="body">H1/H2/Z source work continues alongside this; accepted evidence triggers a versioned migration.</text>
+<rect x="40" y="501" width="545" height="190" rx="12" fill="#44332d"/>
+<text x="62" y="534" class="head">Historical guard • no promotion from plausibility</text>
+<text x="62" y="566" class="body">H1: ≥5 fit, ≥8 checks; RMSE ≤15 m / max ≤30 m.</text>
+<text x="62" y="593" class="body">H2: ≥4 local checks; ≤2 m / ≤4 m (or stricter).</text>
+<text x="62" y="620" class="body">Z: dated walking surface + benchmark + datum.</text>
+<text x="62" y="647" class="body">Owner approval remains pending.</text>
+<text x="62" y="674" class="body">Modern DTM and diagnostic bounds remain D.</text>
+<rect x="610" y="501" width="550" height="190" rx="12" fill="#34324d"/>
+<text x="632" y="534" class="head">Technical guard • evidence must match the claim</text>
+<text x="632" y="566" class="body">7 route screens ≠ a physical pawn walk.</text>
+<text x="632" y="593" class="body">6 m staging ≠ accessible gate threshold.</text>
+<text x="632" y="620" class="body">Growth cubes / damp cards ≠ completed M04.</text>
+<text x="632" y="647" class="body">Editor timings ≠ Development performance.</text>
+<text x="632" y="674" class="body">Targeted cook ≠ normal project packaging.</text>
+<rect x="40" y="720" width="1120" height="126" rx="12" fill="#203a4e"/>
+<text x="62" y="753" class="head">Validation for this documentation revision</text>
+<text x="62" y="785" class="body">Check 20 synchronized daily sections, links, issue references and SVG structure; git diff --check.</text>
+<text x="62" y="812" class="body">Refresh affected manifest chain; run source, encoding, import, readiness, district, runner and freeze checks.</text>
+<text x="62" y="839" class="body">No UE assets changed; prior native evidence retained. Runtime and historical gates are still open.</text>
+</svg>

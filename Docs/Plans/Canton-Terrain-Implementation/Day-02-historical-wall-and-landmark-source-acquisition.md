@@ -14,6 +14,10 @@ Complete the Day 02 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** MAP-001 source acquisition is verified; metric precision is not.
+
+**Remaining focus:** Reuse registered scans and hashes. Close source-date/scale gaps where possible and obtain survey-capable H1, local H2 and period comparison evidence; do not repeat download work or equate source acquisition with georeference acceptance. Owner: source/GIS owner; CANTON-H1-001.
+
 **Work**
 - Locate high-resolution maps dated within 1880–1900; separately register nearby-date maps as secondary references.
 - Record city-wall perimeter, gate locations, Zhenhai Tower and surviving street junctions with source pointers.

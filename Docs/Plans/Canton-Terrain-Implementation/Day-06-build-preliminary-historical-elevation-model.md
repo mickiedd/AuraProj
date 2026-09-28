@@ -14,6 +14,10 @@ Complete the Day 06 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** Continuous modern-context float32 raster and contamination mask are implemented.
+
+**Remaining focus:** Retain them as D-confidence context. Reconcile new vertical evidence and author traceable historical corrections/breaklines only after inputs pass; historical terrain zero stays null otherwise. Owner: terrain/GIS owner; CANTON-HZ-001.
+
 **Work**
 - Reconcile vertical datums before combining data; select a documented local terrain-zero reference.
 - Use DEM for broad morphology only; tag modern cut/fill, roads, basements and reclamation as potential contamination.

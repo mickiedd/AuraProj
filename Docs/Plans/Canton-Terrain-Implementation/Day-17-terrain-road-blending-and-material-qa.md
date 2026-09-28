@@ -14,6 +14,10 @@ Complete the Day 17 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** Four fixed scenes and atlas document blockout surfaces.
+
+**Remaining focus:** Finish road/earth/gate transitions, audit dry/wet roughness and update all four camera views from the same candidate. Re-run seams/collision after changes; visual modules and material joints remain open despite geometric sample passes. Owner: environment artist; CANTON-M03-001.
+
 **Work**
 - Blend Landscape ground with modular paving using appropriate skirts, decals or masked transition meshes; avoid painting a fake sharp stone edge on soil.
 - Compare dry and wet material variants under consistent lighting; audit roughness/normal intensity at eye level.

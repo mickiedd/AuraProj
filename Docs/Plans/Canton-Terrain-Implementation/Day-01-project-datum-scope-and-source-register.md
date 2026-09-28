@@ -14,6 +14,10 @@ Complete the Day 01 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** Working coordinate, source and acceptance contracts exist; owner approval and PCG smoke remain pending.
+
+**Remaining focus:** Reuse UE 5.5.4 and ordinary-instance fallback. Obtain budget sign-off, specify pawn capsule/step/slope and nav-floor limits, and resolve Metal SM5 Nanite applicability or choose supported hardware. Owners: project owner / technical lead; CANTON-APP-001, CANTON-M05-005.
+
 **Work**
 - Lock study period (1880–1900), walled-city polygon, local XY orientation, world origin convention, centimetre-to-metre conversion, target Unreal version and asset naming.
 - Resolve the project's GUID-based Unreal association to an installed engine version. Audit required plugins and prove a minimal PCG smoke asset can load and cook; if PCG is unavailable, record ordinary foliage instances as the approved fallback.

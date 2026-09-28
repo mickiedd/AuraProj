@@ -14,6 +14,10 @@ Complete the Day 04 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** Coarse wall/gate/road overlays exist under GIS/Provisional and convert correctly to UE.
+
+**Remaining focus:** Retrace or migrate against the accepted H1 frame, retain source/date/confidence, and recheck wall plus ≥200 m margin on every side. Until H1 passes, retain diagnostic overlays only. Owner: GIS owner; CANTON-H1-001.
+
 **Work**
 - Trace wall centerline and gate points with source/date/confidence attributes.
 - Digitize principal roads, historical water routes, important landform extents and major fixed landmarks into separate GIS layers.

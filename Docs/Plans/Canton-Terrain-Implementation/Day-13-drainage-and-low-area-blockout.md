@@ -14,6 +14,10 @@ Complete the Day 13 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** 48 covered-gutter pieces and three monotonic engineering catchments exist.
+
+**Remaining focus:** Retest drainage after road/edge fixes; replace diagnostic locations only with source-supported drainage. Keep invented outlets and puddles labelled engineering-only. Owner: terrain owner; CANTON-M02-001.
+
 **Work**
 - Place historically mapped drains, canals or low areas as reference splines; do not fabricate open channels where maps/photos offer no support.
 - Model test ditch and puddle depressions only where the ground context calls for them.

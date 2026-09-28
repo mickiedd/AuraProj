@@ -14,6 +14,10 @@ Complete the Day 09 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** The provisional WP terrain map, locked base, 256 components and native reload automation exist.
+
+**Remaining focus:** Review the saved map; do not rerun create-only import. Reimport a separately versioned historical candidate only after datum/frame approval and repeat asymmetric height/collision and overlay checks. Owner: UE terrain owner.
+
 **Work**
 - Create a dedicated World Partition map; enable Landscape Edit Layers during creation and import the heightmap into a named `Base_Imported` layer at 200/200/50 XY/Z scale only if the metadata confirms that encoding. Lock the base layer immediately.
 - Use 63 quads per section, 2 × 2 sections/component and 16 × 16 components; center/position the Landscape using the documented local-origin transform.

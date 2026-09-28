@@ -14,6 +14,10 @@ Complete the Day 18 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** 38 collision-disabled cube growth proxies implement placement rules; PCG remains unproven.
+
+**Remaining focus:** Replace proxies with sparse period-context vegetation using ordinary foliage/instances; preserve gate, road, gutter and foundation exclusions and document source/licence/species uncertainty. Verify collision and actual instance counts. Owner: environment artist; CANTON-M04-001.
+
 **Work**
 - Create grass tufts, weeds, wall-edge moss and sparse courtyard plants using foliage/PCG masks tied to surface class and evidence.
 - Use PCG only if the Day 01 load/cook smoke passed; otherwise use the documented foliage-instance fallback without changing the placement contract.

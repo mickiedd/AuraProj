@@ -14,6 +14,10 @@ Complete the Day 07 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** The current raster has full-area D confidence; it is resampled modern DTM, not historical interpolation.
+
+**Remaining focus:** Use validated constraints to build a separately versioned historical surface and uncertainty/checkpoint report. Never improve confidence solely because the raster is continuous. Owner: terrain/GIS owner; CANTON-HZ-001.
+
 **Work**
 - Interpolate between control points while constraining hills, road-grade logic and documented water-flow directions.
 - Separate inferred reconstruction from measured reference with a confidence/uncertainty raster and a feature-level log.

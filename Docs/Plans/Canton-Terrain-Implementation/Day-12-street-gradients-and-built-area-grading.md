@@ -14,6 +14,10 @@ Complete the Day 12 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** Meshed roads conform to modern R16; Urban_Grading/Road_Corridors/Drainage layers are present and empty.
+
+**Remaining focus:** Prioritize grounded road shoulders and threshold approach without changing gate scale or historic claims. Apply evidence-backed grading only after H1/H2/Z; distinguish mesh conformance from actual Landscape layer edits. Owners: terrain / gate owners; CANTON-M02-002, CANTON-M02-003, CANTON-M05-004.
+
 **Work**
 - Confirm the locked `Base_Imported` layer created on Day 09; create independent Landscape Edit Layers for urban grading, road corridors and drainage.
 - Draft road elevations/intersections and representative block platforms from constraints; avoid flattening all of the city.

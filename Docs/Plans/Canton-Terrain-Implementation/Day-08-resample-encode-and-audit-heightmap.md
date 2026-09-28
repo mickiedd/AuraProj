@@ -14,6 +14,10 @@ Complete the Day 08 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** 2017² uint16 PNG, south-first R16, encoding and analytic coordinate tests already pass.
+
+**Remaining focus:** Reuse the exporter and tests; regenerate only when accepted input/envelope changes. Validate hashes, clipping, quantization and one Y flip. Analytic round trips do not substitute for H1/H2 surveyed accuracy. Owner: terrain/tools owner.
+
 **Work**
 - Set world envelope, origin, orientation and grid-spacing metadata; resample elevation to a 2017 × 2017 grid for the proposed 4032 m coverage.
 - Encode to single-channel 16-bit PNG with a fixed height-to-code mapping and matching UE Z scale; preserve float32 source raster.

@@ -14,6 +14,10 @@ Complete the Day 16 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
+**Current baseline (2026-09-29):** 100 principal cube slabs have floor support; the independent joint probe measures 198 pairs and a 1.33 cm maximum step.
+
+**Remaining focus:** Replace cube slabs with period-context modules, preserve pivots/collision, and ground the 7 cm underside gap / 11 cm shoulder lip using proper kerbs or transitions. Recheck joints and routes after replacement. Owner: environment artist; CANTON-M03-001, CANTON-M02-003.
+
 **Work**
 - Create reusable stone-slab sets for primary roads, plus selected kerbs, steps, foundation strips and drainage edges.
 - Use source-backed slab arrangement where documented; define pivots, snap grid, collision and Nanite usage by mesh.
