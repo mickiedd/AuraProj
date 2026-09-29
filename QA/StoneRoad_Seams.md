@@ -5,3 +5,7 @@ The principal road is assembled from 100 individually colliding, 2 m station mes
 The visible regular stone joints, neutral swatch colors and `/Engine/BasicShapes/Cube` geometry are technical blockout, not an authenticated late-Qing slab module or paving pattern. The road has not been promoted to source-backed final art. Existing Wenmingmen mesh dimensions remain unchanged, and the gate threshold still needs its surveyed local ground datum.
 
 The [design-derived road-edge profile](Road_Edge_Blockout_Profile.svg) makes a separate cross-section defect explicit: principal cube slabs span `z_at+7` to `z_at+19 cm`, leaving a 7 cm underside gap, while earth shoulder top is `z_at+8 cm`, an 11 cm exposed lip. This is an **open blockout property**, not an accepted final transition. The longitudinal R16 edge check cannot detect it. A future grounded kerb/skirt or approved edge detail is required before art acceptance.
+
+## Implementation continuation — 2026-09-29
+
+The 2026-09-29 candidate replaces the 100 cube render meshes with generated beveled paving while preserving the measured 100 cm source envelope and simple collision. Fresh native review still measures 100 floor stations, 198 adjacent top-corner comparisons, maximum joint step 1.330135 cm and maximum long-edge error 0.023641 cm. Grounded edge skirts close the former exposed underside. All seven physical routes pass. These are engineering measurements, not period stone dimensions.

@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "errors": [],
+  "rows": 6632,
+  "scope": "independent raw-sample reconciliation; runtime acceptance is separate"
+}

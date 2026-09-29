@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-29",
+  "technical_target_approved": true,
+  "capsule_clearance_approval": "pending",
+  "historically_accepted": false,
+  "python_unit_tests": {
+    "heightmap_contract": 2,
+    "ue_import_contract": 2,
+    "editor_runner": 6,
+    "runtime_runner": 3
+  },
+  "native_m01_automation": {
+    "succeeded": 1,
+    "failed": 0,
+    "warnings": 0
+  },
+  "additional_checks": [
+    "district geometry/drainage/exclusion contract",
+    "source manifest integrity (56 rows preserved)",
+    "M01 provisional/native integrity (21/472 artifacts)",
+    "byte-identical regeneration of 14 procedural input files",
+    "matched dry/damp capture smoke check",
+    "6632-row independent runtime sample reconciliation",
+    "zsh syntax and Python compilation",
+    "git diff --check"
+  ],
+  "runtime_traversal_passed": true,
+  "runtime_performance_passed": true,
+  "cook_passed": true,
+  "stage_passed": true,
+  "limitations": [
+    "H1/H2/historical Z blocked",
+    "period art/source approval open",
+    "capsule/clearance approval pending",
+    "normal whole-project packaging and browser UI not certified",
+    "strictly normalized editor scripted-quit status remains required"
+  ]
+}

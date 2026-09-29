@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "status": "PROVISIONAL_VISUAL_WALL_FIT_ONLY",
+  "historically_accepted": false,
+  "source_wall_trace": "Export/Provisional/UE_Overlay_Metres.json",
+  "source_landmark_placements": "QA/Canton_Continuation/Walled_Landmark_Placement.json",
+  "source_landmark_register": "Data/Canton_WalledCity_Provisional_Landmark_Placements.json",
+  "wall_width_cm": 400,
+  "wall_height_above_ground_cm": 500,
+  "wall_embed_below_ground_cm": 100,
+  "transition_run_cm": 3000,
+  "connector_piece_max_cm": 700,
+  "joins": [
+    {"key": "Zhengximen", "wall_feature_id": "WALL-OUTER-01", "join_half_width_cm": 2585, "join_local_y_cm": 0, "basis": "Stone foundation reaches local X +/-2660 cm; join overlaps its outer 75 cm."},
+    {"key": "Zhengdongmen", "wall_feature_id": "WALL-OUTER-01", "join_half_width_cm": 1360, "join_local_y_cm": 0, "basis": "Stone plinth reaches local X +/-1435 cm; join overlaps its outer 75 cm."},
+    {"key": "GreatNorthGate", "wall_feature_id": "WALL-OUTER-01", "join_half_width_cm": 1725, "join_local_y_cm": 0, "basis": "Main masonry extends to local X +/-1800 cm; join overlaps its outer 75 cm."},
+    {"key": "Xiaobeimen_AAA_V3", "wall_feature_id": "WALL-OUTER-01", "join_half_width_cm": 1425, "join_local_y_cm": 0, "basis": "Wall_Main reaches local X +/-1500 cm; join overlaps its outer 75 cm."},
+    {"key": "Guidemen_ReferenceRepaired", "wall_feature_id": "WALL-INNER-01", "join_half_width_cm": 1425, "join_local_y_cm": 0, "basis": "Joins the gatehouse masonry near its piers, not the wider flat ground apron."},
+    {"key": "Zhengnanmen_HighFidelity", "wall_feature_id": "WALL-INNER-01", "join_half_width_cm": 1275, "join_local_y_cm": 0, "basis": "Gatehouse stone wing reaches approximately local X +/-1350 cm; join overlaps its outer 75 cm."},
+    {"key": "Wenmingmen", "wall_feature_id": "WALL-INNER-01", "join_half_width_cm": 3175, "join_local_y_cm": 0, "basis": "Stone wall/plaza assembly reaches local X +/-3250 cm; join overlaps its outer 75 cm."},
+    {"key": "Wuxianmen_V5_FullPBR", "wall_feature_id": "WALL-OUTER-01", "join_half_width_cm": 1725, "join_local_y_cm": 0, "basis": "Outer stone assembly reaches approximately local X +/-1825 cm; join overlaps its outer 100 cm."}
+  ]
+}

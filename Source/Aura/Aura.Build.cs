@@ -10,7 +10,7 @@ public class Aura : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "CoreOnline", "Engine", "NetCore", "InputCore", "EnhancedInput", "GameplayAbilities", "GameplayTags", "UMG", "OnlineSubsystemUtils", "OnlineSubsystem", "ModelViewViewModel", "AuraAbilityGraph", "AuraWebUI" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayTasks", "NavigationSystem", "Niagara", "AIModule", "Slate", "SlateCore", "Json", "JsonUtilities", "Sockets", "Networking", "ImageWrapper", "Projects" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "RHI", "GameplayTasks", "NavigationSystem", "Niagara", "AIModule", "Slate", "SlateCore", "Json", "JsonUtilities", "Sockets", "Networking", "ImageWrapper", "Projects" });
 		
 		// BehaviorU (BehaviorU) plugin — drives the test behavior tree bound to AuraEnemy.
 		// AuraBehaviorUAgentComponent.h is a public header that includes BehaviorUAgent.h,

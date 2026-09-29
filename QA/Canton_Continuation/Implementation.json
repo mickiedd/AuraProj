@@ -1,0 +1,36 @@
+{
+  "historically_accepted": false,
+  "source": "engineering interpretation; source gate dimensions preserved",
+  "meshes": {
+    "SM_Canton_Paving": "<Struct 'Box' (0x42f0b8d00) {min: {x: -50.000000, y: -50.000000, z: -50.000000}, max: {x: 50.000000, y: 50.000000, z: 50.000000}, is_valid: True}>",
+    "SM_Canton_GrassTuft": "<Struct 'Box' (0x42f585700) {min: {x: -19.504002, y: -21.703758, z: 0.000000}, max: {x: 18.926140, y: 25.146490, z: 37.195621}, is_valid: True}>",
+    "SM_Canton_Leaf": "<Struct 'Box' (0x42e73f540) {min: {x: -5.000000, y: -2.000000, z: 0.200000}, max: {x: 5.000000, y: 2.000000, z: 1.200000}, is_valid: True}>",
+    "SM_Canton_DampPatch": "<Struct 'Box' (0x42e837480) {min: {x: -49.256561, y: -69.335976, z: 0.000000}, max: {x: 48.599998, y: 57.592876, z: 0.000000}, is_valid: True}>"
+  },
+  "gate_origin_cm": [
+    180000.0,
+    121500.0,
+    1047.0625
+  ],
+  "approach": {
+    "start_cm": [
+      180000.0,
+      123850.0,
+      1074.0625
+    ],
+    "end_cm": [
+      180000.0,
+      129000,
+      936.578125
+    ],
+    "grade_percent": 2.6695995145631066,
+    "threshold_endpoint_cm": [
+      180000.0,
+      121750.0,
+      1065.0625
+    ],
+    "historical_ground_correction": false
+  },
+  "passed": true,
+  "saved_packages": 818
+}

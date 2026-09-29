@@ -1,0 +1,32 @@
+{
+  "packages_processed": 1529,
+  "packages_remaining": 0,
+  "packages_total": 1529,
+  "profile": "Canton two-map isolated delivery",
+  "command": [
+    "/Volumes/M2/Engine/UE_5.5/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+    "/Volumes/M2/Works/AuraProj/Aura.uproject",
+    "-run=cook",
+    "-targetplatform=Mac",
+    "-map=/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL+/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+    "-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:-DirectoriesToAlwaysCook=(Path=\"/NNEDenoiser\"),[/Script/UnrealEd.ProjectPackagingSettings]:-DirectoriesToAlwaysCook=(Path=\"/Game/Assets\"),[/Script/UnrealEd.ProjectPackagingSettings]:-DirectoriesToAlwaysCook=(Path=\"/Game/Blueprints\"),[/Script/UnrealEd.ProjectPackagingSettings]:-DirectoriesToAlwaysCook=(Path=\"/Game/MilitaryWeapDark\")",
+    "-unattended",
+    "-nop4",
+    "-nosplash",
+    "-NoSound",
+    "-abslog=/Volumes/M2/Works/AuraProj/Saved/Logs/CantonDeliveryCook.log"
+  ],
+  "exit_code": 0,
+  "excluded_unrelated_always_cook": [
+    "/NNEDenoiser",
+    "/Game/Assets",
+    "/Game/Blueprints",
+    "/Game/MilitaryWeapDark"
+  ],
+  "source_config_sha256": "706697544ed995c886d73e00f0b6318b154a8cbb11aa063e63d35d98a4de76f8",
+  "source_config_unchanged": true,
+  "normal_project_cook_claim": false,
+  "errors": [],
+  "log": "Saved/Logs/CantonDeliveryCook.log",
+  "passed": true
+}

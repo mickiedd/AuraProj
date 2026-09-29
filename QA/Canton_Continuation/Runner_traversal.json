@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/Volumes/M2/Works/AuraProj/Saved/CantonContinuation/Stage/Mac/Aura.app/Contents/MacOS/Aura",
+    "/Game/Canton/DistrictPrototype/Maps/L_Canton_District_PROVISIONAL",
+    "-CantonProbe=traversal",
+    "-CantonOutput=/Users/mickiezhou/Library/Containers/com.YourCompany.Aura/Data/Documents/CantonQA/Runtime_traversal.json",
+    "-windowed",
+    "-ResX=1920",
+    "-ResY=1080",
+    "-ForceRes",
+    "-NoVSync",
+    "-unattended",
+    "-nosplash",
+    "-NoSound",
+    "-abslog=/Users/mickiezhou/Library/Containers/com.YourCompany.Aura/Data/Documents/CantonQA/CantonRuntime_traversal.log",
+    "-nocef",
+    "-stdout",
+    "-FullStdOutLogOutput"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 114.01312112808228,
+  "errors": [],
+  "passed": true,
+  "log": "Saved/Logs/CantonRuntime_traversal.log"
+}

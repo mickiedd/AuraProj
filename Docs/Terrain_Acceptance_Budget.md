@@ -5,6 +5,7 @@
 | `working_acceptance_budget_versioned` | `true` |
 | `working_budget_version` | `2026-09-28-h1-h2-district-v2` |
 | `owner_approval` | `pending` |
+| `technical_target_approval` | `approved by project owner in Codex, 2026-09-29` |
 
 This versioned budget may govern technical prototyping while owner approval is pending. No historical axis may be marked `Verified` until `owner_approval` is changed to `approved` with reviewer identity and date. Numeric targets remain review targets until that approval is recorded; they are not passed results.
 
@@ -45,8 +46,15 @@ The 1.5 and 8% figures were introduced during prototyping and were not in the ea
 
 Current failed-transform-derived 200 × 200 m UTM boxes are diagnostic only. Select the prototype district by named historical feature and source coverage, then derive final metric bounds after H2 passes. MAP-001 remains period layout/provenance evidence; its failed affine stays immutable and cannot establish H2 precision.
 
-Proposed target hardware is this host's Mac mini (Apple M4, 10 CPU cores, 16 GB unified memory, Metal 4), observed with `system_profiler SPHardwareDataType SPDisplaysDataType`. Performance target is pending approval: Development or packaged build at 1920 × 1080, High scalability, fixed 200 m district route, 60 s warm-up then 180 s capture; p95 frame time ≤ 33.3 ms, p99 ≤ 50 ms, process resident memory ≤ 12 GiB, and zero failed World Partition streaming cells. Record engine build, route, draw calls and instance counts when this gate is run. No benchmark has been run.
+Approved target hardware is this host's Mac mini (Apple M4, 10 CPU cores, 16 GB unified memory, Metal 4), observed with `system_profiler SPHardwareDataType SPDisplaysDataType`. The owner approved the performance target on 2026-09-29: Development or packaged build at 1920 × 1080, High scalability, fixed 200 m district route, 60 s warm-up then 180 s capture; p95 frame time ≤ 33.3 ms, p99 ≤ 50 ms, process resident memory ≤ 12 GiB, and zero failed World Partition streaming cells. Record engine build, route, draw calls and instance counts when this gate is run. The current candidate must pass its own packaged benchmark; prior editor timing is not acceptance evidence.
 
 The numeric georeference budget must be reviewed against the actual gate opening and map scan; reducing fitted-point error alone does not approve a transform. A near-period survey, including a 1907 source, must be tagged with its actual date and compared with in-period evidence before it supports 1880–1900 geometry.
 
 `QING-STRATUM-001` retains a published Qing cultural-layer elevation range with an unspecified sea-level datum realization. Its `candidate_stratum_not_terrain` status excludes it from the height-source acceptance gate and all terrain interpolation. A usable terrain Z still requires a dated ground surface and a reconciled vertical datum. Modern DTM may support broad morphology only and remains D-confidence/provisional for historical Z.
+
+
+## Technical target approval — 2026-09-29
+
+The project owner explicitly approved this host's M4 Mac/Metal target, raster fallback with Nanite inapplicable, closed Wenmingmen doors, and the existing 1080p High / p95 33.3 ms / p99 50 ms / RSS 12 GiB / zero failed WP-cell limits. This approves the technical target, not a measured pass or the missing historical evidence.
+
+Continuation pawn configuration: 35 cm capsule radius, 90 cm half-height, 20 cm maximum step, 35° walkable-floor angle. These are explicit engineering test settings. Recast uses 300 cm tiles with 5 cm horizontal / 1 cm vertical cells; the proposed absolute nav-corner-to-physics-floor screen is ≤6 cm. This clearance screen remains a working diagnostic until reviewed; physical pawn traversal must also pass. The source gate's raised bridge is tested separately from the <8% ordinary-road grading screen; preserve its authored geometry rather than flattening it to satisfy that road screen.

@@ -1,0 +1,48 @@
+{
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "historically_accepted": false,
+  "views": [
+    {
+      "view": "Walled_Landmarks_Citywide",
+      "camera_cm": [
+        30000,
+        -110000,
+        245000
+      ],
+      "aim_cm": [
+        205000,
+        220000,
+        1700
+      ],
+      "image": "QA/Canton_Continuation/Walled_Landmarks_Citywide.png"
+    },
+    {
+      "view": "Walled_Landmarks_North",
+      "camera_cm": [
+        150000,
+        175000,
+        118000
+      ],
+      "aim_cm": [
+        210000,
+        340000,
+        3000
+      ],
+      "image": "QA/Canton_Continuation/Walled_Landmarks_North.png"
+    },
+    {
+      "view": "Walled_Landmarks_South",
+      "camera_cm": [
+        108000,
+        -20000,
+        85000
+      ],
+      "aim_cm": [
+        190000,
+        145000,
+        1100
+      ],
+      "image": "QA/Canton_Continuation/Walled_Landmarks_South.png"
+    }
+  ]
+}

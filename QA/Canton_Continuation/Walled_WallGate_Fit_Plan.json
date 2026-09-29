@@ -1,0 +1,1885 @@
+{
+  "status": "PROVISIONAL_VISUAL_WALL_FIT_ONLY",
+  "historically_accepted": false,
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "source_sha256": {
+    "Data/Canton_WalledCity_Provisional_Wall_Gate_Fit_Config.json": "409f9ba578cf7d2ff864fbe66a22ad9fdb8ed760ff894663176059e1c351270c",
+    "QA/Canton_Continuation/Walled_Landmark_Placement.json": "0556b71a70e6144a3e609ca1c10b0986d1f1d215f2b6c23e00cc7a3c1c88c052",
+    "Data/Canton_WalledCity_Provisional_Landmark_Placements.json": "05340bfe43ca0ce50a370f990f6b5f20efa8ffebbf67f0f4c6a3da99f1a335d9",
+    "Export/Provisional/UE_Overlay_Metres.json": "e386480830926264dcf7b8aef0a8eb3e5ce711999daf935bd5231a328133d7ad"
+  },
+  "source_wall_marker_count": 410,
+  "retired_wall_markers": [
+    "PROVISIONAL_Wall_0_6_1",
+    "PROVISIONAL_Wall_0_6_2",
+    "PROVISIONAL_Wall_0_6_3",
+    "PROVISIONAL_Wall_0_6_4",
+    "PROVISIONAL_Wall_0_6_5",
+    "PROVISIONAL_Wall_0_10_5",
+    "PROVISIONAL_Wall_0_10_6",
+    "PROVISIONAL_Wall_0_10_7",
+    "PROVISIONAL_Wall_0_11_0",
+    "PROVISIONAL_Wall_0_15_1",
+    "PROVISIONAL_Wall_0_15_2",
+    "PROVISIONAL_Wall_0_15_3",
+    "PROVISIONAL_Wall_0_15_4",
+    "PROVISIONAL_Wall_0_23_6",
+    "PROVISIONAL_Wall_0_23_7",
+    "PROVISIONAL_Wall_0_23_8",
+    "PROVISIONAL_Wall_0_23_9",
+    "PROVISIONAL_Wall_0_23_10",
+    "PROVISIONAL_Wall_0_33_7",
+    "PROVISIONAL_Wall_0_33_8",
+    "PROVISIONAL_Wall_0_34_0",
+    "PROVISIONAL_Wall_0_34_1",
+    "PROVISIONAL_Wall_1_1_2",
+    "PROVISIONAL_Wall_1_1_3",
+    "PROVISIONAL_Wall_1_1_4",
+    "PROVISIONAL_Wall_1_1_5",
+    "PROVISIONAL_Wall_1_2_12",
+    "PROVISIONAL_Wall_1_3_0",
+    "PROVISIONAL_Wall_1_3_1",
+    "PROVISIONAL_Wall_1_3_2",
+    "PROVISIONAL_Wall_1_5_5",
+    "PROVISIONAL_Wall_1_5_6",
+    "PROVISIONAL_Wall_1_5_7",
+    "PROVISIONAL_Wall_1_5_8",
+    "PROVISIONAL_Wall_1_5_9"
+  ],
+  "retired_wall_marker_count": 35,
+  "retained_wall_marker_count": 375,
+  "trace_replacements": [
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_6_1_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_6_1",
+      "point_a_cm": [
+        175037.2142,
+        340659.0999
+      ],
+      "point_b_cm": [
+        177537.4756,
+        342244.5913
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_6_5_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_6_5",
+      "point_a_cm": [
+        185518.1397,
+        347305.3719
+      ],
+      "point_b_cm": [
+        187657.0933,
+        348661.7471
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_10_5_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_10_5",
+      "point_a_cm": [
+        266145.9713,
+        333797.0966
+      ],
+      "point_b_cm": [
+        267830.8469,
+        333253.2068
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_11_0_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_11_0",
+      "point_a_cm": [
+        275847.5406,
+        329817.0559
+      ],
+      "point_b_cm": [
+        276491.2886,
+        329256.5889
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_15_1_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_15_1",
+      "point_a_cm": [
+        339112.5128,
+        239958.7159
+      ],
+      "point_b_cm": [
+        339111.807,
+        239877.7331
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_15_4_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_15_4",
+      "point_a_cm": [
+        339035.8143,
+        231158.0643
+      ],
+      "point_b_cm": [
+        339018.1698,
+        229133.4684
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_23_6_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_23_6",
+      "point_a_cm": [
+        193523.9277,
+        101427.9553
+      ],
+      "point_b_cm": [
+        191151.6595,
+        100154.0403
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_23_10_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_23_10",
+      "point_a_cm": [
+        182826.1437,
+        95683.214
+      ],
+      "point_b_cm": [
+        180494.3566,
+        94431.0375
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_33_7_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_33_7",
+      "point_a_cm": [
+        88540.0412,
+        207430.2798
+      ],
+      "point_b_cm": [
+        88554.3911,
+        207499.8096
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_34_1_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_0_34_1",
+      "point_a_cm": [
+        89940.6906,
+        218549.8768
+      ],
+      "point_b_cm": [
+        89948.0763,
+        218700.4841
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_1_2_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_1_1_2",
+      "point_a_cm": [
+        117694.3066,
+        114605.1395
+      ],
+      "point_b_cm": [
+        119082.556,
+        114933.9199
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_1_5_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_1_1_5",
+      "point_a_cm": [
+        127694.3382,
+        116973.4562
+      ],
+      "point_b_cm": [
+        128466.4974,
+        117156.3274
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_2_12_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_1_2_12",
+      "point_a_cm": [
+        174344.676,
+        130736.1783
+      ],
+      "point_b_cm": [
+        176306.4185,
+        131365.0692
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_3_2_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_1_3_2",
+      "point_a_cm": [
+        184294.7781,
+        134409.315
+      ],
+      "point_b_cm": [
+        185350.2186,
+        134818.0411
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_5_5_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_1_5_5",
+      "point_a_cm": [
+        253205.7394,
+        164360.6501
+      ],
+      "point_b_cm": [
+        254282.072,
+        164833.1723
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_5_9_0",
+      "kind": "trace",
+      "source_label": "PROVISIONAL_Wall_1_5_9",
+      "point_a_cm": [
+        265590.33,
+        169797.6259
+      ],
+      "point_b_cm": [
+        266676.5173,
+        170274.4745
+      ]
+    }
+  ],
+  "bridge_segments": [
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_0",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 0,
+      "part": 0,
+      "part_count": 6,
+      "point_a_cm": [
+        88554.3911,
+        207499.8096
+      ],
+      "point_b_cm": [
+        88987.0099,
+        207968.8174
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_1",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 0,
+      "part": 1,
+      "part_count": 6,
+      "point_a_cm": [
+        88987.0099,
+        207968.8174
+      ],
+      "point_b_cm": [
+        89419.6288,
+        208437.8251
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_2",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 0,
+      "part": 2,
+      "part_count": 6,
+      "point_a_cm": [
+        89419.6288,
+        208437.8251
+      ],
+      "point_b_cm": [
+        89852.2476,
+        208906.8328
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_3",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 0,
+      "part": 3,
+      "part_count": 6,
+      "point_a_cm": [
+        89852.2476,
+        208906.8328
+      ],
+      "point_b_cm": [
+        90284.8664,
+        209375.8405
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_4",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 0,
+      "part": 4,
+      "part_count": 6,
+      "point_a_cm": [
+        90284.8664,
+        209375.8405
+      ],
+      "point_b_cm": [
+        90717.4852,
+        209844.8483
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_5",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 0,
+      "part": 5,
+      "part_count": 6,
+      "point_a_cm": [
+        90717.4852,
+        209844.8483
+      ],
+      "point_b_cm": [
+        91150.104,
+        210313.856
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_0",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 1,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        89940.6906,
+        218549.8768
+      ],
+      "point_b_cm": [
+        90182.5733,
+        217936.6726
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_1",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 1,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        90182.5733,
+        217936.6726
+      ],
+      "point_b_cm": [
+        90424.456,
+        217323.4685
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_2",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 1,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        90424.456,
+        217323.4685
+      ],
+      "point_b_cm": [
+        90666.3386,
+        216710.2643
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_3",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 1,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        90666.3386,
+        216710.2643
+      ],
+      "point_b_cm": [
+        90908.2213,
+        216097.0602
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_4",
+      "kind": "bridge",
+      "key": "Zhengximen",
+      "side": 1,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        90908.2213,
+        216097.0602
+      ],
+      "point_b_cm": [
+        91150.104,
+        215483.856
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_0",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 0,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        339111.807,
+        239877.7331
+      ],
+      "point_b_cm": [
+        338924.5352,
+        239279.3321
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_1",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 0,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        338924.5352,
+        239279.3321
+      ],
+      "point_b_cm": [
+        338737.2634,
+        238680.9311
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_2",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 0,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        338737.2634,
+        238680.9311
+      ],
+      "point_b_cm": [
+        338549.9916,
+        238082.53
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_3",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 0,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        338549.9916,
+        238082.53
+      ],
+      "point_b_cm": [
+        338362.7198,
+        237484.129
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_4",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 0,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        338362.7198,
+        237484.129
+      ],
+      "point_b_cm": [
+        338175.448,
+        236885.728
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_0",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 1,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        339035.8143,
+        231158.0643
+      ],
+      "point_b_cm": [
+        338863.7411,
+        231759.597
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_1",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 1,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        338863.7411,
+        231759.597
+      ],
+      "point_b_cm": [
+        338691.6678,
+        232361.1298
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_2",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 1,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        338691.6678,
+        232361.1298
+      ],
+      "point_b_cm": [
+        338519.5945,
+        232962.6625
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_3",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 1,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        338519.5945,
+        232962.6625
+      ],
+      "point_b_cm": [
+        338347.5213,
+        233564.1953
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_4",
+      "kind": "bridge",
+      "key": "Zhengdongmen",
+      "side": 1,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        338347.5213,
+        233564.1953
+      ],
+      "point_b_cm": [
+        338175.448,
+        234165.728
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_0",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 0,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        177537.4756,
+        342244.5913
+      ],
+      "point_b_cm": [
+        178024.8833,
+        342696.5144
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_1",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 0,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        178024.8833,
+        342696.5144
+      ],
+      "point_b_cm": [
+        178512.2909,
+        343148.4376
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_2",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 0,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        178512.2909,
+        343148.4376
+      ],
+      "point_b_cm": [
+        178999.6986,
+        343600.3607
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_3",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 0,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        178999.6986,
+        343600.3607
+      ],
+      "point_b_cm": [
+        179487.1063,
+        344052.2839
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_4",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 0,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        179487.1063,
+        344052.2839
+      ],
+      "point_b_cm": [
+        179974.514,
+        344504.207
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_0",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 1,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        185518.1397,
+        347305.3719
+      ],
+      "point_b_cm": [
+        185099.4145,
+        346745.1389
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_1",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 1,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        185099.4145,
+        346745.1389
+      ],
+      "point_b_cm": [
+        184680.6894,
+        346184.906
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_2",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 1,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        184680.6894,
+        346184.906
+      ],
+      "point_b_cm": [
+        184261.9643,
+        345624.673
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_3",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 1,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        184261.9643,
+        345624.673
+      ],
+      "point_b_cm": [
+        183843.2391,
+        345064.44
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_4",
+      "kind": "bridge",
+      "key": "GreatNorthGate",
+      "side": 1,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        183843.2391,
+        345064.44
+      ],
+      "point_b_cm": [
+        183424.514,
+        344504.207
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_0",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 0,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        267830.8469,
+        333253.2068
+      ],
+      "point_b_cm": [
+        268510.8134,
+        333365.4281
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_1",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 0,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        268510.8134,
+        333365.4281
+      ],
+      "point_b_cm": [
+        269190.7799,
+        333477.6494
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_2",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 0,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        269190.7799,
+        333477.6494
+      ],
+      "point_b_cm": [
+        269870.7464,
+        333589.8708
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_3",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 0,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        269870.7464,
+        333589.8708
+      ],
+      "point_b_cm": [
+        270550.7128,
+        333702.0921
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_4",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 0,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        270550.7128,
+        333702.0921
+      ],
+      "point_b_cm": [
+        271230.6793,
+        333814.3134
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_0",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 1,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        275847.5406,
+        329817.0559
+      ],
+      "point_b_cm": [
+        275391.085,
+        330289.5688
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_1",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 1,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        275391.085,
+        330289.5688
+      ],
+      "point_b_cm": [
+        274934.6295,
+        330762.0817
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_2",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 1,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        274934.6295,
+        330762.0817
+      ],
+      "point_b_cm": [
+        274478.1739,
+        331234.5947
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_3",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 1,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        274478.1739,
+        331234.5947
+      ],
+      "point_b_cm": [
+        274021.7183,
+        331707.1076
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_4",
+      "kind": "bridge",
+      "key": "Xiaobeimen_AAA_V3",
+      "side": 1,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        274021.7183,
+        331707.1076
+      ],
+      "point_b_cm": [
+        273565.2627,
+        332179.6206
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_0",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 0,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        119082.556,
+        114933.9199
+      ],
+      "point_b_cm": [
+        119665.065,
+        115111.1423
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_1",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 0,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        119665.065,
+        115111.1423
+      ],
+      "point_b_cm": [
+        120247.574,
+        115288.3647
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_2",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 0,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        120247.574,
+        115288.3647
+      ],
+      "point_b_cm": [
+        120830.083,
+        115465.5872
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_3",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 0,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        120830.083,
+        115465.5872
+      ],
+      "point_b_cm": [
+        121412.592,
+        115642.8096
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_4",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 0,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        121412.592,
+        115642.8096
+      ],
+      "point_b_cm": [
+        121995.101,
+        115820.032
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_0",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 1,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        127694.3382,
+        116973.4562
+      ],
+      "point_b_cm": [
+        127124.4907,
+        116742.7714
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_1",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 1,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        127124.4907,
+        116742.7714
+      ],
+      "point_b_cm": [
+        126554.6433,
+        116512.0865
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_2",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 1,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        126554.6433,
+        116512.0865
+      ],
+      "point_b_cm": [
+        125984.7959,
+        116281.4017
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_3",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 1,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        125984.7959,
+        116281.4017
+      ],
+      "point_b_cm": [
+        125414.9484,
+        116050.7168
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_4",
+      "kind": "bridge",
+      "key": "Guidemen_ReferenceRepaired",
+      "side": 1,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        125414.9484,
+        116050.7168
+      ],
+      "point_b_cm": [
+        124845.101,
+        115820.032
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_0",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 0,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        176306.4185,
+        131365.0692
+      ],
+      "point_b_cm": [
+        176943.351,
+        131428.7164
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_1",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 0,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        176943.351,
+        131428.7164
+      ],
+      "point_b_cm": [
+        177580.2835,
+        131492.3635
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_2",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 0,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        177580.2835,
+        131492.3635
+      ],
+      "point_b_cm": [
+        178217.216,
+        131556.0107
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_3",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 0,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        178217.216,
+        131556.0107
+      ],
+      "point_b_cm": [
+        178854.1485,
+        131619.6578
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_4",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 0,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        178854.1485,
+        131619.6578
+      ],
+      "point_b_cm": [
+        179491.081,
+        131683.305
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_0",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 1,
+      "part": 0,
+      "part_count": 6,
+      "point_a_cm": [
+        184294.7781,
+        134409.315
+      ],
+      "point_b_cm": [
+        183919.1619,
+        133954.98
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_1",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 1,
+      "part": 1,
+      "part_count": 6,
+      "point_a_cm": [
+        183919.1619,
+        133954.98
+      ],
+      "point_b_cm": [
+        183543.5458,
+        133500.645
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_2",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 1,
+      "part": 2,
+      "part_count": 6,
+      "point_a_cm": [
+        183543.5458,
+        133500.645
+      ],
+      "point_b_cm": [
+        183167.9296,
+        133046.31
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_3",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 1,
+      "part": 3,
+      "part_count": 6,
+      "point_a_cm": [
+        183167.9296,
+        133046.31
+      ],
+      "point_b_cm": [
+        182792.3134,
+        132591.975
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_4",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 1,
+      "part": 4,
+      "part_count": 6,
+      "point_a_cm": [
+        182792.3134,
+        132591.975
+      ],
+      "point_b_cm": [
+        182416.6972,
+        132137.64
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_5",
+      "kind": "bridge",
+      "key": "Zhengnanmen_HighFidelity",
+      "side": 1,
+      "part": 5,
+      "part_count": 6,
+      "point_a_cm": [
+        182416.6972,
+        132137.64
+      ],
+      "point_b_cm": [
+        182041.081,
+        131683.305
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_0",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 0,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        254282.072,
+        164833.1723
+      ],
+      "point_b_cm": [
+        254794.0104,
+        165292.9156
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_1",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 0,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        254794.0104,
+        165292.9156
+      ],
+      "point_b_cm": [
+        255305.9488,
+        165752.659
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_2",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 0,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        255305.9488,
+        165752.659
+      ],
+      "point_b_cm": [
+        255817.8872,
+        166212.4023
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_3",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 0,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        255817.8872,
+        166212.4023
+      ],
+      "point_b_cm": [
+        256329.8256,
+        166672.1457
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_4",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 0,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        256329.8256,
+        166672.1457
+      ],
+      "point_b_cm": [
+        256841.764,
+        167131.889
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_0",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 1,
+      "part": 0,
+      "part_count": 6,
+      "point_a_cm": [
+        265590.33,
+        169797.6259
+      ],
+      "point_b_cm": [
+        265190.569,
+        169353.3365
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_1",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 1,
+      "part": 1,
+      "part_count": 6,
+      "point_a_cm": [
+        265190.569,
+        169353.3365
+      ],
+      "point_b_cm": [
+        264790.808,
+        168909.047
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_2",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 1,
+      "part": 2,
+      "part_count": 6,
+      "point_a_cm": [
+        264790.808,
+        168909.047
+      ],
+      "point_b_cm": [
+        264391.047,
+        168464.7575
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_3",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 1,
+      "part": 3,
+      "part_count": 6,
+      "point_a_cm": [
+        264391.047,
+        168464.7575
+      ],
+      "point_b_cm": [
+        263991.286,
+        168020.468
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_4",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 1,
+      "part": 4,
+      "part_count": 6,
+      "point_a_cm": [
+        263991.286,
+        168020.468
+      ],
+      "point_b_cm": [
+        263591.525,
+        167576.1785
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_5",
+      "kind": "bridge",
+      "key": "Wenmingmen",
+      "side": 1,
+      "part": 5,
+      "part_count": 6,
+      "point_a_cm": [
+        263591.525,
+        167576.1785
+      ],
+      "point_b_cm": [
+        263191.764,
+        167131.889
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_0",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 0,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        191151.6595,
+        100154.0403
+      ],
+      "point_b_cm": [
+        190684.5438,
+        99668.9023
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_1",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 0,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        190684.5438,
+        99668.9023
+      ],
+      "point_b_cm": [
+        190217.4281,
+        99183.7642
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_2",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 0,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        190217.4281,
+        99183.7642
+      ],
+      "point_b_cm": [
+        189750.3124,
+        98698.6261
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_3",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 0,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        189750.3124,
+        98698.6261
+      ],
+      "point_b_cm": [
+        189283.1967,
+        98213.4881
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_4",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 0,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        189283.1967,
+        98213.4881
+      ],
+      "point_b_cm": [
+        188816.081,
+        97728.35
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_0",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 1,
+      "part": 0,
+      "part_count": 5,
+      "point_a_cm": [
+        182826.1437,
+        95683.214
+      ],
+      "point_b_cm": [
+        183334.1312,
+        96092.2412
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_1",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 1,
+      "part": 1,
+      "part_count": 5,
+      "point_a_cm": [
+        183334.1312,
+        96092.2412
+      ],
+      "point_b_cm": [
+        183842.1186,
+        96501.2684
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_2",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 1,
+      "part": 2,
+      "part_count": 5,
+      "point_a_cm": [
+        183842.1186,
+        96501.2684
+      ],
+      "point_b_cm": [
+        184350.1061,
+        96910.2956
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_3",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 1,
+      "part": 3,
+      "part_count": 5,
+      "point_a_cm": [
+        184350.1061,
+        96910.2956
+      ],
+      "point_b_cm": [
+        184858.0935,
+        97319.3228
+      ]
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_4",
+      "kind": "bridge",
+      "key": "Wuxianmen_V5_FullPBR",
+      "side": 1,
+      "part": 4,
+      "part_count": 5,
+      "point_a_cm": [
+        184858.0935,
+        97319.3228
+      ],
+      "point_b_cm": [
+        185366.081,
+        97728.35
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "key": "Zhengximen",
+      "wall_feature_id": "WALL-OUTER-01",
+      "nearest_trace_distance_cm": 1484.753,
+      "nearest_trace_segment": 34,
+      "trace_s_cm": 838425.656,
+      "opening_s_cm": [
+        832840.656,
+        844010.656
+      ],
+      "join_half_width_cm": 2585,
+      "cut_points_cm": [
+        [
+          88554.3911,
+          207499.8096
+        ],
+        [
+          89940.6906,
+          218549.8768
+        ]
+      ],
+      "join_points_cm": [
+        [
+          91150.104,
+          210313.856
+        ],
+        [
+          91150.104,
+          215483.856
+        ]
+      ],
+      "connector_lengths_cm": [
+        3828.392,
+        3295.931
+      ]
+    },
+    {
+      "key": "Zhengdongmen",
+      "wall_feature_id": "WALL-OUTER-01",
+      "nearest_trace_distance_cm": 898.397,
+      "nearest_trace_segment": 15,
+      "trace_s_cm": 338468.499,
+      "opening_s_cm": [
+        334108.499,
+        342828.499
+      ],
+      "join_half_width_cm": 1360,
+      "cut_points_cm": [
+        [
+          339111.807,
+          239877.7331
+        ],
+        [
+          339035.8143,
+          231158.0643
+        ]
+      ],
+      "join_points_cm": [
+        [
+          338175.448,
+          236885.728
+        ],
+        [
+          338175.448,
+          234165.728
+        ]
+      ],
+      "connector_lengths_cm": [
+        3135.102,
+        3128.302
+      ]
+    },
+    {
+      "key": "GreatNorthGate",
+      "wall_feature_id": "WALL-OUTER-01",
+      "nearest_trace_distance_cm": 320.627,
+      "nearest_trace_segment": 6,
+      "trace_s_cm": 119337.472,
+      "opening_s_cm": [
+        114612.472,
+        124062.472
+      ],
+      "join_half_width_cm": 1725,
+      "cut_points_cm": [
+        [
+          177537.4756,
+          342244.5913
+        ],
+        [
+          185518.1397,
+          347305.3719
+        ]
+      ],
+      "join_points_cm": [
+        [
+          179974.514,
+          344504.207
+        ],
+        [
+          183424.514,
+          344504.207
+        ]
+      ],
+      "connector_lengths_cm": [
+        3323.405,
+        3497.112
+      ]
+    },
+    {
+      "key": "Xiaobeimen_AAA_V3",
+      "wall_feature_id": "WALL-OUTER-01",
+      "nearest_trace_distance_cm": 1159.162,
+      "nearest_trace_segment": 10,
+      "trace_s_cm": 217425.269,
+      "opening_s_cm": [
+        213000.269,
+        221850.269
+      ],
+      "join_half_width_cm": 1425,
+      "cut_points_cm": [
+        [
+          267830.8469,
+          333253.2068
+        ],
+        [
+          275847.5406,
+          329817.0559
+        ]
+      ],
+      "join_points_cm": [
+        [
+          271230.6793,
+          333814.3134
+        ],
+        [
+          273565.2627,
+          332179.6206
+        ]
+      ],
+      "connector_lengths_cm": [
+        3445.824,
+        3284.89
+      ]
+    },
+    {
+      "key": "Guidemen_ReferenceRepaired",
+      "wall_feature_id": "WALL-INNER-01",
+      "nearest_trace_distance_cm": 137.353,
+      "nearest_trace_segment": 1,
+      "trace_s_cm": 45597.986,
+      "opening_s_cm": [
+        41172.986,
+        50022.986
+      ],
+      "join_half_width_cm": 1425,
+      "cut_points_cm": [
+        [
+          119082.556,
+          114933.9199
+        ],
+        [
+          127694.3382,
+          116973.4562
+        ]
+      ],
+      "join_points_cm": [
+        [
+          121995.101,
+          115820.032
+        ],
+        [
+          124845.101,
+          115820.032
+        ]
+      ],
+      "connector_lengths_cm": [
+        3044.358,
+        3073.848
+      ]
+    },
+    {
+      "key": "Zhengnanmen_HighFidelity",
+      "wall_feature_id": "WALL-INNER-01",
+      "nearest_trace_distance_cm": 1267.757,
+      "nearest_trace_segment": 3,
+      "trace_s_cm": 105027.054,
+      "opening_s_cm": [
+        100752.054,
+        109302.054
+      ],
+      "join_half_width_cm": 1275,
+      "cut_points_cm": [
+        [
+          176306.4185,
+          131365.0692
+        ],
+        [
+          184294.7781,
+          134409.315
+        ]
+      ],
+      "join_points_cm": [
+        [
+          179491.081,
+          131683.305
+        ],
+        [
+          182041.081,
+          131683.305
+        ]
+      ],
+      "connector_lengths_cm": [
+        3200.523,
+        3536.988
+      ]
+    },
+    {
+      "key": "Wenmingmen",
+      "wall_feature_id": "WALL-INNER-01",
+      "nearest_trace_distance_cm": 200.415,
+      "nearest_trace_segment": 5,
+      "trace_s_cm": 191818.217,
+      "opening_s_cm": [
+        185643.217,
+        197993.217
+      ],
+      "join_half_width_cm": 3175,
+      "cut_points_cm": [
+        [
+          254282.072,
+          164833.1723
+        ],
+        [
+          265590.33,
+          169797.6259
+        ]
+      ],
+      "join_points_cm": [
+        [
+          256841.764,
+          167131.889
+        ],
+        [
+          263191.764,
+          167131.889
+        ]
+      ],
+      "connector_lengths_cm": [
+        3440.367,
+        3585.983
+      ]
+    },
+    {
+      "key": "Wuxianmen_V5_FullPBR",
+      "wall_feature_id": "WALL-OUTER-01",
+      "nearest_trace_distance_cm": 215.977,
+      "nearest_trace_segment": 23,
+      "trace_s_cm": 570426.102,
+      "opening_s_cm": [
+        565701.102,
+        575151.102
+      ],
+      "join_half_width_cm": 1725,
+      "cut_points_cm": [
+        [
+          191151.6595,
+          100154.0403
+        ],
+        [
+          182826.1437,
+          95683.214
+        ]
+      ],
+      "join_points_cm": [
+        [
+          188816.081,
+          97728.35
+        ],
+        [
+          185366.081,
+          97728.35
+        ]
+      ],
+      "connector_lengths_cm": [
+        3367.328,
+        3260.96
+      ]
+    }
+  ],
+  "wall_width_cm": 400,
+  "wall_height_above_ground_cm": 500,
+  "wall_embed_below_ground_cm": 100,
+  "passed": true
+}

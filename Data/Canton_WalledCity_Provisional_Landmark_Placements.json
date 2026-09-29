@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "status": "PROVISIONAL_VISUAL_PLACEMENT_ONLY",
+  "historically_accepted": false,
+  "target_map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "source_showcase": "/Game/Assets/Environment/GuangzhouLandmarks/L_GuangzhouLandmarkShowcase",
+  "showcase_manifest": "Saved/RawModelImport/guangzhou-landmark-showcase.json",
+  "map_trace": "Data/Map_Pixel_Traces_Provisional.json",
+  "map_transform": "Data/Map_Transform_Provisional.json",
+  "raw_height": "Export/Provisional/Canton_Modern_Context_SouthFirst.r16",
+  "working_crs": "EPSG:32649",
+  "working_origin_m": [
+    729400,
+    2557300
+  ],
+  "horizontal_uncertainty_floor_m": 132.155,
+  "vertical_status": "modern-context R16 only; historical ground and threshold elevations unavailable",
+  "method": "Manual point on the 1800x1125 MAP-001 preview trace, projected with the explicitly failed provisional affine; asset pivot then seated to the decoded modern-context R16. Positions and yaws are replaceable when surveyed controls arrive.",
+  "historical_layout_reference": "https://www.gz.gov.cn/zlgz/whgz/content/post_8929405.html",
+  "north_wall_reference": "https://www.gdwsw.gov.cn/wsxsj/content/post_35689.html",
+  "landmarks": [
+    {
+      "key": "Zhengximen",
+      "kind": "gate",
+      "preview_pixel": [
+        649,
+        435
+      ],
+      "yaw_deg": 270,
+      "sector": "old_city_west_wall",
+      "basis": "Existing GATE-WEST-01 diagnostic point; municipal account associates Zhengximen with the west wall at today's Zhongshan–Renmin junction. Identity of this trace point is unverified.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/Zhengximen/BP_Zhengximen",
+      "visible_local_z_min_cm": -36.0,
+      "visible_height_cm": 1689.68,
+      "visible_local_xy_bounds_cm": [
+        [
+          -2660.0,
+          -540.0
+        ],
+        [
+          2660.0,
+          540.0
+        ]
+      ],
+      "display_name": "ZHENGXIMEN",
+      "label_yaw_deg": 90
+    },
+    {
+      "key": "Zhengdongmen",
+      "kind": "gate",
+      "preview_pixel": [
+        1314,
+        389
+      ],
+      "yaw_deg": 270,
+      "sector": "old_city_east_wall",
+      "basis": "Existing GATE-EAST-01 diagnostic point; municipal account associates Zhengdongmen with today's Zhongshan–Yuexiu junction. Imported Blueprint has local +Y facade.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/Zhengdongmen/BP_Zhengdongmen",
+      "visible_local_z_min_cm": -23.0,
+      "visible_height_cm": 1933.0,
+      "visible_local_xy_bounds_cm": [
+        [
+          -1435.0,
+          -815.0
+        ],
+        [
+          1435.0,
+          824.0
+        ]
+      ],
+      "display_name": "ZHENGDONGMEN",
+      "label_yaw_deg": 270
+    },
+    {
+      "key": "GreatNorthGate",
+      "kind": "gate",
+      "preview_pixel": [
+        900,
+        89
+      ],
+      "yaw_deg": 180,
+      "sector": "north_wall_west_of_zhenhai",
+      "basis": "Traced north wall west of the Zhenhai Tower landmark; municipal account places Dabeimen at today's Jiefangbei–Panfu–Zhenhai junction.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/GreatNorthGate/BP_GreatNorthGate",
+      "visible_local_z_min_cm": -0.0,
+      "visible_height_cm": 2476.02,
+      "visible_local_xy_bounds_cm": [
+        [
+          -1800.0,
+          -630.0
+        ],
+        [
+          1800.0,
+          1120.0
+        ]
+      ],
+      "display_name": "DABEIMEN",
+      "label_yaw_deg": 0
+    },
+    {
+      "key": "Xiaobeimen_AAA_V3",
+      "kind": "gate",
+      "preview_pixel": [
+        1143,
+        125
+      ],
+      "yaw_deg": 145,
+      "sector": "north_wall_east_of_zhenhai",
+      "basis": "Existing GATE-NORTH-01 diagnostic point; municipal account places Xiaobeimen east of Zhenhai Tower near today's Xiaobei–Yuexiubei–Zhenhai junction.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/V3/Xiaobeimen_AAA_V3/BP_Xiaobeimen_AAA_V3",
+      "visible_local_z_min_cm": -29.08,
+      "visible_height_cm": 2253.08,
+      "visible_local_xy_bounds_cm": [
+        [
+          -1520.0,
+          -496.0
+        ],
+        [
+          1520.0,
+          2670.0
+        ]
+      ],
+      "display_name": "XIAOBEIMEN",
+      "label_yaw_deg": 325
+    },
+    {
+      "key": "ZhenhaiTower",
+      "kind": "tower_not_gate",
+      "preview_pixel": [
+        961,
+        60
+      ],
+      "yaw_deg": 0,
+      "sector": "north_wall_high_point",
+      "basis": "MAP-001 tower icon at the surviving Zhenhai Tower candidate control, between Dabeimen and Xiaobeimen. This showcase landmark is not a city gate.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/ZhenhaiTower/BP_ZhenhaiTower",
+      "visible_local_z_min_cm": -0.0,
+      "visible_height_cm": 2085.0,
+      "visible_local_xy_bounds_cm": [
+        [
+          -1733.3,
+          -1089.55
+        ],
+        [
+          1733.3,
+          1745.0
+        ]
+      ],
+      "display_name": "ZHENHAI TOWER",
+      "label_yaw_deg": 180
+    },
+    {
+      "key": "Guidemen_ReferenceRepaired",
+      "kind": "gate",
+      "preview_pixel": [
+        730,
+        696
+      ],
+      "yaw_deg": 0,
+      "sector": "old_city_south_wall_west",
+      "basis": "Old south wall west of Zhengnanmen; municipal account places Guidemen at today's Jiefang–Dade junction. The provisional trace contains no named Guidemen point.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/V5/Guidemen_4K/BP_Guidemen_V5_4K_PreRebuild_20260918",
+      "visible_local_z_min_cm": -24.0,
+      "visible_height_cm": 1967.5,
+      "visible_local_xy_bounds_cm": [
+        [
+          -2800.0,
+          -700.0
+        ],
+        [
+          2839.37,
+          1100.0
+        ]
+      ],
+      "display_name": "GUIDEMEN",
+      "label_yaw_deg": 180
+    },
+    {
+      "key": "Zhengnanmen_HighFidelity",
+      "kind": "gate",
+      "preview_pixel": [
+        885,
+        657
+      ],
+      "yaw_deg": 0,
+      "sector": "old_city_south_wall_centre",
+      "basis": "Existing GATE-SOUTH-01 diagnostic point on the old south wall; municipal account places Zhengnanmen at today's Beijing–Danan–Wenming junction. Point identity is unverified.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/BP_GreatSouthGate_Zhengnanmen_V2_ActorAsset",
+      "visible_local_z_min_cm": -0.0,
+      "visible_height_cm": 2302.5,
+      "visible_local_xy_bounds_cm": [
+        [
+          -1350.0,
+          -852.68
+        ],
+        [
+          1350.0,
+          852.68
+        ]
+      ],
+      "display_name": "ZHENGNANMEN",
+      "label_yaw_deg": 180
+    },
+    {
+      "key": "Wenmingmen",
+      "kind": "gate",
+      "preview_pixel": [
+        1100,
+        567
+      ],
+      "yaw_deg": 180,
+      "sector": "old_city_south_wall_east",
+      "basis": "Old south wall east of Zhengnanmen; municipal account says opposite the Workers Cultural Palace on Wenming Road. Blueprint has local +Y facade and a canal below its plaza.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/BP_Wenmingmen",
+      "visible_local_z_min_cm": -332.5,
+      "visible_height_cm": 2199.01,
+      "visible_local_xy_bounds_cm": [
+        [
+          -3250.0,
+          -455.62
+        ],
+        [
+          3250.0,
+          2351.29
+        ]
+      ],
+      "display_name": "WENMINGMEN",
+      "label_yaw_deg": 180
+    },
+    {
+      "key": "Wuxianmen_V5_FullPBR",
+      "kind": "gate",
+      "preview_pixel": [
+        900,
+        748
+      ],
+      "yaw_deg": 0,
+      "sector": "new_south_city_wall",
+      "basis": "Outer/new southern wall south of the old-city gates; municipal account places Wuxianmen west of Haizhu Square on Yide Road. No named map trace point exists.",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/V5/Wuxianmen_FullPBR/BP_Wuxianmen_V5_FullPBR",
+      "visible_local_z_min_cm": -8.0,
+      "visible_height_cm": 1721.0,
+      "visible_local_xy_bounds_cm": [
+        [
+          -1821.25,
+          -453.94
+        ],
+        [
+          1825.33,
+          1304.19
+        ]
+      ],
+      "display_name": "WUXIANMEN",
+      "label_yaw_deg": 180
+    }
+  ]
+}

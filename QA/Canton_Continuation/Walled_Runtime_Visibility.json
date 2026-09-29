@@ -1,0 +1,20 @@
+{
+	"pawn_x_cm": 173000,
+	"pawn_y_cm": 121000,
+	"pawn_z_cm": 1258.9464693011346,
+	"map": "L_Canton_WalledCity_PROVISIONAL",
+	"game_mode": "CantonWalledCityGameMode",
+	"editor_binary": false,
+	"historically_accepted": false,
+	"pawn_spawned": true,
+	"landscape_floor_hit": true,
+	"directional_lights": 2,
+	"world_partition_streaming_enabled": true,
+	"streaming_complete": true,
+	"streaming_level_count": 8,
+	"failed_cells": 0,
+	"screenshot": "/Users/mickiezhou/Library/Containers/com.YourCompany.Aura/Data/Documents/CantonQA/Walled_Runtime_Visibility.png",
+	"screenshot_written": true,
+	"errors": [],
+	"passed": true
+}

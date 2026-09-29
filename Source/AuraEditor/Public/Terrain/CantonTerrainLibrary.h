@@ -11,6 +11,8 @@ class AURAEDITOR_API UCantonTerrainLibrary : public UBlueprintFunctionLibrary
     GENERATED_BODY()
 public:
     UFUNCTION(BlueprintCallable, Category="Canton|Editor")
+    static bool ConfigureDistrictNavigation(UWorld* World);
+    UFUNCTION(BlueprintCallable, Category="Canton|Editor")
     static UWorld* CreateProvisionalWorld();
     UFUNCTION(BlueprintCallable, Category="Canton|Editor")
     static UWorld* CreateDistrictWorld();

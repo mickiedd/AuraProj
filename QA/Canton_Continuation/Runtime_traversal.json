@@ -1,0 +1,88 @@
+{
+	"mode": "traversal",
+	"engine": "5.5.4-40574608+++UE5+Release-5.5",
+	"historically_accepted": false,
+	"gpu_adapter": "Apple M4",
+	"render_settings":
+	{
+		"sg.ViewDistanceQuality": 2,
+		"sg.AntiAliasingQuality": 2,
+		"sg.ShadowQuality": 2,
+		"sg.GlobalIlluminationQuality": 2,
+		"sg.ReflectionQuality": 2,
+		"sg.PostProcessQuality": 2,
+		"sg.TextureQuality": 2,
+		"sg.EffectsQuality": 2,
+		"sg.FoliageQuality": 2,
+		"sg.ShadingQuality": 2,
+		"r.ScreenPercentage": 100,
+		"r.DynamicGlobalIlluminationMethod": 1,
+		"r.ReflectionMethod": 1
+	},
+	"editor_binary": false,
+	"pawn_traversal_performed": true,
+	"capsule_radius_cm": 35,
+	"capsule_half_height_cm": 90,
+	"max_step_cm": 20,
+	"walkable_floor_degrees": 35,
+	"routes": [
+		{
+			"route": "principal",
+			"passed": true,
+			"fell": false,
+			"endpoint_error_cm": 30.628770430455916,
+			"walked_cm": 14469.371229533601,
+			"seconds": 32.273310165852308
+		},
+		{
+			"route": "mixed_west",
+			"passed": true,
+			"fell": false,
+			"endpoint_error_cm": 25.022683323535603,
+			"walked_cm": 5474.9773166764644,
+			"seconds": 12.285729832947254
+		},
+		{
+			"route": "mixed_east",
+			"passed": true,
+			"fell": false,
+			"endpoint_error_cm": 31.186321140034124,
+			"walked_cm": 8968.813678858045,
+			"seconds": 20.051316123455763
+		},
+		{
+			"route": "intersection",
+			"passed": true,
+			"fell": false,
+			"endpoint_error_cm": 26.799270783005081,
+			"walked_cm": 4246.1603972825287,
+			"seconds": 9.5540988743305206
+		},
+		{
+			"route": "threshold",
+			"passed": true,
+			"fell": false,
+			"endpoint_error_cm": 29.861341690149857,
+			"walked_cm": 3220.1386583270069,
+			"seconds": 7.269947711378336
+		},
+		{
+			"route": "gutter",
+			"passed": true,
+			"fell": false,
+			"endpoint_error_cm": 27.450833117181901,
+			"walked_cm": 872.54916688063531,
+			"seconds": 2.0598125830292702
+		},
+		{
+			"route": "courtyard_reference",
+			"passed": true,
+			"fell": false,
+			"endpoint_error_cm": 28.803666850697482,
+			"walked_cm": 3971.1963331493025,
+			"seconds": 8.9455698728561401
+		}
+	],
+	"errors": [],
+	"passed": true
+}

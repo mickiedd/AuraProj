@@ -1,0 +1,118 @@
+{
+  "phase": "Before",
+  "historically_accepted": false,
+  "views": [
+    {
+      "key": "Zhengximen",
+      "image": "QA/Canton_Continuation/Wall_Gate_Fit/Before_Zhengximen.png",
+      "eye_cm": [
+        84150.10403683409,
+        212898.85630318895,
+        2943.421875
+      ],
+      "aim_cm": [
+        91150.10403683409,
+        212898.85630318895,
+        1793.421875
+      ]
+    },
+    {
+      "key": "Zhengdongmen",
+      "image": "QA/Canton_Continuation/Wall_Gate_Fit/Before_Zhengdongmen.png",
+      "eye_cm": [
+        345175.44802837074,
+        235525.7275788579,
+        2692.140625
+      ],
+      "aim_cm": [
+        338175.44802837074,
+        235525.7275788579,
+        1542.140625
+      ]
+    },
+    {
+      "key": "GreatNorthGate",
+      "image": "QA/Canton_Continuation/Wall_Gate_Fit/Before_GreatNorthGate.png",
+      "eye_cm": [
+        181699.5136755635,
+        351504.20732409693,
+        5262.5
+      ],
+      "aim_cm": [
+        181699.5136755635,
+        344504.20732409693,
+        4112.5
+      ]
+    },
+    {
+      "key": "Xiaobeimen_AAA_V3",
+      "image": "QA/Canton_Continuation/Wall_Gate_Fit/Before_Xiaobeimen_AAA_V3.png",
+      "eye_cm": [
+        276413.0063071469,
+        338731.03178681555,
+        2712.2831250000017
+      ],
+      "aim_cm": [
+        272397.9712526896,
+        332996.96747679263,
+        1562.2831250000017
+      ]
+    },
+    {
+      "key": "Guidemen_ReferenceRepaired",
+      "image": "QA/Canton_Continuation/Wall_Gate_Fit/Before_Guidemen_ReferenceRepaired.png",
+      "eye_cm": [
+        123420.10100163752,
+        108820.03176743165,
+        3770.484375
+      ],
+      "aim_cm": [
+        123420.10100163752,
+        115820.03176743165,
+        2620.484375
+      ]
+    },
+    {
+      "key": "Zhengnanmen_HighFidelity",
+      "image": "QA/Canton_Continuation/Wall_Gate_Fit/Before_Zhengnanmen_HighFidelity.png",
+      "eye_cm": [
+        180766.0805489635,
+        124683.30547683872,
+        2791.40625
+      ],
+      "aim_cm": [
+        180766.0805489635,
+        131683.30547683872,
+        1641.40625
+      ]
+    },
+    {
+      "key": "Wenmingmen",
+      "image": "QA/Canton_Continuation/Wall_Gate_Fit/Before_Wenmingmen.png",
+      "eye_cm": [
+        260016.76381783327,
+        160131.8891446106,
+        4018.046875
+      ],
+      "aim_cm": [
+        260016.76381783327,
+        167131.8891446106,
+        2868.046875
+      ]
+    },
+    {
+      "key": "Wuxianmen_V5_FullPBR",
+      "image": "QA/Canton_Continuation/Wall_Gate_Fit/Before_Wuxianmen_V5_FullPBR.png",
+      "eye_cm": [
+        187091.08055119868,
+        90728.35049978457,
+        2435.34375
+      ],
+      "aim_cm": [
+        187091.08055119868,
+        97728.35049978457,
+        1285.34375
+      ]
+    }
+  ]
+}

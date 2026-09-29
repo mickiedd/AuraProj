@@ -2,8 +2,8 @@
 	"devices": [
 		{
 			"deviceName": "AngeladeMac-mini.local",
-			"instance": "80FBCB9E6F4074FD45A0E4B6CF7A4505",
-			"instanceName": "AngeladeMac-mini.local-19661",
+			"instance": "5E6B23012E4E4375CAA939B8377E24B1",
+			"instanceName": "AngeladeMac-mini.local-82713",
 			"platform": "MacEditor",
 			"oSVersion": "macOS 26.6.2 25G83",
 			"model": "Default",
@@ -15,13 +15,13 @@
 			"appInstanceLog": ""
 		}
 	],
-	"reportCreatedOn": "2026.09.25-17.38.22",
+	"reportCreatedOn": "2026.09.28-18.11.18",
 	"succeeded": 1,
 	"succeededWithWarnings": 0,
 	"failed": 0,
 	"notRun": 0,
 	"inProcess": 0,
-	"totalDuration": 20.54986572265625,
+	"totalDuration": 20.634052276611328,
 	"comparisonExported": false,
 	"comparisonExportDirectory": "",
 	"tests": [
@@ -30,10 +30,10 @@
 			"fullTestPath": "Aura.Canton.Provisional.MapConfiguration",
 			"state": "Success",
 			"deviceInstance": [
-				"80FBCB9E6F4074FD45A0E4B6CF7A4505"
+				"5E6B23012E4E4375CAA939B8377E24B1"
 			],
-			"duration": 20.54986572265625,
-			"dateTime": "2026.09.25-17.38.02",
+			"duration": 20.634052276611328,
+			"dateTime": "2026.09.28-18.10.57",
 			"entries": [],
 			"warnings": 0,
 			"errors": 0,

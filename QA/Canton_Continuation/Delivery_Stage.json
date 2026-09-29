@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "command": [
+    "/Volumes/M2/Engine/UE_5.5/Engine/Build/BatchFiles/RunUAT.sh",
+    "BuildCookRun",
+    "-project=/Volumes/M2/Works/AuraProj/Aura.uproject",
+    "-platform=Mac",
+    "-clientconfig=Development",
+    "-skipbuild",
+    "-skipcook",
+    "-stage",
+    "-pak",
+    "-stagingdirectory=/Volumes/M2/Works/AuraProj/Saved/CantonContinuation/Stage",
+    "-unattended",
+    "-nop4"
+  ],
+  "app": "Saved/CantonContinuation/Stage/Mac/Aura.app",
+  "binary_sha256": "df8cddb5848a679c6ea9a19c970c500f71522ccf2d2185cf538fef2b8d237732",
+  "cef_runtime_link": "Contents/UE/Engine/Binaries/ThirdParty/CEF3/Mac/Chromium Embedded Framework.framework",
+  "link_target": "../../../../../../Frameworks/Chromium Embedded Framework.framework",
+  "normal_project_packaging_claim": false
+}

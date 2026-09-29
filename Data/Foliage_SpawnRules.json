@@ -1,5 +1,5 @@
 {
-  "mode": "ordinary_static_mesh_instances_PCG_preflight_unavailable",
+  "mode": "ordinary_static_mesh_actors_PCG_preflight_unavailable",
   "historical_status": "D_PROVISIONAL",
   "placement": "deterministic_sparse_road_edge",
   "grass_count_target": 40,
@@ -8,5 +8,9 @@
     "mixed_lane_from_y_132000": 300,
     "gate_opening": "no growth within paved corridor"
   },
-  "collision": false
+  "collision": false,
+  "grass_count_after_exclusions": 38,
+  "leaf_count": 61,
+  "source_assets": "ContentSource/CantonDistrict/manifest.json",
+  "renderer_note": "Ordinary actors, not InstancedStaticMesh components; runtime ISM count is zero."
 }

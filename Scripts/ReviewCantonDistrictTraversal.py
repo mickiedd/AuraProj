@@ -30,10 +30,8 @@ ROUTES = [
     ("mixed_lane_west_to_junction", (174500, 132000), (180000, 132000), "mixed"),
     ("mixed_lane_junction_to_east", (180000, 132000), (189000, 132000), "mixed"),
     ("principal_to_mixed_intersection", (180000, 130500), (184000, 132000), "intersection"),
-    # The gate has closed doors. The attempted endpoint at y=123100, about 2 m
-    # outside its north face, detoured 2.90x; stop at the open staging point
-    # y=123500 instead. Actual threshold access remains an open issue.
-    ("gate_threshold_approach", (180000, 125000), (180000, 123500), "gate_staging"),
+    # Engineering approach reaches the actual closed-door landing via the source bridge.
+    ("gate_threshold_approach", (180000, 125000), (180000, 121750), "gate_threshold"),
     ("covered_gutter_crossing", (180000, 134000), (180900, 134000), "gutter"),
     ("mixed_lane_to_courtyard_reference", (188000, 132000), (188000, 136000), "reference_only"),
 ]
@@ -51,7 +49,7 @@ def z_at(x, y):
 def floor_trace(x, y):
     z = z_at(x, y)
     hit = unreal.SystemLibrary.line_trace_single(
-        world, unreal.Vector(x, y, z + 250), unreal.Vector(x, y, z - 250),
+        world, unreal.Vector(x, y, z + 2500), unreal.Vector(x, y, z - 250),
         unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, False, [], unreal.DrawDebugTrace.NONE)
     # HitResult's reflected fields are not exposed as Python attributes or
     # editor properties in this UE build; to_tuple follows its struct order.
@@ -69,8 +67,8 @@ def floor_trace(x, y):
 def check_route(name, start_xy, end_xy, surface):
     ax, ay = start_xy
     bx, by = end_xy
-    start = unreal.Vector(ax, ay, z_at(ax, ay) + 90)
-    end = unreal.Vector(bx, by, z_at(bx, by) + 90)
+    start = unreal.Vector(ax, ay, (floor_trace(ax, ay)["impact_z_cm"] or z_at(ax, ay)) + 20)
+    end = unreal.Vector(bx, by, (floor_trace(bx, by)["impact_z_cm"] or z_at(bx, by)) + 20)
     path = unreal.NavigationSystemV1.find_path_to_location_synchronously(world, start, end)
     valid = bool(path and path.is_valid() and not path.is_partial())
     straight = math.hypot(bx-ax, by-ay)
@@ -99,7 +97,7 @@ def check_route(name, start_xy, end_xy, surface):
                       if sample["nav_minus_floor_cm"] is not None]
     return {
         "route": name, "surface": surface,
-        "endpoint_role": "north staging point, approximately 6 m from closed gate face"
+        "endpoint_role": "engineered landing approximately 0.6 m outside the closed door; source bridge retained"
         if name == "gate_threshold_approach" else None,
         "start_xy_cm": list(start_xy), "end_xy_cm": list(end_xy),
         "floor_trace_hits": support_hits, "floor_trace_count": len(samples),
@@ -120,7 +118,8 @@ def check_route(name, start_xy, end_xy, surface):
         "nav_detour_ratio": detour_ratio,
         "pawn_traversal": "NOT_RUN",
         "route_check_pass": valid and support_hits == len(samples) and
-                            detour_ratio is not None and detour_ratio <= 1.5,
+                            detour_ratio is not None and detour_ratio <= 1.5 and
+                            max(nav_floor_gaps, default=999) <= 6,
         "historical_route_claim": False,
     }
 
@@ -154,7 +153,8 @@ def tick(_delta):
             "route_count": len(rows), "route_check_pass_count": sum(r["route_check_pass"] for r in rows),
             "all_route_checks_pass": all(r["route_check_pass"] for r in rows),
             "working_directness_screen_ratio": 1.5,
-            "screen_status": "provisional engineering diagnostic; owner approval pending",
+            "screen_status": "technical target approved 2026-09-29; 6 cm nav-floor screen remains working diagnostic",
+            "working_nav_floor_gap_cm": 6,
             "closed_gate_transit_diagnostic": closed_gate,
             "routes": rows,
         }

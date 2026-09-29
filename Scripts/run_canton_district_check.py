@@ -47,7 +47,7 @@ def inspect_evidence(mode, raw_exit_code, result_path, log_path, started_ns):
     if "LogExit: Exiting." not in log or "Log file closed" not in log:
         problems.append("UE did not log a completed shutdown")
     for line in log.splitlines():
-        if any(term in line for term in ("Error:", "Fatal error", "Critical error")):
+        if any(term in line for term in ("Error:", "Fatal error", "Critical error", "Failed to compile Material", "Default Material will be used")):
             if not any(known in line for known in KNOWN_HEADLESS_ERRORS):
                 problems.append("unrecognized UE error: " + line[-300:])
     if mode in ("review", "traversal") and not MAP_CHECK_OK.search(log):
@@ -115,7 +115,7 @@ def main(argv=None):
     started_ns = time.time_ns()
     try:
         with stdout.open("w") as stream:
-            run = subprocess.run(command, cwd=ROOT, stdout=stream,
+            run = subprocess.run(command, cwd=ROOT, env={**os.environ, "LC_ALL": "C", "PYTHONCOERCECLOCALE": "0"}, stdout=stream,
                                  stderr=subprocess.STDOUT, timeout=timeout, check=False)
         raw_exit = run.returncode
         problems = inspect_evidence(args.mode, raw_exit, result, log, started_ns)

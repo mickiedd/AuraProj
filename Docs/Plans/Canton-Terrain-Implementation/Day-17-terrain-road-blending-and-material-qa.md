@@ -14,7 +14,7 @@ Complete the Day 17 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
-**Current baseline (2026-09-29):** Four fixed scenes and atlas document blockout surfaces.
+**Current baseline (2026-09-29):** Fresh fixed scenes and the material atlas show authored paving, grounded transitions, blade/leaf geometry and localized textured wetness.
 
 **Remaining focus:** Finish road/earth/gate transitions, audit dry/wet roughness and update all four camera views from the same candidate. Re-run seams/collision after changes; visual modules and material joints remain open despite geometric sample passes. Owner: environment artist; CANTON-M03-001.
 
@@ -37,3 +37,7 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds [Day 18 plan](Day-18-add-urban-vegetation-with-controls.md).
 
+
+## Implementation continuation — 2026-09-29
+
+Use [the current continuation record](../../../QA/Canton_Continuation/README.md) and [current M05 handoff](../../../Review/M05_Final_Handoff.md) for the candidate implementation and validation. Earlier baseline descriptions below/above remain pre-continuation context where not replaced. The owner approved the M4/Metal raster target and closed gate. Historical H1/H2/Z and period-art source approval remain separate gates.

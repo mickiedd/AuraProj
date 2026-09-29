@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+  <title id="title">Canton walled-city disk save verification</title>
+  <desc id="desc">A fresh Unreal editor loads the map, saves dirty provisional packages, reloads the serialized map, and verifies zero dirty packages with nine landmarks and 99 fitted wall actors.</desc>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#efbd58"/></marker></defs>
+  <rect width="1400" height="760" fill="#101b2b"/>
+  <text x="52" y="62" fill="#f4f7fb" font-family="Arial,sans-serif" font-size="34" font-weight="700">Canton walled city · disk save check</text>
+  <text x="52" y="99" fill="#b9c9d8" font-family="Arial,sans-serif" font-size="19">Fresh Unreal session, explicit save, reload from serialized packages</text>
+  <g font-family="Arial,sans-serif">
+    <rect x="55" y="190" width="275" height="220" rx="16" fill="#1a2d43" stroke="#41627b" stroke-width="2"/>
+    <text x="86" y="238" fill="#edf4fa" font-size="23" font-weight="700">1 · Load map</text>
+    <text x="86" y="280" fill="#bdcbd7" font-size="17">L_Canton_WalledCity</text><text x="86" y="307" fill="#bdcbd7" font-size="17">_PROVISIONAL</text>
+    <text x="86" y="350" fill="#70d5b7" font-size="18">World Partition loaded</text><text x="86" y="378" fill="#70d5b7" font-size="18">9 landmarks + 99 fit walls</text>
+    <path d="M345 300 H405" stroke="#efbd58" stroke-width="7" marker-end="url(#arrow)"/>
+    <rect x="420" y="190" width="275" height="220" rx="16" fill="#1a2d43" stroke="#41627b" stroke-width="2"/>
+    <text x="451" y="238" fill="#edf4fa" font-size="23" font-weight="700">2 · Save</text>
+    <text x="451" y="280" fill="#bdcbd7" font-size="17">Map package</text><text x="451" y="307" fill="#bdcbd7" font-size="17">External actors</text>
+    <text x="451" y="350" fill="#70d5b7" font-size="18">SavePackages completed</text><text x="451" y="378" fill="#efbd58" font-size="18">0 dirty packages remained</text>
+    <path d="M710 300 H770" stroke="#efbd58" stroke-width="7" marker-end="url(#arrow)"/>
+    <rect x="785" y="190" width="275" height="220" rx="16" fill="#1a2d43" stroke="#41627b" stroke-width="2"/>
+    <text x="816" y="238" fill="#edf4fa" font-size="23" font-weight="700">3 · Reload</text>
+    <text x="816" y="280" fill="#bdcbd7" font-size="17">Read map from disk</text>
+    <text x="816" y="320" fill="#70d5b7" font-size="18">9 landmark actors</text><text x="816" y="350" fill="#70d5b7" font-size="18">99 fitted wall actors</text><text x="816" y="378" fill="#70d5b7" font-size="18">Serialized state intact</text>
+    <rect x="55" y="490" width="1005" height="130" rx="16" fill="#273246" stroke="#ad7937" stroke-width="2"/>
+    <text x="86" y="535" fill="#ffd58d" font-size="21" font-weight="700">On-disk evidence</text>
+    <text x="86" y="574" fill="#e7eef4" font-size="17">.umap present · 516 external actor files · 4 external object files · Walled_Disk_Save.json passed</text>
+    <text x="86" y="602" fill="#e7eef4" font-size="17">Scope remains provisional: survey coordinates and historical ground are still future inputs.</text>
+  </g>
+</svg>

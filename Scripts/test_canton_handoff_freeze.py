@@ -24,6 +24,7 @@ for folder in (
     "Content/__ExternalActors__/Canton/DistrictPrototype",
     "Content/Canton/Provisional",
     "Content/__ExternalActors__/Canton/Provisional",
+    "Content/__ExternalObjects__/Canton/Provisional",
     "Content/Assets/Environment/GuangzhouLandmarks/Wenmingmen",
 ):
     packages = {str(file.relative_to(ROOT)) for file in (ROOT / folder).rglob("*")

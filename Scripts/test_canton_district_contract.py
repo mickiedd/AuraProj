@@ -33,7 +33,8 @@ assert material["paintable_layers"] == ["Soil", "Earth", "Pebble", "Grass", "Dam
 assert wetness["wet_patches"] == 14 and wetness["saved_actor_packages"] == 14
 assert wetness["card_bottom_offset_cm"] <= 1 and wetness["cast_shadow"] is False
 assert capture_qa["matched_camera"] and capture_qa["matched_target"]
-assert capture_qa["changed_pixels_gt8"] > 20000
+assert capture_qa["changed_pixels_gt8"] > 1000
+assert 0 < capture_qa["changed_fraction_gt8"] < .10  # localized wetting, not a full-frame change
 assert cook["passed"] and cook["packages_remaining"] == 0
 assert len(cook["cooked_umaps"]) == 2
 assert traversal["historically_accepted"] is False
@@ -50,12 +51,13 @@ assert all(sample["floor_z_cm"] is not None
            for sample in route["nav_corner_floor_samples"])
 gate_route = next(route for route in traversal["routes"]
                   if route["route"] == "gate_threshold_approach")
-assert gate_route["end_xy_cm"] == [180000, 123500]
-assert "staging" in gate_route["endpoint_role"]
+assert gate_route["end_xy_cm"] == [180000, 121750]
+assert "closed door" in gate_route["endpoint_role"]
 assert gate_route["route_check_pass"] == (
     gate_route["floor_support_pass"] and gate_route["nav_path_valid"]
     and gate_route["nav_detour_ratio"] is not None
-    and gate_route["nav_detour_ratio"] <= 1.5)
+    and gate_route["nav_detour_ratio"] <= 1.5
+    and gate_route["max_abs_nav_minus_floor_cm"] <= 6)
 closed_gate = traversal["closed_gate_transit_diagnostic"]
 assert closed_gate["route_check_pass"] is False
 assert closed_gate["nav_detour_ratio"] > 1.5

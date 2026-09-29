@@ -1,0 +1,612 @@
+{
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "historically_accepted": false,
+  "provisional_wall_fit": true,
+  "gate_count": 8,
+  "original_wall_markers": 410,
+  "retired_original_markers": 35,
+  "removed_this_run": [],
+  "retained_original_markers": 375,
+  "trace_replacement_count": 16,
+  "bridge_segment_count": 83,
+  "generated_created": 0,
+  "generated_updated": 99,
+  "total_wall_actors": 474,
+  "vertical_spans": [
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_6_1_0",
+      "kind": "trace",
+      "bottom_z_cm": 3227.344,
+      "top_z_cm": 3934.766
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_6_5_0",
+      "kind": "trace",
+      "bottom_z_cm": 3028.906,
+      "top_z_cm": 3935.156
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_10_5_0",
+      "kind": "trace",
+      "bottom_z_cm": 577.344,
+      "top_z_cm": 1439.062
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_11_0_0",
+      "kind": "trace",
+      "bottom_z_cm": 901.172,
+      "top_z_cm": 1523.047
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_15_1_0",
+      "kind": "trace",
+      "bottom_z_cm": 560.156,
+      "top_z_cm": 1172.266
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_15_4_0",
+      "kind": "trace",
+      "bottom_z_cm": 546.875,
+      "top_z_cm": 1202.734
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_23_6_0",
+      "kind": "trace",
+      "bottom_z_cm": 639.844,
+      "top_z_cm": 1789.453
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_23_10_0",
+      "kind": "trace",
+      "bottom_z_cm": 430.078,
+      "top_z_cm": 1057.422
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_33_7_0",
+      "kind": "trace",
+      "bottom_z_cm": 838.281,
+      "top_z_cm": 1438.281
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_0_34_1_0",
+      "kind": "trace",
+      "bottom_z_cm": 880.078,
+      "top_z_cm": 1490.625
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_1_2_0",
+      "kind": "trace",
+      "bottom_z_cm": 1055.859,
+      "top_z_cm": 1730.469
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_1_5_0",
+      "kind": "trace",
+      "bottom_z_cm": 1466.406,
+      "top_z_cm": 2132.812
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_2_12_0",
+      "kind": "trace",
+      "bottom_z_cm": 672.266,
+      "top_z_cm": 1350.391
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_3_2_0",
+      "kind": "trace",
+      "bottom_z_cm": 893.75,
+      "top_z_cm": 1594.922
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_5_5_0",
+      "kind": "trace",
+      "bottom_z_cm": 1189.844,
+      "top_z_cm": 1827.734
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Trace_1_5_9_0",
+      "kind": "trace",
+      "bottom_z_cm": 1312.109,
+      "top_z_cm": 1964.453
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_0",
+      "kind": "bridge",
+      "bottom_z_cm": 818.75,
+      "top_z_cm": 1449.805
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_1",
+      "kind": "bridge",
+      "bottom_z_cm": 805.078,
+      "top_z_cm": 1461.328
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_2",
+      "kind": "bridge",
+      "bottom_z_cm": 777.344,
+      "top_z_cm": 1472.852
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_3",
+      "kind": "bridge",
+      "bottom_z_cm": 777.344,
+      "top_z_cm": 1484.375
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_4",
+      "kind": "bridge",
+      "bottom_z_cm": 779.297,
+      "top_z_cm": 1495.899
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_0_5",
+      "kind": "bridge",
+      "bottom_z_cm": 823.047,
+      "top_z_cm": 1507.422
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_0",
+      "kind": "bridge",
+      "bottom_z_cm": 858.984,
+      "top_z_cm": 1485.547
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_1",
+      "kind": "bridge",
+      "bottom_z_cm": 863.281,
+      "top_z_cm": 1491.016
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_2",
+      "kind": "bridge",
+      "bottom_z_cm": 865.234,
+      "top_z_cm": 1496.484
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_3",
+      "kind": "bridge",
+      "bottom_z_cm": 872.266,
+      "top_z_cm": 1501.953
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengximen_1_4",
+      "kind": "bridge",
+      "bottom_z_cm": 897.266,
+      "top_z_cm": 1514.453
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_0",
+      "kind": "bridge",
+      "bottom_z_cm": 546.094,
+      "top_z_cm": 1181.953
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_1",
+      "kind": "bridge",
+      "bottom_z_cm": 528.516,
+      "top_z_cm": 1203.75
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_2",
+      "kind": "bridge",
+      "bottom_z_cm": 528.516,
+      "top_z_cm": 1225.547
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_3",
+      "kind": "bridge",
+      "bottom_z_cm": 549.219,
+      "top_z_cm": 1247.344
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_0_4",
+      "kind": "bridge",
+      "bottom_z_cm": 589.062,
+      "top_z_cm": 1269.141
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_0",
+      "kind": "bridge",
+      "bottom_z_cm": 602.734,
+      "top_z_cm": 1261.328
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_1",
+      "kind": "bridge",
+      "bottom_z_cm": 616.016,
+      "top_z_cm": 1323.828
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_2",
+      "kind": "bridge",
+      "bottom_z_cm": 629.297,
+      "top_z_cm": 1342.188
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_3",
+      "kind": "bridge",
+      "bottom_z_cm": 642.578,
+      "top_z_cm": 1365.625
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengdongmen_1_4",
+      "kind": "bridge",
+      "bottom_z_cm": 655.86,
+      "top_z_cm": 1365.625
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_0",
+      "kind": "bridge",
+      "bottom_z_cm": 3193.359,
+      "top_z_cm": 3834.375
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_1",
+      "kind": "bridge",
+      "bottom_z_cm": 3140.625,
+      "top_z_cm": 3841.406
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_2",
+      "kind": "bridge",
+      "bottom_z_cm": 3103.516,
+      "top_z_cm": 3848.438
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_3",
+      "kind": "bridge",
+      "bottom_z_cm": 3066.797,
+      "top_z_cm": 3855.469
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_0_4",
+      "kind": "bridge",
+      "bottom_z_cm": 3066.797,
+      "top_z_cm": 3862.5
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_0",
+      "kind": "bridge",
+      "bottom_z_cm": 3320.625,
+      "top_z_cm": 4096.875
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_1",
+      "kind": "bridge",
+      "bottom_z_cm": 3306.094,
+      "top_z_cm": 4096.875
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_2",
+      "kind": "bridge",
+      "bottom_z_cm": 3291.562,
+      "top_z_cm": 4089.062
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_3",
+      "kind": "bridge",
+      "bottom_z_cm": 3277.031,
+      "top_z_cm": 4036.719
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_GreatNorthGate_1_4",
+      "kind": "bridge",
+      "bottom_z_cm": 3262.5,
+      "top_z_cm": 3989.844
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_0",
+      "kind": "bridge",
+      "bottom_z_cm": 538.672,
+      "top_z_cm": 1198.516
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_1",
+      "kind": "bridge",
+      "bottom_z_cm": 496.875,
+      "top_z_cm": 1219.687
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_2",
+      "kind": "bridge",
+      "bottom_z_cm": 496.875,
+      "top_z_cm": 1240.859
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_3",
+      "kind": "bridge",
+      "bottom_z_cm": 536.328,
+      "top_z_cm": 1262.031
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_0_4",
+      "kind": "bridge",
+      "bottom_z_cm": 582.422,
+      "top_z_cm": 1283.203
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_0",
+      "kind": "bridge",
+      "bottom_z_cm": 866.016,
+      "top_z_cm": 1512.109
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_1",
+      "kind": "bridge",
+      "bottom_z_cm": 820.312,
+      "top_z_cm": 1522.266
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_2",
+      "kind": "bridge",
+      "bottom_z_cm": 774.609,
+      "top_z_cm": 1517.969
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_3",
+      "kind": "bridge",
+      "bottom_z_cm": 728.906,
+      "top_z_cm": 1484.766
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Xiaobeimen_AAA_V3_1_4",
+      "kind": "bridge",
+      "bottom_z_cm": 683.203,
+      "top_z_cm": 1456.641
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_0",
+      "kind": "bridge",
+      "bottom_z_cm": 1130.469,
+      "top_z_cm": 1853.672
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_1",
+      "kind": "bridge",
+      "bottom_z_cm": 1199.219,
+      "top_z_cm": 1976.875
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_2",
+      "kind": "bridge",
+      "bottom_z_cm": 1295.312,
+      "top_z_cm": 2100.078
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_3",
+      "kind": "bridge",
+      "bottom_z_cm": 1379.297,
+      "top_z_cm": 2223.281
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_0_4",
+      "kind": "bridge",
+      "bottom_z_cm": 1473.828,
+      "top_z_cm": 2346.484
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_0",
+      "kind": "bridge",
+      "bottom_z_cm": 1532.812,
+      "top_z_cm": 2175.547
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_1",
+      "kind": "bridge",
+      "bottom_z_cm": 1556.25,
+      "top_z_cm": 2218.281
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_2",
+      "kind": "bridge",
+      "bottom_z_cm": 1604.688,
+      "top_z_cm": 2261.015
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_3",
+      "kind": "bridge",
+      "bottom_z_cm": 1631.25,
+      "top_z_cm": 2303.75
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Guidemen_ReferenceRepaired_1_4",
+      "kind": "bridge",
+      "bottom_z_cm": 1689.453,
+      "top_z_cm": 2346.484
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_0",
+      "kind": "bridge",
+      "bottom_z_cm": 666.016,
+      "top_z_cm": 1296.094
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_1",
+      "kind": "bridge",
+      "bottom_z_cm": 661.328,
+      "top_z_cm": 1319.922
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_2",
+      "kind": "bridge",
+      "bottom_z_cm": 661.328,
+      "top_z_cm": 1343.75
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_3",
+      "kind": "bridge",
+      "bottom_z_cm": 678.516,
+      "top_z_cm": 1367.578
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_0_4",
+      "kind": "bridge",
+      "bottom_z_cm": 695.703,
+      "top_z_cm": 1391.406
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_0",
+      "kind": "bridge",
+      "bottom_z_cm": 870.703,
+      "top_z_cm": 1493.75
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_1",
+      "kind": "bridge",
+      "bottom_z_cm": 837.109,
+      "top_z_cm": 1476.693
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_2",
+      "kind": "bridge",
+      "bottom_z_cm": 837.109,
+      "top_z_cm": 1459.635
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_3",
+      "kind": "bridge",
+      "bottom_z_cm": 825.521,
+      "top_z_cm": 1460.547
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_4",
+      "kind": "bridge",
+      "bottom_z_cm": 808.463,
+      "top_z_cm": 1473.438
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Zhengnanmen_HighFidelity_1_5",
+      "kind": "bridge",
+      "bottom_z_cm": 791.406,
+      "top_z_cm": 1491.797
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_0",
+      "kind": "bridge",
+      "bottom_z_cm": 1181.641,
+      "top_z_cm": 1900.547
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_1",
+      "kind": "bridge",
+      "bottom_z_cm": 1185.938,
+      "top_z_cm": 1996.797
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_2",
+      "kind": "bridge",
+      "bottom_z_cm": 1278.125,
+      "top_z_cm": 2093.047
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_3",
+      "kind": "bridge",
+      "bottom_z_cm": 1346.094,
+      "top_z_cm": 2189.297
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_0_4",
+      "kind": "bridge",
+      "bottom_z_cm": 1434.766,
+      "top_z_cm": 2285.547
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_0",
+      "kind": "bridge",
+      "bottom_z_cm": 1364.453,
+      "top_z_cm": 2017.969
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_1",
+      "kind": "bridge",
+      "bottom_z_cm": 1375.0,
+      "top_z_cm": 2071.484
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_2",
+      "kind": "bridge",
+      "bottom_z_cm": 1375.391,
+      "top_z_cm": 2125.0
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_3",
+      "kind": "bridge",
+      "bottom_z_cm": 1374.609,
+      "top_z_cm": 2178.516
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_4",
+      "kind": "bridge",
+      "bottom_z_cm": 1383.203,
+      "top_z_cm": 2232.031
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wenmingmen_1_5",
+      "kind": "bridge",
+      "bottom_z_cm": 1459.766,
+      "top_z_cm": 2285.547
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_0",
+      "kind": "bridge",
+      "bottom_z_cm": 539.844,
+      "top_z_cm": 1239.844
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_1",
+      "kind": "bridge",
+      "bottom_z_cm": 488.672,
+      "top_z_cm": 1197.344
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_2",
+      "kind": "bridge",
+      "bottom_z_cm": 439.062,
+      "top_z_cm": 1154.844
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_3",
+      "kind": "bridge",
+      "bottom_z_cm": 414.062,
+      "top_z_cm": 1112.344
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_0_4",
+      "kind": "bridge",
+      "bottom_z_cm": 405.469,
+      "top_z_cm": 1069.844
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_0",
+      "kind": "bridge",
+      "bottom_z_cm": 451.406,
+      "top_z_cm": 1062.5
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_1",
+      "kind": "bridge",
+      "bottom_z_cm": 445.391,
+      "top_z_cm": 1071.094
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_2",
+      "kind": "bridge",
+      "bottom_z_cm": 439.375,
+      "top_z_cm": 1073.438
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_3",
+      "kind": "bridge",
+      "bottom_z_cm": 433.36,
+      "top_z_cm": 1074.219
+    },
+    {
+      "label": "PROVISIONAL_WallFit_Bridge_Wuxianmen_V5_FullPBR_1_4",
+      "kind": "bridge",
+      "bottom_z_cm": 427.344,
+      "top_z_cm": 1074.219
+    }
+  ],
+  "passed": true
+}

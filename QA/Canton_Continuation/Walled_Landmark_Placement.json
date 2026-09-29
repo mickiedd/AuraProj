@@ -1,0 +1,310 @@
+{
+  "status": "PROVISIONAL_VISUAL_PLACEMENT_ONLY",
+  "historically_accepted": false,
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "horizontal_uncertainty_floor_m": 132.155,
+  "source_transform_acceptance_passed": false,
+  "landmarks": [
+    {
+      "key": "Zhengximen",
+      "kind": "gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/Zhengximen/BP_Zhengximen",
+      "actor_label": "PROVISIONAL_Landmark_Zhengximen",
+      "text_label": "PROVISIONAL_Label_Zhengximen",
+      "preview_pixel": [
+        649,
+        435
+      ],
+      "location_cm": [
+        91150.104,
+        212898.856,
+        1043.422
+      ],
+      "yaw_deg": 270,
+      "terrain_anchor_z_cm": 1007.422,
+      "label_yaw_deg": 90,
+      "display_name": "ZHENGXIMEN",
+      "footprint_terrain_range_cm": [
+        907.031,
+        1058.203
+      ],
+      "footprint_terrain_span_cm": 151.172,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "old_city_west_wall"
+    },
+    {
+      "key": "Zhengdongmen",
+      "kind": "gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/Zhengdongmen/BP_Zhengdongmen",
+      "actor_label": "PROVISIONAL_Landmark_Zhengdongmen",
+      "text_label": "PROVISIONAL_Label_Zhengdongmen",
+      "preview_pixel": [
+        1314,
+        389
+      ],
+      "location_cm": [
+        338175.448,
+        235525.728,
+        792.141
+      ],
+      "yaw_deg": 270,
+      "terrain_anchor_z_cm": 769.141,
+      "label_yaw_deg": 270,
+      "display_name": "ZHENGDONGMEN",
+      "footprint_terrain_range_cm": [
+        640.234,
+        969.531
+      ],
+      "footprint_terrain_span_cm": 329.297,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "old_city_east_wall"
+    },
+    {
+      "key": "GreatNorthGate",
+      "kind": "gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/GreatNorthGate/BP_GreatNorthGate",
+      "actor_label": "PROVISIONAL_Landmark_GreatNorthGate",
+      "text_label": "PROVISIONAL_Label_GreatNorthGate",
+      "preview_pixel": [
+        900,
+        89
+      ],
+      "location_cm": [
+        181699.514,
+        344504.207,
+        3362.5
+      ],
+      "yaw_deg": 180,
+      "terrain_anchor_z_cm": 3362.5,
+      "label_yaw_deg": 0,
+      "display_name": "DABEIMEN",
+      "footprint_terrain_range_cm": [
+        3100.0,
+        3486.719
+      ],
+      "footprint_terrain_span_cm": 386.719,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "north_wall_west_of_zhenhai"
+    },
+    {
+      "key": "Xiaobeimen_AAA_V3",
+      "kind": "gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/V3/Xiaobeimen_AAA_V3/BP_Xiaobeimen_AAA_V3",
+      "actor_label": "PROVISIONAL_Landmark_Xiaobeimen_AAA_V3",
+      "text_label": "PROVISIONAL_Label_Xiaobeimen_AAA_V3",
+      "preview_pixel": [
+        1143,
+        125
+      ],
+      "location_cm": [
+        272397.971,
+        332996.967,
+        812.283
+      ],
+      "yaw_deg": 145,
+      "terrain_anchor_z_cm": 783.203,
+      "label_yaw_deg": 325,
+      "display_name": "XIAOBEIMEN",
+      "footprint_terrain_range_cm": [
+        511.328,
+        969.141
+      ],
+      "footprint_terrain_span_cm": 457.812,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "north_wall_east_of_zhenhai"
+    },
+    {
+      "key": "ZhenhaiTower",
+      "kind": "tower_not_gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/ZhenhaiTower/BP_ZhenhaiTower",
+      "actor_label": "PROVISIONAL_Landmark_ZhenhaiTower",
+      "text_label": "PROVISIONAL_Label_ZhenhaiTower",
+      "preview_pixel": [
+        961,
+        60
+      ],
+      "location_cm": [
+        204156.242,
+        355859.295,
+        5022.266
+      ],
+      "yaw_deg": 0,
+      "terrain_anchor_z_cm": 5022.266,
+      "label_yaw_deg": 180,
+      "display_name": "ZHENHAI TOWER",
+      "footprint_terrain_range_cm": [
+        4941.016,
+        5141.016
+      ],
+      "footprint_terrain_span_cm": 200.0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "north_wall_high_point"
+    },
+    {
+      "key": "Guidemen_ReferenceRepaired",
+      "kind": "gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/V5/Guidemen_4K/BP_Guidemen_V5_4K_PreRebuild_20260918",
+      "actor_label": "PROVISIONAL_Landmark_Guidemen_ReferenceRepaired",
+      "text_label": "PROVISIONAL_Label_Guidemen_ReferenceRepaired",
+      "preview_pixel": [
+        730,
+        696
+      ],
+      "location_cm": [
+        123420.101,
+        115820.032,
+        1870.484
+      ],
+      "yaw_deg": 0,
+      "terrain_anchor_z_cm": 1846.484,
+      "label_yaw_deg": 180,
+      "display_name": "GUIDEMEN",
+      "footprint_terrain_range_cm": [
+        1400.391,
+        1867.969
+      ],
+      "footprint_terrain_span_cm": 467.578,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "old_city_south_wall_west"
+    },
+    {
+      "key": "Zhengnanmen_HighFidelity",
+      "kind": "gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/BP_GreatSouthGate_Zhengnanmen_V2_ActorAsset",
+      "actor_label": "PROVISIONAL_Landmark_Zhengnanmen_HighFidelity",
+      "text_label": "PROVISIONAL_Label_Zhengnanmen_HighFidelity",
+      "preview_pixel": [
+        885,
+        657
+      ],
+      "location_cm": [
+        180766.081,
+        131683.305,
+        891.406
+      ],
+      "yaw_deg": 0,
+      "terrain_anchor_z_cm": 891.406,
+      "label_yaw_deg": 180,
+      "display_name": "ZHENGNANMEN",
+      "footprint_terrain_range_cm": [
+        784.766,
+        1074.609
+      ],
+      "footprint_terrain_span_cm": 289.844,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "old_city_south_wall_centre"
+    },
+    {
+      "key": "Wenmingmen",
+      "kind": "gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/BP_Wenmingmen",
+      "actor_label": "PROVISIONAL_Landmark_Wenmingmen",
+      "text_label": "PROVISIONAL_Label_Wenmingmen",
+      "preview_pixel": [
+        1100,
+        567
+      ],
+      "location_cm": [
+        260016.764,
+        167131.889,
+        2118.047
+      ],
+      "yaw_deg": 180,
+      "terrain_anchor_z_cm": 1785.547,
+      "label_yaw_deg": 180,
+      "display_name": "WENMINGMEN",
+      "footprint_terrain_range_cm": [
+        1400.781,
+        1811.719
+      ],
+      "footprint_terrain_span_cm": 410.938,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "old_city_south_wall_east"
+    },
+    {
+      "key": "Wuxianmen_V5_FullPBR",
+      "kind": "gate",
+      "asset": "/Game/Assets/Environment/GuangzhouLandmarks/V5/Wuxianmen_FullPBR/BP_Wuxianmen_V5_FullPBR",
+      "actor_label": "PROVISIONAL_Landmark_Wuxianmen_V5_FullPBR",
+      "text_label": "PROVISIONAL_Label_Wuxianmen_V5_FullPBR",
+      "preview_pixel": [
+        900,
+        748
+      ],
+      "location_cm": [
+        187091.081,
+        97728.35,
+        535.344
+      ],
+      "yaw_deg": 0,
+      "terrain_anchor_z_cm": 527.344,
+      "label_yaw_deg": 180,
+      "display_name": "WUXIANMEN",
+      "footprint_terrain_range_cm": [
+        488.672,
+        555.469
+      ],
+      "footprint_terrain_span_cm": 66.797,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "is_spatially_loaded": true,
+      "historically_accepted": false,
+      "sector": "new_south_city_wall"
+    }
+  ],
+  "retired_diagnostic_gate_markers": [],
+  "actor_count": 9,
+  "label_count": 9,
+  "passed": true
+}

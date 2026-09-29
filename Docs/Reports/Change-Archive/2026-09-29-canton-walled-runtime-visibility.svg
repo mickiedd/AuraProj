@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">Canton walled-city runtime visibility repair</title>
+  <desc id="desc">Before, the level inherited LoadingGameMode and had no PlayerStart, leaving no terrain camera. After, a map-specific walking mode, persistent start and sky provide a visible streamed terrain view; packaged runtime validation passes.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1 L9 5 L1 9 Z" fill="#60748b"/></marker>
+    <style>
+      text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;fill:#172a3d}
+      .title{font-size:30px;font-weight:750}.subtitle{font-size:16px;fill:#52647a}
+      .head{font-size:20px;font-weight:700}.body{font-size:16px}.small{font-size:14px;fill:#52647a}
+      .panel{fill:#fff;stroke:#d4deea;stroke-width:2}.node{fill:#f3f7fb;stroke:#cbd8e5;stroke-width:1.5}
+    </style>
+  </defs>
+  <rect width="1200" height="650" fill="#eef3f8"/>
+  <text x="55" y="59" class="title">Walled-city level: black runtime → visible terrain</text>
+  <text x="55" y="87" class="subtitle">L_Canton_WalledCity_PROVISIONAL · map-specific startup and daylight · 2026-09-29</text>
+
+  <rect x="55" y="118" width="505" height="365" rx="18" class="panel"/>
+  <rect x="55" y="118" width="505" height="55" rx="18" fill="#ffe6e4"/>
+  <rect x="55" y="153" width="505" height="20" fill="#ffe6e4"/>
+  <text x="80" y="153" class="head" fill="#942d33">Before: no playable entry point</text>
+  <rect x="91" y="202" width="433" height="58" rx="10" class="node"/>
+  <text x="110" y="227" class="body">Map inherits global LoadingGameMode</text>
+  <text x="110" y="247" class="small">Packaged log confirms class selection</text>
+  <path d="M307 261 V284" stroke="#60748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="91" y="293" width="433" height="58" rx="10" class="node"/>
+  <text x="110" y="318" class="body">No PlayerStart in the saved level</text>
+  <text x="110" y="338" class="small">FindPlayerStart reports no positive start</text>
+  <path d="M307 353 V376" stroke="#60748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="91" y="385" width="433" height="66" rx="10" fill="#263445"/>
+  <text x="110" y="413" class="body" fill="#fff">No terrain-facing player camera</text>
+  <text x="110" y="436" class="small" fill="#dce5ef">Runtime appears black</text>
+
+  <path d="M565 301 H622" stroke="#60748b" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="640" y="118" width="505" height="365" rx="18" class="panel"/>
+  <rect x="640" y="118" width="505" height="55" rx="18" fill="#ddf3e5"/>
+  <rect x="640" y="153" width="505" height="20" fill="#ddf3e5"/>
+  <text x="665" y="153" class="head" fill="#17633e">After: streamed, lit walking view</text>
+  <rect x="676" y="202" width="433" height="58" rx="10" class="node"/>
+  <text x="695" y="227" class="body">CantonWalledCityGameMode</text>
+  <text x="695" y="247" class="small">Map override; native walking camera</text>
+  <path d="M892 261 V284" stroke="#60748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="676" y="293" width="433" height="58" rx="10" class="node"/>
+  <text x="695" y="318" class="body">Always-loaded PlayerStart on R16 terrain</text>
+  <text x="695" y="338" class="small">173000, 121000 cm · uphill gate view</text>
+  <path d="M892 353 V376" stroke="#60748b" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="676" y="385" width="433" height="66" rx="10" fill="#dff1f7"/>
+  <text x="695" y="413" class="body">Persistent suns + sky atmosphere + skylight</text>
+  <text x="695" y="436" class="small">Visible Landscape and provisional wall/gate</text>
+
+  <rect x="55" y="505" width="1090" height="106" rx="16" fill="#163a52"/>
+  <text x="80" y="539" class="head" fill="#fff">Packaged Mac/Metal validation</text>
+  <text x="80" y="568" class="body" fill="#edf7ff">1280 × 720 player-camera screenshot · 100% sampled pixels nonblack · Landscape floor hit</text>
+  <text x="80" y="592" class="body" fill="#edf7ff">2 directional lights · 8 World Partition streaming levels · 0 failed cells · cook/stage passed</text>
+</svg>

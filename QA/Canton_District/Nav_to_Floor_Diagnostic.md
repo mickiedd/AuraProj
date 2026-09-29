@@ -13,3 +13,7 @@ The [fresh-load traversal matrix](Traversal_Route_Matrix.json) traces vertically
 | Mixed → courtyard reference | 1.000× | 12.68 cm | 1/2; other corner on Landscape |
 
 The open-route nav corner gap spans roughly 0.14–15.63 cm. Recast height quantisation may contribute, but this project has **no approved nav-to-floor clearance budget** and no physical pawn clearance test, so the height relationship is **measured, not passed**. The 2 m north-of-gate [threshold attempt](Gate_Threshold_Attempt.json) detoured 2.905×; the chosen staging point is about 6 m from the gate face. The original closed-door transit query remains a separate 2.583× obstruction diagnostic. See `CANTON-M05-004` and `CANTON-M05-006` in [open issues](../../Data/Open_Issues.csv).
+
+## Current result — 2026-09-29
+
+The fresh seven-route matrix now has a maximum absolute nav-corner/physics-floor difference of 1.414 cm, under the proposed 6 cm screen. Recast 300 cm tiles avoid the curved-bridge interpolation outlier; horizontal/vertical voxels are 5/1 cm. All physical pawn routes also pass. Earlier 15.63 cm gaps and the 6 m staging endpoint below describe the superseded candidate. The current threshold endpoint is y=121750, about 0.6 m outside the closed door. Owner approval of the proposed clearance criteria is still pending.

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "gate_actor_collision_enabled": [
+    false
+  ],
+  "material_instances": 6,
+  "nav_cell_size_cm": 5,
+  "nav_cell_height_cm": 1,
+  "historically_accepted": false
+}

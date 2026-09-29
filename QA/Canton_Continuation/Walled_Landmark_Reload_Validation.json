@@ -1,0 +1,73 @@
+{
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "historically_accepted": false,
+  "placement_status": "PROVISIONAL_VISUAL_PLACEMENT_ONLY",
+  "landmarks": [
+    {
+      "key": "Zhengximen",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/Zhengximen/BP_Zhengximen",
+      "location_error_cm": 0.00033,
+      "mesh_components": 7,
+      "spatially_loaded": true
+    },
+    {
+      "key": "Zhengdongmen",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/Zhengdongmen/BP_Zhengdongmen",
+      "location_error_cm": 0.00056,
+      "mesh_components": 8,
+      "spatially_loaded": true
+    },
+    {
+      "key": "GreatNorthGate",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/GreatNorthGate/BP_GreatNorthGate",
+      "location_error_cm": 0.00046,
+      "mesh_components": 1,
+      "spatially_loaded": true
+    },
+    {
+      "key": "Xiaobeimen_AAA_V3",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/V3/Xiaobeimen_AAA_V3/BP_Xiaobeimen_AAA_V3",
+      "location_error_cm": 0.00055,
+      "mesh_components": 51,
+      "spatially_loaded": true
+    },
+    {
+      "key": "ZhenhaiTower",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/ZhenhaiTower/BP_ZhenhaiTower",
+      "location_error_cm": 0.00057,
+      "mesh_components": 1,
+      "spatially_loaded": true
+    },
+    {
+      "key": "Guidemen_ReferenceRepaired",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/V5/Guidemen_4K/BP_Guidemen_V5_4K_PreRebuild_20260918",
+      "location_error_cm": 0.00044,
+      "mesh_components": 47,
+      "spatially_loaded": true
+    },
+    {
+      "key": "Zhengnanmen_HighFidelity",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/GreatSouthGate_Zhengnanmen_HighFidelity/BP_GreatSouthGate_Zhengnanmen_V2_ActorAsset",
+      "location_error_cm": 0.0007,
+      "mesh_components": 114,
+      "spatially_loaded": true
+    },
+    {
+      "key": "Wenmingmen",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/Wenmingmen/BP_Wenmingmen",
+      "location_error_cm": 0.00026,
+      "mesh_components": 8,
+      "spatially_loaded": true
+    },
+    {
+      "key": "Wuxianmen_V5_FullPBR",
+      "blueprint": "/Game/Assets/Environment/GuangzhouLandmarks/V5/Wuxianmen_FullPBR/BP_Wuxianmen_V5_FullPBR",
+      "location_error_cm": 0.00072,
+      "mesh_components": 11,
+      "spatially_loaded": true
+    }
+  ],
+  "labels": 9,
+  "old_gate_markers": 0,
+  "passed": true
+}

@@ -14,9 +14,9 @@ Complete the Day 14 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
-**Current baseline (2026-09-29):** Seven open/staging screens pass, but threshold access, physical pawn, nav-floor acceptance and warning disposition remain open.
+**Current baseline (2026-09-29):** All seven fresh navigation checks and all seven packaged physical pawn routes pass, including the endpoint about 0.6 m outside the closed door. Maximum nav-corner floor gap is 1.42 cm; current map checks have zero errors/warnings.
 
-**Remaining focus:** Preserve closed Wenmingmen doors. Simplify collision with an obstruction-preserving proxy; resolve the failed ~2 m threshold approach, measure floor at nav corners, and run the actual pawn across all seven routes plus the resolved threshold endpoint. A ~6 m staging stop is insufficient for threshold closure. Owners: gate/navigation owners; CANTON-M05-001, CANTON-M05-004, CANTON-M05-006.
+**Remaining focus:** Preserve the closed-door proxy and source bridge, grounded 2.67% outer approach, 300 cm nav tiles and 5/1 cm voxels. Review the explicit capsule/6 cm clearance criteria and retain H2/Z blockers. Re-run the packaged routes after geometry changes. Evidence: QA/Canton_Continuation/Runtime_traversal.json and QA/Canton_District/Traversal_Route_Matrix.json.
 
 **Work**
 - Walk all intended open prototype roads with the actual pawn, including the district-side threshold approach; fix mesh/landscape seams and foundation gaps. Keep the authored gate closed and test its obstruction separately.
@@ -41,3 +41,7 @@ Update the resource checklist with artifact paths, checksums, commands, exit cod
 # Provisional route-screen clarification (2026-09-28)
 
 The 1.5× navigation detour and <8% two-metre grade figures are working engineering diagnostics in `Docs/Terrain_Acceptance_Budget.md`, pending owner approval. The Wenmingmen test asset has closed doors; a through-gate query is an obstruction diagnostic, while the passing open route currently ends at staging about 6 m north of its face. The attempted ~2 m near-threshold endpoint failed; actual threshold access remains open. No such screen replaces a physical pawn walk or closes Day 14 by itself. Gate collision-export warnings remain unresolved and unwaived.
+
+## Implementation continuation — 2026-09-29
+
+Use [the current continuation record](../../../QA/Canton_Continuation/README.md) and [current M05 handoff](../../../Review/M05_Final_Handoff.md) for the candidate implementation and validation. Earlier baseline descriptions below/above remain pre-continuation context where not replaced. The owner approved the M4/Metal raster target and closed gate. Historical H1/H2/Z and period-art source approval remain separate gates.

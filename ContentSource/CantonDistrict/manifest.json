@@ -1,0 +1,26 @@
+{
+  "historical_confidence": "D",
+  "source": "project-authored engineering interpretation; no period dimensions/species/colour claim",
+  "licence": "project-authored",
+  "triangles": {
+    "SM_Canton_Paving": 540,
+    "SM_Canton_GrassTuft": 176,
+    "SM_Canton_Leaf": 12,
+    "SM_Canton_DampPatch": 32
+  },
+  "assets": {
+    "Earth_BaseColor.png": "0b193239f83a039e4c3501eb7b52361bc13f93320e08c961f7601d55929f32a5",
+    "Earth_Normal.png": "7054ef6fbc47ca338d2af5e354bf4888c67ddad978fc092a50a867f1c6337c35",
+    "Earth_Roughness.png": "abefc39ae11fcdea0ed46bc8fdad5cf4ea0558a74e49437d2d8fbaff7e9c54da",
+    "Pebble_BaseColor.png": "2eb52f2dea6ed05d7d4c32f5e156da4c84e49ef357bafa7f898057ddf632c5e6",
+    "Pebble_Normal.png": "61ba1d9b5bb612eb670779b212cb64140c69c563ee6bb0e8cc72cffffbdacc89",
+    "Pebble_Roughness.png": "1c4c015d2a2360703308b38a072fb2e62bf2841c00cfb358d8c0c833d32231be",
+    "SM_Canton_DampPatch.glb": "afc93181ab1a900a43a3f95192dd15559e1eb2d555e3a582cc1f5292cda3210d",
+    "SM_Canton_GrassTuft.glb": "5780bcee4f84001ce5cf7eae94115f5dd0a98ee28dc56085075b1ab5019e8caa",
+    "SM_Canton_Leaf.glb": "3da49fc29fb930629d5af6d35edac115da3f1200cb48b1095238a17259ddedeb",
+    "SM_Canton_Paving.glb": "dce9c3da8391da90df3c730387205a83be942b9b153c9c88a6260917313690f2",
+    "Stone_BaseColor.png": "14cbcf3f99a4b631413fa287f9a114c48bf32480d5c31e47fff807a64b0422c6",
+    "Stone_Normal.png": "9cd0a714b6f5b41127e9f15bdfc9e718975430dc15dca349ed2b5f92e53b8266",
+    "Stone_Roughness.png": "cc630bc51daac74482b853a3df41a7543e4024115a5962c7fa3105761e5c7f8c"
+  }
+}

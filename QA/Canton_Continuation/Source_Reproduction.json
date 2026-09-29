@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "files": 14,
+  "byte_identical_regeneration": true,
+  "generator": "Scripts/generate_canton_district_assets.py"
+}

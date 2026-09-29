@@ -152,6 +152,7 @@ function ensure_editor_engine_stubs() {
   # Installed UE builds provide the real dylibs, while UBT links project
   # modules through these architecture/configuration-specific stub paths.
   # Keep the links local to the engine's generated Intermediate directory.
+  ensure_engine_stub_link "${stub_dir}/UnrealEditor-RHI.dylib" "${engine_bin_dir}/UnrealEditor-RHI.dylib"
   ensure_engine_stub_link "${stub_dir}/UnrealEditor-Projects.dylib" "${engine_bin_dir}/UnrealEditor-Projects.dylib"
   ensure_engine_stub_link "${stub_dir}/UnrealEditor-CoreOnline.dylib" "${engine_bin_dir}/UnrealEditor-CoreOnline.dylib"
   ensure_engine_stub_link "${stub_dir}/UnrealEditor-NetCore.dylib" "${engine_bin_dir}/UnrealEditor-NetCore.dylib"

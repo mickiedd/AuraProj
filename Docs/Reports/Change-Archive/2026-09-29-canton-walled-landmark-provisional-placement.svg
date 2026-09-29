@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="870" viewBox="0 0 1500 870" role="img" aria-labelledby="title desc">
+  <title id="title">Canton walled-city provisional landmark placement</title>
+  <desc id="desc">Before, four anonymous blue gate point markers. After, eight named gate Blueprints and Zhenhai Tower from the showcase are saved at nine labeled, replaceable locations on the provisional map trace. The source affine fails historical acceptance, so the positions are not surveyed.</desc>
+  <rect width="1500" height="870" fill="#101c2c"/>
+  <text x="58" y="66" fill="#f4f7fb" font-family="Arial, sans-serif" font-size="35" font-weight="700">Canton walled city · provisional landmarks</text>
+  <text x="58" y="103" fill="#bccbd7" font-family="Arial, sans-serif" font-size="19">Eight gate buildings + Zhenhai Tower from the nine-landmark showcase</text>
+  <rect x="45" y="135" width="365" height="575" rx="18" fill="#17283b" stroke="#38516a" stroke-width="2"/>
+  <text x="74" y="177" fill="#e9f2fb" font-family="Arial, sans-serif" font-size="25" font-weight="700">Before</text>
+  <text x="74" y="209" fill="#b9c8d7" font-family="Arial, sans-serif" font-size="17">Four large blue diagnostic cubes</text>
+  <text x="74" y="235" fill="#b9c8d7" font-family="Arial, sans-serif" font-size="17">at unnamed provisional gate points.</text>
+  <path d="M110 332 L201 296 L318 323 L332 510 L214 560 L106 515 Z" fill="none" stroke="#8093a5" stroke-width="12" stroke-linejoin="round" stroke-dasharray="18 12"/>
+  <g fill="#5aa9f5" stroke="#b8dfff" stroke-width="3">
+    <rect x="95" y="409" width="26" height="26"/><rect x="319" y="399" width="26" height="26"/>
+    <rect x="194" y="284" width="26" height="26"/><rect x="201" y="548" width="26" height="26"/>
+  </g>
+  <text x="74" y="634" fill="#bdd0df" font-family="Arial, sans-serif" font-size="17">No saved showcase buildings or</text>
+  <text x="74" y="659" fill="#bdd0df" font-family="Arial, sans-serif" font-size="17">human-readable on-site names.</text>
+  <path d="M426 420 L475 420" stroke="#e8b454" stroke-width="7" marker-end="url(#arrow)"/>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#e8b454"/></marker></defs>
+  <rect x="490" y="135" width="965" height="575" rx="18" fill="#182b3d" stroke="#38516a" stroke-width="2"/>
+  <text x="520" y="177" fill="#e9f2fb" font-family="Arial, sans-serif" font-size="25" font-weight="700">Saved level · nine clearly named placements</text>
+  <text x="520" y="206" fill="#f4c878" font-family="Arial, sans-serif" font-size="16">Schematic of MAP-001 trace; symbols are provisional and are not surveyed coordinates</text>
+  <path d="M682 290 Q812 238 1054 283 L1123 481 L1026 554 L649 558 L600 462 Z" fill="#21384a" stroke="#879ba8" stroke-width="11" stroke-linejoin="round"/>
+  <path d="M649 558 Q718 652 870 653 L1012 609 L1026 554" fill="none" stroke="#879ba8" stroke-width="10" stroke-linecap="round" stroke-dasharray="16 9"/>
+  <text x="767" y="420" fill="#6c8b9b" font-family="Arial, sans-serif" font-size="26" font-weight="700">OLD WALLED CITY</text>
+  <text x="733" y="610" fill="#6c8b9b" font-family="Arial, sans-serif" font-size="16">southern extension</text>
+  <g fill="#f0b752" stroke="#111e2d" stroke-width="4">
+    <circle cx="653" cy="427" r="13"/><circle cx="1110" cy="416" r="13"/>
+    <circle cx="786" cy="274" r="13"/><circle cx="1035" cy="274" r="13"/>
+    <circle cx="709" cy="557" r="13"/><circle cx="868" cy="556" r="13"/>
+    <circle cx="1034" cy="534" r="13"/><circle cx="880" cy="638" r="13"/>
+  </g>
+  <path d="M878 258 L890 238 L902 258 L920 262 L905 274 L910 292 L890 283 L870 292 L875 274 L860 262 Z" fill="#70d5b7" stroke="#112d31" stroke-width="3"/>
+  <g fill="#ecf4f7" font-family="Arial, sans-serif" font-size="16" font-weight="700">
+    <text x="523" y="400">Zhengximen</text><text x="1141" y="413">Zhengdongmen</text>
+    <text x="718" y="252">Dabeimen</text><text x="1013" y="250">Xiaobeimen</text>
+    <text x="887" y="230">Zhenhai Tower</text>
+    <text x="621" y="586">Guidemen</text><text x="823" y="533">Zhengnanmen</text>
+    <text x="1052" y="529">Wenmingmen</text><text x="892" y="666">Wuxianmen</text>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="16">
+    <text x="529" y="691" fill="#f4c878">●</text><text x="548" y="691" fill="#d8e3e9">8 gate Blueprints</text>
+    <text x="745" y="691" fill="#70d5b7">★</text><text x="768" y="691" fill="#d8e3e9">1 tower, not a gate</text>
+    <text x="1005" y="691" fill="#d8e3e9">4 cubes removed</text>
+  </g>
+  <rect x="45" y="733" width="1410" height="109" rx="14" fill="#263144" stroke="#a87743" stroke-width="2"/>
+  <text x="69" y="767" fill="#ffd28a" font-family="Arial, sans-serif" font-size="19" font-weight="700">Historical guard</text>
+  <text x="265" y="767" fill="#e6edf3" font-family="Arial, sans-serif" font-size="17">The provisional affine fails acceptance (132.155 m maximum independent error). Replace all nine XY positions with surveyed controls.</text>
+  <text x="69" y="807" fill="#ffd28a" font-family="Arial, sans-serif" font-size="19" font-weight="700">Validation</text>
+  <text x="265" y="807" fill="#e6edf3" font-family="Arial, sans-serif" font-size="17">Fresh level reload: 9 actors + 9 labels; final scoped Mac cook: 1,528 packages; staged runtime: visible gate and terrain.</text>
+</svg>

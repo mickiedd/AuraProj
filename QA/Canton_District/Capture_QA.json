@@ -5,9 +5,15 @@
     1440,
     1000
   ],
-  "changed_pixels_gt8": 38915,
-  "changed_fraction_gt8": 0.027024305555555555,
+  "changed_pixels_gt8": 16873,
+  "changed_fraction_gt8": 0.01171736111111111,
   "dry_visible": false,
   "damp_visible": true,
-  "visual_decision": "localized dark blockout is legible; final wetness art remains open"
+  "mean_changed_rgb_delta": -32.396491436022046,
+  "dry_sha256": "faf354048ba94e88bd8ca5976486b3bc32685d8970024a975809ebd84c006aa8",
+  "wet_sha256": "2724d7915d27cf03f61f78222a8f504106b8e70501a5bc3549d5169092806fee",
+  "scope": "paired-capture smoke check; period-art acceptance requires separate review",
+  "threshold_rationale": "A nonzero localized change is required. The former >20000 pixel assertion encoded the rectangular blockout footprint; the new irregular mesh has a different silhouette. Require >1000 visible changed pixels and <10% of frame, plus darker mean color.",
+  "visual_decision": "Review the current images; no automated historical art approval.",
+  "passed": true
 }

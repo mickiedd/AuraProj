@@ -67,6 +67,42 @@ FILES = [
     "Source/AuraEditor/Public/Terrain/CantonTerrainLibrary.h",
     "Source/AuraEditor/Private/Terrain/CantonTerrainLibrary.cpp",
 ]
+FILES.extend([
+    "PlayCantonDistrict.command", "Build/Mac/AuraProj.PackageVersionCounter",
+    "Source/Aura/Aura.Build.cs", "Source/AuraEditor/Private/AuraEditorModule.cpp",
+    "Scripts/macos/unreal-common.sh", "Scripts/test_canton_source_manifest.py",
+    "Scripts/CantonMaterialAuthoring.py", "Scripts/CompleteCantonDistrict.py",
+    "Scripts/FinalizeCantonDistrict.py", "Scripts/generate_canton_district_assets.py",
+    "Scripts/repair_canton_mac_framework.py", "Scripts/cook_canton_delivery.py",
+    "Scripts/stage_canton_delivery.py", "Scripts/run_canton_runtime_check.py",
+    "Scripts/test_canton_runtime_check.py", "Scripts/check_canton_runtime_samples.py",
+    "Scripts/verify_canton_capture_pair.py", "Review/M05_2026_09_28_Handoff_Snapshot.md",
+    "Docs/Reports/Change-Archive/2026-09-29-canton-district-runtime-implementation.svg",
+    "Docs/Reports/Change-Archive/2026-09-29-canton-district-runtime-implementation.md",
+    "Scripts/FixCantonWalledRuntime.py", "Scripts/run_canton_walled_visibility.py",
+    "Docs/Reports/Change-Archive/2026-09-29-canton-walled-runtime-visibility.svg",
+    "Docs/Reports/Change-Archive/2026-09-29-canton-walled-runtime-visibility.md",
+    "Data/Canton_WalledCity_Provisional_Landmark_Placements.json",
+    "Scripts/PlaceCantonWalledCityLandmarks.py",
+    "Scripts/ValidateCantonWalledCityLandmarks.py",
+    "Scripts/CaptureCantonWalledLandmarks.py",
+    "Scripts/ProbeCantonWalledWallGateFit.py",
+    "Scripts/plan_canton_walled_gate_wall_fit.py",
+    "Scripts/FitCantonWalledCityWallsToGates.py",
+    "Scripts/ValidateCantonWalledGateWallFit.py",
+    "Scripts/CaptureCantonWallGateCloseups.py",
+    "Scripts/SaveCantonWalledCityToDisk.py",
+    "Data/Canton_WalledCity_Provisional_Wall_Gate_Fit_Config.json",
+    "Docs/Reports/Change-Archive/2026-09-30-canton-walls-fit-gates.svg",
+    "Docs/Reports/Change-Archive/2026-09-30-canton-walls-fit-gates.md",
+    "Docs/Reports/Change-Archive/2026-09-29-canton-walled-landmark-provisional-placement.svg",
+    "Docs/Reports/Change-Archive/2026-09-29-canton-walled-landmark-provisional-placement.md",
+])
+for folder in ["ContentSource/CantonDistrict", "QA/Canton_Continuation",
+               "Source/Aura/Public/Terrain", "Source/Aura/Private/Terrain"]:
+    FILES.extend(str(p.relative_to(ROOT)) for p in (ROOT/folder).rglob("*") if p.is_file() and "__pycache__" not in p.parts)
+FILES.extend(str(p.relative_to(ROOT)) for p in
+             (ROOT/"Docs/Plans/Canton-Terrain-Implementation").glob("Day-*.md"))
 OPTIONAL = [
     "QA/Canton_District/Navigation_Result.json",
     "QA/Canton_District/Cook_Result.json",
@@ -88,6 +124,7 @@ for folder in ["Content/Canton/DistrictPrototype",
                "Content/__ExternalActors__/Canton/DistrictPrototype",
                "Content/Canton/Provisional",
                "Content/__ExternalActors__/Canton/Provisional",
+               "Content/__ExternalObjects__/Canton/Provisional",
                "Content/Assets/Environment/GuangzhouLandmarks/Wenmingmen"]:
     FILES.extend(str(path.relative_to(ROOT)) for path in (ROOT / folder).rglob("*")
                  if path.suffix in (".uasset", ".umap"))

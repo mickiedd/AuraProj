@@ -16,7 +16,7 @@ Complete the Day 12 scope below as an independently reviewable increment. Preser
 
 **Current baseline (2026-09-29):** Meshed roads conform to modern R16; Urban_Grading/Road_Corridors/Drainage layers are present and empty.
 
-**Remaining focus:** Prioritize grounded road shoulders and threshold approach without changing gate scale or historic claims. Apply evidence-backed grading only after H1/H2/Z; distinguish mesh conformance from actual Landscape layer edits. Owners: terrain / gate owners; CANTON-M02-002, CANTON-M02-003, CANTON-M05-004.
+**Remaining focus:** Grounded skirts, retaining fill and the threshold approach are implemented without changing gate scale or Landscape heights. Apply historical grading only after H1/H2/Z; current support geometry is D-confidence engineering. Owners: terrain / gate owners; CANTON-M02-002.
 
 **Work**
 - Confirm the locked `Base_Imported` layer created on Day 09; create independent Landscape Edit Layers for urban grading, road corridors and drainage.
@@ -38,3 +38,7 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds [Day 13 plan](Day-13-drainage-and-low-area-blockout.md).
 
+
+## Implementation continuation — 2026-09-29
+
+Use [the current continuation record](../../../QA/Canton_Continuation/README.md) and [current M05 handoff](../../../Review/M05_Final_Handoff.md) for the candidate implementation and validation. Earlier baseline descriptions below/above remain pre-continuation context where not replaced. The owner approved the M4/Metal raster target and closed gate. Historical H1/H2/Z and period-art source approval remain separate gates.

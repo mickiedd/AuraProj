@@ -22,4 +22,4 @@ def check_provisional_manifest():
 
 if __name__ == '__main__':
     check_provisional_manifest()
-    main()
+    raise SystemExit(main())

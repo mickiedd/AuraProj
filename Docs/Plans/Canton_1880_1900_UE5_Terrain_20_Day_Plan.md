@@ -1,7 +1,7 @@
 # HISTORICAL CANTON | UE5 URBAN TERRAIN
 ## 20-working-day implementation and acceptance plan | 1880–1900 | Inside the historic city walls
 
-**Revised 2026-09-29 against repository `1b2cc5d0` and the 2026-09-28 M05 audit disposition.**
+**Revised 2026-09-29; continued implementation on repository `827c124a`. See the [current continuation record](../../QA/Canton_Continuation/README.md) and [handoff](../../Review/M05_Final_Handoff.md) for candidate-specific results.**
 
 **Outcome.** A source-traceable heightmap and World Partition Landscape for the historic walled-city envelope, plus one integrated, traversable 200 × 200 m gate district used to prove roads, materials and vegetation. This is **not** a promise to complete all streets, buildings or the whole playable city in 20 working days.
 
@@ -15,7 +15,7 @@
 
 **Suggested handoff cadence.** Day 05 evidence audit, Day 10 M01 gate, Day 14 road/geometry gate, Day 17 material gate, Day 20 integrated district demonstration. Every review should include screenshots, reproducible source/output identifiers and explicit historical uncertainty.
 
-**Acceptance contract.** Day 01 already has a versioned working budget; owner approval remains pending. Obtain approval and resolve the missing pawn/nav-clearance criteria before closing district acceptance. Do not backdate approval or change numeric targets to match observed results. A gate passes only when its declared automated checks and manual/visual checks both pass. Screenshots are evidence, not a substitute for metadata, map-load, cook, collision, navigation or performance checks.
+**Acceptance contract.** The owner approved the M4 Mac/Metal raster target, closed gate and declared performance budget on 2026-09-29. Capsule/nav-clearance criteria are now explicit and measured; their separate approval remains pending. Historical budget approval remains separate. Do not backdate approval or change numeric targets to match observed results. A gate passes only when its declared automated checks and manual/visual checks both pass. Screenshots are evidence, not a substitute for metadata, map-load, cook, collision, navigation or performance checks.
 
 **Data and source-control rule.** Do not commit a source merely because it was downloaded. Record licence and redistribution status, SHA-256, retrieval location and tool/version metadata. Store redistributable large rasters using the repository-approved LFS/artifact policy; store restricted originals outside Git and commit only their manifest and reproducible derivation instructions. Derived files must be either versioned with checksums or reproducible from a versioned script and manifest.
 
@@ -28,10 +28,10 @@ Use the [M01 review](../../Review/M01_Terrain_Review.md), [Days 11–20 ledger](
 | M01 technical pipeline | Modern-context float32 terrain, all-D confidence, 2017² PNG and south-first R16; UE 5.5.4 CL 40574608 WP map; 256 Landscape/collision components; locked base; encoding, reload and automation evidence | Preserve provisional provenance; historical terrain and accepted source geometry are still absent. |
 | Historical H1 / H2 / Z | Failed MAP-001 transform preserved; named candidate Wenmingmen, fallback Zhengdongmen; control and datum requests documented | H1 has only three unsurveyed holdouts, RMSE 93.24 m / worst 132.155 m; H2 network and dated datum-backed walking surface missing; owner approval pending. |
 | M02 district | Separate 200 × 200 m engineering district; 100 principal slabs, 76 mixed-lane pieces, 48 covered-gutter pieces; three diagnostic flow catchments | Roads are D-confidence; correction layers exist but are unmodified; 16 unsupported parcel pads were removed. Courtyard view is an open-ground reference. |
-| Day 14 navigation | Seven intended open/staging route screens pass; 100 principal floor samples; separate 198-joint probe, maximum step 1.33 cm | No pawn walk. Staging is ~6 m north of the closed gate face; near-threshold attempt detours 2.905×. Nav-floor gaps reach 15.63 cm; gate collision warnings at 288,064 / 595,104 triangles are unwaived. |
-| M03 surfaces | Six paint targets and material swatches; modular cube paving; fixed-view atlas | Source-backed paving, physical materials and final transitions needed. Road underside gap is 7 cm and shoulder lip 11 cm. |
-| M04 vegetation/weather | 38 collision-disabled growth cubes; 14 damp cards and dry/wet views | Final vegetation, debris, wetness and runtime counts missing. M04 is incomplete; no scope reduction approved. |
-| M05 delivery/runtime | Provisional handoff and targeted two-map Mac Development cook, 994/994 packages | Cook temporarily excluded four always-cook directories; normal project packaging unvalidated. Development pawn/performance, Lumen and runtime WP streaming absent. Editor tick proxy is diagnostic only. |
+| Day 14 navigation | Seven nav checks and seven packaged pawn routes pass; explicit threshold endpoint ~0.6 m outside closed door; max nav-floor gap 1.414 cm; simple gate proxies; zero map-check errors/warnings | Review explicit capsule/6 cm clearance criteria; preserve closed-door obstruction and historical H2/Z blockers. |
+| M03 surfaces | Six paint targets retained; six instances/physical materials; procedural textures; beveled paving, grounded skirts and approach fill; refreshed atlas | Source-backed period dimensions/palette and final art approval remain open; current assets are authored D-confidence interpretation. |
+| M04 vegetation/weather | 38 blade tufts, 61 leaf-litter actors, 14 localized textured wet meshes; functional dry/damp toggle and matched captures | Period species/context and final art approval remain open; no historical M04 closure is claimed. |
+| M05 delivery/runtime | Dedicated two-map cook/stage, 993/993 packages; packaged seven-route pawn and 1080p High performance pass; raw GPU/frame/RSS/WP/draw-call evidence retained | Normal whole-project packaging and browser UI remain unvalidated; dedicated profile uses command-line cook exclusions and -nocef. |
 
 ### Implemented paths and safe continuation
 
@@ -41,7 +41,7 @@ Use the [M01 review](../../Review/M01_Terrain_Review.md), [Days 11–20 ledger](
 - [Prototype contract](../../Data/Canton_Prototype_Contract.json): EPSG:32649, origin 729400 / 2557300 m; UE X east, Y north; scale 200/200/50; PNG row zero north, prepared R16 row zero south, no second native Y flip. Modern EPSG:3855 EGM2008 zero is tooling-only; historical zero remains null.
 - Keep `Base_Imported` locked. `Urban_Grading`, `Road_Corridors` and `Drainage` are separability scaffolding until actual edits are justified. The 2 m Landscape grid cannot represent narrow kerbs or thresholds.
 - Import/build scripts refuse existing maps. Use review/refinement tools on existing packages; do not delete and rebuild maps to replay completed days. A new accepted historical frame requires a separately versioned candidate, migration review and regression checks.
-- PCG remains unproven. Current growth proxies are ordinary actors; replace them with final foliage/instances under the existing placement/exclusion contract. PCG is optional only after a separate load/cook smoke.
+- PCG remains unproven. Current blade tufts and leaf litter use ordinary actors under the existing placement/exclusion contract. Retain this tested fallback; PCG requires a separate load/cook smoke.
 - Generic historical paths in the daily deliverables are **future accepted outputs**, not claims that those files exist. Keep current outputs under `Provisional` / `DistrictPrototype` until their gates pass; never rename modern-context data to `Canton_1890` as a shortcut.
 
 ## Acceptance gates retained and clarified
@@ -63,12 +63,12 @@ Report `Technical_UE`, `Historical_XY_City (H1)`, `Historical_XY_GateLocal (H2)`
 | Milestone / original days | Current state | Remaining exit result |
 |---|---|---|
 | M01 / 01–10 | Provisional terrain pipeline implemented; historical acceptance blocked | Acquire and validate H1/H2/Z; approve budget; version historical candidate only when supported. |
-| M02 / 11–14 | District blockout implemented; Day 14 incomplete | Resolve threshold, collision complexity, nav-floor clearance and pawn routes; apply historical grading only after its evidence gates. |
-| M03 / 15–17 | Paint and paving infrastructure implemented | Replace blockouts, ground road edges, review four final surface scenes. |
-| M04 / 18–19 | Placement/toggle prototype only; incomplete | Final sparse vegetation, debris, drainage-consistent wetness and measured runtime counts. |
-| M05 / 20 | Provisional evidence handoff exists; runtime blocked | Repeat candidate-specific checks/cook; complete Development runtime and WP acceptance, then freeze the new handoff. |
+| M02 / 11–14 | Threshold, collision proxies, nav-floor correction and seven physical routes implemented and tested | Owner review of explicit clearance criteria; historical grading waits for H1/H2/Z. |
+| M03 / 15–17 | Authored paving/materials, grounded transitions and current scenes implemented | Source-backed period art approval remains open. |
+| M04 / 18–19 | Blade foliage, leaf litter and textured wetness/toggle implemented | Period species/context and final art approval remain open. |
+| M05 / 20 | Packaged runtime and dedicated delivery profile pass | Freeze current evidence; retain normal-project/browser limitations and historical/period-art acceptance dependencies. |
 
-**Next execution order:** (1) revisit Day 01 owner/target/clearance decisions and source requests; (2) prioritize Days 12–14 collision, threshold and pawn work on the existing district; (3) complete Days 15–19 art with documented provisional placement; (4) perform Day 20 runtime acceptance on the resulting candidate. H1/H2/Z research proceeds as an external dependency throughout. If new accepted sources arrive, return to Days 03–10, migrate dependent district geometry, then repeat affected checks. Do not postpone all technical work until historical research completes, or spend the remaining time rebuilding proven imports.
+**Next execution order:** Review the proposed capsule/clearance criteria and period art; acquire accepted H1/H2/Z inputs through the existing survey/source handoff. The technical district, packaged routes and performance checks are implemented. If new accepted sources arrive, return to Days 03–10, create a separately versioned historical candidate, migrate dependent geometry, then repeat affected checks. Normal whole-project/browser validation remains outside this dedicated terrain delivery profile.
 
 **Capacity rule:** the original one-day slots are sequencing budgets, not current estimates or guaranteed completion dates. At the next review, owners must estimate the open issue groups and source delivery dates, then publish a remaining-work calendar. If the work exceeds the original twenty-day envelope, extend the schedule or obtain an explicit scope decision; retain incomplete gates. Missing evidence can result in a provisional handoff, never automatic historical approval or a silent M04 cut.
 
@@ -242,7 +242,7 @@ Each day is also available as an independent execution document with a paired re
 ### Day 12 — Street gradients and built-area grading (M02)
 **Current baseline (2026-09-29):** Meshed roads conform to modern R16; Urban_Grading/Road_Corridors/Drainage layers are present and empty.
 
-**Remaining focus:** Prioritize grounded road shoulders and threshold approach without changing gate scale or historic claims. Apply evidence-backed grading only after H1/H2/Z; distinguish mesh conformance from actual Landscape layer edits. Owners: terrain / gate owners; CANTON-M02-002, CANTON-M02-003, CANTON-M05-004.
+**Remaining focus:** Grounded skirts, retaining fill and the threshold approach are implemented without changing gate scale or Landscape heights. Apply historical grading only after H1/H2/Z; current support geometry is D-confidence engineering. Owners: terrain / gate owners; CANTON-M02-002.
 
 **Work**
 - Confirm the locked `Base_Imported` layer created on Day 09; create independent Landscape Edit Layers for urban grading, road corridors and drainage.
@@ -265,9 +265,9 @@ Each day is also available as an independent execution document with a paired re
 **Done when:** Prototype drainage has plausible downhill flow; documented and invented demo features are clearly separated.
 
 ### Day 14 — M02 geometry review and blocker cleanup (M02)
-**Current baseline (2026-09-29):** Seven open/staging screens pass, but threshold access, physical pawn, nav-floor acceptance and warning disposition remain open.
+**Current baseline (2026-09-29):** All seven fresh navigation checks and all seven packaged physical pawn routes pass, including the endpoint about 0.6 m outside the closed door. Maximum nav-corner floor gap is 1.42 cm; current map checks have zero errors/warnings.
 
-**Remaining focus:** Preserve closed Wenmingmen doors. Simplify collision with an obstruction-preserving proxy; resolve the failed ~2 m threshold approach, measure floor at nav corners, and run the actual pawn across all seven routes plus the resolved threshold endpoint. A ~6 m staging stop is insufficient for threshold closure. Owners: gate/navigation owners; CANTON-M05-001, CANTON-M05-004, CANTON-M05-006.
+**Remaining focus:** Preserve the closed-door proxy and source bridge, grounded 2.67% outer approach, 300 cm nav tiles and 5/1 cm voxels. Review the explicit capsule/6 cm clearance criteria and retain H2/Z blockers. Re-run the packaged routes after geometry changes. Evidence: QA/Canton_Continuation/Runtime_traversal.json and QA/Canton_District/Traversal_Route_Matrix.json.
 
 **Work**
 - Walk all intended open prototype roads with the actual pawn, including the district-side threshold approach; fix mesh/landscape seams and foundation gaps. Keep the authored gate closed and test its obstruction separately.
@@ -278,9 +278,9 @@ Each day is also available as an independent execution document with a paired re
 **Done when:** The 200 × 200 m prototype supports physical pawn traversal of the intended open network and resolved district-side threshold approach, meets approved nav-floor/capsule criteria, and has no unresolved implementation geometry blockers or unwaived relevant collision warnings. Historical road/gate alignment is reported separately and remains Provisional/Blocked wherever H2 or source evidence is unresolved.
 
 ### Day 15 — Author master ground materials (M03)
-**Current baseline (2026-09-29):** Six compiled paint targets and neutral swatches exist.
+**Current baseline (2026-09-29):** Six paint targets are retained; checked material graphs, six parameterized instances, physical materials and project-authored texture/normal detail are implemented.
 
-**Remaining focus:** Reuse the material graph and layer-info assets; author licensed physical soil/earth/pebble/grass/damp/stone instances with scale, normals and roughness. Review at walking height; compiled swatches alone do not close M03. Owner: environment artist; CANTON-M03-001.
+**Remaining focus:** Retain the procedural asset manifest and current material atlas. Source-backed period palette and material review remain open; generated textures are explicitly D-confidence interpretation. Owner: environment artist; CANTON-M03-001.
 
 **Work**
 - Build a Landscape material with restrained layer count: natural soil, compacted earth, mixed pebble/earth, grass/weed soil, damp earth and optional exposed stone.
@@ -290,9 +290,9 @@ Each day is also available as an independent execution document with a paired re
 **Done when:** The Landscape material compiles and the six planned surface families can be painted without obvious repetition at walking height.
 
 ### Day 16 — Build modular historical stone paving (M03)
-**Current baseline (2026-09-29):** 100 principal cube slabs have floor support; the independent joint probe measures 198 pairs and a 1.33 cm maximum step.
+**Current baseline (2026-09-29):** 100 principal slabs now use beveled paving geometry with grounded edge skirts. Fresh native checks retain 100 floor samples and 198 joint comparisons with a 1.33 cm maximum step.
 
-**Remaining focus:** Replace cube slabs with period-context modules, preserve pivots/collision, and ground the 7 cm underside gap / 11 cm shoulder lip using proper kerbs or transitions. Recheck joints and routes after replacement. Owner: environment artist; CANTON-M03-001, CANTON-M02-003.
+**Remaining focus:** Keep current pivots, collision and edge support. Period paving dimensions/pattern and palette still need source evidence and art approval; do not promote the generated modules to measured period assets. Owner: environment artist; CANTON-M03-001.
 
 **Work**
 - Create reusable stone-slab sets for primary roads, plus selected kerbs, steps, foundation strips and drainage edges.
@@ -302,7 +302,7 @@ Each day is also available as an independent execution document with a paired re
 **Done when:** The test street is traversable with no floating stones, Z-fighting, visible grid seams or oversized European-style cobble pattern.
 
 ### Day 17 — Terrain/road blending and material QA (M03)
-**Current baseline (2026-09-29):** Four fixed scenes and atlas document blockout surfaces.
+**Current baseline (2026-09-29):** Fresh fixed scenes and the material atlas show authored paving, grounded transitions, blade/leaf geometry and localized textured wetness.
 
 **Remaining focus:** Finish road/earth/gate transitions, audit dry/wet roughness and update all four camera views from the same candidate. Re-run seams/collision after changes; visual modules and material joints remain open despite geometric sample passes. Owner: environment artist; CANTON-M03-001.
 
@@ -314,9 +314,9 @@ Each day is also available as an independent execution document with a paired re
 **Done when:** Four scenes show distinct readable surfaces and convincing transitions at human scale, without unverified claims of exact historic soil colour.
 
 ### Day 18 — Add urban vegetation with controls (M04)
-**Current baseline (2026-09-29):** 38 collision-disabled cube growth proxies implement placement rules; PCG remains unproven.
+**Current baseline (2026-09-29):** 38 collision-disabled blade tufts and 61 leaf-litter actors implement the existing exclusion rules; PCG remains unproven.
 
-**Remaining focus:** Replace proxies with sparse period-context vegetation using ordinary foliage/instances; preserve gate, road, gutter and foundation exclusions and document source/licence/species uncertainty. Verify collision and actual instance counts. Owner: environment artist; CANTON-M04-001.
+**Remaining focus:** Preserve the tested sparse placement and collision-disabled fallback. Obtain period species/context and final vegetation-art approval; current shapes are project-authored D-confidence interpretation. Owner: environment artist; CANTON-M04-001.
 
 **Work**
 - Create grass tufts, weeds, wall-edge moss and sparse courtyard plants using foliage/PCG masks tied to surface class and evidence.
@@ -327,9 +327,9 @@ Each day is also available as an independent execution document with a paired re
 **Done when:** Vegetation is sparse and place-specific; paths and gate openings remain unobstructed.
 
 ### Day 19 — Add weathering, wetness and small ground details (M04)
-**Current baseline (2026-09-29):** 14 grounded dark cards provide a dry/wet toggle only; debris and final wetness are missing.
+**Current baseline (2026-09-29):** 14 localized textured wet meshes and 61 leaf-litter actors are implemented with an in-game dry/damp toggle. Matched captures show localized darkening; packaged render counters are recorded.
 
-**Remaining focus:** Author localized debris and drainage-consistent damp/puddle materials; capture matched dry/rain views and runtime draw calls/instances. Preserve access and exclusions. M04 remains incomplete until final art is reviewed or the owner explicitly changes scope. Owner: environment artist; CANTON-M04-001.
+**Remaining focus:** Retain sparse engineering placement, exclusions, paired captures and runtime evidence. Final period-context weathering/art approval remains open; procedural authored assets do not establish historical species or material color. Owner: environment artist; CANTON-M04-001.
 
 **Work**
 - Distribute local leaf litter, grit, small stone debris, puddles and dampness through PCG or ordinary decals/instances according to the Day 01 decision, rather than noisy full-map height edits.
@@ -339,9 +339,9 @@ Each day is also available as an independent execution document with a paired re
 **Done when:** Localized details enhance readability without clutter or implausible uniform mud/wetness; no material/foliage collision issues.
 
 ### Day 20 — M05 gate-district integration and production handoff (M05)
-**Current baseline (2026-09-29):** Targeted two-map cook and provisional handoff exist; Development performance, WP streaming and pawn evidence are absent.
+**Current baseline (2026-09-29):** Dedicated two-map cook/stage, seven physical pawn routes, Lumen/raster operation and packaged World Partition performance pass. The approved 1080p High target measures p95 30.425 ms, p99 31.815 ms, RSS 1.001 GiB and zero failed WP cells.
 
-**Remaining focus:** Build a runnable Development candidate with the declared pawn/route; run Lumen and agreed Nanite/fallback compatibility checks, capture runtime metrics, and validate the intended delivery cook configuration. Re-freeze both maps/external actors and all evidence after final changes. Editor proxy timings and the temporary cook exclusion cannot close runtime or normal-project packaging. Owners: build/performance lead / reviewer; CANTON-M05-002, CANTON-M05-003, CANTON-M05-005.
+**Remaining focus:** Use the staged terrain launcher and current reproducibility/evidence packet. Keep normal whole-project packaging and browser functionality outside the dedicated profile claim; retain the minor scripted-editor exit-code issue. Historical/period-art gates and proposed clearance approval remain open. Re-run affected tests and refresh the two-map freeze after changes.
 
 **Work**
 - Reuse the existing Wenmingmen integration; preserve architectural scale and closed-door intent, record nonhistorical asset fixes, and validate the resolved district-side threshold approach. A through-gate route requires a separately approved design change.

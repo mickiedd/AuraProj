@@ -14,9 +14,9 @@ Complete the Day 20 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
-**Current baseline (2026-09-29):** Targeted two-map cook and provisional handoff exist; Development performance, WP streaming and pawn evidence are absent.
+**Current baseline (2026-09-29):** Dedicated two-map cook/stage, seven physical pawn routes, Lumen/raster operation and packaged World Partition performance pass. The approved 1080p High target measures p95 30.425 ms, p99 31.815 ms, RSS 1.001 GiB and zero failed WP cells.
 
-**Remaining focus:** Build a runnable Development candidate with the declared pawn/route; run Lumen and agreed Nanite/fallback compatibility checks, capture runtime metrics, and validate the intended delivery cook configuration. Re-freeze both maps/external actors and all evidence after final changes. Editor proxy timings and the temporary cook exclusion cannot close runtime or normal-project packaging. Owners: build/performance lead / reviewer; CANTON-M05-002, CANTON-M05-003, CANTON-M05-005.
+**Remaining focus:** Use the staged terrain launcher and current reproducibility/evidence packet. Keep normal whole-project packaging and browser functionality outside the dedicated profile claim; retain the minor scripted-editor exit-code issue. Historical/period-art gates and proposed clearance approval remain open. Re-run affected tests and refresh the two-map freeze after changes.
 
 **Work**
 - Reuse the existing Wenmingmen integration; preserve architectural scale and closed-door intent, record nonhistorical asset fixes, and validate the resolved district-side threshold approach. A through-gate route requires a separately approved design change.
@@ -37,3 +37,7 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 ## Handoff
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds production handoff and the explicitly out-of-scope citywide expansion.
+
+## Implementation continuation — 2026-09-29
+
+Use [the current continuation record](../../../QA/Canton_Continuation/README.md) and [current M05 handoff](../../../Review/M05_Final_Handoff.md) for the candidate implementation and validation. Earlier baseline descriptions below/above remain pre-continuation context where not replaced. The owner approved the M4/Metal raster target and closed gate. Historical H1/H2/Z and period-art source approval remain separate gates.

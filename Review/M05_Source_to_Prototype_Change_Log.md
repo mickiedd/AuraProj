@@ -15,3 +15,7 @@ This log distinguishes retained source evidence from the new diagnostic implemen
 | Wenmingmen gate | Existing project Blueprint, not a surveyed threshold reference | Placed one unchanged-scale instance with a diagnostic pivot offset for integration testing | Scale/interface test only; H2 and Z blocked |
 
 The prototype did not replace the M01 source register, failed georeference residuals, or locked `Base_Imported` Landscape layer. Historic promotion requires new measured controls and dated Z evidence, then a versioned reconstruction pass.
+
+## Implementation continuation — 2026-09-29
+
+2026-09-29: added project-authored procedural paving/texture/blade/leaf/wet-mesh source assets with hashes and D-confidence provenance. Replaced only the district gate instance collision/nav export with source-derived simple proxies; retained closed door, source bridge, shared gate asset and scale. Added mesh approach/foundation support without editing the modern-context raster or locked base. Implemented map-specific native pawn, real runtime sampling, dedicated cook/stage and sandbox-compatible report collection. Historical source/control/vertical registers admitted no new measurements. See QA/Canton_Continuation and the current M05 handoff.

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+<rect width="1400" height="900" fill="#101b29"/>
+<style>text{font-family:Arial,sans-serif;fill:#ecf3fa}.title{font-size:34px;font-weight:700}.head{font-size:25px;font-weight:700}.body{font-size:21px}.small{font-size:18px}.muted{fill:#b7c9db}.green{fill:#8ce0bd}.amber{fill:#ffd38b}</style>
+<text x="48" y="60" class="title">Canton district: authored surfaces → packaged walking proof</text>
+<text x="48" y="95" class="body muted">2026-09-29 · UE 5.5.4 · approved M4 / Metal raster target · D-confidence engineering district</text>
+<rect x="48" y="130" width="585" height="306" rx="18" fill="#263344" stroke="#7b8b9d"/>
+<text x="75" y="175" class="head amber">BEFORE · editor prototype</text>
+<text x="75" y="219" class="body">Cube paving / growth proxies / dark wet cards</text>
+<text x="75" y="256" class="body">6 m staging stop; threshold access unresolved</text>
+<text x="75" y="293" class="body">Nav-floor gaps up to 15.63 cm</text>
+<text x="75" y="330" class="body">High-triangle gate collision export warnings</text>
+<text x="75" y="367" class="body">No physical pawn or packaged performance proof</text>
+<text x="75" y="409" class="small muted">Earlier evidence retained as an explicit snapshot.</text>
+<path d="M652 278h70m-16-16 16 16-16 16" fill="none" stroke="#8ce0bd" stroke-width="5"/>
+<rect x="744" y="130" width="608" height="306" rx="18" fill="#173c38" stroke="#69b99e"/>
+<text x="770" y="175" class="head green">AFTER · implemented + measured</text>
+<text x="770" y="219" class="body">Beveled paving, 6 material instances + physics</text>
+<text x="770" y="256" class="body">38 blade tufts / 61 leaves / 14 textured wet meshes</text>
+<text x="770" y="293" class="body">Simple gate proxies + grounded 2.67% approach</text>
+<text x="770" y="330" class="body">7/7 pawn routes; stop ~0.6 m outside shut door</text>
+<text x="770" y="367" class="body">Nav-floor max 1.414 cm; no route falling</text>
+<text x="770" y="409" class="small muted">WASD / mouse look / R dry–damp toggle</text>
+<rect x="48" y="458" width="1304" height="83" rx="14" fill="#403b29" stroke="#a68b53"/>
+<text x="75" y="493" class="head amber">Preserved guards</text>
+<text x="75" y="526" class="body">Locked imported terrain · original gate scale · closed-door obstruction · no historical promotion</text>
+<rect x="48" y="562" width="1304" height="190" rx="16" fill="#19364c" stroke="#4c8fb8"/>
+<text x="75" y="602" class="head">Validation · actual Mac Development game</text>
+<text x="75" y="644" class="body">1080p High / 100% resolution / Lumen · 60 s warm-up + 180 s sample · 199.96 m walk</text>
+<text x="75" y="681" class="body green">p95 30.42 ms · p99 31.81 ms · peak RSS 1.00 GiB · 0 failed WP cells · 617 max draw calls</text>
+<text x="75" y="718" class="body">6,632 raw frame/GPU samples reconciled · M01 regression passes · dedicated 2-map cook/stage passes</text>
+<rect x="48" y="773" width="1304" height="96" rx="14" fill="#412d37" stroke="#a06d83"/>
+<text x="75" y="809" class="head amber">Still open · full historical plan is not accepted</text>
+<text x="75" y="844" class="small">H1 / H2 / historical Z · period-art approval · proposed capsule/clearance approval · normal project/browser validation</text>
+</svg>

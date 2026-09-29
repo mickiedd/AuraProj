@@ -17,6 +17,8 @@
 #include "WorldPartition/WorldPartition.h"
 #include "Engine/StaticMeshActor.h"
 #include "LandscapeLayerInfoObject.h"
+#include "NavMesh/RecastNavMesh.h"
+#include "NavigationSystem.h"
 
 namespace CantonTerrain
 {
@@ -347,4 +349,37 @@ FString UCantonTerrainLibrary::ValidateProvisionalTerrain(UWorld* World, const F
     FString Json;
     FJsonSerializer::Serialize(Result,TJsonWriterFactory<>::Create(&Json));
     return Json;
+}
+
+
+bool UCantonTerrainLibrary::ConfigureDistrictNavigation(UWorld* World)
+{
+    if (!CantonTerrain::IsPrototypeWorld(World) || !World->GetPackage()->GetName().Contains(TEXT("DistrictPrototype"))) return false;
+    for (TActorIterator<AActor> It(World); It; ++It)
+    {
+        if (!It->GetActorLabel().StartsWith(TEXT("Wenmingmen_PROVISIONAL_"))) continue;
+        It->Modify(); It->SetActorEnableCollision(false);
+        TInlineComponentArray<UStaticMeshComponent*> Components; It->GetComponents(Components);
+        for (auto* Component : Components)
+        {
+            Component->Modify();
+            Component->SetCanEverAffectNavigation(false);
+            Component->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+        FNavigationSystem::UpdateActorData(**It);
+        It->MarkPackageDirty();
+    }
+    int32 Count=0;
+    for (TActorIterator<ARecastNavMesh> It(World); It; ++It)
+    {
+        It->Modify();
+        for (int32 R=0; R<int32(ENavigationDataResolution::MAX); ++R)
+        {
+            It->SetCellSize(ENavigationDataResolution(R),5.f);
+            It->SetCellHeight(ENavigationDataResolution(R),1.f);
+            It->SetAgentMaxStepHeight(ENavigationDataResolution(R),20.f);
+        }
+        It->MarkPackageDirty(); ++Count;
+    }
+    return Count==1;
 }

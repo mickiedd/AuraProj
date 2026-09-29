@@ -1,7 +1,8 @@
 surface_family,ue_material,evidence,historical_confidence
-principal_stone_slab,M_District_Stone,none; neutral color only,D
-compacted_earth,M_District_Earth,none; neutral color only,D
-mixed_pebble_earth,M_District_Pebble,none; neutral color only,D
-bare_soil,M_District_Soil,none; neutral color only,D
-weed_soil,M_District_Grass,none; neutral color only,D
-damp_earth,M_District_Damp,none; neutral color only,D
+principal_stone_slab,/Game/Canton/DistrictPrototype/Completion/Materials/MI_Canton_Stone,ContentSource/CantonDistrict/manifest.json; project-authored mineral/soil textures and interpretive geometry; not period colour/dimension evidence,D
+compacted_earth,/Game/Canton/DistrictPrototype/Completion/Materials/MI_Canton_Earth,ContentSource/CantonDistrict/manifest.json; project-authored mineral/soil textures and interpretive geometry; not period colour/dimension evidence,D
+mixed_pebble_earth,/Game/Canton/DistrictPrototype/Completion/Materials/MI_Canton_Pebble,ContentSource/CantonDistrict/manifest.json; project-authored mineral/soil textures and interpretive geometry; not period colour/dimension evidence,D
+bare_soil,/Game/Canton/DistrictPrototype/Completion/Materials/MI_Canton_Earth,ContentSource/CantonDistrict/manifest.json; project-authored mineral/soil textures and interpretive geometry; not period colour/dimension evidence,D
+weed_soil,/Game/Canton/DistrictPrototype/Completion/Materials/MI_Canton_Grass,ContentSource/CantonDistrict/manifest.json; project-authored mineral/soil textures and interpretive geometry; not period colour/dimension evidence,D
+damp_earth,/Game/Canton/DistrictPrototype/Completion/Materials/MI_Canton_Damp,ContentSource/CantonDistrict/manifest.json; project-authored mineral/soil textures and interpretive geometry; not period colour/dimension evidence,D
+leaf_litter,/Game/Canton/DistrictPrototype/Completion/Materials/MI_Canton_Leaf,ContentSource/CantonDistrict/manifest.json; project-authored interpretive leaf; no period species claim,D

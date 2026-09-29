@@ -14,9 +14,9 @@ Complete the Day 19 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
-**Current baseline (2026-09-29):** 14 grounded dark cards provide a dry/wet toggle only; debris and final wetness are missing.
+**Current baseline (2026-09-29):** 14 localized textured wet meshes and 61 leaf-litter actors are implemented with an in-game dry/damp toggle. Matched captures show localized darkening; packaged render counters are recorded.
 
-**Remaining focus:** Author localized debris and drainage-consistent damp/puddle materials; capture matched dry/rain views and runtime draw calls/instances. Preserve access and exclusions. M04 remains incomplete until final art is reviewed or the owner explicitly changes scope. Owner: environment artist; CANTON-M04-001.
+**Remaining focus:** Retain sparse engineering placement, exclusions, paired captures and runtime evidence. Final period-context weathering/art approval remains open; procedural authored assets do not establish historical species or material color. Owner: environment artist; CANTON-M04-001.
 
 **Work**
 - Distribute local leaf litter, grit, small stone debris, puddles and dampness through PCG or ordinary decals/instances according to the Day 01 decision, rather than noisy full-map height edits.
@@ -37,3 +37,7 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds [Day 20 plan](Day-20-m05-gate-district-integration-and-production-handoff.md).
 
+
+## Implementation continuation — 2026-09-29
+
+Use [the current continuation record](../../../QA/Canton_Continuation/README.md) and [current M05 handoff](../../../Review/M05_Final_Handoff.md) for the candidate implementation and validation. Earlier baseline descriptions below/above remain pre-continuation context where not replaced. The owner approved the M4/Metal raster target and closed gate. Historical H1/H2/Z and period-art source approval remain separate gates.

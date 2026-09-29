@@ -1,0 +1,170 @@
+{
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "historically_accepted": false,
+  "original_markers": 375,
+  "generated_segments": 99,
+  "gate_checks": [
+    {
+      "key": "Zhengximen",
+      "nearest_trace_distance_cm": 1484.753,
+      "sides": [
+        {
+          "side": 0,
+          "trace_join_error_cm": 1e-05,
+          "gate_contact_error_cm": 1e-05,
+          "max_piece_gap_cm": 1e-05,
+          "minimum_vertical_overlap_cm": 631.055
+        },
+        {
+          "side": 1,
+          "trace_join_error_cm": 2e-05,
+          "gate_contact_error_cm": 2e-05,
+          "max_piece_gap_cm": 2e-05,
+          "minimum_vertical_overlap_cm": 604.688
+        }
+      ]
+    },
+    {
+      "key": "Zhengdongmen",
+      "nearest_trace_distance_cm": 898.397,
+      "sides": [
+        {
+          "side": 0,
+          "trace_join_error_cm": 1e-05,
+          "gate_contact_error_cm": 1e-05,
+          "max_piece_gap_cm": 3e-05,
+          "minimum_vertical_overlap_cm": 635.859
+        },
+        {
+          "side": 1,
+          "trace_join_error_cm": 7e-05,
+          "gate_contact_error_cm": 1e-05,
+          "max_piece_gap_cm": 3e-05,
+          "minimum_vertical_overlap_cm": 645.312
+        }
+      ]
+    },
+    {
+      "key": "GreatNorthGate",
+      "nearest_trace_distance_cm": 320.627,
+      "sides": [
+        {
+          "side": 0,
+          "trace_join_error_cm": 0.0,
+          "gate_contact_error_cm": 1e-05,
+          "max_piece_gap_cm": 1e-05,
+          "minimum_vertical_overlap_cm": 641.016
+        },
+        {
+          "side": 1,
+          "trace_join_error_cm": 1e-05,
+          "gate_contact_error_cm": 0.0,
+          "max_piece_gap_cm": 2e-05,
+          "minimum_vertical_overlap_cm": 712.812
+        }
+      ]
+    },
+    {
+      "key": "Xiaobeimen_AAA_V3",
+      "nearest_trace_distance_cm": 1159.162,
+      "sides": [
+        {
+          "side": 0,
+          "trace_join_error_cm": 0.0,
+          "gate_contact_error_cm": 0.0,
+          "max_piece_gap_cm": 0.0,
+          "minimum_vertical_overlap_cm": 659.844
+        },
+        {
+          "side": 1,
+          "trace_join_error_cm": 1e-05,
+          "gate_contact_error_cm": 3e-05,
+          "max_piece_gap_cm": 6e-05,
+          "minimum_vertical_overlap_cm": 646.094
+        }
+      ]
+    },
+    {
+      "key": "Guidemen_ReferenceRepaired",
+      "nearest_trace_distance_cm": 137.353,
+      "sides": [
+        {
+          "side": 0,
+          "trace_join_error_cm": 0.0,
+          "gate_contact_error_cm": 0.0,
+          "max_piece_gap_cm": 0.0,
+          "minimum_vertical_overlap_cm": 654.453
+        },
+        {
+          "side": 1,
+          "trace_join_error_cm": 2e-05,
+          "gate_contact_error_cm": 1e-05,
+          "max_piece_gap_cm": 4e-05,
+          "minimum_vertical_overlap_cm": 613.594
+        }
+      ]
+    },
+    {
+      "key": "Zhengnanmen_HighFidelity",
+      "nearest_trace_distance_cm": 1267.757,
+      "sides": [
+        {
+          "side": 0,
+          "trace_join_error_cm": 1e-05,
+          "gate_contact_error_cm": 0.0,
+          "max_piece_gap_cm": 0.0,
+          "minimum_vertical_overlap_cm": 630.078
+        },
+        {
+          "side": 1,
+          "trace_join_error_cm": 0.0,
+          "gate_contact_error_cm": 1e-05,
+          "max_piece_gap_cm": 3e-05,
+          "minimum_vertical_overlap_cm": 605.99
+        }
+      ]
+    },
+    {
+      "key": "Wenmingmen",
+      "nearest_trace_distance_cm": 200.415,
+      "sides": [
+        {
+          "side": 0,
+          "trace_join_error_cm": 0.0,
+          "gate_contact_error_cm": 1e-05,
+          "max_piece_gap_cm": 0.0,
+          "minimum_vertical_overlap_cm": 714.609
+        },
+        {
+          "side": 1,
+          "trace_join_error_cm": 5e-05,
+          "gate_contact_error_cm": 1e-05,
+          "max_piece_gap_cm": 4e-05,
+          "minimum_vertical_overlap_cm": 642.969
+        }
+      ]
+    },
+    {
+      "key": "Wuxianmen_V5_FullPBR",
+      "nearest_trace_distance_cm": 215.977,
+      "sides": [
+        {
+          "side": 0,
+          "trace_join_error_cm": 3e-05,
+          "gate_contact_error_cm": 3e-05,
+          "max_piece_gap_cm": 7e-05,
+          "minimum_vertical_overlap_cm": 655.781
+        },
+        {
+          "side": 1,
+          "trace_join_error_cm": 6e-05,
+          "gate_contact_error_cm": 0.0,
+          "max_piece_gap_cm": 1e-05,
+          "minimum_vertical_overlap_cm": 611.094
+        }
+      ]
+    }
+  ],
+  "landmarks_unchanged": 9,
+  "passed": true
+}

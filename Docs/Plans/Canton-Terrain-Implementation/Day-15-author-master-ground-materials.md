@@ -14,9 +14,9 @@ Complete the Day 15 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
-**Current baseline (2026-09-29):** Six compiled paint targets and neutral swatches exist.
+**Current baseline (2026-09-29):** Six paint targets are retained; checked material graphs, six parameterized instances, physical materials and project-authored texture/normal detail are implemented.
 
-**Remaining focus:** Reuse the material graph and layer-info assets; author licensed physical soil/earth/pebble/grass/damp/stone instances with scale, normals and roughness. Review at walking height; compiled swatches alone do not close M03. Owner: environment artist; CANTON-M03-001.
+**Remaining focus:** Retain the procedural asset manifest and current material atlas. Source-backed period palette and material review remain open; generated textures are explicitly D-confidence interpretation. Owner: environment artist; CANTON-M03-001.
 
 **Work**
 - Build a Landscape material with restrained layer count: natural soil, compacted earth, mixed pebble/earth, grass/weed soil, damp earth and optional exposed stone.
@@ -37,3 +37,7 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds [Day 16 plan](Day-16-build-modular-historical-stone-paving.md).
 
+
+## Implementation continuation — 2026-09-29
+
+Use [the current continuation record](../../../QA/Canton_Continuation/README.md) and [current M05 handoff](../../../Review/M05_Final_Handoff.md) for the candidate implementation and validation. Earlier baseline descriptions below/above remain pre-continuation context where not replaced. The owner approved the M4/Metal raster target and closed gate. Historical H1/H2/Z and period-art source approval remain separate gates.

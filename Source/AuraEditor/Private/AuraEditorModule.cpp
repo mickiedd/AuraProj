@@ -2250,7 +2250,7 @@ private:
 	{
 		// NullRHI automation can initialize Slate without constructing editor toolbars.
 		// Keep module startup and EndPIE cleanup active, but never probe menus without UI.
-		if (IsRunningCommandlet() || !FApp::CanEverRender() || !UToolMenus::IsToolMenuUIEnabled())
+		if (IsRunningCommandlet() || FApp::IsUnattended() || !FApp::CanEverRender() || !UToolMenus::IsToolMenuUIEnabled())
 		{
 			UE_LOG(LogAuraEditor, Display, TEXT("Toolbar menu registration skipped for headless, commandlet, or UI-disabled execution"));
 			return;

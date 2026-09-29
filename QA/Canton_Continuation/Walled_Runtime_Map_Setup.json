@@ -1,0 +1,15 @@
+{
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "game_mode": "CantonWalledCityGameMode",
+  "player_start": [
+    173000,
+    121000,
+    1296.40625
+  ],
+  "source_ground_z_cm": 1166.40625,
+  "player_start_non_spatial": true,
+  "directional_lights": 2,
+  "atmosphere_non_spatial": true,
+  "skylight_non_spatial": true,
+  "historically_accepted": false
+}

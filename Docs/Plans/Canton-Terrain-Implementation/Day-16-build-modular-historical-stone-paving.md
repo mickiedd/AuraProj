@@ -14,9 +14,9 @@ Complete the Day 16 scope below as an independently reviewable increment. Preser
 - Record git status, git revision, the resolved Unreal Engine version, operator/tool versions, and the working data revision before changing outputs.
 - Confirm every required input in the resource sheet exists, is licensed for the intended use, and carries a checksum or stable repository identifier.
 
-**Current baseline (2026-09-29):** 100 principal cube slabs have floor support; the independent joint probe measures 198 pairs and a 1.33 cm maximum step.
+**Current baseline (2026-09-29):** 100 principal slabs now use beveled paving geometry with grounded edge skirts. Fresh native checks retain 100 floor samples and 198 joint comparisons with a 1.33 cm maximum step.
 
-**Remaining focus:** Replace cube slabs with period-context modules, preserve pivots/collision, and ground the 7 cm underside gap / 11 cm shoulder lip using proper kerbs or transitions. Recheck joints and routes after replacement. Owner: environment artist; CANTON-M03-001, CANTON-M02-003.
+**Remaining focus:** Keep current pivots, collision and edge support. Period paving dimensions/pattern and palette still need source evidence and art approval; do not promote the generated modules to measured period assets. Owner: environment artist; CANTON-M03-001.
 
 **Work**
 - Create reusable stone-slab sets for primary roads, plus selected kerbs, steps, foundation strips and drainage edges.
@@ -37,3 +37,7 @@ Stop and classify the day **Blocked** when a required source, datum, coordinate 
 
 Update the resource checklist with artifact paths, checksums, commands, exit codes, reviewer decision, and open issues. The accepted handoff feeds [Day 17 plan](Day-17-terrain-road-blending-and-material-qa.md).
 
+
+## Implementation continuation — 2026-09-29
+
+Use [the current continuation record](../../../QA/Canton_Continuation/README.md) and [current M05 handoff](../../../Review/M05_Final_Handoff.md) for the candidate implementation and validation. Earlier baseline descriptions below/above remain pre-continuation context where not replaced. The owner approved the M4/Metal raster target and closed gate. Historical H1/H2/Z and period-art source approval remain separate gates.

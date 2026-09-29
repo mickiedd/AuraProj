@@ -1,0 +1,10 @@
+{
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "saved_to_disk": true,
+  "dirty_provisional_packages_before": [],
+  "dirty_provisional_packages_saved": [],
+  "dirty_provisional_packages_remaining": [],
+  "reloaded_landmarks": 9,
+  "reloaded_fit_wall_actors": 99,
+  "passed": true
+}

@@ -8,7 +8,8 @@
   "route_check_pass_count": 7,
   "all_route_checks_pass": true,
   "working_directness_screen_ratio": 1.5,
-  "screen_status": "provisional engineering diagnostic; owner approval pending",
+  "screen_status": "technical target approved 2026-09-29; 6 cm nav-floor screen remains working diagnostic",
+  "working_nav_floor_gap_cm": 6,
   "closed_gate_transit_diagnostic": {
     "route": "closed_gate_transit_diagnostic",
     "surface": "closed_gate",
@@ -24,73 +25,96 @@
     "floor_trace_hits": 16,
     "floor_trace_count": 16,
     "floor_support_pass": true,
-    "max_floor_vs_r16_error_cm": 19.019157607187367,
+    "max_floor_vs_r16_error_cm": 1303.78125,
     "floor_actor_labels": [
+      "Canton_Proxy_ArchHeader",
+      "Canton_Proxy_Bridge_01",
+      "Canton_Proxy_Bridge_05",
+      "Canton_Proxy_Bridge_09",
+      "Canton_Proxy_Bridge_13",
+      "Canton_Proxy_Bridge_17",
+      "Canton_Proxy_Bridge_21",
+      "Canton_Proxy_Bridge_25",
+      "Canton_Proxy_Bridge_29",
+      "Canton_Proxy_Bridge_33",
       "District_Main_Stone_120500",
       "District_Main_Stone_120700",
       "District_Main_Stone_120900",
-      "District_Main_Stone_121100",
-      "District_Main_Stone_121300",
-      "District_Main_Stone_121500",
-      "District_Main_Stone_121700",
-      "District_Main_Stone_121900",
-      "District_Main_Stone_122100",
-      "District_Main_Stone_122300",
-      "District_Main_Stone_122500",
-      "District_Main_Stone_122700",
-      "District_Main_Stone_122900",
-      "District_Main_Stone_123100",
-      "District_Main_Stone_123300",
-      "District_Main_Stone_123500"
+      "District_Main_Stone_121100"
     ],
     "nav_path_valid": true,
     "nav_path_partial": false,
-    "nav_point_count": 9,
+    "nav_point_count": 14,
     "nav_points_cm": [
       [
         180000.0,
         120500.0,
-        752.6315789473684
+        743.0
       ],
       [
-        180804.0,
-        121524.0,
-        750.0
+        180300.0,
+        121200.0,
+        749.0
       ],
       [
-        183274.0,
-        122113.0,
-        840.0
+        183000.0,
+        121240.0,
+        771.0
       ],
       [
-        183293.0,
-        122227.0,
-        840.0
+        183265.0,
+        121245.0,
+        775.0
       ],
       [
-        183274.0,
-        122265.0,
-        850.0
+        183285.0,
+        121270.0,
+        777.0
       ],
       [
-        182780.0,
-        122512.0,
-        860.0
+        183285.0,
+        121725.0,
+        807.0
       ],
       [
-        182058.0,
-        123310.0,
-        890.0
+        183265.0,
+        121750.0,
+        808.0
       ],
       [
-        181925.0,
-        123443.0,
-        850.0
+        182100.0,
+        122700.0,
+        824.0
+      ],
+      [
+        180600.0,
+        123300.0,
+        787.0
+      ],
+      [
+        180335.0,
+        127200.0,
+        969.0
+      ],
+      [
+        180320.0,
+        127220.0,
+        968.0
+      ],
+      [
+        180300.0,
+        127225.0,
+        984.0
+      ],
+      [
+        180265.0,
+        127200.0,
+        985.0
       ],
       [
         180000.0,
         123500.0,
-        788.3007518796992
+        1138.0
       ]
     ],
     "nav_corner_floor_samples": [
@@ -99,96 +123,146 @@
           180000.0,
           120500.0
         ],
-        "nav_z_cm": 752.6315789473684,
+        "nav_z_cm": 743.0,
         "floor_z_cm": 742.2456518190847,
         "floor_actor": "District_Main_Stone_120500",
-        "nav_minus_floor_cm": 10.385927128283697
+        "nav_minus_floor_cm": 0.7543481809152581
       },
       {
         "xy_cm": [
-          180804.0,
-          121524.0
+          180300.0,
+          121200.0
         ],
-        "nav_z_cm": 750.0,
-        "floor_z_cm": 739.5791027695125,
+        "nav_z_cm": 749.0,
+        "floor_z_cm": 736.7356793254829,
+        "floor_actor": "District_Main_EarthShoulder_1_121100",
+        "nav_minus_floor_cm": 12.26432067451708
+      },
+      {
+        "xy_cm": [
+          183000.0,
+          121240.0
+        ],
+        "nav_z_cm": 771.0,
+        "floor_z_cm": 770.6194399938963,
         "floor_actor": "LandscapeStreamingProxy_1_1_0",
-        "nav_minus_floor_cm": 10.420897230487526
+        "nav_minus_floor_cm": 0.38056000610367846
       },
       {
         "xy_cm": [
-          183274.0,
-          122113.0
+          183265.0,
+          121245.0
         ],
-        "nav_z_cm": 840.0,
-        "floor_z_cm": 830.7499504081788,
+        "nav_z_cm": 775.0,
+        "floor_z_cm": 774.5985351338982,
         "floor_actor": "LandscapeStreamingProxy_1_1_0",
-        "nav_minus_floor_cm": 9.250049591821153
+        "nav_minus_floor_cm": 0.40146486610183274
       },
       {
         "xy_cm": [
-          183293.0,
-          122227.0
+          183285.0,
+          121270.0
         ],
-        "nav_z_cm": 840.0,
-        "floor_z_cm": 838.1584687571526,
+        "nav_z_cm": 777.0,
+        "floor_z_cm": 776.5235751888299,
         "floor_actor": "LandscapeStreamingProxy_1_1_0",
-        "nav_minus_floor_cm": 1.8415312428473953
+        "nav_minus_floor_cm": 0.47642481117009083
       },
       {
         "xy_cm": [
-          183274.0,
-          122265.0
+          183285.0,
+          121725.0
         ],
-        "nav_z_cm": 850.0,
-        "floor_z_cm": 840.4226825360494,
+        "nav_z_cm": 807.0,
+        "floor_z_cm": 805.7429331654839,
         "floor_actor": "LandscapeStreamingProxy_1_1_0",
-        "nav_minus_floor_cm": 9.577317463950635
+        "nav_minus_floor_cm": 1.2570668345160811
       },
       {
         "xy_cm": [
-          182780.0,
-          122512.0
+          183265.0,
+          121750.0
         ],
-        "nav_z_cm": 860.0,
-        "floor_z_cm": 849.5970092317083,
+        "nav_z_cm": 808.0,
+        "floor_z_cm": 807.1620984969863,
         "floor_actor": "LandscapeStreamingProxy_1_1_0",
-        "nav_minus_floor_cm": 10.402990768291716
+        "nav_minus_floor_cm": 0.8379015030136543
       },
       {
         "xy_cm": [
-          182058.0,
-          123310.0
+          182100.0,
+          122700.0
         ],
-        "nav_z_cm": 890.0,
-        "floor_z_cm": 889.5624434373367,
-        "floor_actor": "Wenmingmen_PROVISIONAL_Scale_Interface_Only",
-        "nav_minus_floor_cm": 0.43755656266330334
-      },
-      {
-        "xy_cm": [
-          181925.0,
-          123443.0
-        ],
-        "nav_z_cm": 850.0,
-        "floor_z_cm": 842.5468471046006,
+        "nav_z_cm": 824.0,
+        "floor_z_cm": 823.0334935530627,
         "floor_actor": "LandscapeStreamingProxy_1_1_0",
-        "nav_minus_floor_cm": 7.453152895399398
+        "nav_minus_floor_cm": 0.9665064469372737
+      },
+      {
+        "xy_cm": [
+          180600.0,
+          123300.0
+        ],
+        "nav_z_cm": 787.0,
+        "floor_z_cm": 786.1114290074006,
+        "floor_actor": "LandscapeStreamingProxy_1_1_0",
+        "nav_minus_floor_cm": 0.8885709925993979
+      },
+      {
+        "xy_cm": [
+          180335.0,
+          127200.0
+        ],
+        "nav_z_cm": 969.0,
+        "floor_z_cm": 967.4635731677391,
+        "floor_actor": "District_Main_EarthShoulder_1_127300",
+        "nav_minus_floor_cm": 1.5364268322608723
+      },
+      {
+        "xy_cm": [
+          180320.0,
+          127220.0
+        ],
+        "nav_z_cm": 968.0,
+        "floor_z_cm": 966.9066783597797,
+        "floor_actor": "District_Main_EarthShoulder_1_127300",
+        "nav_minus_floor_cm": 1.0933216402203243
+      },
+      {
+        "xy_cm": [
+          180300.0,
+          127225.0
+        ],
+        "nav_z_cm": 984.0,
+        "floor_z_cm": 983.9677928486916,
+        "floor_actor": "Canton_Approach_Outer",
+        "nav_minus_floor_cm": 0.03220715130839835
+      },
+      {
+        "xy_cm": [
+          180265.0,
+          127200.0
+        ],
+        "nav_z_cm": 985.0,
+        "floor_z_cm": 984.6351926907579,
+        "floor_actor": "Canton_Approach_Outer",
+        "nav_minus_floor_cm": 0.36480730924211
       },
       {
         "xy_cm": [
           180000.0,
           123500.0
         ],
-        "nav_z_cm": 788.3007518796992,
-        "floor_z_cm": 788.1597826071874,
-        "floor_actor": "District_Main_Stone_123500",
-        "nav_minus_floor_cm": 0.14096927251182478
+        "nav_z_cm": 1138.0,
+        "floor_z_cm": 1137.1277565756043,
+        "floor_actor": "Canton_Proxy_Bridge_33",
+        "nav_minus_floor_cm": 0.8722434243957196
       }
     ],
-    "max_abs_nav_minus_floor_cm": 10.420897230487526,
-    "nav_corner_on_authored_road_count": 2,
-    "nav_path_length_cm": 7750.081296477221,
-    "nav_detour_ratio": 2.5833604321590737,
+    "max_abs_nav_minus_floor_cm": 12.26432067451708,
+    "nav_corner_on_authored_road_count": 1,
+    "nav_path_length_cm": 15086.456133728025,
+    "nav_detour_ratio": 5.028818711242675,
     "pawn_traversal": "NOT_RUN",
     "route_check_pass": false,
     "historical_route_claim": false,
@@ -210,31 +284,11 @@
       "floor_trace_hits": 74,
       "floor_trace_count": 74,
       "floor_support_pass": true,
-      "max_floor_vs_r16_error_cm": 19.047123884425787,
+      "max_floor_vs_r16_error_cm": 367.9871315756043,
       "floor_actor_labels": [
-        "District_Main_Stone_123500",
-        "District_Main_Stone_123700",
-        "District_Main_Stone_123900",
-        "District_Main_Stone_124100",
-        "District_Main_Stone_124300",
-        "District_Main_Stone_124500",
-        "District_Main_Stone_124700",
-        "District_Main_Stone_124900",
-        "District_Main_Stone_125100",
-        "District_Main_Stone_125300",
-        "District_Main_Stone_125500",
-        "District_Main_Stone_125700",
-        "District_Main_Stone_125900",
-        "District_Main_Stone_126100",
-        "District_Main_Stone_126300",
-        "District_Main_Stone_126500",
-        "District_Main_Stone_126700",
-        "District_Main_Stone_126900",
-        "District_Main_Stone_127100",
-        "District_Main_Stone_127300",
-        "District_Main_Stone_127500",
-        "District_Main_Stone_127700",
-        "District_Main_Stone_127900",
+        "Canton_Approach_Outer",
+        "Canton_Proxy_Bridge_33",
+        "Canton_Proxy_Bridge_37",
         "District_Main_Stone_128100",
         "District_Main_Stone_128300",
         "District_Main_Stone_128500",
@@ -294,12 +348,12 @@
         [
           180000.0,
           123500.0,
-          788.3007518796992
+          1138.0
         ],
         [
           180000.0,
           138000.0,
-          963.5649248471422
+          950.0
         ]
       ],
       "nav_corner_floor_samples": [
@@ -308,26 +362,26 @@
             180000.0,
             123500.0
           ],
-          "nav_z_cm": 788.3007518796992,
-          "floor_z_cm": 788.1597826071874,
-          "floor_actor": "District_Main_Stone_123500",
-          "nav_minus_floor_cm": 0.14096927251182478
+          "nav_z_cm": 1138.0,
+          "floor_z_cm": 1137.1277565756043,
+          "floor_actor": "Canton_Proxy_Bridge_33",
+          "nav_minus_floor_cm": 0.8722434243957196
         },
         {
           "xy_cm": [
             180000.0,
             138000.0
           ],
-          "nav_z_cm": 963.5649248471422,
+          "nav_z_cm": 950.0,
           "floor_z_cm": 949.4713500088537,
           "floor_actor": "District_Main_Stone_138100",
-          "nav_minus_floor_cm": 14.093574838288419
+          "nav_minus_floor_cm": 0.528649991146267
         }
       ],
-      "max_abs_nav_minus_floor_cm": 14.093574838288419,
-      "nav_corner_on_authored_road_count": 2,
-      "nav_path_length_cm": 14501.059186498273,
-      "nav_detour_ratio": 1.0000730473447084,
+      "max_abs_nav_minus_floor_cm": 0.8722434243957196,
+      "nav_corner_on_authored_road_count": 1,
+      "nav_path_length_cm": 14501.21870740525,
+      "nav_detour_ratio": 1.000084048786569,
       "pawn_traversal": "NOT_RUN",
       "route_check_pass": true,
       "historical_route_claim": false
@@ -385,12 +439,12 @@
         [
           174500.0,
           132000.0,
-          827.8040444324151
+          823.6666666666666
         ],
         [
           180000.0,
           132000.0,
-          850.2605983267068
+          836.0
         ]
       ],
       "nav_corner_floor_samples": [
@@ -399,26 +453,26 @@
             174500.0,
             132000.0
           ],
-          "nav_z_cm": 827.8040444324151,
+          "nav_z_cm": 823.6666666666666,
           "floor_z_cm": 822.7959321323186,
           "floor_actor": "District_MixedLane_174500",
-          "nav_minus_floor_cm": 5.0081123000965135
+          "nav_minus_floor_cm": 0.8707345343480029
         },
         {
           "xy_cm": [
             180000.0,
             132000.0
           ],
-          "nav_z_cm": 850.2605983267068,
+          "nav_z_cm": 836.0,
           "floor_z_cm": 834.6313404258957,
           "floor_actor": "District_Main_Stone_131900",
-          "nav_minus_floor_cm": 15.629257900811126
+          "nav_minus_floor_cm": 1.3686595741042993
         }
       ],
-      "max_abs_nav_minus_floor_cm": 15.629257900811126,
+      "max_abs_nav_minus_floor_cm": 1.3686595741042993,
       "nav_corner_on_authored_road_count": 2,
-      "nav_path_length_cm": 5500.045844973732,
-      "nav_detour_ratio": 1.0000083354497693,
+      "nav_path_length_cm": 5500.013828265444,
+      "nav_detour_ratio": 1.0000025142300808,
       "pawn_traversal": "NOT_RUN",
       "route_check_pass": true,
       "historical_route_claim": false
@@ -492,12 +546,12 @@
         [
           180000.0,
           132000.0,
-          850.2605983267068
+          836.0
         ],
         [
           189000.0,
           132000.0,
-          1014.0851759587478
+          1010.0
         ]
       ],
       "nav_corner_floor_samples": [
@@ -506,26 +560,26 @@
             180000.0,
             132000.0
           ],
-          "nav_z_cm": 850.2605983267068,
+          "nav_z_cm": 836.0,
           "floor_z_cm": 834.6313404258957,
           "floor_actor": "District_Main_Stone_131900",
-          "nav_minus_floor_cm": 15.629257900811126
+          "nav_minus_floor_cm": 1.3686595741042993
         },
         {
           "xy_cm": [
             189000.0,
             132000.0
           ],
-          "nav_z_cm": 1014.0851759587478,
-          "floor_z_cm": 1009.3180274968258,
+          "nav_z_cm": 1010.0,
+          "floor_z_cm": 1009.318027496826,
           "floor_actor": "District_MixedLane_188900",
-          "nav_minus_floor_cm": 4.76714846192192
+          "nav_minus_floor_cm": 0.6819725031740518
         }
       ],
-      "max_abs_nav_minus_floor_cm": 15.629257900811126,
+      "max_abs_nav_minus_floor_cm": 1.3686595741042993,
       "nav_corner_on_authored_road_count": 2,
-      "nav_path_length_cm": 9001.49090385789,
-      "nav_detour_ratio": 1.00016565598421,
+      "nav_path_length_cm": 9001.68184285581,
+      "nav_detour_ratio": 1.0001868714284234,
       "pawn_traversal": "NOT_RUN",
       "route_check_pass": true,
       "historical_route_claim": false
@@ -545,7 +599,7 @@
       "floor_trace_hits": 23,
       "floor_trace_count": 23,
       "floor_support_pass": true,
-      "max_floor_vs_r16_error_cm": 19.01519693350872,
+      "max_floor_vs_r16_error_cm": 19.015196933508832,
       "floor_actor_labels": [
         "District_Main_EarthShoulder_1_130700",
         "District_Main_Stone_130500",
@@ -556,17 +610,22 @@
       ],
       "nav_path_valid": true,
       "nav_path_partial": false,
-      "nav_point_count": 2,
+      "nav_point_count": 3,
       "nav_points_cm": [
         [
           180000.0,
           130500.0,
-          901.497975708502
+          891.0
+        ],
+        [
+          183300.0,
+          131700.0,
+          1044.0
         ],
         [
           184000.0,
           132000.0,
-          1059.5104410829158
+          1047.3333333333333
         ]
       ],
       "nav_corner_floor_samples": [
@@ -575,56 +634,69 @@
             180000.0,
             130500.0
           ],
-          "nav_z_cm": 901.497975708502,
-          "floor_z_cm": 889.7183219335087,
+          "nav_z_cm": 891.0,
+          "floor_z_cm": 889.7183219335088,
           "floor_actor": "District_Main_Stone_130500",
-          "nav_minus_floor_cm": 11.779653774993335
+          "nav_minus_floor_cm": 1.2816780664911676
+        },
+        {
+          "xy_cm": [
+            183300.0,
+            131700.0
+          ],
+          "nav_z_cm": 1044.0,
+          "floor_z_cm": 1043.352693217365,
+          "floor_actor": "LandscapeStreamingProxy_1_1_0",
+          "nav_minus_floor_cm": 0.6473067826350416
         },
         {
           "xy_cm": [
             184000.0,
             132000.0
           ],
-          "nav_z_cm": 1059.5104410829158,
+          "nav_z_cm": 1047.3333333333333,
           "floor_z_cm": 1046.4262082787257,
           "floor_actor": "District_MixedLane_184100",
-          "nav_minus_floor_cm": 13.084232804190151
+          "nav_minus_floor_cm": 0.9071250546076044
         }
       ],
-      "max_abs_nav_minus_floor_cm": 13.084232804190151,
+      "max_abs_nav_minus_floor_cm": 1.2816780664911676,
       "nav_corner_on_authored_road_count": 2,
-      "nav_path_length_cm": 4274.923150094479,
-      "nav_detour_ratio": 1.000683819324708,
+      "nav_path_length_cm": 4276.326274381034,
+      "nav_detour_ratio": 1.0010122658770222,
       "pawn_traversal": "NOT_RUN",
       "route_check_pass": true,
       "historical_route_claim": false
     },
     {
       "route": "gate_threshold_approach",
-      "surface": "gate_staging",
-      "endpoint_role": "north staging point, approximately 6 m from closed gate face",
+      "surface": "gate_threshold",
+      "endpoint_role": "engineered landing approximately 0.6 m outside the closed door; source bridge retained",
       "start_xy_cm": [
         180000,
         125000
       ],
       "end_xy_cm": [
         180000,
-        123500
+        121750
       ],
-      "floor_trace_hits": 9,
-      "floor_trace_count": 9,
+      "floor_trace_hits": 18,
+      "floor_trace_count": 18,
       "floor_support_pass": true,
-      "max_floor_vs_r16_error_cm": 19.019157607187367,
+      "max_floor_vs_r16_error_cm": 495.3342923788166,
       "floor_actor_labels": [
-        "District_Main_Stone_123500",
-        "District_Main_Stone_123700",
-        "District_Main_Stone_123900",
-        "District_Main_Stone_124100",
-        "District_Main_Stone_124300",
-        "District_Main_Stone_124500",
-        "District_Main_Stone_124700",
-        "District_Main_Stone_124900",
-        "District_Main_Stone_125100"
+        "Canton_Approach_Outer",
+        "Canton_Approach_Threshold",
+        "Canton_Proxy_Bridge_02",
+        "Canton_Proxy_Bridge_06",
+        "Canton_Proxy_Bridge_10",
+        "Canton_Proxy_Bridge_14",
+        "Canton_Proxy_Bridge_18",
+        "Canton_Proxy_Bridge_21",
+        "Canton_Proxy_Bridge_25",
+        "Canton_Proxy_Bridge_29",
+        "Canton_Proxy_Bridge_33",
+        "Canton_Proxy_Bridge_37"
       ],
       "nav_path_valid": true,
       "nav_path_partial": false,
@@ -633,12 +705,12 @@
         [
           180000.0,
           125000.0,
-          881.594304776601
+          1043.6666666666667
         ],
         [
           180000.0,
-          123500.0,
-          788.3007518796992
+          121750.0,
+          1065.7692307692307
         ]
       ],
       "nav_corner_floor_samples": [
@@ -647,26 +719,26 @@
             180000.0,
             125000.0
           ],
-          "nav_z_cm": 881.594304776601,
-          "floor_z_cm": 871.7446519069881,
-          "floor_actor": "District_Main_Stone_125100",
-          "nav_minus_floor_cm": 9.849652869612896
+          "nav_z_cm": 1043.6666666666667,
+          "floor_z_cm": 1043.3663787925855,
+          "floor_actor": "Canton_Approach_Outer",
+          "nav_minus_floor_cm": 0.30028787408127755
         },
         {
           "xy_cm": [
             180000.0,
-            123500.0
+            121750.0
           ],
-          "nav_z_cm": 788.3007518796992,
-          "floor_z_cm": 788.1597826071874,
-          "floor_actor": "District_Main_Stone_123500",
-          "nav_minus_floor_cm": 0.14096927251182478
+          "nav_z_cm": 1065.7692307692307,
+          "floor_z_cm": 1064.3553503873459,
+          "floor_actor": "Canton_Approach_Threshold",
+          "nav_minus_floor_cm": 1.4138803818848373
         }
       ],
-      "max_abs_nav_minus_floor_cm": 9.849652869612896,
-      "nav_corner_on_authored_road_count": 2,
-      "nav_path_length_cm": 1502.8984287077178,
-      "nav_detour_ratio": 1.0019322858051452,
+      "max_abs_nav_minus_floor_cm": 1.4138803818848373,
+      "nav_corner_on_authored_road_count": 0,
+      "nav_path_length_cm": 3250.0751565679075,
+      "nav_detour_ratio": 1.0000231250978178,
       "pawn_traversal": "NOT_RUN",
       "route_check_pass": true,
       "historical_route_claim": false
@@ -699,12 +771,12 @@
         [
           180000.0,
           134000.0,
-          811.8092981372884
+          802.6666666666666
         ],
         [
           180900.0,
           134000.0,
-          817.9937968102311
+          807.6666666666666
         ]
       ],
       "nav_corner_floor_samples": [
@@ -713,26 +785,26 @@
             180000.0,
             134000.0
           ],
-          "nav_z_cm": 811.8092981372884,
+          "nav_z_cm": 802.6666666666666,
           "floor_z_cm": 802.2087348507164,
           "floor_actor": "District_Main_Stone_134100",
-          "nav_minus_floor_cm": 9.600563286571969
+          "nav_minus_floor_cm": 0.45793181595024635
         },
         {
           "xy_cm": [
             180900.0,
             134000.0
           ],
-          "nav_z_cm": 817.9937968102311,
-          "floor_z_cm": 806.8256644827192,
+          "nav_z_cm": 807.6666666666666,
+          "floor_z_cm": 806.8256644827193,
           "floor_actor": "LandscapeStreamingProxy_1_1_0",
-          "nav_minus_floor_cm": 11.168132327511898
+          "nav_minus_floor_cm": 0.8410021839473529
         }
       ],
-      "max_abs_nav_minus_floor_cm": 11.168132327511898,
+      "max_abs_nav_minus_floor_cm": 0.8410021839473529,
       "nav_corner_on_authored_road_count": 1,
-      "nav_path_length_cm": 900.0212486512946,
-      "nav_detour_ratio": 1.0000236096125497,
+      "nav_path_length_cm": 900.0138887817232,
+      "nav_detour_ratio": 1.0000154319796923,
       "pawn_traversal": "NOT_RUN",
       "route_check_pass": true,
       "historical_route_claim": false
@@ -752,7 +824,7 @@
       "floor_trace_hits": 21,
       "floor_trace_count": 21,
       "floor_support_pass": true,
-      "max_floor_vs_r16_error_cm": 14.003783481662367,
+      "max_floor_vs_r16_error_cm": 14.003783481662822,
       "floor_actor_labels": [
         "District_MixedLane_187900",
         "LandscapeStreamingProxy_1_1_0"
@@ -764,12 +836,12 @@
         [
           188000.0,
           132000.0,
-          1054.3212722719238
+          1051.0
         ],
         [
           188000.0,
           136000.0,
-          1023.9829635968781
+          1012.3333333333334
         ]
       ],
       "nav_corner_floor_samples": [
@@ -778,26 +850,26 @@
             188000.0,
             132000.0
           ],
-          "nav_z_cm": 1054.3212722719238,
-          "floor_z_cm": 1049.9412834816624,
+          "nav_z_cm": 1051.0,
+          "floor_z_cm": 1049.9412834816628,
           "floor_actor": "District_MixedLane_187900",
-          "nav_minus_floor_cm": 4.37998879026145
+          "nav_minus_floor_cm": 1.058716518337178
         },
         {
           "xy_cm": [
             188000.0,
             136000.0
           ],
-          "nav_z_cm": 1023.9829635968781,
-          "floor_z_cm": 1011.3048311493859,
+          "nav_z_cm": 1012.3333333333334,
+          "floor_z_cm": 1011.3048311493858,
           "floor_actor": "LandscapeStreamingProxy_1_1_0",
-          "nav_minus_floor_cm": 12.678132447492203
+          "nav_minus_floor_cm": 1.0285021839475803
         }
       ],
-      "max_abs_nav_minus_floor_cm": 12.678132447492203,
+      "max_abs_nav_minus_floor_cm": 1.058716518337178,
       "nav_corner_on_authored_road_count": 1,
-      "nav_path_length_cm": 4000.1150499670957,
-      "nav_detour_ratio": 1.0000287624917739,
+      "nav_path_length_cm": 4000.1868845231606,
+      "nav_detour_ratio": 1.0000467211307902,
       "pawn_traversal": "NOT_RUN",
       "route_check_pass": true,
       "historical_route_claim": false
