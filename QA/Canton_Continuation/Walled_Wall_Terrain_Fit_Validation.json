@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
+  "historically_accepted": false,
+  "landscape_edit_layers": [
+    "Base_Imported",
+    "Wall_Foundation_Adjustment"
+  ],
+  "native_reload_check": {
+    "passed": true,
+    "historically_accepted": false,
+    "landscape_count": 1,
+    "adaptive_module_count": 4790,
+    "old_coarse_wall_count": 0,
+    "max_module_length_cm": 249.82451002460567,
+    "errors": []
+  },
+  "adaptive_module_count": 4790,
+  "old_coarse_wall_count": 0,
+  "gate_label_count": 0,
+  "max_module_length_cm": 249.82451002460567,
+  "wall_height_cm": 1000.0,
+  "max_bottom_gap_cm": -77.14,
+  "max_buried_penetration_cm": 139.999,
+  "positive_gap_endpoint_count": 0,
+  "collision_missing_count": 0,
+  "raw_sha256": "ab89d3510e6ef6dfe34a69eb3df5b219d6fe953a9dd4de3d0095f6f150a55765"
+}

@@ -1,10 +1,4 @@
 {
-  "map": "/Game/Canton/Provisional/Maps/L_Canton_WalledCity_PROVISIONAL",
-  "saved_to_disk": true,
-  "dirty_provisional_packages_before": [],
-  "dirty_provisional_packages_saved": [],
-  "dirty_provisional_packages_remaining": [],
-  "reloaded_landmarks": 9,
-  "reloaded_fit_wall_actors": 99,
-  "passed": true
+  "passed": false,
+  "error": "Traceback (most recent call last):\n  File \"/Volumes/M2/Works/AuraProj/Scripts/SaveCantonWalledCityToDisk.py\", line 72, in <module>\n    run()\n  File \"/Volumes/M2/Works/AuraProj/Scripts/SaveCantonWalledCityToDisk.py\", line 50, in run\n    assert wall_validation['passed'], wall_validation\nAssertionError: {'passed': False, 'historically_accepted': False, 'landscape_count': 1, 'adaptive_module_count': 0, 'old_coarse_wall_count': 0, 'max_module_length_cm': 0, 'errors': ['Adaptive wall modules missing']}\n"
 }

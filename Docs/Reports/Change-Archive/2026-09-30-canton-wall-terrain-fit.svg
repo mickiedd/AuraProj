@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Canton provisional wall terrain fit</title>
+  <desc id="desc">Before and after flow showing a reversible Landscape foundation layer, short adaptive wall modules, and validation results.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#334155"/></marker>
+    <style>
+      .title{font:700 26px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;fill:#0f172a}
+      .h{font:700 17px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;fill:#0f172a}
+      .body{font:14px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;fill:#334155}
+      .small{font:12px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;fill:#475569}
+      .box{stroke:#94a3b8;stroke-width:2;rx:14}
+      .pass{fill:#ecfdf5;stroke:#059669}
+      .fix{fill:#eff6ff;stroke:#2563eb}
+      .before{fill:#fff7ed;stroke:#ea580c}
+      .note{fill:#f8fafc;stroke:#64748b}
+      .arrow{stroke:#334155;stroke-width:2.5;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1200" height="680" fill="#ffffff"/>
+  <text x="48" y="48" class="title">Canton provisional wall terrain fit — 2026-09-30</text>
+  <text x="48" y="76" class="body">The supplied guide is treated as engineering guidance; the saved map remains explicitly provisional.</text>
+
+  <rect x="48" y="112" width="330" height="190" class="box before"/>
+  <text x="70" y="143" class="h">Observed failure</text>
+  <path d="M72 248 C130 210 168 260 220 226 S315 238 350 205" stroke="#cbd5e1" stroke-width="12" fill="none"/>
+  <path d="M74 218 L350 218 L350 248 L74 248 Z" fill="#d99b2b" opacity=".9"/>
+  <path d="M130 248 L160 248 L175 228 L145 228 Z" fill="#ffffff" stroke="#ea580c" stroke-dasharray="4 4"/>
+  <text x="70" y="278" class="small">Long flat cubes used one center Z; undulating terrain left daylight gaps.</text>
+
+  <path d="M378 206 C416 206 420 206 448 206" class="arrow"/>
+
+  <rect x="450" y="112" width="330" height="190" class="box fix"/>
+  <text x="472" y="143" class="h">Saved terrain correction</text>
+  <text x="472" y="174" class="body">Wall_Foundation_Adjustment</text>
+  <text x="472" y="198" class="body">143 wall segments · 450 cm corridor</text>
+  <text x="472" y="220" class="body">500 cm smooth blend · Base_Imported locked</text>
+  <text x="472" y="242" class="body">54,036 vertices changed · max ±214.3 cm</text>
+  <text x="472" y="271" class="small">Additive, reversible Landscape edit layer; route XY is unchanged.</text>
+
+  <path d="M780 206 C818 206 822 206 850 206" class="arrow"/>
+
+  <rect x="852" y="112" width="300" height="190" class="box fix"/>
+  <text x="874" y="143" class="h">Adaptive wall modules</text>
+  <text x="874" y="174" class="body">4,790 short modules</text>
+  <text x="874" y="198" class="body">max length 249.8 cm</text>
+  <text x="874" y="220" class="body">140 cm buried foundation</text>
+  <text x="874" y="242" class="body">collision enabled; gates untouched</text>
+  <text x="874" y="271" class="small">Each module follows endpoint and cross-section terrain samples.</text>
+
+  <path d="M1002 304 L1002 356" class="arrow"/>
+  <path d="M615 304 L615 356" class="arrow"/>
+
+  <rect x="248" y="358" width="704" height="244" class="box pass"/>
+  <text x="272" y="392" class="h">Validation and delivery evidence</text>
+  <text x="272" y="426" class="body">✓ Native reload: foundation layer present, no coarse wall actors, 4,790 adaptive actors</text>
+  <text x="272" y="452" class="body">✓ Terrain fit: 0 positive bottom gaps; maximum buried penetration 140.0 cm</text>
+  <text x="272" y="478" class="body">✓ Fresh editor disk save: 9 landmarks, 4,790 adaptive walls, 0 dirty Canton packages</text>
+  <text x="272" y="504" class="body">✓ Scoped cook: 1,532 / 1,532 packages, 0 errors</text>
+  <text x="272" y="530" class="body">✓ Packaged player camera: 1280×720, nonblack fraction 0.9996, 6,086 colors</text>
+  <text x="272" y="570" class="small">Historical coordinates and terrain remain unaccepted until surveyed controls replace the provisional route.</text>
+</svg>

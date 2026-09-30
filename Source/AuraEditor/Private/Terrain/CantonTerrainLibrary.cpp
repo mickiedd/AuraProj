@@ -9,6 +9,7 @@
 #include "LandscapeComponent.h"
 #include "LandscapeHeightfieldCollisionComponent.h"
 #include "LandscapeEdit.h"
+#include "LandscapeDataAccess.h"
 #include "LandscapeSubsystem.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
@@ -38,6 +39,87 @@ namespace CantonTerrain
         // Explicit little-endian decoder. The file is already south-first for UE +Y=north.
         for (int32 I = 0; I < Heights.Num(); ++I) Heights[I] = Bytes[2*I] | (uint16(Bytes[2*I+1]) << 8);
         return true;
+    }
+
+    struct FWallFoundationSegment
+    {
+        FVector2D A = FVector2D::ZeroVector;
+        FVector2D B = FVector2D::ZeroVector;
+    };
+
+    bool ReadWallFoundationProfile(const FString& Path, TArray<FWallFoundationSegment>& Segments,
+        double& HalfWidthCm, double& BlendWidthCm, double& MaxAdjustmentCm)
+    {
+        FString Text;
+        if (!FFileHelper::LoadFileToString(Text, *Path)) return false;
+        TSharedPtr<FJsonObject> Root;
+        const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Text);
+        if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid()) return false;
+        HalfWidthCm = Root->GetNumberField(TEXT("corridor_half_width_cm"));
+        BlendWidthCm = Root->GetNumberField(TEXT("blend_width_cm"));
+        MaxAdjustmentCm = Root->GetNumberField(TEXT("max_adjustment_cm"));
+        const TArray<TSharedPtr<FJsonValue>>* JsonSegments = nullptr;
+        if (!Root->TryGetArrayField(TEXT("segments"), JsonSegments) || !JsonSegments) return false;
+        for (const TSharedPtr<FJsonValue>& Value : *JsonSegments)
+        {
+            const TSharedPtr<FJsonObject> Object = Value.IsValid() ? Value->AsObject() : nullptr;
+            if (!Object.IsValid()) continue;
+            const TArray<TSharedPtr<FJsonValue>>* A = nullptr;
+            const TArray<TSharedPtr<FJsonValue>>* B = nullptr;
+            if (!Object->TryGetArrayField(TEXT("a_cm"), A) || !Object->TryGetArrayField(TEXT("b_cm"), B) ||
+                !A || !B || A->Num() != 2 || B->Num() != 2) continue;
+            FWallFoundationSegment Segment;
+            Segment.A = FVector2D((*A)[0]->AsNumber(), (*A)[1]->AsNumber());
+            Segment.B = FVector2D((*B)[0]->AsNumber(), (*B)[1]->AsNumber());
+            if (!Segment.A.Equals(Segment.B, 0.01f)) Segments.Add(Segment);
+        }
+        return Segments.Num() > 0 && HalfWidthCm > 0.0 && BlendWidthCm > 0.0 && MaxAdjustmentCm > 0.0;
+    }
+
+    double HeightCodeToCm(uint16 Code, double ScaleZ)
+    {
+        return (static_cast<double>(Code) - 32768.0) * ScaleZ / 128.0;
+    }
+
+    double SampleHeightCm(const TArray<uint16>& Heights, double Xcm, double Ycm, double ScaleZ)
+    {
+        const double FX = FMath::Clamp(Xcm / 200.0, 0.0, static_cast<double>(VertexCount - 1));
+        const double FY = FMath::Clamp(Ycm / 200.0, 0.0, static_cast<double>(VertexCount - 1));
+        const int32 X0 = FMath::Clamp(FMath::FloorToInt(FX), 0, VertexCount - 1);
+        const int32 Y0 = FMath::Clamp(FMath::FloorToInt(FY), 0, VertexCount - 1);
+        const int32 X1 = FMath::Min(X0 + 1, VertexCount - 1);
+        const int32 Y1 = FMath::Min(Y0 + 1, VertexCount - 1);
+        const double U = FX - X0;
+        const double V = FY - Y0;
+        const auto H = [&Heights, ScaleZ](int32 X, int32 Y)
+        {
+            return HeightCodeToCm(Heights[Y * VertexCount + X], ScaleZ);
+        };
+        return (1.0 - U) * (1.0 - V) * H(X0, Y0) + U * (1.0 - V) * H(X1, Y0) +
+            (1.0 - U) * V * H(X0, Y1) + U * V * H(X1, Y1);
+    }
+
+    bool NearestFoundation(const TArray<FWallFoundationSegment>& Segments, const FVector2D& Point,
+        double& OutDistanceCm, FVector2D& OutClosestPoint)
+    {
+        double BestDistanceSq = TNumericLimits<double>::Max();
+        bool Found = false;
+        for (const FWallFoundationSegment& Segment : Segments)
+        {
+            const FVector2D Delta = Segment.B - Segment.A;
+            const double LengthSq = Delta.SizeSquared();
+            const double T = LengthSq > 0.0001 ? FMath::Clamp(FVector2D::DotProduct(Point - Segment.A, Delta) / LengthSq, 0.0, 1.0) : 0.0;
+            const FVector2D Closest = Segment.A + Delta * T;
+            const double DistanceSq = (Point - Closest).SizeSquared();
+            if (DistanceSq < BestDistanceSq)
+            {
+                BestDistanceSq = DistanceSq;
+                OutClosestPoint = Closest;
+                Found = true;
+            }
+        }
+        OutDistanceCm = Found ? FMath::Sqrt(BestDistanceSq) : TNumericLimits<double>::Max();
+        return Found;
     }
 }
 
@@ -117,6 +199,201 @@ bool UCantonTerrainLibrary::AddDistrictEditLayers(UWorld* World)
     Landscape->ForceLayersFullUpdate();
     Landscape->MarkPackageDirty();
     return true;
+}
+
+FString UCantonTerrainLibrary::ApplyProvisionalWallFoundation(UWorld* World, const FString& ProfilePath)
+{
+    using namespace CantonTerrain;
+    TSharedRef<FJsonObject> Result = MakeShared<FJsonObject>();
+    Result->SetBoolField(TEXT("passed"), false);
+    Result->SetStringField(TEXT("profile"), ProfilePath);
+    if (!IsPrototypeWorld(World) || !World->GetPackage()->GetName().StartsWith(TEXT("/Game/Canton/Provisional/")))
+    {
+        Result->SetStringField(TEXT("error"), TEXT("Not the provisional Canton world"));
+        return [&Result](){ FString Out; FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out)); return Out; }();
+    }
+
+    TArray<FWallFoundationSegment> Segments;
+    double HalfWidthCm = 0.0, BlendWidthCm = 0.0, MaxAdjustmentCm = 0.0;
+    if (!ReadWallFoundationProfile(ProfilePath, Segments, HalfWidthCm, BlendWidthCm, MaxAdjustmentCm))
+    {
+        Result->SetStringField(TEXT("error"), TEXT("Wall foundation profile is invalid"));
+        return [&Result](){ FString Out; FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out)); return Out; }();
+    }
+
+    ALandscape* Landscape = nullptr;
+    for (TActorIterator<ALandscape> It(World); It; ++It)
+    {
+        if (Landscape)
+        {
+            Result->SetStringField(TEXT("error"), TEXT("Multiple Landscapes found"));
+            return [&Result](){ FString Out; FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out)); return Out; }();
+        }
+        Landscape = *It;
+    }
+    if (!Landscape)
+    {
+        Result->SetStringField(TEXT("error"), TEXT("Landscape missing"));
+        return [&Result](){ FString Out; FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out)); return Out; }();
+    }
+    const FLandscapeLayer* BaseLayer = Landscape->GetLayerConst(TEXT("Base_Imported"));
+    if (!BaseLayer || !BaseLayer->bLocked)
+    {
+        Result->SetStringField(TEXT("error"), TEXT("Locked Base_Imported layer missing"));
+        return [&Result](){ FString Out; FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out)); return Out; }();
+    }
+    ULandscapeInfo* Info = Landscape->GetLandscapeInfo();
+    if (!Info || Info->ComponentSizeQuads <= 0)
+    {
+        Result->SetStringField(TEXT("error"), TEXT("Landscape info unavailable"));
+        return [&Result](){ FString Out; FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out)); return Out; }();
+    }
+
+    const int32 MaxCoord = VertexCount - 1;
+    TArray<uint16> BaseHeights;
+    BaseHeights.SetNumUninitialized(VertexCount * VertexCount);
+    FLandscapeEditDataInterface BaseEdit(Info, BaseLayer->Guid, false);
+    BaseEdit.GetHeightDataFast(0, 0, MaxCoord, MaxCoord, BaseHeights.GetData(), 0);
+
+    int32 LayerIndex = Landscape->GetLayerIndex(FName(TEXT("Wall_Foundation_Adjustment")));
+    if (LayerIndex == INDEX_NONE)
+    {
+        LayerIndex = Landscape->CreateLayer(FName(TEXT("Wall_Foundation_Adjustment")));
+    }
+    if (LayerIndex == INDEX_NONE)
+    {
+        Result->SetStringField(TEXT("error"), TEXT("Could not create foundation edit layer"));
+        return [&Result](){ FString Out; FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out)); return Out; }();
+    }
+    Landscape->SetLayerBlendMode(LayerIndex, LSBM_AdditiveBlend);
+    Landscape->SetLayerAlpha(LayerIndex, 1.0f, true);
+    Landscape->SetLayerLocked(LayerIndex, false);
+    const FLandscapeLayer* FoundationLayer = Landscape->GetLayerConst(LayerIndex);
+    if (!FoundationLayer)
+    {
+        Result->SetStringField(TEXT("error"), TEXT("Foundation layer lookup failed"));
+        return [&Result](){ FString Out; FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out)); return Out; }();
+    }
+
+    TArray<uint16> AdjustedHeights;
+    AdjustedHeights.Init(LandscapeDataAccess::GetTexHeight(0.0f), VertexCount * VertexCount);
+    int32 ChangedVertices = 0;
+    double MaxAppliedAdjustment = 0.0;
+    double MinAppliedAdjustment = 0.0;
+    const double ScaleZ = static_cast<double>(Info->DrawScale.Z);
+    const double Pi = 3.14159265358979323846;
+    for (int32 Y = 0; Y <= MaxCoord; ++Y)
+    {
+        for (int32 X = 0; X <= MaxCoord; ++X)
+        {
+            const FVector2D Point(static_cast<double>(X) * 200.0, static_cast<double>(Y) * 200.0);
+            double DistanceCm = 0.0;
+            FVector2D ClosestPoint = FVector2D::ZeroVector;
+            if (!NearestFoundation(Segments, Point, DistanceCm, ClosestPoint)) continue;
+            if (DistanceCm > HalfWidthCm + BlendWidthCm) continue;
+            const double CenterlineHeight = SampleHeightCm(BaseHeights, ClosestPoint.X, ClosestPoint.Y, ScaleZ);
+            const double BaseHeight = HeightCodeToCm(BaseHeights[Y * VertexCount + X], ScaleZ);
+            double Weight = 1.0;
+            if (DistanceCm > HalfWidthCm)
+            {
+                const double T = FMath::Clamp((DistanceCm - HalfWidthCm) / BlendWidthCm, 0.0, 1.0);
+                Weight = 0.5 * (1.0 + FMath::Cos(Pi * T));
+            }
+            const double AppliedAdjustment = FMath::Clamp((CenterlineHeight - BaseHeight) * Weight,
+                -MaxAdjustmentCm, MaxAdjustmentCm);
+            const int32 HeightDelta = FMath::RoundToInt(AppliedAdjustment * 128.0 / ScaleZ);
+            if (HeightDelta == 0) continue;
+            const int32 NewCode = FMath::Clamp(32768 + HeightDelta, 0, 65535);
+            AdjustedHeights[Y * VertexCount + X] = static_cast<uint16>(NewCode);
+            ++ChangedVertices;
+            MaxAppliedAdjustment = FMath::Max(MaxAppliedAdjustment, AppliedAdjustment);
+            MinAppliedAdjustment = FMath::Min(MinAppliedAdjustment, AppliedAdjustment);
+        }
+    }
+
+    FLandscapeEditDataInterface FoundationEdit(Info, FoundationLayer->Guid, true);
+    FoundationEdit.SetHeightData(0, 0, MaxCoord, MaxCoord, AdjustedHeights.GetData(), 0, true,
+        nullptr, nullptr, nullptr, false, nullptr, nullptr, true, true, true);
+    Landscape->ForceLayersFullUpdate();
+    Landscape->RequestLayersContentUpdateForceAll();
+    Landscape->MarkPackageDirty();
+    World->MarkPackageDirty();
+
+    Result->SetBoolField(TEXT("passed"), true);
+    Result->SetStringField(TEXT("layer"), TEXT("Wall_Foundation_Adjustment"));
+    Result->SetNumberField(TEXT("segment_count"), Segments.Num());
+    Result->SetNumberField(TEXT("changed_vertices"), ChangedVertices);
+    Result->SetNumberField(TEXT("corridor_half_width_cm"), HalfWidthCm);
+    Result->SetNumberField(TEXT("blend_width_cm"), BlendWidthCm);
+    Result->SetNumberField(TEXT("max_adjustment_cm"), MaxAppliedAdjustment);
+    Result->SetNumberField(TEXT("min_adjustment_cm"), MinAppliedAdjustment);
+    FString Out;
+    FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out));
+    return Out;
+}
+
+FString UCantonTerrainLibrary::ValidateProvisionalWallFoundation(UWorld* World)
+{
+    TArray<FString> Errors;
+    auto Require = [&Errors](bool Good, const TCHAR* Message)
+    {
+        if (!Good) Errors.Add(Message);
+    };
+    Require(CantonTerrain::IsPrototypeWorld(World) && World->GetPackage()->GetName().StartsWith(TEXT("/Game/Canton/Provisional/")),
+        TEXT("Not the provisional Canton world"));
+    ALandscape* Landscape = nullptr;
+    int32 LandscapeCount = 0;
+    int32 AdaptiveCount = 0;
+    int32 OldCount = 0;
+    int32 CollisionMissing = 0;
+    double MaxModuleLengthCm = 0.0;
+    if (World)
+    {
+        for (TActorIterator<ALandscape> It(World); It; ++It)
+        {
+            Landscape = *It;
+            ++LandscapeCount;
+        }
+        Require(LandscapeCount == 1, TEXT("Expected exactly one Landscape"));
+        if (Landscape)
+        {
+            const FLandscapeLayer* Base = Landscape->GetLayerConst(TEXT("Base_Imported"));
+            const FLandscapeLayer* Foundation = Landscape->GetLayerConst(TEXT("Wall_Foundation_Adjustment"));
+            Require(Base && Base->bLocked, TEXT("Locked Base_Imported layer missing"));
+            Require(Foundation != nullptr, TEXT("Wall_Foundation_Adjustment layer missing"));
+        }
+        for (TActorIterator<AActor> It(World); It; ++It)
+        {
+            const FString Label = It->GetActorLabel();
+            if (Label.StartsWith(TEXT("PROVISIONAL_WallAdaptive_")))
+            {
+                ++AdaptiveCount;
+                const FVector Scale = It->GetActorScale3D();
+                MaxModuleLengthCm = FMath::Max(MaxModuleLengthCm, FMath::Abs(static_cast<double>(Scale.X)) * 100.0);
+                Require(It->GetActorEnableCollision(), TEXT("Adaptive wall collision disabled"));
+            }
+            else if (Label.StartsWith(TEXT("PROVISIONAL_Wall_")) || Label.StartsWith(TEXT("PROVISIONAL_WallFit_")))
+            {
+                ++OldCount;
+            }
+        }
+    }
+    Require(AdaptiveCount > 0, TEXT("Adaptive wall modules missing"));
+    Require(OldCount == 0, TEXT("Coarse wall actors remain"));
+    Require(MaxModuleLengthCm <= 250.01, TEXT("Adaptive module exceeds 2.5 m"));
+    TSharedRef<FJsonObject> Result = MakeShared<FJsonObject>();
+    Result->SetBoolField(TEXT("passed"), Errors.IsEmpty());
+    Result->SetBoolField(TEXT("historically_accepted"), false);
+    Result->SetNumberField(TEXT("landscape_count"), LandscapeCount);
+    Result->SetNumberField(TEXT("adaptive_module_count"), AdaptiveCount);
+    Result->SetNumberField(TEXT("old_coarse_wall_count"), OldCount);
+    Result->SetNumberField(TEXT("max_module_length_cm"), MaxModuleLengthCm);
+    TArray<TSharedPtr<FJsonValue>> ErrorValues;
+    for (const FString& Error : Errors) ErrorValues.Add(MakeShared<FJsonValueString>(Error));
+    Result->SetArrayField(TEXT("errors"), ErrorValues);
+    FString Out;
+    FJsonSerializer::Serialize(Result, TJsonWriterFactory<>::Create(&Out));
+    return Out;
 }
 
 bool UCantonTerrainLibrary::ConfigureDistrictLandscapeMaterial(UWorld* World, UMaterialInterface* Material)

@@ -2,19 +2,19 @@
   "passed": true,
   "errors": [],
   "exit_code": 0,
-  "elapsed_seconds": 24.96,
+  "elapsed_seconds": 24.87,
   "native_report": "QA/Canton_Continuation/Walled_Runtime_Visibility.json",
   "screenshot": "QA/Canton_Continuation/Walled_Runtime_Visibility.png",
   "pixels": {
     "width": 1280,
     "height": 720,
     "mean_rgb": [
-      143.98,
-      158.02,
-      158.82
+      145.04,
+      158.24,
+      157.38
     ],
-    "nonblack_fraction": 0.9997,
-    "distinct_sample_colors": 6011
+    "nonblack_fraction": 0.9996,
+    "distinct_sample_colors": 5905
   },
   "command": [
     "/Volumes/M2/Works/AuraProj/Saved/CantonContinuation/Stage/Mac/Aura.app/Contents/MacOS/Aura",

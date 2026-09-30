@@ -23,6 +23,10 @@ public:
     UFUNCTION(BlueprintCallable, Category="Canton|Editor")
     static bool AddDistrictEditLayers(UWorld* World);
     UFUNCTION(BlueprintCallable, Category="Canton|Editor")
+    static FString ApplyProvisionalWallFoundation(UWorld* World, const FString& ProfilePath);
+    UFUNCTION(BlueprintCallable, Category="Canton|Editor")
+    static FString ValidateProvisionalWallFoundation(UWorld* World);
+    UFUNCTION(BlueprintCallable, Category="Canton|Editor")
     static FString ValidateDistrictWorld(UWorld* World, const FString& RawHeightPath);
     UFUNCTION(BlueprintCallable, Category="Canton|Editor")
     static bool ConfigureDistrictLandscapeMaterial(UWorld* World, UMaterialInterface* Material);

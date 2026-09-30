@@ -45,9 +45,11 @@ def run():
     landmarks = [a for a in actors
                  if 'Canton.ProvisionalLandmarkPlacement' in [str(t) for t in a.tags]]
     fit_walls = [a for a in actors
-                 if 'Canton.ProvisionalWallGateFit' in [str(t) for t in a.tags]]
+                 if 'Canton.ProvisionalWallAdaptive' in [str(t) for t in a.tags]]
+    wall_validation = json.loads(unreal.CantonTerrainLibrary.validate_provisional_wall_foundation(reloaded))
+    assert wall_validation['passed'], wall_validation
     assert len(landmarks) == 9
-    assert len(fit_walls) == 99
+    assert len(fit_walls) > 0
     result = {
         'map': MAP,
         'saved_to_disk': True,
@@ -55,7 +57,8 @@ def run():
         'dirty_provisional_packages_saved': saved_names,
         'dirty_provisional_packages_remaining': remaining,
         'reloaded_landmarks': len(landmarks),
-        'reloaded_fit_wall_actors': len(fit_walls),
+        'reloaded_adaptive_wall_actors': len(fit_walls),
+        'reloaded_wall_validation': wall_validation,
         'passed': True,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

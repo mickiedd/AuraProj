@@ -6,7 +6,7 @@
   "source_landmark_placements": "QA/Canton_Continuation/Walled_Landmark_Placement.json",
   "source_landmark_register": "Data/Canton_WalledCity_Provisional_Landmark_Placements.json",
   "wall_width_cm": 400,
-  "wall_height_above_ground_cm": 500,
+  "wall_height_above_ground_cm": 1000,
   "wall_embed_below_ground_cm": 100,
   "transition_run_cm": 3000,
   "connector_piece_max_cm": 700,

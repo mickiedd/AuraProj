@@ -15,7 +15,7 @@
     "-nop4"
   ],
   "app": "Saved/CantonContinuation/Stage/Mac/Aura.app",
-  "binary_sha256": "df8cddb5848a679c6ea9a19c970c500f71522ccf2d2185cf538fef2b8d237732",
+  "binary_sha256": "8dbd16da64a4449591b6ab4493314dcc083c3329e41044f2aa6305d7dceb2794",
   "cef_runtime_link": "Contents/UE/Engine/Binaries/ThirdParty/CEF3/Mac/Chromium Embedded Framework.framework",
   "link_target": "../../../../../../Frameworks/Chromium Embedded Framework.framework",
   "normal_project_packaging_claim": false
